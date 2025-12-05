@@ -5,6 +5,7 @@
 
 import {
 	ObjectDefinitionAPI,
+	ObjectRelationshipAPI,
 	ObjectValidationRuleAPI,
 } from '@liferay/object-admin-rest-client-js';
 import {expect, mergeTests} from '@playwright/test';
@@ -38,7 +39,6 @@ const test = mergeTests(
 	featureFlagsTest({
 		'LPD-11235': {enabled: true},
 		'LPD-17564': {enabled: true},
-		'LPD-21926': {enabled: true},
 		'LPD-32050': {enabled: true},
 		'LPD-60546': {enabled: true},
 		'LPS-178052': {enabled: true},
@@ -968,6 +968,324 @@ test.describe('Numeric input field', () => {
 			objectValidationRule.id
 		);
 	});
+});
+
+test.describe('Select From List input field', () => {
+	test(
+		'The field is translated correctly when switching languages',
+		{tag: '@LPD-69588'},
+		async ({apiHelpers, page, pageEditorPage, site}) => {
+
+			// Create an object Fruit
+
+			const objectDefinitionAPIClient =
+				await apiHelpers.buildRestClient(ObjectDefinitionAPI);
+
+			const {body: fruitObjectDefinition} =
+				await objectDefinitionAPIClient.postObjectDefinition({
+					active: true,
+					enableLocalization: true,
+					externalReferenceCode: 'erc_fruit',
+					label: {en_US: 'Fruit'},
+					name: 'Fruit',
+					objectFields: [
+						{
+							DBType: 'String',
+							businessType: 'Text',
+							externalReferenceCode: 'erc_fruit_name',
+							indexed: true,
+							indexedAsKeyword: false,
+							indexedLanguageId: 'en_US',
+							label: {en_US: 'Name'},
+							localized: true,
+							name: 'name',
+						},
+					],
+					pluralLabel: {en_US: 'Fruits'},
+					scope: 'company',
+					status: {code: 0},
+				});
+
+			apiHelpers.data.push({
+				id: fruitObjectDefinition.id,
+				type: 'objectDefinition',
+			});
+
+			// Create an object Apple
+
+			const {body: appleObjectDefinition} =
+				await objectDefinitionAPIClient.postObjectDefinition({
+					active: true,
+					enableLocalization: true,
+					externalReferenceCode: 'erc_apple',
+					label: {en_US: 'Apple'},
+					name: 'Apple',
+					objectFields: [
+						{
+							DBType: 'String',
+							businessType: 'Text',
+							externalReferenceCode: 'erc_apple_type',
+							indexed: true,
+							indexedAsKeyword: false,
+							indexedLanguageId: 'en_US',
+							label: {en_US: 'Apple Type'},
+							localized: true,
+							name: 'appleType',
+						},
+					],
+					panelCategoryKey: 'control_panel.object',
+					pluralLabel: {
+						en_US: 'Apples',
+					},
+					scope: 'company',
+					status: {code: 0},
+					titleObjectFieldName: 'appleType',
+				});
+
+			apiHelpers.data.push({
+				id: appleObjectDefinition.id,
+				type: 'objectDefinition',
+			});
+
+			// Create a relationship between Fruit and Apple objects
+
+			const objectRelationshipApiClient =
+				await apiHelpers.buildRestClient(ObjectRelationshipAPI);
+
+			const {body: objectRelationship} =
+				await objectRelationshipApiClient.postObjectDefinitionByExternalReferenceCodeObjectRelationship(
+					appleObjectDefinition.externalReferenceCode,
+					{
+						label: {en_US: 'Fruit Types', es_ES: 'Tipos de Frutas'},
+						name: 'fruitTypes',
+						objectDefinitionExternalReferenceCode1:
+							appleObjectDefinition.externalReferenceCode,
+						objectDefinitionExternalReferenceCode2:
+							fruitObjectDefinition.externalReferenceCode,
+						objectDefinitionId1: appleObjectDefinition.id,
+						objectDefinitionId2: fruitObjectDefinition.id,
+						objectDefinitionName2: fruitObjectDefinition.name,
+						type: 'oneToMany',
+					}
+				);
+
+			apiHelpers.data.push({
+				id: objectRelationship.id,
+				type: 'objectRelationship',
+			});
+
+			// Set values for the Apple object entry
+
+			const englishText = 'Golden apple';
+			const spanishText = 'Manzana Golden';
+
+			await apiHelpers.objectEntry.postObjectEntry(
+				{
+					appleType_i18n: {
+						en_US: englishText,
+						es_ES: spanishText,
+					},
+				},
+				'c/' + appleObjectDefinition.name.toLowerCase() + 's'
+			);
+
+			// Create a page with a form mapped to 'Fruit' with the field 'Fruit Type'
+
+			const formId = getRandomString();
+
+			const formDefinition = getFormContainerDefinition({
+				id: formId,
+			});
+
+			const layout = await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([formDefinition]),
+				siteId: site.id,
+				title: getRandomString(),
+			});
+
+			await pageEditorPage.goto(layout, site.friendlyUrlPath);
+
+			await pageEditorPage.mapFormFragment(formId, 'Fruit', [
+				'Fruit Type',
+			]);
+
+			await pageEditorPage.publishPage();
+
+			// Check the translations
+
+			await page.goto(
+				`/web${site.friendlyUrlPath}${layout.friendlyUrlPath}`
+			);
+
+			await page.getByPlaceholder('Choose an option').click();
+
+			await expect(
+				page.getByRole('combobox', {name: 'Fruit Types'})
+			).toBeVisible();
+
+			await expect(
+				page.getByRole('option', {name: englishText})
+			).toBeVisible();
+
+			await expect(
+				page.getByRole('option', {name: spanishText})
+			).not.toBeVisible();
+
+			await page.goto('/es');
+			await page.goto(
+				`/web${site.friendlyUrlPath}${layout.friendlyUrlPath}`
+			);
+
+			await page.getByPlaceholder('Seleccione una opción').click();
+
+			await expect(
+				page.getByRole('combobox', {name: 'Tipos de Frutas'})
+			).toBeVisible();
+
+			await expect(
+				page.getByRole('option', {name: englishText})
+			).not.toBeVisible();
+
+			await expect(
+				page.getByRole('option', {name: spanishText})
+			).toBeVisible();
+
+			// change back to english language
+
+			await page.goto('/en');
+		}
+	);
+
+	test(
+		'Show all picklist options after having selected an option in a Display Page Template',
+		{tag: '@LPD-72323'},
+		async ({
+			apiHelpers,
+			displayPageTemplatesPage,
+			page,
+			pageEditorPage,
+			site,
+		}) => {
+
+			// Create an object with a picklist field
+
+			const objectDefinitionAPIClient =
+				await apiHelpers.buildRestClient(ObjectDefinitionAPI);
+
+			const listTypeDefinition =
+				await apiHelpers.listTypeAdmin.postRandomListTypeDefinition();
+
+			for (const option of ['Spain', 'Italy', 'Germany']) {
+				await apiHelpers.listTypeAdmin.postListTypeEntry({
+					key: option,
+					listTypeDefinitionExternalReferenceCode:
+						listTypeDefinition.externalReferenceCode,
+					name_i18n: {en_US: option},
+				});
+			}
+
+			const {body: objectDefinition} =
+				await objectDefinitionAPIClient.postObjectDefinition({
+					active: true,
+					externalReferenceCode: 'vegetableERC',
+					label: {en_US: 'Vegetable'},
+					name: 'Vegetable',
+					objectFields: [
+						{
+							DBType: 'String',
+							businessType: 'Picklist',
+							externalReferenceCode: 'originERC',
+							indexed: true,
+							indexedAsKeyword: false,
+							label: {en_US: 'Origin'},
+							listTypeDefinitionExternalReferenceCode:
+								listTypeDefinition.externalReferenceCode,
+							listTypeDefinitionId: listTypeDefinition.id,
+							name: 'origin',
+							required: false,
+						},
+					],
+					pluralLabel: {en_US: 'Vegetables'},
+					scope: 'company',
+					status: {code: 0},
+				});
+
+			apiHelpers.data.push({
+				id: objectDefinition.id,
+				type: 'objectDefinition',
+			});
+
+			// Create an entry for the object
+
+			const objectEntry = await apiHelpers.objectEntry.postObjectEntry(
+				{
+					origin_i18n: {
+						en_US: 'Spain',
+					},
+				},
+				'c/' + objectDefinition.name.toLowerCase() + 's'
+			);
+
+			// Create a display page
+
+			const displayPageTemplateName = getRandomString();
+
+			const className =
+				await apiHelpers.jsonWebServicesClassName.fetchClassName(
+					objectDefinition.className
+				);
+
+			await apiHelpers.jsonWebServicesLayoutPageTemplateEntry.addDisplayPageLayoutPageTemplateEntry(
+				{
+					classNameId: className.classNameId,
+					classTypeId: '0',
+					groupId: site.id,
+					name: displayPageTemplateName,
+				}
+			);
+
+			// Go to edit the display page template and add a From Container mapped to the Vegetable object
+
+			await displayPageTemplatesPage.goto(site.friendlyUrlPath);
+
+			await displayPageTemplatesPage.editTemplate(
+				displayPageTemplateName
+			);
+
+			await pageEditorPage.addFragment(
+				'Form Components',
+				'Form Container'
+			);
+
+			await pageEditorPage.mapFormFragment(
+				await pageEditorPage.getFragmentId('Form Container'),
+				'Vegetable (Default)'
+			);
+
+			await displayPageTemplatesPage.publishTemplate();
+
+			// Go to the object display page and change the origin in the picklist field
+
+			await page.goto(
+				`/web${site.friendlyUrlPath}/e/${displayPageTemplateName}/${className.classNameId}/${objectEntry.id}`
+			);
+
+			const selectField = page.getByPlaceholder('Choose an Option');
+			const option = page.getByRole('option');
+
+			await clickAndExpectToBeVisible({
+				autoClick: true,
+				target: option.filter({hasText: 'Italy'}),
+				trigger: selectField,
+			});
+
+			await selectField.click();
+
+			await expect(option.filter({hasText: 'Spain'})).toBeVisible();
+			await expect(option.filter({hasText: 'Italy'})).toBeVisible();
+			await expect(option.filter({hasText: 'Germany'})).toBeVisible();
+		}
+	);
 });
 
 test.describe('URL Video Previewer Fragment', () => {

@@ -4,7 +4,6 @@
  */
 
 import {MarketplaceSpringBootOAuth2} from './OAuth2Client';
-import {ProjectDataSource} from './types';
 
 class AnalyticsOAuth2 extends MarketplaceSpringBootOAuth2 {
 	async getPages(
@@ -13,27 +12,16 @@ class AnalyticsOAuth2 extends MarketplaceSpringBootOAuth2 {
 		return this.get<AnalyticsViews>(`/pages?${searchParams.toString()}`);
 	}
 
+	async getPlan(accountId: string) {
+		return this.get<{
+			productKey?: string;
+			productName: string;
+			productPurchaseKey?: string;
+		}>(`/plan/${accountId}`);
+	}
+
 	async getProject(projectId: string) {
 		return this.get<AnalyticsProject>(`/project/${projectId}`);
-	}
-
-	async getProjectEmailAddressDomains(projectId: string) {
-		return this.get<string[]>(
-			`/project/${projectId}/email-address-domains`
-		);
-	}
-
-	async getProjectDataSourceToken(projectId: string) {
-		return this.get<Promise<string>>(
-			`/project/${projectId}/data-source/token`,
-			{
-				parseResponse: (response) => response.text(),
-			}
-		);
-	}
-
-	async getProjectDataSource(projectId: string) {
-		return this.get<ProjectDataSource>(`/project/${projectId}/data-source`);
 	}
 
 	async provisioning(

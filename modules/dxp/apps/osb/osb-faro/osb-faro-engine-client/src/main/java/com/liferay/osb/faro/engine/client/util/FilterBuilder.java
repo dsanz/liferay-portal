@@ -117,6 +117,13 @@ public class FilterBuilder implements Cloneable {
 	public void addSearchFilter(
 		String query, List<String> fieldNames, String fieldNameContext) {
 
+		addSearchFilter(query, fieldNames, fieldNameContext, false);
+	}
+
+	public void addSearchFilter(
+		String query, List<String> fieldNames, String fieldNameContext,
+		boolean required) {
+
 		if (Validator.isNull(query) || fieldNames.isEmpty()) {
 			return;
 		}
@@ -127,6 +134,12 @@ public class FilterBuilder implements Cloneable {
 
 		if ((keywords.length > 1) && fieldNames.containsAll(_nameFieldNames)) {
 			nameSearch = true;
+		}
+
+		List<String> filters = _filters;
+
+		if (required) {
+			filters = _requiredFilters;
 		}
 
 		if (nameSearch) {
@@ -145,19 +158,19 @@ public class FilterBuilder implements Cloneable {
 				fieldNameFilterBuilder.addFilter(keywordsFilterBuilder, true);
 			}
 
-			_filters.add(fieldNameFilterBuilder.build());
+			filters.add(fieldNameFilterBuilder.build());
 		}
+
+		FilterBuilder fieldNameFilterBuilder = new FilterBuilder();
 
 		for (String fieldName : fieldNames) {
 			if (!nameSearch || !_nameFieldNames.contains(fieldName)) {
-				FilterBuilder fieldNameFilterBuilder = new FilterBuilder();
-
 				fieldNameFilterBuilder.addSearchFilter(
-					query, fieldName, fieldNameContext);
-
-				_filters.add(fieldNameFilterBuilder.build());
+					query, fieldName, fieldNameContext, false);
 			}
 		}
+
+		filters.add(fieldNameFilterBuilder.build());
 	}
 
 	public void addSearchFilter(String query, String fieldName) {
@@ -167,12 +180,19 @@ public class FilterBuilder implements Cloneable {
 	public void addSearchFilter(
 		String query, String fieldName, String fieldNameContext) {
 
+		addSearchFilter(query, fieldName, fieldNameContext, false);
+	}
+
+	public void addSearchFilter(
+		String query, String fieldName, String fieldNameContext,
+		boolean required) {
+
 		String[] keywords = StringUtil.split(query, StringPool.SPACE);
 
 		for (String keyword : keywords) {
 			addFilter(
 				FilterUtil.getFieldName(fieldName, fieldNameContext),
-				FilterConstants.STRING_FUNCTION_CONTAINS, keyword);
+				FilterConstants.STRING_FUNCTION_CONTAINS, keyword, required);
 		}
 	}
 

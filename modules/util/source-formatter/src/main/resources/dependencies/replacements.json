@@ -184,7 +184,7 @@
 		"classNames": [
 			"HttpServletRequest"
 		],
-		"from": "regex:\t*\\w+\\.setAttribute\\(InfoDisplayWebKeys\\.INFO_ITEM_FIELD_VALUES_PROVIDER,.*?\\);\n",
+		"from": "regex:\t*(?s)\\b\\w+\\s*\\.setAttribute\\s*\\(\\s*InfoDisplayWebKeys\\s*\\.INFO_ITEM_FIELD_VALUES_PROVIDER\\s*,.*?\\);\n",
 		"issueKey": "LPD-8022",
 		"skipParametersValidation": true,
 		"to": ""
@@ -2988,6 +2988,19 @@
 	},
 	{
 		"classNames": [
+			"UserLocalServiceWrapper"
+		],
+		"classStructurePattern": true,
+		"issueKey": "LPD-28357",
+		"methodsToFormat": [
+			{
+				"from": "regex:@Override\\s+public void (?<methodName>addGroupUser|addGroupUsers)(?<methodDeclaration>[^{]+?)\\{(?<methodContent>[\\s\\S]*?)(?<methodReturn>(?<!return\\s)super\\.\\1\\s*\\([^)]*\\);)",
+				"to": "@Override\n\tpublic boolean ${methodName}${methodDeclaration}{${methodContent}return ${methodReturn}"
+			}
+		]
+	},
+	{
+		"classNames": [
 			"StrutsAction"
 		],
 		"classStructurePattern": true,
@@ -3378,6 +3391,19 @@
 	},
 	{
 		"classNames": [
+			"PDFProcessor"
+		],
+		"classStructurePattern": true,
+		"issueKey": "LPD-30560",
+		"newImports": [
+			"com.liferay.document.library.kernel.processor.PDFProcessorUtil"
+		],
+		"newMethods": [
+			"@Override\n\tpublic void generatePreviews() {\n\t\treturn PDFProcessorUtil.getPDFProcessor().generatePreviews();\n\t}"
+		]
+	},
+	{
+		"classNames": [
 			"UserLocalService",
 			"UserLocalServiceUtil",
 			"UserService",
@@ -3678,6 +3704,18 @@
 	},
 	{
 		"classNames": [
+			"Address",
+			"EmailAddress",
+			"OrgLabor",
+			"Phone",
+			"Website"
+		],
+		"from": "regex:(?<variableName>\\w+)\\.(?<prefixMethodName>get|set)Type(?<suffix>Id)?",
+		"issueKey": "LPD-36750",
+		"to": "${variableName}.${prefixMethodName}ListType${suffix}"
+	},
+	{
+		"classNames": [
 			"Contact"
 		],
 		"from": "regex:(?<variableName>\\w+)\\.(?<prefixMethodName>getPrefix|getSuffix|setPrefix|setSuffix)Id",
@@ -3689,18 +3727,6 @@
 			"Organization"
 		],
 		"from": "regex:(?<variableName>\\w+)\\.(?<prefixMethodName>getStatus|setStatus)Id",
-		"issueKey": "LPD-36750",
-		"to": "${variableName}.${prefixMethodName}ListTypeId"
-	},
-	{
-		"classNames": [
-			"Address",
-			"EmailAddress",
-			"OrgLabor",
-			"Phone",
-			"Website"
-		],
-		"from": "regex:(?<variableName>\\w+)\\.(?<prefixMethodName>get|set)TypeId",
 		"issueKey": "LPD-36750",
 		"to": "${variableName}.${prefixMethodName}ListTypeId"
 	},
@@ -4889,6 +4915,24 @@
 	},
 	{
 		"classNames": [
+			"DDMTemplateLocalService",
+			"DDMTemplateLocalServiceUtil"
+		],
+		"from": "addTemplate(long param, long param, long param, long param, long param, String param, Map<Locale, String> param, Map<Locale, String> param, String param, String param, String param, String param, boolean param, boolean param, String param, File param, ServiceContext param)",
+		"issueKey": "LPD-58228",
+		"to": "addTemplate(null, param#0#, param#1#, param#2#, param#3#, param#4#, param#5#, param#6#, param#7#, param#8#, param#9#, param#10#, param#11#, param#12#, param#13#, param#14#, param#15#, param#16#)"
+	},
+	{
+		"classNames": [
+			"DDMTemplateService",
+			"DDMTemplateServiceUtil"
+		],
+		"from": "addTemplate(long param, long param, long param, long param, String param, Map<Locale, String> param, Map<Locale, String> param, String param, String param, String param, String param, boolean param, boolean param, String param, File param, ServiceContext param)",
+		"issueKey": "LPD-58228",
+		"to": "addTemplate(null, param#0#, param#1#, param#2#, param#3#, param#4#, param#5#, param#6#, param#7#, param#8#, param#9#, param#10#, param#11#, param#12#, param#13#, param#14#, param#15#)"
+	},
+	{
+		"classNames": [
 			"LayoutCopyHelper"
 		],
 		"from": "copyLayout",
@@ -4902,6 +4946,15 @@
 		"from": "setWithSafeCloseable",
 		"issueKey": "LPD-58435",
 		"to": "setCompanyIdWithSafeCloseable"
+	},
+	{
+		"classNames": [
+			"LayoutPageTemplateStructureLocalService",
+			"LayoutPageTemplateStructureLocalServiceUtil"
+		],
+		"from": "fetchLayoutPageTemplateStructure(long paramName, long paramName, boolean paramName)",
+		"issueKey": "LPD-58976",
+		"to": "fetchLayoutPageTemplateStructure(param#0#, param#1#)"
 	},
 	{
 		"from": "PropsValues.XML_SITEMAP_INDEX_ENABLED",
@@ -4923,6 +4976,92 @@
 		"from": "PluginPackage.REPOSITORY_XML_FILENAME_EXTENSION",
 		"issueKey": "LPD-61573",
 		"to": "\"xml\""
+	},
+	{
+		"classNames": [
+			"JournalArticleLocalService",
+			"JournalArticleLocalServiceUtil",
+			"JournalArticleService",
+			"JournalArticleServiceUtil"
+		],
+		"from": "getArticlesByStructureId(long param, long param, String param, int param, int param, int param, OrderByComparator<JournalArticle> param)",
+		"issueKey": "LPD-61670",
+		"newImports": [
+			"com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil",
+			"com.liferay.portal.kernel.util.PortalUtil"
+		],
+		"to": "getArticlesByStructureId(param#0#, param#1#, DDMStructureLocalServiceUtil.getStructure(param#0#, PortalUtil.getClassNameId(JournalArticle.class), param#2#).getStructureId(), param#3#, param#4#, param#5#, param#6#)"
+	},
+	{
+		"classNames": [
+			"JournalArticleLocalService",
+			"JournalArticleLocalServiceUtil",
+			"JournalArticleService",
+			"JournalArticleServiceUtil"
+		],
+		"from": "getArticlesByStructureId(long param, long param, String param, Locale param, int param, int param, int param, OrderByComparator<JournalArticle> param)",
+		"issueKey": "LPD-61670",
+		"newImports": [
+			"com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil",
+			"com.liferay.portal.kernel.util.PortalUtil"
+		],
+		"to": "getArticlesByStructureId(param#0#, param#1#, DDMStructureLocalServiceUtil.getStructure(param#0#, PortalUtil.getClassNameId(JournalArticle.class), param#2#).getStructureId(), param#3#, param#4#, param#5#, param#6#, param#7#)"
+	},
+	{
+		"classNames": [
+			"JournalArticleLocalService",
+			"JournalArticleLocalServiceUtil",
+			"JournalArticleService",
+			"JournalArticleServiceUtil"
+		],
+		"from": "getArticlesByStructureId(long param, String param, int param, int param, int param, OrderByComparator<JournalArticle> param)",
+		"issueKey": "LPD-61670",
+		"newImports": [
+			"com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil",
+			"com.liferay.portal.kernel.util.PortalUtil"
+		],
+		"to": "getArticlesByStructureId(param#0#, DDMStructureLocalServiceUtil.getStructure(param#0#, PortalUtil.getClassNameId(JournalArticle.class), param#1#).getStructureId(), param#2#, param#3#, param#4#, param#5#)"
+	},
+	{
+		"classNames": [
+			"JournalArticleLocalService",
+			"JournalArticleLocalServiceUtil",
+			"JournalArticleService",
+			"JournalArticleServiceUtil"
+		],
+		"from": "getArticlesByStructureId(long param, String param, int param, int param, OrderByComparator<JournalArticle> param)",
+		"issueKey": "LPD-61670",
+		"newImports": [
+			"com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil",
+			"com.liferay.portal.kernel.util.PortalUtil"
+		],
+		"to": "getArticlesByStructureId(param#0#, DDMStructureLocalServiceUtil.getStructure(param#0#, PortalUtil.getClassNameId(JournalArticle.class), param#1#).getStructureId(), param#2#, param#3#, param#4#)"
+	},
+	{
+		"classNames": [
+			"JournalArticleLocalService",
+			"JournalArticleLocalServiceUtil",
+			"JournalArticleService",
+			"JournalArticleServiceUtil"
+		],
+		"from": "getArticlesByStructureId(long param, String param, Locale param, int param, int param, int param, OrderByComparator<JournalArticle> param)",
+		"issueKey": "LPD-61670",
+		"newImports": [
+			"com.liferay.dynamic.data.mapping.service.DDMStructureLocalServiceUtil",
+			"com.liferay.portal.kernel.util.PortalUtil"
+		],
+		"to": "getArticlesByStructureId(param#0#, DDMStructureLocalServiceUtil.getStructure(param#0#, PortalUtil.getClassNameId(JournalArticle.class), param#1#).getStructureId(), param#2#, param#3#, param#4#, param#5#, param#6#)"
+	},
+	{
+		"classNames": [
+			"CommercePriceEntryLocalServiceUtil"
+		],
+		"from": "fetchCommercePriceEntry(long paramName, long paramName)",
+		"issueKey": "LPD-62914",
+		"newImports": [
+			"com.liferay.petra.string.StringPool"
+		],
+		"to": "fetchCommercePriceEntry(param#1#, null, StringPool.BLANK)"
 	},
 	{
 		"from": "PropsFiles.CAPTCHA",
@@ -4994,6 +5133,15 @@
 			"com.liferay.petra.string.StringPool"
 		],
 		"to": "fetchCommercePriceEntry(param#0#, param#1#, param#2#, StringPool.BLANK)"
+	},
+	{
+		"from": "regex:MultiVMPoolUtil\\s*.\\s*getPortalCache\\(\\s*(?<prefixMethodName>[\\s\\S]*?)\\)",
+		"issueKey": "LPS-153962",
+		"newImports": [
+			"com.liferay.portal.kernel.cache.PortalCacheHelperUtil",
+			"com.liferay.portal.kernel.cache.PortalCacheManagerNames"
+		],
+		"to": "PortalCacheHelperUtil.getPortalCache(PortalCacheManagerNames.MULTI_VM, ${prefixMethodName})"
 	},
 	{
 		"from": "CookieKeys.COMMERCE_CONTINUE_AS_GUEST",

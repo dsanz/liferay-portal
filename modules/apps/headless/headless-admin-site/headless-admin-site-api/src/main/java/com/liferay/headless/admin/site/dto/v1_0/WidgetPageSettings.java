@@ -414,7 +414,7 @@ public class WidgetPageSettings extends PageSettings implements Serializable {
 			sb.append(hiddenFromNavigation);
 		}
 
-		NavigationSettings navigationSettings = getNavigationSettings();
+		SitePageNavigationSettings navigationSettings = getNavigationSettings();
 
 		if (navigationSettings != null) {
 			if (sb.length() > 1) {
@@ -450,22 +450,6 @@ public class WidgetPageSettings extends PageSettings implements Serializable {
 			sb.append(priority);
 		}
 
-		String queryString = getQueryString();
-
-		if (queryString != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"queryString\": ");
-
-			sb.append("\"");
-
-			sb.append(_escape(queryString));
-
-			sb.append("\"");
-		}
-
 		SEOSettings seoSettings = getSeoSettings();
 
 		if (seoSettings != null) {
@@ -488,9 +472,7 @@ public class WidgetPageSettings extends PageSettings implements Serializable {
 			sb.append("\"type\": ");
 
 			sb.append("\"");
-
 			sb.append(type);
-
 			sb.append("\"");
 		}
 

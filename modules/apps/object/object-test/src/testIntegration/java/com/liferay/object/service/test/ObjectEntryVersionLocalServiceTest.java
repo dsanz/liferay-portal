@@ -19,6 +19,7 @@ import com.liferay.object.related.models.test.util.ObjectEntryTestUtil;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectEntryVersionLocalService;
+import com.liferay.object.util.comparator.ObjectEntryVersionVersionComparator;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.audit.AuditMessage;
@@ -52,6 +53,7 @@ import com.liferay.portal.kernel.workflow.WorkflowDefinition;
 import com.liferay.portal.kernel.workflow.WorkflowTask;
 import com.liferay.portal.kernel.workflow.WorkflowTaskManager;
 import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -64,6 +66,7 @@ import java.sql.Date;
 
 import java.time.LocalDate;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -84,7 +87,9 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 /**
  * @author Feliphe Marinho
  */
-@FeatureFlag("LPD-17564")
+@FeatureFlags(
+	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-32050")}
+)
 @RunWith(Arquillian.class)
 public class ObjectEntryVersionLocalServiceTest {
 
@@ -99,8 +104,8 @@ public class ObjectEntryVersionLocalServiceTest {
 	public static void setUpClass() throws Exception {
 		_objectDefinition =
 			_objectDefinitionLocalService.addCustomObjectDefinition(
-				TestPropsValues.getUserId(), 0, null, false, true, false, true,
-				false, true, false, false, true, null,
+				null, TestPropsValues.getUserId(), 0, null, false, true, false,
+				true, true, true, false, false, true, null,
 				RandomTestUtil.randomLocaleStringMap(),
 				"A" + StringUtil.randomString(), null, null,
 				RandomTestUtil.randomLocaleStringMap(), true,
@@ -544,9 +549,6 @@ public class ObjectEntryVersionLocalServiceTest {
 			).build(),
 			serviceContext);
 
-		_workflowDefinitionLinkLocalService.deleteWorkflowDefinitionLink(
-			workflowDefinitionLink);
-
 		Assert.assertTrue(objectEntry.isPending());
 		Assert.assertEquals(2, objectEntry.getVersion());
 
@@ -570,6 +572,9 @@ public class ObjectEntryVersionLocalServiceTest {
 		_objectDefinition =
 			_objectDefinitionLocalService.updateObjectDefinition(
 				_objectDefinition);
+
+		_workflowDefinitionLinkLocalService.deleteWorkflowDefinitionLink(
+			workflowDefinitionLink);
 	}
 
 	@Test
@@ -812,6 +817,64 @@ public class ObjectEntryVersionLocalServiceTest {
 	}
 
 	@Test
+	public void testGetObjectEntryVersions() throws Exception {
+		_configurationProvider.saveCompanyConfiguration(
+			ObjectEntryVersionConfiguration.class,
+			TestPropsValues.getCompanyId(),
+			HashMapDictionaryBuilder.<String, Object>put(
+				"maximumRetentionPeriod", 1
+			).put(
+				"maximumVersionsPerEntry", 10
+			).build());
+
+		ObjectEntry objectEntry = ObjectEntryTestUtil.addObjectEntry(
+			0, _objectDefinition.getObjectDefinitionId(),
+			HashMapBuilder.<String, Serializable>put(
+				"textObjectFieldName", "textObjectFieldValue1"
+			).build());
+
+		List<ObjectEntryVersion> expectedObjectEntryVersions =
+			_createObjectEntryVersions(10, objectEntry);
+
+		_assertEquals(
+			expectedObjectEntryVersions.subList(0, 1),
+			_objectEntryVersionLocalService.getObjectEntryVersions(
+				objectEntry.getObjectEntryId()));
+
+		_updateObjectEntry(9, objectEntry, 2);
+
+		_assertEquals(
+			expectedObjectEntryVersions,
+			_objectEntryVersionLocalService.getObjectEntryVersions(
+				objectEntry.getObjectEntryId()));
+		_assertEquals(
+			expectedObjectEntryVersions.subList(0, 5),
+			_objectEntryVersionLocalService.getObjectEntryVersions(
+				objectEntry.getObjectEntryId(), 0, 5));
+		_assertEquals(
+			expectedObjectEntryVersions.subList(5, 10),
+			_objectEntryVersionLocalService.getObjectEntryVersions(
+				objectEntry.getObjectEntryId(), 5, 10));
+		_assertEquals(
+			Collections.emptyList(),
+			_objectEntryVersionLocalService.getObjectEntryVersions(
+				objectEntry.getObjectEntryId(), 10, 11));
+		_assertEquals(
+			expectedObjectEntryVersions,
+			_objectEntryVersionLocalService.getObjectEntryVersions(
+				objectEntry.getObjectEntryId(), 0, 10,
+				ObjectEntryVersionVersionComparator.getInstance(true)));
+
+		Collections.reverse(expectedObjectEntryVersions);
+
+		_assertEquals(
+			expectedObjectEntryVersions,
+			_objectEntryVersionLocalService.getObjectEntryVersions(
+				objectEntry.getObjectEntryId(), 0, 10,
+				ObjectEntryVersionVersionComparator.getInstance(false)));
+	}
+
+	@Test
 	public void testIsLatestObjectEntryVersion() throws Exception {
 		ObjectEntry objectEntry = ObjectEntryTestUtil.addObjectEntry(
 			0, _objectDefinition.getObjectDefinitionId(),
@@ -920,6 +983,23 @@ public class ObjectEntryVersionLocalServiceTest {
 		objectEntryVersion.setStatus(status);
 
 		return objectEntryVersion;
+	}
+
+	private List<ObjectEntryVersion> _createObjectEntryVersions(
+		int count, ObjectEntry objectEntry) {
+
+		List<ObjectEntryVersion> objectEntryVersions = new ArrayList<>(count);
+
+		for (int i = 1; i <= count; i++) {
+			objectEntryVersions.add(
+				_createObjectEntryVersion(
+					objectEntry.getExternalReferenceCode(),
+					JSONUtil.put(
+						"textObjectFieldName", "textObjectFieldValue" + i),
+					WorkflowConstants.STATUS_APPROVED, i));
+		}
+
+		return objectEntryVersions;
 	}
 
 	private Date _getPastDate(int months) {
@@ -1191,6 +1271,21 @@ public class ObjectEntryVersionLocalServiceTest {
 
 		_objectEntryVersionLocalService.updateObjectEntryVersion(
 			objectEntryVersion);
+	}
+
+	private void _updateObjectEntry(
+			int count, ObjectEntry objectEntry, int start)
+		throws Exception {
+
+		for (int i = start; i < (start + count); i++) {
+			_objectEntryLocalService.updateObjectEntry(
+				TestPropsValues.getUserId(), objectEntry.getObjectEntryId(),
+				objectEntry.getObjectEntryFolderId(),
+				HashMapBuilder.<String, Serializable>put(
+					"textObjectFieldName", "textObjectFieldValue" + i
+				).build(),
+				ServiceContextTestUtil.getServiceContext());
+		}
 	}
 
 	@Inject

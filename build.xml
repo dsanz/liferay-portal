@@ -389,27 +389,25 @@ message.
 				<if>
 					<equals arg1="${marker.files.lfrbuild.ci.enabled}" arg2="true" />
 					<then>
-						<sequential>
-							<for param="lfrbuild.file">
-								<fileset
-									dir="${project.dir}/modules"
-									includes="**/.lfrbuild-ci"
+						<dirset
+							dir="${project.dir}/modules"
+							id="lfrbuild-ci.dirs"
+						>
+							<present targetdir="${project.dir}/modules">
+								<globmapper
+									from="*"
+									to="*/.lfrbuild-ci"
 								/>
-								<sequential>
-									<local name="lfrbuild.dir" />
+							</present>
+						</dirset>
 
-									<antelope:stringutil property="lfrbuild.dir" string="@{lfrbuild.file}">
-										<antelope:replace regex="\\" replacement="/" />
-									</antelope:stringutil>
+						<pathconvert pathsep=" " property="ci.build.module.deploy.tasks" refid="lfrbuild-ci.dirs">
+							<regexpmapper from=".*modules/([^/]+)/([^/]+)$" to=":\1:\2:deploy" />
+						</pathconvert>
 
-									<antelope:stringutil property="lfrbuild.dir" string="${lfrbuild.dir}">
-										<antelope:replace regex="(.+)\/\.lfrbuild-ci" replacement="$1" />
-									</antelope:stringutil>
-
-									<gradle-execute dir="${lfrbuild.dir}" task="deploy" />
-								</sequential>
-							</for>
-						</sequential>
+						<gradle-execute dir="${project.dir}/modules" task="${ci.build.module.deploy.tasks}">
+							<arg value="--parallel" />
+						</gradle-execute>
 					</then>
 				</if>
 			</then>
@@ -1089,6 +1087,42 @@ This target has been renamed to "snapshot-bundle". Please call "snapshot-bundle"
 					</then>
 				</if>
 			</then>
+			<elseif>
+				<equals arg1="${app.server.type}" arg2="weblogic" />
+				<then>
+					<replace
+						file="${app.server.weblogic.portal.dir}/WEB-INF/web.xml"
+					>
+						<replacetoken><![CDATA[version="6.0"]]></replacetoken>
+						<replacevalue><![CDATA[version="5.0"]]></replacevalue>
+					</replace>
+
+					<replace
+						file="${app.server.weblogic.portal.dir}/WEB-INF/web.xml"
+					>
+						<replacetoken><![CDATA[https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd]]></replacetoken>
+						<replacevalue><![CDATA[https://jakarta.ee/xml/ns/jakartaee/web-app_5_0.xsd]]></replacevalue>
+					</replace>
+
+					<touch file="${app.server.weblogic.portal.dir}/WEB-INF/REDEPLOY" />
+
+					<!-- Temporary workaround for LPD-68782 -->
+
+					<unjar
+						dest="temp-unjar"
+						src="${app.server.shielded-container-lib.portal.dir}/portal-kernel.jar"
+					/>
+
+					<jar
+						basedir="temp-unjar"
+						destfile="${app.server.shielded-container-lib.portal.dir}/portal-kernel.jar"
+						excludes="jakarta/**/*.class"
+						manifest="temp-unjar/META-INF/MANIFEST.MF"
+					/>
+
+					<delete dir="temp-unjar" />
+				</then>
+			</elseif>
 		</if>
 	</target>
 

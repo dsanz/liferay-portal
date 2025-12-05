@@ -6,7 +6,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 
 import {LAYOUT_DATA_ITEM_TYPES} from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/config/constants/layoutDataItemTypes';
 import {StoreAPIContextProvider} from '../../../../../../src/main/resources/META-INF/resources/page_editor/app/contexts/StoreContext';
@@ -46,8 +46,9 @@ const renderComponent = ({rules = []} = {}) => {
 			getState={() => ({
 				fragmentEntryLinks: [],
 				layoutData: {
+					deletedItems: [],
 					items: {
-						itemId: {
+						item1: {
 							config: {
 								name: 'containercillo',
 							},
@@ -64,7 +65,7 @@ const renderComponent = ({rules = []} = {}) => {
 	);
 
 	act(() => {
-		jest.runAllTimers();
+		jest.advanceTimersByTime(100);
 	});
 };
 
@@ -148,7 +149,7 @@ describe('RulesSidebar', () => {
 		renderComponent();
 
 		selectPickerOption('select-action', 'show');
-		selectPickerOption('select-fragment', 'containercillo');
+		selectPickerOption('select-fragment-for-the-action', 'containercillo');
 
 		expect(
 			screen.getByText('containercillo', {selector: '[role="combobox"]'})
@@ -163,7 +164,7 @@ describe('RulesSidebar', () => {
 		selectPickerOption('select-user', 'user1');
 
 		selectPickerOption('select-action', 'show');
-		selectPickerOption('select-fragment', 'containercillo');
+		selectPickerOption('select-fragment-for-the-action', 'containercillo');
 
 		fireEvent.click(screen.getByText('save'));
 
@@ -209,7 +210,7 @@ describe('RulesSidebar', () => {
 		renderComponent();
 
 		selectPickerOption('select-action', 'show');
-		selectPickerOption('select-fragment', 'containercillo');
+		selectPickerOption('select-fragment-for-the-action', 'containercillo');
 
 		act(() => {
 			fireEvent.click(screen.getByTitle('delete-action'));
@@ -218,6 +219,8 @@ describe('RulesSidebar', () => {
 		expect(
 			screen.queryByText('select-item-for-the-action')
 		).not.toBeInTheDocument();
-		expect(screen.queryByText('select-fragment')).not.toBeInTheDocument();
+		expect(
+			screen.queryByText('select-fragment-for-the-action')
+		).not.toBeInTheDocument();
 	});
 });

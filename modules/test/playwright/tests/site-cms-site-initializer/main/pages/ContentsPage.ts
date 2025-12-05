@@ -30,6 +30,12 @@ type Field =
 			nth?: number;
 			type: 'Checkbox';
 			value: boolean;
+	  }
+	| {
+			label: string;
+			nth?: number;
+			type: 'Picklist';
+			value: string;
 	  };
 
 export class ContentsPage {
@@ -114,7 +120,7 @@ export class ContentsPage {
 		await this.page.getByLabel('NameRequired').fill(folderName);
 
 		if (spaceName) {
-			await this.page.getByLabel('SpaceRequired').click();
+			await this.page.getByLabel('SpaceMandatory').click();
 			await this.page.getByRole('option', {name: spaceName}).click();
 		}
 
@@ -126,7 +132,8 @@ export class ContentsPage {
 	async deleteContent(title: string, recycleBinEnabled: boolean = true) {
 		const card = this.page
 			.locator('tr', {hasText: title})
-			.or(this.page.locator('.card-row', {hasText: title}));
+			.or(this.page.locator('.card-row', {hasText: title}))
+			.first();
 
 		this.page.once('dialog', async (dialog) => {
 			await dialog.accept();
@@ -184,6 +191,14 @@ export class ContentsPage {
 			else if (field.type === 'Checkbox') {
 				await element.setChecked(field.value);
 			}
+			else if (field.type === 'Picklist') {
+				await element.clear();
+				await clickAndExpectToBeVisible({
+					autoClick: true,
+					target: this.page.getByRole('option', {name: field.value}),
+					trigger: element,
+				});
+			}
 		}
 	}
 
@@ -194,6 +209,16 @@ export class ContentsPage {
 			.click();
 
 		await this.page.getByPlaceholder('Search').waitFor({state: 'visible'});
+	}
+
+	async openSchedulePublication() {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {
+				name: 'Schedule Publication',
+			}),
+			trigger: this.page.getByTitle('Publish Options'),
+		});
 	}
 
 	async openSidePanel(panelName: SidePanelName = 'General') {
@@ -211,6 +236,17 @@ export class ContentsPage {
 		});
 	}
 
+	async saveContentAsDraft() {
+		await clickAndExpectToBeVisible({
+			target: this.newButton,
+			timeout: 5000,
+			trigger: this.page.getByRole('button', {
+				exact: true,
+				name: 'Save as Draft',
+			}),
+		});
+	}
+
 	async translateContent(title: string) {
 		const card = this.page
 			.locator('tr', {hasText: title})
@@ -223,7 +259,41 @@ export class ContentsPage {
 		});
 
 		await expect(
-			this.page.locator('.management-bar').getByText('Publish')
+			this.page.locator('button[type="submit"]', {hasText: 'Publish'})
 		).toBeVisible();
+	}
+
+	async viewContent(title: string) {
+		const card = this.page
+			.locator('tr', {hasText: title})
+			.or(this.page.locator('.card-row', {hasText: title}));
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {
+				exact: true,
+				name: 'View',
+			}),
+			trigger: card.locator('button'),
+		});
+
+		await expect(
+			this.page.getByRole('dialog', {name: title})
+		).toBeVisible();
+	}
+
+	async viewShowDetails(title: string) {
+		const card = this.page
+			.locator('tr', {hasText: title})
+			.or(this.page.locator('.card-row', {hasText: title}));
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {
+				exact: true,
+				name: 'Show Details',
+			}),
+			trigger: card.locator('button'),
+		});
 	}
 }

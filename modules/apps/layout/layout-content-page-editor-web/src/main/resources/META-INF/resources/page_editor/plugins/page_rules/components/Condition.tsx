@@ -187,11 +187,17 @@ function FormFragmentTypeSelectors({
 	onConditionChange: (condition: Condition) => void;
 	sendMessage: (message: string) => void;
 }) {
+	const selectedKey = inputFragmentItems.some(
+		(item) => item.value === condition.field
+	)
+		? condition.field
+		: undefined;
+
 	return (
 		<>
 			<RuleSelect
 				aria-label={sub(
-					Liferay.Language.get('select-x'),
+					Liferay.Language.get('select-x-for-the-condition'),
 					Liferay.Language.get('fragment')
 				)}
 				items={inputFragmentItems}
@@ -202,7 +208,7 @@ function FormFragmentTypeSelectors({
 						options: undefined,
 					});
 				}}
-				selectedKey={condition.field}
+				selectedKey={selectedKey}
 			/>
 
 			{condition.field ? (

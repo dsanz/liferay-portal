@@ -245,9 +245,10 @@ export interface IListSchema {
 	description: string;
 	image?: string;
 	sticker?: string;
-	symbol: string;
+	symbol?: string;
 	title: string;
 	titleRenderer: IListTitleRenderer;
+	tooltip?: string;
 }
 
 export type ISchema = ITableSchema | ICardSchema | IListSchema;
@@ -281,7 +282,7 @@ export interface IFrontendDataSetProps {
 	apiURL?: string;
 	appURL?: string;
 	bulkActions?: any[];
-	configInURLSettings?: EConfigInURLBehavior;
+	configInURLBehavior?: EConfigInURLBehavior;
 	creationMenu?: {
 		loadData?: Function;
 		primaryItems: Array<ICreationActionItem>;
@@ -302,9 +303,11 @@ export interface IFrontendDataSetProps {
 	};
 	fileDropSettings?: IFileDropSettings;
 	filters?: Array<any>;
+	filtersGroups?: Array<any>;
 	formId?: string;
 	formName?: string;
 	header?: IHeader;
+	hideManagementBarInEmptyState?: boolean;
 	id: string;
 	infoPanelComponent?: React.ComponentType<IInfoPanelComponent>;
 	inlineAddingSettings?: {

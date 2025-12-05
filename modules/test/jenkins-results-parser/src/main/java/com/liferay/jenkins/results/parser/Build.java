@@ -177,6 +177,8 @@ public interface Build {
 
 	public boolean hasMaximumInvocationCount();
 
+	public boolean isBuildCached();
+
 	public boolean isBuildCachingEnabled();
 
 	public boolean isBuildModified();
@@ -202,6 +204,8 @@ public interface Build {
 	public void setArchiveName(String archiveName);
 
 	public void setArchiveRootDir(File archiveRootDir);
+
+	public void setBuildCached(boolean buildCached);
 
 	public void setBuildURL(String buildURL);
 

@@ -157,6 +157,10 @@ components:
                 parameterRequired:
                     readOnly: true
                     type: boolean
+                permissions:
+                    items:
+                        type: permission
+                    type: array
                 pluralLabel:
                     additionalProperties:
                         type: string
@@ -392,7 +396,7 @@ components:
                     format: int32
                     type: integer
                 type:
-                    enum: [categorization, regular]
+                    enum: [categorization, regular, seo]
                     type: string
             type: object
         ObjectLayoutColumn:
@@ -709,7 +713,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.object.admin.rest.client', and version '1.0.82'."
+        'com.liferay.object.admin.rest.client', and version '1.0.85'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html

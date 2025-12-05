@@ -7,6 +7,7 @@ import {Locator, Page, expect} from '@playwright/test';
 
 export class DataSetPage {
 	readonly activeViewSelector: Locator;
+	readonly assetLink: (assetName: string) => Locator;
 	readonly page: Page;
 	readonly table: {
 		bodyRows: Locator;
@@ -16,9 +17,13 @@ export class DataSetPage {
 	readonly selectAllLink: Locator;
 
 	constructor(page: Page) {
-		this.activeViewSelector = page.getByLabel(
-			'Show View Options'
-		) as Locator;
+		this.activeViewSelector = page.getByLabel(/View Selected/);
+		this.assetLink = (assetName) => {
+			return page.getByRole('link', {
+				exact: true,
+				name: assetName,
+			});
+		};
 
 		const tableContainer = page.locator('.fds table');
 		this.table = {
@@ -28,7 +33,7 @@ export class DataSetPage {
 		};
 
 		this.page = page;
-		this.selectAllLink = page.getByRole('link', {
+		this.selectAllLink = page.getByRole('button', {
 			exact: true,
 			name: 'Select All',
 		});
@@ -39,7 +44,10 @@ export class DataSetPage {
 	}
 
 	async execBulkItemAction({action}) {
-		await this.page.getByLabel('Actions').click();
+		await this.page
+			.getByTestId('visualization-mode-table')
+			.getByLabel('Actions')
+			.click();
 
 		const dropdownMenuItemDelete = this.page.getByRole('menuitem', {
 			name: action,
@@ -74,7 +82,9 @@ export class DataSetPage {
 		await dropdownMenuActionItem.click();
 	}
 
-	async changeVisualizationMode(visualizationMode: 'Cards' | 'Table') {
+	async changeVisualizationMode(
+		visualizationMode: 'Cards' | 'Table' | 'Gallery'
+	) {
 		await this.activeViewSelector.waitFor({
 			state: 'visible',
 		});

@@ -9,11 +9,14 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.Set;
 
 /**
  * @author Shuyang Zhou
@@ -27,22 +30,31 @@ public class AnnotationLocator {
 
 		queue.offer(targetClass);
 
-		Map<Class<? extends Annotation>, Annotation> indexMap =
+		Map<Class<? extends Annotation>, Annotation> indexAnnotations =
 			new LinkedHashMap<>();
 
 		Class<?> clazz = null;
 
 		while ((clazz = queue.poll()) != null) {
-			_mergeAnnotations(clazz.getAnnotations(), indexMap);
+			_mergeAnnotations(
+				Collections.emptySet(), indexAnnotations, false,
+				clazz.getAnnotations());
 
-			_queueSuperTypes(queue, clazz);
+			_queueSuperTypes(clazz, queue);
 		}
 
-		return indexMap;
+		return indexAnnotations;
 	}
 
 	public static Map<Class<? extends Annotation>, Annotation> index(
 		Method method, Class<?> targetClass) {
+
+		Set<Class<? extends Annotation>> concludedAnnotationClasses =
+			new HashSet<>();
+		Map<Class<? extends Annotation>, Annotation> indexAnnotations =
+			new LinkedHashMap<>();
+
+		Class<?> clazz = null;
 
 		Queue<Class<?>> queue = new LinkedList<>();
 
@@ -53,17 +65,14 @@ public class AnnotationLocator {
 			queue.offer(targetClass);
 		}
 
-		Map<Class<? extends Annotation>, Annotation> indexMap =
-			new LinkedHashMap<>();
-
-		Class<?> clazz = null;
-
 		while ((clazz = queue.poll()) != null) {
 			Method specificMethod = ReflectionUtil.fetchDeclaredMethod(
 				clazz, method.getName(), method.getParameterTypes());
 
 			if (specificMethod != null) {
-				_mergeAnnotations(specificMethod.getAnnotations(), indexMap);
+				_mergeAnnotations(
+					concludedAnnotationClasses, indexAnnotations, true,
+					specificMethod.getAnnotations());
 			}
 
 			Method publicMethod = ReflectionUtil.fetchMethod(
@@ -73,20 +82,22 @@ public class AnnotationLocator {
 
 				// Ensure the class has a publicly inherited method
 
-				_mergeAnnotations(clazz.getAnnotations(), indexMap);
+				_mergeAnnotations(
+					concludedAnnotationClasses, indexAnnotations, false,
+					clazz.getAnnotations());
 			}
 
-			_queueSuperTypes(queue, clazz);
+			_queueSuperTypes(clazz, queue);
 		}
 
-		return indexMap;
+		return indexAnnotations;
 	}
 
 	public static List<Annotation> locate(Class<?> targetClass) {
-		Map<Class<? extends Annotation>, Annotation> indexMap = index(
+		Map<Class<? extends Annotation>, Annotation> indexAnnotations = index(
 			targetClass);
 
-		return new ArrayList<>(indexMap.values());
+		return new ArrayList<>(indexAnnotations.values());
 	}
 
 	public static <T extends Annotation> T locate(
@@ -102,7 +113,7 @@ public class AnnotationLocator {
 			T annotation = clazz.getAnnotation(annotationClass);
 
 			if (annotation == null) {
-				_queueSuperTypes(queue, clazz);
+				_queueSuperTypes(clazz, queue);
 			}
 			else {
 				return annotation;
@@ -113,10 +124,10 @@ public class AnnotationLocator {
 	}
 
 	public static List<Annotation> locate(Method method, Class<?> targetClass) {
-		Map<Class<? extends Annotation>, Annotation> indexMap = index(
+		Map<Class<? extends Annotation>, Annotation> indexAnnotations = index(
 			method, targetClass);
 
-		return new ArrayList<>(indexMap.values());
+		return new ArrayList<>(indexAnnotations.values());
 	}
 
 	public static <T extends Annotation> T locate(
@@ -161,7 +172,7 @@ public class AnnotationLocator {
 			}
 
 			if (annotation == null) {
-				_queueSuperTypes(queue, clazz);
+				_queueSuperTypes(clazz, queue);
 			}
 			else {
 				return annotation;
@@ -172,17 +183,31 @@ public class AnnotationLocator {
 	}
 
 	private static void _mergeAnnotations(
-		Annotation[] sourceAnnotations,
-		Map<Class<? extends Annotation>, Annotation> indexMap) {
+		Set<Class<? extends Annotation>> concludedAnnotationClasses,
+		Map<Class<? extends Annotation>, Annotation> indexAnnotations,
+		boolean fromMethod, Annotation[] sourceAnnotations) {
 
 		for (Annotation sourceAnnotation : sourceAnnotations) {
-			indexMap.putIfAbsent(
-				sourceAnnotation.annotationType(), sourceAnnotation);
+			Class<? extends Annotation> annotationClass =
+				sourceAnnotation.annotationType();
+
+			if (concludedAnnotationClasses.contains(annotationClass)) {
+				continue;
+			}
+
+			if (fromMethod) {
+				indexAnnotations.put(annotationClass, sourceAnnotation);
+
+				concludedAnnotationClasses.add(annotationClass);
+			}
+			else {
+				indexAnnotations.putIfAbsent(annotationClass, sourceAnnotation);
+			}
 		}
 	}
 
 	private static void _queueSuperTypes(
-		Queue<Class<?>> queue, Class<?> clazz) {
+		Class<?> clazz, Queue<Class<?>> queue) {
 
 		Class<?> superClass = clazz.getSuperclass();
 

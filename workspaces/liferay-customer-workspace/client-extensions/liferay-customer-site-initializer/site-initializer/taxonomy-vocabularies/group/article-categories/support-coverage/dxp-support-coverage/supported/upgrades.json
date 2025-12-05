@@ -1,0 +1,11 @@
+{
+	"externalReferenceCode": "AC_SC_DSC_S_UPGRADES",
+	"name": "Upgrades",
+	"name_i18n": {
+		"en_US": "Upgrades",
+		"es-ES": "Migraciones",
+		"ja-JP": "アップグレード",
+		"pt-BR": "Atualizações"
+	},
+	"viewableBy": "Anyone"
+}

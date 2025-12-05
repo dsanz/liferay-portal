@@ -122,8 +122,9 @@ public class LayoutLocalServiceStagingAdvice {
 			Map<Locale, String> descriptionMap, Map<Locale, String> keywordsMap,
 			Map<Locale, String> robotsMap, String type, boolean hidden,
 			Map<Locale, String> friendlyURLMap, boolean hasIconImage,
-			byte[] iconBytes, long styleBookEntryId, long faviconFileEntryId,
-			long masterLayoutPlid, ServiceContext serviceContext)
+			byte[] iconBytes, String styleBookEntryERC, long faviconFileEntryId,
+			String masterLayoutPageTemplateEntryERC,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		// Layout
@@ -180,8 +181,9 @@ public class LayoutLocalServiceStagingAdvice {
 			return layoutLocalService.updateLayout(
 				groupId, privateLayout, layoutId, parentLayoutId, nameMap,
 				titleMap, descriptionMap, keywordsMap, robotsMap, type, hidden,
-				friendlyURLMap, hasIconImage, iconBytes, styleBookEntryId,
-				faviconFileEntryId, masterLayoutPlid, serviceContext);
+				friendlyURLMap, hasIconImage, iconBytes, styleBookEntryERC,
+				faviconFileEntryId, masterLayoutPageTemplateEntryERC,
+				serviceContext);
 		}
 
 		layoutLocalService.updateAsset(
@@ -253,59 +255,6 @@ public class LayoutLocalServiceStagingAdvice {
 		finally {
 			serviceContext.setWorkflowAction(workflowAction);
 		}
-
-		return layout;
-	}
-
-	public Layout updateLayout(
-			LayoutLocalService layoutLocalService, long groupId,
-			boolean privateLayout, long layoutId, String typeSettings)
-		throws PortalException {
-
-		ServiceContext serviceContext =
-			ServiceContextThreadLocal.getServiceContext();
-
-		if (serviceContext == null) {
-			return layoutLocalService.updateLayout(
-				groupId, privateLayout, layoutId, typeSettings);
-		}
-
-		Layout layout = _layoutPersistence.findByG_P_L(
-			groupId, privateLayout, layoutId);
-
-		if (LayoutStagingUtil.isBranchingLayout(layout)) {
-			layout = getProxiedLayout(layout);
-		}
-
-		LayoutRevision layoutRevision = LayoutStagingUtil.getLayoutRevision(
-			layout);
-
-		if (layoutRevision == null) {
-			return layoutLocalService.updateLayout(
-				groupId, privateLayout, layoutId, typeSettings);
-		}
-
-		layout.setTypeSettings(typeSettings);
-
-		boolean hasWorkflowTask = _staging.hasWorkflowTask(
-			serviceContext.getUserId(), layoutRevision);
-
-		serviceContext.setAttribute("revisionInProgress", hasWorkflowTask);
-
-		if (!MergeLayoutPrototypesThreadLocal.isInProgress()) {
-			serviceContext.setWorkflowAction(
-				WorkflowConstants.ACTION_SAVE_DRAFT);
-		}
-
-		_layoutRevisionLocalService.updateLayoutRevision(
-			serviceContext.getUserId(), layoutRevision.getLayoutRevisionId(),
-			layoutRevision.getLayoutBranchId(), layoutRevision.getName(),
-			layoutRevision.getTitle(), layoutRevision.getDescription(),
-			layoutRevision.getKeywords(), layoutRevision.getRobots(),
-			layoutRevision.getTypeSettings(), layoutRevision.getIconImage(),
-			layoutRevision.getIconImageId(), layoutRevision.getThemeId(),
-			layoutRevision.getColorSchemeId(), layoutRevision.getCss(),
-			serviceContext);
 
 		return layout;
 	}
@@ -409,6 +358,68 @@ public class LayoutLocalServiceStagingAdvice {
 			serviceContext);
 
 		return layout;
+	}
+
+	public Layout updateTypeSettings(
+			LayoutLocalService layoutLocalService, Layout layout,
+			String typeSettings)
+		throws PortalException {
+
+		ServiceContext serviceContext =
+			ServiceContextThreadLocal.getServiceContext();
+
+		if (serviceContext == null) {
+			return layoutLocalService.updateTypeSettings(layout, typeSettings);
+		}
+
+		Layout originalLayout = layout;
+
+		if (LayoutStagingUtil.isBranchingLayout(layout)) {
+			layout = getProxiedLayout(layout);
+		}
+
+		LayoutRevision layoutRevision = LayoutStagingUtil.getLayoutRevision(
+			layout);
+
+		if (layoutRevision == null) {
+			return layoutLocalService.updateTypeSettings(
+				originalLayout, typeSettings);
+		}
+
+		layout.setTypeSettings(typeSettings);
+
+		boolean hasWorkflowTask = _staging.hasWorkflowTask(
+			serviceContext.getUserId(), layoutRevision);
+
+		serviceContext.setAttribute("revisionInProgress", hasWorkflowTask);
+
+		if (!MergeLayoutPrototypesThreadLocal.isInProgress()) {
+			serviceContext.setWorkflowAction(
+				WorkflowConstants.ACTION_SAVE_DRAFT);
+		}
+
+		_layoutRevisionLocalService.updateLayoutRevision(
+			serviceContext.getUserId(), layoutRevision.getLayoutRevisionId(),
+			layoutRevision.getLayoutBranchId(), layoutRevision.getName(),
+			layoutRevision.getTitle(), layoutRevision.getDescription(),
+			layoutRevision.getKeywords(), layoutRevision.getRobots(),
+			layoutRevision.getTypeSettings(), layoutRevision.getIconImage(),
+			layoutRevision.getIconImageId(), layoutRevision.getThemeId(),
+			layoutRevision.getColorSchemeId(), layoutRevision.getCss(),
+			serviceContext);
+
+		return layout;
+	}
+
+	public Layout updateTypeSettings(
+			LayoutLocalService layoutLocalService, long groupId,
+			boolean privateLayout, long layoutId, String typeSettings)
+		throws PortalException {
+
+		return updateTypeSettings(
+			layoutLocalService,
+			_layoutPersistence.findByG_P_L(groupId, privateLayout, layoutId),
+			typeSettings);
 	}
 
 	@Activate
@@ -667,7 +678,8 @@ public class LayoutLocalServiceStagingAdvice {
 		_layoutLocalServiceStagingAdviceMethodNames = new HashSet<>(
 			Arrays.asList(
 				"create", "createLayout", "deleteLayout", "getLayouts",
-				"updateLayout", "updateLookAndFeel", "updateName"));
+				"updateLayout", "updateLookAndFeel", "updateName",
+				"updateTypeSettings"));
 	private static final Function<InvocationHandler, Layout>
 		_proxyProviderFunction = ProxyUtil.getProxyProviderFunction(
 			Layout.class, ModelWrapper.class);
@@ -809,9 +821,9 @@ public class LayoutLocalServiceStagingAdvice {
 					friendlyURLMap = (Map<Locale, String>)arguments[11];
 				}
 
-				long styleBookEntryId = 0;
+				String styleBookEntryERC = null;
 				long faviconFileEntryId = 0;
-				long masterLayoutPlid = 0;
+				String masterLayoutPageTemplateEntryERC = null;
 
 				ServiceContext serviceContext = null;
 
@@ -819,14 +831,14 @@ public class LayoutLocalServiceStagingAdvice {
 					serviceContext = (ServiceContext)arguments[14];
 				}
 				else if (arguments.length == 16) {
-					masterLayoutPlid = (Long)arguments[14];
+					masterLayoutPageTemplateEntryERC = (String)arguments[14];
 
 					serviceContext = (ServiceContext)arguments[15];
 				}
 				else if (arguments.length == 18) {
-					styleBookEntryId = (Long)arguments[14];
+					styleBookEntryERC = (String)arguments[14];
 					faviconFileEntryId = (Long)arguments[15];
-					masterLayoutPlid = (Long)arguments[16];
+					masterLayoutPageTemplateEntryERC = (String)arguments[16];
 
 					serviceContext = (ServiceContext)arguments[17];
 				}
@@ -841,8 +853,8 @@ public class LayoutLocalServiceStagingAdvice {
 					(Map<Locale, String>)arguments[8], (String)arguments[9],
 					(Boolean)arguments[10], friendlyURLMap,
 					(Boolean)arguments[12], (byte[])arguments[13],
-					styleBookEntryId, faviconFileEntryId, masterLayoutPlid,
-					serviceContext);
+					styleBookEntryERC, faviconFileEntryId,
+					masterLayoutPageTemplateEntryERC, serviceContext);
 			}
 			else {
 				if (methodName.equals("updateLayout") &&

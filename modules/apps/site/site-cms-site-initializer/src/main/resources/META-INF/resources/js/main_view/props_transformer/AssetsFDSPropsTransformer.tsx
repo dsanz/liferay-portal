@@ -3,17 +3,25 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {IInternalRenderer, IView} from '@liferay/frontend-data-set-web';
+import {
+	IInternalRenderer,
+	IView,
+	replaceTokens,
+} from '@liferay/frontend-data-set-web';
 import {openModal} from 'frontend-js-components-web';
 import React from 'react';
 
+import StatusLabel from '../../common/components/StatusLabel';
 import {openAssetUsageListModal} from '../../common/components/asset_usage/utils';
+import {AssetLibrary} from '../../common/types/AssetLibrary';
 import {ISearchAssetObjectEntry} from '../../common/types/AssetType';
-import formatActionURL from '../../common/utils/formatActionURL';
+import {OBJECT_ENTRY_FOLDER_CLASS_NAME} from '../../common/utils/constants';
+import {getScopeExternalReferenceCode} from '../../common/utils/getScopeExternalReferenceCode';
 import CategoriesAndTagsModalContent from '../categorization/modal/CategoriesAndTagsModalContent';
 import {defaultPermissionsBulkAction} from '../default_permission/BulkDefaultPermissionModalContent';
 import {permissionsBulkAction} from '../default_permission/BulkPermissionModalContent';
 import DefaultPermissionModalContent from '../default_permission/DefaultPermissionModalContent';
+import openResetAssetPermissionModal from '../default_permission/ResetPermissionModalContent';
 import AssetTypeInfoPanel from '../info_panel/AssetTypeInfoPanelContent';
 import AssetNavigationModalContent from '../modal/asset_navigation_view/AssetNavigationModalContent';
 import createAssetAction from './actions/createAssetAction';
@@ -22,19 +30,18 @@ import deleteAssetEntriesBulkAction, {
 	executeBulkDeleteAction,
 } from './actions/deleteAssetEntriesBulkAction';
 import deleteItemAction from './actions/deleteItemAction';
+import executeResetPermissionBulkAction from './actions/executeResetPermissionBulkAction';
 import multipleFilesUploadAction from './actions/multipleFilesUploadAction';
+import openFolderItemSelectorAction from './actions/openFolderItemSelectorAction';
 import shareAction from './actions/shareAction';
-import {triggerAssetBulkAction} from './actions/triggerAssetBulkAction';
+import {triggerAssetDownloadBulkAction} from './actions/triggerAssetDownloadBulkAction';
 import AuthorRenderer from './cell_renderers/AuthorRenderer';
-import NameRenderer from './cell_renderers/NameRenderer';
 import SimpleActionLinkRenderer from './cell_renderers/SimpleActionLinkRenderer';
-import SpaceRenderer from './cell_renderers/SpaceRenderer';
+import SpaceRendererWithCache from './cell_renderers/SpaceRendererWithCache';
 import TypeRenderer from './cell_renderers/TypeRenderer';
 import addOnClickToCreationMenuItems from './utils/addOnClickToCreationMenuItems';
 import transformViewsItemsProps from './utils/transformViewsItemProps';
-
-const OBJECT_ENTRY_FOLDER_CLASS_NAME =
-	'com.liferay.object.model.ObjectEntryFolder';
+import GalleryView from './views/GalleryView';
 
 const ACTIONS = {
 	createAsset: createAssetAction,
@@ -43,6 +50,7 @@ const ACTIONS = {
 };
 
 export type AdditionalProps = {
+	assetLibraries: AssetLibrary[];
 	autocompleteURL: string;
 	baseFolderViewURL: string;
 	brokenLinksCheckerEnabled: boolean;
@@ -52,9 +60,13 @@ export type AdditionalProps = {
 	defaultPermissionAdditionalProps?: any;
 	fileMimeTypeCssClasses: Record<string, string>;
 	fileMimeTypeIcons: Record<string, string>;
+	galleryViewEnabled?: boolean;
 	objectDefinitionCssClasses: Record<string, string>;
 	objectDefinitionIcons: Record<string, string>;
+	objectEntryFolderExternalReferenceCode: string;
+	parentObjectEntryFolderExternalReferenceCode: string;
 	redirect: string;
+	rootObjectEntryFolderExternalReferenceCode: string;
 };
 
 export default function AssetsFDSPropsTransformer({
@@ -70,6 +82,35 @@ export default function AssetsFDSPropsTransformer({
 	itemsActions?: any[];
 	views: IView[];
 }) {
+	let mergedViews = views;
+
+	if (additionalProps.galleryViewEnabled) {
+		const galleryViewRenderer: IView = {
+			component: (props: any) => GalleryView({...props, additionalProps}),
+			default: true,
+			label: Liferay.Language.get('gallery'),
+			name: 'gallery',
+			schema: {
+				description: 'description',
+				image: 'imageURL',
+				link: '',
+				sticker: '',
+				symbol: '',
+				title: 'embedded.title',
+			},
+			thumbnail: 'gallery',
+		};
+
+		const nonDefaultViews = views.map((view) => {
+			return {
+				...view,
+				default: false,
+			};
+		});
+
+		mergedViews = [...nonDefaultViews, galleryViewRenderer];
+	}
+
 	return {
 		...otherProps,
 		creationMenu: {
@@ -87,11 +128,6 @@ export default function AssetsFDSPropsTransformer({
 					type: 'internal',
 				} as IInternalRenderer,
 				{
-					component: NameRenderer,
-					name: 'nameTableCellRenderer',
-					type: 'internal',
-				} as IInternalRenderer,
-				{
 					component: ({actions, itemData, options, value}) =>
 						SimpleActionLinkRenderer({
 							actions,
@@ -104,13 +140,24 @@ export default function AssetsFDSPropsTransformer({
 					type: 'internal',
 				} as IInternalRenderer,
 				{
-					component: SpaceRenderer,
+					component: ({itemData}) => (
+						<SpaceRendererWithCache
+							spaceExternalReferenceCode={getScopeExternalReferenceCode(
+								itemData
+							)}
+						/>
+					),
 					name: 'spaceTableCellRenderer',
 					type: 'internal',
 				} as IInternalRenderer,
 				{
 					component: TypeRenderer,
 					name: 'typeTableCellRenderer',
+					type: 'internal',
+				} as IInternalRenderer,
+				{
+					component: ({value}) => StatusLabel(value),
+					name: 'statusTableCellRenderer',
 					type: 'internal',
 				} as IInternalRenderer,
 			],
@@ -122,7 +169,16 @@ export default function AssetsFDSPropsTransformer({
 			/>
 		),
 		itemsActions: itemsActions.map((action) => {
-			if (action?.data?.id === 'default-permissions') {
+			if (action?.data?.id === 'copy' || action?.data?.id === 'move') {
+				return {
+					...action,
+					isVisible: () => true,
+				};
+			}
+			else if (
+				action?.data?.id === 'default-permissions' ||
+				action?.data?.id === 'edit-and-propagate-default-permissions'
+			) {
 				return {
 					...action,
 					isVisible: (item: any) =>
@@ -192,7 +248,19 @@ export default function AssetsFDSPropsTransformer({
 			items: any;
 			loadData: () => {};
 		}) {
-			if (action?.data?.id === 'default-permissions') {
+			if (action?.data?.id === 'copy' || action?.data?.id === 'move') {
+				openFolderItemSelectorAction(
+					action?.data?.id,
+					additionalProps.assetLibraries,
+					itemData,
+					loadData,
+					additionalProps.objectEntryFolderExternalReferenceCode
+				);
+			}
+			else if (
+				action?.data?.id === 'default-permissions' ||
+				action?.data?.id === 'edit-and-propagate-default-permissions'
+			) {
 				openModal({
 					containerProps: {
 						className: '',
@@ -205,11 +273,17 @@ export default function AssetsFDSPropsTransformer({
 						DefaultPermissionModalContent({
 							...(additionalProps.defaultPermissionAdditionalProps ||
 								{}),
+							allowPropagate:
+								action.data.id ===
+								'edit-and-propagate-default-permissions',
 							apiURL: otherProps.apiURL,
 							classExternalReferenceCode:
 								itemData.embedded.externalReferenceCode,
 							className: itemData.entryClassName,
 							closeModal,
+							section:
+								additionalProps.rootObjectEntryFolderExternalReferenceCode ||
+								additionalProps.parentObjectEntryFolderExternalReferenceCode,
 						}),
 					size: 'full-screen',
 				});
@@ -237,7 +311,14 @@ export default function AssetsFDSPropsTransformer({
 				openModal({
 					size: 'full-screen',
 					title: action.label,
-					url: formatActionURL(itemData, action.href),
+					url: replaceTokens(action.href, itemData),
+				});
+			}
+			else if (action?.data?.id === 'reset-to-default-permissions') {
+				openResetAssetPermissionModal({
+					className: itemData.entryClassName,
+					classPK: itemData.embedded.id,
+					loadData,
 				});
 			}
 			else if (action?.data?.id === 'share') {
@@ -314,6 +395,9 @@ export default function AssetsFDSPropsTransformer({
 					className: OBJECT_ENTRY_FOLDER_CLASS_NAME,
 					defaultPermissionAdditionalProps:
 						additionalProps.defaultPermissionAdditionalProps || {},
+					section:
+						additionalProps.rootObjectEntryFolderExternalReferenceCode ||
+						additionalProps.parentObjectEntryFolderExternalReferenceCode,
 					selectedData,
 				});
 			}
@@ -351,7 +435,7 @@ export default function AssetsFDSPropsTransformer({
 				}
 			}
 			else if (action?.data?.id === 'download') {
-				triggerAssetBulkAction({
+				triggerAssetDownloadBulkAction({
 					apiURL: otherProps.apiURL,
 					selectedData,
 					type: 'DownloadBulkAction',
@@ -363,7 +447,20 @@ export default function AssetsFDSPropsTransformer({
 					className: OBJECT_ENTRY_FOLDER_CLASS_NAME,
 					defaultPermissionAdditionalProps:
 						additionalProps.defaultPermissionAdditionalProps || {},
+					section:
+						additionalProps.rootObjectEntryFolderExternalReferenceCode ||
+						additionalProps.parentObjectEntryFolderExternalReferenceCode,
 					selectedData,
+				});
+			}
+			else if (action?.data?.id === 'reset-to-default-permissions') {
+				openResetAssetPermissionModal({
+					loadData: () => {
+						executeResetPermissionBulkAction({
+							apiURL: otherProps.apiURL,
+							selectedData,
+						});
+					},
 				});
 			}
 		},
@@ -373,7 +470,7 @@ export default function AssetsFDSPropsTransformer({
 			objectDefinitionCssClasses:
 				additionalProps.objectDefinitionCssClasses,
 			objectDefinitionIcons: additionalProps.objectDefinitionIcons,
-			views,
+			views: mergedViews,
 		}),
 	};
 }

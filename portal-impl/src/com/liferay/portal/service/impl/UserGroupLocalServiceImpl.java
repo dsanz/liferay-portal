@@ -314,12 +314,12 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 		// Group
 
 		_groupLocalService.addGroup(
-			userId, GroupConstants.DEFAULT_PARENT_GROUP_ID,
+			StringPool.BLANK, userId, GroupConstants.DEFAULT_PARENT_GROUP_ID,
 			UserGroup.class.getName(), userGroup.getUserGroupId(),
 			GroupConstants.DEFAULT_LIVE_GROUP_ID,
-			getLocalizationMap(String.valueOf(userGroupId)), null, 0, true,
-			GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION, null, false, true,
-			null);
+			getLocalizationMap(String.valueOf(userGroupId)), null, 0, null,
+			true, GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION, null, false,
+			false, true, null);
 
 		// Resources
 
@@ -342,6 +342,7 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 			return false;
 		}
 
+		reindex(userId);
 		reindexUserGroup(getUserGroup(userGroupId));
 
 		return true;
@@ -355,6 +356,7 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 			return false;
 		}
 
+		reindex(userId);
 		reindexUserGroup(userGroup);
 
 		return true;
@@ -367,6 +369,8 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 		if (!super.addUserUserGroups(userId, userGroups)) {
 			return false;
 		}
+
+		reindex(userId);
 
 		for (UserGroup userGroup : userGroups) {
 			reindexUserGroup(userGroup);
@@ -382,6 +386,8 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 		if (!super.addUserUserGroups(userId, userGroupIds)) {
 			return false;
 		}
+
+		reindex(userId);
 
 		for (long userGroupId : userGroupIds) {
 			reindexUserGroup(getUserGroup(userGroupId));
@@ -1326,6 +1332,12 @@ public class UserGroupLocalServiceImpl extends UserGroupLocalServiceBaseImpl {
 		}
 
 		return false;
+	}
+
+	protected void reindex(long userId) throws PortalException {
+		User user = _userLocalService.getUser(userId);
+
+		reindex(user.getCompanyId(), new long[] {userId});
 	}
 
 	protected void reindex(long companyId, long[] userIds)

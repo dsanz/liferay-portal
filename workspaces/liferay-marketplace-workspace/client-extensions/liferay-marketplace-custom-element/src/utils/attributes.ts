@@ -9,13 +9,17 @@ const baseAttributes = [
 	'analyticsCloudURL',
 	'cloudConsoleURL',
 	'contactSupportURL',
+	'endUserLicenseAgreement',
 	'eulaBaseURL',
 	'featureFlags',
+	'featurePreview',
 	'marketoFormId',
 	'productId',
+	'publisherLicenseAgreement',
 	'ssaProjectPrefix',
 	'trialAccountCheck',
 	'trialEulaURL',
+	'trialSSAHostPrefix',
 ] as const;
 
 const baseKPIAttributes = [
@@ -35,13 +39,18 @@ function getAttribute<T extends readonly string[]>(
 	) as Record<T[number], string>;
 }
 
+function parseArray(element: string | null) {
+	return (element ?? '')
+		.split(',')
+		.map((item) => item.trim())
+		.filter(Boolean);
+}
+
 export function getAttributes(element: HTMLElement) {
 	return {
 		...getAttribute(element, baseAttributes),
-		featureFlags: (element.getAttribute('featureFlags') ?? '')
-			.split(',')
-			.map((f) => f.trim())
-			.filter(Boolean),
+		featureFlags: parseArray(element.getAttribute('featureFlags')),
+		featurePreview: parseArray(element.getAttribute('featurePreview')),
 		kpi: getAttribute(element, baseKPIAttributes),
 	};
 }

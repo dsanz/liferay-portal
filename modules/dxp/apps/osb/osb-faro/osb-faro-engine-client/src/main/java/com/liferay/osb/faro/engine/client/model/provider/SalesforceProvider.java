@@ -7,6 +7,9 @@ package com.liferay.osb.faro.engine.client.model.provider;
 
 import com.liferay.osb.faro.engine.client.model.Provider;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Matthew Kong
  */
@@ -16,6 +19,10 @@ public class SalesforceProvider implements Provider {
 
 	public AccountsConfiguration getAccountsConfiguration() {
 		return _accountsConfiguration;
+	}
+
+	public ChannelsConfiguration getChannelsConfiguration() {
+		return _channelsConfiguration;
 	}
 
 	public ContactsConfiguration getContactsConfiguration() {
@@ -31,6 +38,12 @@ public class SalesforceProvider implements Provider {
 		AccountsConfiguration accountsConfiguration) {
 
 		_accountsConfiguration = accountsConfiguration;
+	}
+
+	public void setChannelsConfiguration(
+		ChannelsConfiguration channelsConfiguration) {
+
+		_channelsConfiguration = channelsConfiguration;
 	}
 
 	public void setContactsConfiguration(
@@ -50,6 +63,52 @@ public class SalesforceProvider implements Provider {
 		}
 
 		private boolean _enableAllAccounts;
+
+	}
+
+	public static class Channel {
+
+		public Long getChannelId() {
+			return _channelId;
+		}
+
+		public Boolean isEnabled() {
+			return _enabled;
+		}
+
+		public void setChannelId(Long channelId) {
+			_channelId = channelId;
+		}
+
+		public void setEnabled(Boolean enabled) {
+			_enabled = enabled;
+		}
+
+		private Long _channelId;
+		private Boolean _enabled;
+
+	}
+
+	public static class ChannelsConfiguration {
+
+		public List<Channel> getChannels() {
+			return _channels;
+		}
+
+		public boolean isEnableAllChannels() {
+			return _enableAllChannels;
+		}
+
+		public void setChannels(List<Channel> channels) {
+			_channels = channels;
+		}
+
+		public void setEnableAllChannels(boolean enableAllChannels) {
+			_enableAllChannels = enableAllChannels;
+		}
+
+		private List<Channel> _channels = new ArrayList<>();
+		private boolean _enableAllChannels;
 
 	}
 
@@ -77,6 +136,7 @@ public class SalesforceProvider implements Provider {
 	}
 
 	private AccountsConfiguration _accountsConfiguration;
+	private ChannelsConfiguration _channelsConfiguration;
 	private ContactsConfiguration _contactsConfiguration;
 
 }

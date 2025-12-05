@@ -213,8 +213,9 @@ public class EditLayoutDesignMVCActionCommandTest {
 			draftLayout.getDescriptionMap(), draftLayout.getKeywordsMap(),
 			draftLayout.getRobotsMap(), draftLayout.getType(),
 			draftLayout.isHidden(), draftLayout.getFriendlyURLMap(), false,
-			null, styleBookEntry.getStyleBookEntryId(),
-			fileEntry.getFileEntryId(), masterLayoutPageTemplateEntry.getPlid(),
+			null, styleBookEntry.getExternalReferenceCode(),
+			fileEntry.getFileEntryId(),
+			masterLayoutPageTemplateEntry.getExternalReferenceCode(),
 			serviceContext);
 
 		MockMultipartHttpServletRequest mockMultipartHttpServletRequest =
@@ -245,8 +246,8 @@ public class EditLayoutDesignMVCActionCommandTest {
 			draftLayout.getMasterLayoutPlid(),
 			updatedDraftLayout.getMasterLayoutPlid());
 		Assert.assertEquals(
-			draftLayout.getStyleBookEntryId(),
-			updatedDraftLayout.getStyleBookEntryId());
+			draftLayout.getStyleBookEntryERC(),
+			updatedDraftLayout.getStyleBookEntryERC());
 	}
 
 	@Test

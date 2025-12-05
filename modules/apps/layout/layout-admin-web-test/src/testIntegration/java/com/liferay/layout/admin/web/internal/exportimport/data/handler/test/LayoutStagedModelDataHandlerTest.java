@@ -27,7 +27,6 @@ import com.liferay.client.extension.service.ClientExtensionEntryRelLocalService;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
-import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestUtil;
@@ -42,7 +41,6 @@ import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleManagerUti
 import com.liferay.exportimport.kernel.lifecycle.constants.ExportImportLifecycleConstants;
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.exportimport.kernel.service.ExportImportConfigurationLocalServiceUtil;
-import com.liferay.exportimport.kernel.service.ExportImportLocalService;
 import com.liferay.exportimport.kernel.service.ExportImportServiceUtil;
 import com.liferay.exportimport.kernel.service.StagingLocalService;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
@@ -97,7 +95,6 @@ import com.liferay.portal.background.task.model.BackgroundTask;
 import com.liferay.portal.background.task.service.BackgroundTaskLocalService;
 import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -113,7 +110,6 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.service.CompanyLocalService;
-import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutFriendlyURLLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
@@ -295,8 +291,10 @@ public class LayoutStagedModelDataHandlerTest
 	}
 
 	@Test
-	@TestInfo("LPD-46179")
-	public void testDeleteLayoutWithLayoutPageTemplateEntry() throws Exception {
+	@TestInfo({"LPD-46179", "LPD-67554"})
+	public void testDeleteLayoutWithLayoutPageTemplateEntryAndUtilityPageTemplateEntry()
+		throws Exception {
+
 		Group group = GroupTestUtil.addGroup();
 
 		_stagingLocalService.enableLocalStaging(
@@ -306,7 +304,12 @@ public class LayoutStagedModelDataHandlerTest
 
 		Group stagingGroup = group.getStagingGroup();
 
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
+		LayoutPageTemplateEntry basicLayoutPageTemplateEntry =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				group.getGroupId(), LayoutPageTemplateEntryTypeConstants.BASIC,
+				WorkflowConstants.STATUS_APPROVED);
+
+		LayoutPageTemplateEntry displayPageLayoutPageTemplateEntry =
 			DisplayPageTemplateTestUtil.addDisplayPageTemplate(
 				stagingGroup.getGroupId(),
 				_portal.getClassNameId(AssetCategory.class.getName()), 0, true,
@@ -317,23 +320,42 @@ public class LayoutStagedModelDataHandlerTest
 				null, TestPropsValues.getUserId(), stagingGroup.getGroupId(), 0,
 				0, false, RandomTestUtil.randomString(),
 				LayoutUtilityPageEntryConstants.TYPE_SC_INTERNAL_SERVER_ERROR,
-				0,
+				null,
 				ServiceContextTestUtil.getServiceContext(
 					stagingGroup.getGroupId(), TestPropsValues.getUserId()));
 
+		LayoutPageTemplateEntry masterLayoutPageTemplateEntry =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				group.getGroupId(),
+				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT,
+				WorkflowConstants.STATUS_APPROVED);
+
 		_publishLayouts(group, stagingGroup);
 
-		LayoutPageTemplateEntry liveLayoutPageTemplateEntry =
+		LayoutPageTemplateEntry liveBasicLayoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.
 				getLayoutPageTemplateEntryByUuidAndGroupId(
-					layoutPageTemplateEntry.getUuid(), group.getGroupId());
+					basicLayoutPageTemplateEntry.getUuid(), group.getGroupId());
 
 		Assert.assertEquals(
-			layoutPageTemplateEntry.getName(),
-			liveLayoutPageTemplateEntry.getName());
+			basicLayoutPageTemplateEntry.getName(),
+			liveBasicLayoutPageTemplateEntry.getName());
 
 		_layoutPageTemplateEntryLocalService.deleteLayoutPageTemplateEntry(
-			layoutPageTemplateEntry);
+			basicLayoutPageTemplateEntry);
+
+		LayoutPageTemplateEntry liveDisplayPageLayoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.
+				getLayoutPageTemplateEntryByUuidAndGroupId(
+					displayPageLayoutPageTemplateEntry.getUuid(),
+					group.getGroupId());
+
+		Assert.assertEquals(
+			displayPageLayoutPageTemplateEntry.getName(),
+			liveDisplayPageLayoutPageTemplateEntry.getName());
+
+		_layoutPageTemplateEntryLocalService.deleteLayoutPageTemplateEntry(
+			displayPageLayoutPageTemplateEntry);
 
 		LayoutUtilityPageEntry liveLayoutUtilityPageEntry =
 			_layoutUtilityPageEntryLocalService.
@@ -347,14 +369,36 @@ public class LayoutStagedModelDataHandlerTest
 		_layoutUtilityPageEntryLocalService.deleteLayoutUtilityPageEntry(
 			layoutUtilityPageEntry);
 
+		LayoutPageTemplateEntry liveMasterLayoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.
+				getLayoutPageTemplateEntryByUuidAndGroupId(
+					masterLayoutPageTemplateEntry.getUuid(),
+					group.getGroupId());
+
+		Assert.assertEquals(
+			masterLayoutPageTemplateEntry.getName(),
+			liveMasterLayoutPageTemplateEntry.getName());
+
+		_layoutPageTemplateEntryLocalService.deleteLayoutPageTemplateEntry(
+			masterLayoutPageTemplateEntry);
+
 		_publishLayouts(group, stagingGroup);
 
 		Assert.assertNull(
 			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
-				liveLayoutPageTemplateEntry.getLayoutPageTemplateEntryId()));
+				liveBasicLayoutPageTemplateEntry.
+					getLayoutPageTemplateEntryId()));
+		Assert.assertNull(
+			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
+				liveDisplayPageLayoutPageTemplateEntry.
+					getLayoutPageTemplateEntryId()));
 		Assert.assertNull(
 			_layoutUtilityPageEntryLocalService.fetchLayoutUtilityPageEntry(
 				liveLayoutUtilityPageEntry.getLayoutUtilityPageEntryId()));
+		Assert.assertNull(
+			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
+				liveMasterLayoutPageTemplateEntry.
+					getLayoutPageTemplateEntryId()));
 	}
 
 	@Test
@@ -615,7 +659,7 @@ public class LayoutStagedModelDataHandlerTest
 		Assert.assertNotNull(
 			_fragmentEntryLinkLocalService.getFragmentEntryLink(
 				stagingGroup.getGroupId(),
-				draftLayoutFragmentEntryLink.getFragmentEntryLinkId(),
+				draftLayoutFragmentEntryLink.getExternalReferenceCode(),
 				layout.getPlid()));
 
 		_updateDraftLayout(
@@ -725,7 +769,8 @@ public class LayoutStagedModelDataHandlerTest
 				WorkflowConstants.STATUS_APPROVED);
 
 		Layout layout = LayoutTestUtil.addTypeContentLayout(
-			stagingGroup, false, false, layoutPageTemplateEntry.getPlid());
+			stagingGroup, false, false,
+			layoutPageTemplateEntry.getExternalReferenceCode());
 
 		initExport();
 
@@ -862,9 +907,9 @@ public class LayoutStagedModelDataHandlerTest
 
 		Layout layout = LayoutTestUtil.addTypeContentLayout(stagingGroup);
 
-		layout = _layoutLocalService.updateMasterLayoutPlid(
+		layout = _layoutLocalService.updateMasterLayoutPageTemplateEntryERC(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
-			masterLayoutPageTemplateEntry.getPlid());
+			masterLayoutPageTemplateEntry.getExternalReferenceCode());
 
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, layout);
@@ -989,7 +1034,8 @@ public class LayoutStagedModelDataHandlerTest
 						))
 				).toString(),
 				fragmentEntry.getCss(), fragmentEntry.getConfiguration(),
-				fragmentEntry.getFragmentEntryId(), fragmentEntry.getHtml(),
+				fragmentEntry.getExternalReferenceCode(),
+				fragmentEntry.getScopeERC(), fragmentEntry.getHtml(),
 				fragmentEntry.getJs(), stagingLayout1,
 				fragmentEntry.getFragmentEntryKey(), fragmentEntry.getType(),
 				null, 0,
@@ -1098,10 +1144,6 @@ public class LayoutStagedModelDataHandlerTest
 
 		Layout stagingMasterLayout = _layoutLocalService.fetchLayout(
 			masterLayout.getUuid(), stagingGroup.getGroupId(), true);
-
-		stagingLayout = _layoutLocalService.updateMasterLayoutPlid(
-			stagingGroup.getGroupId(), false, stagingLayout.getLayoutId(),
-			stagingMasterLayout.getPlid());
 
 		stagingMasterLayout.setLayoutId(layout.getLayoutId());
 
@@ -1242,17 +1284,17 @@ public class LayoutStagedModelDataHandlerTest
 
 		StyleBookEntry styleBookEntry =
 			_styleBookEntryLocalService.addStyleBookEntry(
-				null, TestPropsValues.getUserId(), stagingGroup.getGroupId(),
+				null, TestPropsValues.getUserId(), liveGroup.getGroupId(),
 				false, StringPool.BLANK, RandomTestUtil.randomString(),
 				StringPool.BLANK, RandomTestUtil.randomString(),
 				ServiceContextTestUtil.getServiceContext(
-					stagingGroup.getGroupId()));
+					liveGroup.getGroupId()));
 
 		Layout layout = LayoutTestUtil.addTypeContentLayout(stagingGroup);
 
-		layout = _layoutLocalService.updateStyleBookEntryId(
+		layout = _layoutLocalService.updateStyleBookEntryERC(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
-			styleBookEntry.getStyleBookEntryId());
+			styleBookEntry.getExternalReferenceCode());
 
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, layout);
@@ -1283,11 +1325,14 @@ public class LayoutStagedModelDataHandlerTest
 		Layout importedLayout = _layoutLocalService.getLayoutByUuidAndGroupId(
 			layout.getUuid(), liveGroup.getGroupId(), layout.isPrivateLayout());
 
-		Assert.assertNotEquals(
-			layout.getStyleBookEntryId(), importedLayout.getStyleBookEntryId());
+		Assert.assertEquals(
+			layout.getStyleBookEntryERC(),
+			importedLayout.getStyleBookEntryERC());
 		Assert.assertNotNull(
-			_styleBookEntryLocalService.fetchStyleBookEntry(
-				importedLayout.getStyleBookEntryId()));
+			_styleBookEntryLocalService.
+				fetchStyleBookEntryByExternalReferenceCode(
+					importedLayout.getStyleBookEntryERC(),
+					importedLayout.getGroupId()));
 	}
 
 	@Test
@@ -1786,7 +1831,8 @@ public class LayoutStagedModelDataHandlerTest
 					editableJSONObject
 				).toString(),
 				fragmentEntry.getCss(), fragmentEntry.getConfiguration(),
-				fragmentEntry.getFragmentEntryId(), fragmentEntry.getHtml(),
+				fragmentEntry.getExternalReferenceCode(),
+				fragmentEntry.getScopeERC(), fragmentEntry.getHtml(),
 				fragmentEntry.getJs(), layout.fetchDraftLayout(),
 				fragmentEntry.getFragmentEntryKey(), fragmentEntry.getType(),
 				null, 0,
@@ -1814,7 +1860,8 @@ public class LayoutStagedModelDataHandlerTest
 				editableFragmentEntryProcessorJSONObject
 			).toString(),
 			fragmentEntry.getCss(), fragmentEntry.getConfiguration(),
-			fragmentEntry.getFragmentEntryId(), fragmentEntry.getHtml(),
+			fragmentEntry.getExternalReferenceCode(),
+			fragmentEntry.getScopeERC(), fragmentEntry.getHtml(),
 			fragmentEntry.getJs(), layout, fragmentEntry.getFragmentEntryKey(),
 			fragmentEntry.getType(), null, 0, segmentsExperienceId);
 	}
@@ -1975,7 +2022,7 @@ public class LayoutStagedModelDataHandlerTest
 		FragmentEntryLink publishedLayoutFragmentEntryLink =
 			_fragmentEntryLinkLocalService.getFragmentEntryLink(
 				stagingGroup.getGroupId(),
-				draftLayoutFragmentEntryLink.getFragmentEntryLinkId(),
+				draftLayoutFragmentEntryLink.getExternalReferenceCode(),
 				layout.getPlid());
 
 		Assert.assertNotNull(publishedLayoutFragmentEntryLink);
@@ -2263,9 +2310,6 @@ public class LayoutStagedModelDataHandlerTest
 				buildParameterMap();
 
 		parameterMap.put(
-			PortletDataHandlerKeys.DELETIONS,
-			new String[] {Boolean.TRUE.toString()});
-		parameterMap.put(
 			PortletDataHandlerKeys.PORTLET_DATA,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
@@ -2487,7 +2531,8 @@ public class LayoutStagedModelDataHandlerTest
 							"mapperType", "link"
 						)
 					))
-			).toString());
+			).toString(),
+			true);
 	}
 
 	private void _updateJournalArticle(
@@ -2582,16 +2627,10 @@ public class LayoutStagedModelDataHandlerTest
 	private DLAppLocalService _dlAppLocalService;
 
 	@Inject
-	private DLAppService _dlAppService;
-
-	@Inject
 	private DLFileEntryLocalService _dlFileEntryLocalService;
 
 	@Inject
 	private DLURLHelper _dlURLHelper;
-
-	@Inject
-	private ExportImportLocalService _exportImportLocalService;
 
 	@Inject
 	private FragmentCollectionContributorRegistry
@@ -2613,16 +2652,10 @@ public class LayoutStagedModelDataHandlerTest
 	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
 
 	@Inject
-	private GroupLocalService _groupLocalService;
-
-	@Inject
 	private InfoItemServiceRegistry _infoItemServiceRegistry;
 
 	@Inject
 	private JournalArticleLocalService _journalArticleLocalService;
-
-	@Inject
-	private JSONFactory _jsonFactory;
 
 	@Inject
 	private LayoutFriendlyURLLocalService _layoutFriendlyURLLocalService;

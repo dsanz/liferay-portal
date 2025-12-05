@@ -18,8 +18,6 @@ import PublishedDashboardOutlet from './PublisherDashboardOutlet';
 import Accounts from './pages/Accounts/Accounts';
 import Apps from './pages/Apps';
 import App from './pages/Apps/App';
-import {AppContextProvider} from './pages/Apps/AppCreationFlow/AppContext/AppManageState';
-import {AppCreationFlow} from './pages/Apps/AppCreationFlow/AppCreationFlow';
 import PublishAppOutlet from './pages/NewAppFlow/PublishAppOutlet';
 import {Build, Profile as AppProfile} from './pages/NewAppFlow/pages';
 import Licensing from './pages/NewAppFlow/pages/Licensing';
@@ -43,6 +41,8 @@ import {
 	Profile,
 	Submit,
 } from './pages/Solutions/SolutionForm/pages';
+
+import './PublisherDashboard.scss';
 
 const PublisherDashboardRouter = () => {
 	const {accountId} = Liferay.CommerceContext.account || {};
@@ -112,15 +112,6 @@ const PublisherDashboardRouter = () => {
 						</Route>
 					</Route>
 				</Route>
-
-				<Route
-					element={
-						<AppContextProvider>
-							<AppCreationFlow catalogId={String(catalogId)} />
-						</AppContextProvider>
-					}
-					path="app/create"
-				/>
 
 				<Route
 					element={

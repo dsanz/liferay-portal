@@ -8,13 +8,17 @@ import {ClayInput} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayPanel from '@clayui/panel';
 import {dateUtils, sub} from 'frontend-js-web';
-import React, {useCallback, useContext} from 'react';
+import React, {useCallback, useContext, useEffect, useState} from 'react';
 
-import {ISearchAssetObjectEntry} from '../../../common/types/AssetType';
+import {
+	IAssetObjectEntry,
+	ISearchAssetObjectEntry,
+} from '../../../common/types/AssetType';
 import {
 	AssetTypeInfoPanelContext,
 	IAssetTypeInfoPanelContext,
 } from '../context';
+import ObjectEntryService from '../services/ObjectEntryService';
 import {ASSET_TYPE} from '../util/constants';
 
 const getAssetLanguages = (title_i18n: {[key: string]: string} = {}) => {
@@ -38,7 +42,8 @@ const AssetMetadata = () => {
 		title_i18n = {},
 	}: IAssetTypeInfoPanelContext = useContext(AssetTypeInfoPanelContext);
 
-	const [{embedded: objectEntry}]: ISearchAssetObjectEntry[] = objectEntries;
+	const [{actions, embedded: objectEntry}]: ISearchAssetObjectEntry[] =
+		objectEntries;
 
 	const copyText = useCallback(
 		(event: any) => {
@@ -54,6 +59,24 @@ const AssetMetadata = () => {
 	);
 
 	const assetLanguages = getAssetLanguages(title_i18n);
+
+	const [objectEntryWithNestedFields, setObjectEntryWithNestedFields] =
+		useState<IAssetObjectEntry>(objectEntry as IAssetObjectEntry);
+
+	useEffect(() => {
+		if (type === ASSET_TYPE.FOLDER && actions?.get?.href) {
+			ObjectEntryService.getObjectEntry(
+				actions.get.href,
+				'numberOfObjectEntries,numberOfObjectEntryFolders'
+			).then((result) => {
+				if (result.data) {
+					setObjectEntryWithNestedFields(
+						result.data as IAssetObjectEntry
+					);
+				}
+			});
+		}
+	}, [actions?.get?.href, type]);
 
 	return (
 		<ClayPanel
@@ -72,7 +95,7 @@ const AssetMetadata = () => {
 			<ClayPanel.Body>
 				{type === ASSET_TYPE.FILES && (
 					<div className="asset-metadata-section mt-0">
-						<p className="asset-metadata-section-title">
+						<p className="d-block font-weight-bold mb-0">
 							{Liferay.Language.get('url')}
 						</p>
 
@@ -99,20 +122,36 @@ const AssetMetadata = () => {
 					</div>
 				)}
 
-				<div className="asset-metadata-section">
-					<p className="asset-metadata-section-title">
+				{type === ASSET_TYPE.FOLDER && (
+					<div
+						className="asset-metadata-section mt-3"
+						data-testid="number-of-assets"
+					>
+						<p className="d-block font-weight-bold mb-0">
+							{Liferay.Language.get('number-of-assets')}
+						</p>
+
+						<p className="d-block">
+							{objectEntryWithNestedFields.numberOfObjectEntries +
+								objectEntryWithNestedFields.numberOfObjectEntryFolders}
+						</p>
+					</div>
+				)}
+
+				<div className="asset-metadata-section mt-3">
+					<p className="d-block font-weight-bold mb-0">
 						{Liferay.Language.get('author')}
 					</p>
 
-					<p>{objectEntry?.creator?.name}</p>
+					<p className="d-block">{objectEntry?.creator?.name}</p>
 				</div>
 
-				<div className="asset-metadata-section">
-					<p className="asset-metadata-section-title">
+				<div className="asset-metadata-section mt-3">
+					<p className="d-block font-weight-bold mb-0">
 						{Liferay.Language.get('created')}
 					</p>
 
-					<p>
+					<p className="d-block">
 						{sub(Liferay.Language.get('x-by-x'), [
 							formatDate(objectEntry.dateCreated as string),
 							objectEntry.creator?.name,
@@ -120,34 +159,48 @@ const AssetMetadata = () => {
 					</p>
 				</div>
 
-				<div className="asset-metadata-section">
-					<p className="asset-metadata-section-title">
+				<div className="asset-metadata-section mt-3">
+					<p className="d-block font-weight-bold mb-0">
 						{Liferay.Language.get('modified')}
 					</p>
 
-					<p>{formatDate(objectEntry.dateModified as string)}</p>
+					<p className="d-block">
+						{formatDate(objectEntry.dateModified as string)}
+					</p>
 				</div>
 
 				{type !== ASSET_TYPE.FOLDER && (
 					<>
-						<div className="asset-metadata-section">
-							<p className="asset-metadata-section-title">
+						{objectEntry?.displayDate && (
+							<div className="asset-metadata-section mt-3">
+								<p className="d-block font-weight-bold mb-0">
+									{Liferay.Language.get('display-date')}
+								</p>
+
+								<p className="d-block">
+									{formatDate(objectEntry?.displayDate)}
+								</p>
+							</div>
+						)}
+
+						<div className="asset-metadata-section mt-3">
+							<p className="d-block font-weight-bold mb-0">
 								{Liferay.Language.get('expiration-date')}
 							</p>
 
-							<p>
+							<p className="d-block">
 								{objectEntry?.expirationDate
 									? formatDate(objectEntry?.expirationDate)
 									: Liferay.Language.get('never-expire')}
 							</p>
 						</div>
 
-						<div className="asset-metadata-section">
-							<p className="asset-metadata-section-title">
+						<div className="asset-metadata-section mt-3">
+							<p className="d-block font-weight-bold mb-0">
 								{Liferay.Language.get('review-date')}
 							</p>
 
-							<p>
+							<p className="d-block">
 								{objectEntry?.reviewDate
 									? formatDate(objectEntry?.reviewDate)
 									: Liferay.Language.get('never-review')}
@@ -155,8 +208,8 @@ const AssetMetadata = () => {
 						</div>
 
 						{assetLanguages.length ? (
-							<div className="asset-metadata-section">
-								<p className="asset-metadata-section-title">
+							<div className="asset-metadata-section mt-3">
+								<p className="d-block font-weight-bold mb-0">
 									{Liferay.Language.get(
 										'languages-translated-into'
 									)}

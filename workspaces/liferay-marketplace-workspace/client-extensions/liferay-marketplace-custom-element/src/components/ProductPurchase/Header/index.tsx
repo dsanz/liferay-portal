@@ -7,7 +7,7 @@ import {ComponentProps} from 'react';
 
 import i18n from '../../../i18n';
 import AccountEmailInfo from '../../../pages/CustomerDashboard/pages/Apps/App/Licenses/CreateLicense/AccountInfo';
-import {ProductCardRevamp as ProductCard} from '../../../pages/GetApp/components/ProductCard/ProductCard';
+import {ProductCardRevamp as ProductCard} from '../../../pages/ProductPurchase/components/ProductCard/ProductCard';
 import {normalizeURLProtocol} from '../../../utils/string';
 
 type ProductPurchaseHeaderAccountProps = {
@@ -33,6 +33,7 @@ const ProductPurchaseHeaderAccount: React.FC<
 				<strong className="account-banner-title-text align-self-center">
 					{i18n.translate('account-selected')}
 				</strong>
+
 				<AccountEmailInfo image={account.logoURL} name={account.name} />
 			</div>
 		</>

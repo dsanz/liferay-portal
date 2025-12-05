@@ -24,6 +24,7 @@ import com.liferay.osb.faro.engine.client.model.Asset;
 import com.liferay.osb.faro.engine.client.model.Author;
 import com.liferay.osb.faro.engine.client.model.BlockedKeyword;
 import com.liferay.osb.faro.engine.client.model.Channel;
+import com.liferay.osb.faro.engine.client.model.ChannelDataSource;
 import com.liferay.osb.faro.engine.client.model.Credentials;
 import com.liferay.osb.faro.engine.client.model.DXPGroup;
 import com.liferay.osb.faro.engine.client.model.DXPOrganization;
@@ -487,8 +488,10 @@ public class ContactsEngineClientImpl
 	}
 
 	@Override
-	public void deleteIndividualSegment(FaroProject faroProject, String id) {
-		delete(faroProject, Rels.INDIVIDUAL_SEGMENT, id);
+	public void deleteIndividualSegments(
+		FaroProject faroProject, List<String> ids) {
+
+		delete(faroProject, Rels.INDIVIDUAL_SEGMENTS, ids);
 	}
 
 	@Override
@@ -977,6 +980,27 @@ public class ContactsEngineClientImpl
 		uriVariables.put("expand", "data-sources");
 
 		return get(faroProject, Rels.CHANNEL, id, Channel.class, uriVariables);
+	}
+
+	public Results<ChannelDataSource> getChannelDataSources(
+		FaroProject faroProject, Long dataSourceId, Boolean enabled,
+		String name, int cur, int delta, List<OrderByField> orderByFields) {
+
+		Map<String, Object> uriVariables = getUriVariables(
+			faroProject, cur, delta, orderByFields);
+
+		uriVariables.put("enabled", enabled);
+		uriVariables.put("id", dataSourceId);
+		uriVariables.put("name", name);
+
+		PagedModel<?, ChannelDataSource> pagedModel = get(
+			faroProject, Rels.CHANNEL_DATA_SOURCES,
+			new ParameterizedTypeReference
+				<EntityModelPagedModel<ChannelDataSource>>() {
+			},
+			uriVariables);
+
+		return pagedModel.getResults();
 	}
 
 	@Override
@@ -2120,9 +2144,9 @@ public class ContactsEngineClientImpl
 	@Override
 	public Results<IndividualSegment> getIndividualSegments(
 		FaroProject faroProject, String channelId, String dataSourceId,
-		String query, List<String> fields, String name, String segmentType,
-		String state, String status, int cur, int delta,
-		List<OrderByField> orderByFields) {
+		String query, List<String> fields, String name,
+		List<String> segmentTypes, String state, String status, int cur,
+		int delta, List<OrderByField> orderByFields) {
 
 		PagedModel<?, IndividualSegment> pagedModel = null;
 
@@ -2146,12 +2170,23 @@ public class ContactsEngineClientImpl
 		}
 
 		filterBuilder.addFilter(
-			"type", FilterConstants.COMPARISON_OPERATOR_EQUALS, segmentType);
-		filterBuilder.addFilter(
 			"state", FilterConstants.COMPARISON_OPERATOR_EQUALS, state);
 		filterBuilder.addFilter(
 			"status", FilterConstants.COMPARISON_OPERATOR_EQUALS, status);
-		filterBuilder.addSearchFilter(query, fields, null);
+
+		if (segmentTypes != null) {
+			FilterBuilder segmentTypeFilterBuilder = new FilterBuilder();
+
+			for (String segmentType : segmentTypes) {
+				segmentTypeFilterBuilder.addFilter(
+					"type", FilterConstants.COMPARISON_OPERATOR_EQUALS,
+					segmentType, false);
+			}
+
+			filterBuilder.addFilter(segmentTypeFilterBuilder.build());
+		}
+
+		filterBuilder.addSearchFilter(query, fields, null, true);
 
 		uriVariables.put("filter", filterBuilder.build());
 
@@ -2338,6 +2373,53 @@ public class ContactsEngineClientImpl
 		return get(
 			faroProject, Collections.emptyMap(), path, queryParameters,
 			Long.class);
+	}
+
+	@Override
+	public long getSalesforceAccountsCount(
+		String dataSourceId, FaroProject faroProject) {
+
+		RestTemplate restTemplate = getRestTemplate(faroProject);
+
+		Map<String, Object> uriVariables = getUriVariables(faroProject);
+
+		if (!Validator.isBlank(dataSourceId)) {
+			uriVariables.put("dataSourceId", dataSourceId);
+		}
+
+		ResponseEntity<Long> responseEntity = restTemplate.exchange(
+			getTemplatedURL(
+				faroProject, Rels.SALESFORCE_ENTITIES_ACCOUNTS_COUNT),
+			HttpMethod.GET, HttpEntity.EMPTY, Long.class, uriVariables);
+
+		if (responseEntity.getBody() == null) {
+			return 0L;
+		}
+
+		return responseEntity.getBody();
+	}
+
+	@Override
+	public long getSalesforceUsersCount(
+		String dataSourceId, FaroProject faroProject) {
+
+		RestTemplate restTemplate = getRestTemplate(faroProject);
+
+		Map<String, Object> uriVariables = getUriVariables(faroProject);
+
+		if (!Validator.isBlank(dataSourceId)) {
+			uriVariables.put("dataSourceId", dataSourceId);
+		}
+
+		ResponseEntity<Long> responseEntity = restTemplate.exchange(
+			getTemplatedURL(faroProject, Rels.SALESFORCE_ENTITIES_USERS_COUNT),
+			HttpMethod.GET, HttpEntity.EMPTY, Long.class, uriVariables);
+
+		if (responseEntity.getBody() == null) {
+			return 0L;
+		}
+
+		return responseEntity.getBody();
 	}
 
 	@Override

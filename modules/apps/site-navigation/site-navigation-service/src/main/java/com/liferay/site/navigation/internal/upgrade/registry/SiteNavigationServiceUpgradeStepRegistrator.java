@@ -13,11 +13,11 @@ import com.liferay.portal.kernel.upgrade.BaseExternalReferenceCodeUpgradeProcess
 import com.liferay.portal.kernel.upgrade.BaseSQLServerDatetimeUpgradeProcess;
 import com.liferay.portal.kernel.upgrade.CTModelUpgradeProcess;
 import com.liferay.portal.kernel.upgrade.MVCCVersionUpgradeProcess;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 import com.liferay.site.navigation.internal.upgrade.v2_0_0.util.SiteNavigationMenuItemTable;
 import com.liferay.site.navigation.internal.upgrade.v2_0_0.util.SiteNavigationMenuTable;
 import com.liferay.site.navigation.internal.upgrade.v2_3_0.SiteNavigationMenuItemUpgradeProcess;
-import com.liferay.site.navigation.internal.upgrade.v3_0_0.SiteNavigationMenuItemExternalReferenceCodeUpgradeProcess;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -65,10 +65,8 @@ public class SiteNavigationServiceUpgradeStepRegistrator
 			new BaseExternalReferenceCodeUpgradeProcess() {
 
 				@Override
-				protected String[][] getTableAndPrimaryKeyColumnNames() {
-					return new String[][] {
-						{"SiteNavigationMenuItem", "siteNavigationMenuItemId"}
-					};
+				protected String[] getTableNames() {
+					return new String[] {"SiteNavigationMenuItem"};
 				}
 
 			});
@@ -78,19 +76,23 @@ public class SiteNavigationServiceUpgradeStepRegistrator
 			new BaseExternalReferenceCodeUpgradeProcess() {
 
 				@Override
-				protected String[][] getTableAndPrimaryKeyColumnNames() {
-					return new String[][] {
-						{"SiteNavigationMenu", "siteNavigationMenuId"}
-					};
+				protected String[] getTableNames() {
+					return new String[] {"SiteNavigationMenu"};
 				}
 
 			});
 
 		registry.register(
 			"2.5.0", "3.0.0",
-			new SiteNavigationMenuItemExternalReferenceCodeUpgradeProcess(
-				_assetVocabularyLocalService, _journalArticleLocalService,
-				_kbArticleLocalService, _layoutLocalService));
+			new com.liferay.site.navigation.internal.upgrade.v3_0_0.
+				SiteNavigationMenuItemUpgradeProcess(
+					_assetVocabularyLocalService, _journalArticleLocalService,
+					_kbArticleLocalService, _layoutLocalService));
+
+		registry.register(
+			"3.0.0", "4.0.0",
+			new com.liferay.site.navigation.internal.upgrade.v4_0_0.
+				SiteNavigationMenuItemUpgradeProcess(_portal));
 	}
 
 	@Reference
@@ -104,5 +106,8 @@ public class SiteNavigationServiceUpgradeStepRegistrator
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
+
+	@Reference
+	private Portal _portal;
 
 }

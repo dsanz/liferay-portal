@@ -382,33 +382,40 @@ public class FragmentInstancePageElementDefinition
 		_draftFragmentInstanceExternalReferenceCodeSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "The configuration values of the fragment instance."
+		description = "The fragment configuration field values of the fragment instance."
 	)
 	@Valid
-	public Map<String, Object> getFragmentConfig() {
-		if (_fragmentConfigSupplier != null) {
-			fragmentConfig = _fragmentConfigSupplier.get();
+	public Map<String, FragmentConfigurationFieldValue>
+		getFragmentConfigurationFieldValues() {
 
-			_fragmentConfigSupplier = null;
+		if (_fragmentConfigurationFieldValuesSupplier != null) {
+			fragmentConfigurationFieldValues =
+				_fragmentConfigurationFieldValuesSupplier.get();
+
+			_fragmentConfigurationFieldValuesSupplier = null;
 		}
 
-		return fragmentConfig;
+		return fragmentConfigurationFieldValues;
 	}
 
-	public void setFragmentConfig(Map<String, Object> fragmentConfig) {
-		this.fragmentConfig = fragmentConfig;
+	public void setFragmentConfigurationFieldValues(
+		Map<String, FragmentConfigurationFieldValue>
+			fragmentConfigurationFieldValues) {
 
-		_fragmentConfigSupplier = null;
+		this.fragmentConfigurationFieldValues =
+			fragmentConfigurationFieldValues;
+
+		_fragmentConfigurationFieldValuesSupplier = null;
 	}
 
 	@JsonIgnore
-	public void setFragmentConfig(
-		UnsafeSupplier<Map<String, Object>, Exception>
-			fragmentConfigUnsafeSupplier) {
+	public void setFragmentConfigurationFieldValues(
+		UnsafeSupplier<Map<String, FragmentConfigurationFieldValue>, Exception>
+			fragmentConfigurationFieldValuesUnsafeSupplier) {
 
-		_fragmentConfigSupplier = () -> {
+		_fragmentConfigurationFieldValuesSupplier = () -> {
 			try {
-				return fragmentConfigUnsafeSupplier.get();
+				return fragmentConfigurationFieldValuesUnsafeSupplier.get();
 			}
 			catch (RuntimeException runtimeException) {
 				throw runtimeException;
@@ -420,42 +427,46 @@ public class FragmentInstancePageElementDefinition
 	}
 
 	@GraphQLField(
-		description = "The configuration values of the fragment instance."
+		description = "The fragment configuration field values of the fragment instance."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	protected Map<String, Object> fragmentConfig;
+	protected Map<String, FragmentConfigurationFieldValue>
+		fragmentConfigurationFieldValues;
 
 	@JsonIgnore
-	private Supplier<Map<String, Object>> _fragmentConfigSupplier;
+	private Supplier<Map<String, FragmentConfigurationFieldValue>>
+		_fragmentConfigurationFieldValuesSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "The fragment field values of the the fragment instance."
+		description = "The fragment editable elements of the the fragment instance."
 	)
 	@Valid
-	public FragmentField[] getFragmentFields() {
-		if (_fragmentFieldsSupplier != null) {
-			fragmentFields = _fragmentFieldsSupplier.get();
+	public FragmentEditableElement[] getFragmentEditableElements() {
+		if (_fragmentEditableElementsSupplier != null) {
+			fragmentEditableElements = _fragmentEditableElementsSupplier.get();
 
-			_fragmentFieldsSupplier = null;
+			_fragmentEditableElementsSupplier = null;
 		}
 
-		return fragmentFields;
+		return fragmentEditableElements;
 	}
 
-	public void setFragmentFields(FragmentField[] fragmentFields) {
-		this.fragmentFields = fragmentFields;
+	public void setFragmentEditableElements(
+		FragmentEditableElement[] fragmentEditableElements) {
 
-		_fragmentFieldsSupplier = null;
+		this.fragmentEditableElements = fragmentEditableElements;
+
+		_fragmentEditableElementsSupplier = null;
 	}
 
 	@JsonIgnore
-	public void setFragmentFields(
-		UnsafeSupplier<FragmentField[], Exception>
-			fragmentFieldsUnsafeSupplier) {
+	public void setFragmentEditableElements(
+		UnsafeSupplier<FragmentEditableElement[], Exception>
+			fragmentEditableElementsUnsafeSupplier) {
 
-		_fragmentFieldsSupplier = () -> {
+		_fragmentEditableElementsSupplier = () -> {
 			try {
-				return fragmentFieldsUnsafeSupplier.get();
+				return fragmentEditableElementsUnsafeSupplier.get();
 			}
 			catch (RuntimeException runtimeException) {
 				throw runtimeException;
@@ -467,13 +478,14 @@ public class FragmentInstancePageElementDefinition
 	}
 
 	@GraphQLField(
-		description = "The fragment field values of the the fragment instance."
+		description = "The fragment editable elements of the the fragment instance."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	protected FragmentField[] fragmentFields;
+	protected FragmentEditableElement[] fragmentEditableElements;
 
 	@JsonIgnore
-	private Supplier<FragmentField[]> _fragmentFieldsSupplier;
+	private Supplier<FragmentEditableElement[]>
+		_fragmentEditableElementsSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "The fragment instance's external reference code."
@@ -1189,33 +1201,36 @@ public class FragmentInstancePageElementDefinition
 			sb.append("\"");
 		}
 
-		Map<String, Object> fragmentConfig = getFragmentConfig();
+		Map<String, FragmentConfigurationFieldValue>
+			fragmentConfigurationFieldValues =
+				getFragmentConfigurationFieldValues();
 
-		if (fragmentConfig != null) {
+		if (fragmentConfigurationFieldValues != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
 			}
 
-			sb.append("\"fragmentConfig\": ");
+			sb.append("\"fragmentConfigurationFieldValues\": ");
 
-			sb.append(_toJSON(fragmentConfig));
+			sb.append(_toJSON(fragmentConfigurationFieldValues));
 		}
 
-		FragmentField[] fragmentFields = getFragmentFields();
+		FragmentEditableElement[] fragmentEditableElements =
+			getFragmentEditableElements();
 
-		if (fragmentFields != null) {
+		if (fragmentEditableElements != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
 			}
 
-			sb.append("\"fragmentFields\": ");
+			sb.append("\"fragmentEditableElements\": ");
 
 			sb.append("[");
 
-			for (int i = 0; i < fragmentFields.length; i++) {
-				sb.append(String.valueOf(fragmentFields[i]));
+			for (int i = 0; i < fragmentEditableElements.length; i++) {
+				sb.append(String.valueOf(fragmentEditableElements[i]));
 
-				if ((i + 1) < fragmentFields.length) {
+				if ((i + 1) < fragmentEditableElements.length) {
 					sb.append(", ");
 				}
 			}
@@ -1274,9 +1289,7 @@ public class FragmentInstancePageElementDefinition
 			sb.append("\"fragmentType\": ");
 
 			sb.append("\"");
-
 			sb.append(fragmentType);
-
 			sb.append("\"");
 		}
 
@@ -1426,9 +1439,7 @@ public class FragmentInstancePageElementDefinition
 			sb.append("\"type\": ");
 
 			sb.append("\"");
-
 			sb.append(type);
-
 			sb.append("\"");
 		}
 

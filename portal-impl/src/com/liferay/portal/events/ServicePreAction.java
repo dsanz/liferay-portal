@@ -47,6 +47,7 @@ import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.PortletPreferencesFactoryUtil;
 import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
+import com.liferay.portal.kernel.security.ChecksumUtil;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
@@ -311,7 +312,7 @@ public class ServicePreAction extends Action {
 				0, StringUtil.split(portletIds), columnId, false);
 		}
 
-		LayoutLocalServiceUtil.updateLayout(
+		LayoutLocalServiceUtil.updateTypeSettings(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
 			layout.getTypeSettings());
 
@@ -398,7 +399,7 @@ public class ServicePreAction extends Action {
 				0, StringUtil.split(portletIds), columnId, false);
 		}
 
-		LayoutLocalServiceUtil.updateLayout(
+		LayoutLocalServiceUtil.updateTypeSettings(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
 			layout.getTypeSettings());
 
@@ -1096,8 +1097,16 @@ public class ServicePreAction extends Action {
 		}
 
 		long doAsGroupId = ParamUtil.getLong(httpServletRequest, "doAsGroupId");
+
 		String doAsUserId = ParamUtil.getString(
 			httpServletRequest, "doAsUserId");
+
+		if (!Validator.isHex(doAsUserId) ||
+			!ChecksumUtil.isValid(StringUtil.hexStringToBytes(doAsUserId))) {
+
+			doAsUserId = StringPool.BLANK;
+		}
+
 		String doAsUserLanguageId = ParamUtil.getString(
 			httpServletRequest, "doAsUserLanguageId");
 		Group group = null;

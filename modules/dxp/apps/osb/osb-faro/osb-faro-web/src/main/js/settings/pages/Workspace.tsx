@@ -1,6 +1,6 @@
 import * as API from 'shared/api';
 import AddWorkspaceForm from 'shared/components/workspaces/AddWorkspaceForm';
-import BasePage from 'settings/components/BasePage';
+import BasePage from 'settings/components/base-page/BasePage';
 import React from 'react';
 import {addAlert} from 'shared/actions/alerts';
 import {Alert} from 'shared/types';
@@ -86,7 +86,6 @@ export const Workspace: React.FC<IWorkspaceProps> = ({
 	return (
 		<BasePage
 			className='workspace-settings'
-			groupId={groupId}
 			key='workspaceSettingsPage'
 			pageDescription={Liferay.Language.get(
 				'view-and-edit-your-workspace-settings.-data-center-location-and-friendly-workspace-url-cannot-be-edited-once-it-has-been-set'

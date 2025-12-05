@@ -6,17 +6,16 @@
 import {IInternalRenderer} from '@liferay/frontend-data-set-web';
 import {sub} from 'frontend-js-web';
 
+import {OBJECT_ENTRY_FOLDER_CLASS_NAME} from '../../common/utils/constants';
 import {openGenericFDSDeleteConfirmationModal} from '../../common/utils/genericOpenModalUtil';
 import {getFormattedLabel} from '../../common/utils/getFormattedText';
+import {getScopeExternalReferenceCode} from '../../common/utils/getScopeExternalReferenceCode';
 import {displayDeleteSuccessToast} from '../../common/utils/toastUtil';
 import deleteAssetEntriesBulkAction from './actions/deleteAssetEntriesBulkAction';
 import restoreItemAction from './actions/restoreItemAction';
 import AuthorRenderer from './cell_renderers/AuthorRenderer';
 import SimpleActionLinkRenderer from './cell_renderers/SimpleActionLinkRenderer';
-import SpaceRenderer from './cell_renderers/SpaceRenderer';
-
-const OBJECT_ENTRY_FOLDER_CLASSNAME =
-	'com.liferay.object.model.ObjectEntryFolder';
+import SpaceRendererWithCache from './cell_renderers/SpaceRendererWithCache';
 
 export default function RecycleBinFDSPropsTransformer({
 	itemsActions = [],
@@ -41,7 +40,11 @@ export default function RecycleBinFDSPropsTransformer({
 					type: 'internal',
 				} as IInternalRenderer,
 				{
-					component: SpaceRenderer,
+					component: ({itemData}) =>
+						SpaceRendererWithCache({
+							spaceExternalReferenceCode:
+								getScopeExternalReferenceCode(itemData),
+						}),
 					name: 'spaceTableCellRenderer',
 					type: 'internal',
 				} as IInternalRenderer,
@@ -54,7 +57,7 @@ export default function RecycleBinFDSPropsTransformer({
 					isVisible: (item: any) =>
 						Boolean(
 							item?.entryClassName !==
-								OBJECT_ENTRY_FOLDER_CLASSNAME
+								OBJECT_ENTRY_FOLDER_CLASS_NAME
 						),
 				};
 			}

@@ -20,13 +20,13 @@ const DEFAULT_STRUCTURE: Structure = {
 	name: 'UntitledStructure',
 	spaces: [],
 	status: 'new',
+	system: false,
 	uuid: getUuid(),
 	workflows: {},
 };
 
 const DEFAULT_STATE: State = {
-	error: null,
-	history: {deletedChildren: false},
+	history: {deletedChildren: false, modifiedNames: new Set()},
 	invalids: new Map(),
 	publishedChildren: new Set(),
 	selection: [],

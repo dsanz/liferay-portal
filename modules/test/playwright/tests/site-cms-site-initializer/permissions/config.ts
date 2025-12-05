@@ -4,6 +4,10 @@
  */
 
 export const config = {
+	dependencies: ['site-cms-site.main'],
+	expect: {
+		timeout: 10 * 1000,
+	},
 	name: 'site-cms-site-initializer.permissions',
 	testDir: 'tests/site-cms-site-initializer/permissions',
 };

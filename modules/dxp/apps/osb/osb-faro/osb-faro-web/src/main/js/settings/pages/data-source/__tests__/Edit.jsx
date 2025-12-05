@@ -8,10 +8,19 @@ import {render} from '@testing-library/react';
 import {Routes, toRoute} from 'shared/util/router';
 import {StaticRouter} from 'react-router';
 import {UserRoleNames} from 'shared/util/constants';
-import {waitForLoadingToBeRemoved} from 'test/helpers';
 
 jest.unmock('react-dom');
-jest.useRealTimers();
+
+jest.mock('react-router-dom', () => ({
+	...jest.requireActual('react-router-dom'),
+	useParams: () => ({
+		groupId: '23'
+	})
+}));
+
+jest.mock('shared/hooks/useRequest', () => ({
+	useRequest: jest.fn
+}));
 
 const csvProps = {
 	groupId: '23',
@@ -41,13 +50,11 @@ describe('Edit', () => {
 			</Provider>
 		);
 
-		jest.runAllTimers();
-
 		expect(getByText('Configure CSV')).toBeInTheDocument();
 	});
 
 	it('should render a Salesforce data-source page', async () => {
-		const {container, getByText} = render(
+		const {getByText} = render(
 			<Provider store={mockStore()}>
 				<StaticRouter
 					location={toRoute(
@@ -60,8 +67,10 @@ describe('Edit', () => {
 			</Provider>
 		);
 
-		await waitForLoadingToBeRemoved(container);
-
-		expect(getByText('Configure Salesforce')).toBeInTheDocument();
+		expect(
+			getByText(
+				'To configure your Salesforce data source, go to your Salesforce environment to update this app connection.'
+			)
+		).toBeInTheDocument();
 	});
 });

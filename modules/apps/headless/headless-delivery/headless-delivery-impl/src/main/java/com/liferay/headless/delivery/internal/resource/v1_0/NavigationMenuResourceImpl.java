@@ -24,8 +24,6 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.PermissionService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
-import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
-import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -41,7 +39,6 @@ import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 import com.liferay.portal.vulcan.fields.NestedFieldsSupplier;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
-import com.liferay.portal.vulcan.permission.ModelPermissionsUtil;
 import com.liferay.portal.vulcan.permission.Permission;
 import com.liferay.portal.vulcan.permission.PermissionUtil;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
@@ -72,11 +69,13 @@ import org.osgi.service.component.annotations.ServiceScope;
 
 /**
  * @author Javier Gamarra
+ * @deprecated As of Cavanaugh (7.4.x)
  */
 @Component(
 	properties = "OSGI-INF/liferay/rest/v1_0/navigation-menu.properties",
 	scope = ServiceScope.PROTOTYPE, service = NavigationMenuResource.class
 )
+@Deprecated
 public class NavigationMenuResourceImpl extends BaseNavigationMenuResourceImpl {
 
 	@Override
@@ -241,14 +240,6 @@ public class NavigationMenuResourceImpl extends BaseNavigationMenuResourceImpl {
 				true,
 				ServiceContextBuilder.create(
 					siteId, contextHttpServletRequest, null
-				).permissions(
-					ModelPermissionsUtil.toModelPermissions(
-						contextCompany.getCompanyId(),
-						navigationMenu.getPermissions(),
-						GetterUtil.getLong(navigationMenu.getId()),
-						SiteNavigationMenu.class.getName(),
-						_resourceActionLocalService,
-						_resourcePermissionLocalService, _roleLocalService)
 				).build());
 
 		_createNavigationMenuItems(
@@ -445,10 +436,10 @@ public class NavigationMenuResourceImpl extends BaseNavigationMenuResourceImpl {
 		).build();
 	}
 
-	private boolean _isNameProperty(Map.Entry<String, String> property) {
-		String propertyKey = property.getKey();
+	private boolean _isNameProperty(Map.Entry<String, String> entry) {
+		String key = entry.getKey();
 
-		return propertyKey.startsWith("name_");
+		return key.startsWith("name_");
 	}
 
 	private NavigationMenu _toNavigationMenu(
@@ -645,12 +636,6 @@ public class NavigationMenuResourceImpl extends BaseNavigationMenuResourceImpl {
 
 		ServiceContext serviceContext = ServiceContextBuilder.create(
 			siteNavigationMenu.getGroupId(), contextHttpServletRequest, null
-		).permissions(
-			ModelPermissionsUtil.toModelPermissions(
-				contextCompany.getCompanyId(), navigationMenu.getPermissions(),
-				GetterUtil.getLong(navigationMenu.getId()),
-				SiteNavigationMenu.class.getName(), _resourceActionLocalService,
-				_resourcePermissionLocalService, _roleLocalService)
 		).build();
 
 		NavigationMenu.NavigationType navigationType =
@@ -757,12 +742,6 @@ public class NavigationMenuResourceImpl extends BaseNavigationMenuResourceImpl {
 
 	@Reference
 	private ResourceActionLocalService _resourceActionLocalService;
-
-	@Reference
-	private ResourcePermissionLocalService _resourcePermissionLocalService;
-
-	@Reference
-	private RoleLocalService _roleLocalService;
 
 	@Reference
 	private SiteNavigationMenuItemService _siteNavigationMenuItemService;

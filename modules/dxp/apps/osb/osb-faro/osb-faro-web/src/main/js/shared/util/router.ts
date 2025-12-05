@@ -1,5 +1,5 @@
 import Constants, {DataSourceTypes, EntityTypes} from '../util/constants';
-import pathToRegexp from 'path-to-regexp';
+import {compile} from 'shared/util/path-to-regexp';
 import {invert, isEmpty, isString, memoize} from 'lodash';
 import {matchPath} from 'react-router-dom';
 
@@ -50,6 +50,11 @@ export const USERS = 'users';
 
 export const PERIOD = 'rangeKey';
 export const SEGMENT_STATE = 'state';
+export const SEGMENT_TYPE = 'segmentType';
+export const INDIVIDUAL_COUNT = 'individualCount';
+export const DATE_MODIFIED = 'dateModified';
+export const LAST_MEMBERSHIP_UPDATE_DATE = 'lastMembershipUpdateDate';
+export const USER_NAME = 'userName';
 export const STATUSES = 'statuses';
 export const TYPES = 'types';
 
@@ -386,7 +391,7 @@ export function buildRoutes(
 	return routes;
 }
 
-const getCompiledRoute = memoize(pathToRegexp.compile);
+const getCompiledRoute = memoize(compile);
 
 export function toRoute(route: string, options?: {[key: string]: any}) {
 	return getCompiledRoute(route)(options);

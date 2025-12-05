@@ -117,6 +117,16 @@ public class ObjectEntryLocalServiceUtil {
 		getService().checkObjectEntries(companyId);
 	}
 
+	public static ObjectEntry copyObjectEntry(
+			long userId, long objectEntryId, long objectEntryFolderId,
+			Map<String, Serializable> values,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().copyObjectEntry(
+			userId, objectEntryId, objectEntryFolderId, values, serviceContext);
+	}
+
 	/**
 	 * Creates a new object entry with the primary key. Does not add the object entry to the database.
 	 *
@@ -490,13 +500,13 @@ public class ObjectEntryLocalServiceUtil {
 	}
 
 	public static long getObjectEntriesCount(
-			long groupId,
+			long groupId, String languageId,
 			com.liferay.object.model.ObjectDefinition objectDefinition,
 			com.liferay.petra.sql.dsl.expression.Predicate predicate)
 		throws PortalException {
 
 		return getService().getObjectEntriesCount(
-			groupId, objectDefinition, predicate);
+			groupId, languageId, objectDefinition, predicate);
 	}
 
 	/**
@@ -702,6 +712,16 @@ public class ObjectEntryLocalServiceUtil {
 			userId, objectEntryFolder, serviceContext);
 	}
 
+	public static ObjectEntry moveObjectEntry(
+			long userId, long objectEntryId, long objectEntryFolderId,
+			Map<String, Serializable> values,
+			com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().moveObjectEntry(
+			userId, objectEntryId, objectEntryFolderId, values, serviceContext);
+	}
+
 	public static ObjectEntry moveObjectEntryToTrash(
 			long userId, ObjectEntry objectEntry,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
@@ -779,6 +799,13 @@ public class ObjectEntryLocalServiceUtil {
 		getService().updateAsset(
 			userId, objectEntry, assetCategoryIds, assetTagNames,
 			assetLinkEntryIds, priority);
+	}
+
+	public static ObjectEntry updateModifiedDate(
+			long objectEntryId, java.util.Date modifiedDate)
+		throws PortalException {
+
+		return getService().updateModifiedDate(objectEntryId, modifiedDate);
 	}
 
 	public static ObjectEntry updateObjectEntry(

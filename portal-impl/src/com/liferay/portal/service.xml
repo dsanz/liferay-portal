@@ -64,6 +64,10 @@
 			<finder-column name="companyId" />
 			<finder-column name="classNameId" />
 		</finder>
+		<finder name="CN_CPK" return-type="Collection">
+			<finder-column name="classNameId" />
+			<finder-column name="classPK" />
+		</finder>
 		<finder name="C_C_C" return-type="Collection">
 			<finder-column name="companyId" />
 			<finder-column name="classNameId" />
@@ -326,6 +330,25 @@
 		<finder name="C_A_S" return-type="Collection">
 			<finder-column name="companyId" />
 			<finder-column name="active" />
+			<finder-column name="shippingAllowed" />
+		</finder>
+		<finder name="C_A_B_G" return-type="Collection">
+			<finder-column name="countryId" />
+			<finder-column name="active" />
+			<finder-column name="billingAllowed" />
+			<finder-column name="groupFilterEnabled" />
+		</finder>
+		<finder name="C_A_G_S" return-type="Collection">
+			<finder-column name="countryId" />
+			<finder-column name="active" />
+			<finder-column name="groupFilterEnabled" />
+			<finder-column name="shippingAllowed" />
+		</finder>
+		<finder name="C_A_B_G_S" return-type="Collection">
+			<finder-column name="countryId" />
+			<finder-column name="active" />
+			<finder-column name="billingAllowed" />
+			<finder-column name="groupFilterEnabled" />
 			<finder-column name="shippingAllowed" />
 		</finder>
 	</entity>
@@ -611,11 +634,11 @@
 		<column name="iconImageId" type="long" />
 		<column name="themeId" type="String" />
 		<column name="colorSchemeId" type="String" />
-		<column name="styleBookEntryId" type="long" />
+		<column name="styleBookEntryERC" type="String" />
 		<column name="css" type="String" />
 		<column name="priority" type="int" />
 		<column name="faviconFileEntryId" type="long" />
-		<column name="masterLayoutPlid" type="long" />
+		<column db-name="masterLPTEERC" name="masterLayoutPageTemplateEntryERC" type="String" />
 		<column name="layoutPrototypeUuid" type="String" />
 		<column name="layoutPrototypeLinkEnabled" type="boolean" />
 		<column name="layoutSetPrototypeLayoutERC" type="String" />
@@ -661,9 +684,9 @@
 			<finder-column name="groupId" />
 			<finder-column name="type" />
 		</finder>
-		<finder name="G_MLP" return-type="Collection">
+		<finder name="G_MLPTEERC" return-type="Collection">
 			<finder-column name="groupId" />
-			<finder-column name="masterLayoutPlid" />
+			<finder-column name="masterLayoutPageTemplateEntryERC" />
 		</finder>
 		<finder name="C_L" return-type="Collection" where="system = [$FALSE$]">
 			<finder-column name="companyId" />
@@ -3200,6 +3223,9 @@
 
 		<!-- Finder methods -->
 
+		<finder name="WorkflowInstanceId" return-type="WorkflowInstanceLink" unique="true">
+			<finder-column name="workflowInstanceId" />
+		</finder>
 		<finder name="C_C" return-type="Collection">
 			<finder-column name="companyId" />
 			<finder-column name="classNameId" />

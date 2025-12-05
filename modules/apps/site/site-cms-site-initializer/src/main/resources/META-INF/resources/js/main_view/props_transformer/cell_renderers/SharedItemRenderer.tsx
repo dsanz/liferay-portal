@@ -7,13 +7,11 @@ import ClayIcon from '@clayui/icon';
 import ClayLink from '@clayui/link';
 import ClaySticker from '@clayui/sticker';
 import {ClayTooltipProvider} from '@clayui/tooltip';
+import {replaceTokens} from '@liferay/frontend-data-set-web';
 import {sub} from 'frontend-js-web';
 import React, {useMemo} from 'react';
 
-import formatActionURL from '../../../common/utils/formatActionURL';
-
-const OBJECT_ENTRY_FOLDER_CLASS_NAME =
-	'com.liferay.object.model.ObjectEntryFolder';
+import {OBJECT_ENTRY_FOLDER_CLASS_NAME} from '../../../common/utils/constants';
 
 interface ActionItem {
 	data: {id: string};
@@ -32,6 +30,10 @@ export default function SharedItemRenderer({
 	value: string;
 }) {
 	const {assetType, fileTypeIcon, fileTypeIconColor, siteName} = itemData;
+	const title =
+		value && value !== '' && value !== 'null'
+			? value
+			: Liferay.Language.get('untitled-asset');
 
 	let icon;
 	let iconColor;
@@ -61,7 +63,8 @@ export default function SharedItemRenderer({
 		}
 
 		const isFolder = itemData?.className === OBJECT_ENTRY_FOLDER_CLASS_NAME;
-		const isUpdate = itemData?.actionIds?.includes('UPDATE');
+		const isUpdate =
+			itemData?.actionIds?.includes('UPDATE') && itemData?.visible;
 
 		const resolvedActionId = isFolder
 			? `${actionId}Folder`
@@ -77,7 +80,7 @@ export default function SharedItemRenderer({
 			return null;
 		}
 
-		return formatActionURL(itemData, selectedAction.href);
+		return replaceTokens(selectedAction.href, itemData);
 	}, [actions, itemData, options]);
 
 	return (
@@ -87,11 +90,11 @@ export default function SharedItemRenderer({
 			</ClaySticker>
 
 			{linkHref ? (
-				<ClayLink aria-label={value} data-senna-off href={linkHref}>
-					{value}
+				<ClayLink aria-label={title} data-senna-off href={linkHref}>
+					{title}
 				</ClayLink>
 			) : (
-				<span>{value}</span>
+				<span>{title}</span>
 			)}
 
 			{siteName && (

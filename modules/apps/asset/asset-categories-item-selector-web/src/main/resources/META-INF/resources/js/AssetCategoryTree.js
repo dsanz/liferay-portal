@@ -71,7 +71,7 @@ export function AssetCategoryTree({
 		selectedKeys.forEach((key) => {
 			const item = itemsById[key];
 
-			if (item.disabled) {
+			if (!item || item.disabled) {
 				return;
 			}
 
@@ -94,11 +94,9 @@ export function AssetCategoryTree({
 		}
 
 		requestAnimationFrame(() => {
-			if (Object.keys(selectedItems).length) {
-				getOpener().Liferay.fire(itemSelectedEventName, {
-					data: selectedItems,
-				});
-			}
+			getOpener().Liferay.fire(itemSelectedEventName, {
+				data: selectedItems,
+			});
 		});
 	}, [
 		selectedKeys,

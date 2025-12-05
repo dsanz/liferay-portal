@@ -16,7 +16,9 @@ export class PagesAdminPage {
 	readonly page: Page;
 
 	readonly addButton: Locator;
+	readonly defineCustomThemeRadio: Locator;
 	readonly newButton: Locator;
+	readonly newTemplatePageButton: Locator;
 
 	private readonly configurationSaveButton: Locator;
 	private readonly javaScriptClientExtensionsTab: Locator;
@@ -36,12 +38,18 @@ export class PagesAdminPage {
 			exact: true,
 			name: 'Save',
 		});
+		this.defineCustomThemeRadio = this.page.getByRole('radio', {
+			name: 'Define a custom theme for',
+		});
 		this.javaScriptClientExtensionsTab = page.getByRole('tab', {
 			name: 'JavaScript',
 		});
 		this.newButton = page
 			.locator('.management-bar')
 			.getByText('New', {exact: true});
+		this.newTemplatePageButton = page.getByRole('link', {
+			name: 'Add Site Template Page',
+		});
 		this.pageEditorPage = new PageEditorPage(this.page);
 		this.pageTitleBox = addPageIFrame.locator(
 			'input[id="_com_liferay_layout_admin_web_portlet_GroupPagesPortlet_name"]'
@@ -50,9 +58,13 @@ export class PagesAdminPage {
 		this.searchInput = this.page.getByPlaceholder('Search for');
 	}
 
-	async goto(siteUrl?: Site['friendlyUrlPath'], doAsUserId?: string) {
+	getPageMenuItem(pageName: string): Locator {
+		return this.page.getByRole('menuitem').filter({hasText: pageName});
+	}
+
+	async goto(siteUrl?: Site['friendlyUrlPath']) {
 		await this.page.goto(
-			`/group${siteUrl || '/guest'}${PORTLET_URLS.pages}${doAsUserId ? '&doAsUserId=' + doAsUserId : ''}`
+			`/group${siteUrl || '/guest'}${PORTLET_URLS.pages}`
 		);
 	}
 
@@ -144,11 +156,7 @@ export class PagesAdminPage {
 			.filter({hasText: template})
 			.click();
 
-		const loadingAnimation = this.page.locator(
-			'.modal-body-iframe .loading-animation'
-		);
-		await loadingAnimation.waitFor();
-		await loadingAnimation.waitFor({state: 'hidden'});
+		await this.pageTitleBox.waitFor();
 
 		await fillAndClickOutside(this.page, this.pageTitleBox, name);
 
@@ -234,9 +242,7 @@ export class PagesAdminPage {
 	}
 
 	async changeTheme(themeName: string) {
-		await this.page
-			.getByRole('radio', {name: 'Define a custom theme for'})
-			.click();
+		await this.defineCustomThemeRadio.click();
 
 		await this.page
 			.getByRole('button', {name: 'Change Current Theme'})
@@ -366,7 +372,11 @@ export class PagesAdminPage {
 	}
 
 	async clickOnTab(name: string) {
-		await this.page.getByRole('link', {name}).click();
+		await expect(async () => {
+			await this.page.getByRole('link', {name}).click();
+
+			await expect(this.page.getByRole('heading', {name})).toBeVisible();
+		}).toPass({timeout: 4000});
 	}
 
 	async deletePage(name: string) {
@@ -535,6 +545,16 @@ export class PagesAdminPage {
 		}
 	}
 
+	async showChildPages(parentName: string) {
+		const pageItem = this.page
+			.getByRole('menuitem')
+			.filter({hasText: parentName});
+
+		await pageItem
+			.locator('.miller-columns-item-child-indicator')
+			.click({force: true});
+	}
+
 	async changePagesPermissions(pageNames: string[], permissionIds: string[]) {
 
 		// Select the pages
@@ -578,5 +598,17 @@ export class PagesAdminPage {
 		await this.page.getByLabel('Clear selection').click();
 
 		await this.page.getByLabel('Select All Items').waitFor();
+	}
+
+	async addCustomCSS(pageName: string, css: string) {
+		await this.goToDesignTabConfiguration(pageName);
+
+		await this.defineCustomThemeRadio.click();
+
+		await this.page
+			.getByRole('textbox', {exact: true, name: 'CSS'})
+			.fill(css);
+
+		await this.saveConfiguration();
 	}
 }

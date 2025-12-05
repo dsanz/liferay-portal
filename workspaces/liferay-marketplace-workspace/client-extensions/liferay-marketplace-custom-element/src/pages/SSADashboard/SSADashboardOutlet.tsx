@@ -12,8 +12,9 @@ import {useMarketplaceContext} from '../../context/MarketplaceContext';
 import SearchBuilder from '../../core/SearchBuilder';
 import {OrderTypes, OrderWorkflowStatusCode} from '../../enums/Order';
 import {usePlacedOrders} from '../../hooks/data/usePlacedOrder';
+import i18n from '../../i18n';
 import HeadlessAdminUser from '../../services/rest/HeadlessAdminUser';
-import {useSSATrialsExtend} from './useSSATrialsExtend';
+import {useSSATrialsExtend} from './hooks/useSSATrialsExtend';
 
 const SSADashboardOutlet = () => {
 	const {marketplaceUserAccount, myUserAccount, properties} =
@@ -27,10 +28,21 @@ const SSADashboardOutlet = () => {
 			)
 	);
 
+	const isFilterByAuthorIdEnabled =
+		properties.featureFlags.includes('LPD-63837');
+
+	const authorFilter = isFilterByAuthorIdEnabled ? 'authorId' : 'author';
+
+	const authorFilterValue = isFilterByAuthorIdEnabled
+		? myUserAccount?.id
+		: myUserAccount?.name;
+
 	const {data: inProgressTrialResponse = {totalCount: 0}} = usePlacedOrders({
 		accountId: ssaAccount?.id as number,
 		filter: new SearchBuilder()
-			.eq('author', myUserAccount?.name)
+			.eq(authorFilter, authorFilterValue, {
+				unquote: isFilterByAuthorIdEnabled,
+			})
 			.and()
 			.eq('orderTypeExternalReferenceCode', OrderTypes.SSA_SAAS)
 			.and()
@@ -59,16 +71,21 @@ const SSADashboardOutlet = () => {
 					currentAccount={ssaAccount}
 					dashboardNavigationItems={[
 						{
-							active: true,
-							itemTitle: 'My SaaS Demos',
+							itemTitle: i18n.translate('my-saas-demos'),
 							path: '/',
 							symbol: 'nodes',
 							visible: true,
 						},
 						{
-							itemTitle: 'Manage SaaS',
+							itemTitle: i18n.translate('saas-environments'),
 							path: '/saas-trials',
 							symbol: 'cog',
+							visible: marketplaceUserAccount.isSSAAdmin,
+						},
+						{
+							itemTitle: i18n.translate('manage-users'),
+							path: '/manage-users',
+							symbol: 'users',
 							visible: marketplaceUserAccount.isSSAAdmin,
 						},
 					].filter(({visible}) => visible)}

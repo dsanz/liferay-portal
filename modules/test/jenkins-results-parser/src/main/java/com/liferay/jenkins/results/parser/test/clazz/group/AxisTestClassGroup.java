@@ -15,7 +15,7 @@ import com.liferay.jenkins.results.parser.test.clazz.TestClassFactory;
 import java.io.File;
 import java.io.IOException;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.json.JSONArray;
@@ -127,15 +127,28 @@ public class AxisTestClassGroup extends BaseTestClassGroup {
 			return null;
 		}
 
-		List<DownstreamBuildReport> cachedDownstreamBuildReports =
-			new ArrayList<>();
-
 		BatchTestClassGroup batchTestClassGroup = getBatchTestClassGroup();
 
-		cachedDownstreamBuildReports.add(
-			batchTestClassGroup.getCachedDownstreamBuildReport(getAxisName()));
+		List<DownstreamBuildReport> cachedDownstreamBuildReports =
+			batchTestClassGroup.getCachedDownstreamBuildReports(getAxisName());
 
-		return cachedDownstreamBuildReports;
+		if ((cachedDownstreamBuildReports == null) ||
+			cachedDownstreamBuildReports.isEmpty()) {
+
+			return null;
+		}
+
+		for (DownstreamBuildReport cachedDownstreamBuildReport :
+				cachedDownstreamBuildReports) {
+
+			if ((cachedDownstreamBuildReport != null) &&
+				!cachedDownstreamBuildReport.isFailing()) {
+
+				return Collections.singletonList(cachedDownstreamBuildReport);
+			}
+		}
+
+		return null;
 	}
 
 	public String getDownstreamJobName() {
@@ -230,10 +243,12 @@ public class AxisTestClassGroup extends BaseTestClassGroup {
 
 		BatchTestClassGroup batchTestClassGroup = getBatchTestClassGroup();
 
-		DownstreamBuildReport cachedDownstreamBuildReport =
-			batchTestClassGroup.getCachedDownstreamBuildReport(getAxisName());
+		List<DownstreamBuildReport> cachedDownstreamBuildReports =
+			batchTestClassGroup.getCachedDownstreamBuildReports(getAxisName());
 
-		if (cachedDownstreamBuildReport != null) {
+		if ((cachedDownstreamBuildReports != null) &&
+			!cachedDownstreamBuildReports.isEmpty()) {
+
 			return true;
 		}
 

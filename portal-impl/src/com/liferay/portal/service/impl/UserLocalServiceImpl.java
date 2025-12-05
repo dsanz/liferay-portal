@@ -1375,11 +1375,12 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 		// Group
 
 		_groupLocalService.addGroup(
-			user.getUserId(), GroupConstants.DEFAULT_PARENT_GROUP_ID,
-			User.class.getName(), user.getUserId(),
-			GroupConstants.DEFAULT_LIVE_GROUP_ID, (Map<Locale, String>)null,
-			null, 0, true, GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION,
-			StringPool.SLASH + screenName, false, true, null);
+			StringPool.BLANK, user.getUserId(),
+			GroupConstants.DEFAULT_PARENT_GROUP_ID, User.class.getName(),
+			user.getUserId(), GroupConstants.DEFAULT_LIVE_GROUP_ID,
+			(Map<Locale, String>)null, null, 0, null, true,
+			GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION,
+			StringPool.SLASH + screenName, false, false, true, null);
 
 		// Groups
 
@@ -1528,18 +1529,7 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 					TransactionInvokerUtil.invoke(
 						_transactionConfig,
 						() -> {
-							Session session = null;
-
-							try {
-								session = userPersistence.openSession();
-
-								session.apply(
-									connection -> _updateLastLogin(
-										connection, deduplicatedUsers));
-							}
-							finally {
-								userPersistence.closeSession(session);
-							}
+							_updateLastLogin(deduplicatedUsers);
 
 							return null;
 						});
@@ -6112,9 +6102,7 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 			try {
 				user = _checkPasswordPolicy(user);
 
-				if (FeatureFlagManagerUtil.isEnabled("LPD-59081")) {
-					sendUserLoginMessage(companyId, user.getUserId());
-				}
+				sendUserLoginMessage(companyId, user.getUserId());
 			}
 			catch (PortalException portalException) {
 				handleAuthenticationFailure(
@@ -6270,7 +6258,10 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 			passwordPolicy.isChangeRequired() &&
 			(user.getLastLoginDate() == null)) {
 
-			user.setPasswordReset(true);
+			Contact contact = user.getContact();
+			User guestUser = getGuestUser(user.getCompanyId());
+
+			user.setPasswordReset(contact.getUserId() != guestUser.getUserId());
 
 			user = userPersistence.update(user);
 		}
@@ -7566,6 +7557,53 @@ public class UserLocalServiceImpl extends UserLocalServiceBaseImpl {
 					EntityCacheUtil.removeResult(
 						UserImpl.class, user.getUserId());
 				}
+			}
+		}
+	}
+
+	private void _updateLastLogin(List<User> users) throws SQLException {
+		if (PropsValues.DATABASE_PARTITION_ENABLED) {
+			Map<Long, List<User>> companyUsersMap = new HashMap<>();
+
+			for (User user : users) {
+				List<User> companyUsers = companyUsersMap.computeIfAbsent(
+					user.getCompanyId(), key -> new ArrayList<>());
+
+				companyUsers.add(user);
+			}
+
+			for (Map.Entry<Long, List<User>> entry :
+					companyUsersMap.entrySet()) {
+
+				_companyLocalService.forEachCompanyId(
+					companyId -> {
+						Session session = null;
+
+						try {
+							session = userPersistence.openSession();
+
+							session.apply(
+								connection -> _updateLastLogin(
+									connection, entry.getValue()));
+						}
+						finally {
+							userPersistence.closeSession(session);
+						}
+					},
+					new long[] {entry.getKey()});
+			}
+		}
+		else {
+			Session session = null;
+
+			try {
+				session = userPersistence.openSession();
+
+				session.apply(
+					connection -> _updateLastLogin(connection, users));
+			}
+			finally {
+				userPersistence.closeSession(session);
 			}
 		}
 	}

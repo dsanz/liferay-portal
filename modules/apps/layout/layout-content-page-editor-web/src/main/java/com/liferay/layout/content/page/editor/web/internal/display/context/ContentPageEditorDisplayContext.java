@@ -695,27 +695,31 @@ public class ContentPageEditorDisplayContext {
 						theme.getThemeId(), layoutSet.getThemeId());
 				}
 			).put(
-				"styleBookEntryId",
+				"styleBookEntryERC",
 				() -> {
 					Layout layout = themeDisplay.getLayout();
+
+					String styleBookEntryERC = GetterUtil.getString(
+						layout.getStyleBookEntryERC());
 
 					if (!FeatureFlagManagerUtil.isEnabled(
 							layout.getCompanyId(), "LPD-30204")) {
 
-						return layout.getStyleBookEntryId();
+						return styleBookEntryERC;
 					}
 
-					if (layout.getStyleBookEntryId() > 0) {
+					if (Validator.isNull(styleBookEntryERC)) {
 						StyleBookEntry defaultStyleBookEntry =
 							DefaultStyleBookEntryUtil.getDefaultStyleBookEntry(
 								layout);
 
 						if (defaultStyleBookEntry != null) {
-							return defaultStyleBookEntry.getStyleBookEntryId();
+							return defaultStyleBookEntry.
+								getExternalReferenceCode();
 						}
 					}
 
-					return "0";
+					return styleBookEntryERC;
 				}
 			).put(
 				"styleBooks", _getStyleBooks()
@@ -1466,11 +1470,12 @@ public class ContentPageEditorDisplayContext {
 
 		Layout layout = themeDisplay.getLayout();
 
-		if (layout.getMasterLayoutPlid() > 0) {
+		if (Validator.isNotNull(layout.getMasterLayoutPageTemplateEntryERC())) {
 			LayoutPageTemplateEntry masterLayoutPageTemplateEntry =
 				layoutPageTemplateEntryLocalService.
-					fetchLayoutPageTemplateEntryByPlid(
-						layout.getMasterLayoutPlid());
+					fetchLayoutPageTemplateEntryByExternalReferenceCode(
+						layout.getMasterLayoutPageTemplateEntryERC(),
+						layout.getGroupId());
 
 			if (masterLayoutPageTemplateEntry != null) {
 				fragmentEntryLinks =
@@ -1782,11 +1787,11 @@ public class ContentPageEditorDisplayContext {
 				return null;
 			}
 		).put(
-			"masterLayoutPlid",
+			"masterLayoutPageTemplateEntryERC",
 			() -> {
 				Layout layout = themeDisplay.getLayout();
 
-				return String.valueOf(layout.getMasterLayoutPlid());
+				return layout.getMasterLayoutPageTemplateEntryERC();
 			}
 		);
 	}
@@ -1798,7 +1803,7 @@ public class ContentPageEditorDisplayContext {
 			HashMapBuilder.<String, Object>put(
 				"imagePreviewURL", StringPool.BLANK
 			).put(
-				"masterLayoutPlid", "0"
+				"masterLayoutPageTemplateEntryERC", StringPool.BLANK
 			).put(
 				"name", language.get(httpServletRequest, "blank")
 			).build());
@@ -1819,8 +1824,9 @@ public class ContentPageEditorDisplayContext {
 					"imagePreviewURL",
 					layoutPageTemplateEntry.getImagePreviewURL(themeDisplay)
 				).put(
-					"masterLayoutPlid",
-					String.valueOf(layoutPageTemplateEntry.getPlid())
+					"masterLayoutPageTemplateEntryERC",
+					String.valueOf(
+						layoutPageTemplateEntry.getExternalReferenceCode())
 				).put(
 					"name", layoutPageTemplateEntry.getName()
 				).build());
@@ -2004,7 +2010,7 @@ public class ContentPageEditorDisplayContext {
 						StyleBookUtil.getStyleFromThemeStyleBookEntry(
 							themeDisplay.getLayout(), themeDisplay.getLocale()))
 				).put(
-					"styleBookEntryId", "0"
+					"styleBookEntryERC", StringPool.BLANK
 				).put(
 					"subtitle",
 					() -> {
@@ -2028,7 +2034,8 @@ public class ContentPageEditorDisplayContext {
 				).put(
 					"name", styleBookEntry.getName()
 				).put(
-					"styleBookEntryId", styleBookEntry.getStyleBookEntryId()
+					"styleBookEntryERC",
+					styleBookEntry.getExternalReferenceCode()
 				).build());
 		}
 
@@ -2120,11 +2127,24 @@ public class ContentPageEditorDisplayContext {
 
 		Layout draftLayout = themeDisplay.getLayout();
 
-		int masterUsagesCount = _layoutLocalService.getMasterLayoutsCount(
-			themeDisplay.getScopeGroupId(), draftLayout.getClassPK());
+		try {
+			LayoutPageTemplateEntry layoutPageTemplateEntry =
+				_layoutPageTemplateEntryService.
+					fetchLayoutPageTemplateEntryByPlid(
+						draftLayout.getClassPK());
 
-		if (masterUsagesCount > 0) {
-			return true;
+			int masterUsagesCount = _layoutLocalService.getMasterLayoutsCount(
+				themeDisplay.getScopeGroupId(),
+				layoutPageTemplateEntry.getExternalReferenceCode());
+
+			if (masterUsagesCount > 0) {
+				return true;
+			}
+		}
+		catch (Exception exception) {
+			if (_log.isDebugEnabled()) {
+				_log.debug("Unable to check if master is used", exception);
+			}
 		}
 
 		return false;

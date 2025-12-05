@@ -14,12 +14,20 @@ import com.liferay.exportimport.report.constants.ExportImportReportEntryConstant
 import com.liferay.exportimport.report.model.ExportImportReportEntry;
 import com.liferay.exportimport.report.service.ExportImportReportEntryLocalService;
 import com.liferay.exportimport.rest.client.dto.v1_0.ReportEntry;
+import com.liferay.exportimport.rest.client.dto.v1_0.Type;
+import com.liferay.exportimport.rest.client.pagination.Page;
+import com.liferay.exportimport.rest.client.pagination.Pagination;
+import com.liferay.exportimport.rest.client.resource.v1_0.ReportEntryResource;
 import com.liferay.portal.background.task.model.BackgroundTask;
 import com.liferay.portal.background.task.service.BackgroundTaskLocalService;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 
@@ -29,7 +37,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 /**
@@ -63,7 +73,16 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 	}
 
 	@Override
-	protected ReportEntry testGetImportProcessErrorsPage_addReportEntry(
+	@Test
+	public void testGetImportProcessReportEntriesPage() throws Exception {
+		super.testGetImportProcessReportEntriesPage();
+
+		_testGetImportProcessReportEntriesPageWithEmptyExportImportReportEntry();
+		_testGetImportProcessReportEntriesPageWithLocalizedSearchTerm();
+	}
+
+	@Override
+	protected ReportEntry testGetImportProcessReportEntriesPage_addReportEntry(
 			Long importProcessId, ReportEntry reportEntry)
 		throws Exception {
 
@@ -71,7 +90,7 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 	}
 
 	@Override
-	protected Long testGetImportProcessErrorsPage_getImportProcessId()
+	protected Long testGetImportProcessReportEntriesPage_getImportProcessId()
 		throws Exception {
 
 		return _backgroundTask.getBackgroundTaskId();
@@ -85,18 +104,38 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 	private ReportEntry _addReportEntry(ReportEntry reportEntry)
 		throws Exception {
 
-		ExportImportReportEntry exportImportReportEntry =
-			_exportImportReportEntryLocalService.
-				addErrorExportImportReportEntry(
-					testGroup.getGroupId(), testCompany.getCompanyId(),
-					reportEntry.getClassExternalReferenceCode(),
-					reportEntry.getClassNameId(), reportEntry.getClassPK(),
-					_exportImportConfiguration.getExportImportConfigurationId(),
-					reportEntry.getErrorMessage(),
-					reportEntry.getErrorStacktrace(),
-					reportEntry.getModelName(),
-					ExportImportReportEntryConstants.ORIGIN_BATCH, null,
-					testGroup.getGroupKey());
+		ExportImportReportEntry exportImportReportEntry;
+
+		Type type = reportEntry.getType();
+
+		if ((type != null) &&
+			(type.getCode() == ExportImportReportEntryConstants.TYPE_EMPTY)) {
+
+			exportImportReportEntry =
+				_exportImportReportEntryLocalService.
+					addEmptyExportImportReportEntry(
+						testGroup.getGroupId(), testCompany.getCompanyId(),
+						reportEntry.getClassExternalReferenceCode(),
+						reportEntry.getClassNameId(),
+						_exportImportConfiguration.
+							getExportImportConfigurationId(),
+						reportEntry.getModelName(),
+						ExportImportReportEntryConstants.ORIGIN_BATCH);
+		}
+		else {
+			exportImportReportEntry =
+				_exportImportReportEntryLocalService.
+					addErrorExportImportReportEntry(
+						testGroup.getGroupId(), testCompany.getCompanyId(),
+						reportEntry.getClassExternalReferenceCode(),
+						reportEntry.getClassNameId(), reportEntry.getClassPK(),
+						_exportImportConfiguration.
+							getExportImportConfigurationId(),
+						reportEntry.getErrorMessage(),
+						reportEntry.getErrorStacktrace(),
+						reportEntry.getModelName(),
+						ExportImportReportEntryConstants.ORIGIN_BATCH);
+		}
 
 		_exportImportReportEntries.add(exportImportReportEntry);
 
@@ -115,9 +154,70 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 				setErrorStacktrace(
 					exportImportReportEntry.getErrorStacktrace());
 				setId(exportImportReportEntry.getExportImportReportEntryId());
-				setModelName(exportImportReportEntry.getModelName());
+				setModelName(exportImportReportEntry.getModelNameLanguageKey());
 			}
 		};
+	}
+
+	private void _testGetImportProcessReportEntriesPageWithEmptyExportImportReportEntry()
+		throws Exception {
+
+		Page<ReportEntry> page =
+			reportEntryResource.getImportProcessReportEntriesPage(
+				testGetImportProcessReportEntriesPage_getImportProcessId(),
+				null, null, Pagination.of(1, 10), null);
+
+		long totalCount = page.getTotalCount();
+
+		ReportEntry reportEntry = randomReportEntry();
+
+		Type type = new Type();
+
+		type.setCode(ExportImportReportEntryConstants.TYPE_EMPTY);
+
+		reportEntry.setType(type);
+
+		_addReportEntry(reportEntry);
+
+		page = reportEntryResource.getImportProcessReportEntriesPage(
+			testGetImportProcessReportEntriesPage_getImportProcessId(), null,
+			null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(totalCount + 1, page.getTotalCount());
+	}
+
+	private void _testGetImportProcessReportEntriesPageWithLocalizedSearchTerm()
+		throws Exception {
+
+		User user = UserTestUtil.getAdminUser(testCompany.getCompanyId());
+
+		reportEntryResource = ReportEntryResource.builder(
+		).authentication(
+			user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD
+		).endpoint(
+			testCompany.getVirtualHostname(), 8080, "http"
+		).locale(
+			LocaleUtil.SPAIN
+		).build();
+
+		ReportEntry reportEntry = randomReportEntry();
+
+		_exportImportReportEntryLocalService.addErrorExportImportReportEntry(
+			testGroup.getGroupId(), testCompany.getCompanyId(),
+			reportEntry.getClassExternalReferenceCode(),
+			reportEntry.getClassNameId(), reportEntry.getClassPK(),
+			_exportImportConfiguration.getExportImportConfigurationId(),
+			reportEntry.getErrorMessage(), reportEntry.getErrorStacktrace(),
+			"example-text", ExportImportReportEntryConstants.ORIGIN_BATCH);
+
+		Page<ReportEntry> page =
+			reportEntryResource.getImportProcessReportEntriesPage(
+				testGetImportProcessReportEntriesPage_getImportProcessId(),
+				"Texto de ejemplo", null, Pagination.of(1, 10), null);
+
+		Assert.assertEquals(1, page.getTotalCount());
+
+		assertContains(reportEntry, (List<ReportEntry>)page.getItems());
 	}
 
 	@DeleteAfterTestRun

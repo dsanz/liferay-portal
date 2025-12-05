@@ -20,7 +20,8 @@ const AssetTypeInfoPanelDefaultView = () => {
 		small: boolean;
 		title: string | null;
 	} = {
-		className: 'justify-content-center structure-builder__empty-state',
+		className:
+			'justify-content-center text-secondary structure-builder__empty-state',
 		description: '',
 		imgSrc: '',
 		imgSrcReducedMotion: '',
@@ -36,7 +37,7 @@ const AssetTypeInfoPanelDefaultView = () => {
 		props.imgSrcReducedMotion = getImage('empty_selection_state.svg');
 	}
 	else if (objectEntries.length > 1) {
-		props.className = `${props.className} asset-multi-selection`;
+		props.className = `${props.className} asset-multi-selection w-100`;
 		props.imgSrc = getImage('multiselection_state.svg');
 		props.imgSrcReducedMotion = getImage('multiselection_state.svg');
 	}

@@ -11,8 +11,6 @@ import com.liferay.frontend.data.set.filter.DateFDSFilterItem;
 import com.liferay.frontend.data.set.filter.FDSFilter;
 import com.liferay.site.cms.site.initializer.internal.constants.CMSSiteInitializerFDSNames;
 
-import java.util.Calendar;
-
 import org.osgi.service.component.annotations.Component;
 
 /**
@@ -23,7 +21,11 @@ import org.osgi.service.component.annotations.Component;
 		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.ALL_SECTION,
 		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.CONTENTS_SECTION,
 		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.FILES_SECTION,
-		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.STRUCTURE_USAGES
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.RECYCLE_BIN_SECTION,
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.STRUCTURE_USAGES,
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.VIEW_CONTENTS_FOLDER,
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.VIEW_FILES_FOLDER,
+		"service.ranking:Integer=90"
 	},
 	service = FDSFilter.class
 )
@@ -41,16 +43,12 @@ public class PublishDateRangeFDSFilter extends BaseDateRangeFDSFilter {
 
 	@Override
 	public String getLabel() {
-		return "publish-date-range";
+		return "publish-date";
 	}
 
 	@Override
 	public DateFDSFilterItem getMaxDateFDSFilterItem() {
-		Calendar calendar = Calendar.getInstance();
-
-		return new DateFDSFilterItem(
-			calendar.get(Calendar.DAY_OF_MONTH),
-			calendar.get(Calendar.MONTH) + 1, calendar.get(Calendar.YEAR));
+		return new DateFDSFilterItem(0, 0, 0);
 	}
 
 	@Override

@@ -19,7 +19,6 @@ const test = mergeTests(
 	cmsPagesTest,
 	featureFlagsTest({
 		'LPD-17564': {enabled: true},
-		'LPS-179669': {enabled: true},
 	}),
 	loginTest(),
 	pageEditorPagesTest,
@@ -35,10 +34,7 @@ test(
 
 		// Create structure
 
-		const erc = getRandomString();
-
-		await structureBuilderPage.createStructureFromData({
-			erc,
+		const id = await structureBuilderPage.createStructureFromData({
 			label: getRandomString(),
 			name: `StructureName${getRandomInt()}`,
 			page: structureBuilderPage,
@@ -85,7 +81,7 @@ test(
 
 		await structureBuilderPage.publishStructure();
 
-		await structureBuilderPage.editStructure(erc);
+		await structureBuilderPage.editStructure(id);
 
 		await expect(
 			page.locator('.treeview-link', {hasText: 'Repeatable Group 1'})
@@ -132,10 +128,7 @@ test(
 
 		// Create structure
 
-		const erc = getRandomString();
-
-		await structureBuilderPage.createStructureFromData({
-			erc,
+		const id = await structureBuilderPage.createStructureFromData({
 			label: getRandomString(),
 			name: `StructureName${getRandomInt()}`,
 			page: structureBuilderPage,
@@ -263,7 +256,7 @@ test(
 
 		await structureBuilderPage.publishStructure();
 
-		await structureBuilderPage.editStructure(erc);
+		await structureBuilderPage.editStructure(id);
 
 		await structureBuilderPage.clickFieldAction(
 			{label: 'Repeatable Group 1'},

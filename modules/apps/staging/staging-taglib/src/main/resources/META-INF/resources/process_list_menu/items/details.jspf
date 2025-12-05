@@ -6,7 +6,7 @@
 --%>
 
 <portlet:renderURL var="importErrorsList">
-	<portlet:param name="mvcRenderCommandName" value="/export_import/view_import_errors" />
+	<portlet:param name="mvcRenderCommandName" value="/export_import/view_import_report_entries" />
 	<portlet:param name="backgroundTaskId" value="<%= String.valueOf(backgroundTask.getBackgroundTaskId()) %>" />
 </portlet:renderURL>
 
@@ -15,5 +15,25 @@
 		<a class="dropdown-item" href="<%= importErrorsList %>">
 			<liferay-ui:message key="view-details" />
 		</a>
+	</li>
+	<li>
+		<button class="dropdown-item">
+			<liferay-ui:message key="export-report-entries" />
+		</button>
+
+		<react:component
+			module="{ExportReportEntriesAction} from staging-taglib"
+			props='<%=
+				HashMapBuilder.<String, Object>put(
+					"backgroundTaskId", backgroundTask.getBackgroundTaskId()
+				).put(
+					"filename",
+					backgroundTask.getName(
+					).replace(
+						".lar", "_report_entries.zip"
+					)
+				).build()
+			%>'
+		/>
 	</li>
 </c:if>

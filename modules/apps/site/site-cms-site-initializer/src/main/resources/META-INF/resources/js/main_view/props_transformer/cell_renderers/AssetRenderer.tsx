@@ -6,11 +6,11 @@
 import ClayIcon from '@clayui/icon';
 import ClayLink from '@clayui/link';
 import ClaySticker from '@clayui/sticker';
+import {replaceTokens} from '@liferay/frontend-data-set-web';
 import classNames from 'classnames';
 import {dateUtils, sub} from 'frontend-js-web';
 import React from 'react';
 
-import formatActionURL from '../../../common/utils/formatActionURL';
 import {getFileMimeTypeObjectDefinitionStickerValue} from '../utils/transformViewsItemProps';
 
 interface ActionItem {
@@ -41,18 +41,20 @@ export default function AssetRenderer({
 	value: string;
 }) {
 	const {actionId} = options;
+	const title =
+		value && value !== '' ? value : Liferay.Language.get('untitled-asset');
 
 	if (!actions.length || !actionId) {
-		return value ? <>{value}</> : null;
+		return <>{title}</>;
 	}
 
 	const selectedAction = actions.find(({data}) => data?.id === actionId);
 
 	if (!selectedAction?.href) {
-		return value ? <>{value}</> : null;
+		return <>{title}</>;
 	}
 
-	const formattedHref = formatActionURL(itemData, selectedAction.href);
+	const formattedHref = replaceTokens(selectedAction.href, itemData);
 
 	return (
 		<div className="d-flex">
@@ -81,15 +83,16 @@ export default function AssetRenderer({
 			<div>
 				<div className="table-list-title">
 					<ClayLink
+						aria-label={title}
 						className="text-decoration-underline"
 						data-senna-off
 						href={formattedHref}
 					>
-						<div>{value}</div>
+						<div>{title}</div>
 					</ClayLink>
 				</div>
 
-				<div className="text-2 text-muted">
+				<div className="text-2 text-secondary">
 					{sub(
 						Liferay.Language.get('modified-at-x-by-x'),
 						formatDate(itemData.dateModified),

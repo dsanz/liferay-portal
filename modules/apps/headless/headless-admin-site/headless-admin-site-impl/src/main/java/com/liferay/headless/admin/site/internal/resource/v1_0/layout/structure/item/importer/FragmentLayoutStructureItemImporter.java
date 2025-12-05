@@ -6,33 +6,46 @@
 package com.liferay.headless.admin.site.internal.resource.v1_0.layout.structure.item.importer;
 
 import com.liferay.fragment.constants.FragmentConstants;
-import com.liferay.fragment.contributor.util.FragmentCollectionContributorRegistryUtil;
-import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
+import com.liferay.fragment.processor.PortletRegistry;
 import com.liferay.fragment.service.FragmentEntryLinkLocalServiceUtil;
-import com.liferay.fragment.service.FragmentEntryLocalServiceUtil;
-import com.liferay.headless.admin.site.dto.v1_0.DefaultFragmentReference;
 import com.liferay.headless.admin.site.dto.v1_0.FragmentInstancePageElementDefinition;
-import com.liferay.headless.admin.site.dto.v1_0.FragmentItemExternalReference;
-import com.liferay.headless.admin.site.dto.v1_0.FragmentReference;
 import com.liferay.headless.admin.site.dto.v1_0.PageElement;
-import com.liferay.headless.admin.site.dto.v1_0.Scope;
+import com.liferay.headless.admin.site.dto.v1_0.WidgetInstance;
+import com.liferay.headless.admin.site.internal.dto.v1_0.util.FragmentEditableElementUtil;
+import com.liferay.headless.admin.site.internal.dto.v1_0.util.FragmentEntryReference;
+import com.liferay.headless.admin.site.internal.dto.v1_0.util.FragmentEntryReferenceUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.layout.structure.item.importer.context.LayoutStructureItemImporterContext;
-import com.liferay.headless.admin.site.internal.resource.v1_0.util.GroupUtil;
+import com.liferay.headless.admin.site.internal.resource.v1_0.layout.structure.item.importer.util.FragmentConfigurationFieldValuesUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.LayoutStructureUtil;
+import com.liferay.headless.admin.site.internal.resource.v1_0.util.PortletUtil;
 import com.liferay.layout.util.structure.FragmentStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructure;
 import com.liferay.layout.util.structure.LayoutStructureItem;
-import com.liferay.petra.string.StringPool;
+import com.liferay.osgi.util.ServiceTrackerFactory;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.portlet.PortletIdCodec;
+import com.liferay.portal.kernel.service.PortletPreferencesLocalServiceUtil;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.Validator;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
+
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.util.tracker.ServiceTracker;
 
 /**
  * @author Eudaldo Alonso
@@ -57,6 +70,8 @@ public class FragmentLayoutStructureItemImporter
 			return null;
 		}
 
+		List<String> fragmentEntryLinkPortletIds = null;
+
 		FragmentEntryLink fragmentEntryLink =
 			FragmentEntryLinkLocalServiceUtil.
 				fetchFragmentEntryLinkByExternalReferenceCode(
@@ -70,6 +85,15 @@ public class FragmentLayoutStructureItemImporter
 				layoutStructureItemImporterContext);
 		}
 		else {
+			PortletRegistry portletRegistry =
+				_portletRegistryServiceTracker.getService();
+
+			if (portletRegistry != null) {
+				fragmentEntryLinkPortletIds =
+					portletRegistry.getFragmentEntryLinkPortletIds(
+						fragmentEntryLink);
+			}
+
 			fragmentEntryLink = _updateFragmentEntryLink(
 				fragmentEntryLink, fragmentInstancePageElementDefinition,
 				layoutStructureItemImporterContext);
@@ -77,6 +101,51 @@ public class FragmentLayoutStructureItemImporter
 
 		if (fragmentEntryLink == null) {
 			return null;
+		}
+
+		Layout layout = layoutStructureItemImporterContext.getLayout();
+
+		if (ArrayUtil.isNotEmpty(
+				fragmentInstancePageElementDefinition.getWidgetInstances())) {
+
+			for (WidgetInstance widgetInstance :
+					fragmentInstancePageElementDefinition.
+						getWidgetInstances()) {
+
+				if (Validator.isNull(widgetInstance.getWidgetName())) {
+					continue;
+				}
+
+				String portletId = PortletIdCodec.encode(
+					widgetInstance.getWidgetName(),
+					widgetInstance.getWidgetInstanceId());
+
+				PortletUtil.importPortletPermissions(
+					layout, portletId, widgetInstance.getWidgetName(),
+					widgetInstance.getWidgetPermissions());
+				PortletUtil.importPortletPreferences(
+					layout, portletId, widgetInstance.getWidgetConfig());
+			}
+		}
+
+		if (ListUtil.isNotEmpty(fragmentEntryLinkPortletIds)) {
+			for (String fragmentEntryLinkPortletId :
+					SetUtil.asymmetricDifference(
+						fragmentEntryLinkPortletIds,
+						_getPortletIds(
+							fragmentInstancePageElementDefinition.
+								getWidgetInstances()))) {
+
+				PortletPreferencesLocalServiceUtil.deletePortletPreferences(
+					PortletKeys.PREFS_OWNER_ID_DEFAULT,
+					PortletKeys.PREFS_OWNER_TYPE_LAYOUT, layout.getPlid(),
+					fragmentEntryLinkPortletId);
+				ResourcePermissionLocalServiceUtil.deleteResourcePermissions(
+					layout.getCompanyId(), fragmentEntryLinkPortletId,
+					ResourceConstants.SCOPE_INDIVIDUAL,
+					PortletPermissionUtil.getPrimaryKey(
+						layout.getPlid(), fragmentEntryLinkPortletId));
+			}
 		}
 
 		FragmentStyledLayoutStructureItem fragmentStyledLayoutStructureItem =
@@ -109,15 +178,13 @@ public class FragmentLayoutStructureItemImporter
 				layoutStructureItemImporterContext)
 		throws Exception {
 
-		FragmentEntry fragmentEntry = _getFragmentEntry(
-			fragmentInstancePageElementDefinition,
-			layoutStructureItemImporterContext);
-
-		if (fragmentEntry == null) {
-			throw new UnsupportedOperationException();
-		}
-
 		Layout layout = layoutStructureItemImporterContext.getLayout();
+
+		FragmentEntryReference fragmentEntryReference =
+			FragmentEntryReferenceUtil.getFragmentEntryReference(
+				layoutStructureItemImporterContext.getCompanyId(),
+				fragmentInstancePageElementDefinition.getFragmentReference(),
+				layoutStructureItemImporterContext.getGroupId());
 
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
@@ -136,10 +203,11 @@ public class FragmentLayoutStructureItemImporter
 					getFragmentInstanceExternalReferenceCode(),
 				layoutStructureItemImporterContext.getUserId(),
 				layout.getGroupId(),
-				_getOriginalFragmentEntryLinkId(
+				_getOriginalFragmentEntryLinkERC(
 					fragmentInstancePageElementDefinition,
 					layoutStructureItemImporterContext),
-				fragmentEntry.getFragmentEntryId(),
+				fragmentEntryReference.getFragmentEntryERC(),
+				fragmentEntryReference.getFragmentEntryScopeERC(),
 				layoutStructureItemImporterContext.getSegmentsExperienceId(),
 				layout.getPlid(),
 				GetterUtil.getString(
@@ -150,9 +218,11 @@ public class FragmentLayoutStructureItemImporter
 					fragmentInstancePageElementDefinition.getJs()),
 				GetterUtil.getString(
 					fragmentInstancePageElementDefinition.getConfiguration()),
-				StringPool.BLANK,
+				_getEditableValues(
+					fragmentInstancePageElementDefinition,
+					layoutStructureItemImporterContext),
 				fragmentInstancePageElementDefinition.getNamespace(), 0,
-				fragmentEntry.getFragmentEntryKey(),
+				fragmentEntryReference.getRendererKey(),
 				_getType(fragmentInstancePageElementDefinition),
 				serviceContext);
 		}
@@ -162,56 +232,32 @@ public class FragmentLayoutStructureItemImporter
 		}
 	}
 
-	private FragmentEntry _getFragmentEntry(
+	private String _getEditableValues(
 			FragmentInstancePageElementDefinition
 				fragmentInstancePageElementDefinition,
 			LayoutStructureItemImporterContext
 				layoutStructureItemImporterContext)
 		throws Exception {
 
-		FragmentReference fragmentReference =
-			fragmentInstancePageElementDefinition.getFragmentReference();
-
-		if (fragmentReference == null) {
-			throw new UnsupportedOperationException();
-		}
-
-		if (Objects.equals(
-				fragmentReference.getFragmentReferenceType(),
-				FragmentReference.FragmentReferenceType.
-					FRAGMENT_ITEM_EXTERNAL_REFERENCE)) {
-
-			FragmentItemExternalReference fragmentItemExternalReference =
-				(FragmentItemExternalReference)fragmentReference;
-
-			long scopeGroupId = layoutStructureItemImporterContext.getGroupId();
-
-			Scope scope = fragmentItemExternalReference.getScope();
-
-			if (scope != null) {
-				scopeGroupId = GroupUtil.getGroupId(
-					true, true,
+		return JSONUtil.merge(
+			FragmentConfigurationFieldValuesUtil.
+				getFragmentConfigurationFieldValuesEditableValuesJSONObject(
+					fragmentInstancePageElementDefinition.getConfiguration(),
+					fragmentInstancePageElementDefinition.
+						getFragmentConfigurationFieldValues(),
+					layoutStructureItemImporterContext),
+			FragmentEditableElementUtil.
+				getFragmentEditableElementsEditableValuesJSONObject(
 					layoutStructureItemImporterContext.getCompanyId(),
-					GetterUtil.getString(scope.getExternalReferenceCode()));
-			}
-
-			return FragmentEntryLocalServiceUtil.
-				fetchFragmentEntryByExternalReferenceCode(
-					GetterUtil.getString(
-						fragmentItemExternalReference.
-							getExternalReferenceCode()),
-					scopeGroupId);
-		}
-
-		DefaultFragmentReference defaultFragmentReference =
-			(DefaultFragmentReference)fragmentReference;
-
-		return FragmentCollectionContributorRegistryUtil.getFragmentEntry(
-			GetterUtil.getString(
-				defaultFragmentReference.getDefaultFragmentKey()));
+					fragmentInstancePageElementDefinition.
+						getFragmentEditableElements(),
+					layoutStructureItemImporterContext.
+						getInfoItemServiceRegistry(),
+					layoutStructureItemImporterContext.getGroupId())
+		).toString();
 	}
 
-	private long _getOriginalFragmentEntryLinkId(
+	private String _getOriginalFragmentEntryLinkERC(
 		FragmentInstancePageElementDefinition
 			fragmentInstancePageElementDefinition,
 		LayoutStructureItemImporterContext layoutStructureItemImporterContext) {
@@ -220,7 +266,7 @@ public class FragmentLayoutStructureItemImporter
 				fragmentInstancePageElementDefinition.
 					getDraftFragmentInstanceExternalReferenceCode())) {
 
-			return 0;
+			return null;
 		}
 
 		FragmentEntryLink fragmentEntryLink =
@@ -231,10 +277,27 @@ public class FragmentLayoutStructureItemImporter
 					layoutStructureItemImporterContext.getGroupId());
 
 		if (fragmentEntryLink == null) {
-			return 0;
+			return null;
 		}
 
-		return fragmentEntryLink.getFragmentEntryLinkId();
+		return fragmentEntryLink.getExternalReferenceCode();
+	}
+
+	private List<String> _getPortletIds(WidgetInstance[] widgetInstances) {
+		List<String> portletIds = new ArrayList<>();
+
+		if (ArrayUtil.isEmpty(widgetInstances)) {
+			return portletIds;
+		}
+
+		for (WidgetInstance widgetInstance : widgetInstances) {
+			portletIds.add(
+				PortletIdCodec.encode(
+					widgetInstance.getWidgetName(),
+					widgetInstance.getWidgetInstanceId()));
+		}
+
+		return portletIds;
 	}
 
 	private int _getType(
@@ -261,26 +324,29 @@ public class FragmentLayoutStructureItemImporter
 				layoutStructureItemImporterContext)
 		throws Exception {
 
-		FragmentEntry fragmentEntry = _getFragmentEntry(
-			fragmentInstancePageElementDefinition,
-			layoutStructureItemImporterContext);
 		Layout layout = layoutStructureItemImporterContext.getLayout();
 
-		if ((fragmentEntry == null) ||
-			(fragmentEntryLink.getPlid() != layout.getPlid()) ||
+		if ((fragmentEntryLink.getPlid() != layout.getPlid()) ||
 			(fragmentEntryLink.getSegmentsExperienceId() !=
 				layoutStructureItemImporterContext.getSegmentsExperienceId())) {
 
 			throw new UnsupportedOperationException();
 		}
 
-		fragmentEntryLink.setOriginalFragmentEntryLinkId(
-			_getOriginalFragmentEntryLinkId(
+		FragmentEntryReference fragmentEntryReference =
+			FragmentEntryReferenceUtil.getFragmentEntryReference(
+				layoutStructureItemImporterContext.getCompanyId(),
+				fragmentInstancePageElementDefinition.getFragmentReference(),
+				layoutStructureItemImporterContext.getGroupId());
+
+		fragmentEntryLink.setOriginalFragmentEntryLinkERC(
+			_getOriginalFragmentEntryLinkERC(
 				fragmentInstancePageElementDefinition,
 				layoutStructureItemImporterContext));
-
-		fragmentEntryLink.setFragmentEntryId(
-			fragmentEntry.getFragmentEntryId());
+		fragmentEntryLink.setFragmentEntryERC(
+			fragmentEntryReference.getFragmentEntryERC());
+		fragmentEntryLink.setFragmentEntryScopeERC(
+			fragmentEntryReference.getFragmentEntryScopeERC());
 		fragmentEntryLink.setCss(
 			GetterUtil.getString(
 				fragmentInstancePageElementDefinition.getCss()));
@@ -293,9 +359,14 @@ public class FragmentLayoutStructureItemImporter
 		fragmentEntryLink.setConfiguration(
 			GetterUtil.getString(
 				fragmentInstancePageElementDefinition.getConfiguration()));
+		fragmentEntryLink.setEditableValues(
+			_getEditableValues(
+				fragmentInstancePageElementDefinition,
+				layoutStructureItemImporterContext));
 		fragmentEntryLink.setNamespace(
 			fragmentInstancePageElementDefinition.getNamespace());
-		fragmentEntryLink.setRendererKey(fragmentEntry.getFragmentEntryKey());
+		fragmentEntryLink.setRendererKey(
+			fragmentEntryReference.getRendererKey());
 		fragmentEntryLink.setType(
 			_getType(fragmentInstancePageElementDefinition));
 		fragmentEntryLink.setLastPropagationDate(
@@ -304,5 +375,10 @@ public class FragmentLayoutStructureItemImporter
 		return FragmentEntryLinkLocalServiceUtil.updateFragmentEntryLink(
 			fragmentEntryLink);
 	}
+
+	private static final ServiceTracker<PortletRegistry, PortletRegistry>
+		_portletRegistryServiceTracker = ServiceTrackerFactory.open(
+			FrameworkUtil.getBundle(FragmentLayoutStructureItemImporter.class),
+			PortletRegistry.class);
 
 }

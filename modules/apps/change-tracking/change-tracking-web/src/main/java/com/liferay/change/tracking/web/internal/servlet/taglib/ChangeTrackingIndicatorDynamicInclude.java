@@ -5,6 +5,7 @@
 
 package com.liferay.change.tracking.web.internal.servlet.taglib;
 
+import com.liferay.change.tracking.configuration.helper.CTSettingsConfigurationHelper;
 import com.liferay.change.tracking.constants.CTActionKeys;
 import com.liferay.change.tracking.constants.CTConstants;
 import com.liferay.change.tracking.constants.CTPortletKeys;
@@ -18,7 +19,6 @@ import com.liferay.change.tracking.spi.constants.CTTimelineKeys;
 import com.liferay.change.tracking.spi.display.CTDisplayRenderer;
 import com.liferay.change.tracking.spi.display.CTDisplayRendererRegistry;
 import com.liferay.change.tracking.web.internal.configuration.CTConfiguration;
-import com.liferay.change.tracking.web.internal.configuration.helper.CTSettingsConfigurationHelper;
 import com.liferay.change.tracking.web.internal.constants.CTWebKeys;
 import com.liferay.change.tracking.web.internal.security.permission.resource.CTPermission;
 import com.liferay.petra.lang.SafeCloseable;
@@ -27,6 +27,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
+import com.liferay.portal.kernel.change.tracking.CTCollectionPreviewThreadLocal;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.content.security.policy.ContentSecurityPolicyNonceProviderUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -102,6 +103,10 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 			HttpServletResponse httpServletResponse, String key)
 		throws IOException {
 
+		if (CTCollectionPreviewThreadLocal.isIndicatorEnabled()) {
+			return;
+		}
+
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
@@ -144,6 +149,10 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 		htmlTopTag.setPosition("auto");
 
 		try {
+			writer.write("<div class=\"d-flex flex-column\">");
+			writer.write(
+				"<nav aria-label=\"Publication Menu\" class=\"cadmin\">");
+
 			htmlTopTag.doBodyTag(
 				httpServletRequest, httpServletResponse,
 				pageContext -> {
@@ -219,7 +228,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 						ctConfiguration.unsupportedApplication(), portletId)),
 				httpServletRequest, writer);
 
-			writer.write("</div>");
+			writer.write("</div></nav></div>");
 		}
 		catch (JspException | PortalException exception) {
 			ReflectionUtil.throwException(exception);
@@ -229,7 +238,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 	@Override
 	public void register(DynamicIncludeRegistry dynamicIncludeRegistry) {
 		dynamicIncludeRegistry.register(
-			"com.liferay.product.navigation.taglib#/page.jsp#pre");
+			"/html/common/themes/body_top.jsp#post");
 	}
 
 	@Activate
@@ -486,9 +495,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 							"symbolLeft", "simple-circle"
 						));
 				}
-				else if (FeatureFlagManagerUtil.isEnabled(
-							themeDisplay.getCompanyId(), "LPD-20556")) {
-
+				else {
 					Layout layout = themeDisplay.getLayout();
 
 					Layout previewLayout = null;
@@ -698,12 +705,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 				getConflictInfoURL.setResourceID(
 					"/change_tracking/get_conflict_info");
 
-				if (FeatureFlagManagerUtil.isEnabled(
-						themeDisplay.getCompanyId(), "LPD-20556")) {
-
-					data.put(
-						"getConflictInfoURL", getConflictInfoURL.toString());
-				}
+				data.put("getConflictInfoURL", getConflictInfoURL.toString());
 			}
 
 			data.put("timelineClassNameId", classNameId);
@@ -719,12 +721,9 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 					"/change_tracking/delete_ct_collection"
 				).buildString());
 
-			String timelineEditURL = null;
-
-			if (FeatureFlagManagerUtil.isEnabled(
-					themeDisplay.getCompanyId(), "LPD-20556")) {
-
-				timelineEditURL = PortletURLBuilder.create(
+			data.put(
+				"timelineEditURL",
+				PortletURLBuilder.create(
 					_portal.getControlPanelPortletURL(
 						httpServletRequest, themeDisplay.getScopeGroup(),
 						CTPortletKeys.PUBLICATIONS, 0, 0,
@@ -733,10 +732,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 					"/change_tracking/checkout_ct_collection"
 				).setRedirect(
 					_portal.getCurrentURL(httpServletRequest)
-				).buildString();
-			}
-
-			data.put("timelineEditURL", timelineEditURL);
+				).buildString());
 
 			data.put("timelineIconClass", "change-tracking-timeline-icon");
 			data.put("timelineIconName", "time");
@@ -786,11 +782,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 
 		Group group = themeDisplay.getScopeGroup();
 
-		if (CTCollectionThreadLocal.isProductionMode() ||
-			!FeatureFlagManagerUtil.isEnabled(
-				themeDisplay.getCompanyId(), "LPD-20131") ||
-			!group.isSite()) {
-
+		if (CTCollectionThreadLocal.isProductionMode() || !group.isSite()) {
 			return false;
 		}
 

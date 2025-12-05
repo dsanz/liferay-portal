@@ -11,7 +11,7 @@ import {Root, createRoot} from 'react-dom/client';
 import {SWRConfig} from 'swr';
 
 import {AppPropertiesContext} from './contexts/AppPropertiesContext';
-import AttachmentUploader from './features/attachment-uploader';
+import Attachments from './features/attachments';
 import Onboarding from './features/onboarding';
 import Project from './features/project';
 import Projects from './features/projects';
@@ -23,10 +23,8 @@ import swrCacheProvider from './utils/swrCacheProvider';
 
 import './main.css';
 
-const ELEMENT_ID = 'liferay-customer-custom-element';
-
 const AppRoutes = {
-	attachmentUploader: AttachmentUploader,
+	attachments: Attachments,
 	onboarding: Onboarding,
 	project: Project,
 	projects: Projects,
@@ -52,7 +50,6 @@ type Properties = {
 };
 
 type APIs = {
-	gravatarAPI: string | null;
 	provisioningServerAPI: string | null;
 };
 
@@ -142,7 +139,6 @@ class CustomerPortalWebComponent extends HTMLElement {
 		};
 
 		const apis = {
-			gravatarAPI: super.getAttribute('gravatar-api'),
 			provisioningServerAPI: super.getAttribute(
 				'provisioning-server-api'
 			),
@@ -171,6 +167,18 @@ class CustomerPortalWebComponent extends HTMLElement {
 	}
 }
 
-if (!customElements.get(ELEMENT_ID)) {
-	customElements.define(ELEMENT_ID, CustomerPortalWebComponent);
+if (!customElements.get('liferay-customer-custom-element')) {
+	customElements.define(
+		'liferay-customer-custom-element',
+		CustomerPortalWebComponent
+	);
+}
+
+class CustomerPortalWebComponentTesting extends CustomerPortalWebComponent {}
+
+if (!customElements.get('liferay-customer-custom-element-testing')) {
+	customElements.define(
+		'liferay-customer-custom-element-testing',
+		CustomerPortalWebComponentTesting
+	);
 }

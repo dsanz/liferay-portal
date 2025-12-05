@@ -400,70 +400,6 @@ definition {
 		}
 	}
 
-	@priority = 4
-	test CanUpdateLogLevelsForAllNodesFromMaster {
-		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
-
-		ServerAdministration.openServerAdmin();
-
-		ServerAdministration.addCategoryLogLevels(
-			categoryLevel = "DEBUG",
-			categoryName = "com.liferay.portal.servlet.filters.autologin.AutoLoginFilter");
-
-		ServerAdministration.viewCategoryLogLevels(
-			categoryLevel = "DEBUG",
-			categoryName = "com.liferay.portal.servlet.filters.autologin.AutoLoginFilter");
-
-		for (var serverPort : list "8080,9080") {
-			User.loginPG(
-				nodePort = ${serverPort},
-				password = PropsUtil.get("default.admin.password"),
-				userEmailAddress = "test@liferay.com");
-
-			Clustering.viewTextPresentOnSpecificNode(
-				expectedText = "com.liferay.portal.servlet.filters.autologin.AutoLoginFilter /web/guest",
-				nodePort = ${serverPort});
-		}
-	}
-
-	@priority = 4
-	test CanUpdateLogLevelsForAllNodesFromSlave {
-		property app.server.bundles.size = "2";
-		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
-
-		User.logoutPG(
-			password = PropsUtil.get("default.admin.password"),
-			userEmailAddress = "test@liferay.com");
-
-		User.loginPG(
-			nodePort = 9080,
-			password = PropsUtil.get("default.admin.password"),
-			userEmailAddress = "test@liferay.com");
-
-		ServerAdministration.openServerAdmin(baseURL = "http://localhost:9080");
-
-		ServerAdministration.addCategoryLogLevels(
-			categoryLevel = "DEBUG",
-			categoryName = "com.liferay.portal.servlet.filters.autologin.AutoLoginFilter");
-
-		ServerAdministration.viewCategoryLogLevels(
-			categoryLevel = "DEBUG",
-			categoryName = "com.liferay.portal.servlet.filters.autologin.AutoLoginFilter");
-
-		for (var serverPort : list "8080,9080,10080") {
-			User.loginPG(
-				nodePort = ${serverPort},
-				password = PropsUtil.get("default.admin.password"),
-				userEmailAddress = "test@liferay.com");
-
-			Clustering.viewTextPresentOnSpecificNode(
-				expectedText = "com.liferay.portal.servlet.filters.autologin.AutoLoginFilter /web/guest",
-				nodePort = ${serverPort});
-		}
-	}
-
 	@priority = 5
 	test CanUpdatePortalPropertiesWithMultipleClusters {
 		property app.server.bundles.size = "1";
@@ -900,46 +836,6 @@ definition {
 			userEmailAddress = "test@liferay.com");
 
 		Page.assertNodePortPG(nodePort = 9080);
-	}
-
-	@priority = 4
-	test SlaveNodeCanBecomeMasterNode {
-		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
-
-		Groovy.runScriptViaGogoShell(
-			expectedOutput = "This node is master node",
-			scriptFile = "groovy-script-master-slave.groovy");
-
-		Groovy.runScriptViaGogoShell(
-			expectedOutput = "This node is slave node",
-			nodePort = 9080,
-			scriptFile = "groovy-script-master-slave.groovy");
-
-		Clustering.shutdownSpecificServer(nodePort = 8080);
-
-		Groovy.runScriptViaGogoShell(
-			expectedOutput = "This node is master node",
-			nodePort = 9080,
-			scriptFile = "groovy-script-master-slave.groovy");
-
-		Clustering.startSpecificServer(
-			deleteLiferayHome = "true",
-			keepCachedAppServerData = "true",
-			nodePort = 8080);
-
-		User.logoutPG(
-			password = PropsUtil.get("default.admin.password"),
-			userEmailAddress = "test@liferay.com");
-
-		User.loginPG(
-			nodePort = 8080,
-			password = PropsUtil.get("default.admin.password"),
-			userEmailAddress = "test@liferay.com");
-
-		Groovy.runScriptViaGogoShell(
-			expectedOutput = "This node is slave node",
-			scriptFile = "groovy-script-master-slave.groovy");
 	}
 
 	@priority = 4

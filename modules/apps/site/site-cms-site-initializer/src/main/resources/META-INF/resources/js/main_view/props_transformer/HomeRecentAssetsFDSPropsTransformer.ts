@@ -3,14 +3,17 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {IInternalRenderer} from '@liferay/frontend-data-set-web';
+import {IInternalRenderer, replaceTokens} from '@liferay/frontend-data-set-web';
 import {openModal} from 'frontend-js-components-web';
 
 import {openAssetUsageListModal} from '../../common/components/asset_usage/utils';
-import formatActionURL from '../../common/utils/formatActionURL';
+import {OBJECT_ENTRY_FOLDER_CLASS_NAME} from '../../common/utils/constants';
+import DefaultPermissionModalContent from '../default_permission/DefaultPermissionModalContent';
+import openResetAssetPermissionModal from '../default_permission/ResetPermissionModalContent';
 import AssetNavigationModalContent from '../modal/asset_navigation_view/AssetNavigationModalContent';
 import {AdditionalProps} from './AssetsFDSPropsTransformer';
 import deleteItemAction from './actions/deleteItemAction';
+import openFolderItemSelectorAction from './actions/openFolderItemSelectorAction';
 import shareAction from './actions/shareAction';
 import AssetRenderer from './cell_renderers/AssetRenderer';
 
@@ -20,6 +23,7 @@ export default function HomeRecentAssetsFDSPropsTransformer({
 	...otherProps
 }: {
 	additionalProps: AdditionalProps;
+	apiURL?: string;
 	itemsActions?: any[];
 	otherProps: any;
 }) {
@@ -42,7 +46,20 @@ export default function HomeRecentAssetsFDSPropsTransformer({
 			],
 		},
 		itemsActions: itemsActions.map((action) => {
-			if (action?.data?.id === 'download') {
+			if (
+				action?.data?.id === 'default-permissions' ||
+				action?.data?.id === 'edit-and-propagate-default-permissions'
+			) {
+				return {
+					...action,
+					isVisible: (item: any) =>
+						Boolean(
+							item?.entryClassName ===
+								OBJECT_ENTRY_FOLDER_CLASS_NAME
+						),
+				};
+			}
+			else if (action?.data?.id === 'download') {
 				return {
 					...action,
 					isVisible: (item: any) =>
@@ -81,7 +98,47 @@ export default function HomeRecentAssetsFDSPropsTransformer({
 			items: any;
 			loadData: () => {};
 		}) {
-			if (action?.data?.id === 'delete') {
+			if (action?.data?.id === 'copy' || action?.data?.id === 'move') {
+				openFolderItemSelectorAction(
+					action?.data?.id,
+					additionalProps.assetLibraries,
+					itemData,
+					loadData,
+					additionalProps.objectEntryFolderExternalReferenceCode
+				);
+			}
+			else if (
+				action?.data?.id === 'default-permissions' ||
+				action?.data?.id === 'edit-and-propagate-default-permissions'
+			) {
+				openModal({
+					containerProps: {
+						className: '',
+					},
+					contentComponent: ({
+						closeModal,
+					}: {
+						closeModal: () => void;
+					}) =>
+						DefaultPermissionModalContent({
+							...(additionalProps.defaultPermissionAdditionalProps ||
+								{}),
+							allowPropagate:
+								action.data.id ===
+								'edit-and-propagate-default-permissions',
+							apiURL: otherProps.apiURL,
+							classExternalReferenceCode:
+								itemData.embedded.externalReferenceCode,
+							className: itemData.entryClassName,
+							closeModal,
+							section:
+								additionalProps.rootObjectEntryFolderExternalReferenceCode ||
+								additionalProps.parentObjectEntryFolderExternalReferenceCode,
+						}),
+					size: 'full-screen',
+				});
+			}
+			else if (action?.data?.id === 'delete') {
 				if (additionalProps.brokenLinksCheckerEnabled) {
 					openAssetUsageListModal({
 						itemsData: [itemData],
@@ -95,8 +152,7 @@ export default function HomeRecentAssetsFDSPropsTransformer({
 					await deleteItemAction(itemData, loadData);
 				}
 			}
-
-			if (
+			else if (
 				action?.data?.id === 'export-for-translation' ||
 				action?.data?.id === 'import-translation'
 			) {
@@ -105,7 +161,14 @@ export default function HomeRecentAssetsFDSPropsTransformer({
 				openModal({
 					size: 'full-screen',
 					title: action.label,
-					url: formatActionURL(itemData, action.href),
+					url: replaceTokens(action.href, itemData),
+				});
+			}
+			else if (action?.data?.id === 'reset-to-default-permissions') {
+				openResetAssetPermissionModal({
+					className: itemData.entryClassName,
+					classPK: itemData.embedded.id,
+					loadData,
 				});
 			}
 			else if (

@@ -76,18 +76,23 @@ public class PageTemplateSetResourceImpl
 			ExportImportDescriptor() {
 
 			@Override
-			public String getItemClassName() {
-				return LayoutPageTemplateCollection.class.getName();
+			public String getLabelLanguageKey() {
+				return "page-template-sets";
 			}
 
 			@Override
-			public String getLabel() {
-				return "page-template-sets";
+			public String getModelClassName() {
+				return LayoutPageTemplateCollection.class.getName();
 			}
 
 			@Override
 			public String getPortletId() {
 				return LayoutAdminPortletKeys.GROUP_PAGES;
+			}
+
+			@Override
+			public String getResourceClassName() {
+				return PageTemplateResourceImpl.class.getName();
 			}
 
 			@Override

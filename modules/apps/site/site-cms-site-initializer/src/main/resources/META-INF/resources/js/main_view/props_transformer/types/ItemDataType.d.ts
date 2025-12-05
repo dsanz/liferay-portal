@@ -4,10 +4,15 @@
  */
 
 interface ItemData {
-	actions?: {
+	actions: {
+		copy: Action;
+		'copy-replace': Action;
 		delete: Action;
 		expire: Action;
 		get: Action;
+		'get-by-scope': Action;
+		move: Action;
+		'move-replace': Action;
 		replace: Action;
 		restore: Action;
 		update: Action;

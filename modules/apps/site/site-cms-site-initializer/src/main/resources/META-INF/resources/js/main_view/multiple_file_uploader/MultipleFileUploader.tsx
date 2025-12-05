@@ -13,14 +13,19 @@ import {useFormik} from 'formik';
 import {sub} from 'frontend-js-web';
 import React, {useState} from 'react';
 import {useDropzone} from 'react-dropzone';
+import {v4 as uuidv4} from 'uuid';
 
-import {FieldPicker} from '../../common/components/forms';
 import DragZoneBackground from './DragZoneBackground';
 import {LoadingMessage} from './LoadingMessage';
 
 import '../../../css/components/MultipleFileUploader.scss';
+
+import {FieldBase} from 'frontend-js-components-web';
+
+import SpaceSelector from '../../common/components/SpaceSelector';
 import {required, validate} from '../../common/components/forms/validations';
 import {AssetLibrary} from '../../common/types/AssetLibrary';
+import {Space} from '../../common/types/Space';
 import FailedFiles from './FailedFiles';
 export interface FileData {
 	errorMessage?: string;
@@ -62,9 +67,13 @@ export default function MultipleFileUploader({
 	);
 	const [failedFiles, setFiledFiles] = useState<FileData[]>([]);
 	const [isLoading, setIsLoading] = useState(false);
+	const [space, setSpace] = useState<Space>();
+
+	const groupIdInputId = `${uuidv4()}groupId`;
 
 	const {getInputProps, getRootProps, isDragActive} = useDropzone({
 		multiple: true,
+		noKeyboard: true,
 		onDropAccepted: (acceptedFiles) => {
 			const newFilesToUpload = acceptedFiles.map((file) => ({
 				errorMessage: '',
@@ -98,7 +107,7 @@ export default function MultipleFileUploader({
 		);
 	};
 
-	const {errors, handleSubmit, setFieldValue, touched, values} = useFormik({
+	const {errors, handleSubmit, setFieldValue, touched} = useFormik({
 		initialValues: {
 			groupId:
 				assetLibraries.length === 1 ? assetLibraries[0].groupId : 0,
@@ -162,11 +171,7 @@ export default function MultipleFileUploader({
 					<FailedFiles failedFiles={failedFiles} />
 				) : (
 					<>
-						{isLoading && (
-							<div className="loading-message">
-								<LoadingMessage />
-							</div>
-						)}
+						{isLoading && <LoadingMessage />}
 
 						<div
 							{...getRootProps({
@@ -182,7 +187,7 @@ export default function MultipleFileUploader({
 
 						{assetLibraries.length > 1 && (
 							<div className="mt-4">
-								<FieldPicker
+								<FieldBase
 									errorMessage={
 										touched.groupId
 											? errors.groupId
@@ -191,24 +196,22 @@ export default function MultipleFileUploader({
 									helpMessage={Liferay.Language.get(
 										'select-the-space-to-upload-the-file'
 									)}
-									items={assetLibraries.map(
-										({groupId, name}) => ({
-											label: name,
-											value: groupId,
-										})
-									)}
+									id={groupIdInputId}
 									label={Liferay.Language.get('space')}
-									name="groupId"
-									onSelectionChange={(value: string) => {
-										setFieldValue('groupId', value);
-									}}
-									placeholder={`--${Liferay.Language.get('not-selected')}--`}
 									required
-									selectedKey={values.groupId}
-									title={Liferay.Language.get(
-										'select-the-space-to-upload-the-file'
-									)}
-								/>
+								>
+									<SpaceSelector
+										id={groupIdInputId}
+										onSpaceChange={(space) => {
+											setFieldValue(
+												'groupId',
+												space ? space.siteId : null
+											);
+											setSpace(space);
+										}}
+										space={space}
+									/>
+								</FieldBase>
 							</div>
 						)}
 
@@ -223,7 +226,7 @@ export default function MultipleFileUploader({
 								</h2>
 
 								{filesToUpload.map((fileData, index) => (
-									<>
+									<div key={fileData.name}>
 										<ClayLayout.ContentRow
 											className={classNames(
 												'align-items-center',
@@ -234,7 +237,6 @@ export default function MultipleFileUploader({
 															1,
 												}
 											)}
-											key={fileData.name}
 											padded
 										>
 											<ClayLayout.ContentCol>
@@ -289,7 +291,7 @@ export default function MultipleFileUploader({
 												{fileData.errorMessage}
 											</span>
 										)}
-									</>
+									</div>
 								))}
 							</div>
 						)}

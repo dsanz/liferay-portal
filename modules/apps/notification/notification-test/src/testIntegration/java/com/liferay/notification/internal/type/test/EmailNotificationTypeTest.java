@@ -50,6 +50,7 @@ import com.liferay.object.constants.ObjectActionKeys;
 import com.liferay.object.constants.ObjectActionTriggerConstants;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectRelationshipConstants;
+import com.liferay.object.field.builder.AssigneeObjectFieldBuilder;
 import com.liferay.object.field.builder.TextObjectFieldBuilder;
 import com.liferay.object.model.ObjectAction;
 import com.liferay.object.model.ObjectDefinition;
@@ -129,6 +130,7 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.mail.MailServiceTestUtil;
 import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.SynchronousMailTestRule;
@@ -984,35 +986,44 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 			accountEntryRestrictedObjectDefinition);
 	}
 
-	@FeatureFlag("LPD-6233")
 	@Test
 	public void testSendNotificationToAssignee() throws Exception {
 		ObjectDefinition objectDefinition =
-			addObjectDefinitionWithNotificationTemplateObjectAction(
-				Arrays.asList(
-					NotificationRecipientSettingUtil.
-						createNotificationRecipientSetting(
-							NotificationRecipientSettingConstants.NAME_FROM,
-							"test@liferay.com"),
-					NotificationRecipientSettingUtil.
-						createNotificationRecipientSetting(
-							NotificationRecipientSettingConstants.
-								NAME_FROM_NAME,
-							Collections.singletonMap(LocaleUtil.US, "Test")),
-					NotificationRecipientSettingUtil.
-						createNotificationRecipientSetting(
-							NotificationRecipientSettingConstants.
-								NAME_SINGLE_RECIPIENT,
-							Boolean.FALSE.toString()),
-					NotificationRecipientSettingUtil.
-						createNotificationRecipientSetting(
-							NotificationRecipientSettingConstants.NAME_TO,
-							"[%OBJECT_ENTRY_ASSIGNEE%]"),
-					NotificationRecipientSettingUtil.
-						createNotificationRecipientSetting(
-							NotificationRecipientSettingConstants.NAME_TO_TYPE,
-							NotificationRecipientConstants.TYPE_TERM)),
-				"[%OBJECT_ENTRY_ASSIGNEE%]", NotificationConstants.TYPE_EMAIL);
+			ObjectDefinitionTestUtil.publishObjectDefinition(
+				Collections.singletonList(
+					new AssigneeObjectFieldBuilder(
+					).labelMap(
+						RandomTestUtil.randomLocaleStringMap()
+					).name(
+						"assignee"
+					).build()));
+
+		addNotificationTemplateObjectAction(
+			Arrays.asList(
+				NotificationRecipientSettingUtil.
+					createNotificationRecipientSetting(
+						NotificationRecipientSettingConstants.NAME_FROM,
+						"test@liferay.com"),
+				NotificationRecipientSettingUtil.
+					createNotificationRecipientSetting(
+						NotificationRecipientSettingConstants.NAME_FROM_NAME,
+						Collections.singletonMap(LocaleUtil.US, "Test")),
+				NotificationRecipientSettingUtil.
+					createNotificationRecipientSetting(
+						NotificationRecipientSettingConstants.
+							NAME_SINGLE_RECIPIENT,
+						Boolean.FALSE.toString()),
+				NotificationRecipientSettingUtil.
+					createNotificationRecipientSetting(
+						NotificationRecipientSettingConstants.NAME_TO,
+						getObjectFieldTermName(objectDefinition, "assignee")),
+				NotificationRecipientSettingUtil.
+					createNotificationRecipientSetting(
+						NotificationRecipientSettingConstants.NAME_TO_TYPE,
+						NotificationRecipientConstants.TYPE_TERM)),
+			objectDefinition,
+			getObjectFieldTermName(objectDefinition, "assignee"),
+			NotificationConstants.TYPE_EMAIL);
 
 		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
 
@@ -1103,8 +1114,8 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 
 		ObjectDefinition objectDefinition =
 			objectDefinitionLocalService.addCustomObjectDefinition(
-				TestPropsValues.getUserId(), 0, null, false, true, false, true,
-				false, false, false, false, false, null,
+				null, TestPropsValues.getUserId(), 0, null, false, true, false,
+				true, false, false, false, false, false, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionTestUtil.getRandomName(), null, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
@@ -1314,7 +1325,9 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 		}
 	}
 
-	@FeatureFlag("LPD-17564")
+	@FeatureFlags(
+		featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-32050")}
+	)
 	@Test
 	public void testSendNotificationToSubscribers() throws Exception {
 		ObjectDefinition objectDefinition =
@@ -1459,7 +1472,6 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 			objectEntryFolder1.getObjectEntryFolderId());
 	}
 
-	@FeatureFlag("LPD-50091")
 	@Test
 	public void testSendNotificationToUserGroups() throws Exception {
 		UserGroup userGroup1 = UserGroupTestUtil.addUserGroup();
@@ -1570,8 +1582,8 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 
 		ObjectDefinition objectDefinition =
 			objectDefinitionLocalService.addCustomObjectDefinition(
-				TestPropsValues.getUserId(), 0, null, false, true, false, true,
-				false, false, false, false, false, null,
+				null, TestPropsValues.getUserId(), 0, null, false, true, false,
+				true, false, false, false, false, false, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionTestUtil.getRandomName(), null, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),

@@ -4,12 +4,12 @@
 		"@clayui/layout": "3.144.1",
 		"@clayui/link": "3.144.1",
 		"@clayui/loading-indicator": "3.144.1",
-		"@clayui/modal": "3.148.0",
+		"@clayui/modal": "3.151.0",
 		"frontend-js-components-web": "*",
 		"frontend-js-web": "*",
 		"react": "18.2.0"
 	},
-	"main": "js/index.js",
+	"main": "js/index.ts",
 	"name": "exportimport-web",
 	"scripts": {
 		"build": "node-scripts build",
@@ -17,5 +17,5 @@
 		"format": "node-scripts format",
 		"test": "node-scripts test"
 	},
-	"version": "5.0.111"
+	"version": "5.0.113"
 }

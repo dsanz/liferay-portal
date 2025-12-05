@@ -82,6 +82,21 @@ const COMMANDS = {
 			'[--check] [--emit-suppressed] [{--all|--current-branch|--local-changes}]',
 		script: './format/index.mjs',
 	},
+	'format:ci': {
+		description: `
+		Runs checks as in CI's pull requests. Similar to check:ci, but this command will modify
+		files in place when it is run.
+
+		Typical checks are:
+
+		  - Preflight checks (see below).
+		  - Source format checks for modified files.
+		  - Correct generation of tsconfig.json files.
+		  - TypeScript checks for modified files.
+`,
+		parameters: '[{--all|--ignore-preflight|--ignore-typescript}]',
+		script: './format/ci.mjs',
+	},
 	'format:file': {
 		description: `
 		Formats a single source file with eslint and prettier.
@@ -166,6 +181,17 @@ const COMMANDS = {
 `,
 		parameters: '[--with-internals]',
 		script: './report/bundle/sizes.mjs',
+	},
+	'report:dependencies': {
+		description: `
+		Generate aggregated information about bundled npm packages.
+
+		This task must be invoked after running 'CREATE_BUNDLE_REPORTS=yes ant all' (i.e: running
+		'ant all' with the environment variable 'CREATE_BUNDLE_REPORTS' set to 'yes', so that JSON
+		reports, inside the 'build' directory of each project, are created by 'esbuild').
+`,
+		parameters: '',
+		script: './report/dependencies.mjs',
 	},
 	'report:java:imports': {
 		description: `

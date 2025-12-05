@@ -16,6 +16,7 @@ import com.liferay.portal.kernel.test.rule.Sync;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -34,7 +35,9 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Eudaldo Alonso
  */
-@FeatureFlag("LPD-17564")
+@FeatureFlags(
+	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-32050")}
+)
 @RunWith(Arquillian.class)
 @Sync
 public class ViewAllSectionDisplayContextTest
@@ -54,24 +57,24 @@ public class ViewAllSectionDisplayContextTest
 		return LinkedHashMapBuilder.put(
 			"basic-content",
 			getRedirect(
-				"L_BASIC_WEB_CONTENT",
+				"L_CMS_BASIC_WEB_CONTENT",
 				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS)
 		).put(
 			"single-file",
 			getRedirect(
-				"L_BASIC_DOCUMENT",
+				"L_CMS_BASIC_DOCUMENT",
 				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES)
 		).put(
 			"multiple-files", StringPool.BLANK
 		).put(
 			"blog",
 			getRedirect(
-				"L_BLOG",
+				"L_CMS_BLOG",
 				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS)
 		).put(
 			"external-video-shortcut",
 			getRedirect(
-				"L_EXTERNAL_VIDEO",
+				"L_CMS_EXTERNAL_VIDEO",
 				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES)
 		).build();
 	}

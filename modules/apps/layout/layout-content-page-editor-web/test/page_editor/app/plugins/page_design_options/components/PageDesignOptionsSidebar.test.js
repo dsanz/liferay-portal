@@ -6,7 +6,7 @@
 // eslint-disable-next-line
 import {checkAccessibility} from '@liferay/layout-js-components-web/test/__lib__/index';
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import {act, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -31,9 +31,9 @@ jest.mock(
 const DEFAULT_CONFIG = {
 	layoutType: '0',
 	masterLayouts: [
-		{masterLayoutPlid: '0', name: 'Blank'},
+		{masterLayoutPageTemplateEntryERC: '', name: 'Blank'},
 		{
-			masterLayoutPlid: '15',
+			masterLayoutPageTemplateEntryERC: '15',
 			name: 'Pablo Master Layout',
 		},
 	],
@@ -42,7 +42,7 @@ const DEFAULT_CONFIG = {
 	styleBooks: [
 		{
 			name: 'Pablo Style',
-			styleBookEntryId: '3',
+			styleBookEntryERC: '3',
 		},
 	],
 	themeName: 'Test Theme',
@@ -59,13 +59,13 @@ jest.mock(
 	})
 );
 
-const renderComponent = ({masterLayoutPlid = '0'} = {}) => {
+const renderComponent = ({masterLayoutPageTemplateEntryERC = ''} = {}) => {
 	return render(
 		<StoreAPIContextProvider
 			dispatch={() => Promise.resolve({styleBook: {}})}
 			getState={() => ({
 				masterLayout: {
-					masterLayoutPlid,
+					masterLayoutPageTemplateEntryERC,
 				},
 				permissions: {
 					LOCKED_SEGMENTS_EXPERIMENT: true,
@@ -114,7 +114,7 @@ describe('PageDesignOptionsSidebar', () => {
 		});
 
 		expect(changeMasterLayout).toBeCalledWith(
-			expect.objectContaining({masterLayoutPlid: '15'})
+			expect.objectContaining({masterLayoutPageTemplateEntryERC: '15'})
 		);
 	});
 
@@ -127,7 +127,7 @@ describe('PageDesignOptionsSidebar', () => {
 		expect(LayoutService.changeStyleBookEntry).toHaveBeenCalledTimes(1);
 		expect(LayoutService.changeStyleBookEntry).toHaveBeenCalledWith(
 			expect.objectContaining({
-				styleBookEntryId: '3',
+				styleBookEntryERC: '3',
 			})
 		);
 	});

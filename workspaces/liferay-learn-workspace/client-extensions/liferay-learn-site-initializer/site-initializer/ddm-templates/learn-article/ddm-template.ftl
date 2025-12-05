@@ -93,46 +93,6 @@
 
 <article class="learn-article">
 	<div class="d-flex flex-column">
-		<div class="learn-article-breadcrumbs">
-			<div class="learn-article-breadcrumbs-content">
-				<div class="align-items-baseline d-flex justify-content-between mb-3">
-					<ul
-						aria-label="breadcrumb navigation"
-						class="learn-article-breadcrumb"
-						role="navigation"
-					>
-						<li>
-							<a href="/"><@clay["icon"] symbol="home-full" /></a>
-						</li>
-
-						<#if breadcrumbJSONArray?has_content>
-							<#list breadcrumbJSONArray.length()-1..0 as i>
-								<#assign breadcrumbJSONObject = breadcrumbJSONArray.getJSONObject(i) />
-
-								<li>
-									<a href='${breadcrumbJSONObject.getString("url")}'>${breadcrumbJSONObject.getString("title")}</a>
-								</li>
-							</#list>
-						</#if>
-
-						<li>
-							${navigationJSONObject.getJSONObject("self").getString("title")}
-						</li>
-					</ul>
-
-					<div class="submit-feedback">
-						<a
-							class="text-decoration-none"
-							href="https://liferay.dev/c/portal/login?redirect=https://liferay.dev/ask/questions/liferay-learn-feedback/new"
-						>
-							${languageUtil.get(locale, "submit-feedback", "Submit Feedback")}
-							<@clay["icon"] symbol="message-boards" />
-						</a>
-					</div>
-				</div>
-			</div>
-		</div>
-
 		<div class="learn-article-wrapper">
 			<div class="language-log learn-article-content">
 				<#if (content.getData())??>
@@ -167,82 +127,78 @@
 							</div>
 						</#list>
 					</div>
-				</#if>
-
-				<div class="learn-article-categories-tags">
-					<#list taxonomyVocabularies as vocabulary>
-						<div class="align-items-baseline d-flex mt-2">
-							<div class="learn-article-category-title mr-2">
-								${vocabulary}:
-							</div>
-							<#list taxonomyCategoriesMap[vocabulary]?sort_by("categoryName") as taxonomyCategory>
-								<div class="learn-article-category-tag mr-2">
-									<a
-										class="label tag-container"
-										href="/search?${vocabulary?lower_case?replace(" ", "-", "r")}=${taxonomyCategory.categoryId}"
-									>
-										<span>${taxonomyCategory.categoryName}</span>
-									</a>
+				<#else>
+					<div class="learn-article-categories-tags">
+						<#list taxonomyVocabularies as vocabulary>
+							<div class="align-items-baseline d-flex mt-2">
+								<div class="learn-article-category-title mr-2">
+									${vocabulary}:
 								</div>
-							</#list>
-						</div>
-					</#list>
-				</div>
-
-				<div class="article-related-how-to">
-					<#setting url_escaping_charset='UTF-8' />
-
-					<#if (structuredContent.keywords?has_content && structuredContent.keywords?size > 0)>
-						<#assign
-							queryParams = {
-								"fields": "dateModified,id,title",
-								"filter": "(knowledgeArticleType eq 'howTo') and (status eq 0) and (sourceTeam eq 'Enablement')",
-								"pageSize": "3",
-								"search": structuredContent.keywords[0],
-								"sort": "dateModified:desc"
-							}
-							queryParts = []
-						/>
-
-						<#list queryParams?keys as key>
-							<#assign
-								value = queryParams[key]
-
-								queryParts = queryParts + ["${key?url}=${value?url}"]
-							/>
-						</#list>
-
-						<#assign knowledgeArticles = restClient.get("/c/p2s3knowledgearticles/?" + queryParts?join('&')) />
-
-						<#if (knowledgeArticles.totalCount)?has_content && (knowledgeArticles.totalCount > 0)>
-							<div class="how-to-container">
-								<div class="how-to-container-header">
-									${languageUtil.get(locale, 'how-to-related-to-this-article')}
-								</div>
-
-								<div class="how-to-cards-container" id="how-to-cards-container">
-									<#list knowledgeArticles.items as knowledgeArticle>
-											<a class="how-to-card" href="${themeDisplay.getCanonicalURL()}/l/${knowledgeArticle.id}/">
-											<div class="how-to-card-header">
-												${knowledgeArticle.title!}
-											</div>
-
-											<div class="how-to-card-date-published">
-												<#assign date = knowledgeArticle.dateModified?datetime("yyyy-MM-dd'T'HH:mm:ss'Z'") />
-
-												${languageUtil.get(locale, 'published-date')}: ${date?string["MMM dd, yy hh:mm a"]}
-											</div>
+								<#list taxonomyCategoriesMap[vocabulary]?sort_by("categoryName") as taxonomyCategory>
+									<div class="learn-article-category-tag mr-2">
+										<a
+											class="label tag-container"
+											href="/search?${vocabulary?lower_case?replace(" ", "-", "r")}=${taxonomyCategory.categoryId}"
+										>
+											<span>${taxonomyCategory.categoryName}</span>
 										</a>
-									</#list>
-								</div>
+									</div>
+								</#list>
 							</div>
-						</#if>
-					</#if>
-				</div>
-			</div>
+						</#list>
+					</div>
 
-			<div class="learn-article-page-nav">
-				<ul class="nav nav-stacked toc" id="articleTOC"></ul>
+					<div class="article-related-how-to">
+						<#setting url_escaping_charset='UTF-8' />
+
+						<#if (structuredContent.keywords?has_content && structuredContent.keywords?size > 0)>
+							<#assign
+								queryParams = {
+									"fields": "dateModified,id,title",
+									"filter": "(knowledgeArticleType eq 'howTo') and (status eq 0) and (sourceTeam eq 'Enablement')",
+									"pageSize": "3",
+									"search": structuredContent.keywords[0],
+									"sort": "dateModified:desc"
+								}
+								queryParts = []
+							/>
+
+							<#list queryParams?keys as key>
+								<#assign
+									value = queryParams[key]
+
+									queryParts = queryParts + ["${key?url}=${value?url}"]
+								/>
+							</#list>
+
+							<#assign knowledgeArticles = restClient.get("/c/p2s3knowledgearticles/?" + queryParts?join('&')) />
+
+							<#if (knowledgeArticles.totalCount)?has_content && (knowledgeArticles.totalCount > 0)>
+								<div class="how-to-container">
+									<div class="how-to-container-header">
+										${languageUtil.get(locale, 'how-to-related-to-this-article')}
+									</div>
+
+									<div class="how-to-cards-container" id="how-to-cards-container">
+										<#list knowledgeArticles.items as knowledgeArticle>
+											<a class="how-to-card" href="${themeDisplay.getCanonicalURL()}/l/${knowledgeArticle.id}/">
+												<div class="how-to-card-header">
+													${knowledgeArticle.title}
+												</div>
+
+												<div class="how-to-card-date-published">
+													<#assign date = knowledgeArticle.dateModified?datetime("MMM dd, yy hh:mm")?string />
+
+													${languageUtil.get(locale, 'published-date')}: ${date}
+												</div>
+											</a>
+										</#list>
+									</div>
+								</div>
+							</#if>
+						</#if>
+					</div>
+				</#if>
 			</div>
 		</div>
 	</div>
@@ -337,9 +293,19 @@
 		line-height: 1.75rem;
 	}
 
+	.learn-article {
+		max-width: 900px !important;
+	}
+
 	@media only screen and (max-width: 1200px) {
 		.how-to-cards-container {
 			flex-direction: column;
+		}
+	}
+
+	@media (max-width: 1024px) {
+		.learn-article {
+			margin-top: 2.5rem;
 		}
 	}
 </style>

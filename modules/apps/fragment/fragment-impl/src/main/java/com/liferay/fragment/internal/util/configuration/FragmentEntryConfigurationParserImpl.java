@@ -7,6 +7,7 @@ package com.liferay.fragment.internal.util.configuration;
 
 import com.liferay.fragment.constants.FragmentConfigurationFieldDataType;
 import com.liferay.fragment.entry.processor.constants.FragmentEntryProcessorConstants;
+import com.liferay.fragment.entry.processor.helper.LayoutReferenceResolver;
 import com.liferay.fragment.util.configuration.FragmentConfigurationField;
 import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.fragment.util.configuration.FragmentEntryMenuDisplayConfiguration;
@@ -15,6 +16,7 @@ import com.liferay.frontend.token.definition.FrontendTokenDefinition;
 import com.liferay.frontend.token.definition.FrontendTokenDefinitionRegistry;
 import com.liferay.frontend.token.definition.FrontendTokenMapping;
 import com.liferay.info.item.ClassPKInfoItemIdentifier;
+import com.liferay.info.item.ERCInfoItemIdentifier;
 import com.liferay.info.item.InfoItemServiceRegistry;
 import com.liferay.info.item.provider.InfoItemObjectProvider;
 import com.liferay.info.pagination.InfoPage;
@@ -37,7 +39,6 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutSetLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -199,10 +200,23 @@ public class FragmentEntryConfigurationParserImpl
 					fragmentConfigurationField.getType(),
 					"collectionSelector")) {
 
+				ServiceContext serviceContext =
+					ServiceContextThreadLocal.getServiceContext();
+
+				if (serviceContext == null) {
+					return null;
+				}
+
+				ThemeDisplay themeDisplay = serviceContext.getThemeDisplay();
+
+				if (themeDisplay == null) {
+					return null;
+				}
+
 				Object contextListObject = _getInfoListObjectEntry(
-					configurationValuesJSONObject.getString(name),
-					segmentsEntryIds,
-					fragmentConfigurationField.getTypeOptionsJSONObject());
+					themeDisplay.getScopeGroupId(), segmentsEntryIds,
+					fragmentConfigurationField.getTypeOptionsJSONObject(),
+					configurationValuesJSONObject.getString(name));
 
 				if (contextListObject != null) {
 					contextObjects.put(
@@ -595,18 +609,49 @@ public class FragmentEntryConfigurationParserImpl
 		try {
 			JSONObject jsonObject = _jsonFactory.createJSONObject(value);
 
+			String className = jsonObject.getString("className");
+			long classPK = jsonObject.getLong("classPK");
+			String externalReferenceCode = jsonObject.getString(
+				"externalReferenceCode");
+
+			if (Validator.isNull(className) ||
+				((classPK <= 0) && Validator.isNull(externalReferenceCode))) {
+
+				return null;
+			}
+
 			InfoItemObjectProvider<?> infoItemObjectProvider =
 				_infoItemServiceRegistry.getFirstInfoItemService(
-					InfoItemObjectProvider.class,
-					jsonObject.getString("className"),
+					InfoItemObjectProvider.class, className,
 					ClassPKInfoItemIdentifier.INFO_ITEM_SERVICE_FILTER);
 
 			if (infoItemObjectProvider == null) {
 				return null;
 			}
 
+			if (classPK > 0) {
+				return infoItemObjectProvider.getInfoItem(
+					new ClassPKInfoItemIdentifier(classPK));
+			}
+
+			ServiceContext serviceContext =
+				ServiceContextThreadLocal.getServiceContext();
+
+			if (serviceContext == null) {
+				return null;
+			}
+
+			ThemeDisplay themeDisplay = serviceContext.getThemeDisplay();
+
+			if (themeDisplay == null) {
+				return null;
+			}
+
 			return infoItemObjectProvider.getInfoItem(
-				new ClassPKInfoItemIdentifier(jsonObject.getLong("classPK")));
+				themeDisplay.getScopeGroupId(),
+				new ERCInfoItemIdentifier(
+					externalReferenceCode,
+					jsonObject.getString("scopeExternalReferenceCode")));
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
@@ -642,6 +687,10 @@ public class FragmentEntryConfigurationParserImpl
 				"externalReferenceCode",
 				configurationValueJSONObject.getString("externalReferenceCode")
 			).put(
+				"scopeExternalReferenceCode",
+				configurationValueJSONObject.getString(
+					"scopeExternalReferenceCode")
+			).put(
 				"template", configurationValueJSONObject.get("template")
 			).put(
 				"title", configurationValueJSONObject.getString("title")
@@ -662,8 +711,8 @@ public class FragmentEntryConfigurationParserImpl
 	}
 
 	private Object _getInfoListObjectEntry(
-		String value, long[] segmentsEntryIds,
-		JSONObject typeOptionsJSONObject) {
+		long scopeGroupId, long[] segmentsEntryIds,
+		JSONObject typeOptionsJSONObject, String value) {
 
 		if (Validator.isNull(value)) {
 			return Collections.emptyList();
@@ -708,6 +757,7 @@ public class FragmentEntryConfigurationParserImpl
 				}
 			}
 
+			defaultLayoutListRetrieverContext.setScopeGroupId(scopeGroupId);
 			defaultLayoutListRetrieverContext.setSegmentsEntryIds(
 				segmentsEntryIds);
 
@@ -752,7 +802,9 @@ public class FragmentEntryConfigurationParserImpl
 
 		FragmentEntryMenuDisplayConfiguration
 			fragmentEntryMenuDisplayConfiguration =
-				new FragmentEntryMenuDisplayConfiguration(value);
+				new FragmentEntryMenuDisplayConfiguration(
+					serviceContext.getCompanyId(), value,
+					serviceContext.getScopeGroupId());
 
 		return NavItemUtil.getNavigationMenuContext(
 			1, "auto", serviceContext.getRequest(),
@@ -760,13 +812,25 @@ public class FragmentEntryConfigurationParserImpl
 			false, fragmentEntryMenuDisplayConfiguration.getRootItemId(),
 			fragmentEntryMenuDisplayConfiguration.getRootItemLevel(),
 			fragmentEntryMenuDisplayConfiguration.getRootItemType(),
-			fragmentEntryMenuDisplayConfiguration.getSiteNavigationMenuId(
-				serviceContext.getScopeGroupId()));
+			fragmentEntryMenuDisplayConfiguration.getSiteNavigationMenuId());
 	}
 
 	private Object _getURLValue(String value) {
+		ServiceContext serviceContext =
+			ServiceContextThreadLocal.getServiceContext();
+
+		if ((serviceContext == null) || Validator.isNull(value) ||
+			(serviceContext.getThemeDisplay() == null)) {
+
+			return StringPool.POUND;
+		}
+
 		JSONObject jsonObject = (JSONObject)_getFieldValue(
 			FragmentConfigurationFieldDataType.OBJECT, value);
+
+		if (jsonObject == null) {
+			return StringPool.POUND;
+		}
 
 		JSONObject layoutJSONObject = jsonObject.getJSONObject("layout");
 
@@ -774,23 +838,18 @@ public class FragmentEntryConfigurationParserImpl
 			return jsonObject.getString("href");
 		}
 
-		long groupId = layoutJSONObject.getLong("groupId");
-		boolean privateLayout = layoutJSONObject.getBoolean("privateLayout");
-		long layoutId = layoutJSONObject.getLong("layoutId");
+		ThemeDisplay themeDisplay = serviceContext.getThemeDisplay();
 
-		Layout layout = _layoutLocalService.fetchLayout(
-			groupId, privateLayout, layoutId);
+		Layout layout = _layoutReferenceResolver.resolve(
+			themeDisplay.getCompanyId(), layoutJSONObject,
+			themeDisplay.getScopeGroupId());
 
 		if (layout == null) {
 			return StringPool.POUND;
 		}
 
-		ServiceContext serviceContext =
-			ServiceContextThreadLocal.getServiceContext();
-
 		try {
-			return _portal.getLayoutFullURL(
-				layout, serviceContext.getThemeDisplay());
+			return _portal.getLayoutFullURL(layout, themeDisplay);
 		}
 		catch (Exception exception) {
 			if (_log.isDebugEnabled()) {
@@ -894,7 +953,7 @@ public class FragmentEntryConfigurationParserImpl
 	private LayoutListRetrieverRegistry _layoutListRetrieverRegistry;
 
 	@Reference
-	private LayoutLocalService _layoutLocalService;
+	private LayoutReferenceResolver _layoutReferenceResolver;
 
 	@Reference
 	private LayoutSetLocalService _layoutSetLocalService;

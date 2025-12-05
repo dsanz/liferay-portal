@@ -171,7 +171,7 @@ export interface Config {
 	markItemForDeletionURL: string;
 	masterLayouts: Array<{
 		imagePreviewURL: string;
-		masterLayoutPlid: string;
+		masterLayoutPageTemplateEntryERC: string;
 		name: string;
 	}>;
 	masterUsed: boolean;
@@ -210,12 +210,12 @@ export interface Config {
 	singleSegmentsExperienceMode: boolean;
 	siteNavigationMenuItemSelectorURL: string;
 	styleBookEnabled: boolean;
+	styleBookEntryERC: string;
 	styleBooks: Array<{
 		imagePreviewURL: string;
 		name: string;
-		styleBookEntryId: string;
+		styleBookEntryERC: string;
 	}>;
-	stylebookEntryId: string;
 	themeColorsCssClasses: string[];
 	toolbarId: string;
 

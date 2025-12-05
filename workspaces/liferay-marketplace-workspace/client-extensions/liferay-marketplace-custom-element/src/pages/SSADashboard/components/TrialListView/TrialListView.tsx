@@ -22,7 +22,7 @@ import {formatDate, formatDateTime} from '../../../../utils/date';
 import {safeJSONParse} from '../../../../utils/util';
 import {useSSADashboardOutlet} from '../../SSADashboardOutlet';
 import {EXTEND_TRIAL_STATUS_LABEL} from '../../constants';
-import CreateTrialModalForm from '../../pages/CreateTrialModalform';
+import CreateTrialModalForm from '../../modals/CreateTrialModalform';
 import ExtensionStatus from '../ExtensionStatus/ExtensionStatus';
 import TrialStatus from '../TrialStatus/TrialStatus';
 
@@ -42,6 +42,7 @@ type TrialsListViewProps = {
 		| 'tableProps'
 		| 'totalItems'
 	>;
+	parentPath?: string;
 };
 
 // Refresh the table every 60 seconds
@@ -62,11 +63,21 @@ export default function TrialListView({
 	createTrialFormModal,
 	listViewProps,
 	managementToolbarProps,
+	parentPath,
 }: TrialsListViewProps) {
 	const {ssaAccount, ssaTrialExtend} = useSSADashboardOutlet();
 	const {myUserAccount} = useMarketplaceContext();
 
-	const author = myUserAccount?.name;
+	const {properties} = useMarketplaceContext();
+
+	const isFilterByAuthorIdEnabled =
+		properties.featureFlags.includes('LPD-63837');
+
+	const authorFilter = isFilterByAuthorIdEnabled ? 'authorId' : 'author';
+
+	const authorFilterValue = isFilterByAuthorIdEnabled
+		? myUserAccount?.id
+		: myUserAccount?.name;
 
 	const searchBuilder = useMemo(() => {
 		const searchBuilder = new SearchBuilder().eq(
@@ -75,11 +86,18 @@ export default function TrialListView({
 		);
 
 		if (authorOnlyTrials) {
-			searchBuilder.and().eq('author', author);
+			searchBuilder.and().eq(authorFilter, authorFilterValue, {
+				unquote: isFilterByAuthorIdEnabled,
+			});
 		}
 
 		return searchBuilder;
-	}, [author, authorOnlyTrials]);
+	}, [
+		authorFilter,
+		authorFilterValue,
+		authorOnlyTrials,
+		isFilterByAuthorIdEnabled,
+	]);
 
 	return (
 		<>
@@ -102,7 +120,11 @@ export default function TrialListView({
 							render: (_, {customFields, id}) => (
 								<Link
 									className="font-weight-semi-bold ml-2"
-									to={`/details/${id}`}
+									to={
+										parentPath
+											? `/details/${id}?from=${parentPath}`
+											: `/details/${id}`
+									}
 								>
 									{customFields &&
 										safeJSONParse(

@@ -19,10 +19,20 @@ import React, {
 import './LocalizationSelect.scss';
 
 import {ClayButtonWithIcon} from '@clayui/button';
+import {State} from '@liferay/frontend-js-state-web';
+import {useLiferayState} from '@liferay/frontend-js-state-web/react';
 import {openToast} from 'frontend-js-components-web';
 import {fetch, sub} from 'frontend-js-web';
 
-const EVENT_TRANSLATION_STATUS = 'localizationSelect:updateTranslationStatus';
+export const EVENT_TRANSLATION_STATUS =
+	'localizationSelect:updateTranslationStatus';
+
+export const EVENT_INPUT_REGISTERED = 'localizedInput:registered';
+
+const selectedLocalesAtom = State.atom<Record<string, Liferay.Language.Locale>>(
+	'LocalizationSelect:selectedLocaleIds',
+	{}
+);
 
 type Props = {
 	allowLocalizationManagement: boolean;
@@ -60,7 +70,12 @@ export function LocalizationSelect({
 	const [translations, setTranslations] = useState<Translations>({});
 	const [form, setForm] = useState<HTMLFormElement>();
 
-	const [selectedLocaleId, setSelectedLocaleId] = useState(defaultLanguageId);
+	const [selectedLocaleId, setSelectedLocaleId] = useState(
+		Liferay.ThemeDisplay.getDefaultLanguageId()
+	);
+
+	const [selectedLocaleIds, setSelectedLocaleIds] =
+		useLiferayState(selectedLocalesAtom);
 
 	const selectedLocaleLabel = useMemo(() => {
 		return locales.find(({id}) => id === selectedLocaleId)?.label;
@@ -95,9 +110,24 @@ export function LocalizationSelect({
 
 	const containerRef = useRef<HTMLDivElement>(null);
 
+	const saveSelectedLocale = useCallback(
+		(localeId: Liferay.Language.Locale) => {
+			setSelectedLocaleId(localeId);
+
+			if (form) {
+				setSelectedLocaleIds({
+					...selectedLocaleIds,
+					[form.id]: localeId,
+				});
+			}
+		},
+		[form, selectedLocaleIds, setSelectedLocaleIds]
+	);
+
 	const onSelectedLocaleChange = (localeId: Liferay.Language.Locale) => {
-		setSelectedLocaleId(localeId);
 		setDropdownActive(false);
+
+		saveSelectedLocale(localeId);
 	};
 
 	const autoTranslate = useCallback(async () => {
@@ -285,14 +315,20 @@ export function LocalizationSelect({
 			});
 		};
 
-		Liferay.on(EVENT_TRANSLATION_STATUS, updateTranslationStatus);
+		const updateStatusForAllLocales = () => {
+			for (const locale of locales) {
+				updateTranslationStatus({languageId: locale.id});
+			}
+		};
 
-		for (const locale of locales) {
-			updateTranslationStatus({languageId: locale.id});
-		}
+		updateStatusForAllLocales();
+
+		Liferay.on(EVENT_TRANSLATION_STATUS, updateTranslationStatus);
+		Liferay.on(EVENT_INPUT_REGISTERED, updateStatusForAllLocales);
 
 		return () => {
 			Liferay.detach(EVENT_TRANSLATION_STATUS, updateTranslationStatus);
+			Liferay.detach(EVENT_INPUT_REGISTERED, updateStatusForAllLocales);
 		};
 	}, [defaultLanguageId, form, locales]);
 
@@ -316,7 +352,7 @@ export function LocalizationSelect({
 			// Otherwise, store it as selected
 
 			if (selectedLocaleId !== languageId) {
-				setSelectedLocaleId(languageId);
+				saveSelectedLocale(languageId);
 			}
 		};
 
@@ -325,7 +361,7 @@ export function LocalizationSelect({
 		return () => {
 			Liferay.detach('localizationSelect:localeChanged', onLocaleChanged);
 		};
-	}, [form, selectedLocaleId]);
+	}, [form, saveSelectedLocale, selectedLocaleId]);
 
 	return (
 		<div className="align-items-center c-gap-2 d-flex" ref={containerRef}>
@@ -492,4 +528,14 @@ function hasValue(input: HTMLInputElement) {
 	}
 
 	return Boolean(input.getAttribute('value')?.length);
+}
+
+export function getSelectedLanguageId(formId?: string) {
+	if (!formId) {
+		return null;
+	}
+
+	const localeIds = State.readAtom(selectedLocalesAtom);
+
+	return localeIds[formId];
 }

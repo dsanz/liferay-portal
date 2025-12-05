@@ -1,12 +1,13 @@
 {
 	"dependencies": {
 		"@clayui/button": "3.144.1",
-		"@clayui/core": "3.149.0",
-		"@clayui/drop-down": "3.149.0",
+		"@clayui/core": "3.151.0",
+		"@clayui/drop-down": "3.151.0",
 		"@clayui/icon": "3.144.1",
 		"@clayui/label": "3.144.1",
 		"@clayui/layout": "3.144.1",
 		"@clayui/loading-indicator": "3.144.1",
+		"@liferay/frontend-js-state-web": "*",
 		"@liferay/layout-js-components-web": "*",
 		"classnames": "2.3.1",
 		"document-library-video": "*",
@@ -22,5 +23,5 @@
 		"format": "node-scripts format",
 		"test": "node-scripts test"
 	},
-	"version": "4.0.126"
+	"version": "4.0.128"
 }

@@ -2448,6 +2448,22 @@ war.path=${app.server.portal.dir}/</echo>
 		</sequential>
 	</macrodef>
 
+	<macrodef name="is-less-than">
+		<attribute name="arg1" />
+		<attribute name="arg2" />
+		<attribute name="property.name" />
+		<sequential>
+			<beanshell>
+                <![CDATA[
+                    Float float1 = Float.parseFloat("@{arg1}");
+                    Float float2 = Float.parseFloat("@{arg2}");
+
+                    project.setProperty("@{property.name}", String.valueOf(float1 < float2));
+                ]]>
+			</beanshell>
+		</sequential>
+	</macrodef>
+
 	<macrodef name="poshi-execute">
 		<attribute default="portal-web/build-test.gradle" name="build.gradle.file" />
 		<attribute default="${basedir}" name="build.gradle.dir" />
@@ -3106,23 +3122,11 @@ server.detector.server.id=tomcat</echo>
 				<elseif>
 					<equals arg1="${app.server.type}" arg2="weblogic" />
 					<then>
-						<if>
-							<equals arg1="${app.server.weblogic.version}" arg2="12.2.1" />
-							<then>
-								<echo file="${liferay.home}/tools/portal-tools-db-upgrade-client/app-server.properties">dir=${app.server.dir}
+						<echo file="${liferay.home}/tools/portal-tools-db-upgrade-client/app-server.properties">dir=${app.server.weblogic.dir}
 extra.lib.dirs=wlserver/modules
 global.lib.dir=domains/liferay/lib
 portal.dir=domains/liferay/autodeploy/ROOT
 server.detector.server.id=weblogic</echo>
-							</then>
-							<else>
-								<echo file="${liferay.home}/tools/portal-tools-db-upgrade-client/app-server.properties">dir=${app.server.weblogic.dir}
-extra.lib.dirs=oracle/wlserver/modules
-global.lib.dir=domains/liferay/lib
-portal.dir=/domains/liferay/autodeploy/ROOT
-server.detector.server.id=weblogic</echo>
-							</else>
-						</if>
 					</then>
 				</elseif>
 				<elseif>
@@ -3142,32 +3146,9 @@ server.detector.server.id=wildfly</echo>
 			<get-database-property property.name="database.url" />
 			<get-database-property property.name="database.username" />
 
-			<if>
-				<or>
-					<equals arg1="${database.type}" arg2="mariadb" />
-					<equals arg1="${database.type}" arg2="mysql" />
-				</or>
-				<then>
-					<property name="database.url.upgrade" value="${database.url}" />
-				</then>
-				<elseif>
-					<equals arg1="${database.type}" arg2="postgresql" />
-					<then>
-						<property name="database.url.upgrade" value="${database.url}?reWriteBatchedInserts=true" />
-					</then>
-				</elseif>
-				<elseif>
-					<equals arg1="${database.type}" arg2="sqlserver" />
-					<then>
-						<property name="database.url.upgrade" value="${database.url};useBulkCopyForBatchInsert=true" />
-					</then>
-				</elseif>
-				<else>
-					<property name="database.url.upgrade" value="${database.url}" />
-				</else>
-			</if>
+			<property name="database.url.upgrade" value="${database.url}" />
 
-			<echo file="${liferay.home}/tools/portal-tools-db-upgrade-client/portal-upgrade-database.properties">jdbc.default.driverClassName=${database.driver}
+			<echo file="${liferay.home}/tools/portal-tools-db-upgrade-client/portal-upgrade-ext.properties">jdbc.default.driverClassName=${database.driver}
 jdbc.default.url=${database.url.upgrade}
 jdbc.default.username=${database.username}
 jdbc.default.password=${database.password}</echo>
@@ -5220,11 +5201,17 @@ tell application "Safari" to quit
 
 	<macrodef name="prepare-test-app-server-custom">
 		<sequential>
-			<ant antfile="build-dist.xml" inheritAll="false" target="unzip-${app.server.type}-custom" />
-
 			<if>
 				<equals arg1="${app.server.type}" arg2="weblogic" />
 				<then>
+					<local name="java.jdk.home" />
+
+					<get-java-jdk-home type="oracle" version="17" />
+
+					<ant antfile="build-dist.xml" inheritAll="false" target="unzip-${app.server.type}-custom">
+						<property name="weblogic.java.jdk.home" value="${java.jdk.home}" />
+					</ant>
+
 					<chmod
 						perm="a+x"
 					>
@@ -5293,6 +5280,9 @@ tell application "Safari" to quit
 
 					<delete file="${weblogic.fix.sh}" />
 				</then>
+				<else>
+					<ant antfile="build-dist.xml" inheritAll="false" target="unzip-${app.server.type}-custom" />
+				</else>
 			</if>
 		</sequential>
 	</macrodef>
@@ -5405,18 +5395,13 @@ tell application "Safari" to quit
 							app.server.type=weblogic
 						</app-server-properties-update>
 
-						<if>
-							<or>
-								<equals arg1="${app.server.weblogic.version.build}" arg2="12213" />
-								<equals arg1="${app.server.weblogic.version.build}" arg2="14110" />
-							</or>
-							<then>
-								<ant antfile="build-dist.xml" inheritAll="false" target="unzip-weblogic-custom" />
-							</then>
-							<else>
-								<ant antfile="build-dist.xml" inheritAll="false" target="unzip-weblogic" />
-							</else>
-						</if>
+						<local name="java.jdk.home" />
+
+						<get-java-jdk-home type="oracle" version="17" />
+
+						<ant antfile="build-dist.xml" inheritAll="false" target="unzip-weblogic-custom">
+							<property name="weblogic.java.jdk.home" value="${java.jdk.home}" />
+						</ant>
 
 						<antcall inheritAll="false" target="deploy" />
 
@@ -5571,12 +5556,12 @@ include-and-override=portal-liferay-online.properties</echo>
 						<equals arg1="${database.type}" arg2="mysql" />
 						<then>
 							<replace
-								file="${liferay.home}/tools/portal-tools-db-upgrade-client/portal-upgrade-database.properties"
+								file="${liferay.home}/tools/portal-tools-db-upgrade-client/portal-upgrade-ext.properties"
 								token="${database.mysql.driver}"
 								value="${database.mariadb.driver}"
 							/>
 							<replace
-								file="${liferay.home}/tools/portal-tools-db-upgrade-client/portal-upgrade-database.properties"
+								file="${liferay.home}/tools/portal-tools-db-upgrade-client/portal-upgrade-ext.properties"
 								token="jdbc:mysql:"
 								value="jdbc:mariadb:"
 							/>
@@ -6362,6 +6347,7 @@ ${custom.upgrade.properties}</echo>
 					import com.liferay.jenkins.results.parser.test.clazz.group.BatchTestClassGroup;
 					import com.liferay.jenkins.results.parser.test.clazz.group.JUnitBatchTestClassGroup;
 					import com.liferay.jenkins.results.parser.test.clazz.group.NPMTestBatchTestClassGroup;
+					import com.liferay.jenkins.results.parser.test.clazz.group.PlaywrightBatchTestClassGroup;
 					import com.liferay.jenkins.results.parser.test.clazz.group.TestClassGroupFactory;
 
 					public Job.BuildProfile getBuildProfile() {
@@ -6453,7 +6439,7 @@ ${custom.upgrade.properties}</echo>
 
 						BatchTestClassGroup batchTestClassGroup = TestClassGroupFactory.newBatchTestClassGroup(project.getProperty("test.batch.name"), job);
 
-						if (batchTestClassGroup instanceof JUnitBatchTestClassGroup || batchTestClassGroup instanceof NPMTestBatchTestClassGroup) {
+						if (batchTestClassGroup instanceof JUnitBatchTestClassGroup || batchTestClassGroup instanceof NPMTestBatchTestClassGroup || batchTestClassGroup instanceof PlaywrightBatchTestClassGroup) {
 							batchTestClassGroup.writeTestCSVReportFile();
 						}
 					}
@@ -7173,7 +7159,7 @@ log.sanitizer.enabled=false</echo>
 					</then>
 				</elseif>
 				<else>
-					<var name="app.server.tomcat.version" value="10.1.43" />
+					<var name="app.server.tomcat.version" value="10.1.48" />
 				</else>
 			</if>
 
@@ -7573,6 +7559,7 @@ org.apache.catalina.startup.ClassLoaderFactory.level=INFO]]>
 		<attribute default="0" name="app.server.bundle.index" />
 		<attribute default="true" name="delete.liferay.home" />
 		<attribute default="" name="testable.portal.started.marker.file" />
+		<attribute default="false" name="skip.wait.server.startup" />
 
 		<sequential>
 			<lstopwatch action="start" name="start.app.server.@{app.server.bundle.index}" />
@@ -7580,6 +7567,7 @@ org.apache.catalina.startup.ClassLoaderFactory.level=INFO]]>
 			<start-app-server-cmd
 				app.server.bundle.index="@{app.server.bundle.index}"
 				delete.liferay.home="@{delete.liferay.home}"
+				skip.wait.server.startup="@{skip.wait.server.startup}"
 				test.docker.environment="${test.docker.environment}"
 				testable.portal.started.marker.file="@{testable.portal.started.marker.file}"
 			/>
@@ -7604,6 +7592,7 @@ org.apache.catalina.startup.ClassLoaderFactory.level=INFO]]>
 		<attribute default="0" name="app.server.bundle.index" />
 		<attribute default="true" name="delete.liferay.home" />
 		<attribute default="host" name="docker.network.name" />
+		<attribute default="false" name="skip.wait.server.startup" />
 		<attribute default="false" name="test.docker.environment" />
 		<attribute default="" name="testable.portal.started.marker.file" />
 
@@ -7670,7 +7659,12 @@ org.apache.catalina.startup.ClassLoaderFactory.level=INFO]]>
 					<get-operating-system-property property.name="operating.system.docker.image" />
 
 					<parallel>
-						<wait-for-app-server app.server.bin.dir="@{app.server.bin.dir}" app.server.bundle.index="@{app.server.bundle.index}" />
+						<if>
+							<equals arg1="@{skip.wait.server.startup}" arg2="false" />
+							<then>
+								<wait-for-app-server app.server.bin.dir="@{app.server.bin.dir}" app.server.bundle.index="@{app.server.bundle.index}" />
+							</then>
+						</if>
 
 						<daemons>
 							<if>
@@ -9904,6 +9898,9 @@ go</echo>
 	</target>
 
 	<target name="build-sql-file-playwright">
+		<var name="databases.size" unset="true" />
+		<var name="databases.size" value="1" />
+
 		<if>
 			<not>
 				<equals arg1="${database.type}" arg2="hypersonic" />
@@ -11363,7 +11360,7 @@ org.apache.catalina.ha.session.level=INFO]]>
 
 	<target name="deploy-sql-zip">
 		<if>
-			<matches pattern="https?://" string="${test.sql.zip.url}" />
+			<matches pattern="(file|https?)://" string="${test.sql.zip.url}" />
 			<then>
 				<mirrors-get
 					dest="sql/release-sql.zip"
@@ -12151,6 +12148,8 @@ send_user $expect_out(buffer)]]></echo>
 						}
 						catch (Exception exception) {
 							exception.printStackTrace();
+
+							throw exception;
 						}
 					]]>
 				</beanshell>
@@ -12458,6 +12457,7 @@ ${update.properties}</echo>
 		<Logger level="${dialect.detector.log.level}" name="com.liferay.portal.spring.hibernate.DialectDetector" />
 		<Logger level="ERROR" name="com.zaxxer.hikari.pool.PoolBase" />
 		<Logger level="ERROR" name="org.apache.http.client.protocol.ResponseProcessCookies" />
+		<Logger level="OFF" name="org.hibernate.engine.jdbc.spi.SqlExceptionHelper" />
 		${log4j.logggers.root}
 	</Loggers>
 </Configuration>]]></echo>
@@ -13120,37 +13120,6 @@ portal.proxy.path=/${portal.proxy.path}</echo>
 					token="web.server.http.port=8080"
 					value="web.server.http.port=88"
 				/>
-			</then>
-		</if>
-
-		<get-testcase-property property.name="rewrite.batch.statements" />
-
-		<if>
-			<equals arg1="${rewrite.batch.statements}" arg2="true" />
-			<then>
-				<if>
-					<equals arg1="${database.type}" arg2="postgresql" />
-					<then>
-						<replace
-							file="portal-impl/src/portal-ext.properties"
-							token="${database.url}"
-							value="${database.url}?reWriteBatchedInserts=true"
-						/>
-					</then>
-					<elseif>
-						<equals arg1="${database.type}" arg2="sqlserver" />
-						<then>
-							<replace
-								file="portal-impl/src/portal-ext.properties"
-								token="${database.url}"
-								value="${database.url};useBulkCopyForBatchInsert=true"
-							/>
-						</then>
-					</elseif>
-					<else>
-						<property name="database.url" value="${database.url}" />
-					</else>
-				</if>
 			</then>
 		</if>
 
@@ -15284,15 +15253,7 @@ cluster.link.bind.addr["cluster-link-udp"]=127.0.0.1</echo>
 			<try>
 				<retry retrycount="2">
 					<sequential>
-						<if>
-							<equals arg1="${skip.delete.liferay.home}" arg2="true" />
-							<then>
-								<rebuild-database skip.delete.liferay.home="true" />
-							</then>
-							<else>
-								<rebuild-database />
-							</else>
-						</if>
+						<rebuild-database skip.delete.liferay.home="true" />
 					</sequential>
 				</retry>
 			</try>
@@ -15332,6 +15293,8 @@ cluster.link.bind.addr["cluster-link-udp"]=127.0.0.1</echo>
 					dest="${liferay.home}"
 					src="${liferay.home}/data-archive-portal-partition-large.zip"
 				/>
+
+				<delete file="${liferay.home}/data-archive-portal-partition-large.zip" />
 			</then>
 			<else>
 				<unzip
@@ -15459,13 +15422,18 @@ cluster.link.bind.addr["cluster-link-udp"]=127.0.0.1</echo>
 							<equals arg1="${database.type}" arg2="mysql" />
 						</and>
 						<then>
+							<is-less-than arg1="${database.version}" arg2="8.0" property.name="mysql.upgrade" />
+
 							<echo file="${import.database.sh.file.path}">
 								<![CDATA[
 									#!/bin/bash
 
 									mysql --password=${database.password} --user=${database.username} < /tmp/${database.type}.sql
 
-									mysql_upgrade --force --password=${database.password} --user=${database.username}
+									if [[ ${mysql.upgrade} == "true" ]]
+									then
+										mysql_upgrade --force --password=${database.password} --user=${database.username}
+									fi
 								]]>
 							</echo>
 
@@ -15482,13 +15450,18 @@ cluster.link.bind.addr["cluster-link-udp"]=127.0.0.1</echo>
 								<param name="sql.file" value="create-bare-mysql.sql" />
 							</antcall>
 
+							<is-less-than arg1="${database.version}" arg2="8.0" property.name="mysql.upgrade" />
+
 							<echo file="${import.database.sh.file.path}">
 								<![CDATA[
 									#!/bin/bash
 
 									mysql --database=${database.schema} --password=${database.password} --user=${database.username} < /tmp/${database.type}.sql
 
-									mysql_upgrade --force --password=${database.password} --user=${database.username}
+									if [[ ${mysql.upgrade} == "true" ]]
+									then
+										mysql_upgrade --force --password=${database.password} --user=${database.username}
+									fi
 								]]>
 							</echo>
 
@@ -15688,7 +15661,14 @@ cluster.link.bind.addr["cluster-link-udp"]=127.0.0.1</echo>
 								</exec>
 							</retry>
 
-							<exec executable="mysql_upgrade" />
+							<is-less-than arg1="${database.version}" arg2="8.0" property.name="mysql.upgrade" />
+
+							<if>
+								<equals arg1="${mysql.upgrade}" arg2="true" />
+								<then>
+									<exec executable="mysql_upgrade" />
+								</then>
+							</if>
 
 							<get-testcase-property property.name="custom.mysql.sql.statement" />
 
@@ -17391,8 +17371,18 @@ CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.managemen
 			</then>
 		</if>
 
+		<if>
+			<not>
+				<isset property="skip.wait.server.startup" />
+			</not>
+			<then>
+				<var name="skip.wait.server.startup" value="false" />
+			</then>
+		</if>
+
 		<start-app-server
 			app.server.bundle.index="${app.server.bundle.index}"
+			skip.wait.server.startup="${skip.wait.server.startup}"
 			testable.portal.started.marker.file="${testable.portal.started.marker.file}"
 		/>
 	</target>

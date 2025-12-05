@@ -23,6 +23,10 @@ definition {
 			PortalInstances.tearDownCP();
 		}
 		else {
+			User.logoutAndLoginPG(
+				password = PropsUtil.get("default.admin.password"),
+				userEmailAddress = "test@liferay.com");
+
 			JSONDepot.deleteDepot(depotName = "Test Depot Name");
 
 			Site.tearDownCP();
@@ -125,7 +129,7 @@ definition {
 	@priority = 5
 	@refactordone
 	test CanAddSiteMemberWithPermissionsAfterConnectingSite {
-		property custom.properties = "jsonws.web.service.paths.excludes=";
+		property custom.properties = "feature.flag.LPD-17564=false${line.separator}jsonws.web.service.paths.excludes=";
 
 		HeadlessSite.addSite(siteName = "Site Name");
 
@@ -583,7 +587,7 @@ definition {
 	@priority = 4
 	@refactordone
 	test CanViewExistingSiteMemberAfterConnectingSite {
-		property custom.properties = "jsonws.web.service.paths.excludes=";
+		property custom.properties = "feature.flag.LPD-17564=false${line.separator}jsonws.web.service.paths.excludes=";
 
 		JSONUser.addUser(
 			userEmailAddress = "user1@liferay.com",

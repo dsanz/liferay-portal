@@ -1459,6 +1459,14 @@ public class JenkinsResultsParserUtil {
 				_buildPropertiesURLs = URLS_BUILD_PROPERTIES_DEFAULT;
 			}
 
+			Map<String, String> map = System.getenv();
+
+			for (Map.Entry<String, String> entry : map.entrySet()) {
+				properties.setProperty(entry.getKey(), entry.getValue());
+				properties.setProperty(
+					"env." + entry.getKey(), entry.getValue());
+			}
+
 			for (String url : _buildPropertiesURLs) {
 				if (url.startsWith("file://")) {
 					properties.putAll(new EnvironmentBuildProperties(url));
@@ -1468,6 +1476,13 @@ public class JenkinsResultsParserUtil {
 
 				properties.putAll(
 					new EnvironmentBuildProperties(getLocalURL(url)));
+			}
+
+			String s3BucketName = System.getenv("S3_BUCKET_NAME");
+
+			if (!isNullOrEmpty(s3BucketName)) {
+				properties.setProperty(
+					"env.S3_BUCKET_NAME", System.getenv("S3_BUCKET_NAME"));
 			}
 
 			if (!properties.containsKey("user.home")) {
@@ -4556,6 +4571,13 @@ public class JenkinsResultsParserUtil {
 						sb.append(dockerImageVersion);
 					}
 
+					String ecrDockerImageName = dockerImageNameMatcher.group(
+						"ecrDockerImageName");
+
+					if (!isNullOrEmpty(ecrDockerImageName)) {
+						dockerImageName = ecrDockerImageName;
+					}
+
 					process = executeBashCommands(
 						"docker pull " + sb,
 						"docker tag " + sb + " " + dockerImageName);
@@ -5149,6 +5171,9 @@ public class JenkinsResultsParserUtil {
 
 					if (isCINode()) {
 						url = getLocalURL(url);
+					}
+					else {
+						url = getRemoteURL(url);
 					}
 
 					httpAuthorization = _getJenkinsHTTPAuthorization();
@@ -7243,8 +7268,9 @@ public class JenkinsResultsParserUtil {
 	private static final Pattern _dockerFilePattern = Pattern.compile(
 		".*FROM (?<dockerImageName>[^\\s]+)( AS builder)?\\n[\\s\\S]*");
 	private static final Pattern _dockerImageNamePattern = Pattern.compile(
-		"((?<repository>[^/\\s]+)/)?(?<name>[^/:\\s]+)" +
-			"(:(?<version>[^:\\s]+))?");
+		"(?<ecrDockerImageName>((?<repository>[^/\\s]+)/)?" +
+			"(?<name>[^/:\\s]+)(:(?<version>[^@:\\s]+))?)" +
+				"(@sha256:[^\\s]+)?");
 	private static final List<String> _forbiddenRedactTokens = Arrays.asList(
 		"admin", "liferay", "test");
 	private static JSONArray _gitDirectoriesJSONArray;

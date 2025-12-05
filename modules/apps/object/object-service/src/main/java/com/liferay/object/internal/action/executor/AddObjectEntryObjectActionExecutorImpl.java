@@ -65,7 +65,8 @@ public class AddObjectEntryObjectActionExecutorImpl
 					parametersUnicodeProperties.get("objectDefinitionId")));
 
 		Map<String, Object> values = ObjectEntryVariablesUtil.getValues(
-			_ddmExpressionFactory, parametersUnicodeProperties,
+			_ddmExpressionFactory, targetObjectDefinition,
+			parametersUnicodeProperties,
 			ObjectEntryVariablesUtil.getVariables(
 				_dtoConverterRegistry, sourceObjectDefinition,
 				payloadJSONObject, _systemObjectDefinitionManagerRegistry));
@@ -131,11 +132,13 @@ public class AddObjectEntryObjectActionExecutorImpl
 					getSystemObjectDefinitionManager(
 						objectDefinition.getName());
 
-			return systemObjectDefinitionManager.addBaseModel(user, values);
+			return systemObjectDefinitionManager.addBaseModel(
+				false, user, values);
 		}
 
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
+				objectDefinition.getCompanyId(),
 				objectDefinition.getStorageType());
 
 		ObjectEntry objectEntry = objectEntryManager.addObjectEntry(

@@ -13,7 +13,12 @@ import getPageDefinition from '../../../layout-content-page-editor-web/main/util
 import getWidgetDefinition from '../../../layout-content-page-editor-web/main/utils/getWidgetDefinition';
 
 export class FDSSamplePage {
-	readonly activeFiltersToolbar: Locator;
+	readonly activeFiltersToolbar: {
+		clearButton: Locator;
+		clearSearchButton: Locator;
+		container: Locator;
+		searchResume: Locator;
+	};
 	private readonly apiHelpers: ApiHelpers;
 	readonly bulkActions: {
 		actionsDropdownButton: Locator;
@@ -48,7 +53,6 @@ export class FDSSamplePage {
 	readonly paginator: {
 		itemsPerPageSelector: Locator;
 	};
-	readonly showViewOptionsButton: Locator;
 	readonly sidePanel: Locator;
 	readonly sidePanelFrame: FrameLocator;
 	readonly selectAllCheckbox: Locator;
@@ -69,7 +73,22 @@ export class FDSSamplePage {
 	readonly visualizationModeSelector: Locator;
 
 	constructor(page: Page) {
-		this.activeFiltersToolbar = page.getByTestId('activeFiltersToolbar');
+		const activeFiltersToolbarContainer: Locator = page.getByTestId(
+			'activeFiltersToolbar'
+		);
+
+		const searchResume =
+			activeFiltersToolbarContainer.locator('.search-resume');
+		this.activeFiltersToolbar = {
+			clearButton: activeFiltersToolbarContainer.getByRole('button', {
+				name: 'Clear',
+			}),
+			clearSearchButton: searchResume.getByRole('button', {
+				name: 'Clear Search',
+			}),
+			container: activeFiltersToolbarContainer,
+			searchResume,
+		};
 		this.apiHelpers = new ApiHelpers(page);
 		this.bulkActions = {
 			actionsDropdownButton: page
@@ -153,9 +172,6 @@ export class FDSSamplePage {
 			container: selectionToolbarContainer,
 		};
 
-		this.showViewOptionsButton = page.getByLabel('Show View Options', {
-			exact: true,
-		});
 		this.sidePanel = page.locator('.fds-side-panel');
 		this.sidePanelFrame = this.sidePanel.frameLocator('iframe');
 		this.tablist = page.getByRole('tablist');
@@ -180,9 +196,11 @@ export class FDSSamplePage {
 			),
 		};
 
-		this.toggleInfoPanelButton = page.getByLabel('Toggle Info Panel');
+		this.toggleInfoPanelButton = page
+			.getByLabel('Show Info Panel')
+			.or(page.getByLabel('Hide Info Panel'));
 
-		this.visualizationModeSelector = page.getByLabel('Show View Options');
+		this.visualizationModeSelector = page.getByLabel(/View Selected/);
 	}
 
 	async changeItemsPerPage({delta}: {delta: string}) {
@@ -222,7 +240,9 @@ export class FDSSamplePage {
 		const menuItems = dropdownMenu.getByRole('menuitem');
 
 		for (const menuItem of await menuItems.all()) {
-			await expect.soft(menuItem.locator('.lexicon-icon')).toBeVisible();
+			await expect
+				.soft(menuItem.locator('.lexicon-icon').first())
+				.toBeVisible();
 		}
 
 		await this.page.keyboard.press('Escape');

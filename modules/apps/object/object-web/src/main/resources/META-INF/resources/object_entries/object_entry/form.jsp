@@ -43,31 +43,7 @@ if (ParamUtil.getBoolean(request, "showHeader", true)) {
 				</clay:col>
 			</clay:row>
 
-			<c:if test='<%= FeatureFlagManagerUtil.isEnabled("LPD-21926") && objectDefinition.isEnableFriendlyURLCustomization() && defaultObjectLayout %>'>
-				<clay:panel-group>
-					<clay:panel
-						collapsable="<%= true %>"
-						displayTitle='<%= LanguageUtil.get(request, "seo") %>'
-						displayType="default"
-						expanded="<%= true %>"
-					>
-						<div class="panel-body">
-							<div class="ddm-row">
-								<div class="ddm-field-container">
-									<liferay-friendly-url:input
-										className="<%= objectDefinition.getClassName() %>"
-										classPK="<%= (objectEntry == null) ? 0 : objectEntry.getObjectEntryId() %>"
-										disabled="<%= objectEntryDisplayContext.isReadOnly() %>"
-										helpMessage='<%= LanguageUtil.get(request, "the-friendly-url-is-automatically-generated-based-on-the-entry-title-field") %>'
-										inputAddon="<%= objectEntryDisplayContext.getURLSeparator() %>"
-										name="friendlyURL"
-									/>
-								</div>
-							</div>
-						</div>
-					</clay:panel>
-				</clay:panel-group>
-			</c:if>
+			<%@ include file="/object_entries/object_entry/categorization.jspf" %>
 
 			<c:if test="<%= objectDefinition.isEnableObjectEntrySchedule() && defaultObjectLayout %>">
 				<div>
@@ -85,9 +61,39 @@ if (ParamUtil.getBoolean(request, "showHeader", true)) {
 					/>
 				</div>
 			</c:if>
-		</clay:sheet-section>
 
-		<%@ include file="/object_entries/object_entry/categorization.jspf" %>
+			<%
+			ObjectLayoutBox seoObjectLayoutBox = objectEntryDisplayContext.getObjectLayoutBox(ObjectLayoutBoxConstants.TYPE_SEO);
+			%>
+
+			<c:if test="<%= objectDefinition.isEnableFriendlyURLCustomization() && ((seoObjectLayoutBox != null) || defaultObjectLayout) %>">
+				<div class="mt-4">
+					<clay:panel-group>
+						<clay:panel
+							collapsable="<%= (seoObjectLayoutBox == null) ? true : seoObjectLayoutBox.isCollapsable() %>"
+							displayTitle='<%= LanguageUtil.get(request, "seo") %>'
+							displayType="default"
+							expanded="<%= true %>"
+						>
+							<div class="panel-body">
+								<div class="ddm-row">
+									<div class="ddm-field-container">
+										<liferay-friendly-url:input
+											className="<%= objectDefinition.getClassName() %>"
+											classPK="<%= (objectEntry == null) ? 0 : objectEntry.getObjectEntryId() %>"
+											disabled="<%= objectEntryDisplayContext.isReadOnly() %>"
+											helpMessage='<%= LanguageUtil.get(request, "the-friendly-url-is-automatically-generated-based-on-the-entry-title-field") %>'
+											inputAddon="<%= objectEntryDisplayContext.getURLSeparator() %>"
+											name="friendlyURL"
+										/>
+									</div>
+								</div>
+							</div>
+						</clay:panel>
+					</clay:panel-group>
+				</div>
+			</c:if>
+		</clay:sheet-section>
 	</liferay-frontend:edit-form-body>
 
 	<c:if test="<%= !objectEntryDisplayContext.isReadOnly() %>">
@@ -211,7 +217,9 @@ if (ParamUtil.getBoolean(request, "showHeader", true)) {
 			current
 				.validate()
 				.then((result) => {
-					if (result) {
+					const validForm = result[1];
+
+					if (validForm) {
 						const fields = current.getFields();
 						let shouldSubmitForm = true;
 

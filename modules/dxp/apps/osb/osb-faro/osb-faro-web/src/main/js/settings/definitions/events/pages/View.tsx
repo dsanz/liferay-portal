@@ -1,4 +1,4 @@
-import BasePage from 'settings/components/BasePage';
+import BasePage from 'settings/components/base-page/BasePage';
 import EVENT_DEFINITION_QUERY, {
 	EventDefinitionData,
 	EventDefinitionVariables,
@@ -60,7 +60,6 @@ const View: React.FC<IViewProps> = ({close, eventId, groupId, open}) => {
 						getEvents({groupId}),
 						{active: true, label: displayName || name}
 					]}
-					groupId={groupId}
 					pageActions={viewEventPageActions}
 					pageDescription={
 						description || Liferay.Language.get('no-description')

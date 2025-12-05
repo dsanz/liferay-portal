@@ -4,12 +4,12 @@
  */
 
 import ClayAlert from '@clayui/alert';
-import {ClayButtonWithIcon} from '@clayui/button';
 import ClayForm, {ClayInput} from '@clayui/form';
 import {useMemo, useState} from 'react';
 import {useOutletContext} from 'react-router-dom';
 import useSWR from 'swr';
 
+import ButtonWithIcon from '../../../../../../components/ButtonWithIcon';
 import ExternalLink from '../../../../../../components/ExternalLink';
 import {MarketplaceCategories} from '../../../../../../enums/Categories';
 import {LearnLinks} from '../../../../../../enums/Learn';
@@ -167,7 +167,7 @@ const Download = () => {
 
 					<ClayInput.GroupItem prepend shrink>
 						<ClayInput.GroupText className="bg-white border-0">
-							<ClayButtonWithIcon
+							<ButtonWithIcon
 								aria-label="Search"
 								className="border-0"
 								displayType="unstyled"

@@ -8,6 +8,7 @@ package com.liferay.headless.admin.site.internal.resource.v1_0;
 import com.liferay.client.extension.type.manager.CETManager;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.vulcan.batch.engine.ExportImportVulcanBatchEngineTaskItemDelegate;
+import com.liferay.fragment.processor.FragmentEntryProcessorRegistry;
 import com.liferay.headless.admin.site.dto.v1_0.ContentPageSpecification;
 import com.liferay.headless.admin.site.dto.v1_0.PageSpecification;
 import com.liferay.headless.admin.site.dto.v1_0.UtilityPage;
@@ -95,13 +96,13 @@ public class UtilityPageResourceImpl
 		return new ExportImportDescriptor() {
 
 			@Override
-			public String getItemClassName() {
-				return LayoutUtilityPageEntry.class.getName();
+			public String getLabelLanguageKey() {
+				return "utility-pages";
 			}
 
 			@Override
-			public String getLabel() {
-				return "utility-pages";
+			public String getModelClassName() {
+				return LayoutUtilityPageEntry.class.getName();
 			}
 
 			@Override
@@ -112,6 +113,11 @@ public class UtilityPageResourceImpl
 			@Override
 			public String getPortletId() {
 				return LayoutAdminPortletKeys.GROUP_PAGES;
+			}
+
+			@Override
+			public String getResourceClassName() {
+				return UtilityPageResourceImpl.class.getName();
 			}
 
 			@Override
@@ -148,7 +154,8 @@ public class UtilityPageResourceImpl
 
 		return (ContentPageSpecification)_pageSpecificationDTOConverter.toDTO(
 			LayoutUtil.addDraftToLayout(
-				_cetManager, contentPageSpecification, _infoItemServiceRegistry,
+				_cetManager, contentPageSpecification,
+				_fragmentEntryProcessorRegistry, _infoItemServiceRegistry,
 				_layoutLocalService.getLayout(layoutUtilityPageEntry.getPlid()),
 				ServiceContextUtil.createServiceContext(
 					layoutUtilityPageEntry.getGroupId(),
@@ -268,9 +275,9 @@ public class UtilityPageResourceImpl
 		}
 
 		LayoutUtil.updateContentLayout(
-			_cetManager, _infoItemServiceRegistry, layout, layout.getNameMap(),
-			titleMap, descriptionMap, layout.getKeywordsMap(),
-			layout.getRobotsMap(),
+			_cetManager, _fragmentEntryProcessorRegistry,
+			_infoItemServiceRegistry, layout, layout.getNameMap(), titleMap,
+			descriptionMap, layout.getKeywordsMap(), layout.getRobotsMap(),
 			LocalizedMapUtil.getLocalizedMap(
 				utilityPage.getFriendlyUrlPath_i18n()),
 			layout.getTypeSettingsProperties(),
@@ -366,7 +373,7 @@ public class UtilityPageResourceImpl
 				FileEntryUtil.getPreviewFileEntryId(
 					groupId, utilityPage.getThumbnail()),
 				utilityPage.getMarkedAsDefault(), utilityPage.getName(),
-				_getType(utilityPage.getType()), 0L, serviceContext));
+				_getType(utilityPage.getType()), null, serviceContext));
 	}
 
 	private long _getLayoutPlid(
@@ -402,8 +409,8 @@ public class UtilityPageResourceImpl
 			"layout.instanceable.allowed", Boolean.TRUE);
 
 		Layout layout = LayoutUtil.addContentLayout(
-			_cetManager, groupId, _infoItemServiceRegistry,
-			utilityPage.getPageSpecifications(),
+			_cetManager, _fragmentEntryProcessorRegistry, groupId,
+			_infoItemServiceRegistry, utilityPage.getPageSpecifications(),
 			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, false, nameMap, titleMap,
 			descriptionMap, null, null, LayoutConstants.TYPE_UTILITY, null,
 			true, true,
@@ -478,6 +485,9 @@ public class UtilityPageResourceImpl
 
 	@Reference
 	private CETManager _cetManager;
+
+	@Reference
+	private FragmentEntryProcessorRegistry _fragmentEntryProcessorRegistry;
 
 	@Reference
 	private InfoItemServiceRegistry _infoItemServiceRegistry;

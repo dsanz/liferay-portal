@@ -1,4 +1,4 @@
-import BasePage from 'settings/components/BasePage';
+import BasePage from 'settings/components/base-page/BasePage';
 import React from 'react';
 import TabsCard from '../components/TabsCard';
 import {getDefinitions} from 'shared/util/breadcrumbs';
@@ -13,7 +13,6 @@ const Events: React.FC<IEventsProps> = ({groupId}) => (
 			getDefinitions({groupId}),
 			{active: true, label: Liferay.Language.get('events')}
 		]}
-		groupId={groupId}
 		pageDescription={Liferay.Language.get(
 			'this-is-the-data-model-of-events-sent-to-analytics-cloud'
 		)}

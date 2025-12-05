@@ -341,10 +341,10 @@ public abstract class BaseDisplayPageTemplateResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(siteExternalReferenceCode);
-		String resourceName = getPermissionCheckerResourceName(
+		Long resourceId = getPermissionCheckerResourceId(
 			siteExternalReferenceCode,
 			displayPageTemplateExternalReferenceCode);
-		Long resourceId = getPermissionCheckerResourceId(
+		String resourceName = getPermissionCheckerResourceName(
 			siteExternalReferenceCode,
 			displayPageTemplateExternalReferenceCode);
 
@@ -1093,10 +1093,10 @@ public abstract class BaseDisplayPageTemplateResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(siteExternalReferenceCode);
-		String resourceName = getPermissionCheckerResourceName(
+		Long resourceId = getPermissionCheckerResourceId(
 			siteExternalReferenceCode,
 			displayPageTemplateExternalReferenceCode);
-		Long resourceId = getPermissionCheckerResourceId(
+		String resourceName = getPermissionCheckerResourceName(
 			siteExternalReferenceCode,
 			displayPageTemplateExternalReferenceCode);
 
@@ -1505,6 +1505,9 @@ public abstract class BaseDisplayPageTemplateResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

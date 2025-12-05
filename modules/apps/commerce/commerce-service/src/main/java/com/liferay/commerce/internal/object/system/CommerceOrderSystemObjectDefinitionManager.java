@@ -53,10 +53,12 @@ public class CommerceOrderSystemObjectDefinitionManager
 	extends BaseSystemObjectDefinitionManager {
 
 	@Override
-	public long addBaseModel(User user, Map<String, Object> values)
+	public long addBaseModel(
+			boolean checkPermissions, User user, Map<String, Object> values)
 		throws Exception {
 
-		OrderResource orderResource = _buildOrderResource(false, user);
+		OrderResource orderResource = _buildOrderResource(
+			checkPermissions, user);
 
 		Order order = orderResource.postOrder(_toOrder(values));
 
@@ -209,6 +211,14 @@ public class CommerceOrderSystemObjectDefinitionManager
 			).system(
 				true
 			).build(),
+			new TextObjectFieldBuilder(
+			).labelMap(
+				createLabelMap("payment-method-key")
+			).name(
+				"paymentMethodKey"
+			).system(
+				true
+			).build(),
 			new PrecisionDecimalObjectFieldBuilder(
 			).labelMap(
 				createLabelMap("shipping-amount")
@@ -293,7 +303,7 @@ public class CommerceOrderSystemObjectDefinitionManager
 
 	@Override
 	public int getVersion() {
-		return 5;
+		return 6;
 	}
 
 	@Override
@@ -346,6 +356,8 @@ public class CommerceOrderSystemObjectDefinitionManager
 						values.get("orderTypeExternalReferenceCode")));
 				setOrderTypeId(
 					() -> GetterUtil.getLong(values.get("orderTypeId")));
+				setPaymentMethod(
+					() -> GetterUtil.getString(values.get("paymentMethodKey")));
 				setPaymentStatus(
 					() -> GetterUtil.getInteger(values.get("paymentStatus")));
 				setShippingAmount(

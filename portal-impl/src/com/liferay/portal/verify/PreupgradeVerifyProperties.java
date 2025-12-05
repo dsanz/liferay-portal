@@ -1707,6 +1707,8 @@ public class PreupgradeVerifyProperties extends PreupgradeVerifyProcess {
 		"cluster.executor.heartbeat.interval",
 		"cluster.link.node.bootup.response.timeout",
 		"com.liferay.filters.doubleclick.DoubleClickFilter",
+		"com.liferay.portal.servlet.filters.absoluteredirects." +
+			"AbsoluteRedirectsFilter",
 		"com.liferay.portal.servlet.filters.audit.AuditFilter",
 		"com.liferay.portal.servlet.filters.doubleclick.DoubleClickFilter",
 		"com.liferay.portal.servlet.filters.charbufferpool." +
@@ -2198,6 +2200,7 @@ public class PreupgradeVerifyProperties extends PreupgradeVerifyProcess {
 			"journal.template.velocity.restricted.variables",
 			"velocity.engine.restricted.variables"
 		},
+		{"mail.mx.update", "company.mx.update"},
 		{
 			"module.framework.properties.dependency.manager.sync.timeout",
 			"dependency.manager.sync.timeout"

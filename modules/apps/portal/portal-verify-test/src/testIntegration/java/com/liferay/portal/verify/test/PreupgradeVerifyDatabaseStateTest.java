@@ -8,13 +8,14 @@ package com.liferay.portal.verify.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.db.DBResourceUtil;
+import com.liferay.portal.db.partition.util.DBPartitionUtil;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.db.DBType;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
-import com.liferay.portal.kernel.db.partition.DBPartition;
 import com.liferay.portal.kernel.instance.PortalInstancePool;
 import com.liferay.portal.kernel.model.ServiceComponent;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
@@ -22,7 +23,12 @@ import com.liferay.portal.kernel.service.ServiceComponentLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.PropsValues;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.version.Version;
+import com.liferay.portal.test.log.LogCapture;
+import com.liferay.portal.test.log.LogEntry;
+import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.upgrade.PortalUpgradeProcess;
@@ -31,8 +37,8 @@ import com.liferay.portal.verify.VerifyProcess;
 import com.liferay.portal.verify.test.util.BaseVerifyProcessTestCase;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -67,7 +73,7 @@ public class PreupgradeVerifyDatabaseStateTest
 				connection, _TEST_SCHEMA_VERSION);
 		}
 
-		if (DBPartition.isPartitionEnabled()) {
+		if (PropsValues.DATABASE_PARTITION_ENABLED) {
 			_safeCloseable = CompanyThreadLocal.setCompanyIdWithSafeCloseable(
 				PortalInstancePool.getDefaultCompanyId());
 		}
@@ -87,14 +93,73 @@ public class PreupgradeVerifyDatabaseStateTest
 	}
 
 	@Test
-	public void testVerifyPreupgradeMissingTable() throws SQLException {
+	public void testVerifyPreupgradeIsCaseInsensitive() throws Exception {
 		ServiceComponent serviceComponent =
 			_serviceComponentLocalService.createServiceComponent(
 				RandomTestUtil.nextLong());
 
-		DBInspector dbInspector = new DBInspector(DataAccess.getConnection());
+		String tableName = "TestTable";
 
-		String tableName = dbInspector.normalizeName("TestTable");
+		serviceComponent.setMvccVersion(0);
+		serviceComponent.setBuildNamespace("com.liferay.test.service.impl");
+		serviceComponent.setData(
+			StringBundler.concat(
+				"<![CDATA[create table ", StringUtil.toUpperCase(tableName),
+				" ("));
+
+		_serviceComponentLocalService.addServiceComponent(serviceComponent);
+
+		DB db = DBManagerUtil.getDB();
+
+		String lowerCaseTestTable = StringUtil.toLowerCase("testtable");
+
+		try {
+			DBPartitionUtil.forEachCompanyId(
+				companyId -> db.runSQL(
+					"create table " + lowerCaseTestTable + "(id LONG)"));
+
+			testVerify();
+		}
+		finally {
+			_serviceComponentLocalService.deleteServiceComponent(
+				serviceComponent);
+
+			DBPartitionUtil.forEachCompanyId(
+				companyId -> db.runSQL(
+					"DROP_TABLE_IF_EXISTS(" + lowerCaseTestTable + ")"));
+		}
+	}
+
+	@Test
+	public void testVerifyPreupgradeMissingColumnName() throws Exception {
+		_alterColumnName("UserTracker", "companyId", "companyId_backup LONG");
+
+		try {
+			testVerify();
+
+			Assert.fail();
+		}
+		catch (Exception exception) {
+			Assert.assertEquals(
+				StringBundler.concat(
+					"Column ", _getNormalizedName("companyId"),
+					" is missing for ", _getNormalizedName("UserTracker"),
+					_getPartitionSuffix(), StringPool.NEW_LINE),
+				exception.getMessage());
+		}
+		finally {
+			_alterColumnName(
+				"UserTracker", "companyId_backup", "companyId LONG");
+		}
+	}
+
+	@Test
+	public void testVerifyPreupgradeMissingTable() throws Exception {
+		ServiceComponent serviceComponent =
+			_serviceComponentLocalService.createServiceComponent(
+				RandomTestUtil.nextLong());
+
+		String tableName = _getNormalizedName("TestTable");
 
 		serviceComponent.setMvccVersion(0);
 		serviceComponent.setBuildNamespace("com.liferay.test.service.impl");
@@ -121,7 +186,7 @@ public class PreupgradeVerifyDatabaseStateTest
 
 	@Test
 	public void testVerifyPreupgradeMissingView() throws Exception {
-		Assume.assumeTrue(DBPartition.isPartitionEnabled());
+		Assume.assumeTrue(PropsValues.DATABASE_PARTITION_ENABLED);
 
 		_renameView("Release_", "Release_backup");
 
@@ -131,10 +196,7 @@ public class PreupgradeVerifyDatabaseStateTest
 			Assert.fail();
 		}
 		catch (Exception exception) {
-			DBInspector dbInspector = new DBInspector(
-				DataAccess.getConnection());
-
-			String viewName = dbInspector.normalizeName("Release_");
+			String viewName = _getNormalizedName("Release_");
 
 			Assert.assertEquals(
 				StringBundler.concat(
@@ -148,9 +210,7 @@ public class PreupgradeVerifyDatabaseStateTest
 	}
 
 	@Test
-	public void testVerifyPreupgradePartiallyUpgradedTable()
-		throws SQLException {
-
+	public void testVerifyPreupgradePartiallyUpgradedTable() throws Exception {
 		ServiceComponent serviceComponent = _getServiceComponent();
 
 		String originalData = serviceComponent.getData();
@@ -167,16 +227,17 @@ public class PreupgradeVerifyDatabaseStateTest
 			Assert.fail();
 		}
 		catch (Exception exception) {
-			DBInspector dbInspector = new DBInspector(
-				DataAccess.getConnection());
+			try (Connection connection = DataAccess.getConnection()) {
+				DBInspector dbInspector = new DBInspector(connection);
 
-			Set<String> tableNames = DBResourceUtil.parseCreateTableSQL(
-				dbInspector, originalData);
+				Set<String> tableNames = DBResourceUtil.parseCreateTableSQL(
+					dbInspector, originalData);
 
-			Assert.assertEquals(
-				"Stale tables from a previous upgrade detected: " +
-					new TreeSet<>(tableNames),
-				exception.getMessage());
+				Assert.assertEquals(
+					"Stale tables from a previous upgrade detected: " +
+						new TreeSet<>(tableNames),
+					exception.getMessage());
+			}
 		}
 		finally {
 			serviceComponent.setData(originalData);
@@ -186,9 +247,81 @@ public class PreupgradeVerifyDatabaseStateTest
 		}
 	}
 
+	@Test
+	public void testVerifyPreupgradeWrongColumnType() throws Exception {
+		_alterColumnType("Address", "city", "VARCHAR(100)");
+
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				PreupgradeVerifyDatabaseState.class.getName(),
+				LoggerTestUtil.WARN)) {
+
+			testVerify();
+
+			List<LogEntry> logEntries = logCapture.getLogEntries();
+
+			Assert.assertEquals(logEntries.toString(), 1, logEntries.size());
+
+			LogEntry logEntry = logEntries.get(0);
+
+			Assert.assertEquals(
+				logEntry.getMessage(),
+				StringBundler.concat(
+					"Column ", _getNormalizedName("city"),
+					" is not defined as VARCHAR(75) null for ",
+					_getNormalizedName("Address"), _getPartitionSuffix()));
+		}
+		finally {
+			_alterColumnType("Address", "city", "VARCHAR(75)");
+		}
+	}
+
 	@Override
 	protected VerifyProcess getVerifyProcess() {
 		return new PreupgradeVerifyDatabaseState();
+	}
+
+	private void _alterColumnName(
+			String tableName, String oldColumnName, String newColumnDefinition)
+		throws Exception {
+
+		DB db = DBManagerUtil.getDB();
+
+		try (Connection connection = DataAccess.getConnection()) {
+			db.alterColumnName(
+				connection, tableName, oldColumnName, newColumnDefinition);
+		}
+	}
+
+	private void _alterColumnType(
+			String tableName, String columnName, String columnType)
+		throws Exception {
+
+		DB db = DBManagerUtil.getDB();
+
+		try (Connection connection = DataAccess.getConnection()) {
+			db.alterColumnType(connection, tableName, columnName, columnType);
+		}
+	}
+
+	private String _getNormalizedName(String tableName) throws Exception {
+		try (Connection connection = DataAccess.getConnection()) {
+			DBInspector dbInspector = new DBInspector(connection);
+
+			return dbInspector.normalizeName(tableName);
+		}
+	}
+
+	private String _getPartitionSuffix() {
+		String partitionSuffix = StringPool.BLANK;
+
+		if (PropsValues.DATABASE_PARTITION_ENABLED) {
+			String partitionName = DBPartitionUtil.getPartitionName(
+				CompanyThreadLocal.getNonsystemCompanyId());
+
+			partitionSuffix = " in " + partitionName;
+		}
+
+		return partitionSuffix;
 	}
 
 	private ServiceComponent _getServiceComponent() {

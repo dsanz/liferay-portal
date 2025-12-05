@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.cluster.Clusterable;
 import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.configuration.ConfigurationFactoryUtil;
-import com.liferay.portal.kernel.db.partition.DBPartition;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.PortletIdException;
 import com.liferay.portal.kernel.exception.SystemException;
@@ -135,7 +134,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.osgi.framework.BundleContext;
@@ -925,18 +923,6 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 		_portletApps.clear();
 		_portletsMap.clear();
 
-		if (_textReplacerBiFunction != null) {
-			for (int i = 0; i < xmls.length; i++) {
-				if (xmls[i] == null) {
-					continue;
-				}
-
-				xmls[i] = _textReplacerBiFunction.apply(
-					PortletLocalServiceImpl.class.getName() + "#initEAR#" + i,
-					xmls[i]);
-			}
-		}
-
 		try {
 			PortletApp portletApp = getPortletApp(StringPool.BLANK);
 
@@ -1044,18 +1030,6 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 		Set<String> liferayPortletIds = null;
 
 		PortletApp portletApp = getPortletApp(servletContextName);
-
-		if (_textReplacerBiFunction != null) {
-			for (int i = 0; i < xmls.length; i++) {
-				if (xmls[i] == null) {
-					continue;
-				}
-
-				xmls[i] = _textReplacerBiFunction.apply(
-					PortletLocalServiceImpl.class.getName() + "#initWAR#" + i,
-					xmls[i]);
-			}
-		}
 
 		try {
 			Set<String> servletURLPatterns = readWebXML(xmls[3]);
@@ -3002,32 +2976,6 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 		new ShardedPortletsMap();
 	private static final Map<Long, Map<String, Portlet>> _portletsMaps =
 		new ConcurrentHashMap<>();
-	private static final BiFunction<String, String, String>
-		_textReplacerBiFunction;
-
-	static {
-		ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-
-		Object instance = null;
-
-		try {
-			Class<?> clazz = classLoader.loadClass(
-				"com.liferay.portal.tools.jakarta.ee.transformer.function." +
-					"TextReplacerBiFunction");
-
-			instance = clazz.newInstance();
-		}
-		catch (ReflectiveOperationException reflectiveOperationException) {
-			if (!(reflectiveOperationException instanceof
-					ClassNotFoundException)) {
-
-				throw new ExceptionInInitializerError(
-					reflectiveOperationException);
-			}
-		}
-
-		_textReplacerBiFunction = (BiFunction<String, String, String>)instance;
-	}
 
 	private final Map<Long, Set<String>> _companyDefaultModelResources =
 		new ConcurrentHashMap<>();
@@ -3066,7 +3014,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 		public Portlet get(Object key) {
 			Portlet portlet = super.get(key);
 
-			if (!DBPartition.isPartitionEnabled() ||
+			if (!PropsValues.DATABASE_PARTITION_ENABLED ||
 				((portlet != null) &&
 				 (portlet.getCompanyId() == CompanyConstants.SYSTEM))) {
 
@@ -3088,7 +3036,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 
 		@Override
 		public Portlet remove(Object key) {
-			if (DBPartition.isPartitionEnabled()) {
+			if (PropsValues.DATABASE_PARTITION_ENABLED) {
 				Portlet portlet = super.remove(
 					DBPartitionUtil.getPartitionKey(key));
 

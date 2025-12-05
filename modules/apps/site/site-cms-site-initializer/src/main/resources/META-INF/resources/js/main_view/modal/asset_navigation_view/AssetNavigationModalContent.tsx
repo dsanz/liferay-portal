@@ -8,6 +8,7 @@ import ClayModal from '@clayui/modal';
 import {addParams, sub} from 'frontend-js-web';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
+import {SharingPermission} from '../../../common/types/SharingPermission';
 import CommentsPanel from '../../../content_editor/components/panels/CommentsPanel';
 import AssetTypeInfoPanel from '../../info_panel/AssetTypeInfoPanelContent';
 import Carousel from './Carousel';
@@ -73,7 +74,9 @@ export default function AssetNavigationModalContent({
 }: AssetNavigationModalContentProps) {
 	const [currentItemIndex, setCurrentItemIndex] = useState(currentIndex);
 	const [openSidePanel, setOpenSidePanel] = useState(false);
-	const [currentPanel, setCurrentPanel] = useState<String>();
+	const [currentPanel, setCurrentPanel] = useState<
+		keyof typeof PANELS | null
+	>(null);
 	const containerRef = useRef(null);
 	const currentItem = items[currentItemIndex];
 
@@ -122,7 +125,7 @@ export default function AssetNavigationModalContent({
 			return;
 		}
 
-		setCurrentPanel(PANELS.commentPanel);
+		setCurrentPanel(PANELS.commentPanel as keyof typeof PANELS);
 		setOpenSidePanel(true);
 	};
 
@@ -133,7 +136,7 @@ export default function AssetNavigationModalContent({
 			return;
 		}
 
-		setCurrentPanel(PANELS.infoPanel);
+		setCurrentPanel(PANELS.infoPanel as keyof typeof PANELS);
 		setOpenSidePanel(true);
 	};
 
@@ -148,13 +151,22 @@ export default function AssetNavigationModalContent({
 		};
 	}, [handleOnKeyDown]);
 
+	const activePanel = openSidePanel ? currentPanel : null;
+
+	const showCommentsPanel =
+		currentItem.actionIds?.includes(SharingPermission.Comment) ?? true;
+
 	return (
 		<>
-			<ClayModal.Header>
+			<ClayModal.Header
+				closeButtonAriaLabel={Liferay.Language.get('close')}
+			>
 				<Header
+					activePanel={activePanel}
 					handleClickComments={handleClickComments}
 					handleClickInfo={handleClickInfo}
 					item={currentItem}
+					showCommentsPanel={showCommentsPanel}
 					showInfoPanel={showInfoPanel}
 				/>
 			</ClayModal.Header>
@@ -177,7 +189,8 @@ export default function AssetNavigationModalContent({
 						onOpenChange={setOpenSidePanel}
 						open={openSidePanel}
 					>
-						{currentPanel === PANELS.commentPanel ? (
+						{currentPanel === PANELS.commentPanel &&
+						showCommentsPanel ? (
 							<AssetNavigationCommentsPanel
 								additionalProps={additionalProps as any}
 								item={currentItem}
@@ -206,3 +219,5 @@ export default function AssetNavigationModalContent({
 		</>
 	);
 }
+
+export {PANELS};

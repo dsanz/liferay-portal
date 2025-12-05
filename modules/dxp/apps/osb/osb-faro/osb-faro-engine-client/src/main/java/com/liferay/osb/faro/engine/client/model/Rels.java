@@ -52,6 +52,8 @@ public interface Rels {
 
 	public static final String CHANNEL_CLEAR = "channel-clear";
 
+	public static final String CHANNEL_DATA_SOURCES = "channel-data-sources";
+
 	public static final String CHANNELS = "channels";
 
 	public static final String CSV_INDIVIDUALS = "csv-individuals";
@@ -200,6 +202,12 @@ public interface Rels {
 
 	public static final String REPORTS_EXPORT_CSV_COUNT =
 		"reports-export-csv-count";
+
+	public static final String SALESFORCE_ENTITIES_ACCOUNTS_COUNT =
+		"salesforce-entities-accounts-count";
+
+	public static final String SALESFORCE_ENTITIES_USERS_COUNT =
+		"salesforce-entities-users-count";
 
 	public static final String SESSION_VALUES = "session-values";
 

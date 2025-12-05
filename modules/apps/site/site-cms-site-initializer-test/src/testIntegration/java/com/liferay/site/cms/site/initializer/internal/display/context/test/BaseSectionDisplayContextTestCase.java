@@ -55,6 +55,8 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.PropsKeys;
+import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -119,6 +121,10 @@ public abstract class BaseSectionDisplayContextTestCase
 				GroupConstants.CMS_FRIENDLY_URL, "/e/view-folder/",
 				_portal.getClassNameId(ObjectEntryFolder.class),
 				StringPool.SLASH)
+		).put(
+			"brokenLinksCheckerEnabled",
+			GetterUtil.getBoolean(
+				PropsUtil.get(PropsKeys.CMS_BROKEN_LINKS_CHECKER_ENABLED))
 		).put(
 			"cmsGroupId",
 			() -> {
@@ -214,18 +220,22 @@ public abstract class BaseSectionDisplayContextTestCase
 			HashMapBuilder.put(
 				"default", "content-icon-custom-structure"
 			).put(
-				"L_BASIC_WEB_CONTENT", "content-icon-basic-content"
+				"L_CMS_BASIC_WEB_CONTENT", "content-icon-basic-content"
 			).put(
-				"L_BLOG", "content-icon-blog"
+				"L_CMS_BLOG", "content-icon-blog"
+			).put(
+				"L_CMS_EXTERNAL_VIDEO", "file-icon-color-3"
 			).build()
 		).put(
 			"objectDefinitionIcons",
 			HashMapBuilder.put(
 				"default", "web-content"
 			).put(
-				"L_BASIC_WEB_CONTENT", "forms"
+				"L_CMS_BASIC_WEB_CONTENT", "forms"
 			).put(
-				"L_BLOG", "blogs"
+				"L_CMS_BLOG", "blogs"
+			).put(
+				"L_CMS_EXTERNAL_VIDEO", "document-multimedia"
 			).build()
 		).put(
 			"parentObjectEntryFolderExternalReferenceCode",
@@ -344,76 +354,29 @@ public abstract class BaseSectionDisplayContextTestCase
 
 	@Test
 	@TestInfo("LPD-57827")
-	public void testGetDepotEntriesJSONArrayWithMultipleDepotEntries()
-		throws Exception {
-
-		String name = StringUtil.randomString();
-
-		DepotEntry depotEntry = addDepotEntry(name, DepotConstants.TYPE_SPACE);
-
-		try {
-			List<DepotEntry> depotEntries =
-				_depotEntryLocalService.getDepotEntries(
-					group.getCompanyId(), DepotConstants.TYPE_SPACE);
-
-			Assert.assertEquals(
-				depotEntries.toString(), 2, depotEntries.size());
-
-			DepotEntry defaultDepotEntry = depotEntries.get(0);
-
-			Group defaultDepotGroup = groupLocalService.fetchGroup(
-				defaultDepotEntry.getGroupId());
-
-			Assert.assertEquals("Default", defaultDepotGroup.getGroupKey());
-
-			Group depotGroup = groupLocalService.fetchGroup(
-				depotEntry.getGroupId());
-
-			Assert.assertEquals(name, depotGroup.getGroupKey());
-
-			_testGetDepotEntriesJSONArray(
-				List.of(defaultDepotEntry), null,
-				String.valueOf(defaultDepotGroup.getGroupId()));
-			_testGetDepotEntriesJSONArray(
-				List.of(depotEntry), null,
-				String.valueOf(depotGroup.getGroupId()));
-			_testGetDepotEntriesJSONArray(depotEntries, null, null);
-
-			if (getRootObjectEntryFolderExternalReferenceCode() != null) {
-				ObjectEntryFolder objectEntryFolder = _addObjectFolderEntry(
-					depotGroup);
-
-				_testGetDepotEntriesJSONArray(
-					List.of(depotEntry), objectEntryFolder, null);
-				_testGetDepotEntriesJSONArray(
-					List.of(depotEntry), objectEntryFolder,
-					String.valueOf(depotGroup.getGroupId()));
-				_testGetDepotEntriesJSONArray(
-					null, objectEntryFolder,
-					String.valueOf(defaultDepotGroup.getGroupId()));
-			}
-		}
-		finally {
-			_depotEntryLocalService.deleteDepotEntry(depotEntry);
-		}
-	}
-
-	@Test
-	@TestInfo("LPD-57827")
-	public void testGetDepotEntriesJSONArrayWithOneDepotEntryOnly()
-		throws Exception {
+	public void testGetDepotEntriesJSONArray() throws Exception {
+		String name = StringUtil.toLowerCase(RandomTestUtil.randomString());
 
 		List<DepotEntry> depotEntries = _depotEntryLocalService.getDepotEntries(
 			group.getCompanyId(), DepotConstants.TYPE_SPACE);
 
-		Assert.assertEquals(depotEntries.toString(), 1, depotEntries.size());
+		int originalDepotEntriesSize = depotEntries.size();
 
-		DepotEntry depotEntry = depotEntries.get(0);
+		addDepotEntry(name, DepotConstants.TYPE_SPACE);
+
+		depotEntries = _depotEntryLocalService.getDepotEntries(
+			group.getCompanyId(), DepotConstants.TYPE_SPACE);
+
+		Assert.assertEquals(
+			depotEntries.toString(), originalDepotEntriesSize + 1,
+			depotEntries.size());
+
+		DepotEntry depotEntry = depotEntries.get(depotEntries.size() - 1);
 
 		Group depotGroup = groupLocalService.fetchGroup(
 			depotEntry.getGroupId());
 
-		Assert.assertEquals("Default", depotGroup.getGroupKey());
+		Assert.assertEquals(name, depotGroup.getGroupKey());
 
 		_testGetDepotEntriesJSONArray(
 			depotEntries, null, String.valueOf(depotGroup.getGroupId()));
@@ -687,7 +650,7 @@ public abstract class BaseSectionDisplayContextTestCase
 					ObjectDefinition objectDefinition =
 						ObjectDefinitionLocalServiceUtil.
 							getObjectDefinitionByExternalReferenceCode(
-								"L_BASIC_WEB_CONTENT",
+								"L_CMS_BASIC_WEB_CONTENT",
 								TestPropsValues.getCompanyId());
 
 					List<String> guestUnsupportedActions =
@@ -715,7 +678,7 @@ public abstract class BaseSectionDisplayContextTestCase
 					ObjectDefinition objectDefinition =
 						ObjectDefinitionLocalServiceUtil.
 							getObjectDefinitionByExternalReferenceCode(
-								"L_BASIC_DOCUMENT",
+								"L_CMS_BASIC_DOCUMENT",
 								TestPropsValues.getCompanyId());
 
 					List<String> guestUnsupportedActions =

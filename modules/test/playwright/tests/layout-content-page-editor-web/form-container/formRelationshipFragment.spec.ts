@@ -169,7 +169,6 @@ const FOOD_DEFINITION: ObjectDefinition = {
 const test = mergeTests(
 	featureFlagsTest({
 		'LPD-32050': {enabled: true},
-		'LPD-50377': {enabled: true},
 		'LPS-178052': {enabled: true},
 	}),
 	cmsPagesTest,
@@ -295,11 +294,11 @@ test(
 		await expect(options).toHaveCount(2);
 
 		await expect(options.first()).toContainText('None');
-		await expect(options.nth(1)).toHaveText('Fruit (Fruit)');
+		await expect(options.nth(1)).toHaveText('Fruit');
 
 		await pageEditorPage.mapFormRelationshipFragment(
 			formRelationshipId,
-			'Fruit (Fruit)'
+			'Fruit'
 		);
 
 		// Check correct value is shown in general panel select
@@ -310,7 +309,7 @@ test(
 
 		const selectedOption = select.locator('option:checked');
 
-		await expect(selectedOption).toHaveText('Fruit (Fruit)');
+		await expect(selectedOption).toHaveText('Fruit');
 
 		// Add an input inside and check it can only be mapped to Fruit Title
 

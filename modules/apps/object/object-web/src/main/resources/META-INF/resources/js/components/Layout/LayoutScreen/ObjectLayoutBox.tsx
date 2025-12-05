@@ -4,6 +4,7 @@
  */
 
 import ClayButton from '@clayui/button';
+import ClayLabel from '@clayui/label';
 import {useModal} from '@clayui/modal';
 import {
 	Panel,
@@ -36,24 +37,38 @@ export function ObjectLayoutBox({
 	tabIndex,
 	type,
 }: ObjectLayoutBoxProps) {
-	const [{enableCategorization, isViewOnly}, dispatch] = useLayoutContext();
+	const [
+		{enableCategorization, enableFriendlyURLCustomization, isViewOnly},
+		dispatch,
+	] = useLayoutContext();
 	const [visibleModal, setVisibleModal] = useState(false);
 	const {observer, onClose} = useModal({
 		onClose: () => setVisibleModal(false),
 	});
 
 	const disabled =
-		(type === 'categorization' && !enableCategorization) || isViewOnly;
+		(type === 'categorization' && !enableCategorization) ||
+		(type === 'seo' && !enableFriendlyURLCustomization);
 
 	return (
 		<>
 			<Panel>
 				<PanelHeader
+					{...(disabled && {
+						contentLeft: (
+							<ClayLabel
+								className="label-inside-custom-select"
+								displayType="secondary"
+							>
+								{Liferay.Language.get('disabled')}
+							</ClayLabel>
+						),
+					})}
 					contentRight={
 						<>
 							<Toggle
 								aria-label={Liferay.Language.get('collapsible')}
-								disabled={disabled}
+								disabled={disabled || isViewOnly}
 								label={Liferay.Language.get('collapsible')}
 								onToggle={(value) => {
 									dispatch({
@@ -74,7 +89,7 @@ export function ObjectLayoutBox({
 							{type === 'regular' && (
 								<ClayButton
 									className="ml-4"
-									disabled={isViewOnly}
+									disabled={disabled || isViewOnly}
 									displayType="secondary"
 									onClick={() => setVisibleModal(true)}
 									small
@@ -90,13 +105,10 @@ export function ObjectLayoutBox({
 											boxIndex,
 											tabIndex,
 										},
-										type:
-											type === 'categorization'
-												? TYPES.DELETE_OBJECT_LAYOUT_BOX_CATEGORIZATION
-												: TYPES.DELETE_OBJECT_LAYOUT_BOX,
+										type: TYPES.DELETE_OBJECT_LAYOUT_BOX,
 									});
 								}}
-								disabled={disabled}
+								disabled={isViewOnly}
 							/>
 						</>
 					}

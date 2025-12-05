@@ -322,8 +322,13 @@ public class AccountResourceImpl
 		return new ExportImportDescriptor() {
 
 			@Override
-			public String getItemClassName() {
-				return com.liferay.mail.kernel.model.Account.class.getName();
+			public String getLabelLanguageKey() {
+				return "accounts";
+			}
+
+			@Override
+			public String getModelClassName() {
+				return AccountEntry.class.getName();
 			}
 
 			@Override
@@ -336,6 +341,11 @@ public class AccountResourceImpl
 			@Override
 			public String getPortletId() {
 				return AccountPortletKeys.ACCOUNT_ENTRIES_ADMIN;
+			}
+
+			@Override
+			public String getResourceClassName() {
+				return AccountResourceImpl.class.getName();
 			}
 
 			@Override

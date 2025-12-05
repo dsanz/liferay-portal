@@ -53,6 +53,7 @@ import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerCustomizer
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -117,6 +118,12 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 			themeDisplay
 		);
 
+		Mockito.when(
+			themeDisplay.getUser()
+		).thenReturn(
+			Mockito.mock(User.class)
+		);
+
 		_registerServices(_registerSystemFDSEntry(FDS_NAMES[0]));
 
 		Assert.assertNull(
@@ -168,6 +175,12 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 			httpServletRequest.getAttribute(WebKeys.THEME_DISPLAY)
 		).thenReturn(
 			themeDisplay
+		);
+
+		Mockito.when(
+			themeDisplay.getUser()
+		).thenReturn(
+			Mockito.mock(User.class)
 		);
 
 		_registerServices(_registerSystemFDSEntry(FDS_NAMES[0]));
@@ -778,6 +791,32 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 
 		serviceTrackerMap1.close();
 		serviceTrackerMap2.close();
+	}
+
+	@Test
+	public void testSerializeHideManagementBarInEmptyState() throws Exception {
+		_registerServices(
+			_registerSystemFDSEntry(
+				SystemFDSEntryFactory.create(
+					FDS_NAMES[0]
+				).withHideManagementBarInEmptyState(
+					false
+				)),
+			_registerSystemFDSEntry(
+				SystemFDSEntryFactory.create(
+					FDS_NAMES[1]
+				).withHideManagementBarInEmptyState(
+					true
+				)));
+
+		Assert.assertFalse(
+			systemFDSSerializer.serializeHideManagementBarInEmptyState(
+				FDS_NAMES[0], httpServletRequest));
+		Assert.assertTrue(
+			systemFDSSerializer.serializeHideManagementBarInEmptyState(
+				FDS_NAMES[1], httpServletRequest));
+
+		_unregisterServices();
 	}
 
 	@Test
@@ -1732,7 +1771,9 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 				new SystemFDSEntry() {
 
 					@Override
-					public String getAdditionalAPIURLParameters() {
+					public String getAdditionalAPIURLParameters(
+						HttpServletRequest httpServletRequest) {
+
 						return _additionalURLParameters;
 					}
 
@@ -1747,6 +1788,11 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 					@Override
 					public String getDescription() {
 						return "";
+					}
+
+					@Override
+					public boolean getHideManagementBarInEmptyState() {
+						return _hideManagementBarInEmptyState;
 					}
 
 					public int[] getListOfItemsPerPage() {
@@ -1804,6 +1850,14 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 			return this;
 		}
 
+		public SystemFDSEntryWrapper withHideManagementBarInEmptyState(
+			boolean hideManagementBarInEmptyState) {
+
+			_hideManagementBarInEmptyState = hideManagementBarInEmptyState;
+
+			return this;
+		}
+
 		public SystemFDSEntryWrapper withPagination(
 			int defaultItemsPerPage, int[] listOfItemsPerPage) {
 
@@ -1824,6 +1878,7 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 		private String _additionalURLParameters;
 		private int _defaultItemsPerPage = -1;
 		private final String _fdsName;
+		private boolean _hideManagementBarInEmptyState;
 		private int[] _listOfItemsPerPage;
 		private String _propsTransformer;
 

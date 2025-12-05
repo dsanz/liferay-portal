@@ -11,9 +11,11 @@ import {useNavigate, useOutletContext} from 'react-router-dom';
 import {DetailedCard} from '../../../../components/DetailedCard/DetailedCard';
 import EmptyState from '../../../../components/EmptyState';
 import QATable from '../../../../components/QATable';
+import {useMarketplaceContext} from '../../../../context/MarketplaceContext';
 import i18n from '../../../../i18n';
 import HeadlessAdminUser from '../../../../services/rest/HeadlessAdminUser';
 import {getCustomFieldValue} from '../../../../utils/customFieldUtil';
+import {getSiteName} from '../../../../utils/site';
 import {getAccountImage} from '../../../../utils/util';
 
 import './Accounts.scss';
@@ -66,6 +68,7 @@ function AccountDetailsPage({
 	selectedAccount,
 	totalApps,
 }: AccountDetailsPageProps) {
+	const {properties} = useMarketplaceContext();
 	const navigate = useNavigate();
 	const [selectedAccountAddress, setSelectedAccountAddress] =
 		useState<AccountPostalAddresses[]>();
@@ -252,8 +255,15 @@ function AccountDetailsPage({
 							<QATable
 								items={[
 									{
-										title: i18n.translate(
-											'liferay-publisher-license-agreement'
+										title: (
+											<a
+												href={`/documents/d/${getSiteName()}/${properties.publisherLicenseAgreement}`}
+												target="_blank"
+											>
+												{i18n.translate(
+													'liferay-publisher-license-agreement'
+												)}
+											</a>
 										),
 										value: (
 											<ClayIcon
@@ -263,8 +273,15 @@ function AccountDetailsPage({
 										),
 									},
 									{
-										title: i18n.translate(
-											'end-user-license-agreement'
+										title: (
+											<a
+												href={`/documents/d/${getSiteName()}/${properties.endUserLicenseAgreement}`}
+												target="_blank"
+											>
+												{i18n.translate(
+													'end-user-license-agreement'
+												)}
+											</a>
 										),
 										value: (
 											<ClayIcon

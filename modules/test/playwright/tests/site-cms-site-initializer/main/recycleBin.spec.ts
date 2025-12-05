@@ -19,7 +19,6 @@ const test = mergeTests(
 	featureFlagsTest({
 		'LPD-17564': {enabled: true},
 		'LPD-34594': {enabled: true},
-		'LPS-179669': {enabled: true},
 	}),
 	loginTest()
 );
@@ -229,6 +228,12 @@ test(
 			});
 
 			await page.getByRole('button', {name: 'Empty Bin'}).click();
+
+			await waitForAlert(
+				page,
+				'Info:Delete action started for all assets.',
+				{type: 'info'}
+			);
 
 			await page.reload();
 

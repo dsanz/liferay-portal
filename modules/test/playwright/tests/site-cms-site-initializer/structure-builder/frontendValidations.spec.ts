@@ -11,6 +11,7 @@ import {pageEditorPagesTest} from '../../../fixtures/pageEditorPagesTest';
 import {clickAndExpectToBeHidden} from '../../../utils/clickAndExpectToBeHidden';
 import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
 import {getRandomInt} from '../../../utils/getRandomInt';
+import getRandomString from '../../../utils/getRandomString';
 import {waitForAlert} from '../../../utils/waitForAlert';
 import {cmsPagesTest} from '../main/fixtures/cmsPagesTest';
 import {structureBuilderPagesTest} from './fixtures/structureBuilderPagesTest';
@@ -19,7 +20,6 @@ const test = mergeTests(
 	cmsPagesTest,
 	featureFlagsTest({
 		'LPD-17564': {enabled: true},
-		'LPS-179669': {enabled: true},
 	}),
 	loginTest(),
 	pageEditorPagesTest,
@@ -39,13 +39,11 @@ test(
 
 		await structureBuilderPage.goToCreateStructure();
 
-		// Add a Text field
-
-		await structureBuilderPage.addField('Text');
-
 		// Try to save and check we can't publish without spaces
 
 		await expect(async () => {
+			await structureBuilderPage.selectSpaces([]);
+
 			await structureBuilderPage.saveButton.click();
 
 			await expect(
@@ -57,7 +55,71 @@ test(
 
 		await structureBuilderPage.enableForAllSpaces();
 
+		// Check validation in name field
+
+		await structureBuilderPage.changeStructureSettings({name: 'name'});
+
+		await expect(
+			page.getByText('The first character must be an uppercase letter')
+		).toBeVisible();
+
+		await structureBuilderPage.changeStructureSettings({name: 'Name---'});
+
+		await expect(
+			page.getByText('This field must only contain letters and digits')
+		).toBeVisible();
+
+		let longName = `Name${getRandomInt()}`;
+
+		while (longName.length < 41) {
+			longName += getRandomInt();
+		}
+
+		await structureBuilderPage.changeStructureSettings({name: longName});
+
+		await expect(
+			page.getByText('Maximum Number of Characters Exceeded')
+		).toBeVisible();
+
+		await structureBuilderPage.changeStructureSettings({name: 'CMSBlog'});
+
+		await expect(
+			page.getByText('This name is already in use')
+		).toBeVisible();
+
+		// Check validation in ERC field
+
+		await structureBuilderPage.changeStructureSettings({erc: 'L_erc'});
+
+		await expect(page.getByText('The prefix L_ is reserved')).toBeVisible();
+
+		while (longName.length < 75) {
+			longName += getRandomInt();
+		}
+
+		await structureBuilderPage.changeStructureSettings({erc: longName});
+
+		await expect(
+			page.getByText('Maximum Number of Characters Exceeded')
+		).toBeVisible();
+
+		// Add a Text field
+
+		await structureBuilderPage.addField('Text');
+
+		// Check validation for field name and ERC fields
+
+		await structureBuilderPage.changeFieldSettings({name: 'Field'});
+
+		await expect(
+			page.getByText('The first character must be a lowercase letter')
+		).toBeVisible();
+
+		await structureBuilderPage.changeFieldSettings({name: 'field'});
+
 		// Set label and empty name
+
+		await structureBuilderPage.selectStructure();
 
 		const label = `Structure${getRandomInt()}`;
 
@@ -85,9 +147,12 @@ test(
 			trigger: structureBuilderPage.saveButton,
 		});
 
-		// Fill name
+		// Fill name and ERC
 
-		await structureBuilderPage.changeStructureSettings({name: label});
+		await structureBuilderPage.changeStructureSettings({
+			erc: getRandomString(),
+			name: label,
+		});
 
 		// Now try to save and check it redirects to field view
 
@@ -206,5 +271,134 @@ test(
 		// Delete picklist
 
 		await picklistBuilderPage.deletePicklist(picklist.id);
+	}
+);
+
+test(
+	'Editing a saved draft structure regenerates correctly its name',
+	{tag: '@LPD-69987'},
+	async ({page, structureBuilderPage, structuresPage}) => {
+
+		// Create a structure and save it as draft
+
+		await structureBuilderPage.goToCreateStructure();
+
+		const structureTitle = `Structure${getRandomInt()}`;
+
+		await structureBuilderPage.changeStructureSettings({
+			label: structureTitle,
+		});
+
+		await structureBuilderPage.saveStructure();
+
+		// Edit the structure and change the title
+
+		await structuresPage.goto();
+
+		await structuresPage.execItemAction({
+			action: 'Edit',
+			filter: structureTitle,
+		});
+
+		const newStructureTitle = `Structure${getRandomInt()}`;
+
+		await structureBuilderPage.changeStructureSettings({
+			label: newStructureTitle,
+		});
+
+		// Check that the name has been changed correctly and publish it
+
+		await expect(page.getByLabel('Content Structure Name')).toHaveValue(
+			newStructureTitle
+		);
+
+		await structureBuilderPage.publishStructure();
+
+		// Delete the structure
+
+		await structuresPage.goto();
+
+		await structuresPage.execItemAction({
+			action: 'Delete',
+			filter: newStructureTitle,
+		});
+	}
+);
+
+test(
+	'When a published structure is republished, the name is not saved again',
+	{tag: '@LPD-69987'},
+	async ({page, structureBuilderPage, structuresPage}) => {
+
+		// Create a structure and publish it
+
+		await structureBuilderPage.goToCreateStructure();
+
+		const structureTitle = `Structure${getRandomInt()}`;
+
+		await structureBuilderPage.changeStructureSettings({
+			label: structureTitle,
+		});
+
+		await structureBuilderPage.publishStructure();
+
+		// Edit the structure and change the title
+
+		await structuresPage.goto();
+
+		await structuresPage.execItemAction({
+			action: 'Edit',
+			filter: structureTitle,
+		});
+
+		// Publish the structure and check that the "This name is already in use" error is not present
+
+		await structureBuilderPage.publishStructure();
+
+		await expect(
+			page.getByText('This name is already in use. Try another one.')
+		).not.toBeVisible();
+
+		// Delete the structure
+
+		await structuresPage.goto();
+
+		await structuresPage.execItemAction({
+			action: 'Delete',
+			filter: structureTitle,
+		});
+	}
+);
+
+test(
+	'The Name and ERC fields are not validated in the system structure because they are disabled fields',
+	{tag: '@LPD-69987'},
+	async ({page, structureBuilderPage, structuresPage}) => {
+
+		// Edit External Video structure
+
+		await structuresPage.goto();
+
+		await structuresPage.execItemAction({
+			action: 'Edit',
+			filter: 'External Video',
+		});
+
+		// Check that the Name and ERC inputs are disabled
+
+		await expect(page.getByLabel('Content Structure Name')).toBeDisabled();
+
+		await expect(page.getByLabel('ERC')).toBeDisabled();
+
+		// Check that the Name and ERC fields are not validated
+
+		await expect(async () => {
+			await structureBuilderPage.publishButton.click({timeout: 1000});
+
+			await waitForAlert(
+				page,
+				'Remember to review the customized experience if needed'
+			);
+		}).toPass();
 	}
 );

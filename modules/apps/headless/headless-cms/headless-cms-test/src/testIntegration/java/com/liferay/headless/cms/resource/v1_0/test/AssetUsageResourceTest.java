@@ -93,9 +93,8 @@ import org.osgi.framework.FrameworkUtil;
  */
 @FeatureFlags(
 	featureFlags = {
-		@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-21926"),
-		@FeatureFlag("LPD-31149"), @FeatureFlag("LPD-34594"),
-		@FeatureFlag("LPS-179669")
+		@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-32050"),
+		@FeatureFlag("LPD-34594")
 	}
 )
 @RunWith(Arquillian.class)
@@ -115,7 +114,7 @@ public class AssetUsageResourceTest extends BaseAssetUsageResourceTestCase {
 
 		if (!_isCMSSiteInitialized()) {
 			Bundle testBundle = FrameworkUtil.getBundle(
-				BulkActionResourceTest.class);
+				AssetUsageResourceTest.class);
 
 			BundleContext bundleContext = testBundle.getBundleContext();
 
@@ -139,14 +138,14 @@ public class AssetUsageResourceTest extends BaseAssetUsageResourceTestCase {
 			}
 		}
 
-		_basicDocumentObjectDefinition =
+		_cmsBasicDocumentObjectDefinition =
 			_objectDefinitionLocalService.
 				getObjectDefinitionByExternalReferenceCode(
-					"L_BASIC_DOCUMENT", testCompany.getCompanyId());
-		_basicWebContentObjectDefinition =
+					"L_CMS_BASIC_DOCUMENT", testCompany.getCompanyId());
+		_cmsBasicWebContentObjectDefinition =
 			_objectDefinitionLocalService.
 				getObjectDefinitionByExternalReferenceCode(
-					"L_BASIC_WEB_CONTENT", testCompany.getCompanyId());
+					"L_CMS_BASIC_WEB_CONTENT", testCompany.getCompanyId());
 
 		_serviceContext = new ServiceContext() {
 			{
@@ -174,13 +173,14 @@ public class AssetUsageResourceTest extends BaseAssetUsageResourceTestCase {
 	@Test
 	public void testGetAssetUsagesAssetPage() throws Exception {
 		_addObjectRelationship(
-			_basicDocumentObjectDefinition, _basicWebContentObjectDefinition);
+			_cmsBasicDocumentObjectDefinition,
+			_cmsBasicWebContentObjectDefinition);
 
 		long assetId = testGetAssetUsagesAssetPage_getAssetId();
 
 		ObjectEntry objectEntry = _objectEntryLocalService.addObjectEntry(
 			_depotEntry.getGroupId(), TestPropsValues.getUserId(),
-			_basicWebContentObjectDefinition.getObjectDefinitionId(),
+			_cmsBasicWebContentObjectDefinition.getObjectDefinitionId(),
 			_objectEntryFolder.getObjectEntryFolderId(), null,
 			HashMapBuilder.<String, Serializable>put(
 				"title_i18n",
@@ -196,7 +196,7 @@ public class AssetUsageResourceTest extends BaseAssetUsageResourceTestCase {
 
 		assetUsage1.setName(() -> objectEntry.getTitleValue(_LANGUAGE_ID));
 		assetUsage1.setType(
-			() -> _basicWebContentObjectDefinition.getLabel(_LANGUAGE_ID));
+			() -> _cmsBasicWebContentObjectDefinition.getLabel(_LANGUAGE_ID));
 		assetUsage1.setUrl(
 			() -> StringBundler.concat(
 				_themeDisplay.getPortalURL(), _portal.getPathMain(),
@@ -302,10 +302,15 @@ public class AssetUsageResourceTest extends BaseAssetUsageResourceTestCase {
 
 		ObjectEntry objectEntry = _objectEntryLocalService.addObjectEntry(
 			_depotEntry.getGroupId(), _depotEntry.getUserId(),
-			_basicDocumentObjectDefinition.getObjectDefinitionId(),
+			_cmsBasicDocumentObjectDefinition.getObjectDefinitionId(),
 			_objectEntryFolder.getObjectEntryFolderId(), _LANGUAGE_ID,
 			HashMapBuilder.<String, Serializable>put(
 				"file", String.valueOf(dlFileEntry.getFileEntryId())
+			).put(
+				"title_i18n",
+				HashMapBuilder.put(
+					"en_US", RandomTestUtil.randomString()
+				).build()
 			).build(),
 			_serviceContext);
 
@@ -327,7 +332,7 @@ public class AssetUsageResourceTest extends BaseAssetUsageResourceTestCase {
 		_layoutClassedModelUsageLocalService.addLayoutClassedModelUsage(
 			testGroup.getGroupId(), StringPool.BLANK,
 			_portal.getClassNameId(
-				_basicDocumentObjectDefinition.getClassName()),
+				_cmsBasicDocumentObjectDefinition.getClassName()),
 			assetId, RandomTestUtil.randomString(), RandomTestUtil.randomInt(),
 			layoutPageTemplateEntry.getPlid(), _serviceContext);
 
@@ -412,14 +417,14 @@ public class AssetUsageResourceTest extends BaseAssetUsageResourceTestCase {
 
 	private static final String _LANGUAGE_ID = "en_US";
 
-	private ObjectDefinition _basicDocumentObjectDefinition;
-	private ObjectDefinition _basicWebContentObjectDefinition;
-
 	@Inject
 	private BatchEngineUnitProcessor _batchEngineUnitProcessor;
 
 	@Inject
 	private BatchEngineUnitReader _batchEngineUnitReader;
+
+	private ObjectDefinition _cmsBasicDocumentObjectDefinition;
+	private ObjectDefinition _cmsBasicWebContentObjectDefinition;
 
 	@DeleteAfterTestRun
 	private DepotEntry _depotEntry;

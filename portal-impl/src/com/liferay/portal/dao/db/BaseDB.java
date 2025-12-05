@@ -7,6 +7,7 @@ package com.liferay.portal.dao.db;
 
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.transform.TransformUtil;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -21,7 +22,6 @@ import com.liferay.portal.kernel.dao.db.Index;
 import com.liferay.portal.kernel.dao.db.IndexMetadata;
 import com.liferay.portal.kernel.dao.db.IndexMetadataFactoryUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
-import com.liferay.portal.kernel.db.partition.DBPartition;
 import com.liferay.portal.kernel.instance.PortalInstancePool;
 import com.liferay.portal.kernel.io.unsync.UnsyncBufferedReader;
 import com.liferay.portal.kernel.io.unsync.UnsyncStringReader;
@@ -32,10 +32,12 @@ import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LoggingTimer;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -50,6 +52,7 @@ import java.sql.Statement;
 import java.sql.Types;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -57,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -130,6 +134,36 @@ public abstract class BaseDB implements DB {
 				_applyMaxStringIndexLengthLimitation(
 					indexMetadata.getCreateSQL(columnSizes)));
 		}
+	}
+
+	public SafeCloseable addTemporaryIndex(
+			Connection connection, String tableName, boolean unique,
+			String... columnNames)
+		throws Exception {
+
+		String indexName = "IX_TEMP_" + _tempIndexCounter.incrementAndGet();
+
+		IndexMetadata indexMetadata = new IndexMetadata(
+			indexName, tableName, unique, columnNames);
+
+		try (LoggingTimer loggingTimer = new LoggingTimer(tableName)) {
+			addIndexes(
+				connection, new ArrayList<>(Arrays.asList(indexMetadata)));
+		}
+
+		return () -> {
+			try {
+				runSQL(indexMetadata.getDropSQL());
+			}
+			catch (Exception exception) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						StringBundler.concat(
+							"Unable to drop temporary index ", indexName,
+							" on ", tableName, exception));
+				}
+			}
+		};
 	}
 
 	@Override
@@ -1710,7 +1744,7 @@ public abstract class BaseDB implements DB {
 	private boolean _isSkipIndexOperation(
 		Connection connection, String tableName) {
 
-		if (!DBPartition.isPartitionEnabled() ||
+		if (!PropsValues.DATABASE_PARTITION_ENABLED ||
 			(CompanyThreadLocal.getNonsystemCompanyId() ==
 				PortalInstancePool.getDefaultCompanyId())) {
 
@@ -1734,6 +1768,7 @@ public abstract class BaseDB implements DB {
 		"^\\w+(?:\\(\\d+,\\s(\\d+)\\))", Pattern.CASE_INSENSITIVE);
 	private static final Pattern _sqlTypeSizePattern = Pattern.compile(
 		"^\\w+(?:\\((\\d+).*\\))", Pattern.CASE_INSENSITIVE);
+	private static final AtomicLong _tempIndexCounter = new AtomicLong(0);
 	private static final Pattern _templatePattern;
 
 	static {

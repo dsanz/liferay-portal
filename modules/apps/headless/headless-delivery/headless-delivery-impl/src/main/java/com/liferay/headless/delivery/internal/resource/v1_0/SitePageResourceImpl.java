@@ -146,7 +146,7 @@ public class SitePageResourceImpl
 
 	@Override
 	public SitePage getItem(Long id) throws Exception {
-		Layout layout = _layoutLocalService.getLayout(id);
+		Layout layout = _layoutService.getLayout(id);
 
 		return getSiteSitePage(layout.getGroupId(), layout.getFriendlyURL());
 	}
@@ -254,8 +254,8 @@ public class SitePageResourceImpl
 					document.get(Field.ENTRY_CLASS_PK));
 
 				return _toSitePage(
-					_isEmbeddedPageDefinition(),
-					_layoutLocalService.getLayout(plid), null);
+					_isEmbeddedPageDefinition(), _layoutService.getLayout(plid),
+					null);
 			});
 	}
 
@@ -362,30 +362,30 @@ public class SitePageResourceImpl
 					Boolean include = siteMapSettings.getInclude();
 
 					if (include != null) {
-						String siteMapInclude = "0";
+						String sitemapInclude = "0";
 
 						if (include) {
-							siteMapInclude = "1";
+							sitemapInclude = "1";
 						}
 
 						typeSettingsUnicodeProperties.setProperty(
 							LayoutTypePortletConstants.SITEMAP_INCLUDE,
-							siteMapInclude);
+							sitemapInclude);
 					}
 
 					Boolean includeChildSitePages =
 						siteMapSettings.getIncludeChildSitePages();
 
 					if (includeChildSitePages != null) {
-						String siteMapIncludeChildLayouts = "false";
+						String sitemapIncludeChildLayouts = "false";
 
 						if (includeChildSitePages) {
-							siteMapIncludeChildLayouts = "true";
+							sitemapIncludeChildLayouts = "true";
 						}
 
 						typeSettingsUnicodeProperties.setProperty(
 							"sitemap-include-child-layouts",
-							siteMapIncludeChildLayouts);
+							sitemapIncludeChildLayouts);
 					}
 
 					Double pagePriority = siteMapSettings.getPagePriority();
@@ -438,13 +438,13 @@ public class SitePageResourceImpl
 			null, siteId, false, parentLayoutId, nameMap, titleMap,
 			descriptionMap, keywordsMap, robotsMap,
 			LayoutConstants.TYPE_CONTENT,
-			typeSettingsUnicodeProperties.toString(), hidden, friendlyUrlMap, 0,
-			serviceContext);
+			typeSettingsUnicodeProperties.toString(), hidden, friendlyUrlMap,
+			null, serviceContext);
 
 		_importPageDefinition(
 			layout, sitePage.getPageDefinition(), serviceContext);
 
-		layout = _layoutLocalService.getLayout(layout.getPlid());
+		layout = _layoutService.getLayout(layout.getPlid());
 
 		PageDefinition pageDefinition = sitePage.getPageDefinition();
 
@@ -589,7 +589,7 @@ public class SitePageResourceImpl
 			_friendlyURLEntryLocalService.getFriendlyURLEntryLocalization(
 				groupId, _portal.getClassNameId(resourceName), friendlyUrlPath);
 
-		return _layoutLocalService.getLayout(
+		return _layoutService.getLayout(
 			friendlyURLEntryLocalization.getClassPK());
 	}
 

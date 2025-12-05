@@ -52,6 +52,7 @@ export class PageEditorPage {
 	readonly editModeButton: Locator;
 	readonly experienceSelector: Locator;
 	readonly languageSelector: Locator;
+	readonly newRuleButton: Locator;
 	readonly publishButton: Locator;
 	readonly publishMasterButton: Locator;
 	readonly publishToLiveButton: Locator;
@@ -71,6 +72,7 @@ export class PageEditorPage {
 		this.languageSelector = page
 			.locator('.page-editor__toolbar')
 			.getByLabel('Select a language');
+		this.newRuleButton = page.getByRole('button', {name: 'New Rule'});
 		this.publishButton = page.getByLabel('Publish', {exact: true}).or(
 			page.getByLabel('Submit for Workflow', {
 				exact: true,
@@ -89,15 +91,11 @@ export class PageEditorPage {
 		this.undoHistory = page.locator('.page-editor__undo-history');
 	}
 
-	async goto(
-		layout: Layout,
-		siteUrl?: Site['friendlyUrlPath'],
-		doAsUserId?: string
-	) {
+	async goto(layout: Layout, siteUrl?: Site['friendlyUrlPath']) {
 		await this.page.goto('/');
 
 		await this.page.goto(
-			`/web${siteUrl || '/guest'}${layout.friendlyUrlPath || layout.friendlyURL}?p_l_mode=edit${doAsUserId ? '&doAsUserId=' + doAsUserId : ''}`
+			`/web${siteUrl || '/guest'}${layout.friendlyUrlPath || layout.friendlyURL}?p_l_mode=edit`
 		);
 	}
 
@@ -154,7 +152,75 @@ export class PageEditorPage {
 		await commentButton.waitFor({state: 'hidden'});
 	}
 
-	async addRuleAction() {
+	async addRule({
+		actions,
+		conditions,
+		name,
+	}: {
+		actions: {label: string; option: string}[][];
+		conditions: {label: string; option: string}[][];
+		name: string;
+	}) {
+		const addActionOrCondition = async ({index, label, option}) => {
+			const trigger = this.page.getByLabel(label).nth(index);
+
+			await trigger.waitFor();
+
+			await clickAndExpectToBeVisible({
+				autoClick: true,
+				target: this.page.getByRole('option', {
+					exact: true,
+					name: option,
+				}),
+				timeout: 2000,
+				trigger,
+			});
+		};
+
+		await this.goToSidebarTab('Page Rules');
+
+		const modal = this.page.locator('.modal-dialog');
+
+		await clickAndExpectToBeVisible({
+			target: modal.getByRole('heading', {name: 'New Rule'}),
+			trigger: this.newRuleButton,
+		});
+
+		await modal.getByLabel('Rule Name').fill(name);
+
+		for (const [index, condition] of conditions.entries()) {
+			if (index) {
+				await this.page
+					.getByRole('button', {name: 'Add Condition'})
+					.click();
+			}
+
+			for (const {label, option} of condition) {
+				await addActionOrCondition({index, label, option});
+			}
+		}
+
+		for (const [index, action] of actions.entries()) {
+			if (index) {
+				await this.page
+					.getByRole('button', {name: 'Add Action'})
+					.click();
+			}
+
+			for (const {label, option} of action) {
+				await addActionOrCondition({index, label, option});
+			}
+		}
+
+		await modal.getByRole('button', {exact: true, name: 'Save'}).click();
+
+		await waitForAlert(
+			this.page,
+			'Success:The rule was created successfully.'
+		);
+	}
+
+	async addRandomRuleAction() {
 		await this.page.getByLabel('Select Action').press('Enter');
 		await this.page.keyboard.press('Tab');
 		await this.page.keyboard.press('Enter');
@@ -166,7 +232,7 @@ export class PageEditorPage {
 			.press('Enter');
 	}
 
-	async addRuleCondition() {
+	async addRandomRuleCondition() {
 		await this.page
 			.getByLabel('Select Item for the Condition')
 			.press('Enter');
@@ -398,19 +464,34 @@ export class PageEditorPage {
 		await this.waitForChangesSaved();
 	}
 
-	async chooseCollectionDisplayCollection(type: string, title: string) {
+	async chooseCollectionDisplayCollection(
+		type: string,
+		title: string,
+		options?: {search?: boolean}
+	) {
 		await this.page.getByLabel('Select Collection', {exact: true}).click();
 
-		await this.page
-			.frameLocator('iframe[title="Select"]')
-			.getByRole('link', {name: type})
-			.click();
+		const iframe = this.page.frameLocator('iframe[title="Select"]');
+
+		await iframe.getByRole('link', {name: type}).click();
+
+		// Filter Collection in case there are multiple pages
+
+		if (options?.search) {
+			await expect(async () => {
+				await iframe.getByPlaceholder('Search for').fill(title);
+
+				await expect(iframe.getByPlaceholder('Search for')).toHaveValue(
+					title
+				);
+			}).toPass();
+
+			await iframe.getByLabel('Search for', {exact: true}).click();
+		}
 
 		await clickAndExpectToBeHidden({
 			target: this.page.locator('.modal-dialog'),
-			trigger: this.page
-				.frameLocator('iframe[title="Select"]')
-				.getByRole('button', {name: 'Select ' + title}),
+			trigger: iframe.getByRole('button', {name: `Select ${title}`}),
 		});
 	}
 

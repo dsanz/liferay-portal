@@ -369,8 +369,8 @@ public abstract class BaseBlogPostingResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(blogPostingId);
-		String resourceName = getPermissionCheckerResourceName(blogPostingId);
 		Long resourceId = getPermissionCheckerResourceId(blogPostingId);
+		String resourceName = getPermissionCheckerResourceName(blogPostingId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -1090,8 +1090,8 @@ public abstract class BaseBlogPostingResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(blogPostingId);
-		String resourceName = getPermissionCheckerResourceName(blogPostingId);
 		Long resourceId = getPermissionCheckerResourceId(blogPostingId);
+		String resourceName = getPermissionCheckerResourceName(blogPostingId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -1746,6 +1746,9 @@ public abstract class BaseBlogPostingResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

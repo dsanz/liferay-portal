@@ -96,6 +96,19 @@
 							<execute dir="${project.dir}">
 								docker save --output ${project.dir}/dist/liferay-docker-asah.tar ${analytics.cloud.asah.image.names.list}
 							</execute>
+
+							<if>
+								<available file="${project.dir}/dist/liferay-docker-asah.tar" />
+								<then>
+									<execute failonerror="false">
+										<![CDATA[
+											docker system prune --all --force &> /dev/null
+
+											docker system df
+										]]>
+									</execute>
+								</then>
+							</if>
 						</else>
 					</if>
 

@@ -5,6 +5,7 @@
 
 package com.liferay.depot.internal.security.permission.wrapper;
 
+import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
@@ -14,6 +15,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
@@ -28,7 +30,6 @@ import com.liferay.portal.security.permission.PermissionCacheUtil;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Supplier;
 
 /**
  * @author Cristina González
@@ -57,9 +58,13 @@ public class DepotPermissionCheckerWrapper extends PermissionCheckerWrapper {
 			return true;
 		}
 
-		return _hasPermission(
-			name, primKey, actionId,
-			() -> super.hasPermission(group, name, primKey, actionId));
+		Boolean hasPermission = _hasPermission(name, primKey, actionId);
+
+		if (hasPermission != null) {
+			return hasPermission;
+		}
+
+		return permissionChecker.hasPermission(group, name, primKey, actionId);
 	}
 
 	@Override
@@ -70,9 +75,14 @@ public class DepotPermissionCheckerWrapper extends PermissionCheckerWrapper {
 			return true;
 		}
 
-		return _hasPermission(
-			name, GetterUtil.getLong(primKey), actionId,
-			() -> super.hasPermission(group, name, primKey, actionId));
+		Boolean hasPermission = _hasPermission(
+			name, GetterUtil.getLong(primKey), actionId);
+
+		if (hasPermission != null) {
+			return hasPermission;
+		}
+
+		return permissionChecker.hasPermission(group, name, primKey, actionId);
 	}
 
 	@Override
@@ -83,9 +93,14 @@ public class DepotPermissionCheckerWrapper extends PermissionCheckerWrapper {
 			return true;
 		}
 
-		return _hasPermission(
-			name, primKey, actionId,
-			() -> super.hasPermission(groupId, name, primKey, actionId));
+		Boolean hasPermission = _hasPermission(name, primKey, actionId);
+
+		if (hasPermission != null) {
+			return hasPermission;
+		}
+
+		return permissionChecker.hasPermission(
+			groupId, name, primKey, actionId);
 	}
 
 	@Override
@@ -96,9 +111,15 @@ public class DepotPermissionCheckerWrapper extends PermissionCheckerWrapper {
 			return true;
 		}
 
-		return _hasPermission(
-			name, GetterUtil.getLong(primKey), actionId,
-			() -> super.hasPermission(groupId, name, primKey, actionId));
+		Boolean hasPermission = _hasPermission(
+			name, GetterUtil.getLong(primKey), actionId);
+
+		if (hasPermission != null) {
+			return hasPermission;
+		}
+
+		return permissionChecker.hasPermission(
+			groupId, name, primKey, actionId);
 	}
 
 	@Override
@@ -108,7 +129,7 @@ public class DepotPermissionCheckerWrapper extends PermissionCheckerWrapper {
 				return false;
 			}
 
-			if (super.isContentReviewer(companyId, groupId) ||
+			if (permissionChecker.isContentReviewer(companyId, groupId) ||
 				isGroupAdmin(groupId)) {
 
 				return true;
@@ -133,13 +154,18 @@ public class DepotPermissionCheckerWrapper extends PermissionCheckerWrapper {
 				return false;
 			}
 
-			if (super.isGroupAdmin(groupId)) {
+			if (permissionChecker.isGroupAdmin(groupId)) {
+				return true;
+			}
+
+			Group group = _groupLocalService.fetchGroup(groupId);
+
+			if (_isCMSAdministrator(group)) {
 				return true;
 			}
 
 			return _isOrAddToPermissionCache(
-				_groupLocalService.fetchGroup(groupId),
-				DepotRolesConstants.ASSET_LIBRARY_ADMINISTRATOR,
+				group, DepotRolesConstants.ASSET_LIBRARY_ADMINISTRATOR,
 				this::_isGroupAdmin);
 		}
 		catch (Exception exception) {
@@ -156,7 +182,7 @@ public class DepotPermissionCheckerWrapper extends PermissionCheckerWrapper {
 				return false;
 			}
 
-			if (super.isGroupMember(groupId)) {
+			if (permissionChecker.isGroupMember(groupId)) {
 				return true;
 			}
 
@@ -176,7 +202,7 @@ public class DepotPermissionCheckerWrapper extends PermissionCheckerWrapper {
 				return false;
 			}
 
-			if (super.isGroupOwner(groupId)) {
+			if (permissionChecker.isGroupOwner(groupId)) {
 				return true;
 			}
 
@@ -191,37 +217,32 @@ public class DepotPermissionCheckerWrapper extends PermissionCheckerWrapper {
 		}
 	}
 
-	private boolean _hasPermission(
-		String name, long primKey, String actionId,
-		Supplier<Boolean> hasPermissionSupplier) {
-
-		try {
-			if (!StringUtil.equals(name, Group.class.getName())) {
-				return hasPermissionSupplier.get();
-			}
-
+	private Boolean _hasPermission(String name, long primKey, String actionId) {
+		if (StringUtil.equals(name, Group.class.getName())) {
 			Group group = _groupLocalService.fetchGroup(primKey);
 
-			if ((group == null) || !group.isDepot()) {
-				return hasPermissionSupplier.get();
-			}
+			if ((group != null) && group.isDepot()) {
+				try {
+					if (!_supportedActionIds.contains(actionId)) {
+						return false;
+					}
 
-			if (!_supportedActionIds.contains(actionId)) {
-				return false;
-			}
+					if (_isCMSAdministrator(group) || _isGroupAdmin(group)) {
+						return true;
+					}
 
-			if (_isGroupAdmin(group)) {
-				return true;
-			}
+					return _depotEntryModelResourcePermission.contains(
+						this, group.getClassPK(), actionId);
+				}
+				catch (PortalException portalException) {
+					_log.error(portalException);
 
-			return _depotEntryModelResourcePermission.contains(
-				this, group.getClassPK(), actionId);
+					return false;
+				}
+			}
 		}
-		catch (PortalException portalException) {
-			_log.error(portalException);
 
-			return false;
-		}
+		return null;
 	}
 
 	private boolean _hasRole(long companyId, long[] roleIds, String roleName)
@@ -234,6 +255,35 @@ public class DepotPermissionCheckerWrapper extends PermissionCheckerWrapper {
 		}
 
 		return false;
+	}
+
+	private boolean _isCMSAdministrator(Group group) throws PortalException {
+		if ((group == null) || !group.isDepot()) {
+			return false;
+		}
+
+		long depotEntryType = GetterUtil.getInteger(
+			group.getTypeSettingsProperty("depotEntryType"),
+			DepotConstants.TYPE_ASSET_LIBRARY);
+
+		if (depotEntryType != DepotConstants.TYPE_SPACE) {
+			return false;
+		}
+
+		Boolean value = PermissionCacheUtil.getUserPrimaryKeyRole(
+			getUserId(), group.getCompanyId(), RoleConstants.CMS_ADMINISTRATOR);
+
+		if (value == null) {
+			value = _roleLocalService.hasUserRole(
+				getUserId(), group.getCompanyId(),
+				RoleConstants.CMS_ADMINISTRATOR, true);
+
+			PermissionCacheUtil.putUserPrimaryKeyRole(
+				getUserId(), group.getCompanyId(),
+				RoleConstants.CMS_ADMINISTRATOR, value);
+		}
+
+		return value;
 	}
 
 	private boolean _isContentReviewer(Group group) throws PortalException {
@@ -280,7 +330,7 @@ public class DepotPermissionCheckerWrapper extends PermissionCheckerWrapper {
 		while (!parentGroup.isRoot()) {
 			parentGroup = parentGroup.getParentGroup();
 
-			if (super.hasPermission(
+			if (permissionChecker.hasPermission(
 					parentGroup, Group.class.getName(),
 					String.valueOf(parentGroup.getGroupId()),
 					ActionKeys.MANAGE_SUBGROUPS)) {

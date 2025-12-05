@@ -23,6 +23,11 @@ import com.liferay.asset.link.service.AssetLinkLocalService;
 import com.liferay.data.engine.rest.dto.v2_0.DataDefinition;
 import com.liferay.data.engine.rest.resource.v2_0.DataDefinitionResource;
 import com.liferay.data.engine.rest.test.util.DataDefinitionTestUtil;
+import com.liferay.depot.constants.DepotConstants;
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.model.DepotEntryGroupRel;
+import com.liferay.depot.service.DepotEntryGroupRelLocalService;
+import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
@@ -1196,7 +1201,8 @@ public class JournalArticleLocalServiceTest {
 
 	@Test
 	public void testDeleteDDMStructurePredefinedValues() throws Exception {
-		Tuple tuple = _createJournalArticleWithPredefinedValues("Test Article");
+		Tuple tuple = _createJournalArticleWithPredefinedValues(
+			_group.getGroupId());
 
 		JournalArticle journalArticle = (JournalArticle)tuple.getObject(0);
 		DDMStructure ddmStructure = (DDMStructure)tuple.getObject(1);
@@ -1638,6 +1644,54 @@ public class JournalArticleLocalServiceTest {
 	}
 
 	@Test
+	public void testGetArticleDisplayWithContentFromDepotEntryWithDDMTemplate()
+		throws Exception {
+
+		DepotEntry depotEntry = _depotEntryLocalService.addDepotEntry(
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()
+			).build(),
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()
+			).build(),
+			DepotConstants.TYPE_ASSET_LIBRARY,
+			ServiceContextTestUtil.getServiceContext());
+
+		DepotEntryGroupRel depotEntryGroupRel =
+			_depotEntryGroupRelLocalService.addDepotEntryGroupRel(
+				depotEntry.getDepotEntryId(), _group.getGroupId());
+
+		_depotEntryGroupRelLocalService.updateDDMStructuresAvailable(
+			depotEntryGroupRel.getDepotEntryGroupRelId(), true);
+
+		Tuple tuple = _createJournalArticleWithPredefinedValues(
+			depotEntry.getGroupId());
+
+		JournalArticle journalArticle = (JournalArticle)tuple.getObject(0);
+
+		DDMStructure ddmStructure = (DDMStructure)tuple.getObject(1);
+
+		String ddmTemplateScript = RandomTestUtil.randomString();
+
+		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
+			_group.getGroupId(), ddmStructure.getStructureId(),
+			PortalUtil.getClassNameId(JournalArticle.class),
+			TemplateConstants.LANG_TYPE_VM, ddmTemplateScript,
+			LocaleUtil.getSiteDefault());
+
+		String defaultLanguageId = LocaleUtil.toLanguageId(
+			LocaleUtil.getSiteDefault());
+
+		JournalArticleDisplay journalArticleDisplay =
+			_journalArticleLocalService.getArticleDisplay(
+				journalArticle, ddmTemplate.getTemplateKey(), Constants.VIEW,
+				defaultLanguageId, 1, null, _themeDisplay);
+
+		Assert.assertEquals(
+			ddmTemplateScript, journalArticleDisplay.getContent());
+	}
+
+	@Test
 	public void testGetArticleDisplayWithContentFromGlobalSite()
 		throws Exception {
 
@@ -1650,16 +1704,20 @@ public class JournalArticleLocalServiceTest {
 
 		DDMStructure ddmStructure = journalArticle.getDDMStructure();
 
+		String ddmTemplateScript1 = RandomTestUtil.randomString();
+
 		DDMTemplate ddmTemplate1 = DDMTemplateTestUtil.addTemplate(
 			company.getGroupId(), ddmStructure.getStructureId(),
 			PortalUtil.getClassNameId(JournalArticle.class),
-			TemplateConstants.LANG_TYPE_VM, "ddm template 1",
+			TemplateConstants.LANG_TYPE_VM, ddmTemplateScript1,
 			LocaleUtil.getSiteDefault());
+
+		String ddmTemplateScript2 = RandomTestUtil.randomString();
 
 		DDMTemplate ddmTemplate2 = DDMTemplateTestUtil.addTemplate(
 			company.getGroupId(), ddmStructure.getStructureId(),
 			PortalUtil.getClassNameId(JournalArticle.class),
-			TemplateConstants.LANG_TYPE_VM, "ddm template 2",
+			TemplateConstants.LANG_TYPE_VM, ddmTemplateScript2,
 			LocaleUtil.getSiteDefault());
 
 		String defaultLanguageId = LocaleUtil.toLanguageId(
@@ -1671,14 +1729,21 @@ public class JournalArticleLocalServiceTest {
 				defaultLanguageId, 1, null, _themeDisplay);
 
 		Assert.assertEquals(
-			"ddm template 1", journalArticleDisplay.getContent());
+			ddmTemplateScript1, journalArticleDisplay.getContent());
 
 		journalArticleDisplay = _journalArticleLocalService.getArticleDisplay(
 			journalArticle, ddmTemplate2.getTemplateKey(), Constants.VIEW,
 			defaultLanguageId, 1, null, _themeDisplay);
 
 		Assert.assertEquals(
-			"ddm template 2", journalArticleDisplay.getContent());
+			ddmTemplateScript2, journalArticleDisplay.getContent());
+
+		journalArticleDisplay = _journalArticleLocalService.getArticleDisplay(
+			journalArticle, ddmTemplate2.getTemplateKey(), Constants.VIEW,
+			defaultLanguageId, 1, null, null);
+
+		Assert.assertEquals(
+			ddmTemplateScript2, journalArticleDisplay.getContent());
 	}
 
 	@Test
@@ -2308,7 +2373,8 @@ public class JournalArticleLocalServiceTest {
 
 	@Test
 	public void testUpdateDDMStructurePredefinedValues() throws Exception {
-		Tuple tuple = _createJournalArticleWithPredefinedValues("Test Article");
+		Tuple tuple = _createJournalArticleWithPredefinedValues(
+			_group.getGroupId());
 
 		JournalArticle journalArticle = (JournalArticle)tuple.getObject(0);
 		DDMStructure ddmStructure = (DDMStructure)tuple.getObject(1);
@@ -2439,7 +2505,7 @@ public class JournalArticleLocalServiceTest {
 		Assert.assertEquals(assetTagId, assetTag.getTagId());
 	}
 
-	private Tuple _createJournalArticleWithPredefinedValues(String title)
+	private Tuple _createJournalArticleWithPredefinedValues(long groupId)
 		throws Exception {
 
 		Set<Locale> availableLocales = DDMFormTestUtil.createAvailableLocales(
@@ -2464,10 +2530,10 @@ public class JournalArticleLocalServiceTest {
 		ddmForm.addDDMFormField(ddmFormField);
 
 		DDMStructure ddmStructure = DDMStructureTestUtil.addStructure(
-			_group.getGroupId(), JournalArticle.class.getName(), ddmForm);
+			groupId, JournalArticle.class.getName(), ddmForm);
 
 		DDMTemplate ddmTemplate = DDMTemplateTestUtil.addTemplate(
-			_group.getGroupId(), ddmStructure.getStructureId(),
+			groupId, ddmStructure.getStructureId(),
 			PortalUtil.getClassNameId(JournalArticle.class),
 			TemplateConstants.LANG_TYPE_FTL,
 			JournalTestUtil.getSampleTemplateFTL(), LocaleUtil.US);
@@ -2485,7 +2551,7 @@ public class JournalArticleLocalServiceTest {
 			LocaleUtil.US.toString());
 
 		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(_group.getGroupId());
+			ServiceContextTestUtil.getServiceContext(groupId);
 
 		JournalArticle journalArticle =
 			_journalArticleLocalService.addArticleDefaultValues(
@@ -2493,7 +2559,7 @@ public class JournalArticleLocalServiceTest {
 				_classNameLocalService.getClassNameId(DDMStructure.class),
 				ddmStructure.getStructureId(),
 				HashMapBuilder.put(
-					LocaleUtil.US, title
+					LocaleUtil.US, RandomTestUtil.randomString()
 				).build(),
 				null, content, ddmStructure.getStructureId(),
 				ddmTemplate.getTemplateKey(), null, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -2801,6 +2867,12 @@ public class JournalArticleLocalServiceTest {
 
 	@Inject
 	private DDMTemplateLinkLocalService _ddmTemplateLinkLocalService;
+
+	@Inject
+	private DepotEntryGroupRelLocalService _depotEntryGroupRelLocalService;
+
+	@Inject
+	private DepotEntryLocalService _depotEntryLocalService;
 
 	@Inject
 	private DLAppLocalService _dlAppLocalService;

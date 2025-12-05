@@ -30,7 +30,6 @@ import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.Node;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
 import com.liferay.portal.kernel.xml.UnsecureSAXReaderUtil;
-import com.liferay.portal.kernel.zip.ZipFileUtil;
 import com.liferay.portal.security.xml.SecureXMLFactoryProviderImpl;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.util.FastDateFormatFactoryImpl;
@@ -373,39 +372,33 @@ public class WabProcessorTest {
 
 				Assert.assertFalse(filter.matchMap(arguments));
 			}
-		}
-	}
 
-	@Test
-	public void testLiferayConfigurationPolicyBundleHeaderExists()
-		throws Exception {
+			// Make sure other CDI requirements were not added
 
-		File file = ZipFileUtil.toZipFile(
-			WabProcessorTest.class, "dependencies/cx.zip/");
+			// The EL extension
 
-		WabProcessor wabProcessor = new TestWabProcessor(
-			file,
-			HashMapBuilder.put(
-				Constants.BUNDLE_SYMBOLICNAME, new String[] {"cx"}
-			).put(
-				Constants.BUNDLE_VERSION, new String[] {"7.4.13"}
-			).put(
-				"fileExtension", new String[] {"zip"}
-			).put(
-				"Web-ContextPath", new String[] {"/cx"}
-			).build());
+			Assert.assertNull(
+				_findRequirement(
+					requirements, "osgi.cdi.extension",
+					Collections.singletonMap(
+						"osgi.cdi.extension", "aries.cdi.el.jsp")));
 
-		File processedFile = wabProcessor.getProcessedFile();
+			// The HTTP extension
 
-		Assert.assertNotNull(processedFile);
+			Assert.assertNull(
+				_findRequirement(
+					requirements, "osgi.cdi.extension",
+					Collections.singletonMap(
+						"osgi.cdi.extension", "aries.cdi.http")));
 
-		try (Jar jar = new Jar(processedFile)) {
-			Manifest manifest = jar.getManifest();
+			// The Liferay bean portlet extension
 
-			Attributes attributes = manifest.getMainAttributes();
-
-			Assert.assertEquals(
-				"always", attributes.getValue("Liferay-Configurator-Policy"));
+			Assert.assertNull(
+				_findRequirement(
+					requirements, "osgi.cdi.extension",
+					Collections.singletonMap(
+						"osgi.cdi.extension",
+						"com.liferay.bean.portlet.cdi.extension")));
 		}
 	}
 
@@ -450,8 +443,8 @@ public class WabProcessorTest {
 
 			// Now that we've established CDI discovery would kick
 			// in, check to see if the WAB opted-out of integration by
-			// having the "-cdiannotations" instruction set to the empty
-			// value in liferay-plugin-package.properties.
+			// not having the "-cdiannotations" instruction set in
+			// liferay-plugin-package.properties.
 
 			Resource packageProperties = jar.getResource(
 				"WEB-INF/liferay-plugin-package.properties");

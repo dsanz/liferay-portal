@@ -13,6 +13,7 @@ import {loginTest} from '../../../fixtures/loginTest';
 import {siteSettingsPagesTest} from '../../../fixtures/siteSettingsPagesTest';
 import {UsersAndOrganizationsPage} from '../../../pages/users-admin-web/UsersAndOrganizationsPage';
 import getRandomString from '../../../utils/getRandomString';
+import {waitForAlert} from '../../../utils/waitForAlert';
 
 export const test = mergeTests(
 	accessibilityMenuPagesTest,
@@ -21,6 +22,110 @@ export const test = mergeTests(
 	loginTest(),
 	siteSettingsPagesTest
 );
+
+test('Asserts that a user can manage factory configurations', async ({
+	instanceSettingsPage,
+	page,
+}) => {
+	const providerNames = [getRandomString(), getRandomString()];
+
+	await test.step('Add factory configurations', async () => {
+		await instanceSettingsPage.goToInstanceSetting(
+			'SSO',
+			'OpenID Connect Provider Connection'
+		);
+
+		for (const providerName of providerNames) {
+			await page.getByRole('link', {name: 'Add'}).click();
+
+			await page.getByLabel('Provider Name').fill(providerName);
+
+			await page
+				.getByLabel('OpenID Connect Client ID')
+				.fill(getRandomString());
+
+			await page
+				.getByLabel('OpenID Connect Client Secret')
+				.fill(getRandomString());
+
+			await instanceSettingsPage.saveAndWaitForAlert({
+				autoClose: true,
+				type: 'success',
+			});
+		}
+	});
+
+	await test.step('Assert that the factory configurations were created successfully', async () => {
+		for (const providerName of providerNames) {
+			await expect(page.getByText(providerName)).toBeVisible();
+		}
+	});
+
+	await test.step('Assert that a single factory configuration can be exported', async () => {
+		const downloadPromise = page.waitForEvent('download');
+
+		await instanceSettingsPage.exportFactoryEntry(providerNames[0]);
+
+		const download = await downloadPromise;
+
+		expect(download.suggestedFilename()).toEqual(
+			expect.stringMatching(
+				'com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration.scoped~(.*).config'
+			)
+		);
+
+		const path = await download.path();
+
+		const fileContent = await readFile(path, 'utf-8');
+
+		expect(fileContent).toContain(providerNames[0]);
+	});
+
+	await test.step('Assert that multiple factory configuration entries can be exported', async () => {
+		const downloadPromise = page.waitForEvent('download');
+
+		await instanceSettingsPage.exportFactoryEntries();
+
+		const download = await downloadPromise;
+
+		expect(download.suggestedFilename()).toEqual(
+			expect.stringMatching(
+				'com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration.zip'
+			)
+		);
+	});
+
+	await test.step('Assert that factory configurations can be edited', async () => {
+		await instanceSettingsPage.editFactoryEntry(providerNames[0]);
+
+		const newProviderName = getRandomString();
+
+		await page.getByLabel('Provider Name').fill(newProviderName);
+
+		await instanceSettingsPage.saveAndWaitForAlert({
+			autoClose: true,
+			type: 'success',
+		});
+
+		expect(
+			page.locator(`tbody tr:has-text("${providerNames[0]}")`)
+		).toBeHidden();
+
+		providerNames[0] = newProviderName;
+
+		expect(
+			page.locator(`tbody tr:has-text("${newProviderName}")`)
+		).toBeVisible();
+	});
+
+	await test.step('Assert that factory configurations can be deleted', async () => {
+		for (const providerName of providerNames) {
+			await instanceSettingsPage.deleteFactoryEntry(providerName);
+
+			await waitForAlert(page);
+		}
+	});
+});
 
 test('Asserts that a user can export a configuration', async ({
 	instanceSettingsPage,

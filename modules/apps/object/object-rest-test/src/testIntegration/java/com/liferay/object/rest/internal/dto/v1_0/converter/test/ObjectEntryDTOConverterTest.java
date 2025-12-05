@@ -11,10 +11,12 @@ import com.liferay.list.type.model.ListTypeDefinition;
 import com.liferay.list.type.service.ListTypeDefinitionLocalService;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
+import com.liferay.object.field.builder.MultiselectPicklistObjectFieldBuilder;
 import com.liferay.object.field.builder.PicklistObjectFieldBuilder;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.rest.dto.v1_0.ListEntry;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
+import com.liferay.object.rest.dto.v1_0.SystemProperties;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectEntryVersionLocalService;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
@@ -30,17 +32,20 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
+import com.liferay.portal.vulcan.scope.Scope;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import java.io.Serializable;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -62,7 +67,9 @@ public class ObjectEntryDTOConverterTest {
 			new LiferayIntegrationTestRule(),
 			PermissionCheckerMethodTestRule.INSTANCE);
 
-	@FeatureFlag("LPD-17564")
+	@FeatureFlags(
+		featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-32050")}
+	)
 	@Test
 	public void testToDTO() throws Exception {
 		ListTypeDefinition listTypeDefinition =
@@ -77,6 +84,15 @@ public class ObjectEntryDTOConverterTest {
 		_objectDefinition = ObjectDefinitionTestUtil.publishObjectDefinition(
 			false, false, true,
 			ListUtil.fromArray(
+				new MultiselectPicklistObjectFieldBuilder(
+				).labelMap(
+					LocalizedMapUtil.getLocalizedMap(
+						RandomTestUtil.randomString())
+				).listTypeDefinitionId(
+					listTypeDefinition.getListTypeDefinitionId()
+				).name(
+					"multiselectPicklist"
+				).build(),
 				new PicklistObjectFieldBuilder(
 				).labelMap(
 					LocalizedMapUtil.getLocalizedMap(
@@ -96,6 +112,9 @@ public class ObjectEntryDTOConverterTest {
 					PARENT_OBJECT_ENTRY_FOLDER_ID_DEFAULT,
 				null,
 				HashMapBuilder.<String, Serializable>put(
+					"multiselectPicklist",
+					"listTypeEntryKey1, listTypeEntryKey2"
+				).put(
 					"picklist", "listTypeEntryKey1"
 				).build(),
 				ServiceContextTestUtil.getServiceContext(
@@ -104,6 +123,21 @@ public class ObjectEntryDTOConverterTest {
 		ObjectEntry objectEntry = _toDTO(serviceBuilderObjectEntry);
 
 		Map<String, Object> properties = objectEntry.getProperties();
+
+		List<ListEntry> listEntries = (List<ListEntry>)properties.get(
+			"multiselectPicklist");
+
+		Assert.assertEquals(listEntries.toString(), 2, listEntries.size());
+		Assert.assertEquals(
+			"listTypeEntryKey1",
+			listEntries.get(
+				0
+			).getKey());
+		Assert.assertEquals(
+			"listTypeEntryKey2",
+			listEntries.get(
+				1
+			).getKey());
 
 		ListEntry listEntry = (ListEntry)properties.get("picklist");
 
@@ -115,6 +149,14 @@ public class ObjectEntryDTOConverterTest {
 		Assert.assertEquals(
 			group.getGroupId(), GetterUtil.getLong(objectEntry.getScopeId()));
 		Assert.assertEquals(group.getGroupKey(), objectEntry.getScopeKey());
+
+		SystemProperties systemProperties = objectEntry.getSystemProperties();
+
+		Scope scope = systemProperties.getScope();
+
+		Assert.assertEquals(
+			group.getExternalReferenceCode(), scope.getExternalReferenceCode());
+		Assert.assertEquals(Scope.Type.SITE, scope.getType());
 	}
 
 	private ObjectEntry _toDTO(

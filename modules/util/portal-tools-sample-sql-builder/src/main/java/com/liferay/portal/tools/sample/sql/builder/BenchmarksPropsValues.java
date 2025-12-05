@@ -227,6 +227,11 @@ public class BenchmarksPropsValues {
 	public static final int MAX_OBJECT_ENTRY_PAGE_COUNT = GetterUtil.getInteger(
 		PropertiesHolder._get(BenchmarksPropsKeys.MAX_OBJECT_ENTRY_PAGE_COUNT));
 
+	public static final int MAX_RELATED_OBJECT_ENTRY_COUNT =
+		GetterUtil.getInteger(
+			PropertiesHolder._get(
+				BenchmarksPropsKeys.MAX_RELATED_OBJECT_ENTRY_COUNT));
+
 	public static final int MAX_SEGMENTS_ENTRY_COUNT = GetterUtil.getInteger(
 		PropertiesHolder._get(BenchmarksPropsKeys.MAX_SEGMENTS_ENTRY_COUNT));
 
@@ -238,6 +243,11 @@ public class BenchmarksPropsValues {
 
 	public static final int MAX_USER_TO_GROUP_COUNT = GetterUtil.getInteger(
 		PropertiesHolder._get(BenchmarksPropsKeys.MAX_USER_TO_GROUP_COUNT));
+
+	public static final String[] OBJECT_LAYOUT_DATA_ITEM_TYPES =
+		StringUtil.split(
+			PropertiesHolder._get(
+				BenchmarksPropsKeys.OBJECT_LAYOUT_DATA_ITEM_TYPES));
 
 	public static final int OPTIMIZE_BUFFER_SIZE = GetterUtil.getInteger(
 		PropertiesHolder._get(BenchmarksPropsKeys.OPTIMIZE_BUFFER_SIZE));

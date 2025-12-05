@@ -9,14 +9,11 @@ import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.model.DepotEntryPin;
 import com.liferay.depot.service.DepotEntryPinLocalService;
+import com.liferay.exportimport.constants.ExportImportPortletKeys;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
-import com.liferay.object.constants.ObjectEntryFolderConstants;
-import com.liferay.object.model.ObjectDefinition;
-import com.liferay.object.model.ObjectEntryFolder;
-import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -44,6 +41,7 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.site.cms.site.initializer.internal.util.ActionUtil;
+import com.liferay.site.cms.site.initializer.internal.util.PermissionUtil;
 
 import jakarta.portlet.ActionRequest;
 
@@ -80,7 +78,8 @@ public class ViewAllSpacesDisplayContext {
 			"baseSpaceURL", ActionUtil.getBaseSpaceURL(_themeDisplay)
 		).put(
 			"defaultPermissionAdditionalProps",
-			_getDefaultPermissionAdditionalProps()
+			PermissionUtil.getDefaultPermissionAdditionalProps(
+				_httpServletRequest, _themeDisplay)
 		).put(
 			"pinnedAssetLibraryIds",
 			TransformUtil.transformToArray(
@@ -115,10 +114,6 @@ public class ViewAllSpacesDisplayContext {
 	public List<DropdownItem> getBulkActionDropdownItems() {
 		return ListUtil.fromArray(
 			new FDSActionDropdownItem(
-				"#", "document", "sampleBulkAction",
-				LanguageUtil.get(_httpServletRequest, "label"), null, null,
-				null),
-			new FDSActionDropdownItem(
 				StringPool.BLANK, "password-policies", "permissions",
 				LanguageUtil.get(_httpServletRequest, "permissions"), null,
 				null, null),
@@ -131,10 +126,7 @@ public class ViewAllSpacesDisplayContext {
 	public CreationMenu getCreationMenu() {
 		return CreationMenuBuilder.addPrimaryDropdownItem(
 			dropdownItem -> {
-				dropdownItem.setHref(
-					StringBundler.concat(
-						_themeDisplay.getPathFriendlyURLPublic(),
-						GroupConstants.CMS_FRIENDLY_URL, "/new-space"));
+				dropdownItem.setHref(_getNewSpaceCreationURL());
 				dropdownItem.setIcon("forms");
 				dropdownItem.setLabel(
 					_language.get(_httpServletRequest, "add-space"));
@@ -154,7 +146,9 @@ public class ViewAllSpacesDisplayContext {
 		).build();
 	}
 
-	public List<FDSActionDropdownItem> getFDSActionDropdownItems() {
+	public List<FDSActionDropdownItem> getFDSActionDropdownItems()
+		throws Exception {
+
 		return ListUtil.fromArray(
 			new FDSActionDropdownItem(
 				"#", "pin", "pin",
@@ -171,6 +165,18 @@ public class ViewAllSpacesDisplayContext {
 					"{id}?redirect=", _themeDisplay.getURLCurrent()),
 				"cog", "edit",
 				LanguageUtil.get(_httpServletRequest, "space-settings"), "get",
+				"update", null),
+			new FDSActionDropdownItem(
+				ActionUtil.getControlPanelPortletURL(
+					_themeDisplay, ExportImportPortletKeys.EXPORT),
+				"export", "export",
+				LanguageUtil.get(_httpServletRequest, "export"), "get",
+				"update", null),
+			new FDSActionDropdownItem(
+				ActionUtil.getControlPanelPortletURL(
+					_themeDisplay, ExportImportPortletKeys.IMPORT),
+				"import", "import",
+				LanguageUtil.get(_httpServletRequest, "import"), "get",
 				"update", null),
 			new FDSActionDropdownItem(
 				null, "users", "view-members",
@@ -218,6 +224,13 @@ public class ViewAllSpacesDisplayContext {
 				LanguageUtil.get(_httpServletRequest, "default-permissions"),
 				null, "permissions", null),
 			new FDSActionDropdownItem(
+				StringPool.BLANK, "password-policies",
+				"edit-and-propagate-default-permissions",
+				LanguageUtil.get(
+					_httpServletRequest,
+					"edit-and-propagate-default-permissions"),
+				null, "permissions", null),
+			new FDSActionDropdownItem(
 				"{actions.delete.href}", "trash", "delete",
 				_language.get(_httpServletRequest, "delete"), "delete",
 				"delete", null));
@@ -236,112 +249,6 @@ public class ViewAllSpacesDisplayContext {
 			));
 	}
 
-	private Map<String, Object> _getDefaultPermissionAdditionalProps() {
-		return HashMapBuilder.<String, Object>put(
-			"actions",
-			() -> HashMapBuilder.put(
-				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS,
-				() -> {
-					ObjectDefinition objectDefinition =
-						ObjectDefinitionLocalServiceUtil.
-							getObjectDefinitionByExternalReferenceCode(
-								"L_BASIC_WEB_CONTENT",
-								_themeDisplay.getCompanyId());
-
-					List<String> guestUnsupportedActions =
-						ResourceActionsUtil.getResourceGuestUnsupportedActions(
-							null, objectDefinition.getClassName());
-
-					return TransformUtil.transformToArray(
-						ResourceActionsUtil.getResourceActions(
-							objectDefinition.getClassName()),
-						resourceAction -> HashMapBuilder.<String, Object>put(
-							"guestUnsupported",
-							guestUnsupportedActions.contains(resourceAction)
-						).put(
-							"key", resourceAction
-						).put(
-							"label",
-							ResourceActionsUtil.getAction(
-								_httpServletRequest, resourceAction)
-						).build(),
-						Map.class);
-				}
-			).put(
-				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES,
-				() -> {
-					ObjectDefinition objectDefinition =
-						ObjectDefinitionLocalServiceUtil.
-							getObjectDefinitionByExternalReferenceCode(
-								"L_BASIC_DOCUMENT",
-								_themeDisplay.getCompanyId());
-
-					List<String> guestUnsupportedActions =
-						ResourceActionsUtil.getResourceGuestUnsupportedActions(
-							null, objectDefinition.getClassName());
-
-					return TransformUtil.transformToArray(
-						ResourceActionsUtil.getResourceActions(
-							objectDefinition.getClassName()),
-						resourceAction -> HashMapBuilder.<String, Object>put(
-							"guestUnsupported",
-							guestUnsupportedActions.contains(resourceAction)
-						).put(
-							"key", resourceAction
-						).put(
-							"label",
-							ResourceActionsUtil.getAction(
-								_httpServletRequest, resourceAction)
-						).build(),
-						Map.class);
-				}
-			).put(
-				"OBJECT_ENTRY_FOLDERS",
-				() -> {
-					List<String> guestUnsupportedActions =
-						ResourceActionsUtil.getResourceGuestUnsupportedActions(
-							null, ObjectEntryFolder.class.getName());
-
-					return TransformUtil.transformToArray(
-						ResourceActionsUtil.getResourceActions(
-							ObjectEntryFolder.class.getName()),
-						resourceAction -> HashMapBuilder.<String, Object>put(
-							"guestUnsupported",
-							guestUnsupportedActions.contains(resourceAction)
-						).put(
-							"key", resourceAction
-						).put(
-							"label",
-							ResourceActionsUtil.getAction(
-								_httpServletRequest, resourceAction)
-						).build(),
-						Map.class);
-				}
-			).build()
-		).put(
-			"roles",
-			() -> TransformUtil.transformToArray(
-				RoleLocalServiceUtil.getGroupRolesAndTeamRoles(
-					_themeDisplay.getCompanyId(), null,
-					Arrays.asList(
-						RoleConstants.ADMINISTRATOR,
-						DepotRolesConstants.ASSET_LIBRARY_OWNER),
-					null, null,
-					new int[] {
-						RoleConstants.TYPE_REGULAR, RoleConstants.TYPE_DEPOT
-					},
-					0, 0, QueryUtil.ALL_POS, QueryUtil.ALL_POS),
-				role -> HashMapBuilder.put(
-					"key", role.getName()
-				).put(
-					"name", role.getTitle(_themeDisplay.getLocale())
-				).put(
-					"type", String.valueOf(role.getType())
-				).build(),
-				Map.class)
-		).build();
-	}
-
 	private String _getLayoutName() {
 		Layout layout = _themeDisplay.getLayout();
 
@@ -350,6 +257,13 @@ public class ViewAllSpacesDisplayContext {
 		}
 
 		return layout.getName(_themeDisplay.getLocale(), true);
+	}
+
+	private String _getNewSpaceCreationURL() {
+		return StringBundler.concat(
+			_themeDisplay.getPathFriendlyURLPublic(),
+			GroupConstants.CMS_FRIENDLY_URL, "/new-space?backURL=",
+			_themeDisplay.getURLCurrent());
 	}
 
 	private Map<String, Object> _getSpacePermissionAdditionalProps() {

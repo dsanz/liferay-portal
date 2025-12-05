@@ -116,8 +116,8 @@ public class LayoutGetFaviconURLTest {
 			_layout.getGroupId(), _layout.isPrivateLayout(),
 			_layout.getLayoutId(), _layout.getTypeSettings(), null,
 			_layout.getThemeId(), _layout.getColorSchemeId(),
-			_layout.getStyleBookEntryId(), _layout.getCss(), 0,
-			_layout.getMasterLayoutPlid());
+			_layout.getStyleBookEntryERC(), _layout.getCss(), 0,
+			_layout.getMasterLayoutPageTemplateEntryERC());
 
 		Layout layout = _layoutLocalService.fetchLayout(_layout.getPlid());
 
@@ -207,7 +207,8 @@ public class LayoutGetFaviconURLTest {
 
 		_layoutLocalService.updateLayout(masterLayout);
 
-		_layout.setMasterLayoutPlid(masterLayoutPageTemplateEntry.getPlid());
+		_layout.setMasterLayoutPageTemplateEntryERC(
+			masterLayoutPageTemplateEntry.getExternalReferenceCode());
 
 		byte[] layoutFaviconBytes = _getExpectedBytes("dxp_logo.png");
 

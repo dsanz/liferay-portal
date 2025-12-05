@@ -42,10 +42,10 @@ export class StructureBuilderPage {
 	private readonly customizeExperienceButton: Locator;
 	private readonly labelInput: Locator;
 	private readonly nameInput: Locator;
-	private readonly spaceCheckbox: Locator;
 
 	readonly publishButton: Locator;
 	readonly saveButton: Locator;
+	readonly spaceCheckbox: Locator;
 	readonly spaceSelector: Locator;
 
 	constructor(page: Page, dataApiHelpers: DataApiHelpers) {
@@ -61,17 +61,17 @@ export class StructureBuilderPage {
 		this.nameInput = this.page.getByLabel('Content Structure Name');
 		this.publishButton = this.page.getByRole('button', {name: 'Publish'});
 		this.saveButton = this.page.getByRole('button', {name: 'Save'});
-		this.spaceCheckbox = this.page.getByRole('checkbox', {
-			name: 'Make this content structure available in all spaces',
-		});
+		this.spaceCheckbox = this.page.getByLabel(
+			'Make this content structure'
+		);
 		this.spaceSelector = this.page.getByLabel('Spaces', {exact: true});
 	}
 
-	private async goto(props: {erc: string} | {type: StructureType}) {
+	private async goto(props: {id: number} | {type: StructureType}) {
 		let url = PORTLET_URLS.cmsStructureBuilder;
 
-		if ('erc' in props) {
-			url = url + `?objectDefinitionExternalReferenceCode=${props.erc}`;
+		if ('id' in props) {
+			url = url + `?objectDefinitionId=${props.id}`;
 		}
 		else if ('type' in props) {
 			const folderERC =
@@ -229,10 +229,12 @@ export class StructureBuilderPage {
 			await this.page.getByLabel('Localizable').click();
 		}
 
-		const mandatoryToggle = this.page.getByLabel('Mandatory');
+		const mandatoryToggle = this.page.getByRole('checkbox', {
+			name: 'Mandatory',
+		});
 
 		if (mandatory !== undefined && !(await mandatoryToggle.isChecked())) {
-			await this.page.getByLabel('Mandatory').click();
+			await mandatoryToggle.click();
 		}
 
 		if (requestFile !== undefined) {
@@ -348,11 +350,13 @@ export class StructureBuilderPage {
 			name,
 		});
 
-		await page.saveStructure();
+		const id = await page.saveStructure();
 
 		if (publish) {
 			await page.publishStructure();
 		}
+
+		return id;
 	}
 
 	async customizeExperience() {
@@ -408,11 +412,18 @@ export class StructureBuilderPage {
 		}
 	}
 
-	async editStructure(erc: string) {
-		await this.goto({erc});
+	async editStructure(id: number) {
+		await this.goto({id});
 	}
 
 	async enableForAllSpaces() {
+		if (
+			(await this.spaceCheckbox.isChecked()) &&
+			this.spaceSelector.isDisabled()
+		) {
+			return;
+		}
+
 		await expect(async () => {
 			await this.page
 				.getByText('Content Structure Fields')
@@ -490,6 +501,8 @@ export class StructureBuilderPage {
 			id,
 			type: 'objectDefinition',
 		});
+
+		return id;
 	}
 
 	async selectFields(fields: Field[]) {
@@ -538,6 +551,22 @@ export class StructureBuilderPage {
 				).toBeVisible();
 			}).toPass();
 		}
+	}
+
+	async selectStructure() {
+		const treeItem = this.page.getByRole('treeitem').first();
+
+		await expect(async () => {
+			await treeItem.click({
+				timeout: 500,
+			});
+
+			await expect(treeItem).toHaveClass(/active/, {timeout: 500});
+
+			await expect(
+				this.page.getByLabel('Content Structure Name')
+			).toBeVisible();
+		}).toPass();
 	}
 
 	async setWorkflows(workflows: {space: string; workflow: string}[]) {

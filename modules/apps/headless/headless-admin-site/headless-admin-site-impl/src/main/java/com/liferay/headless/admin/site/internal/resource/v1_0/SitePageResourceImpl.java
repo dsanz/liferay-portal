@@ -10,16 +10,17 @@ import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.service.DLFileEntryService;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.vulcan.batch.engine.ExportImportVulcanBatchEngineTaskItemDelegate;
+import com.liferay.fragment.processor.FragmentEntryProcessorRegistry;
 import com.liferay.headless.admin.site.dto.v1_0.ContentPageSettings;
 import com.liferay.headless.admin.site.dto.v1_0.ContentPageSpecification;
 import com.liferay.headless.admin.site.dto.v1_0.CustomMetaTag;
 import com.liferay.headless.admin.site.dto.v1_0.ItemExternalReference;
-import com.liferay.headless.admin.site.dto.v1_0.NavigationSettings;
 import com.liferay.headless.admin.site.dto.v1_0.OpenGraphSettings;
 import com.liferay.headless.admin.site.dto.v1_0.PageSettings;
 import com.liferay.headless.admin.site.dto.v1_0.PageSpecification;
 import com.liferay.headless.admin.site.dto.v1_0.SEOSettings;
 import com.liferay.headless.admin.site.dto.v1_0.SitePage;
+import com.liferay.headless.admin.site.dto.v1_0.SitePageNavigationSettings;
 import com.liferay.headless.admin.site.dto.v1_0.SitemapSettings;
 import com.liferay.headless.admin.site.dto.v1_0.WidgetPageSettings;
 import com.liferay.headless.admin.site.internal.dto.v1_0.util.SitePageTypeUtil;
@@ -137,7 +138,12 @@ public class SitePageResourceImpl
 		return new ExportImportDescriptor() {
 
 			@Override
-			public String getItemClassName() {
+			public String getLabelLanguageKey() {
+				return "site-pages";
+			}
+
+			@Override
+			public String getModelClassName() {
 				return Layout.class.getName();
 			}
 
@@ -205,6 +211,11 @@ public class SitePageResourceImpl
 			}
 
 			@Override
+			public String getResourceClassName() {
+				return SitePageResourceImpl.class.getName();
+			}
+
+			@Override
 			public Scope getScope() {
 				return Scope.SITE;
 			}
@@ -246,7 +257,8 @@ public class SitePageResourceImpl
 
 		return (ContentPageSpecification)_pageSpecificationDTOConverter.toDTO(
 			LayoutUtil.addDraftToLayout(
-				_cetManager, contentPageSpecification, _infoItemServiceRegistry,
+				_cetManager, contentPageSpecification,
+				_fragmentEntryProcessorRegistry, _infoItemServiceRegistry,
 				layout,
 				ServiceContextUtil.createServiceContext(
 					layout.getGroupId(), contextHttpServletRequest,
@@ -482,8 +494,8 @@ public class SitePageResourceImpl
 
 		if (Objects.equals(sitePage.getType(), SitePage.Type.CONTENT_PAGE)) {
 			layout = LayoutUtil.addContentLayout(
-				_cetManager, groupId, _infoItemServiceRegistry,
-				sitePage.getPageSpecifications(),
+				_cetManager, _fragmentEntryProcessorRegistry, groupId,
+				_infoItemServiceRegistry, sitePage.getPageSpecifications(),
 				_getParentLayoutId(
 					LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, groupId,
 					sitePage.getParentSitePageExternalReferenceCode(),
@@ -536,7 +548,7 @@ public class SitePageResourceImpl
 
 		long groupId = serviceContext.getScopeGroupId();
 
-		com.liferay.headless.admin.site.dto.v1_0.Scope scope =
+		com.liferay.portal.vulcan.scope.Scope scope =
 			itemExternalReference.getScope();
 
 		if (scope != null) {
@@ -597,18 +609,21 @@ public class SitePageResourceImpl
 			throw new UnsupportedOperationException();
 		}
 
+		String queryString = StringPool.BLANK;
 		String target = StringPool.BLANK;
 		String targetTypeString = StringPool.BLANK;
-		NavigationSettings navigationSettings =
+
+		SitePageNavigationSettings sitePageNavigationSettings =
 			pageSettings.getNavigationSettings();
 
-		if (navigationSettings != null) {
-			target = navigationSettings.getTarget();
+		if (sitePageNavigationSettings != null) {
+			queryString = GetterUtil.getString(
+				sitePageNavigationSettings.getQueryString());
+			target = sitePageNavigationSettings.getTarget();
 
-			NavigationSettings.TargetType targetType =
-				navigationSettings.getTargetType();
+			if (sitePageNavigationSettings.getTargetType() ==
+					SitePageNavigationSettings.TargetType.NEW_TAB) {
 
-			if (targetType == NavigationSettings.TargetType.NEW_TAB) {
 				targetTypeString = "useNewTab";
 			}
 		}
@@ -649,8 +664,7 @@ public class SitePageResourceImpl
 			unicodePropertiesWrapper = UnicodePropertiesBuilder.create(
 				true
 			).setProperty(
-				LayoutTypePortletConstants.QUERY_STRING,
-				GetterUtil.getString(pageSettings.getQueryString())
+				LayoutTypePortletConstants.QUERY_STRING, queryString
 			).setProperty(
 				LayoutTypePortletConstants.SITEMAP_CHANGEFREQ,
 				StringUtil.toLowerCase(changeFrequency.getValue())
@@ -780,9 +794,10 @@ public class SitePageResourceImpl
 
 		if (Objects.equals(sitePage.getType(), SitePage.Type.CONTENT_PAGE)) {
 			layout = LayoutUtil.updateContentLayout(
-				_cetManager, _infoItemServiceRegistry, layout, nameMap,
-				titleMap, descriptionMap, keywordsMap, robotsMap,
-				friendlyURLMap, _getTypeSettingsUnicodeProperties(sitePage),
+				_cetManager, _fragmentEntryProcessorRegistry,
+				_infoItemServiceRegistry, layout, nameMap, titleMap,
+				descriptionMap, keywordsMap, robotsMap, friendlyURLMap,
+				_getTypeSettingsUnicodeProperties(sitePage),
 				sitePage.getPageSpecifications(), serviceContext);
 		}
 		else {
@@ -984,6 +999,9 @@ public class SitePageResourceImpl
 
 	@Reference
 	private DTOConverterRegistry _dtoConverterRegistry;
+
+	@Reference
+	private FragmentEntryProcessorRegistry _fragmentEntryProcessorRegistry;
 
 	@Reference
 	private InfoItemServiceRegistry _infoItemServiceRegistry;

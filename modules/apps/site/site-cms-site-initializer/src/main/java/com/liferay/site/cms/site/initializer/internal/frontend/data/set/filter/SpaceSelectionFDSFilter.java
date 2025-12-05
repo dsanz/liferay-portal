@@ -15,14 +15,22 @@ import org.osgi.service.component.annotations.Component;
  * @author Pedro Leite
  */
 @Component(
-	property = "frontend.data.set.name=" + CMSSiteInitializerFDSNames.RECYCLE_BIN_SECTION,
+	property = {
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.ALL_SECTION,
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.CATEGORIZATION_SECTION,
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.CONTENTS_SECTION,
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.FILES_SECTION,
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.RECYCLE_BIN_SECTION,
+		"service.ranking:Integer=" + Integer.MAX_VALUE
+	},
 	service = FDSFilter.class
 )
 public class SpaceSelectionFDSFilter extends BaseSelectionFDSFilter {
 
 	@Override
 	public String getAPIURL() {
-		return "/o/headless-asset-library/v1.0/asset-libraries";
+		return "/o/headless-asset-library/v1.0/asset-libraries?filter=type " +
+			"eq 'space'";
 	}
 
 	@Override

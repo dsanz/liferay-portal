@@ -57,7 +57,7 @@ export const test = mergeTests(
 	wikiPagesTest
 );
 
-test('can export and import custom object entries at instance level', async ({
+test('Can export and import custom object entries at instance level', async ({
 	apiHelpers,
 	companyExportImportPage,
 }) => {
@@ -107,7 +107,7 @@ test('can export and import custom object entries at instance level', async ({
 	);
 });
 
-test('can import account restricted entry when account does and does not exist in enviroment', async ({
+test('Can import account restricted entry when account does and does not exist in environment', async ({
 	apiHelpers,
 	companyExportImportPage,
 }) => {
@@ -230,7 +230,7 @@ test('can import account restricted entry when account does and does not exist i
 	});
 });
 
-test('can import custom and system objects entries at instance level using date filter', async ({
+test('Can import custom and system objects entries at instance level using date filter', async ({
 	apiHelpers,
 	companyExportImportPage,
 	page,
@@ -363,7 +363,7 @@ test('can import custom and system objects entries at instance level using date 
 	});
 });
 
-test('can import custom object entries at instance level with or without permissions based on selection', async ({
+test('Can import custom object entries at instance level with or without permissions based on selection', async ({
 	apiHelpers,
 	companyExportImportPage,
 }) => {
@@ -460,7 +460,7 @@ test('can import custom object entries at instance level with or without permiss
 });
 
 test(
-	'can import custom object entries with current user as creator',
+	'Can import custom object entries with current user as creator',
 	{
 		tag: '@LPD-43217',
 	},
@@ -526,10 +526,7 @@ test(
 		await page.locator('[data-testid="fdsCreationActionButton"]').click();
 		await page.getByLabel('textField').fill('testText');
 		await page.getByRole('button', {name: 'Save'}).click();
-		await waitForAlert(
-			page,
-			'Success:Your request completed successfully.'
-		);
+		await waitForAlert(page);
 
 		await applicationsMenuPage.goToObjectDefinition(objectDefinition.name);
 
@@ -560,7 +557,7 @@ test(
 );
 
 test(
-	'can import custom object entries with original creator, and creator user does exist in the current environment',
+	'Can import custom object entries with original creator, and creator user does exist in the current environment',
 	{
 		tag: '@LPD-43217',
 	},
@@ -664,7 +661,7 @@ test(
 );
 
 test(
-	'can import custom object entries with original creator, but creator user does not exist in the current environment',
+	'Can import custom object entries with original creator, but creator user does not exist in the current environment',
 	{
 		tag: '@LPD-43217',
 	},
@@ -764,7 +761,7 @@ test(
 );
 
 test(
-	'can import custom object entry values',
+	'Can import custom object entry values',
 	{
 		tag: '@LPD-66167',
 	},
@@ -849,7 +846,7 @@ test(
 	}
 );
 
-test('can import many to many entries', async ({
+test('Can import many to many entries', async ({
 	apiHelpers,
 	companyExportImportPage,
 }) => {
@@ -1019,7 +1016,7 @@ test('can import many to many entries', async ({
 	});
 });
 
-test('can only import custom object entries when their definitions are already in the system', async ({
+test('Can only import custom object entries when their definitions are already in the system', async ({
 	apiHelpers,
 	companyExportImportPage,
 }) => {
@@ -1051,6 +1048,10 @@ test('can only import custom object entries when their definitions are already i
 			objectDefinitionRequestBody
 		);
 
+	// Ensure cleanup if test execution stops before removing the object definition.
+
+	apiHelpers.data.push({id: objectDefinition.id, type: 'objectDefinition'});
+
 	const objectEntry = await apiHelpers.objectEntry.postObjectEntry(
 		{externalReferenceCode: 'testERC', textField: 'test'},
 		'c/tests'
@@ -1060,7 +1061,7 @@ test('can only import custom object entries when their definitions are already i
 		'Tests 1 Items',
 	]);
 
-	objectActionAPIClient.deleteObjectDefinition(objectDefinition.id);
+	await objectActionAPIClient.deleteObjectDefinition(objectDefinition.id);
 
 	await companyExportImportPage.import(
 		exportFilePath,
@@ -1089,7 +1090,7 @@ test('can only import custom object entries when their definitions are already i
 	);
 });
 
-test('can see corresponding elements at instance level', async ({
+test('Can see corresponding elements at instance level', async ({
 	apiHelpers,
 	companyExportImportPage,
 }) => {
@@ -1248,7 +1249,7 @@ test('Can/not view Import menu item in Application menu depending on permissions
 	).toBeHidden();
 });
 
-test('cannot import a site scoped lar file', async ({
+test('Cannot import a site scoped lar file', async ({
 	companyExportImportPage,
 	exportImportPage,
 }) => {

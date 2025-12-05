@@ -213,9 +213,10 @@ public class LayoutsImporterTest {
 
 			FragmentEntryLink fragmentEntryLink =
 				_fragmentEntryLinkLocalService.addFragmentEntryLink(
-					null, TestPropsValues.getUserId(), _group1.getGroupId(), 0,
-					0, defaultSegmentsExperienceId, draftLayout.getPlid(),
-					StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
+					null, TestPropsValues.getUserId(), _group1.getGroupId(),
+					null, null, null, defaultSegmentsExperienceId,
+					draftLayout.getPlid(), StringPool.BLANK, StringPool.BLANK,
+					StringPool.BLANK,
 					"com.liferay.fragment.renderer.collection.filter." +
 						"internal.CollectionAppliedFiltersFragmentRenderer",
 					JSONUtil.put(
@@ -275,10 +276,10 @@ public class LayoutsImporterTest {
 		Layout draftLayout = layout.fetchDraftLayout();
 
 		ContentLayoutTestUtil.publishLayout(
-			_layoutLocalService.updateMasterLayoutPlid(
+			_layoutLocalService.updateMasterLayoutPageTemplateEntryERC(
 				draftLayout.getGroupId(), draftLayout.isPrivateLayout(),
 				draftLayout.getLayoutId(),
-				masterLayoutPageTemplateEntry.getPlid()),
+				masterLayoutPageTemplateEntry.getExternalReferenceCode()),
 			layout);
 
 		File file = _layoutsExporter.exportLayoutPageTemplateEntries(
@@ -484,8 +485,9 @@ public class LayoutsImporterTest {
 			layoutPageTemplateEntry);
 
 		FragmentEntry fragmentEntry = _addFragmentEntry(
-			_fragmentEntryLocalService.getFragmentEntry(
-				fragmentEntryLink.getFragmentEntryId()),
+			_fragmentEntryLocalService.getFragmentEntryByExternalReferenceCode(
+				fragmentEntryLink.getFragmentEntryERC(),
+				fragmentEntryLink.getFragmentEntryGroupId()),
 			_serviceContext2);
 
 		File file = _layoutsExporter.exportLayoutPageTemplateEntries(
@@ -726,8 +728,8 @@ public class LayoutsImporterTest {
 		StyleBookEntry styleBookEntry = _addStyleBookEntry(
 			_serviceContext1, RandomTestUtil.randomString());
 
-		_updateLayoutStyleBookEntryId(
-			layoutPageTemplateEntry, styleBookEntry.getStyleBookEntryId());
+		_updateLayoutStyleBookEntryERC(
+			layoutPageTemplateEntry, styleBookEntry.getExternalReferenceCode());
 
 		File file = _layoutsExporter.exportLayoutPageTemplateEntries(
 			new long[] {layoutPageTemplateEntry.getLayoutPageTemplateEntryId()},
@@ -766,9 +768,9 @@ public class LayoutsImporterTest {
 
 		_assertFragmentEntryLink(fragmentEntry, curLayoutPageTemplateEntry);
 
-		_assertStyleBookEntryId(
+		_assertStyleBookEntryERC(
 			curLayoutPageTemplateEntry,
-			curStyleBookEntry.getStyleBookEntryId());
+			curStyleBookEntry.getExternalReferenceCode());
 	}
 
 	@Test
@@ -1348,9 +1350,10 @@ public class LayoutsImporterTest {
 					ContentLayoutTestUtil.addFragmentEntryLinkToLayout(
 						null, fragmentEntry.getCss(),
 						fragmentEntry.getConfiguration(),
-						fragmentEntry.getFragmentEntryId(),
-						fragmentEntry.getHtml(), fragmentEntry.getJs(),
-						draftLayout, fragmentEntry.getFragmentEntryKey(),
+						fragmentEntry.getExternalReferenceCode(),
+						fragmentEntry.getScopeERC(), fragmentEntry.getHtml(),
+						fragmentEntry.getJs(), draftLayout,
+						fragmentEntry.getFragmentEntryKey(),
 						_segmentsExperienceLocalService.
 							fetchDefaultSegmentsExperienceId(
 								draftLayout.getPlid()),
@@ -1473,8 +1476,9 @@ public class LayoutsImporterTest {
 
 		FragmentEntryLink fragmentEntryLink =
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
-				null, TestPropsValues.getUserId(), _group1.getGroupId(), 0,
-				fragmentEntry.getFragmentEntryId(), segmentsExperienceId,
+				null, TestPropsValues.getUserId(), _group1.getGroupId(), null,
+				fragmentEntry.getExternalReferenceCode(),
+				fragmentEntry.getScopeERC(), segmentsExperienceId,
 				draftLayout.getPlid(), fragmentEntry.getCss(),
 				fragmentEntry.getHtml(), fragmentEntry.getConfiguration(),
 				fragmentEntry.getConfiguration(), editableValues,
@@ -1505,8 +1509,9 @@ public class LayoutsImporterTest {
 
 		FragmentEntryLink fragmentEntryLink =
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
-				null, TestPropsValues.getUserId(), _group1.getGroupId(), 0,
-				fragmentEntry.getFragmentEntryId(), defaultSegmentsExperienceId,
+				null, TestPropsValues.getUserId(), _group1.getGroupId(), null,
+				fragmentEntry.getExternalReferenceCode(),
+				fragmentEntry.getScopeERC(), defaultSegmentsExperienceId,
 				layoutPageTemplateEntry.getPlid(), StringPool.BLANK, html,
 				StringPool.BLANK,
 				_read("export_import_fragment_field_text_config.json"),
@@ -1657,8 +1662,11 @@ public class LayoutsImporterTest {
 		FragmentEntryLink curFragmentEntryLink = fragmentEntryLinks.get(0);
 
 		Assert.assertEquals(
-			fragmentEntry.getFragmentEntryId(),
-			curFragmentEntryLink.getFragmentEntryId());
+			fragmentEntry.getExternalReferenceCode(),
+			curFragmentEntryLink.getFragmentEntryERC());
+		Assert.assertEquals(
+			fragmentEntry.getGroupId(),
+			curFragmentEntryLink.getFragmentEntryGroupId());
 
 		Assert.assertTrue(
 			curFragmentEntryLink.getEditableValues(),
@@ -1690,8 +1698,11 @@ public class LayoutsImporterTest {
 		FragmentEntryLink fragmentEntryLink = fragmentEntryLinks.get(0);
 
 		Assert.assertEquals(
-			fragmentEntry.getFragmentEntryId(),
-			fragmentEntryLink.getFragmentEntryId());
+			fragmentEntry.getExternalReferenceCode(),
+			fragmentEntryLink.getFragmentEntryERC());
+		Assert.assertEquals(
+			fragmentEntry.getGroupId(),
+			fragmentEntryLink.getFragmentEntryGroupId());
 		Assert.assertTrue(
 			fragmentEntryLink.getConfiguration(),
 			JSONUtil.equals(
@@ -1880,20 +1891,20 @@ public class LayoutsImporterTest {
 			curFragmentStyledLayoutStructureItem);
 	}
 
-	private void _assertStyleBookEntryId(
+	private void _assertStyleBookEntryERC(
 			LayoutPageTemplateEntry layoutPageTemplateEntry,
-			long styleBookEntryId)
+			String styleBookEntryERC)
 		throws Exception {
 
 		Layout layout = _layoutLocalService.getLayout(
 			layoutPageTemplateEntry.getPlid());
 
-		Assert.assertEquals(styleBookEntryId, layout.getStyleBookEntryId());
+		Assert.assertEquals(styleBookEntryERC, layout.getStyleBookEntryERC());
 
 		Layout draftLayout = layout.fetchDraftLayout();
 
 		Assert.assertEquals(
-			styleBookEntryId, draftLayout.getStyleBookEntryId());
+			styleBookEntryERC, draftLayout.getStyleBookEntryERC());
 	}
 
 	private ContainerStyledLayoutStructureItem _getContainerLayoutStructureItem(
@@ -2042,8 +2053,9 @@ public class LayoutsImporterTest {
 
 		FragmentEntryLink fragmentEntryLink =
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
-				null, TestPropsValues.getUserId(), _group1.getGroupId(), 0,
-				fragmentEntry.getFragmentEntryId(), segmentsExperienceId,
+				null, TestPropsValues.getUserId(), _group1.getGroupId(), null,
+				fragmentEntry.getExternalReferenceCode(),
+				fragmentEntry.getScopeERC(), segmentsExperienceId,
 				draftLayout.getPlid(), fragmentEntry.getCss(),
 				fragmentEntry.getHtml(), fragmentEntry.getConfiguration(),
 				fragmentEntry.getConfiguration(),
@@ -2089,9 +2101,9 @@ public class LayoutsImporterTest {
 			_getLayoutPageTemplateEntryKey(layoutsImporterResultEntries));
 	}
 
-	private void _updateLayoutStyleBookEntryId(
+	private void _updateLayoutStyleBookEntryERC(
 			LayoutPageTemplateEntry layoutPageTemplateEntry,
-			long styleBookEntryId)
+			String styleBookEntryERC)
 		throws Exception {
 
 		Layout layout = _layoutLocalService.getLayout(
@@ -2100,12 +2112,12 @@ public class LayoutsImporterTest {
 		Layout draftLayout = layout.fetchDraftLayout();
 
 		ContentLayoutTestUtil.publishLayout(
-			_layoutLocalService.updateStyleBookEntryId(
+			_layoutLocalService.updateStyleBookEntryERC(
 				draftLayout.getGroupId(), draftLayout.isPrivateLayout(),
-				draftLayout.getLayoutId(), styleBookEntryId),
+				draftLayout.getLayoutId(), styleBookEntryERC),
 			layout);
 
-		_assertStyleBookEntryId(layoutPageTemplateEntry, styleBookEntryId);
+		_assertStyleBookEntryERC(layoutPageTemplateEntry, styleBookEntryERC);
 	}
 
 	private void _validateColumnLayoutStructureItem(

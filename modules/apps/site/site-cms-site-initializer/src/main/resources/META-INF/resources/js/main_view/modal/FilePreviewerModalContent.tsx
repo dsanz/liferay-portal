@@ -8,8 +8,8 @@ import ClayLink from '@clayui/link';
 import ClayModal from '@clayui/modal';
 import React from 'react';
 
+import FilePreview from '../../common/components/FilePreview';
 import {IAssetFile} from '../../common/types/AssetType';
-import FilePreview from './asset_navigation_view/FilePreview';
 
 interface FilePreviewerModalContentProps {
 	file: IAssetFile;
@@ -24,7 +24,9 @@ export default function FilePreviewerModalContent({
 
 	return (
 		<>
-			<ClayModal.Header>
+			<ClayModal.Header
+				closeButtonAriaLabel={Liferay.Language.get('close')}
+			>
 				<div className="autofit-row autofit-row-center">
 					<div className="autofit-col autofit-col-expand">
 						<div className="text-truncate">

@@ -5,8 +5,10 @@
 
 import {EConfigInURLBehavior, IConfigInURL} from './types';
 
+export const FDS_CONFIG_PARAM_NAME = '_fdsConfig';
+
 function getConfigParamName(id: string): string {
-	return `${id}_fdsConfig`;
+	return `${id}${FDS_CONFIG_PARAM_NAME}`;
 }
 
 export function readConfigFromURL(id: string): Partial<IConfigInURL> | null {
@@ -37,11 +39,11 @@ export function readConfigFromURL(id: string): Partial<IConfigInURL> | null {
 export function writeConfigInURL(
 	id: string,
 	config: Partial<IConfigInURL>,
-	settings: EConfigInURLBehavior
+	configInURLBehavior: EConfigInURLBehavior
 ) {
 	if (
 		!config ||
-		settings === EConfigInURLBehavior.OFF ||
+		configInURLBehavior === EConfigInURLBehavior.OFF ||
 		!Liferay.FeatureFlags['LPD-22473']
 	) {
 		return;
@@ -49,6 +51,7 @@ export function writeConfigInURL(
 
 	const currentConfig = readConfigFromURL(id);
 
+	let currentConfigChanged: boolean = false;
 	Object.keys(config).forEach((key: string) => {
 		const configKey: keyof IConfigInURL = key as keyof IConfigInURL;
 
@@ -57,11 +60,12 @@ export function writeConfigInURL(
 
 			if (currentConfig && currentConfig[configKey]) {
 				delete currentConfig[configKey];
+				currentConfigChanged = true;
 			}
 		}
 	});
 
-	if (contains(config, currentConfig)) {
+	if (contains(config, currentConfig) && !currentConfigChanged) {
 		return;
 	}
 
@@ -75,7 +79,7 @@ export function writeConfigInURL(
 	const path = `${window.location.pathname}?${params.toString()}`;
 
 	const replaceState =
-		settings === EConfigInURLBehavior.REPLACE || !currentConfig;
+		configInURLBehavior === EConfigInURLBehavior.REPLACE || !currentConfig;
 
 	if (Liferay.SPA && Liferay.SPA.app) {
 		Liferay.SPA.app.browserPathBeforeNavigate = path;

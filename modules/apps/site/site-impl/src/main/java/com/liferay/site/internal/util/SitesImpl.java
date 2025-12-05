@@ -163,8 +163,9 @@ public class SitesImpl implements Sites {
 				targetLayout.getDescriptionMap(), targetLayout.getKeywordsMap(),
 				targetLayout.getRobotsMap(), layoutPrototypeLayout.getType(),
 				targetLayout.isHidden(), targetLayout.getFriendlyURLMap(),
-				layoutPrototypeLayout.isIconImage(), iconBytes, 0, 0,
-				layoutPrototypeLayout.getMasterLayoutPlid(), serviceContext);
+				layoutPrototypeLayout.isIconImage(), iconBytes, null, 0,
+				layoutPrototypeLayout.getMasterLayoutPageTemplateEntryERC(),
+				serviceContext);
 		}
 		finally {
 			serviceContext.setAssetCategoryIds(originalAssetCategoryIds);
@@ -190,10 +191,8 @@ public class SitesImpl implements Sites {
 			LocaleThreadLocal.setSiteDefaultLocale(siteDefaultLocale);
 		}
 
-		targetLayout = _layoutLocalService.updateLayout(
-			targetLayout.getGroupId(), targetLayout.isPrivateLayout(),
-			targetLayout.getLayoutId(),
-			layoutPrototypeLayout.getTypeSettings());
+		targetLayout = _layoutLocalService.updateTypeSettings(
+			targetLayout, layoutPrototypeLayout.getTypeSettings());
 
 		copyExpandoBridgeAttributes(layoutPrototypeLayout, targetLayout);
 
@@ -220,9 +219,8 @@ public class SitesImpl implements Sites {
 		typeSettingsUnicodeProperties.setProperty(
 			LAST_MERGE_TIME, String.valueOf(modifiedDate.getTime()));
 
-		_layoutLocalService.updateLayout(
-			targetLayout.getGroupId(), targetLayout.isPrivateLayout(),
-			targetLayout.getLayoutId(), targetLayout.getTypeSettings());
+		_layoutLocalService.updateTypeSettings(
+			targetLayout, targetLayout.getTypeSettings());
 
 		UnicodeProperties prototypeTypeSettingsUnicodeProperties =
 			layoutPrototypeLayout.getTypeSettingsProperties();
@@ -1348,11 +1346,12 @@ public class SitesImpl implements Sites {
 
 		if (!targetScopeLayout.hasScopeGroup()) {
 			_groupLocalService.addGroup(
-				userId, GroupConstants.DEFAULT_PARENT_GROUP_ID,
-				Layout.class.getName(), targetLayout.getPlid(),
-				GroupConstants.DEFAULT_LIVE_GROUP_ID, targetLayout.getNameMap(),
-				null, 0, true, GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION,
-				null, false, true, null);
+				StringPool.BLANK, userId,
+				GroupConstants.DEFAULT_PARENT_GROUP_ID, Layout.class.getName(),
+				targetLayout.getPlid(), GroupConstants.DEFAULT_LIVE_GROUP_ID,
+				targetLayout.getNameMap(), null, 0, null, true,
+				GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION, null, false,
+				false, true, null);
 		}
 
 		String newPortletTitle = _portal.getNewPortletTitle(

@@ -19,16 +19,18 @@ type TKeyword = {
 };
 
 const AssetTags = ({
+	assetLibraryId,
 	cmsGroupId,
+	hasUpdatePermission,
 	inputSize,
 	objectEntry,
 	updateObjectEntry,
 }: {
+	assetLibraryId?: number | string | null | undefined;
 	cmsGroupId: number | string;
+	hasUpdatePermission?: boolean;
 	inputSize?: CategorizationInputSize;
-	objectEntry:
-		| IAssetObjectEntry
-		| Pick<IAssetObjectEntry, 'keywords' | 'taxonomyCategoryBriefs'>;
+	objectEntry: IAssetObjectEntry | EntryCategorizationDTO;
 	updateObjectEntry: (object: EntryCategorizationDTO) => void | Promise<void>;
 }) => {
 	const [value, setValue] = useState('');
@@ -54,7 +56,8 @@ const AssetTags = ({
 
 	const createAndAddKeyword = useCallback(async () => {
 		const {data, error} = await TagService.createTag({
-			groupId: cmsGroupId,
+			assetLibraryId,
+			cmsGroupId,
 			name: value,
 		});
 
@@ -66,7 +69,7 @@ const AssetTags = ({
 		else if (error) {
 			console.error('Failed to create new keyword.', error);
 		}
-	}, [addKeyword, cmsGroupId, value]);
+	}, [addKeyword, cmsGroupId, assetLibraryId, value]);
 
 	const removeKeyword = useCallback(
 		async (keyword: string) => {
@@ -97,7 +100,8 @@ const AssetTags = ({
 		>
 			<ClayPanel.Body>
 				<ItemSelector<TKeyword>
-					apiURL={`${Liferay.ThemeDisplay.getPortalURL()}/o/headless-admin-taxonomy/v1.0/sites/${cmsGroupId}/keywords`}
+					apiURL={`${Liferay.ThemeDisplay.getPortalURL()}/o/headless-admin-taxonomy/v1.0/sites/${assetLibraryId}/keywords`}
+					disabled={!hasUpdatePermission}
 					locator={{
 						id: 'id',
 						label: 'name',
@@ -146,6 +150,7 @@ const AssetTags = ({
 								className="mr-2 mt-2"
 								closeButtonProps={{
 									'aria-label': Liferay.Language.get('close'),
+									'disabled': !hasUpdatePermission,
 									'onClick': async (event) => {
 										event.preventDefault();
 
@@ -155,6 +160,7 @@ const AssetTags = ({
 								}}
 								displayType="secondary"
 								key={`${keyword}_${index}`}
+								style={{textTransform: 'none'}}
 							>
 								{keyword}
 							</Label>

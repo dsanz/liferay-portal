@@ -13,7 +13,7 @@ import com.liferay.headless.admin.site.dto.v1_0.PageSettings;
 import com.liferay.headless.admin.site.dto.v1_0.SitePage;
 import com.liferay.headless.admin.site.dto.v1_0.WidgetPageSettings;
 import com.liferay.headless.admin.site.internal.dto.v1_0.util.AssetUtil;
-import com.liferay.headless.admin.site.internal.dto.v1_0.util.ScopeUtil;
+import com.liferay.headless.admin.site.internal.dto.v1_0.util.ItemScopeUtil;
 import com.liferay.headless.admin.site.internal.dto.v1_0.util.SitePageTypeUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.NavigationSettingsUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.OpenGraphSettingsUtil;
@@ -160,7 +160,11 @@ public class SitePageDTOConverter implements DTOConverter<Layout, SitePage> {
 		SitePage.Type type = SitePageTypeUtil.toExternalType(layout.getType());
 
 		if (type == SitePage.Type.CONTENT_PAGE) {
-			return new ContentPageSettings();
+			return new ContentPageSettings() {
+				{
+					setType(() -> Type.CONTENT_PAGE_SETTINGS);
+				}
+			};
 		}
 
 		return _toWidgetPageSettings(layout);
@@ -173,20 +177,11 @@ public class SitePageDTOConverter implements DTOConverter<Layout, SitePage> {
 			() -> _getCustomMetaTags(layout, _layoutSEOEntryLocalService));
 		pageSettings.setHiddenFromNavigation(layout::isHidden);
 		pageSettings.setNavigationSettings(
-			() -> NavigationSettingsUtil.toNavigationSettings(
+			() -> NavigationSettingsUtil.toSitePageNavigationSettings(
 				layout.getTypeSettingsProperties()));
 		pageSettings.setOpenGraphSettings(
 			() -> OpenGraphSettingsUtil.getOpenGraphSettings(
 				_dlAppService, _layoutSEOEntryLocalService, layout));
-		pageSettings.setQueryString(
-			() -> {
-				UnicodeProperties unicodeProperties =
-					layout.getTypeSettingsProperties();
-
-				return unicodeProperties.getProperty(
-					com.liferay.layout.admin.kernel.model.
-						LayoutTypePortletConstants.QUERY_STRING);
-			});
 		pageSettings.setPriority(layout::getPriority);
 		pageSettings.setSeoSettings(
 			() -> SEOSettingsUtil.getSeoSettings(
@@ -226,6 +221,8 @@ public class SitePageDTOConverter implements DTOConverter<Layout, SitePage> {
 		widgetPageSettings.setLayoutTemplateId(
 			() -> layout.getTypeSettingsProperty(
 				LayoutTypePortletConstants.LAYOUT_TEMPLATE_ID));
+		widgetPageSettings.setType(
+			() -> PageSettings.Type.WIDGET_PAGE_SETTINGS);
 		widgetPageSettings.setWidgetPageTemplateReference(
 			() -> {
 				if (layout.getLayoutPrototypeUuid() == null) {
@@ -259,9 +256,9 @@ public class SitePageDTOConverter implements DTOConverter<Layout, SitePage> {
 						setExternalReferenceCode(
 							layoutPageTemplateEntry::getExternalReferenceCode);
 						setScope(
-							() -> ScopeUtil.getScope(
-								layout.getGroupId(),
-								layoutPageTemplateEntry.getGroupId()));
+							() -> ItemScopeUtil.getItemScope(
+								layoutPageTemplateEntry.getGroupId(),
+								layout.getGroupId()));
 					}
 				};
 			});

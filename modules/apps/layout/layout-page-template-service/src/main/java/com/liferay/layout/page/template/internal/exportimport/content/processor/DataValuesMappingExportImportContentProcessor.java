@@ -227,6 +227,9 @@ public class DataValuesMappingExportImportContentProcessor
 				_exportFormOrRowContentReferences(
 					exportReferencedContent, itemJSONObject, portletDataContext,
 					stagedModel);
+				_exportFormSuccessMessageLayoutReferences(
+					exportReferencedContent, itemJSONObject, portletDataContext,
+					stagedModel);
 			}
 			else if (Objects.equals(
 						itemJSONObject.get("type"),
@@ -323,6 +326,50 @@ public class DataValuesMappingExportImportContentProcessor
 		element.addAttribute(
 			"formClassName",
 			_infoStagingClassMapperRegistry.getStagingClassName(className));
+	}
+
+	private void _exportFormSuccessMessageLayoutReferences(
+			boolean exportReferencedContent, JSONObject itemJSONObject,
+			PortletDataContext portletDataContext, StagedModel stagedModel)
+		throws Exception {
+
+		JSONObject successMessageJSONObject = _getSuccessMessageJSONObject(
+			itemJSONObject);
+
+		if ((successMessageJSONObject == null) ||
+			JSONUtil.isEmpty(
+				successMessageJSONObject.getJSONObject("layout"))) {
+
+			return;
+		}
+
+		JSONObject layoutJSONObject = successMessageJSONObject.getJSONObject(
+			"layout");
+
+		Layout layout = _layoutLocalService.fetchLayoutByUuidAndGroupId(
+			layoutJSONObject.getString("layoutUuid"),
+			layoutJSONObject.getLong("groupId"),
+			layoutJSONObject.getBoolean("privateLayout"));
+
+		if (layout == null) {
+			return;
+		}
+
+		if (exportReferencedContent &&
+			(layout.getGroupId() == portletDataContext.getScopeGroupId())) {
+
+			StagedModelDataHandlerUtil.exportReferenceStagedModel(
+				portletDataContext, stagedModel, layout,
+				PortletDataContext.REFERENCE_TYPE_DEPENDENCY);
+		}
+		else {
+			Element entityElement = portletDataContext.getExportDataElement(
+				stagedModel);
+
+			portletDataContext.addReferenceElement(
+				stagedModel, entityElement, layout,
+				PortletDataContext.REFERENCE_TYPE_DEPENDENCY, true);
+		}
 	}
 
 	private void _exportLayoutContentReference(
@@ -446,6 +493,20 @@ public class DataValuesMappingExportImportContentProcessor
 				(ClassedModel)assetRenderer.getAssetObject(),
 				PortletDataContext.REFERENCE_TYPE_DEPENDENCY, true);
 		}
+	}
+
+	private JSONObject _getSuccessMessageJSONObject(JSONObject itemJSONObject) {
+		if (!itemJSONObject.has("config")) {
+			return null;
+		}
+
+		JSONObject configJSONObject = itemJSONObject.getJSONObject("config");
+
+		if (!configJSONObject.has("successMessage")) {
+			return null;
+		}
+
+		return configJSONObject.getJSONObject("successMessage");
 	}
 
 	private void _replaceCollectionImportContentReferences(
@@ -614,6 +675,40 @@ public class DataValuesMappingExportImportContentProcessor
 		}
 	}
 
+	private void _replaceFormSuccessMessageLayoutReferences(
+		JSONObject itemJSONObject, PortletDataContext portletDataContext) {
+
+		JSONObject successMessageJSONObject = _getSuccessMessageJSONObject(
+			itemJSONObject);
+
+		if (successMessageJSONObject == null) {
+			return;
+		}
+
+		JSONObject layoutJSONObject = successMessageJSONObject.getJSONObject(
+			"layout");
+
+		if ((layoutJSONObject == null) || (layoutJSONObject.length() == 0)) {
+			return;
+		}
+
+		if (layoutJSONObject.getLong("groupId") ==
+				portletDataContext.getSourceGroupId()) {
+
+			layoutJSONObject.put(
+				"groupId", portletDataContext.getScopeGroupId());
+
+			Layout layout = _layoutLocalService.fetchLayoutByUuidAndGroupId(
+				layoutJSONObject.getString("layoutUuid"),
+				portletDataContext.getScopeGroupId(),
+				layoutJSONObject.getBoolean("privateLayout"));
+
+			if (layout != null) {
+				layoutJSONObject.put("layoutId", layout.getLayoutId());
+			}
+		}
+	}
+
 	private void _replaceImportContentReferences(
 		JSONObject jsonObject, PortletDataContext portletDataContext,
 		StagedModel stagedModel) {
@@ -652,6 +747,8 @@ public class DataValuesMappingExportImportContentProcessor
 				_replaceFormImportContentReferences(
 					itemJSONObject, portletDataContext, stagedModel);
 				_replaceFormOrRowImportContentReferences(
+					itemJSONObject, portletDataContext);
+				_replaceFormSuccessMessageLayoutReferences(
 					itemJSONObject, portletDataContext);
 			}
 			else if (Objects.equals(

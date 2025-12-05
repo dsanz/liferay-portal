@@ -22,7 +22,6 @@ const test = mergeTests(
 		'LPD-11235': {enabled: true},
 		'LPD-17564': {enabled: true},
 		'LPD-32050': {enabled: true},
-		'LPS-179669': {enabled: true},
 	}),
 	loginTest(),
 	cmsPagesTest,
@@ -72,7 +71,7 @@ test(
 			await structureBuilderPage.addField(type);
 		}
 
-		await structureBuilderPage.publishStructure();
+		const {id: structureId} = await structureBuilderPage.publishStructure();
 
 		// Go to view mode (create a content) and fill values in default language
 
@@ -93,34 +92,15 @@ test(
 			{label: 'Numeric', value: '3'},
 		]);
 
-		// Check localization actions are not present by default
-
-		await localizationSelectPage.switchLanguage('es-ES');
-
-		await expect(page.getByLabel('Localization Actions')).not.toBeVisible();
-
 		// Save the content
 
 		await contentsPage.saveContent();
 
-		// Edit the experience for the structure and enable localization management
+		// Edit the experience for the structure and remove Friendly URL input
 
-		await structureBuilderPage.editStructure(structureERC);
+		await structureBuilderPage.editStructure(structureId);
 
 		await structureBuilderPage.customizeExperience();
-
-		const localizationSelectId = await pageEditorPage.getFragmentId(
-			'Localization Select'
-		);
-
-		await pageEditorPage.changeFragmentConfiguration({
-			fieldLabel: 'Allow Localization Management',
-			fragmentId: localizationSelectId,
-			tab: 'General',
-			value: true,
-		});
-
-		// Also remove Friendly URL input
 
 		await pageEditorPage.deleteFragment(
 			await pageEditorPage.getFragmentId('Friendly URL')
@@ -210,7 +190,7 @@ test(
 			await structureBuilderPage.addField(type as FieldType);
 		}
 
-		await structureBuilderPage.publishStructure();
+		const {id: structureId} = await structureBuilderPage.publishStructure();
 
 		// Go to view mode (create a content) and fill values in default language and save the content
 
@@ -232,7 +212,7 @@ test(
 
 		// Edit the experience for the structure and enable localization management
 
-		await structureBuilderPage.editStructure(structureERC);
+		await structureBuilderPage.editStructure(structureId);
 
 		await structureBuilderPage.customizeExperience();
 
@@ -375,7 +355,7 @@ test(
 
 		await structureBuilderPage.addField('Long Text');
 
-		await structureBuilderPage.publishStructure();
+		const {id: structureId} = await structureBuilderPage.publishStructure();
 
 		// Go to view mode (create a content) and fill values in default language and save the content
 
@@ -393,7 +373,7 @@ test(
 
 		// Edit the experience for the structure and enable localization management
 
-		await structureBuilderPage.editStructure(structureERC);
+		await structureBuilderPage.editStructure(structureId);
 
 		await structureBuilderPage.customizeExperience();
 
@@ -456,7 +436,7 @@ test(
 			await route.fulfill({
 				body: JSON.stringify({
 					fields: {
-						ObjectField_longtext: 'Naranja',
+						ObjectField_longText: 'Naranja',
 						ObjectField_title: 'Naranja',
 					},
 				}),

@@ -44,7 +44,6 @@ import com.liferay.object.rest.dto.v1_0.Folder;
 import com.liferay.object.rest.dto.v1_0.ListEntry;
 import com.liferay.object.rest.dto.v1_0.ObjectDefinitionBrief;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
-import com.liferay.object.rest.dto.v1_0.Scope;
 import com.liferay.object.rest.dto.v1_0.Status;
 import com.liferay.object.rest.dto.v1_0.SystemProperties;
 import com.liferay.object.rest.dto.v1_0.TaxonomyCategoryBrief;
@@ -81,6 +80,7 @@ import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.repository.model.FileVersion;
+import com.liferay.portal.kernel.security.auth.GuestOrUserUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.PermissionService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
@@ -92,6 +92,7 @@ import com.liferay.portal.kernel.util.File;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlParserUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
@@ -115,6 +116,7 @@ import com.liferay.portal.vulcan.fields.NestedFieldsSupplier;
 import com.liferay.portal.vulcan.jaxrs.extension.ExtendedEntity;
 import com.liferay.portal.vulcan.permission.Permission;
 import com.liferay.portal.vulcan.permission.PermissionUtil;
+import com.liferay.portal.vulcan.scope.Scope;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 import com.liferay.trash.model.TrashEntry;
 import com.liferay.trash.service.TrashEntryLocalService;
@@ -259,7 +261,8 @@ public class ObjectEntryDTOConverter
 			serviceBuilderObjectEntry);
 
 		if (GetterUtil.getBoolean(
-				dtoConverterContext.getAttribute("simplifiedObjectEntry"))) {
+				dtoConverterContext.getAttribute("simplifiedObjectEntry")) &&
+			!serviceBuilderObjectEntry.isRootDescendantNode()) {
 
 			return objectEntry;
 		}
@@ -319,10 +322,23 @@ public class ObjectEntryDTOConverter
 				serviceBuilderObjectEntry,
 				ObjectEntryModel::getExpirationDate));
 		objectEntry.setFriendlyUrlPath(
-			() -> serviceBuilderObjectEntry.getURLTitle(
-				dtoConverterContext.getLocale()));
+			() -> HttpComponentsUtil.decodePath(
+				serviceBuilderObjectEntry.getURLTitle(
+					dtoConverterContext.getLocale())));
 		objectEntry.setFriendlyUrlPath_i18n(
-			serviceBuilderObjectEntry::getURLTitleMap);
+			() -> {
+				Map<String, String> urlTitleMap =
+					serviceBuilderObjectEntry.getURLTitleMap();
+
+				if (MapUtil.isEmpty(urlTitleMap)) {
+					return urlTitleMap;
+				}
+
+				urlTitleMap.replaceAll(
+					(key, value) -> HttpComponentsUtil.decodePath(value));
+
+				return urlTitleMap;
+			});
 		objectEntry.setId(serviceBuilderObjectEntry::getObjectEntryId);
 		objectEntry.setKeywords(
 			() -> {
@@ -404,23 +420,30 @@ public class ObjectEntryDTOConverter
 			() -> _getAttribute(
 				objectEntryVersion, ObjectEntryVersionModel::getReviewDate,
 				serviceBuilderObjectEntry, ObjectEntryModel::getReviewDate));
+		objectEntry.setScopeId(serviceBuilderObjectEntry::getGroupId);
+		objectEntry.setScopeKey(
+			() -> _getScopeKey(objectDefinition, serviceBuilderObjectEntry));
 		objectEntry.setStatus(
-			() -> {
-				int status = _getAttribute(
-					objectEntryVersion, ObjectEntryVersionModel::getStatus,
-					serviceBuilderObjectEntry, ObjectEntryModel::getStatus);
-
-				return _toStatus(dtoConverterContext.getLocale(), status);
-			});
+			() -> _getAttribute(
+				objectEntryVersion,
+				curObjectEntryVersion -> _toStatus(
+					dtoConverterContext.getLocale(),
+					curObjectEntryVersion.getStatus()),
+				serviceBuilderObjectEntry,
+				curServiceBuilderObjectEntry -> _toStatus(
+					dtoConverterContext.getLocale(),
+					curServiceBuilderObjectEntry.getStatus())));
 		objectEntry.setSystemProperties(
 			() -> {
 				if (objectEntryVersion != null) {
 					return _toSystemProperties(
+						serviceBuilderObjectEntry.getGroupId(),
 						dtoConverterContext.getLocale(), objectDefinition,
 						objectEntryVersion.getVersion());
 				}
 
 				return _toSystemProperties(
+					serviceBuilderObjectEntry.getGroupId(),
 					dtoConverterContext.getLocale(), objectDefinition,
 					serviceBuilderObjectEntry.getVersion());
 			});
@@ -816,8 +839,10 @@ public class ObjectEntryDTOConverter
 			() -> LinkUtil.toLink(
 				_dlAppService, dlFileEntry, _dlURLHelper,
 				objectEntry.getGroupId(),
-				objectDefinition.getExternalReferenceCode(),
-				objectEntry.getExternalReferenceCode(), _portal));
+				objectDefinition.getExternalReferenceCode(), objectEntry,
+				_objectEntryService, objectField,
+				GuestOrUserUtil.getPermissionChecker(), _portal));
+
 		fileEntry.setMetadata(
 			() -> NestedFieldsSupplier.supply(
 				objectFieldName + ".metadata",
@@ -859,22 +884,15 @@ public class ObjectEntryDTOConverter
 					return null;
 				}
 
-				Scope scope = new Scope();
-
 				Group group = _groupLocalService.getGroup(
 					dlFileEntry.getGroupId());
 
-				scope.setExternalReferenceCode(group::getExternalReferenceCode);
-				scope.setType(
-					() -> {
-						if (group.getType() == GroupConstants.TYPE_DEPOT) {
-							return Scope.Type.ASSET_LIBRARY;
-						}
+				Scope.Type type =
+					(group.getType() == GroupConstants.TYPE_DEPOT) ?
+						Scope.Type.ASSET_LIBRARY : Scope.Type.SITE;
 
-						return Scope.Type.SITE;
-					});
-
-				return scope;
+				return Scope.ofReference(
+					group.getExternalReferenceCode(), type);
 			});
 		fileEntry.setThumbnailURL(
 			() -> NestedFieldsSupplier.supply(
@@ -901,6 +919,7 @@ public class ObjectEntryDTOConverter
 			return new ListEntry() {
 				{
 					setKey(() -> StringPool.BLANK);
+					setName(() -> StringPool.BLANK);
 				}
 			};
 		}
@@ -1190,9 +1209,28 @@ public class ObjectEntryDTOConverter
 				return serializable;
 			}
 
+			String[] keys = null;
+
+			if (serializable instanceof Object[]) {
+				keys = TransformUtil.transform(
+					(Object[])serializable,
+					object -> {
+						if (!(object instanceof Map)) {
+							return null;
+						}
+
+						return MapUtil.getString(
+							(Map<String, String>)object, "key");
+					},
+					String.class);
+			}
+			else if (serializable instanceof String) {
+				keys = StringUtil.split(
+					(String)serializable, StringPool.COMMA_AND_SPACE);
+			}
+
 			return (Serializable)TransformUtil.transformToList(
-				StringUtil.split(
-					(String)serializable, StringPool.COMMA_AND_SPACE),
+				keys,
 				key -> _getListEntry(
 					dtoConverterContext, key,
 					objectField.getListTypeDefinitionId()));
@@ -1560,38 +1598,49 @@ public class ObjectEntryDTOConverter
 	}
 
 	private SystemProperties _toSystemProperties(
-			Locale locale, ObjectDefinition objectDefinition, int versionInt)
+			long groupId, Locale locale, ObjectDefinition objectDefinition,
+			int versionInt)
 		throws Exception {
 
-		boolean enableObjectEntryVersioning =
-			objectDefinition.isEnableObjectEntryVersioning();
-		ObjectDefinitionBrief objectDefinitionBrief =
+		Group group = _groupLocalService.fetchGroup(groupId);
+
+		ObjectDefinitionBrief nestedObjectDefinitionBrief =
 			NestedFieldsSupplier.supply(
 				"systemProperties.objectDefinitionBrief",
 				nestedField -> _toObjectDefinitionBrief(
 					locale, objectDefinition));
 
-		if (!enableObjectEntryVersioning && (objectDefinitionBrief == null)) {
+		if (!objectDefinition.isEnableObjectEntryVersioning() &&
+			(group == null) && (nestedObjectDefinitionBrief == null)) {
+
 			return null;
 		}
 
-		SystemProperties systemProperties = new SystemProperties();
+		return new SystemProperties() {
+			{
+				setObjectDefinitionBrief(() -> nestedObjectDefinitionBrief);
+				setScope(
+					() -> {
+						if (group == null) {
+							return null;
+						}
 
-		if (objectDefinitionBrief != null) {
-			systemProperties.setObjectDefinitionBrief(
-				() -> objectDefinitionBrief);
-		}
+						return Scope.of(groupId, locale);
+					});
+				setVersion(
+					() -> {
+						if (!objectDefinition.isEnableObjectEntryVersioning()) {
+							return null;
+						}
 
-		if (enableObjectEntryVersioning) {
-			systemProperties.setVersion(
-				() -> new Version() {
-					{
-						setNumber(() -> versionInt);
-					}
-				});
-		}
-
-		return systemProperties;
+						return new Version() {
+							{
+								setNumber(() -> versionInt);
+							}
+						};
+					});
+			}
+		};
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

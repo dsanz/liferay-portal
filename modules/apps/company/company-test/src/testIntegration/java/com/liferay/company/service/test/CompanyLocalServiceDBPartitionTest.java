@@ -826,7 +826,7 @@ public class CompanyLocalServiceDBPartitionTest
 
 	private void _assertCompanyConfiguration(
 			long companyId, Configuration configuration)
-		throws SQLException {
+		throws Exception {
 
 		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
@@ -980,9 +980,7 @@ public class CompanyLocalServiceDBPartitionTest
 		}
 	}
 
-	private void _checkPartitionDoesNotExist(long companyId)
-		throws SQLException {
-
+	private void _checkPartitionDoesNotExist(long companyId) throws Exception {
 		List<String> partitionNames = new ArrayList<>();
 
 		DatabaseMetaData databaseMetaData = connection.getMetaData();
@@ -1061,7 +1059,7 @@ public class CompanyLocalServiceDBPartitionTest
 		}
 	}
 
-	private int _getDBPartitionsCount() throws SQLException {
+	private int _getDBPartitionsCount() throws Exception {
 		DatabaseMetaData databaseMetaData = connection.getMetaData();
 
 		try (ResultSet resultSet = databaseMetaData.getSchemas()) {
@@ -1079,7 +1077,7 @@ public class CompanyLocalServiceDBPartitionTest
 		throw new SQLException("At least one database partition is required");
 	}
 
-	private int _getRulesCount(String partitionName) throws SQLException {
+	private int _getRulesCount(String partitionName) throws Exception {
 		if (db.getDBType() != DBType.POSTGRESQL) {
 			return 0;
 		}

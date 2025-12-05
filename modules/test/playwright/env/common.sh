@@ -3,7 +3,7 @@
 function cluster_set_up {
 	default_set_up
 
-	prepare_additional_bundles ${1}
+	prepare_additional_bundles ${1} ${2}
 
 	local slave_home="${LIFERAY_HOME}-${1}"
 
@@ -509,6 +509,10 @@ function prepare_additional_bundles {
 		if [[ ${2} == "true" ]]
 		then
 			sed -i "s/lportal/lportal${app_server_bundles_size}/g" "${app_server_dir}/webapps/ROOT/WEB-INF/classes/portal-ext.properties"
+
+			cd ${_PORTAL_PROJECT_DIR}
+
+			ant -f build-test.xml rebuild-database-playwright
 		fi
 	done
 }

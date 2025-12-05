@@ -18,9 +18,9 @@ import ProjectSelection from './pages/Apps/App/CloudProvisioning/pages/ProjectSe
 import Download from './pages/Apps/App/Download/Download';
 import CreateLicense from './pages/Apps/App/Licenses/CreateLicense';
 import Licenses from './pages/Apps/App/Licenses/Licenses';
+import Support from './pages/Apps/App/Support/Support';
 import Connections from './pages/Connections';
 import Solutions from './pages/Solutions';
-import ConnectionTokens from './pages/Solutions/ConnectionTokens';
 import Solution from './pages/Solutions/Solution';
 import SolutionOutlet from './pages/Solutions/SolutionOutlet';
 
@@ -44,6 +44,8 @@ const CustomerDashboardRouter = () => {
 							element={<Provisioning />}
 							path="cloud-provisioning"
 						/>
+
+						<Route element={<Support />} path="support" />
 					</Route>
 					<Route element={<Solutions />} path="solutions" />
 
@@ -51,11 +53,6 @@ const CustomerDashboardRouter = () => {
 						element={<SolutionOutlet />}
 						path="solutions/:orderId"
 					>
-						<Route
-							element={<ConnectionTokens />}
-							path="connection-tokens"
-						/>
-
 						<Route element={<Solution />} index />
 					</Route>
 				</Route>

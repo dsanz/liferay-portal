@@ -43,10 +43,7 @@
 	<clay:sheet-section>
 		<h3 class="sheet-subtitle" id="<portlet:namespace />editPublicationsPermissionsHeader"><liferay-ui:message key="permissions" /></h3>
 
-		<clay:alert
-			dismissible="<%= true %>"
-			message='<%= LanguageUtil.format(request, "when-a-user-creates-a-publication,-liferay-automatically-gives-them-the-owner-role", new String[] {"<strong>", "</strong>", "<strong>", "</strong>"}, false) %>'
-		/>
+		<div class="sheet-text" id="<portlet:namespace />editPublicationsPermissionsHelp"><liferay-ui:message arguments='<%= new String[] {"<strong>", "</strong>", "<strong>", "</strong>"} %>' key="when-a-user-creates-a-publication,-liferay-automatically-gives-them-the-owner-role" translateArguments="<%= false %>" /></div>
 
 		<div class="sheet-text" id="<portlet:namespace />editPublicationsPermissionsHelp"><liferay-ui:message key="edit-permissions-on-which-roles-can-view,-delete,-update,-publish,-invite-users,-and-edit-permissions-for-all-publications" /></div>
 
@@ -74,7 +71,7 @@
 		<div class="sheet-text" id="<portlet:namespace />sandboxOnlyHelp"><liferay-ui:message key="sandbox-only-help" /></div>
 
 		<div class="form-group">
-			<aui:input aria-describedby="sandboxOnlyHelp" aria-labelledby="sandboxOnlyHeader" inlineLabel="right" label="" labelCssClass="simple-toggle-switch" name="enableSandboxOnly" onChange='<%= liferayPortletResponse.getNamespace() + "autoSave();" %>' type="toggle-switch" value="<%= publicationsConfigurationDisplayContext.isSandboxOnlyEnabled() %>" />
+			<aui:input aria-describedby="sandboxOnlyHelp" aria-labelledby="sandboxOnlyHeader" inlineLabel="right" label="" labelCssClass="simple-toggle-switch" name="enableSandboxOnlyMode" onChange='<%= liferayPortletResponse.getNamespace() + "autoSave();" %>' type="toggle-switch" value="<%= publicationsConfigurationDisplayContext.isSandboxOnlyEnabled() %>" />
 		</div>
 	</clay:sheet-section>
 </div>

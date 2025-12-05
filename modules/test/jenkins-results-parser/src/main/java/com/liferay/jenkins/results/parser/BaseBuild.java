@@ -438,6 +438,10 @@ public abstract class BaseBuild implements Build {
 		JSONObject buildReportJSONObject = new JSONObject();
 
 		buildReportJSONObject.put(
+			"buildCached", String.valueOf(isBuildCached())
+		).put(
+			"buildParameters", getParameters()
+		).put(
 			"buildURL", getBuildURL()
 		).put(
 			"duration", getDuration()
@@ -1531,6 +1535,11 @@ public abstract class BaseBuild implements Build {
 	}
 
 	@Override
+	public boolean isBuildCached() {
+		return _buildCached;
+	}
+
+	@Override
 	public boolean isBuildCachingEnabled() {
 		Job job = getJob();
 
@@ -1669,6 +1678,11 @@ public abstract class BaseBuild implements Build {
 		}
 
 		_archiveRootDir = archiveRootDir;
+	}
+
+	@Override
+	public void setBuildCached(boolean buildCached) {
+		_buildCached = buildCached;
 	}
 
 	@Override
@@ -2056,18 +2070,46 @@ public abstract class BaseBuild implements Build {
 		return false;
 	}
 
-	protected BaseBuild(String url) {
-		this(url, null);
+	protected BaseBuild(String buildURL) {
+		this(buildURL, null);
 	}
 
-	protected BaseBuild(String url, Build parentBuild) {
+	protected BaseBuild(String buildURL, Build parentBuild) {
+		this(buildURL, null, parentBuild);
+	}
+
+	protected BaseBuild(
+		String buildURL, DownstreamBuildReport cachedDownstreamBuildReport,
+		Build parentBuild) {
+
+		_cachedDownstreamBuildReport = cachedDownstreamBuildReport;
 		_parentBuild = parentBuild;
 
-		if (url.contains("buildWithParameters")) {
-			_setInvocationURL(url);
+		if (cachedDownstreamBuildReport != null) {
+			_buildCached = true;
+			_buildURL = cachedDownstreamBuildReport.getBuildURL() + "/";
+			_duration = cachedDownstreamBuildReport.getDuration();
+			_jobName = cachedDownstreamBuildReport.getJobName();
+			_parameters = cachedDownstreamBuildReport.getBuildParameters();
+			_result = cachedDownstreamBuildReport.getResult();
+			_status = "completed";
+			_stopWatchRecordsGroup =
+				cachedDownstreamBuildReport.getStopWatchRecordsGroup();
+			_testrayAttachmentURLs.addAll(
+				cachedDownstreamBuildReport.getTestrayAttachmentURLs());
+			_testrayAttachmentURLsFound = true;
+
+			_jenkinsMaster = cachedDownstreamBuildReport.getJenkinsMaster();
+
+			_jenkinsCohort = _jenkinsMaster.getJenkinsCohort();
 		}
 		else {
-			_setBuildURL(url);
+			if (buildURL.contains("buildWithParameters")) {
+				_setInvocationURL(buildURL);
+			}
+			else {
+				_setBuildURL(buildURL);
+			}
 		}
 
 		if (!fromArchive && JenkinsResultsParserUtil.isCINode()) {
@@ -2562,10 +2604,18 @@ public abstract class BaseBuild implements Build {
 		Element stopWatchRecordsExpanderAnchorElement =
 			getStopWatchRecordsExpanderAnchorElement();
 
+		Element cachedBuildElement = null;
+
+		if (isBuildCached()) {
+			cachedBuildElement = Dom4JUtil.getNewElement(
+				"span", null, "(cached build)");
+		}
+
 		Element nameCellElement = Dom4JUtil.getNewElement(
 			cellElementTagName, null, stopWatchRecordsExpanderAnchorElement,
 			Dom4JUtil.getNewAnchorElement(
-				getBuildURL(), null, getDisplayName()));
+				getBuildURL(), null, getDisplayName()),
+			cachedBuildElement);
 
 		int indent = getDepth() * PIXELS_WIDTH_INDENT;
 
@@ -3065,19 +3115,22 @@ public abstract class BaseBuild implements Build {
 	protected static final String BUILD_URLS_PROPERTIES_KEY =
 		"build-urls.properties";
 
+	protected static final String CACHED_BUILD_URLS_PROPERTIES_KEY =
+		"cached-build-urls.properties";
+
 	protected static final int PIXELS_WIDTH_INDENT = 35;
 
 	protected static final Pattern jobNamePattern = Pattern.compile(
 		"(?<baseJob>[^\\(]+)\\((?<branchName>[^\\)]+)\\)");
 	protected static final Pattern stopWatchPattern = Pattern.compile(
 		JenkinsResultsParserUtil.combine(
-			"\\s*(\\[beanshell\\])?\\s*\\[stopwatch\\]\\s*\\[(?<name>[^:]+): ",
-			"((?<minutes>\\d+):)?((?<seconds>\\d+))?\\.",
+			"\\s*(\\[(beanshell|exec)\\])?\\s*\\[stopwatch\\]\\s*",
+			"\\[(?<name>[^:]+): ((?<minutes>\\d+):)?((?<seconds>\\d+))?\\.",
 			"(?<milliseconds>\\d+) sec\\]"));
 	protected static final Pattern stopWatchStartTimestampPattern =
 		Pattern.compile(
 			JenkinsResultsParserUtil.combine(
-				"\\s*(\\[beanshell\\])?\\s*\\[echo\\] (?<name>.*)" +
+				"\\s*(\\[(beanshell|exec)\\])?\\s*\\[echo\\] (?<name>.*)" +
 					"\\.start\\.timestamp: (?<timestamp>.*)$"));
 	protected static final SimpleDateFormat stopWatchTimestampSimpleDateFormat =
 		new SimpleDateFormat("MM-dd-yyyy HH:mm:ss:SSS z");
@@ -3582,12 +3635,14 @@ public abstract class BaseBuild implements Build {
 	private final Map<String, BranchInformation> _branchInformationMap =
 		new HashMap<>();
 	private String _branchName;
+	private boolean _buildCached;
 	private BuildDatabase _buildDatabase;
 	private String _buildDescription;
 	private Boolean _buildDurationsEnabled;
 	private JSONObject _buildJSONObject;
 	private final BuildUpdater _buildUpdater;
 	private String _buildURL;
+	private final DownstreamBuildReport _cachedDownstreamBuildReport;
 	private Long _duration;
 	private Element _gitHubMessageElement;
 	private final List<Invocation> _invocations = new ArrayList<>();

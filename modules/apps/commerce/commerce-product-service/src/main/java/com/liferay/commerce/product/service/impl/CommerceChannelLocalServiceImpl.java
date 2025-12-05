@@ -15,6 +15,7 @@ import com.liferay.commerce.pricing.constants.CommercePricingConstants;
 import com.liferay.commerce.product.channel.CommerceChannelTypeRegistry;
 import com.liferay.commerce.product.constants.CommerceChannelAccountEntryRelConstants;
 import com.liferay.commerce.product.constants.CommerceChannelConstants;
+import com.liferay.commerce.product.exception.CommerceChannelNameException;
 import com.liferay.commerce.product.exception.CommerceChannelTypeException;
 import com.liferay.commerce.product.exception.DuplicateCommerceChannelAccountEntryIdException;
 import com.liferay.commerce.product.model.CommerceChannel;
@@ -40,6 +41,8 @@ import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
+import com.liferay.portal.kernel.sanitizer.Sanitizer;
+import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.Hits;
@@ -58,6 +61,7 @@ import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -97,12 +101,20 @@ public class CommerceChannelLocalServiceImpl
 		User user = _userLocalService.getUser(serviceContext.getUserId());
 
 		_validateAccountEntry(0, accountEntryId);
-		_validateType(type);
 
 		long commerceChannelId = counterLocalService.increment();
 
 		CommerceChannel commerceChannel = commerceChannelPersistence.create(
 			commerceChannelId);
+
+		name = SanitizerUtil.sanitize(
+			user.getCompanyId(), siteGroupId, user.getUserId(),
+			CommerceChannel.class.getName(), commerceChannelId,
+			ContentTypes.TEXT_HTML, Sanitizer.MODE_ALL, name, null);
+
+		_validateName(name);
+
+		_validateType(type);
 
 		commerceChannel.setExternalReferenceCode(externalReferenceCode);
 		commerceChannel.setCompanyId(user.getCompanyId());
@@ -126,17 +138,20 @@ public class CommerceChannelLocalServiceImpl
 		Map<Locale, String> nameMap = Collections.singletonMap(
 			serviceContext.getLocale(), name);
 
-		Group group = _groupLocalService.addGroup(
-			user.getUserId(), GroupConstants.DEFAULT_PARENT_GROUP_ID,
-			CommerceChannel.class.getName(), commerceChannelId,
-			GroupConstants.DEFAULT_LIVE_GROUP_ID, nameMap, null,
-			GroupConstants.TYPE_SITE_PRIVATE, false,
-			GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION, null, false, true,
-			null);
+		String typeSettings = null;
 
 		if (CommerceChannelConstants.CHANNEL_TYPE_SITE.equals(type)) {
-			_updateGroupTypeSettings(group, siteGroupId);
+			typeSettings = _getGroupTypeSettings(null, siteGroupId);
 		}
+
+		_groupLocalService.addGroup(
+			StringPool.BLANK, user.getUserId(),
+			GroupConstants.DEFAULT_PARENT_GROUP_ID,
+			CommerceChannel.class.getName(), commerceChannelId,
+			GroupConstants.DEFAULT_LIVE_GROUP_ID, nameMap, null,
+			GroupConstants.TYPE_SITE_PRIVATE, typeSettings, false,
+			GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION, null, false, false,
+			true, null);
 
 		// Repository
 
@@ -454,10 +469,19 @@ public class CommerceChannelLocalServiceImpl
 		throws PortalException {
 
 		_validateAccountEntry(commerceChannelId, accountEntryId);
-		_validateType(type);
 
 		CommerceChannel commerceChannel =
 			commerceChannelPersistence.findByPrimaryKey(commerceChannelId);
+
+		name = SanitizerUtil.sanitize(
+			commerceChannel.getCompanyId(), commerceChannel.getGroupId(),
+			commerceChannel.getUserId(), CommerceChannel.class.getName(),
+			commerceChannelId, ContentTypes.TEXT_HTML, Sanitizer.MODE_ALL, name,
+			null);
+
+		_validateName(name);
+
+		_validateType(type);
 
 		long oldSiteGroupId = commerceChannel.getSiteGroupId();
 
@@ -476,7 +500,10 @@ public class CommerceChannelLocalServiceImpl
 		if (CommerceChannelConstants.CHANNEL_TYPE_SITE.equals(type) &&
 			(siteGroupId != oldSiteGroupId)) {
 
-			_updateGroupTypeSettings(commerceChannel.getGroup(), siteGroupId);
+			Group group = commerceChannel.getGroup();
+
+			_groupLocalService.updateGroup(
+				group.getGroupId(), _getGroupTypeSettings(group, siteGroupId));
 		}
 
 		return commerceChannel;
@@ -575,6 +602,18 @@ public class CommerceChannelLocalServiceImpl
 			));
 	}
 
+	private String _getGroupTypeSettings(Group group, long siteGroupId) {
+		UnicodeProperties unicodeProperties = new UnicodeProperties(true);
+
+		if (group != null) {
+			unicodeProperties = group.getTypeSettingsProperties();
+		}
+
+		unicodeProperties.put("siteGroupId", String.valueOf(siteGroupId));
+
+		return unicodeProperties.toString();
+	}
+
 	private List<CommerceChannel> _search(SearchContext searchContext)
 		throws PortalException {
 
@@ -602,19 +641,6 @@ public class CommerceChannelLocalServiceImpl
 			IndexerRegistryUtil.nullSafeGetIndexer(CommerceChannel.class);
 
 		return GetterUtil.getInteger(indexer.searchCount(searchContext));
-	}
-
-	private void _updateGroupTypeSettings(Group group, long siteGroupId)
-		throws PortalException {
-
-		UnicodeProperties typeSettingsUnicodeProperties =
-			group.getTypeSettingsProperties();
-
-		typeSettingsUnicodeProperties.put(
-			"siteGroupId", String.valueOf(siteGroupId));
-
-		_groupLocalService.updateGroup(
-			group.getGroupId(), typeSettingsUnicodeProperties.toString());
 	}
 
 	private void _validateAccountEntry(
@@ -662,6 +688,12 @@ public class CommerceChannelLocalServiceImpl
 					"There is another commerce channel with account entry ID " +
 						accountEntryId);
 			}
+		}
+	}
+
+	private void _validateName(String name) throws PortalException {
+		if (Validator.isNull(name)) {
+			throw new CommerceChannelNameException();
 		}
 	}
 

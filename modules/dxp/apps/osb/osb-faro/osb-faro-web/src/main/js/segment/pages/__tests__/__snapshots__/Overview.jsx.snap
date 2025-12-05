@@ -38,7 +38,7 @@ exports[`SegmentOverview should render 1`] = `
         >
           <a
             class="button-root btn btn-outline-borderless btn-sm btn-outline-secondary"
-            href="/workspace/23/contacts/segments/test/membership"
+            href="/workspace/23/contacts/segments/0/membership"
           >
             View Members
             <svg
@@ -90,7 +90,7 @@ exports[`SegmentOverview should render 1`] = `
         >
           <a
             class="button-root c-link link-secondary text-decoration-none"
-            href="/workspace/23/contacts/segments/test/interests"
+            href="/workspace/23/contacts/segments/0/interests"
           >
             View All Interests
             <svg
@@ -208,7 +208,7 @@ exports[`SegmentOverview should render 1`] = `
         >
           <a
             class="button-root btn btn-outline-borderless btn-sm btn-outline-secondary"
-            href="/workspace/23/contacts/segments/test/distribution"
+            href="/workspace/23/contacts/segments/0/distribution"
           >
             Explore Breakdown
             <svg
@@ -350,6 +350,79 @@ exports[`SegmentOverview should render 1`] = `
                 </div>
               </li>
             </ul>
+          </div>
+        </div>
+      </div>
+      <div
+        class="panel card-root"
+      >
+        <button
+          aria-controls="clay-id-1"
+          aria-expanded="true"
+          class="panel-header panel-header-link collapse-icon collapse-icon-middle show btn btn-unstyled"
+          type="button"
+        >
+          <div
+            class="card-title"
+          >
+            Segment Criteria
+          </div>
+          <span
+            class="collapse-icon-closed"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-angle-right"
+              role="presentation"
+            >
+              <use
+                href="#angle-right"
+              />
+            </svg>
+          </span>
+          <span
+            class="collapse-icon-open"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-angle-down"
+              role="presentation"
+            >
+              <use
+                href="#angle-down"
+              />
+            </svg>
+          </span>
+        </button>
+        <div
+          aria-labelledby="clay-id-1"
+          class="panel-collapse"
+          id="clay-id-1"
+          role="region"
+        >
+          <div
+            class="panel-body criteria-card-root"
+          >
+            <div
+              class="criteria-view-root pt-2"
+            >
+              <div
+                class="criteria-group"
+              >
+                <div
+                  class="criteria-row"
+                >
+                  Individual
+                  <b>
+                    Middle Name
+                  </b>
+                  <span>
+                    is
+                  </span>
+                  <b>
+                    "additionalName"
+                  </b>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

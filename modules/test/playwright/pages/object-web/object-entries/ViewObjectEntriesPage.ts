@@ -13,19 +13,21 @@ import {PORTLET_URLS} from '../../../utils/portletUrls';
 import type {SupportedBusinessType} from '../../../tests/object-web/main/utils/generateObjectEntry';
 
 export class ViewObjectEntriesPage {
-	readonly addObjectEntryButton: Locator;
 	readonly backButton: Locator;
 	readonly cancelObjectEntryButton: Locator;
 	readonly dateTimeInput: Locator;
 	readonly deletionConfirmationModal: Locator;
 	readonly deleteFileButton: Locator;
+	readonly downloadFileButton: Locator;
 	readonly duplicateEntryErrorMessage: Locator;
 	readonly editObjectEntryForm: Locator;
 	readonly expirationDateInput: Locator;
 	readonly frameSelect: FrameLocator;
+	readonly friendlyUrlInput: Locator;
 	readonly frontendDatasetActions: Locator;
 	readonly frontendDatasetDeleteAction: Locator;
 	readonly frontendDatasetItems: Locator;
+	readonly frontendDatasetPermissionsAction: Locator;
 	readonly frontendDatasetViewAction: Locator;
 	readonly neverExpire: Locator;
 	readonly neverReview: Locator;
@@ -52,9 +54,6 @@ export class ViewObjectEntriesPage {
 	readonly successMessageArabic: Locator;
 
 	constructor(page: Page) {
-		this.addObjectEntryButton = page
-			.getByTestId('fdsCreationActionButton')
-			.first();
 		this.backButton = page.getByTitle('Back');
 		this.cancelObjectEntryButton = page.getByRole('button', {
 			name: 'Cancel',
@@ -64,6 +63,7 @@ export class ViewObjectEntriesPage {
 		this.deletionConfirmationModal = page
 			.getByRole('dialog')
 			.and(page.getByLabel('Delete Entry'));
+		this.downloadFileButton = page.getByRole('button', {name: 'Download'});
 		this.duplicateEntryErrorMessage = page.getByText(
 			'Error:The field values are already in use. Please choose unique values.'
 		);
@@ -77,6 +77,7 @@ export class ViewObjectEntriesPage {
 		this.frameSelect = page
 			.locator('iframe[title="Select"]')
 			.contentFrame();
+		this.friendlyUrlInput = page.locator('[name$="friendlyURL"]');
 		this.frontendDatasetActions = page.getByRole('button', {
 			name: 'Actions',
 		});
@@ -84,6 +85,9 @@ export class ViewObjectEntriesPage {
 			name: 'Delete',
 		});
 		this.frontendDatasetItems = page.getByRole('cell').getByRole('link');
+		this.frontendDatasetPermissionsAction = page.getByRole('menuitem', {
+			name: 'Permissions',
+		});
 		this.frontendDatasetViewAction = page.getByRole('menuitem', {
 			name: 'View',
 		});
@@ -152,13 +156,11 @@ export class ViewObjectEntriesPage {
 		}
 	}
 
-	async clickAddObjectEntry(objectName?: string) {
-		objectName
-			? await this.page
-					.getByLabel('Add ' + objectName)
-					.first()
-					.click()
-			: await this.addObjectEntryButton.click();
+	async clickAddObjectEntry(objectDefinitionLabel: string) {
+		await this.page
+			.getByLabel('Add ' + objectDefinitionLabel)
+			.first()
+			.click();
 
 		await this.editObjectEntryForm.waitFor({state: 'visible'});
 	}

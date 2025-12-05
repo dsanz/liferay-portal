@@ -5,6 +5,7 @@
 
 import {Locator, Page, expect} from '@playwright/test';
 
+import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import {waitForAlert} from '../../utils/waitForAlert';
 import {ApplicationsMenuPage} from '../product-navigation-applications-menu/ApplicationsMenuPage';
 
@@ -92,6 +93,44 @@ export class InstanceSettingsPage {
 				name: configurationName,
 			})
 			.click();
+	}
+
+	async exportFactoryEntries() {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {name: 'Export Entries'}),
+			trigger: this.page.getByRole('button', {name: 'Actions'}).first(),
+		});
+	}
+
+	async exportFactoryEntry(entryName: string) {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {name: 'Export'}),
+			trigger: this.page
+				.locator(`tbody tr:has-text("${entryName}")`)
+				.getByRole('button', {name: 'Actions'}),
+		});
+	}
+
+	async editFactoryEntry(entryName: string) {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('link', {name: 'Edit'}),
+			trigger: this.page
+				.locator(`tbody tr:has-text("${entryName}")`)
+				.getByRole('button', {name: 'Actions'}),
+		});
+	}
+
+	async deleteFactoryEntry(entryName: string) {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('link', {name: 'Delete'}),
+			trigger: this.page
+				.locator(`tbody tr:has-text("${entryName}")`)
+				.getByRole('button', {name: 'Actions'}),
+		});
 	}
 
 	async goToSSO() {

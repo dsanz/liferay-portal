@@ -4,7 +4,7 @@
  */
 
 import ClayButton from '@clayui/button';
-import Form, {ClayInput} from '@clayui/form';
+import Form, {ClayInput, ClaySelectWithOption} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayModal from '@clayui/modal';
 import ClayMultiSelect from '@clayui/multi-select';
@@ -28,16 +28,15 @@ export default function MergeTagsModalContent({
 	closeModal,
 	cmsGroupId,
 	loadData,
-	tagId,
-	tagName,
+	selectIntoTags,
 }: {
 	closeModal: () => void;
 	cmsGroupId: number;
 	loadData: () => {};
-	tagId: number;
-	tagName: string;
+	selectIntoTags: Tag[];
 }) {
 	const [tags, setTags] = useState<Tag[]>([]);
+	const [currentTag, setCurrentTag] = useState(selectIntoTags[0]);
 	const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
 
 	useEffect(() => {
@@ -57,7 +56,9 @@ export default function MergeTagsModalContent({
 				setTags(allTags);
 
 				const selectedTag = allTags.find(
-					(tag: Tag) => tag.value === tagId && tag.label === tagName
+					(tag: Tag) =>
+						tag.value === currentTag.value &&
+						tag.label === currentTag.label
 				);
 
 				if (selectedTag) {
@@ -67,23 +68,39 @@ export default function MergeTagsModalContent({
 		};
 
 		getTags();
-	}, [cmsGroupId, tagId, tagName]);
+	}, [cmsGroupId, currentTag]);
+
+	const _getConfirmationMessage = () => {
+		const tagNames =
+			'"' + selectedTags.map((item) => item.label).join(', ') + '"';
+		const intoTagName =
+			'"' + Liferay.Util.escapeHTML(currentTag.label) + '"';
+
+		return sub(
+			Liferay.Language.get(
+				'are-you-sure-you-want-to-merge-x-into-x.-x-will-be-available-in-x'
+			),
+			`<strong>${tagNames}</strong>`,
+			`<strong>${intoTagName}</strong>`,
+			`<strong>"${Liferay.Language.get('all-spaces')}"</strong>`
+		);
+	};
 
 	const _handleTagChange = (items: Tag[]) => {
 		setSelectedTags(tags.filter((item) => items.includes(item)));
 	};
 
-	const mergeTags = (values: any) => {
+	const mergeTags = (tag: Tag) => {
 		const params = new URLSearchParams();
 
 		for (const item of selectedTags) {
-			if (Number(item.value) === Number(values.tagId)) {
+			if (Number(item.value) === Number(tag.value)) {
 				continue;
 			}
 			params.append('fromKeywordIds', item.value);
 		}
 
-		const url = `/o/headless-admin-taxonomy/v1.0/keywords/${values.tagId}/merge?${params}`;
+		const url = `/o/headless-admin-taxonomy/v1.0/keywords/${tag.value}/merge?${params}`;
 
 		executeAsyncItemAction({
 			method: 'PUT',
@@ -91,10 +108,10 @@ export default function MergeTagsModalContent({
 			successMessage: sub(
 				Liferay.Language.get('x-and-x-have-been-successfully-merged'),
 				selectedTags
-					.filter((item) => item.label !== tagName)
+					.filter((item) => item.label !== currentTag.label)
 					.map((item) => item.label)
 					.join(', '),
-				`${Liferay.Util.escapeHTML(tagName)}`
+				`${Liferay.Util.escapeHTML(currentTag.label)}`
 			),
 			url,
 		});
@@ -104,10 +121,14 @@ export default function MergeTagsModalContent({
 
 	const {handleSubmit} = useFormik({
 		initialValues: {
-			tagId,
-			tagName,
+			currentTag,
 		},
 		onSubmit: (values) => {
+			const mergeModel = document.querySelector(
+				'#mergeModal .modal-dialog'
+			);
+			mergeModel?.setAttribute('hidden', 'true');
+
 			if (selectedTags.length < 2) {
 				openModal({
 					bodyHTML: sub(
@@ -122,7 +143,9 @@ export default function MergeTagsModalContent({
 							type: 'cancel',
 						},
 					],
-					height: '30vh',
+					onClose: () => {
+						mergeModel?.removeAttribute('hidden');
+					},
 					status: 'warning',
 					title: Liferay.Language.get('merge-tags'),
 				});
@@ -131,31 +154,27 @@ export default function MergeTagsModalContent({
 			}
 
 			openModal({
-				bodyHTML: sub(
-					Liferay.Language.get(
-						'are-you-sure-you-want-to-merge-x-into-x-all-spaces'
-					),
-					selectedTags.map((item) => item.label).join(', '),
-					`${Liferay.Util.escapeHTML(tagName)}`
-				),
+				bodyHTML: _getConfirmationMessage(),
 				buttons: [
 					{
 						autoFocus: true,
-						displayType: 'warning',
+						displayType: 'secondary',
 						label: Liferay.Language.get('cancel'),
 						type: 'cancel',
 					},
 					{
 						displayType: 'warning',
-						label: Liferay.Language.get('ok'),
+						label: Liferay.Language.get('save'),
 						onClick: ({processClose}: {processClose: Function}) => {
 							processClose();
 
-							mergeTags(values);
+							mergeTags(values.currentTag);
 						},
 					},
 				],
-				height: '30vh',
+				onClose: () => {
+					mergeModel?.removeAttribute('hidden');
+				},
 				status: 'warning',
 				title: Liferay.Language.get('confirm-merge-tags'),
 			});
@@ -214,8 +233,10 @@ export default function MergeTagsModalContent({
 
 		return (
 			<>
-				<div className="categorization-section">
-					<ClayModal.Header>
+				<div className="categorization-modal categorization-section">
+					<ClayModal.Header
+						closeButtonAriaLabel={Liferay.Language.get('close')}
+					>
 						{Liferay.Language.get('merge-tags')}
 					</ClayModal.Header>
 
@@ -321,75 +342,85 @@ export default function MergeTagsModalContent({
 
 	return (
 		<form onSubmit={handleSubmit}>
-			<ClayModal.Header>
-				{Liferay.Language.get('merge-tags')}
-			</ClayModal.Header>
+			<div className="categorization-modal">
+				<ClayModal.Header
+					closeButtonAriaLabel={Liferay.Language.get('close')}
+				>
+					{Liferay.Language.get('merge-tags')}
+				</ClayModal.Header>
 
-			<ClayModal.Body>
-				<ClayInput.Group>
-					<ClayInput.GroupItem className="categorization-spaces">
-						<label htmlFor="multiSelect">
-							{Liferay.Language.get('tags')}
+				<ClayModal.Body>
+					<ClayInput.Group>
+						<ClayInput.GroupItem className="categorization-spaces">
+							<label htmlFor="multiSelect">
+								{Liferay.Language.get('tags')}
+
+								<span className="ml-1 reference-mark">
+									<ClayIcon symbol="asterisk" />
+								</span>
+							</label>
+
+							<ClayMultiSelect
+								aria-label="multiSelect"
+								inputName="multiSelect"
+								items={selectedTags}
+								loadingState={3}
+								onItemsChange={(items: Tag[]) => {
+									_handleTagChange(items);
+								}}
+								sourceItems={tags}
+							/>
+						</ClayInput.GroupItem>
+
+						<ClayInput.GroupItem className="c-mt-4" shrink>
+							<ClayButton
+								aria-haspopup="dialog"
+								aria-label={Liferay.Language.get('select')}
+								displayType="secondary"
+								onClick={handleSelectButtonClick}
+							>
+								{Liferay.Language.get('select')}
+							</ClayButton>
+						</ClayInput.GroupItem>
+					</ClayInput.Group>
+
+					<Form.Group className="c-mt-3">
+						<label>
+							{Liferay.Language.get('into-this-tag')}
 
 							<span className="ml-1 reference-mark">
 								<ClayIcon symbol="asterisk" />
 							</span>
 						</label>
 
-						<ClayMultiSelect
-							aria-label="multiSelect"
-							inputName="multiSelect"
-							items={selectedTags}
-							loadingState={3}
-							onItemsChange={(items: Tag[]) => {
-								_handleTagChange(items);
-							}}
-							sourceItems={tags}
+						<ClaySelectWithOption
+							onChange={(event) =>
+								setCurrentTag(event.target.dataset as Tag)
+							}
+							options={selectIntoTags}
+							value={currentTag.label}
 						/>
-					</ClayInput.GroupItem>
+					</Form.Group>
+				</ClayModal.Body>
 
-					<ClayInput.GroupItem className="c-mt-4" shrink>
-						<ClayButton
-							aria-haspopup="dialog"
-							aria-label={Liferay.Language.get('select')}
-							displayType="secondary"
-							onClick={handleSelectButtonClick}
-						>
-							{Liferay.Language.get('select')}
-						</ClayButton>
-					</ClayInput.GroupItem>
-				</ClayInput.Group>
+				<ClayModal.Footer
+					last={
+						<ClayButton.Group spaced>
+							<ClayButton
+								displayType="secondary"
+								onClick={closeModal}
+								type="button"
+							>
+								{Liferay.Language.get('cancel')}
+							</ClayButton>
 
-				<Form.Group className="c-mt-3">
-					<label>
-						{Liferay.Language.get('into-this-tag')}
-
-						<span className="ml-1 reference-mark">
-							<ClayIcon symbol="asterisk" />
-						</span>
-					</label>
-
-					<ClayInput disabled role="presentation" value={tagName} />
-				</Form.Group>
-			</ClayModal.Body>
-
-			<ClayModal.Footer
-				last={
-					<ClayButton.Group spaced>
-						<ClayButton
-							displayType="secondary"
-							onClick={closeModal}
-							type="button"
-						>
-							{Liferay.Language.get('cancel')}
-						</ClayButton>
-
-						<ClayButton displayType="primary" type="submit">
-							{Liferay.Language.get('save')}
-						</ClayButton>
-					</ClayButton.Group>
-				}
-			/>
+							<ClayButton displayType="primary" type="submit">
+								{Liferay.Language.get('save')}
+							</ClayButton>
+						</ClayButton.Group>
+					}
+				/>
+			</div>
 		</form>
 	);
 }

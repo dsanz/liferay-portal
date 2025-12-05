@@ -20,7 +20,7 @@ import com.liferay.headless.admin.site.dto.v1_0.Settings;
 import com.liferay.headless.admin.site.dto.v1_0.WidgetPageSection;
 import com.liferay.headless.admin.site.dto.v1_0.WidgetPageSpecification;
 import com.liferay.headless.admin.site.dto.v1_0.WidgetPageWidgetInstance;
-import com.liferay.headless.admin.site.internal.dto.v1_0.util.ScopeUtil;
+import com.liferay.headless.admin.site.internal.dto.v1_0.util.ItemScopeUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.LayoutUtil;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
@@ -45,8 +45,6 @@ import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
 import com.liferay.segments.service.SegmentsExperienceService;
-import com.liferay.style.book.model.StyleBookEntry;
-import com.liferay.style.book.service.StyleBookEntryLocalService;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -245,9 +243,9 @@ public class PageSpecificationDTOConverter
 								setFavIconType(
 									() -> FavIconType.ITEM_EXTERNAL_REFERENCE);
 								setScope(
-									() -> ScopeUtil.getScope(
-										layout.getGroupId(),
-										fileEntry.getGroupId()));
+									() -> ItemScopeUtil.getItemScope(
+										fileEntry.getGroupId(),
+										layout.getGroupId()));
 							}
 						};
 					});
@@ -263,41 +261,30 @@ public class PageSpecificationDTOConverter
 					() -> unicodeProperties.getProperty("javascript", null));
 				setMasterPageItemExternalReference(
 					() -> {
-						if (layout.getMasterLayoutPlid() == 0) {
-							return null;
-						}
+						if (Validator.isNull(
+								layout.getMasterLayoutPageTemplateEntryERC())) {
 
-						LayoutPageTemplateEntry layoutPageTemplateEntry =
-							_layoutPageTemplateEntryLocalService.
-								fetchLayoutPageTemplateEntryByPlid(
-									layout.getMasterLayoutPlid());
-
-						if (layoutPageTemplateEntry == null) {
 							return null;
 						}
 
 						return new ItemExternalReference() {
 							{
 								setExternalReferenceCode(
-									layoutPageTemplateEntry::
-										getExternalReferenceCode);
+									layout::
+										getMasterLayoutPageTemplateEntryERC);
 							}
 						};
 					});
 				setStyleBookItemExternalReference(
 					() -> {
-						StyleBookEntry styleBookEntry =
-							_styleBookEntryLocalService.fetchStyleBookEntry(
-								layout.getStyleBookEntryId());
-
-						if (styleBookEntry == null) {
+						if (Validator.isNull(layout.getStyleBookEntryERC())) {
 							return null;
 						}
 
 						return new ItemExternalReference() {
 							{
 								setExternalReferenceCode(
-									styleBookEntry::getExternalReferenceCode);
+									layout::getStyleBookEntryERC);
 							}
 						};
 					});
@@ -515,9 +502,6 @@ public class PageSpecificationDTOConverter
 
 	@Reference
 	private SegmentsExperienceService _segmentsExperienceService;
-
-	@Reference
-	private StyleBookEntryLocalService _styleBookEntryLocalService;
 
 	@Reference(
 		target = "(component.name=com.liferay.headless.admin.site.internal.dto.v1_0.converter.WidgetPageWidgetInstanceDTOConverter)"

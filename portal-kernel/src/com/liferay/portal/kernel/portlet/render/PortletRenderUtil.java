@@ -345,35 +345,38 @@ public class PortletRenderUtil {
 	}
 
 	private static String _getStaticCSSResourceURL(
-		HttpServletRequest httpServletRequest, ThemeDisplay themeDisplay,
-		String unhashedFileURI) {
+		HttpServletRequest httpServletRequest, String originalURL,
+		ThemeDisplay themeDisplay) {
 
-		String url = unhashedFileURI;
+		String url = null;
+
+		String proxyPath = PortalUtil.getPathProxy();
+
+		String unhashedFileURI = originalURL.substring(proxyPath.length());
 
 		String hashedFileURI = HashedFilesRegistryUtil.getHashedFileURI(
 			unhashedFileURI);
 
 		if (hashedFileURI == null) {
+			url = originalURL;
+
 			if (PortalUtil.isRightToLeft(httpServletRequest)) {
-				int i = unhashedFileURI.lastIndexOf(StringPool.PERIOD);
+				int i = url.lastIndexOf(StringPool.PERIOD);
 
 				if (i != -1) {
-					url =
-						unhashedFileURI.substring(0, i) + "_rtl" +
-							unhashedFileURI.substring(i);
+					url = url.substring(0, i) + "_rtl" + url.substring(i);
 				}
 			}
 		}
 		else {
+			url = proxyPath + hashedFileURI;
+
 			if (PortalUtil.isRightToLeft(httpServletRequest)) {
-				url = HashedFilesUtil.addNameSuffix(hashedFileURI, "_rtl");
-			}
-			else {
-				url = hashedFileURI;
+				url = HashedFilesUtil.addNameSuffix(url, "_rtl");
 			}
 		}
 
-		if (_isTokenized(url)) {
+		if (_isTokenized(unhashedFileURI)) {
 			url = HttpComponentsUtil.addParameter(
 				url, "themeId", themeDisplay.getThemeId());
 			url = HttpComponentsUtil.addParameter(url, "tokenize", true);
@@ -428,8 +431,8 @@ public class PortletRenderUtil {
 					if (!HttpComponentsUtil.hasProtocol(portletResource)) {
 						if (urlType == URLType.CSS) {
 							portletResource = _getStaticCSSResourceURL(
-								httpServletRequest, themeDisplay,
-								contextPath + portletResource);
+								httpServletRequest,
+								contextPath + portletResource, themeDisplay);
 						}
 						else if (urlType == URLType.JAVASCRIPT) {
 							Portlet rootPortlet = portlet.getRootPortlet();
@@ -549,10 +552,12 @@ public class PortletRenderUtil {
 				content = StreamUtil.toString(resourceURL.openStream());
 			}
 			catch (Exception exception) {
-				_log.error(
-					"Assuming " + resourceURI +
-						" has no tokens because it could not be read",
-					exception);
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Assuming " + resourceURI +
+							" has no tokens because it could not be read",
+						exception);
+				}
 
 				_tokenized.putIfAbsent(resourceURI, false);
 

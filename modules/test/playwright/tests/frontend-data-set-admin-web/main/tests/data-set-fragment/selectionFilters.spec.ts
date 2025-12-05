@@ -722,6 +722,7 @@ test('Selection filter of type "API REST Application" is displayed in fragment @
 		await dataSetFragmentPage.filterItem
 			.getByRole('checkbox', {name: 'boolean'})
 			.check();
+
 		await dataSetFragmentPage.addFilterButton.click();
 	});
 
@@ -757,7 +758,7 @@ test('Selection filter of type "API REST Application" is displayed in fragment @
 	});
 
 	await test.step('Can reset applied filters', async () => {
-		await dataSetFragmentPage.resetFilterButton.click();
+		await dataSetFragmentPage.removeFilterButton.click();
 	});
 
 	await test.step('Check initial items in the Frontend Data Set', async () => {
@@ -784,7 +785,7 @@ test(
 			await dataSetManagerApiHelpers.createDataSet({
 				erc: customDataSetERC,
 				label: customDataSetLabel,
-				restApplication: `${API_ENDPOINT_PATH}`,
+				restEndpoint: '/',
 				restSchema: 'DataSet',
 			});
 		});
@@ -805,7 +806,7 @@ test(
 				itemLabel: 'fieldName',
 				label_i18n: {en_US: filterLabel},
 				multiple: true,
-				source: `/o${API_ENDPOINT_PATH}/cards-sections/`,
+				source: `/o${API_ENDPOINT_PATH}/by-external-reference-code/${customDataSetERC}/dataSetToDataSetCardsSections`,
 				sourceType: 'API_REST_APPLICATION',
 			});
 		});

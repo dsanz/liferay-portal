@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -27,6 +27,8 @@ const renderComponent = ({isSubscribed = false} = {}) => {
 	return render(
 		<ContentEditorSidePanel
 			addCommentURL="addCommentURL"
+			assetLibraryId="123"
+			cmsGroupId="21000"
 			comments={[]}
 			contentAPIURL="contentAPIURL"
 			deleteCommentURL="deleteCommentURL"
@@ -35,7 +37,7 @@ const renderComponent = ({isSubscribed = false} = {}) => {
 			entryClassName=""
 			expirationDate={EXPIRATION_DATE}
 			getCommentsURL="getCommentsURL"
-			groupId="21000"
+			hasUpdatePermission={true}
 			id="contentId"
 			isSubscribed={isSubscribed}
 			reviewDate={REVIEW_DATE}
@@ -47,6 +49,12 @@ const renderComponent = ({isSubscribed = false} = {}) => {
 };
 
 describe('ContentEditorSidePanel', () => {
+	beforeEach(() => {
+		global.Liferay.ThemeDisplay.getTimeZone = jest
+			.fn()
+			.mockReturnValue('utc');
+	});
+
 	it('renders ContentEditorSidePanel', () => {
 		renderComponent();
 
@@ -158,10 +166,10 @@ describe('ContentEditorSidePanel', () => {
 		renderComponent();
 
 		const expirationInput: HTMLInputElement | null = document.querySelector(
-			'[name="expirationDate"]'
+			'[name="ObjectEntry_expirationDate"]'
 		);
 		const reviewInput: HTMLInputElement | null = document.querySelector(
-			'[name="reviewDate"]'
+			'[name="ObjectEntry_reviewDate"]'
 		);
 
 		expect(expirationInput?.value).toBe(EXPIRATION_DATE);

@@ -21,7 +21,7 @@ import {PaymentMethodType} from '../../../types';
 import PaidLicense from './PaidLicense';
 import TrialLicense from './TrialLicense';
 
-import '../../../../GetApp/styles/index.scss';
+import '../../../../ProductPurchase/components/StepWizard/StepWizard.scss';
 import {cartStore} from '../../../store/CartStore';
 
 const isContinueButtonDisabled = () => {

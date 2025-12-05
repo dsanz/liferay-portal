@@ -23,14 +23,17 @@ import com.liferay.object.model.ObjectEntryFolder;
 import com.liferay.object.model.ObjectEntryFolderTable;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.base.ObjectEntryFolderLocalServiceBaseImpl;
+import com.liferay.object.service.persistence.ObjectEntryPersistence;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexable;
@@ -38,7 +41,9 @@ import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
@@ -52,6 +57,7 @@ import com.liferay.portal.kernel.util.ObjectValuePair;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
+import com.liferay.portal.kernel.util.UniqueUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.subscription.service.SubscriptionLocalService;
@@ -105,6 +111,38 @@ public class ObjectEntryFolderLocalServiceImpl
 		_updateAsset(objectEntryFolder, serviceContext);
 
 		return objectEntryFolder;
+	}
+
+	@Indexable(type = IndexableType.REINDEX)
+	@Override
+	public ObjectEntryFolder copyObjectEntryFolder(
+			long userId, long objectEntryFolderId,
+			long parentObjectEntryFolderId, boolean replace,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		ObjectEntryFolder objectEntryFolder = getObjectEntryFolder(
+			objectEntryFolderId);
+		ObjectEntryFolder parentObjectEntryFolder = getObjectEntryFolder(
+			parentObjectEntryFolderId);
+
+		_validateParentObjectEntryFolderId(
+			parentObjectEntryFolder.getGroupId(), objectEntryFolder,
+			parentObjectEntryFolderId);
+
+		if (replace &&
+			(objectEntryFolder.getParentObjectEntryFolderId() ==
+				parentObjectEntryFolderId)) {
+
+			return objectEntryFolder;
+		}
+
+		_updateObjectEntryFolderName(
+			objectEntryFolder, parentObjectEntryFolderId, replace);
+
+		return _copyObjectEntryFolder(
+			userId, objectEntryFolder, parentObjectEntryFolderId,
+			serviceContext);
 	}
 
 	@Override
@@ -321,6 +359,37 @@ public class ObjectEntryFolderLocalServiceImpl
 				getObjectEntryFolderByExternalReferenceCode(
 					_externalReferenceCode, _groupId, companyId),
 			groupId, ObjectEntryFolder.class.getName());
+	}
+
+	@Indexable(type = IndexableType.REINDEX)
+	@Override
+	public ObjectEntryFolder moveObjectEntryFolder(
+			long userId, long objectEntryFolderId,
+			long parentObjectEntryFolderId, boolean replace,
+			ServiceContext serviceContext)
+		throws PortalException {
+
+		ObjectEntryFolder objectEntryFolder = getObjectEntryFolder(
+			objectEntryFolderId);
+		ObjectEntryFolder parentObjectEntryFolder = getObjectEntryFolder(
+			parentObjectEntryFolderId);
+
+		_validateParentObjectEntryFolderId(
+			parentObjectEntryFolder.getGroupId(), objectEntryFolder,
+			parentObjectEntryFolderId);
+
+		if (objectEntryFolder.getParentObjectEntryFolderId() ==
+				parentObjectEntryFolderId) {
+
+			return objectEntryFolder;
+		}
+
+		_updateObjectEntryFolderName(
+			objectEntryFolder, parentObjectEntryFolderId, replace);
+
+		return _moveObjectEntryFolder(
+			userId, objectEntryFolder, parentObjectEntryFolderId,
+			serviceContext);
 	}
 
 	@Override
@@ -568,7 +637,28 @@ public class ObjectEntryFolderLocalServiceImpl
 				serviceContext);
 		}
 		else {
-			if (FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+			if (FeatureFlagManagerUtil.isEnabled(
+					objectEntryFolder.getCompanyId(), "LPD-17564")) {
+
+				Group group = _groupLocalService.fetchGroup(
+					objectEntryFolder.getGroupId());
+
+				if (group.isDepot()) {
+					int count =
+						_resourcePermissionLocalService.
+							getResourcePermissionsCount(
+								objectEntryFolder.getCompanyId(),
+								ObjectEntryFolder.class.getName(),
+								ResourceConstants.SCOPE_INDIVIDUAL,
+								String.valueOf(
+									objectEntryFolder.
+										getObjectEntryFolderId()));
+
+					if (count > 0) {
+						return;
+					}
+				}
+
 				ModelPermissions modelPermissions =
 					serviceContext.getModelPermissions();
 
@@ -596,6 +686,47 @@ public class ObjectEntryFolderLocalServiceImpl
 		}
 	}
 
+	private ObjectEntryFolder _copyObjectEntryFolder(
+			long userId, ObjectEntryFolder objectEntryFolder,
+			long parentObjectEntryFolderId, ServiceContext serviceContext)
+		throws PortalException {
+
+		ObjectEntryFolder parentObjectEntryFolder = getObjectEntryFolder(
+			parentObjectEntryFolderId);
+
+		ObjectEntryFolder newObjectEntryFolder = addObjectEntryFolder(
+			null, parentObjectEntryFolder.getGroupId(), userId,
+			parentObjectEntryFolderId, objectEntryFolder.getDescription(),
+			objectEntryFolder.getLabelMap(), objectEntryFolder.getName(),
+			serviceContext);
+
+		for (ObjectEntry objectEntry :
+				_objectEntryPersistence.findByG_C_OEFI(
+					objectEntryFolder.getGroupId(),
+					objectEntryFolder.getCompanyId(),
+					objectEntryFolder.getObjectEntryFolderId())) {
+
+			_objectEntryLocalService.copyObjectEntry(
+				userId, objectEntry.getObjectEntryId(),
+				newObjectEntryFolder.getObjectEntryFolderId(),
+				objectEntry.getValues(), serviceContext);
+		}
+
+		for (ObjectEntryFolder childObjectEntryFolder :
+				getObjectEntryFolders(
+					objectEntryFolder.getGroupId(),
+					objectEntryFolder.getCompanyId(),
+					objectEntryFolder.getObjectEntryFolderId(),
+					QueryUtil.ALL_POS, QueryUtil.ALL_POS)) {
+
+			_copyObjectEntryFolder(
+				userId, childObjectEntryFolder,
+				newObjectEntryFolder.getObjectEntryFolderId(), serviceContext);
+		}
+
+		return newObjectEntryFolder;
+	}
+
 	private long _getClassPK(long groupId, long objectEntryFolderId) {
 		if (objectEntryFolderId ==
 				ObjectEntryFolderConstants.
@@ -621,6 +752,86 @@ public class ObjectEntryFolderLocalServiceImpl
 		}
 
 		return labelMap;
+	}
+
+	private String _getUniqueName(
+			String name, ObjectEntryFolder parentObjectEntryFolder)
+		throws PortalException {
+
+		if (_isUniqueName(name, parentObjectEntryFolder)) {
+			return name;
+		}
+
+		return UniqueUtil.getUniqueValue(
+			"copy",
+			uniqueValue -> _isUniqueName(uniqueValue, parentObjectEntryFolder),
+			name);
+	}
+
+	private boolean _isUniqueName(
+		String copyValue, ObjectEntryFolder parentObjectEntryFolder) {
+
+		ObjectEntryFolder objectEntryFolder =
+			objectEntryFolderPersistence.fetchByG_C_P_N(
+				parentObjectEntryFolder.getGroupId(),
+				parentObjectEntryFolder.getCompanyId(),
+				parentObjectEntryFolder.getObjectEntryFolderId(), copyValue);
+
+		if (objectEntryFolder == null) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private ObjectEntryFolder _moveObjectEntryFolder(
+			long userId, ObjectEntryFolder objectEntryFolder,
+			long parentObjectEntryFolderId, ServiceContext serviceContext)
+		throws PortalException {
+
+		long groupId = objectEntryFolder.getGroupId();
+
+		ObjectEntryFolder parentObjectEntryFolder = getObjectEntryFolder(
+			parentObjectEntryFolderId);
+
+		if (objectEntryFolder.getGroupId() !=
+				parentObjectEntryFolder.getGroupId()) {
+
+			objectEntryFolder.setGroupId(parentObjectEntryFolder.getGroupId());
+		}
+
+		objectEntryFolder.setParentObjectEntryFolderId(
+			parentObjectEntryFolderId);
+		objectEntryFolder.setTreePath(objectEntryFolder.buildTreePath());
+
+		objectEntryFolder = updateObjectEntryFolder(objectEntryFolder);
+
+		if (groupId != parentObjectEntryFolder.getGroupId()) {
+			for (ObjectEntry objectEntry :
+					_objectEntryPersistence.findByG_C_OEFI(
+						groupId, objectEntryFolder.getCompanyId(),
+						objectEntryFolder.getObjectEntryFolderId())) {
+
+				_objectEntryLocalService.moveObjectEntry(
+					userId, objectEntry.getObjectEntryId(),
+					objectEntry.getObjectEntryFolderId(),
+					objectEntry.getValues(), serviceContext);
+			}
+
+			for (ObjectEntryFolder childObjectEntryFolder :
+					getObjectEntryFolders(
+						groupId, objectEntryFolder.getCompanyId(),
+						objectEntryFolder.getObjectEntryFolderId(),
+						QueryUtil.ALL_POS, QueryUtil.ALL_POS)) {
+
+				_moveObjectEntryFolder(
+					userId, childObjectEntryFolder,
+					childObjectEntryFolder.getParentObjectEntryFolderId(),
+					serviceContext);
+			}
+		}
+
+		return objectEntryFolder;
 	}
 
 	private ObjectEntryFolder _moveObjectEntryFolderToTrash(
@@ -693,6 +904,52 @@ public class ObjectEntryFolderLocalServiceImpl
 			serviceContext.getAssetTagNames(), true, true, null, null,
 			objectEntryFolder.getCreateDate(), null, null,
 			objectEntryFolder.getName(), null, null, null, null, 0, 0, null);
+	}
+
+	private void _updateObjectEntryFolderName(
+			ObjectEntryFolder objectEntryFolder, long parentObjectEntryFolderId,
+			boolean replace)
+		throws PortalException {
+
+		ObjectEntryFolder parentObjectEntryFolder =
+			objectEntryFolderLocalService.fetchObjectEntryFolder(
+				parentObjectEntryFolderId);
+
+		String uniqueName = _getUniqueName(
+			objectEntryFolder.getName(), parentObjectEntryFolder);
+
+		if (StringUtil.equals(objectEntryFolder.getName(), uniqueName)) {
+			return;
+		}
+
+		if (replace) {
+			ObjectEntryFolder duplicateObjectEntryFolder =
+				objectEntryFolderPersistence.fetchByG_C_P_N(
+					parentObjectEntryFolder.getGroupId(),
+					parentObjectEntryFolder.getCompanyId(),
+					parentObjectEntryFolder.getObjectEntryFolderId(),
+					objectEntryFolder.getName());
+
+			if (duplicateObjectEntryFolder != null) {
+				duplicateObjectEntryFolder.setName(
+					duplicateObjectEntryFolder.getName() + "(replace)");
+
+				duplicateObjectEntryFolder =
+					objectEntryFolderLocalService.updateObjectEntryFolder(
+						duplicateObjectEntryFolder);
+
+				objectEntryFolderLocalService.deleteObjectEntryFolder(
+					duplicateObjectEntryFolder);
+
+				return;
+			}
+		}
+
+		objectEntryFolder.setLabel(
+			uniqueName,
+			LocaleUtil.fromLanguageId(
+				objectEntryFolder.getDefaultLanguageId()));
+		objectEntryFolder.setName(uniqueName);
 	}
 
 	private void _updateWorkflowDefinitionLinks(
@@ -801,10 +1058,19 @@ public class ObjectEntryFolderLocalServiceImpl
 	private EmptyModelManager _emptyModelManager;
 
 	@Reference
+	private GroupLocalService _groupLocalService;
+
+	@Reference
 	private ObjectEntryLocalService _objectEntryLocalService;
 
 	@Reference
+	private ObjectEntryPersistence _objectEntryPersistence;
+
+	@Reference
 	private ResourceLocalService _resourceLocalService;
+
+	@Reference
+	private ResourcePermissionLocalService _resourcePermissionLocalService;
 
 	@Reference
 	private SubscriptionLocalService _subscriptionLocalService;

@@ -132,15 +132,19 @@ function FragmentSelector({
 	layoutDataItems: {label: string; value: string}[];
 	onItemIdChanged: (itemId: string) => void;
 }) {
+	const selectedKey = layoutDataItems.some((item) => item.value === itemId)
+		? itemId
+		: undefined;
+
 	return (
 		<RuleSelect
 			aria-label={sub(
-				Liferay.Language.get('select-x'),
+				Liferay.Language.get('select-x-for-the-action'),
 				Liferay.Language.get('fragment')
 			)}
 			items={layoutDataItems}
 			onSelectionChange={onItemIdChanged}
-			selectedKey={itemId}
+			selectedKey={selectedKey}
 		/>
 	);
 }

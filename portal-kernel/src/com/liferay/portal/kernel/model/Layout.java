@@ -249,6 +249,8 @@ public interface Layout extends LayoutModel, PersistedModel {
 	 */
 	public Layout getLinkedToLayout();
 
+	public long getMasterLayoutPlid();
+
 	public String getRegularURL(
 			jakarta.servlet.http.HttpServletRequest httpServletRequest)
 		throws com.liferay.portal.kernel.exception.PortalException;

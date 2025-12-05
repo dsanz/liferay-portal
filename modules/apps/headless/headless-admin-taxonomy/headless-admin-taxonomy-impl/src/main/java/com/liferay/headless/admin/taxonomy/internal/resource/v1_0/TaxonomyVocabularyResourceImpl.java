@@ -11,6 +11,7 @@ import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetCategoryConstants;
 import com.liferay.asset.kernel.model.AssetRendererFactory;
 import com.liferay.asset.kernel.model.AssetVocabulary;
+import com.liferay.asset.kernel.model.AssetVocabularyConstants;
 import com.liferay.asset.kernel.model.AssetVocabularyGroupRel;
 import com.liferay.asset.kernel.model.ClassType;
 import com.liferay.asset.kernel.model.ClassTypeReader;
@@ -140,25 +141,27 @@ public class TaxonomyVocabularyResourceImpl
 	}
 
 	@Override
-	public ExportImportVulcanBatchEngineTaskItemDelegate.ExportImportDescriptor
-		getExportImportDescriptor() {
-
-		return new ExportImportVulcanBatchEngineTaskItemDelegate.
-			ExportImportDescriptor() {
+	public ExportImportDescriptor getExportImportDescriptor() {
+		return new ExportImportDescriptor() {
 
 			@Override
-			public String getItemClassName() {
-				return AssetVocabulary.class.getName();
+			public String getLabelLanguageKey() {
+				return "vocabularies";
 			}
 
 			@Override
-			public String getLabel() {
-				return "vocabularies";
+			public String getModelClassName() {
+				return AssetVocabulary.class.getName();
 			}
 
 			@Override
 			public String getPortletId() {
 				return AssetCategoriesAdminPortletKeys.ASSET_CATEGORIES_ADMIN;
+			}
+
+			@Override
+			public String getResourceClassName() {
+				return TaxonomyCategoryResourceImpl.class.getName();
 			}
 
 			@Override
@@ -203,7 +206,12 @@ public class TaxonomyVocabularyResourceImpl
 				assetVocabulary.getGroupId());
 		}
 
+		boolean internalVisibilityType =
+			TaxonomyVocabulary.VisibilityType.INTERNAL.equals(
+				taxonomyVocabulary.getVisibilityType());
+
 		assetVocabulary = _assetVocabularyService.updateVocabulary(
+			taxonomyVocabulary.getExternalReferenceCode(),
 			assetVocabulary.getVocabularyId(), null,
 			LocalizedMapUtil.patchLocalizedMap(
 				assetVocabulary.getTitleMap(),
@@ -219,6 +227,9 @@ public class TaxonomyVocabularyResourceImpl
 				assetTypes, assetVocabulary.getGroupId(),
 				GetterUtil.getBoolean(
 					taxonomyVocabulary.getMultiValued(), true)),
+			internalVisibilityType ?
+				AssetVocabularyConstants.VISIBILITY_TYPE_INTERNAL :
+					AssetVocabularyConstants.VISIBILITY_TYPE_PUBLIC,
 			ServiceContextBuilder.create(
 				assetVocabulary.getGroupId(), contextHttpServletRequest,
 				taxonomyVocabulary.getViewableByAsString()
@@ -504,7 +515,9 @@ public class TaxonomyVocabularyResourceImpl
 				taxonomyVocabulary.getAssetTypes(), siteId,
 				GetterUtil.getBoolean(
 					taxonomyVocabulary.getMultiValued(), true)),
-			internalVisibilityType ? 1 : 0,
+			internalVisibilityType ?
+				AssetVocabularyConstants.VISIBILITY_TYPE_INTERNAL :
+					AssetVocabularyConstants.VISIBILITY_TYPE_PUBLIC,
 			ServiceContextBuilder.create(
 				siteId, contextHttpServletRequest,
 				taxonomyVocabulary.getViewableByAsString()
@@ -981,12 +994,20 @@ public class TaxonomyVocabularyResourceImpl
 				_getAssetLibraryGroupIds(taxonomyVocabulary));
 		}
 
+		boolean internalVisibilityType =
+			TaxonomyVocabulary.VisibilityType.INTERNAL.equals(
+				taxonomyVocabulary.getVisibilityType());
+
 		return _assetVocabularyService.updateVocabulary(
+			taxonomyVocabulary.getExternalReferenceCode(),
 			assetVocabulary.getVocabularyId(), null, titleMap, descriptionMap,
 			_getSettings(
 				taxonomyVocabulary.getAssetTypes(),
 				assetVocabulary.getGroupId(),
 				taxonomyVocabulary.getMultiValued()),
+			internalVisibilityType ?
+				AssetVocabularyConstants.VISIBILITY_TYPE_INTERNAL :
+					AssetVocabularyConstants.VISIBILITY_TYPE_PUBLIC,
 			ServiceContextBuilder.create(
 				assetVocabulary.getGroupId(), contextHttpServletRequest,
 				taxonomyVocabulary.getViewableByAsString()

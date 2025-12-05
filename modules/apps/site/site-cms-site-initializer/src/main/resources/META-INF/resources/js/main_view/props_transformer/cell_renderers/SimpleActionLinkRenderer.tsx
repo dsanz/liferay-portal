@@ -6,16 +6,14 @@
 import ClayIcon from '@clayui/icon';
 import ClayLink from '@clayui/link';
 import ClaySticker from '@clayui/sticker';
+import {replaceTokens} from '@liferay/frontend-data-set-web';
 import classNames from 'classnames';
 import React from 'react';
 
-import formatActionURL from '../../../common/utils/formatActionURL';
+import {OBJECT_ENTRY_FOLDER_CLASS_NAME} from '../../../common/utils/constants';
 import {getFileMimeTypeObjectDefinitionStickerValue} from '../utils/transformViewsItemProps';
 
-const OBJECT_ENTRY_FOLDER_CLASS_NAME =
-	'com.liferay.object.model.ObjectEntryFolder';
-
-interface ActionItem {
+export interface ActionItem {
 	data: {id: string};
 	href?: string;
 }
@@ -28,7 +26,7 @@ export default function SimpleActionLinkRenderer({
 	value,
 }: {
 	actions: ActionItem[];
-	additionalProps: {
+	additionalProps?: {
 		fileMimeTypeCssClasses: Record<string, string>;
 		fileMimeTypeIcons: Record<string, string>;
 		objectDefinitionCssClasses: Record<string, string>;
@@ -39,9 +37,11 @@ export default function SimpleActionLinkRenderer({
 	value: string;
 }) {
 	const {actionId} = options;
+	const title =
+		value && value !== '' ? value : Liferay.Language.get('untitled-asset');
 
 	if (!actions.length || !actionId) {
-		return value ? <>{value}</> : null;
+		return <>{title}</>;
 	}
 
 	const isFolder =
@@ -54,43 +54,58 @@ export default function SimpleActionLinkRenderer({
 	);
 
 	if (!selectedAction?.href) {
-		return value ? <>{value}</> : null;
+		return <>{title}</>;
 	}
 
-	const formattedHref = formatActionURL(itemData, selectedAction.href);
+	const formattedHref = replaceTokens(selectedAction.href, itemData);
 
 	return (
 		<div className="align-items-center d-flex table-list-title">
-			<ClaySticker
-				className={classNames(
-					'c-mr-2',
-					'flex-shrink-0',
-					'inline-item',
-					'inline-item-before',
-					isFolder
-						? 'file-icon-color-0'
-						: getFileMimeTypeObjectDefinitionStickerValue(
-								additionalProps.fileMimeTypeCssClasses,
-								additionalProps.objectDefinitionCssClasses,
-								itemData
-							)
-				)}
-			>
-				<ClayIcon
-					symbol={
+			{additionalProps && (
+				<ClaySticker
+					className={classNames(
+						'c-mr-2',
+						'flex-shrink-0',
+						'inline-item',
+						'inline-item-before',
 						isFolder
-							? 'folder'
+							? 'file-icon-color-0'
 							: getFileMimeTypeObjectDefinitionStickerValue(
-									additionalProps.fileMimeTypeIcons,
-									additionalProps.objectDefinitionIcons,
+									additionalProps.fileMimeTypeCssClasses,
+									additionalProps.objectDefinitionCssClasses,
 									itemData
 								)
-					}
-				/>
-			</ClaySticker>
+					)}
+				>
+					<ClayIcon
+						symbol={
+							isFolder
+								? 'folder'
+								: getFileMimeTypeObjectDefinitionStickerValue(
+										additionalProps.fileMimeTypeIcons,
+										additionalProps.objectDefinitionIcons,
+										itemData
+									)
+						}
+					/>
+				</ClaySticker>
+			)}
 
-			<ClayLink data-senna-off href={formattedHref}>
-				{value}
+			<ClayLink aria-label={title} data-senna-off href={formattedHref}>
+				{title}
+
+				{itemData.system && (
+					<ClayIcon
+						aria-label={Liferay.Language.get(
+							'system-default-structure'
+						)}
+						className="c-ml-2 lfr-portal-tooltip text-secondary"
+						data-title={Liferay.Language.get(
+							'system-default-structure'
+						)}
+						symbol="lock"
+					/>
+				)}
 			</ClayLink>
 		</div>
 	);

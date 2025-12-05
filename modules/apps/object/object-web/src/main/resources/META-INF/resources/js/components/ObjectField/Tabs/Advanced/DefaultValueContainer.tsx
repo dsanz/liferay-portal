@@ -27,6 +27,7 @@ import {
 	getUpdatedDefaultValueType,
 } from '../../../../utils/defaultValues';
 import {removeFieldSettings} from '../../../../utils/fieldSettings';
+import BooleanDefaultValueSelect from '../../DefaultValueFields/BooleanDefaultValueSelect';
 import ListTypeDefaultValueSelect from '../../DefaultValueFields/ListTypeDefaultValueSelect';
 import {ObjectFieldErrors} from '../../ObjectFieldFormBase';
 interface DefaultValueContainerProps {
@@ -57,6 +58,9 @@ type InputAsValueFieldComponents = {
 };
 
 const InputAsValueFieldComponents: Partial<InputAsValueFieldComponents> = {
+	...(Liferay.FeatureFlags['LPD-46451'] && {
+		Boolean: BooleanDefaultValueSelect,
+	}),
 	Picklist: ListTypeDefaultValueSelect,
 };
 
@@ -86,8 +90,6 @@ export function DefaultValueContainer({
 			setDefaultValueToggleEnabled(true);
 			setDefaultValueTypeSelection('inputAsValue');
 		}
-
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [values]);
 
 	const handleToggle = (toggled: boolean) => {
@@ -232,7 +234,7 @@ export function DefaultValueContainer({
 					<ExpressionBuilder
 						error={errors.defaultValue}
 						feedbackMessage={Liferay.Language.get(
-							'use-expressions-to-create-a-condition'
+							'click-on-the-button-to-expand-the-expression-input-area'
 						)}
 						label={Liferay.Language.get('default-value')}
 						onBlur={(event) => {

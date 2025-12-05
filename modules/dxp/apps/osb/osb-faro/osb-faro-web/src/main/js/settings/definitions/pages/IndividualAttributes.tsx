@@ -1,5 +1,5 @@
 import * as API from 'shared/api';
-import BasePage from 'settings/components/BasePage';
+import BasePage from 'settings/components/base-page/BasePage';
 import Card from 'shared/components/Card';
 import ClayButton from '@clayui/button';
 import ClayLink from '@clayui/link';
@@ -83,7 +83,6 @@ const IndividualAttributes: React.FC<IIndividualAttributesProps> = ({
 				}
 			]}
 			className='individual-attributes-root'
-			groupId={groupId}
 			pageDescription={Liferay.Language.get(
 				'this-is-the-data-model-of-an-individual.-analytics-cloud-will-take-and-store-the–newest-data-from-all-your-sources'
 			)}

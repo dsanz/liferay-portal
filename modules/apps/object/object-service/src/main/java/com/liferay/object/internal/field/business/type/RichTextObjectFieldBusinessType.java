@@ -60,6 +60,27 @@ public class RichTextObjectFieldBusinessType
 	}
 
 	@Override
+	public Map<String, Object> getLocalizedValues(
+			ObjectField objectField, Long userId, Map<String, Object> values)
+		throws PortalException {
+
+		Map<String, Object> localizedValues =
+			ObjectFieldBusinessType.super.getLocalizedValues(
+				objectField, userId, values);
+
+		if (localizedValues == null) {
+			return null;
+		}
+
+		for (Map.Entry<String, Object> entry : localizedValues.entrySet()) {
+			localizedValues.put(
+				entry.getKey(), _getValue(objectField, entry.getValue()));
+		}
+
+		return localizedValues;
+	}
+
+	@Override
 	public String getName() {
 		return ObjectFieldConstants.BUSINESS_TYPE_RICH_TEXT;
 	}
@@ -78,11 +99,21 @@ public class RichTextObjectFieldBusinessType
 		Object value = ObjectFieldBusinessType.super.getValue(
 			groupId, objectField, userId, values);
 
+		return _getValue(objectField, value);
+	}
+
+	private Object _getValue(ObjectField objectField, Object value)
+		throws PortalException {
+
 		if (Validator.isNull(value)) {
 			return value;
 		}
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-31212")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				objectField.getCompanyId(), "LPD-11235") &&
+			!FeatureFlagManagerUtil.isEnabled(
+				objectField.getCompanyId(), "LPD-31212")) {
+
 			ObjectDefinition objectDefinition =
 				objectField.getObjectDefinition();
 

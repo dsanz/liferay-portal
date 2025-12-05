@@ -153,6 +153,12 @@ public class PortletPreferencesModelListener
 					ServiceContext serviceContext =
 						ServiceContextThreadLocal.getServiceContext();
 
+					if ((serviceContext != null) &&
+						(serviceContext.getUserId() == 0)) {
+
+						serviceContext.setUserId(layout.getUserId());
+					}
+
 					_layoutLocalService.updateStatus(
 						serviceContext.getUserId(), layout.getPlid(),
 						WorkflowConstants.STATUS_DRAFT, serviceContext);
@@ -160,9 +166,8 @@ public class PortletPreferencesModelListener
 				else {
 					layout.setModifiedDate(new Date());
 
-					_layoutLocalService.updateLayout(
-						layout.getGroupId(), layout.isPrivateLayout(),
-						layout.getLayoutId(), layout.getTypeSettings());
+					_layoutLocalService.updateTypeSettings(
+						layout, layout.getTypeSettings());
 				}
 			}
 		}

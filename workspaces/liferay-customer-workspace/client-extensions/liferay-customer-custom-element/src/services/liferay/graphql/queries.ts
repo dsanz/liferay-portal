@@ -753,69 +753,17 @@ export const notificationQueueEntry = gql`
 	}
 `;
 
-export const patchOrderItemByExternalReferenceCode = gql`
-	mutation patchOrderItemByExternalReferenceCode(
-		$externalReferenceCode: String
-		$orderItem: InputOrderItem
-	) {
-		patchOrderItemByExternalReferenceCode(
-			externalReferenceCode: $externalReferenceCode
-			orderItem: $orderItem
-		)
-	}
-`;
-
-export const patchUserAccount = gql`
-	mutation patchUserAccount(
-		$userAccountId: Long!
-		$userAccount: InputUserAccount!
-	) {
-		patchUserAccount(
-			userAccountId: $userAccountId
-			userAccount: $userAccount
-		) {
-			alternateName
-			familyName
-			givenName
-			id
-		}
-	}
-`;
-
-export const updateAccountSubscriptionGroups = gql`
-	mutation putAccountSubscriptionGroups(
-		$id: Long!
-		$accountSubscriptionGroup: InputC_AccountSubscriptionGroup!
-	) {
-		updateAccountSubscriptionGroup(
-			accountSubscriptionGroupId: $id
-			input: $accountSubscriptionGroup
-		)
-			@rest(
-				method: "PUT"
-				type: "C_AccountSubscriptionGroup"
-				path: "/c/accountsubscriptiongroups/{args.accountSubscriptionGroupId}"
-			) {
-			accountSubscriptionGroupId
-			accountKey
-			activationStatus
-			externalReferenceCode
-			name
-		}
-	}
-`;
-
-export const updateBusinessEvent = gql`
-	mutation updateBusinessEvent(
+export const patchBusinessEvent = gql`
+	mutation patchBusinessEvent(
 		$businessEvent: InputC_BusinessEvent!
 		$businessEventId: Long!
 	) {
-		updateBusinessEvent(
+		patchBusinessEvent(
 			businessEventId: $businessEventId
 			input: $businessEvent
 		)
 			@rest(
-				method: "PUT"
+				method: "PATCH"
 				type: "C_BusinessEvent"
 				path: "/c/businessevents/{args.businessEventId}"
 			) {
@@ -833,21 +781,52 @@ export const updateBusinessEvent = gql`
 	}
 `;
 
-export const updateDXPCloudEnvironment = gql`
-	mutation updateDXPCloudProjectId(
+export const patchDXPCloudEnvironment = gql`
+	mutation patchDXPCloudProjectId(
 		$dxpCloudEnvironmentId: Long!
 		$DXPCloudEnvironment: InputC_DXPCloudEnvironment!
 	) {
-		updateDXPCloudEnvironment(
+		patchDXPCloudEnvironment(
 			dxpCloudEnvironmentId: $dxpCloudEnvironmentId
 			input: $DXPCloudEnvironment
 		)
 			@rest(
-				method: "PUT"
+				method: "PATCH"
 				type: "C_DXPCloudEnvironment"
 				path: "/c/dxpcloudenvironments/{args.dxpCloudEnvironmentId}"
 			) {
 			dxpCloudEnvironmentId
+		}
+	}
+`;
+
+export const patchOrderItemByExternalReferenceCode = gql`
+	mutation patchOrderItemByExternalReferenceCode(
+		$externalReferenceCode: String
+		$orderItem: InputOrderItem
+	) {
+		patchOrderItemByExternalReferenceCode(
+			externalReferenceCode: $externalReferenceCode
+			orderItem: $orderItem
+		) {
+			externalReferenceCode
+		}
+	}
+`;
+
+export const patchUserAccount = gql`
+	mutation patchUserAccount(
+		$userAccountId: Long!
+		$userAccount: InputUserAccount!
+	) {
+		patchUserAccount(
+			userAccountId: $userAccountId
+			userAccount: $userAccount
+		) {
+			alternateName
+			familyName
+			givenName
+			id
 		}
 	}
 `;

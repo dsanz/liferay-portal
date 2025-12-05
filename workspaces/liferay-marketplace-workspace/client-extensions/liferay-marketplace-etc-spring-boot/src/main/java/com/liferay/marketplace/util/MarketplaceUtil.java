@@ -5,6 +5,7 @@
 
 package com.liferay.marketplace.util;
 
+import com.liferay.headless.commerce.admin.catalog.client.dto.v1_0.SkuOption;
 import com.liferay.headless.commerce.admin.order.client.dto.v1_0.OrderItem;
 import com.liferay.headless.commerce.admin.order.client.pagination.Page;
 
@@ -33,13 +34,13 @@ public class MarketplaceUtil {
 				).put(
 					"orderItemId", orderItem.getId()
 				).put(
-					"sku", orderItem.getSku()
-				).put(
-					"shippedQuantity", 0
-				).put(
 					"quantity",
 					orderItem.getQuantity(
 					).intValue()
+				).put(
+					"shippedQuantity", 0
+				).put(
+					"sku", orderItem.getSku()
 				));
 		}
 
@@ -104,6 +105,40 @@ public class MarketplaceUtil {
 		}
 
 		return new JSONObject();
+	}
+
+	public static String getSkuOptionValue(String key, SkuOption[] skuOptions) {
+		for (SkuOption skuOption : skuOptions) {
+			if (!Objects.equals(key, skuOption.getKey())) {
+				continue;
+			}
+
+			String value = skuOption.getValue();
+
+			String firstChar = value.substring(0, 1);
+
+			return firstChar.toUpperCase() + value.substring(1);
+		}
+
+		return null;
+	}
+
+	public static String getSkuOptionValue(String key, String options) {
+		JSONArray optionsJSONArray = new JSONArray(options);
+
+		for (int i = 0; i < optionsJSONArray.length(); i++) {
+			JSONObject jsonObject = optionsJSONArray.getJSONObject(i);
+
+			if (!Objects.equals(key, jsonObject.getString("key"))) {
+				continue;
+			}
+
+			JSONArray jsonArray = jsonObject.getJSONArray("value");
+
+			return jsonArray.getString(0);
+		}
+
+		return null;
 	}
 
 }

@@ -1069,6 +1069,11 @@ public class ObjectDefinitionWrapper
 	}
 
 	@Override
+	public boolean isCMS() {
+		return model.isCMS();
+	}
+
+	@Override
 	public boolean isDefaultStorageType() {
 		return model.isDefaultStorageType();
 	}
@@ -1241,6 +1246,11 @@ public class ObjectDefinitionWrapper
 	@Override
 	public boolean isUnmodifiableSystemObject() {
 		return model.isUnmodifiableSystemObject();
+	}
+
+	@Override
+	public boolean isVisible() {
+		return model.isVisible();
 	}
 
 	@Override

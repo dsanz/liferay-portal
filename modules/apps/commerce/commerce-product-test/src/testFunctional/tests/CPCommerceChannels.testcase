@@ -628,7 +628,7 @@ definition {
 		}
 
 		task ("Then an error message is shown") {
-			Alert.viewErrorMessage(errorMessage = "The qualifier is already linked.");
+			Alert.viewErrorMessage(errorMessage = "The payment method group relation qualifier already exists.");
 		}
 
 		task ("When the admin selects the same term eligibility once again") {
@@ -638,7 +638,7 @@ definition {
 		}
 
 		task ("Then an error message is shown") {
-			Alert.viewErrorMessage(errorMessage = "The qualifier is already linked.");
+			Alert.viewErrorMessage(errorMessage = "The payment method group relation qualifier already exists.");
 		}
 	}
 
@@ -679,7 +679,7 @@ definition {
 		}
 
 		task ("Then an error message is shown") {
-			Alert.viewErrorMessage(errorMessage = "The qualifier is already linked.");
+			Alert.viewErrorMessage(errorMessage = "The shipping fixed option qualifier already exists.");
 		}
 
 		task ("When the admin selects the same term eligibility once again") {
@@ -689,79 +689,7 @@ definition {
 		}
 
 		task ("Then an error message is shown") {
-			Alert.viewErrorMessage(errorMessage = "The qualifier is already linked.");
-		}
-	}
-
-	@description = "Test for COMMERCE-9432 | Can paginate Payment and Shipping Restrictions pages"
-	@priority = 3
-	test CanPaginatePaymentAndShippingRestrictions {
-		property portal.acceptance = "false";
-		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
-
-		task ("Given the admin navigates to 'Minium Portal' channel") {
-			CommerceChannels.openChannelsAdmin();
-
-			CommerceNavigator.gotoEntry(entryName = "Minium Portal");
-		}
-
-		task ("When the admin navigates to the Payment/Shipping Restrictions tab") {
-			for (var tab : list "Payment,Shipping") {
-				CommerceEntry.gotoMenuTab(menuTab = "${tab} Restrictions");
-
-				task ("Then the admin can use pagination to change the list of countries shown on the page") {
-					Pagination.changePagination(itemsPerPage = "4 Items");
-
-					CommerceEntry.viewPaginationResults(results = "Showing 1 to 4 of 249 entries.");
-
-					AssertElementNotPresent(
-						key_rowNumber = 5,
-						locator1 = "CommerceEntry#ENTRY_CONTENT_ROW_NUMBER");
-
-					for (var country : list "Afghanistan,Aland Islands,Albania,Algeria") {
-						AssertElementPresent(
-							key_tableEntry = ${country},
-							locator1 = "LexiconTable#TABLE_ENTRY");
-					}
-
-					Click(locator1 = "ACUtils#NEXT_PAGES");
-
-					CommerceEntry.viewPaginationResults(results = "Showing 5 to 8 of 249 entries.");
-
-					AssertElementNotPresent(
-						key_rowNumber = 5,
-						locator1 = "CommerceEntry#ENTRY_CONTENT_ROW_NUMBER");
-
-					for (var country : list "Afghanistan,Aland Islands,Albania,Algeria") {
-						AssertElementNotPresent(
-							key_tableEntry = ${country},
-							locator1 = "LexiconTable#TABLE_ENTRY");
-					}
-
-					Click(locator1 = "ACUtils#PREVIOUS_PAGES");
-
-					AssertElementNotPresent(
-						key_rowNumber = 5,
-						locator1 = "CommerceEntry#ENTRY_CONTENT_ROW_NUMBER");
-
-					for (var country : list "Afghanistan,Aland Islands,Albania,Algeria") {
-						AssertElementPresent(
-							key_tableEntry = ${country},
-							locator1 = "LexiconTable#TABLE_ENTRY");
-					}
-
-					Click(
-						key_pageNumber = 4,
-						locator1 = "CommerceNavigation#PAGINATION_ANY_PAGE");
-
-					for (var country : list "Afghanistan,Aland Islands,Albania,Algeria") {
-						AssertElementNotPresent(
-							key_tableEntry = ${country},
-							locator1 = "LexiconTable#TABLE_ENTRY");
-					}
-				}
-			}
+			Alert.viewErrorMessage(errorMessage = "The shipping fixed option qualifier already exists");
 		}
 	}
 

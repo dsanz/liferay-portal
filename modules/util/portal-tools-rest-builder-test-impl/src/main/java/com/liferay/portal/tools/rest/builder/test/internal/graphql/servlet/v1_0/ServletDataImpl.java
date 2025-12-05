@@ -20,6 +20,7 @@ import com.liferay.portal.tools.rest.builder.test.internal.resource.v1_0.FilterR
 import com.liferay.portal.tools.rest.builder.test.internal.resource.v1_0.MultipartTestEntityResourceImpl;
 import com.liferay.portal.tools.rest.builder.test.internal.resource.v1_0.SchemaResourceImpl;
 import com.liferay.portal.tools.rest.builder.test.internal.resource.v1_0.ScopedTestEntityResourceImpl;
+import com.liferay.portal.tools.rest.builder.test.internal.resource.v1_0.SharedInternalModelBatchTestEntityResourceImpl;
 import com.liferay.portal.tools.rest.builder.test.internal.resource.v1_0.SiteTestEntityResourceImpl;
 import com.liferay.portal.tools.rest.builder.test.internal.resource.v1_0.SortResourceImpl;
 import com.liferay.portal.tools.rest.builder.test.internal.resource.v1_0.TestEntityAddressResourceImpl;
@@ -36,6 +37,7 @@ import com.liferay.portal.tools.rest.builder.test.resource.v1_0.FilterResource;
 import com.liferay.portal.tools.rest.builder.test.resource.v1_0.MultipartTestEntityResource;
 import com.liferay.portal.tools.rest.builder.test.resource.v1_0.SchemaResource;
 import com.liferay.portal.tools.rest.builder.test.resource.v1_0.ScopedTestEntityResource;
+import com.liferay.portal.tools.rest.builder.test.resource.v1_0.SharedInternalModelBatchTestEntityResource;
 import com.liferay.portal.tools.rest.builder.test.resource.v1_0.SiteTestEntityResource;
 import com.liferay.portal.tools.rest.builder.test.resource.v1_0.SortResource;
 import com.liferay.portal.tools.rest.builder.test.resource.v1_0.TestEntityAddressResource;
@@ -84,6 +86,9 @@ public class ServletDataImpl implements ServletData {
 			_schemaResourceComponentServiceObjects);
 		Mutation.setScopedTestEntityResourceComponentServiceObjects(
 			_scopedTestEntityResourceComponentServiceObjects);
+		Mutation.
+			setSharedInternalModelBatchTestEntityResourceComponentServiceObjects(
+				_sharedInternalModelBatchTestEntityResourceComponentServiceObjects);
 		Mutation.setSiteTestEntityResourceComponentServiceObjects(
 			_siteTestEntityResourceComponentServiceObjects);
 		Mutation.setSortResourceComponentServiceObjects(
@@ -115,6 +120,9 @@ public class ServletDataImpl implements ServletData {
 			_schemaResourceComponentServiceObjects);
 		Query.setScopedTestEntityResourceComponentServiceObjects(
 			_scopedTestEntityResourceComponentServiceObjects);
+		Query.
+			setSharedInternalModelBatchTestEntityResourceComponentServiceObjects(
+				_sharedInternalModelBatchTestEntityResourceComponentServiceObjects);
 		Query.setSiteTestEntityResourceComponentServiceObjects(
 			_siteTestEntityResourceComponentServiceObjects);
 		Query.setSortResourceComponentServiceObjects(
@@ -275,6 +283,16 @@ public class ServletDataImpl implements ServletData {
 							ERCScopedTestEntityResourceImpl.class,
 							"deleteAssetLibraryERCScopedTestEntity"));
 					put(
+						"mutation#deleteERCScopedTestEntity",
+						new ObjectValuePair<>(
+							ERCScopedTestEntityResourceImpl.class,
+							"deleteERCScopedTestEntity"));
+					put(
+						"mutation#deleteERCScopedTestEntityBatch",
+						new ObjectValuePair<>(
+							ERCScopedTestEntityResourceImpl.class,
+							"deleteERCScopedTestEntityBatch"));
+					put(
 						"mutation#deleteSiteERCScopedTestEntity",
 						new ObjectValuePair<>(
 							ERCScopedTestEntityResourceImpl.class,
@@ -294,6 +312,11 @@ public class ServletDataImpl implements ServletData {
 						new ObjectValuePair<>(
 							ERCScopedTestEntityResourceImpl.class,
 							"postAssetLibraryERCScopedTestEntityBatch"));
+					put(
+						"mutation#createERCScopedTestEntitiesPageExportBatch",
+						new ObjectValuePair<>(
+							ERCScopedTestEntityResourceImpl.class,
+							"postERCScopedTestEntitiesPageExportBatch"));
 					put(
 						"mutation#createSiteERCScopedTestEntitiesPageExportBatch",
 						new ObjectValuePair<>(
@@ -315,10 +338,25 @@ public class ServletDataImpl implements ServletData {
 							ERCScopedTestEntityResourceImpl.class,
 							"putAssetLibraryERCScopedTestEntity"));
 					put(
+						"mutation#updateAssetLibraryERCScopedTestEntityPermissionsPage",
+						new ObjectValuePair<>(
+							ERCScopedTestEntityResourceImpl.class,
+							"putAssetLibraryERCScopedTestEntityPermissionsPage"));
+					put(
+						"mutation#updateERCScopedTestEntityPermissionsPage",
+						new ObjectValuePair<>(
+							ERCScopedTestEntityResourceImpl.class,
+							"putERCScopedTestEntityPermissionsPage"));
+					put(
 						"mutation#updateSiteERCScopedTestEntity",
 						new ObjectValuePair<>(
 							ERCScopedTestEntityResourceImpl.class,
 							"putSiteERCScopedTestEntity"));
+					put(
+						"mutation#updateSiteERCScopedTestEntityPermissionsPage",
+						new ObjectValuePair<>(
+							ERCScopedTestEntityResourceImpl.class,
+							"putSiteERCScopedTestEntityPermissionsPage"));
 					put(
 						"mutation#deleteSiteERCSiteTestEntity",
 						new ObjectValuePair<>(
@@ -450,6 +488,36 @@ public class ServletDataImpl implements ServletData {
 							ScopedTestEntityResourceImpl.class,
 							"putSiteScopedTestEntityByExternalReferenceCode"));
 					put(
+						"mutation#deleteSharedInternalModelBatchTestEntityByExternalReferenceCode",
+						new ObjectValuePair<>(
+							SharedInternalModelBatchTestEntityResourceImpl.
+								class,
+							"deleteSharedInternalModelBatchTestEntityByExternalReferenceCode"));
+					put(
+						"mutation#createSharedInternalModelBatchTestEntitiesPageExportBatch",
+						new ObjectValuePair<>(
+							SharedInternalModelBatchTestEntityResourceImpl.
+								class,
+							"postSharedInternalModelBatchTestEntitiesPageExportBatch"));
+					put(
+						"mutation#createSharedInternalModelBatchTestEntity",
+						new ObjectValuePair<>(
+							SharedInternalModelBatchTestEntityResourceImpl.
+								class,
+							"postSharedInternalModelBatchTestEntity"));
+					put(
+						"mutation#createSharedInternalModelBatchTestEntityBatch",
+						new ObjectValuePair<>(
+							SharedInternalModelBatchTestEntityResourceImpl.
+								class,
+							"postSharedInternalModelBatchTestEntityBatch"));
+					put(
+						"mutation#updateSharedInternalModelBatchTestEntityByExternalReferenceCode",
+						new ObjectValuePair<>(
+							SharedInternalModelBatchTestEntityResourceImpl.
+								class,
+							"putSharedInternalModelBatchTestEntityByExternalReferenceCode"));
+					put(
 						"mutation#deleteSiteSiteTestEntityByExternalReferenceCode",
 						new ObjectValuePair<>(
 							SiteTestEntityResourceImpl.class,
@@ -536,6 +604,11 @@ public class ServletDataImpl implements ServletData {
 							TestEntityResourceImpl.class,
 							"postTestEntityMultipartBulk"));
 					put(
+						"mutation#createTestEntityMultipartImage",
+						new ObjectValuePair<>(
+							TestEntityResourceImpl.class,
+							"postTestEntityMultipartImage"));
+					put(
 						"mutation#updateTestEntity",
 						new ObjectValuePair<>(
 							TestEntityResourceImpl.class, "putTestEntity"));
@@ -616,7 +689,22 @@ public class ServletDataImpl implements ServletData {
 							ERCScopedTestEntityResourceImpl.class,
 							"getAssetLibraryERCScopedTestEntity"));
 					put(
+						"query#assetLibraryERCScopedTestEntityPermissions",
+						new ObjectValuePair<>(
+							ERCScopedTestEntityResourceImpl.class,
+							"getAssetLibraryERCScopedTestEntityPermissionsPage"));
+					put(
 						"query#eRCScopedTestEntities",
+						new ObjectValuePair<>(
+							ERCScopedTestEntityResourceImpl.class,
+							"getERCScopedTestEntitiesPage"));
+					put(
+						"query#eRCScopedTestEntityPermissions",
+						new ObjectValuePair<>(
+							ERCScopedTestEntityResourceImpl.class,
+							"getERCScopedTestEntityPermissionsPage"));
+					put(
+						"query#siteERCScopedTestEntities",
 						new ObjectValuePair<>(
 							ERCScopedTestEntityResourceImpl.class,
 							"getSiteERCScopedTestEntitiesPage"));
@@ -625,6 +713,11 @@ public class ServletDataImpl implements ServletData {
 						new ObjectValuePair<>(
 							ERCScopedTestEntityResourceImpl.class,
 							"getSiteERCScopedTestEntity"));
+					put(
+						"query#siteERCScopedTestEntityPermissions",
+						new ObjectValuePair<>(
+							ERCScopedTestEntityResourceImpl.class,
+							"getSiteERCScopedTestEntityPermissionsPage"));
 					put(
 						"query#eRCSiteTestEntities",
 						new ObjectValuePair<>(
@@ -683,6 +776,18 @@ public class ServletDataImpl implements ServletData {
 						new ObjectValuePair<>(
 							ScopedTestEntityResourceImpl.class,
 							"getSiteScopedTestEntityByExternalReferenceCode"));
+					put(
+						"query#sharedInternalModelBatchTestEntities",
+						new ObjectValuePair<>(
+							SharedInternalModelBatchTestEntityResourceImpl.
+								class,
+							"getSharedInternalModelBatchTestEntitiesPage"));
+					put(
+						"query#sharedInternalModelBatchTestEntityByExternalReferenceCode",
+						new ObjectValuePair<>(
+							SharedInternalModelBatchTestEntityResourceImpl.
+								class,
+							"getSharedInternalModelBatchTestEntityByExternalReferenceCode"));
 					put(
 						"query#siteTestEntities",
 						new ObjectValuePair<>(
@@ -747,6 +852,12 @@ public class ServletDataImpl implements ServletData {
 						new ObjectValuePair<>(
 							CompanyTestEntityResourceImpl.class,
 							"getCompanyTestEntityByExternalReferenceCode"));
+					put(
+						"query#BatchTestEntity.sharedInternalModelBatchTestEntityByExternalReferenceCode",
+						new ObjectValuePair<>(
+							SharedInternalModelBatchTestEntityResourceImpl.
+								class,
+							"getSharedInternalModelBatchTestEntityByExternalReferenceCode"));
 				}
 			};
 
@@ -789,6 +900,10 @@ public class ServletDataImpl implements ServletData {
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<ScopedTestEntityResource>
 		_scopedTestEntityResourceComponentServiceObjects;
+
+	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
+	private ComponentServiceObjects<SharedInternalModelBatchTestEntityResource>
+		_sharedInternalModelBatchTestEntityResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<SiteTestEntityResource>

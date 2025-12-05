@@ -66,6 +66,9 @@ public interface FDSSerializer {
 	public JSONArray serializeFilters(
 		String fdsName, HttpServletRequest httpServletRequest);
 
+	public boolean serializeHideManagementBarInEmptyState(
+		String fdsName, HttpServletRequest httpServletRequest);
+
 	public List<FDSActionDropdownItem> serializeItemsActions(
 		String fdsName, HttpServletRequest httpServletRequest);
 

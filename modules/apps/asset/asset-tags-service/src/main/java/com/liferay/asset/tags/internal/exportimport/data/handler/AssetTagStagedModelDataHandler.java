@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.util.UniqueUtil;
 import com.liferay.portal.kernel.xml.Element;
 
 import java.util.List;
@@ -164,22 +165,12 @@ public class AssetTagStagedModelDataHandler
 		if (existingAssetTag == null) {
 			serviceContext.setUuid(assetTag.getUuid());
 
-			try {
-				importedAssetTag = _assetTagLocalService.addTag(
-					assetTag.getExternalReferenceCode(), userId,
-					portletDataContext.getScopeGroupId(), assetTag.getName(),
-					serviceContext);
-			}
-			catch (DuplicateTagException duplicateTagException) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(duplicateTagException);
-				}
-
-				importedAssetTag = _assetTagLocalService.addTag(
-					assetTag.getExternalReferenceCode(), userId,
-					portletDataContext.getScopeGroupId(),
-					assetTag.getName() + " (Duplicate)", serviceContext);
-			}
+			importedAssetTag = _assetTagLocalService.addTag(
+				assetTag.getExternalReferenceCode(), userId,
+				portletDataContext.getScopeGroupId(),
+				_getUniqueName(
+					portletDataContext.getScopeGroupId(), assetTag.getName()),
+				serviceContext);
 		}
 		else {
 			try {
@@ -196,7 +187,10 @@ public class AssetTagStagedModelDataHandler
 				importedAssetTag = _assetTagLocalService.updateTag(
 					existingAssetTag.getExternalReferenceCode(), userId,
 					existingAssetTag.getTagId(),
-					assetTag.getName() + " (Duplicate)", serviceContext);
+					_getUniqueName(
+						portletDataContext.getScopeGroupId(),
+						assetTag.getName()),
+					serviceContext);
 			}
 		}
 
@@ -213,6 +207,29 @@ public class AssetTagStagedModelDataHandler
 		serviceContext.setScopeGroupId(portletDataContext.getScopeGroupId());
 
 		return serviceContext;
+	}
+
+	private String _getUniqueName(long groupId, String name)
+		throws PortalException {
+
+		AssetTag assetTag = _assetTagLocalService.fetchTag(groupId, name);
+
+		if (assetTag == null) {
+			return name;
+		}
+
+		return UniqueUtil.getUniqueValue(
+			"duplicate",
+			uniqueValue -> {
+				if (_assetTagLocalService.fetchTag(groupId, uniqueValue) ==
+						null) {
+
+					return true;
+				}
+
+				return false;
+			},
+			name);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

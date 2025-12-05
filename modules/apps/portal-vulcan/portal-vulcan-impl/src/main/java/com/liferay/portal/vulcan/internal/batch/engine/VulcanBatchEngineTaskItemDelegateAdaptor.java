@@ -8,8 +8,9 @@ package com.liferay.portal.vulcan.internal.batch.engine;
 import com.liferay.batch.engine.BatchEngineTaskItemDelegate;
 import com.liferay.batch.engine.pagination.Page;
 import com.liferay.batch.engine.pagination.Pagination;
-import com.liferay.batch.engine.strategy.BatchEngineImportStrategy;
 import com.liferay.depot.service.DepotEntryLocalService;
+import com.liferay.petra.function.UnsafeBiConsumer;
+import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Sort;
@@ -20,6 +21,7 @@ import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.vulcan.batch.engine.VulcanBatchEngineTaskItemDelegate;
+import com.liferay.portal.vulcan.fields.NestedFieldsContextThreadLocal;
 import com.liferay.portal.vulcan.util.GroupUtil;
 
 import jakarta.ws.rs.core.UriInfo;
@@ -141,6 +143,10 @@ public class VulcanBatchEngineTaskItemDelegateAdaptor<T>
 			Map<String, Serializable> parameters, String search)
 		throws Exception {
 
+		NestedFieldsContextThreadLocal.setNestedFieldsContext(
+			_vulcanBatchEngineTaskItemDelegate.customizeNestedFieldsContext(
+				NestedFieldsContextThreadLocal.getNestedFieldsContext()));
+
 		com.liferay.portal.vulcan.pagination.Page<T> page =
 			_vulcanBatchEngineTaskItemDelegate.read(
 				filter,
@@ -149,15 +155,6 @@ public class VulcanBatchEngineTaskItemDelegateAdaptor<T>
 				sorts, _applyParamConverters(parameters), search);
 
 		return Page.of(page.getItems(), pagination, page.getTotalCount());
-	}
-
-	@Override
-	public void setBatchEngineImportStrategy(
-		BatchEngineImportStrategy batchEngineImportStrategy) {
-
-		_vulcanBatchEngineTaskItemDelegate.setContextBatchUnsafeBiConsumer(
-			(collection, unsafeFunction) -> batchEngineImportStrategy.apply(
-				this, collection, unsafeFunction));
 	}
 
 	@Override
@@ -174,6 +171,19 @@ public class VulcanBatchEngineTaskItemDelegateAdaptor<T>
 	@Override
 	public void setContextUser(User contextUser) {
 		_vulcanBatchEngineTaskItemDelegate.setContextUser(contextUser);
+	}
+
+	@Override
+	public void setImportItemUnsafeBiConsumer(
+		UnsafeBiConsumer<T, UnsafeFunction<T, T, Exception>, Exception>
+			unsafeBiConsumer) {
+
+		_vulcanBatchEngineTaskItemDelegate.setContextBatchUnsafeBiConsumer(
+			(collection, unsafeFunction) -> {
+				for (T item : collection) {
+					unsafeBiConsumer.accept(item, unsafeFunction);
+				}
+			});
 	}
 
 	@Override

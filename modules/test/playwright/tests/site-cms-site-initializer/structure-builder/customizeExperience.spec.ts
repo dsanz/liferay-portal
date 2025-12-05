@@ -18,7 +18,6 @@ const test = mergeTests(
 	cmsPagesTest,
 	featureFlagsTest({
 		'LPD-17564': {enabled: true},
-		'LPS-179669': {enabled: true},
 	}),
 	loginTest(),
 	pageEditorPagesTest,
@@ -234,5 +233,29 @@ test(
 		await expect(
 			page.locator('.lfr-layout-structure-item-basic-component-heading')
 		).not.toBeVisible();
+	}
+);
+
+test(
+	'Control menu is not shown in the page editor when customizing the experience',
+	{
+		tag: '@LPD-69912',
+	},
+	async ({page, structureBuilderPage}) => {
+
+		// Create structure
+
+		await structureBuilderPage.createStructureFromData({
+			label: `StructureName${getRandomInt()}`,
+			page: structureBuilderPage,
+		});
+
+		// Customize the experience
+
+		await structureBuilderPage.customizeExperience();
+
+		// Check the control menu is not shown
+
+		await expect(page.locator('.control-menu')).not.toBeVisible();
 	}
 );

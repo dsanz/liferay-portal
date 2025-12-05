@@ -271,8 +271,8 @@ public class BatchEnginePortletDataHandlerTest {
 			values.get(_OBJECT_FIELD_NAME_TEXT));
 
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
-				"com.liferay.batch.engine.internal.strategy." +
-					"OnErrorContinueBatchEngineImportStrategy",
+				"com.liferay.batch.engine.internal." +
+					"BatchEngineImportTaskExecutorImpl",
 				LoggerTestUtil.OFF)) {
 
 			_importLayouts(
@@ -1254,8 +1254,8 @@ public class BatchEnginePortletDataHandlerTest {
 
 		if (expectError) {
 			logCapture = LoggerTestUtil.configureLog4JLogger(
-				"com.liferay.batch.engine.internal.strategy." +
-					"OnErrorContinueBatchEngineImportStrategy",
+				"com.liferay.batch.engine.internal." +
+					"BatchEngineImportTaskExecutorImpl",
 				LoggerTestUtil.ERROR);
 		}
 
@@ -1414,9 +1414,8 @@ public class BatchEnginePortletDataHandlerTest {
 		Assert.assertEquals(
 			objectEntry.getGroupId(), exportImportReportEntry.getGroupId());
 		Assert.assertEquals(
-			objectDefinition.getShortName(),
-			exportImportReportEntry.getModelName());
-		Assert.assertEquals(scope, exportImportReportEntry.getScope());
+			"model.resource." + objectDefinition.getResourceName(),
+			exportImportReportEntry.getModelNameLanguageKey());
 		Assert.assertEquals(
 			ExportImportReportEntryConstants.TYPE_ERROR,
 			exportImportReportEntry.getType());
@@ -1463,56 +1462,56 @@ public class BatchEnginePortletDataHandlerTest {
 		if (Objects.equals(
 				ObjectRelationshipConstants.TYPE_MANY_TO_MANY, type)) {
 
-			for (int i = 0; i < objectEntries1.length; i++) {
-				ObjectEntry objectEntry = objectEntries1[i];
-
-				JSONAssert.assertEquals(
-					JSONUtil.put(
+			JSONAssert.assertEquals(
+				JSONUtil.toJSONArray(
+					objectEntries1,
+					objectEntry -> JSONUtil.put(
 						_toSimplifiedObjectEntryJSONObject(
-							group, objectEntry, scope)
-					).toString(),
-					exportedObjectEntriesJSONArray.getJSONObject(
-						i
-					).getJSONArray(
-						objectRelationship.getName()
-					).toString(),
-					JSONCompareMode.STRICT);
-			}
+							group, objectEntry, scope))
+				).toString(),
+				JSONUtil.toJSONArray(
+					JSONUtil.toList(
+						exportedObjectEntriesJSONArray,
+						objectEntry -> objectEntry),
+					exportedObjectEntry -> exportedObjectEntry.getJSONArray(
+						objectRelationship.getName())
+				).toString(),
+				JSONCompareMode.NON_EXTENSIBLE);
 
 			exportedObjectEntriesJSONArray = _getExportedObjectEntriesJSONArray(
 				objectDefinition1.getName(), larFile, group.getGroupId());
 
-			for (int i = 0; i < objectEntries2.length; i++) {
-				ObjectEntry objectEntry = objectEntries2[i];
-
-				JSONAssert.assertEquals(
-					JSONUtil.put(
+			JSONAssert.assertEquals(
+				JSONUtil.toJSONArray(
+					objectEntries2,
+					objectEntry -> JSONUtil.put(
 						_toSimplifiedObjectEntryJSONObject(
-							group, objectEntry, scope)
-					).toString(),
-					exportedObjectEntriesJSONArray.getJSONObject(
-						i
-					).getJSONArray(
-						objectRelationship.getName()
-					).toString(),
-					JSONCompareMode.STRICT);
-			}
+							group, objectEntry, scope))
+				).toString(),
+				JSONUtil.toJSONArray(
+					JSONUtil.toList(
+						exportedObjectEntriesJSONArray,
+						objectEntry -> objectEntry),
+					exportedObjectEntry -> exportedObjectEntry.getJSONArray(
+						objectRelationship.getName())
+				).toString(),
+				JSONCompareMode.NON_EXTENSIBLE);
 		}
 		else {
-			for (int i = 0; i < objectEntries1.length; i++) {
-				ObjectEntry objectEntry = objectEntries1[i];
-
-				JSONAssert.assertEquals(
-					_toSimplifiedObjectEntryJSONObject(
-						group, objectEntry, scope
-					).toString(),
-					exportedObjectEntriesJSONArray.getJSONObject(
-						i
-					).getJSONObject(
-						objectRelationship.getName()
-					).toString(),
-					JSONCompareMode.STRICT);
-			}
+			JSONAssert.assertEquals(
+				JSONUtil.toJSONArray(
+					objectEntries1,
+					objectEntry -> _toSimplifiedObjectEntryJSONObject(
+						group, objectEntry, scope)
+				).toString(),
+				JSONUtil.toJSONArray(
+					JSONUtil.toList(
+						exportedObjectEntriesJSONArray,
+						objectEntry -> objectEntry),
+					exportedObjectEntry -> exportedObjectEntry.getJSONObject(
+						objectRelationship.getName())
+				).toString(),
+				JSONCompareMode.NON_EXTENSIBLE);
 		}
 
 		_deleteObjectEntries(objectEntries1);
@@ -1767,13 +1766,23 @@ public class BatchEnginePortletDataHandlerTest {
 			return new ExportImportDescriptor() {
 
 				@Override
-				public String getItemClassName() {
-					return _itemClassName;
+				public String getLabelLanguageKey() {
+					return _modelClassName;
+				}
+
+				@Override
+				public String getModelClassName() {
+					return _modelClassName;
 				}
 
 				@Override
 				public String getPortletId() {
 					return _portletId;
+				}
+
+				@Override
+				public String getResourceClassName() {
+					return _resourceClassName;
 				}
 
 				@Override
@@ -1861,7 +1870,9 @@ public class BatchEnginePortletDataHandlerTest {
 			};
 		}
 
-		private static String _itemClassName = RandomTestUtil.randomString();
+		private static String _modelClassName = RandomTestUtil.randomString();
+		private static String _resourceClassName =
+			RandomTestUtil.randomString();
 
 		private final Function<Filter, Page<TestItem>> _function;
 		private final String _portletId;

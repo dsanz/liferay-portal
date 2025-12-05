@@ -6,18 +6,20 @@
 import {Option, Picker} from '@clayui/core';
 import React from 'react';
 
+import {SharingPermission} from '../../../common/types/SharingPermission';
+
 const PERMISSION_OPTIONS = [
 	{
 		label: Liferay.Language.get('view-and-download'),
-		value: 'VIEW',
+		value: SharingPermission.View,
 	},
 	{
 		label: Liferay.Language.get('view-download-and-comment'),
-		value: 'ADD_DISCUSSION,VIEW',
+		value: [SharingPermission.Comment, SharingPermission.View].join(','),
 	},
 	{
 		label: Liferay.Language.get('view-download-comment-and-update'),
-		value: 'ADD_DISCUSSION,UPDATE,VIEW',
+		value: Object.values(SharingPermission).join(','),
 	},
 ];
 
@@ -33,6 +35,15 @@ export default function PermissionSelector({
 			aria-label={Liferay.Language.get('edit-permissions')}
 			className="border-0 c-py-0 permissions-picker text-2 text-secondary text-weight-semi-bold"
 			items={PERMISSION_OPTIONS}
+			messages={{
+				itemDescribedby: Liferay.Language.get(
+					'you-are-currently-on-a-text-element,-inside-of-a-list-box'
+				),
+				itemSelected: Liferay.Language.get('x-selected'),
+				scrollToBottomAriaLabel:
+					Liferay.Language.get('scroll-to-bottom'),
+				scrollToTopAriaLabel: Liferay.Language.get('scroll-to-top'),
+			}}
 			onSelectionChange={(value: React.Key) =>
 				onChange({actionIds: value as string})
 			}

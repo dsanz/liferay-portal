@@ -81,6 +81,8 @@ public interface ObjectDefinition
 
 	public boolean isApproved();
 
+	public boolean isCMS();
+
 	public boolean isDefaultStorageType();
 
 	public boolean isLinkedToObjectFolder(long objectFolderId);
@@ -94,6 +96,8 @@ public interface ObjectDefinition
 	public boolean isRootNode();
 
 	public boolean isUnmodifiableSystemObject();
+
+	public boolean isVisible();
 
 	public void setObjectDefinitionSettings(
 		java.util.List<ObjectDefinitionSetting> objectDefinitionSettings);

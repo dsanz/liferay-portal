@@ -8,7 +8,7 @@ import {createReadStream} from 'fs';
 import path from 'path';
 
 import {accountSettingsPagesTest} from '../../../fixtures/accountSettingsPagesTest';
-import {apiHelpersTest} from '../../../fixtures/apiHelpersTest';
+import {accountsPagesTest} from '../../../fixtures/accountsPagesTest';
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
 import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
@@ -26,9 +26,9 @@ import {waitForAlert} from '../../../utils/waitForAlert';
 import {assetCategoriesPagesTest} from '../../asset-categories-admin-web/main/fixtures/assetCategoriesAdminPagesTest';
 
 export const test = mergeTests(
+	accountsPagesTest,
 	accountSettingsPagesTest,
 	assetCategoriesPagesTest,
-	apiHelpersTest,
 	dataApiHelpersTest,
 	featureFlagsTest({
 		'LPD-35914': {enabled: true},
@@ -69,40 +69,78 @@ test(
 
 test(
 	'Check escape of memberships account name',
-	{tag: '@LPD-15224'},
-	async ({apiHelpers, editUserPage, page, usersAndOrganizationsPage}) => {
+	{tag: ['@LPD-15224', '@LPD-71476']},
+	async ({
+		accountUsersAccountSelectorPage,
+		apiHelpers,
+		editUserPage,
+		page,
+		usersAndOrganizationsPage,
+	}) => {
 		await page.goto('/');
 
-		const account = await apiHelpers.headlessAdminUser.postAccount({
-			name: '<img src="x" onError="alert(document.location)">',
+		const account1 = await apiHelpers.headlessAdminUser.postAccount({
+			name: '"></option><img src=x onerror=alert(document.location)',
 		});
 
 		await apiHelpers.headlessAdminUser.assignUserToAccountByEmailAddress(
-			account.id,
+			account1.id,
 			['test@liferay.com']
 		);
 
-		try {
-			await usersAndOrganizationsPage.goToUsers();
+		const account2 = await apiHelpers.headlessAdminUser.postAccount({
+			name: '<img src="x" onError="alert(document.location)">',
+		});
 
-			await (
-				await usersAndOrganizationsPage.usersTableRowLink('test')
-			).click();
-			await editUserPage.membershipsLink.click();
+		page.on('dialog', async (dialog) => {
+			if (dialog.type() === 'alert') {
+				throw new Error('XSS');
+			}
+		});
 
-			await expect(
-				(
-					await editUserPage.membershipsAccountsTableRow(
-						0,
-						account.name,
-						true
-					)
-				).row
-			).toBeVisible();
-		}
-		finally {
-			await apiHelpers.headlessAdminUser.deleteAccount(account.id);
-		}
+		await usersAndOrganizationsPage.goToUsers();
+
+		await (
+			await usersAndOrganizationsPage.usersTableRowLink('test')
+		).click();
+		await editUserPage.membershipsLink.click();
+
+		await expect(
+			(
+				await editUserPage.membershipsAccountsTableRow(
+					0,
+					account1.name,
+					true
+				)
+			).row
+		).toBeVisible();
+
+		await editUserPage.selectAccountsButton.click();
+
+		await expect(
+			accountUsersAccountSelectorPage.accountsTable.searchInput
+		).toBeEditable();
+
+		await expect(
+			accountUsersAccountSelectorPage.accountsTable.cell('Active')
+		).toBeVisible();
+
+		await (
+			await accountUsersAccountSelectorPage.accountsTable.rowCheckbox(
+				account2.name
+			)
+		).click();
+		await page.getByRole('button', {name: 'Add'}).click();
+
+		await expect(
+			(
+				await editUserPage.membershipsAccountsTableRow(
+					0,
+					account2.name,
+					true
+				)
+			).row
+		).toBeVisible();
 	}
 );
 
@@ -121,6 +159,88 @@ test(
 		await editUserPage.generateWebDAVPasswordButton.click();
 
 		await expect(editUserPage.webDAVPasswordLabel).toBeVisible();
+	}
+);
+
+test(
+	'WebDAV password generation should not be allowed for users without update permission',
+	{tag: '@LPD-69623'},
+	async ({apiHelpers, editUserPage, page, usersAndOrganizationsPage}) => {
+		const user = await apiHelpers.headlessAdminUser.postUserAccount();
+
+		userData[user.alternateName] = {
+			name: user.givenName,
+			password: 'test',
+			surname: user.familyName,
+		};
+
+		const companyId = await page.evaluate(() => {
+			return Liferay.ThemeDisplay.getCompanyId();
+		});
+
+		const role = await apiHelpers.headlessAdminUser.postRole({
+			name: 'Role' + getRandomInt(),
+			rolePermissions: [
+				{
+					actionIds: ['ACCESS_IN_CONTROL_PANEL'],
+					primaryKey: companyId,
+					resourceName:
+						'com_liferay_users_admin_web_portlet_UsersAdminPortlet',
+					scope: 1,
+				},
+				{
+					actionIds: ['VIEW'],
+					primaryKey: companyId,
+					resourceName: 'com.liferay.portal.kernel.model.User',
+					scope: 1,
+				},
+			],
+		});
+
+		await apiHelpers.headlessAdminUser.postRoleByExternalReferenceCodeUserAccountAssociation(
+			role.externalReferenceCode,
+			user.id
+		);
+
+		await performLogout(page);
+		await performLogin(page, user.alternateName);
+
+		await page.goto(
+			'/group/control_panel/manage?p_p_id=com_liferay_users_admin_web_portlet_UsersAdminPortlet'
+		);
+
+		await (
+			await usersAndOrganizationsPage.usersTableRowLink(
+				user.alternateName
+			)
+		).click();
+
+		await expect(editUserPage.passwordLink).toBeVisible();
+
+		await editUserPage.passwordLink.click();
+
+		await expect(editUserPage.generateWebDAVPasswordButton).toBeEnabled();
+
+		const adminUser =
+			await apiHelpers.headlessAdminUser.getUserAccountByEmailAddress(
+				'test@liferay.com'
+			);
+
+		let currentUrl = page.url();
+
+		currentUrl = currentUrl.replace(
+			user.id.toString(),
+			adminUser.id.toString()
+		);
+
+		await page.goto(currentUrl);
+
+		await editUserPage.passwordLink.click();
+
+		await expect(editUserPage.passwordInput).toBeVisible();
+		await expect(
+			editUserPage.generateWebDAVPasswordButton
+		).not.toBeVisible();
 	}
 );
 

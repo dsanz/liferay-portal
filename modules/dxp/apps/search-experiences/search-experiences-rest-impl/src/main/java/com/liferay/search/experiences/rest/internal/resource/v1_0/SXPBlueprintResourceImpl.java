@@ -348,6 +348,8 @@ public class SXPBlueprintResourceImpl extends BaseSXPBlueprintResourceImpl {
 			Long sxpBlueprintId, SXPBlueprint sxpBlueprint)
 		throws Exception {
 
+		SXPBlueprintUtil.unpack(sxpBlueprint);
+
 		DecodeSXPUtil.decodeSXPBlueprint(sxpBlueprint);
 
 		return _sxpBlueprintDTOConverter.toDTO(
@@ -396,11 +398,11 @@ public class SXPBlueprintResourceImpl extends BaseSXPBlueprintResourceImpl {
 		}
 	}
 
+	private static final SXPBlueprintEntityModel _entityEntityModel =
+		new SXPBlueprintEntityModel();
+
 	@Reference
 	private DTOConverterRegistry _dtoConverterRegistry;
-
-	private final SXPBlueprintEntityModel _entityEntityModel =
-		new SXPBlueprintEntityModel();
 
 	@Reference
 	private JSONFactory _jsonFactory;

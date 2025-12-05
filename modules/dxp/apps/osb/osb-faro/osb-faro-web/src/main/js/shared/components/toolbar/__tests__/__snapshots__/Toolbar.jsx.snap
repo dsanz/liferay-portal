@@ -38,7 +38,7 @@ exports[`Toolbar should render 1`] = `
           </li>
         </ul>
         <div
-          class="navbar-form navbar-form-autofit"
+          class="navbar-form navbar-form-autofit mx-2"
         >
           <div
             class="input-group search"

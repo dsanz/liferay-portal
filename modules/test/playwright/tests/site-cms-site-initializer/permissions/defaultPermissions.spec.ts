@@ -10,8 +10,10 @@ import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {getRandomInt} from '../../../utils/getRandomInt';
 import {PORTLET_URLS} from '../../../utils/portletUrls';
+import {waitForAlert} from '../../../utils/waitForAlert';
 import {cmsPagesTest} from './fixtures/cmsPagesTest';
 import {DefaultPermissionsPage} from './pages/DefaultPermissionsPage';
+import {PermissionsPage} from './pages/PermissionsPage';
 
 const test = mergeTests(
 	cmsPagesTest,
@@ -19,41 +21,35 @@ const test = mergeTests(
 	featureFlagsTest({
 		'LPD-17564': {enabled: true},
 		'LPD-32050': {enabled: true},
-		'LPS-179669': {enabled: true},
 	}),
 	loginTest()
 );
 
 type VerifyPermissionsOptions = {
-	defaultPermissionsPage: DefaultPermissionsPage;
+	menuitem: string;
 	objectName?: string;
 	page: any;
 	permissions: Array<{action: string; checked: boolean; role: string}>;
 };
 
-async function createSpace(page, spaceName: string) {
-	await page.getByTestId('fdsCreationActionButton').click();
-	await page.getByLabel('Space Name').fill(spaceName);
-	await page.getByRole('button', {name: 'Continue'}).click();
-	await page.getByRole('button', {name: 'Continue'}).click();
-}
-
-async function deleteSpace(page, spaceName: string) {
+async function checkModalHeader(heading: string, menuitem: string, page) {
 	await expect(async () => {
-		await (await getTableRowByText(page, spaceName))
-			.getByRole('button', {name: 'Actions'})
-			.click();
-		await page.getByRole('menuitem', {name: 'Delete'}).click();
-	}).toPass();
+		await page.getByRole('button', {exact: true, name: 'Actions'}).click();
+		await page.getByRole('menuitem', {exact: true, name: menuitem}).click();
 
-	await page.getByRole('button', {name: 'Delete'}).click();
+		await expect(page.getByRole('heading', {name: heading})).toBeVisible();
+	}).toPass({timeout: 5000});
+
+	await expect(async () => {
+		await page.keyboard.press('Escape');
+
+		await expect(
+			page.getByRole('heading', {name: heading})
+		).not.toBeVisible();
+	}).toPass({timeout: 5000});
 }
 
-async function getTableRowByText(page, text: string) {
-	return page.locator('table.table tbody tr', {hasText: text}).first();
-}
-
-async function goToDefaultPermissions(page, objectName?: string) {
+async function clickMenuItem(menuitem: string, page, objectName?: string) {
 	await expect(async () => {
 		if (!objectName) {
 			await page.getByLabel('Actions').click();
@@ -64,9 +60,55 @@ async function goToDefaultPermissions(page, objectName?: string) {
 				.click();
 		}
 		await page
-			.getByRole('menuitem', {exact: true, name: 'Default Permissions'})
-			.click();
+			.getByRole('menuitem', {
+				exact: true,
+				name: menuitem,
+			})
+			.click({timeout: 1000});
 	}).toPass();
+}
+
+async function createSpace(page, spaceName: string) {
+	await page.getByLabel('Add Space').first().click();
+	await page.getByLabel('Space Name').fill(spaceName);
+	await page.getByRole('button', {name: 'Continue'}).click();
+	await page.getByRole('button', {name: 'Continue'}).click();
+}
+
+async function deleteSpace(page, spaceName: string) {
+	await expect(async () => {
+		await clickMenuItem('Delete', page, spaceName);
+
+		await page.getByRole('button', {name: 'Delete'}).click();
+	}).toPass({timeout: 5000});
+
+	await waitForAlert(page, `${spaceName} was successfully deleted.`);
+}
+
+async function getTableRowByText(page, text: string) {
+	return page.locator('table.table tbody tr', {hasText: text}).first();
+}
+
+async function goToAllSpaces(page) {
+	await expect(async () => {
+		await page.goto(PORTLET_URLS.cmsAllSpaces);
+
+		await expect(
+			page.getByRole('heading', {exact: true, name: 'All Spaces'})
+		).toBeVisible();
+	}).toPass({timeout: 10000});
+}
+
+async function resetPermissions(page, folderName?: string) {
+	await expect(async () => {
+		await clickMenuItem('Reset to Default Permissions', page, folderName);
+
+		await page.getByRole('button', {name: 'Confirm'}).click();
+	}).toPass({timeout: 5000});
+
+	if (folderName) {
+		await waitForAlert(page, 'Permissions reset successfully.');
+	}
 }
 
 async function tickCheckBoxes(page, names: string[]) {
@@ -78,34 +120,45 @@ async function tickCheckBoxes(page, names: string[]) {
 }
 
 async function verifyPermissions({
-	defaultPermissionsPage,
+	menuitem,
 	objectName,
 	page,
 	permissions,
 }: VerifyPermissionsOptions) {
-	await goToDefaultPermissions(page, objectName);
+	await clickMenuItem(menuitem, page, objectName);
 
-	await defaultPermissionsPage.verifyPermissions(permissions);
+	if (menuitem === 'Permissions') {
+		page = new PermissionsPage(page);
+	}
+	else if (menuitem === 'Default Permissions') {
+		page = new DefaultPermissionsPage(page);
+	}
 
-	await defaultPermissionsPage.permissionsModalCancelButton.click();
+	await page.verifyPermissions(permissions);
 }
 
 test(
 	'Space and folder contents inherit parent default permissions',
 	{tag: '@LPD-62475'},
-	async ({defaultPermissionsPage, folderPage, page, spaceSummaryPage}) => {
+	async ({
+		contentsPage,
+		defaultPermissionsPage,
+		folderPage,
+		page,
+		spaceSummaryPage,
+	}) => {
 		test.setTimeout(90000);
 
-		await page.goto(PORTLET_URLS.cmsAllSpaces);
+		await goToAllSpaces(page);
 
 		const spaceName = 'Space' + getRandomInt();
 
 		await createSpace(page, spaceName);
 
 		try {
-			await page.goto(PORTLET_URLS.cmsAllSpaces);
+			await goToAllSpaces(page);
 
-			await goToDefaultPermissions(page, spaceName);
+			await clickMenuItem('Default Permissions', page, spaceName);
 
 			const permissions = [
 				{action: 'DELETE', checked: true, role: 'Power User'},
@@ -123,7 +176,7 @@ test(
 			await folderPage.createFolder(folderName);
 
 			await verifyPermissions({
-				defaultPermissionsPage,
+				menuitem: 'Default Permissions',
 				objectName: folderName,
 				page,
 				permissions,
@@ -136,29 +189,34 @@ test(
 			await folderPage.createFolder(subFolderName);
 
 			await verifyPermissions({
-				defaultPermissionsPage,
+				menuitem: 'Default Permissions',
 				objectName: subFolderName,
 				page,
 				permissions,
 			});
 
-			await page.getByTestId('fdsCreationActionButton').click();
-			await page.getByRole('menuitem', {name: 'Basic Content'}).click();
-			await page.getByRole('button', {name: 'Publish'}).click();
+			await contentsPage.createContent('Basic Content');
+
+			await contentsPage.fillData([{label: 'Title', value: '1234'}]);
+
+			await contentsPage.saveContent();
 
 			await (await getTableRowByText(page, 'Basic Web Content'))
 				.getByRole('button', {name: 'Actions'})
 				.click();
 
 			await expect(
-				page.getByRole('menuitem', {name: 'Permissions'})
+				page.getByRole('menuitem', {exact: true, name: 'Permissions'})
 			).toBeVisible();
 			await expect(
-				page.getByRole('menuitem', {name: 'Default Permissions'})
+				page.getByRole('menuitem', {
+					exact: true,
+					name: 'Default Permissions',
+				})
 			).not.toBeVisible();
 		}
 		finally {
-			await page.goto(PORTLET_URLS.cmsAllSpaces);
+			await goToAllSpaces(page);
 
 			await deleteSpace(page, spaceName);
 		}
@@ -173,20 +231,25 @@ test(
 
 		const spaceName1 = 'Space' + getRandomInt();
 		const spaceName2 = 'Space' + getRandomInt();
+		const spaceName3 = 'Space' + getRandomInt();
 
-		await page.goto(PORTLET_URLS.cmsAllSpaces);
+		await goToAllSpaces(page);
 
 		await createSpace(page, spaceName1);
 
-		await page.goto(PORTLET_URLS.cmsAllSpaces);
+		await goToAllSpaces(page);
 
 		await createSpace(page, spaceName2);
 
+		await goToAllSpaces(page);
+
+		await createSpace(page, spaceName3);
+
 		try {
-			await page.goto(PORTLET_URLS.cmsAllSpaces);
+			await goToAllSpaces(page);
 
 			await tickCheckBoxes(page, [spaceName1, spaceName2]);
-			await goToDefaultPermissions(page);
+			await clickMenuItem('Default Permissions', page);
 
 			const permissions1 = [
 				{action: 'DELETE', checked: true, role: 'Power User'},
@@ -199,13 +262,13 @@ test(
 			);
 
 			await verifyPermissions({
-				defaultPermissionsPage,
+				menuitem: 'Default Permissions',
 				objectName: spaceName1,
 				page,
 				permissions: permissions1,
 			});
 			await verifyPermissions({
-				defaultPermissionsPage,
+				menuitem: 'Default Permissions',
 				objectName: spaceName2,
 				page,
 				permissions: permissions1,
@@ -217,17 +280,18 @@ test(
 			];
 
 			await verifyPermissions({
-				defaultPermissionsPage,
-				objectName: 'Default',
+				menuitem: 'Default Permissions',
+				objectName: spaceName3,
 				page,
 				permissions: permissions2,
 			});
 		}
 		finally {
-			await page.goto(PORTLET_URLS.cmsAllSpaces);
+			await goToAllSpaces(page);
 
 			await deleteSpace(page, spaceName1);
 			await deleteSpace(page, spaceName2);
+			await deleteSpace(page, spaceName3);
 		}
 	}
 );
@@ -241,18 +305,18 @@ test(
 		const spaceName1 = 'Space' + getRandomInt();
 		const spaceName2 = 'Space' + getRandomInt();
 
-		await page.goto(PORTLET_URLS.cmsAllSpaces);
+		await goToAllSpaces(page);
 
 		await createSpace(page, spaceName1);
 
-		await page.goto(PORTLET_URLS.cmsAllSpaces);
+		await goToAllSpaces(page);
 
 		await createSpace(page, spaceName2);
 
 		try {
-			await page.goto(PORTLET_URLS.cmsAllSpaces);
+			await goToAllSpaces(page);
 
-			await goToDefaultPermissions(page, spaceName1);
+			await clickMenuItem('Default Permissions', page, spaceName1);
 
 			const permissionsSpace1 = [
 				{action: 'DELETE', checked: true, role: 'Power User'},
@@ -263,7 +327,7 @@ test(
 				permissionsSpace1
 			);
 
-			await goToDefaultPermissions(page, spaceName2);
+			await clickMenuItem('Default Permissions', page, spaceName2);
 
 			const permissionsSpace2 = [
 				{action: 'UPDATE', checked: true, role: 'Power User'},
@@ -284,7 +348,7 @@ test(
 			await contentsPage.createFolder(folderName2, spaceName2);
 			await contentsPage.createFolder(folderName3, spaceName2);
 
-			await goToDefaultPermissions(page, folderName1);
+			await clickMenuItem('Default Permissions', page, folderName1);
 
 			const permissionsFolder1 = [
 				{action: 'UPDATE', checked: true, role: 'Supplier'},
@@ -310,24 +374,24 @@ test(
 
 			await tickCheckBoxes(page, [folderName1, folderName2, folderName3]);
 			await verifyPermissions({
-				defaultPermissionsPage,
+				menuitem: 'Default Permissions',
 				objectName: null,
 				page,
 				permissions: defaultPermissions,
 			});
 
-			await page.getByRole('link', {name: 'Clear'}).click();
+			await page.getByRole('button', {name: 'Clear'}).click();
 
 			await tickCheckBoxes(page, [folderName2, folderName3]);
 			await verifyPermissions({
-				defaultPermissionsPage,
+				menuitem: 'Default Permissions',
 				objectName: null,
 				page,
 				permissions: permissionsSpace2,
 			});
 
 			await verifyPermissions({
-				defaultPermissionsPage,
+				menuitem: 'Default Permissions',
 				objectName: folderName1,
 				page,
 				permissions: permissionsFolder1,
@@ -341,7 +405,7 @@ test(
 			await folderPage.createFolder(subFolderName1);
 			await folderPage.createFolder(subFolderName2);
 
-			await goToDefaultPermissions(page, subFolderName1);
+			await clickMenuItem('Default Permissions', page, subFolderName1);
 
 			const permissionsSubFolder1 = [
 				{action: 'ADD_ENTRY', checked: true, role: 'Power User'},
@@ -354,23 +418,494 @@ test(
 
 			await tickCheckBoxes(page, [subFolderName1, subFolderName2]);
 			await verifyPermissions({
-				defaultPermissionsPage,
+				menuitem: 'Default Permissions',
 				objectName: null,
 				page,
 				permissions: permissionsFolder1,
 			});
 			await verifyPermissions({
-				defaultPermissionsPage,
+				menuitem: 'Default Permissions',
 				objectName: subFolderName1,
 				page,
 				permissions: permissionsSubFolder1,
 			});
 		}
 		finally {
-			await page.goto(PORTLET_URLS.cmsAllSpaces);
+			await goToAllSpaces(page);
 
 			await deleteSpace(page, spaceName1);
 			await deleteSpace(page, spaceName2);
+		}
+	}
+);
+
+test(
+	'Can propagate Default Permissions to existing assets',
+	{tag: ['@LPD-67436']},
+	async ({defaultPermissionsPage, folderPage, page, spaceSummaryPage}) => {
+		test.setTimeout(90000);
+
+		await goToAllSpaces(page);
+
+		const spaceName = 'Space' + getRandomInt();
+
+		await createSpace(page, spaceName);
+
+		try {
+			await spaceSummaryPage.viewAllContentLink.click();
+
+			const folderName = 'Folder' + getRandomInt();
+
+			await folderPage.createFolder(folderName);
+
+			await page.getByRole('link', {name: folderName}).click();
+
+			const subFolderName = 'SubFolder' + getRandomInt();
+
+			await folderPage.createFolder(subFolderName);
+
+			await goToAllSpaces(page);
+
+			await clickMenuItem(
+				'Edit and Propagate Default Permissions',
+				page,
+				spaceName
+			);
+
+			const permissions = [
+				{action: 'DELETE', checked: true, role: 'Power User'},
+				{action: 'PERMISSIONS', checked: true, role: 'User'},
+			];
+
+			await defaultPermissionsPage.checkPermissionsAndSave(
+				permissions,
+				false,
+				true
+			);
+
+			await spaceSummaryPage.goto(spaceName);
+
+			await spaceSummaryPage.viewAllContentLink.click();
+
+			await verifyPermissions({
+				menuitem: 'Default Permissions',
+				objectName: folderName,
+				page,
+				permissions,
+			});
+
+			await clickMenuItem(
+				'Edit and Propagate Default Permissions',
+				page,
+				folderName
+			);
+
+			const permissions2 = [
+				{action: 'UPDATE', checked: true, role: 'Power User'},
+				{action: 'VIEW', checked: true, role: 'User'},
+			];
+
+			await defaultPermissionsPage.checkPermissionsAndSave(
+				permissions2,
+				false,
+				true
+			);
+
+			await page.getByRole('link', {name: folderName}).click();
+
+			const allPermissions = permissions.concat(permissions2);
+
+			await verifyPermissions({
+				menuitem: 'Default Permissions',
+				objectName: subFolderName,
+				page,
+				permissions: allPermissions,
+			});
+		}
+		finally {
+			await goToAllSpaces(page);
+
+			await deleteSpace(page, spaceName);
+		}
+	}
+);
+
+test(
+	'Reset permissions to the default permissions of the parent',
+	{tag: '@LPD-62475'},
+	async ({
+		defaultPermissionsPage,
+		folderPage,
+		page,
+		permissionsPage,
+		spaceSummaryPage,
+	}) => {
+		await goToAllSpaces(page);
+
+		const spaceName = 'Space' + getRandomInt();
+
+		await createSpace(page, spaceName);
+
+		try {
+			await goToAllSpaces(page);
+
+			await clickMenuItem('Default Permissions', page, spaceName);
+
+			const parentPermissions = [
+				{action: 'DELETE', checked: true, role: 'Power User'},
+				{action: 'PERMISSIONS', checked: true, role: 'User'},
+			];
+
+			await defaultPermissionsPage.checkPermissionsAndSave(
+				parentPermissions
+			);
+
+			await spaceSummaryPage.goto(spaceName);
+
+			await spaceSummaryPage.viewAllContentLink.click();
+
+			const folderName = 'Folder' + getRandomInt();
+
+			await folderPage.createFolder(folderName);
+
+			await verifyPermissions({
+				menuitem: 'Permissions',
+				objectName: folderName,
+				page,
+				permissions: parentPermissions,
+			});
+
+			await clickMenuItem('Permissions', page, folderName);
+
+			let childPermissions = [
+				{action: 'ADD_ENTRY', checked: true, role: 'User'},
+				{action: 'UPDATE', checked: true, role: 'Power User'},
+			];
+
+			await permissionsPage.checkPermissionsAndSave(childPermissions);
+
+			await verifyPermissions({
+				menuitem: 'Permissions',
+				objectName: folderName,
+				page,
+				permissions: childPermissions,
+			});
+
+			await resetPermissions(page, folderName);
+
+			childPermissions = [
+				{action: 'ADD_ENTRY', checked: false, role: 'User'},
+				{action: 'UPDATE', checked: false, role: 'Power User'},
+			];
+
+			await verifyPermissions({
+				menuitem: 'Permissions',
+				objectName: folderName,
+				page,
+				permissions: childPermissions,
+			});
+		}
+		finally {
+			await goToAllSpaces(page);
+
+			await deleteSpace(page, spaceName);
+		}
+	}
+);
+
+test(
+	'Reset permissions in bulk to the default permissions of the parent',
+	{tag: '@LPD-68735'},
+	async ({
+		contentsPage,
+		defaultPermissionsPage,
+		folderPage,
+		page,
+		permissionsPage,
+		spaceSummaryPage,
+	}) => {
+		await goToAllSpaces(page);
+
+		const spaceName = 'Space' + getRandomInt();
+
+		await createSpace(page, spaceName);
+
+		try {
+			await goToAllSpaces(page);
+
+			await clickMenuItem('Default Permissions', page, spaceName);
+
+			const parentPermissions = [
+				{action: 'DELETE', checked: true, role: 'Power User'},
+				{action: 'PERMISSIONS', checked: true, role: 'User'},
+			];
+
+			await defaultPermissionsPage.checkPermissionsAndSave(
+				parentPermissions
+			);
+
+			await clickMenuItem('Default Permissions', page, spaceName);
+
+			await page.getByTestId('tab-L_CONTENTS').click();
+
+			await defaultPermissionsPage.checkPermissionsAndSave(
+				parentPermissions
+			);
+
+			await spaceSummaryPage.goto(spaceName);
+
+			await spaceSummaryPage.viewAllContentLink.click();
+
+			const folderName = 'Folder' + getRandomInt();
+
+			await folderPage.createFolder(folderName);
+
+			await verifyPermissions({
+				menuitem: 'Permissions',
+				objectName: folderName,
+				page,
+				permissions: parentPermissions,
+			});
+
+			await clickMenuItem('Permissions', page, folderName);
+
+			let childFolderPermissions = [
+				{action: 'ADD_ENTRY', checked: true, role: 'Power User'},
+				{action: 'UPDATE', checked: true, role: 'User'},
+			];
+
+			await permissionsPage.checkPermissionsAndSave(
+				childFolderPermissions
+			);
+
+			await verifyPermissions({
+				menuitem: 'Permissions',
+				objectName: folderName,
+				page,
+				permissions: childFolderPermissions,
+			});
+
+			await contentsPage.createContent('Basic Content');
+
+			const contentName = 'Content' + getRandomInt();
+
+			await contentsPage.fillData([{label: 'Title', value: contentName}]);
+
+			await contentsPage.saveContent();
+
+			await clickMenuItem('Permissions', page, contentName);
+
+			let childContentPermissions = [
+				{
+					action: 'DELETE_DISCUSSION',
+					checked: true,
+					role: 'Power User',
+				},
+				{action: 'UPDATE_DISCUSSION', checked: true, role: 'User'},
+			];
+
+			await permissionsPage.checkPermissionsAndSave(
+				childContentPermissions
+			);
+
+			await verifyPermissions({
+				menuitem: 'Permissions',
+				objectName: contentName,
+				page,
+				permissions: childContentPermissions,
+			});
+
+			await spaceSummaryPage.goto(spaceName);
+
+			await spaceSummaryPage.viewAllContentLink.click();
+
+			await tickCheckBoxes(page, [folderName, contentName]);
+
+			await resetPermissions(page);
+
+			await page
+				.locator('.alert-info')
+				.getByRole('button', {name: 'Close'})
+				.click();
+
+			childFolderPermissions = [
+				{action: 'ADD_ENTRY', checked: false, role: 'Power User'},
+				{action: 'UPDATE', checked: false, role: 'User'},
+			];
+
+			await verifyPermissions({
+				menuitem: 'Permissions',
+				objectName: folderName,
+				page,
+				permissions: childFolderPermissions,
+			});
+
+			childContentPermissions = [
+				{
+					action: 'DELETE_DISCUSSION',
+					checked: false,
+					role: 'Power User',
+				},
+				{action: 'UPDATE_DISCUSSION', checked: false, role: 'User'},
+			];
+
+			await verifyPermissions({
+				menuitem: 'Permissions',
+				objectName: contentName,
+				page,
+				permissions: childContentPermissions,
+			});
+		}
+		finally {
+			await goToAllSpaces(page);
+
+			await deleteSpace(page, spaceName);
+		}
+	}
+);
+
+test(
+	'Display only relevant permission tabs based on the section',
+	{tag: '@LPD-67530'},
+	async ({
+		assetsPage,
+		contentsPage,
+		defaultPermissionsPage,
+		filesPage,
+		page,
+	}) => {
+		const spaceName = 'Space' + getRandomInt();
+
+		await goToAllSpaces(page);
+
+		await createSpace(page, spaceName);
+
+		try {
+			await contentsPage.goto();
+
+			const folderName1 = 'Folder' + getRandomInt();
+			const folderName2 = 'Folder' + getRandomInt();
+
+			await contentsPage.createFolder(folderName1, spaceName);
+			await contentsPage.createFolder(folderName2, spaceName);
+
+			await tickCheckBoxes(page, [folderName1, folderName2]);
+
+			await clickMenuItem('Default Permissions', page);
+
+			await expect(page.getByTestId('tab-L_CONTENTS')).toBeVisible();
+			await expect(page.getByTestId('tab-L_FILES')).not.toBeVisible();
+			await expect(
+				page.getByTestId('tab-OBJECT_ENTRY_FOLDERS')
+			).toBeVisible();
+
+			await defaultPermissionsPage.permissionsModalCancelButton.click();
+
+			await clickMenuItem('Default Permissions', page, folderName1);
+
+			await expect(page.getByTestId('tab-L_CONTENTS')).toBeVisible();
+			await expect(page.getByTestId('tab-L_FILES')).not.toBeVisible();
+			await expect(
+				page.getByTestId('tab-OBJECT_ENTRY_FOLDERS')
+			).toBeVisible();
+
+			await defaultPermissionsPage.permissionsModalCancelButton.click();
+
+			await filesPage.goto();
+			await filesPage.changeVisualizationMode('Table');
+
+			const folderName3 = 'Folder' + getRandomInt();
+			const folderName4 = 'Folder' + getRandomInt();
+
+			await filesPage.createFolder(folderName3, spaceName);
+			await filesPage.createFolder(folderName4, spaceName);
+
+			await assetsPage.changeVisualizationMode('Table');
+
+			await tickCheckBoxes(page, [folderName3, folderName4]);
+
+			await clickMenuItem('Default Permissions', page);
+
+			await expect(page.getByTestId('tab-L_CONTENTS')).not.toBeVisible();
+			await expect(page.getByTestId('tab-L_FILES')).toBeVisible();
+			await expect(
+				page.getByTestId('tab-OBJECT_ENTRY_FOLDERS')
+			).toBeVisible();
+
+			await defaultPermissionsPage.permissionsModalCancelButton.click();
+
+			await clickMenuItem('Default Permissions', page, folderName3);
+
+			await expect(page.getByTestId('tab-L_CONTENTS')).not.toBeVisible();
+			await expect(page.getByTestId('tab-L_FILES')).toBeVisible();
+			await expect(
+				page.getByTestId('tab-OBJECT_ENTRY_FOLDERS')
+			).toBeVisible();
+
+			await page.getByRole('button', {name: 'Cancel'}).click();
+			await page.getByRole('button', {name: 'Clear'}).click();
+			await filesPage.changeVisualizationMode('Gallery');
+		}
+		finally {
+			await goToAllSpaces(page);
+
+			await deleteSpace(page, spaceName);
+		}
+	}
+);
+
+test(
+	'Action are working also in cms home page',
+	{tag: '@LPD-67530'},
+	async ({page}) => {
+		const spaceName = 'Space' + getRandomInt();
+
+		await goToAllSpaces(page);
+
+		await createSpace(page, spaceName);
+
+		try {
+			await expect(async () => {
+				await page
+					.getByText('No Content Yet')
+					.locator('../..')
+					.getByTestId('fdsCreationActionButton')
+					.click();
+				await page.getByRole('menuitem', {name: 'Folder'}).click();
+
+				await expect(page.getByLabel('Name')).toBeVisible();
+			}).toPass({timeout: 5000});
+
+			const folderName = String(getRandomInt());
+
+			await page.getByLabel('Name').fill(folderName);
+			await page.getByRole('button', {name: 'Save'}).click();
+
+			await expect(
+				page.getByRole('link', {name: folderName}).first()
+			).toBeVisible();
+
+			await checkModalHeader('Permissions', 'Permissions', page);
+			await checkModalHeader(
+				'Edit Default Permissions',
+				'Default Permissions',
+				page
+			);
+			await checkModalHeader(
+				'Edit Default Permissions',
+				'Edit and Propagate Default Permissions',
+				page
+			);
+			await checkModalHeader(
+				'Confirm Reset to Default Permissions',
+				'Reset to Default Permissions',
+				page
+			);
+		}
+		finally {
+			await goToAllSpaces(page);
+
+			await deleteSpace(page, spaceName);
 		}
 	}
 );

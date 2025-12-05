@@ -86,6 +86,7 @@ interface ISegmentEditorProps {
 	) => void;
 	propertyGroupsIList: List<PropertyGroup>;
 	segment: Segment;
+	type: SegmentTypes;
 }
 
 class SegmentEditor extends React.Component<ISegmentEditorProps> {
@@ -98,11 +99,12 @@ class SegmentEditor extends React.Component<ISegmentEditorProps> {
 	_formRef = React.createRef<Formik>();
 
 	@autobind
-	createDynamicSegment({criteria, includeAnonymousUsers, name}) {
+	createSegment({criteria, includeAnonymousUsers, name}) {
 		const {
 			channelId,
 			groupId,
-			segment: {id}
+			segment: {id},
+			type
 		} = this.props;
 
 		const request = id
@@ -114,7 +116,7 @@ class SegmentEditor extends React.Component<ISegmentEditorProps> {
 			description: '',
 			includeAnonymousUsers,
 			name: name.trim(),
-			segmentType: SegmentTypes.Dynamic
+			segmentType: type
 		};
 
 		return request({...requestData, channelId, groupId, id});
@@ -137,7 +139,7 @@ class SegmentEditor extends React.Component<ISegmentEditorProps> {
 	handleSubmit(form) {
 		const {onSubmit} = this.props;
 
-		onSubmit(form, this._formRef, this.createDynamicSegment);
+		onSubmit(form, this._formRef, this.createSegment);
 	}
 
 	render() {
@@ -154,7 +156,8 @@ class SegmentEditor extends React.Component<ISegmentEditorProps> {
 					includeAnonymousUsers,
 					name,
 					state: segmentState
-				}
+				},
+				type
 			}
 		} = this;
 
@@ -215,6 +218,7 @@ class SegmentEditor extends React.Component<ISegmentEditorProps> {
 										includeAnonymousUsers={
 											includeAnonymousUsers
 										}
+										segmentType={type}
 										valid={isValid && hasChanges}
 									/>
 

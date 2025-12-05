@@ -126,9 +126,9 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 				layout.getParentLayoutId(), nameMap, layout.getTitleMap(),
 				layout.getDescriptionMap(), layout.getKeywordsMap(),
 				layout.getRobotsMap(), type, hidden, friendlyURLMap,
-				layout.isIconImage(), null, layout.getStyleBookEntryId(),
-				layout.getFaviconFileEntryId(), layout.getMasterLayoutPlid(),
-				serviceContext);
+				layout.isIconImage(), null, layout.getStyleBookEntryERC(),
+				layout.getFaviconFileEntryId(),
+				layout.getMasterLayoutPageTemplateEntryERC(), serviceContext);
 
 			UnicodeProperties formTypeSettingsUnicodeProperties =
 				PropertiesParamUtil.getProperties(
@@ -150,9 +150,10 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 					draftLayout.getKeywordsMap(), draftLayout.getRobotsMap(),
 					type, draftLayout.isHidden(),
 					draftLayout.getFriendlyURLMap(), draftLayout.isIconImage(),
-					null, draftLayout.getStyleBookEntryId(),
+					null, draftLayout.getStyleBookEntryERC(),
 					draftLayout.getFaviconFileEntryId(),
-					draftLayout.getMasterLayoutPlid(), serviceContext);
+					draftLayout.getMasterLayoutPageTemplateEntryERC(),
+					serviceContext);
 			}
 
 			themeDisplay.clearLayoutFriendlyURL(layout);
@@ -205,7 +206,7 @@ public class EditLayoutMVCActionCommand extends BaseMVCActionCommand {
 					layout.getTypeSettingsProperties());
 			}
 
-			layout = _layoutService.updateLayout(
+			layout = _layoutService.updateTypeSettings(
 				groupId, layout.isPrivateLayout(), layout.getLayoutId(),
 				layoutTypeSettingsUnicodeProperties.toString());
 

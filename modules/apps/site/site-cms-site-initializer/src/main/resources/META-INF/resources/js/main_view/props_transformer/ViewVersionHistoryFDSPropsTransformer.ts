@@ -3,15 +3,14 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {IInternalRenderer} from '@liferay/frontend-data-set-web';
+import {IInternalRenderer, replaceTokens} from '@liferay/frontend-data-set-web';
 import {openModal} from 'frontend-js-components-web';
 import {navigate, sessionStorage, sub} from 'frontend-js-web';
 
-import formatActionURL from '../../common/utils/formatActionURL';
 import FilePreviewerModalContent from '../modal/FilePreviewerModalContent';
-import deleteEntryAction from './actions/deleteEntryAction';
+import confirmAndDeleteEntryAction from './actions/confirmAndDeleteEntryAction';
+import AssetVersionRenderer from './cell_renderers/AssetVersionRenderer';
 import AuthorRenderer from './cell_renderers/AuthorRenderer';
-import NameRenderer from './cell_renderers/NameRenderer';
 import VersionRenderer from './cell_renderers/VersionRenderer';
 import {executeAsyncItemAction} from './utils/executeAsyncItemAction';
 
@@ -33,8 +32,8 @@ export default function ViewVersionHistoryFDSPropsTransformer({
 					type: 'internal',
 				} as IInternalRenderer,
 				{
-					component: NameRenderer,
-					name: 'nameTableCellRenderer',
+					component: AssetVersionRenderer,
+					name: 'assetVersionTableCellRenderer',
 					type: 'internal',
 				} as IInternalRenderer,
 				{
@@ -118,7 +117,7 @@ export default function ViewVersionHistoryFDSPropsTransformer({
 			else if (action.data.id === 'delete') {
 				event?.preventDefault();
 
-				deleteEntryAction({
+				confirmAndDeleteEntryAction({
 					bodyHTML: sub(
 						Liferay.Language.get('delete-version-confirmation'),
 						`<strong>${sub(Liferay.Language.get('version-x'), itemData.systemProperties.version.number)}</strong>`,
@@ -178,7 +177,7 @@ export default function ViewVersionHistoryFDSPropsTransformer({
 							itemData.systemProperties.version.number
 						)}`
 					),
-					url: formatActionURL(itemData, action.href),
+					url: replaceTokens(action.href, itemData),
 				});
 			}
 			else if (action?.data?.id === 'view-file') {

@@ -156,6 +156,8 @@ components:
                     format: date
                     readOnly: true
                     type: string
+                scope:
+                    type: scope
                 scopeId:
                     # @review
                     description:
@@ -330,6 +332,110 @@ paths:
                     application/xml:
                         schema:
                             $ref: "#/components/schemas/ObjectEntryFolder"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectEntryFolder"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectEntryFolder"
+            tags: ["ObjectEntryFolder"]
+    "/object-entry-folders/{objectEntryFolderId}/by-parent-object-entry-folder-id/{parentObjectEntryFolderId}/copy":
+        post:
+            operationId: postObjectEntryFolderByParentObjectEntryFolderCopy
+            parameters:
+                -   in: path
+                    name: objectEntryFolderId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: path
+                    name: parentObjectEntryFolderId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectEntryFolder"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectEntryFolder"
+            tags: ["ObjectEntryFolder"]
+    "/object-entry-folders/{objectEntryFolderId}/by-parent-object-entry-folder-id/{parentObjectEntryFolderId}/copy-replace":
+        post:
+            operationId: postObjectEntryFolderByParentObjectEntryFolderCopyReplace
+            parameters:
+                -   in: path
+                    name: objectEntryFolderId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: path
+                    name: parentObjectEntryFolderId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectEntryFolder"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectEntryFolder"
+            tags: ["ObjectEntryFolder"]
+    "/object-entry-folders/{objectEntryFolderId}/by-parent-object-entry-folder-id/{parentObjectEntryFolderId}/move":
+        post:
+            operationId: postObjectEntryFolderByParentObjectEntryFolderMove
+            parameters:
+                -   in: path
+                    name: objectEntryFolderId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: path
+                    name: parentObjectEntryFolderId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ObjectEntryFolder"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ObjectEntryFolder"
+            tags: ["ObjectEntryFolder"]
+    "/object-entry-folders/{objectEntryFolderId}/by-parent-object-entry-folder-id/{parentObjectEntryFolderId}/move-replace":
+        post:
+            operationId: postObjectEntryFolderByParentObjectEntryFolderMoveReplace
+            parameters:
+                -   in: path
+                    name: objectEntryFolderId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: path
+                    name: parentObjectEntryFolderId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
             responses:
                 200:
                     content:

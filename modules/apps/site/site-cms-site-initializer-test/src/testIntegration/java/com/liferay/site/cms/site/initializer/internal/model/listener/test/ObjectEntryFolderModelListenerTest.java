@@ -8,13 +8,19 @@ package com.liferay.site.cms.site.initializer.internal.model.listener.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.batch.engine.unit.BatchEngineUnitProcessor;
 import com.liferay.batch.engine.unit.BatchEngineUnitReader;
+import com.liferay.depot.constants.DepotConstants;
+import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
+import com.liferay.object.constants.ObjectFolderConstants;
+import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectEntryFolder;
+import com.liferay.object.model.ObjectFolder;
 import com.liferay.object.rest.filter.factory.FilterFactory;
 import com.liferay.object.service.ObjectEntryFolderLocalService;
-import com.liferay.petra.function.transform.TransformUtil;
+import com.liferay.object.service.ObjectFolderLocalService;
 import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -26,16 +32,12 @@ import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
-import com.liferay.portal.kernel.service.CompanyLocalService;
-import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
-import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
-import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -43,20 +45,19 @@ import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.sharing.security.permission.SharingEntryAction;
 import com.liferay.sharing.service.SharingEntryLocalService;
 import com.liferay.site.cms.site.initializer.util.CMSDefaultPermissionUtil;
-import com.liferay.site.initializer.SiteInitializer;
-import com.liferay.site.initializer.SiteInitializerRegistry;
 
 import java.io.File;
 
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -76,6 +77,9 @@ import org.osgi.framework.FrameworkUtil;
  * @author Jürgen Kappler
  * @author Roberto Díaz
  */
+@FeatureFlags(
+	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-32050")}
+)
 @RunWith(Arquillian.class)
 public class ObjectEntryFolderModelListenerTest {
 
@@ -88,205 +92,119 @@ public class ObjectEntryFolderModelListenerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_group = GroupTestUtil.addGroup();
-
-		ServiceContextThreadLocal.pushServiceContext(
-			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
-
-		try {
+		if (!_isCMSSiteInitialized()) {
 
 			// Manually initialize the CMS site initializer until the feature
 			// flag LPD-17564 is removed
 
-			Role role = _roleLocalService.fetchRole(
-				_group.getCompanyId(), RoleConstants.CMS_ADMINISTRATOR);
+			Bundle testBundle = FrameworkUtil.getBundle(
+				GroupModelListenerTest.class);
 
-			if (role == null) {
-				SiteInitializer siteInitializer =
-					_siteInitializerRegistry.getSiteInitializer(
-						"com.liferay.site.initializer.cms");
+			BundleContext bundleContext = testBundle.getBundleContext();
 
-				siteInitializer.initialize(_group.getGroupId());
+			for (Bundle bundle : bundleContext.getBundles()) {
+				if (!Objects.equals(
+						bundle.getSymbolicName(),
+						"com.liferay.site.initializer.cms")) {
 
-				Bundle testBundle = FrameworkUtil.getBundle(
-					ObjectEntryFolderModelListenerTest.class);
-
-				BundleContext bundleContext = testBundle.getBundleContext();
-
-				for (Bundle bundle : bundleContext.getBundles()) {
-					if (!Objects.equals(
-							bundle.getSymbolicName(),
-							"com.liferay.site.initializer.cms")) {
-
-						continue;
-					}
-
-					_deleteFile(bundle, "00.list.type.definition");
-					_deleteFile(bundle, "01.object.folder");
-					_deleteFile(bundle, "02.object.definition");
-
-					CompletableFuture<Void> completableFuture =
-						_batchEngineUnitProcessor.processBatchEngineUnits(
-							_batchEngineUnitReader.getBatchEngineUnits(bundle));
-
-					completableFuture.join();
+					continue;
 				}
+
+				_deleteFile(bundle, "00.list.type.definition");
+				_deleteFile(bundle, "01.object.folder");
+				_deleteFile(bundle, "02.object.definition");
+
+				CompletableFuture<Void> completableFuture =
+					_batchEngineUnitProcessor.processBatchEngineUnits(
+						_batchEngineUnitReader.getBatchEngineUnits(bundle));
+
+				completableFuture.join();
 			}
 		}
-		finally {
-			ServiceContextThreadLocal.popServiceContext();
-		}
 
-		_objectEntryFolder =
-			_objectEntryFolderLocalService.addObjectEntryFolder(
-				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS,
-				_group.getGroupId(), _group.getCreatorUserId(),
-				ObjectEntryFolderConstants.
-					PARENT_OBJECT_ENTRY_FOLDER_ID_DEFAULT,
-				"",
-				HashMapBuilder.put(
-					LocaleUtil.ENGLISH, RandomTestUtil.randomString()
-				).build(),
-				RandomTestUtil.randomString(),
-				ServiceContextTestUtil.getServiceContext());
+		DepotEntry depotEntry = _depotEntryLocalService.addDepotEntry(
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(), StringUtil.randomString()
+			).build(),
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(), StringUtil.randomString()
+			).build(),
+			DepotConstants.TYPE_SPACE,
+			ServiceContextTestUtil.getServiceContext());
+
+		_group = depotEntry.getGroup();
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testAddObjectEntryFolder() throws Exception {
-		Map<Long, Set<String>> sourceRoleIdsToActionIds =
-			_resourcePermissionLocalService.
-				getAvailableResourcePermissionActionIds(
-					_objectEntryFolder.getCompanyId(),
-					ObjectEntryFolder.class.getName(),
-					ResourceConstants.SCOPE_INDIVIDUAL,
-					String.valueOf(_objectEntryFolder.getObjectEntryFolderId()),
-					TransformUtil.transform(
-						_resourceActionLocalService.getResourceActions(
-							ObjectEntryFolder.class.getName()),
-						ResourceAction::getActionId));
-
-		Role role = RoleLocalServiceUtil.getRole(
-			_group.getCompanyId(), RoleConstants.CMS_ADMINISTRATOR);
-
-		Set<String> actionIds = sourceRoleIdsToActionIds.get(role.getRoleId());
-
-		for (ResourceAction resourceAction :
-				_resourceActionLocalService.getResourceActions(
-					ObjectEntryFolder.class.getName())) {
-
-			Assert.assertTrue(actionIds.contains(resourceAction.getActionId()));
-		}
-
-		Group group = _groupLocalService.getGroup(
-			_objectEntryFolder.getGroupId());
-
-		JSONObject jsonObject1 = CMSDefaultPermissionUtil.getJSONObject(
-			group.getCompanyId(), group.getCreatorUserId(),
-			group.getExternalReferenceCode(), DepotEntry.class.getName(),
+		JSONObject rootJSONObject = CMSDefaultPermissionUtil.getJSONObject(
+			_group.getCompanyId(), _group.getCreatorUserId(),
+			_group.getExternalReferenceCode(), DepotEntry.class.getName(),
 			_filterFactory);
 
-		ObjectEntryFolder objectEntryFolder1 =
-			_objectEntryFolderLocalService.addObjectEntryFolder(
-				RandomTestUtil.randomString(), _group.getGroupId(),
-				_group.getCreatorUserId(),
-				_objectEntryFolder.getObjectEntryFolderId(), "",
-				HashMapBuilder.put(
-					LocaleUtil.ENGLISH, RandomTestUtil.randomString()
-				).build(),
-				RandomTestUtil.randomString(),
-				ServiceContextTestUtil.getServiceContext());
+		ObjectEntryFolder rootObjectEntryFolder = _addObjectEntryFolder(
+			ObjectEntryFolderConstants.PARENT_OBJECT_ENTRY_FOLDER_ID_DEFAULT);
 
-		JSONObject jsonObject2 = CMSDefaultPermissionUtil.getJSONObject(
-			objectEntryFolder1.getCompanyId(), objectEntryFolder1.getUserId(),
-			objectEntryFolder1.getExternalReferenceCode(),
-			objectEntryFolder1.getModelClassName(), _filterFactory);
+		_assertResourcePermissions(rootJSONObject, rootObjectEntryFolder, null);
 
-		Assert.assertEquals(jsonObject1.toString(), jsonObject2.toString());
+		ObjectEntryFolder childObjectEntryFolder = _addObjectEntryFolder(
+			rootObjectEntryFolder.getObjectEntryFolderId());
 
-		String randomString = RandomTestUtil.randomString();
+		_assertResourcePermissions(
+			rootJSONObject, childObjectEntryFolder, null);
 
-		jsonObject2.put(
+		ObjectEntry objectEntry = _fetchObjectEntry(rootObjectEntryFolder);
+
+		Assert.assertNotNull(objectEntry);
+
+		String randomActionId = RandomTestUtil.randomString();
+
+		rootJSONObject.put(
 			"OBJECT_ENTRY_FOLDERS",
 			JSONUtil.put(
+				DepotRolesConstants.ASSET_LIBRARY_CONTENT_REVIEWER,
+				JSONUtil.putAll(
+					ActionKeys.ADD_FOLDER, ActionKeys.DELETE,
+					ActionKeys.PERMISSIONS)
+			).put(
 				RoleConstants.CMS_ADMINISTRATOR,
 				JSONUtil.putAll(
-					ActionKeys.UPDATE, ActionKeys.VIEW, randomString)
+					randomActionId, ActionKeys.UPDATE, ActionKeys.VIEW)
 			).put(
-				RoleConstants.USER, JSONUtil.putAll(ActionKeys.VIEW)
+				RoleConstants.USER,
+				JSONUtil.putAll(
+					ActionKeys.ADD_ENTRY, ActionKeys.DELETE, ActionKeys.VIEW)
 			));
 
 		CMSDefaultPermissionUtil.addOrUpdateObjectEntry(
-			null, objectEntryFolder1.getCompanyId(),
-			objectEntryFolder1.getUserId(),
-			objectEntryFolder1.getExternalReferenceCode(),
-			objectEntryFolder1.getModelClassName(), jsonObject2,
-			objectEntryFolder1.getGroupId(), objectEntryFolder1.getTreePath());
+			objectEntry.getExternalReferenceCode(),
+			rootObjectEntryFolder.getCompanyId(),
+			rootObjectEntryFolder.getUserId(),
+			rootObjectEntryFolder.getExternalReferenceCode(),
+			rootObjectEntryFolder.getModelClassName(), rootJSONObject,
+			rootObjectEntryFolder.getGroupId(),
+			rootObjectEntryFolder.getTreePath());
 
-		ObjectEntryFolder objectEntryFolder2 =
-			_objectEntryFolderLocalService.addObjectEntryFolder(
-				RandomTestUtil.randomString(), _group.getGroupId(),
-				_group.getCreatorUserId(),
-				objectEntryFolder1.getObjectEntryFolderId(), "",
-				HashMapBuilder.put(
-					LocaleUtil.ENGLISH, RandomTestUtil.randomString()
-				).build(),
-				RandomTestUtil.randomString(),
-				ServiceContextTestUtil.getServiceContext());
+		childObjectEntryFolder = _addObjectEntryFolder(
+			rootObjectEntryFolder.getObjectEntryFolderId());
 
-		JSONObject jsonObject3 = CMSDefaultPermissionUtil.getJSONObject(
-			objectEntryFolder2.getCompanyId(), objectEntryFolder2.getUserId(),
-			objectEntryFolder2.getExternalReferenceCode(),
-			objectEntryFolder2.getModelClassName(), _filterFactory);
-
-		Assert.assertEquals(jsonObject2.toString(), jsonObject3.toString());
-
-		JSONObject jsonObject4 = jsonObject3.getJSONObject(
-			"OBJECT_ENTRY_FOLDERS");
-
-		Assert.assertTrue(jsonObject4.has(RoleConstants.CMS_ADMINISTRATOR));
-		Assert.assertTrue(jsonObject4.has(RoleConstants.USER));
-
-		ResourcePermission resourcePermission =
-			_resourcePermissionLocalService.getResourcePermission(
-				objectEntryFolder2.getCompanyId(),
-				ObjectEntryFolder.class.getName(),
-				ResourceConstants.SCOPE_INDIVIDUAL,
-				String.valueOf(objectEntryFolder2.getObjectEntryFolderId()),
-				role.getRoleId());
-
-		Assert.assertFalse(resourcePermission.hasActionId(ActionKeys.DELETE));
-		Assert.assertTrue(resourcePermission.hasActionId(ActionKeys.UPDATE));
-		Assert.assertTrue(resourcePermission.hasActionId(ActionKeys.VIEW));
-		Assert.assertFalse(resourcePermission.hasActionId(randomString));
-
-		role = _roleLocalService.getRole(
-			objectEntryFolder2.getCompanyId(), RoleConstants.USER);
-
-		resourcePermission =
-			_resourcePermissionLocalService.getResourcePermission(
-				objectEntryFolder2.getCompanyId(),
-				ObjectEntryFolder.class.getName(),
-				ResourceConstants.SCOPE_INDIVIDUAL,
-				String.valueOf(objectEntryFolder2.getObjectEntryFolderId()),
-				role.getRoleId());
-
-		Assert.assertFalse(resourcePermission.hasActionId(ActionKeys.DELETE));
-		Assert.assertFalse(resourcePermission.hasActionId(ActionKeys.UPDATE));
-		Assert.assertTrue(resourcePermission.hasActionId(ActionKeys.VIEW));
+		_assertResourcePermissions(
+			rootJSONObject, childObjectEntryFolder, randomActionId);
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testDeleteObjectEntryFolder() throws Exception {
-		int sharingEntriesCount =
-			_sharingEntryLocalService.getSharingEntriesCount();
+		ObjectEntryFolder rootObjectEntryFolder =
+			_objectEntryFolderLocalService.
+				getObjectEntryFolderByExternalReferenceCode(
+					ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS,
+					_group.getGroupId(), _group.getCompanyId());
 
 		ObjectEntryFolder objectEntryFolder =
 			_objectEntryFolderLocalService.addObjectEntryFolder(
 				RandomTestUtil.randomString(), _group.getGroupId(),
 				_group.getCreatorUserId(),
-				_objectEntryFolder.getObjectEntryFolderId(), "",
+				rootObjectEntryFolder.getObjectEntryFolderId(), "",
 				HashMapBuilder.put(
 					LocaleUtil.ENGLISH, RandomTestUtil.randomString()
 				).build(),
@@ -294,6 +212,9 @@ public class ObjectEntryFolderModelListenerTest {
 				ServiceContextTestUtil.getServiceContext());
 
 		User user = UserTestUtil.addGroupAdminUser(_group);
+
+		int sharingEntriesCount =
+			_sharingEntryLocalService.getSharingEntriesCount();
 
 		_sharingEntryLocalService.addSharingEntry(
 			null, TestPropsValues.getUserId(), 0, user.getUserId(),
@@ -314,11 +235,128 @@ public class ObjectEntryFolderModelListenerTest {
 			sharingEntriesCount,
 			_sharingEntryLocalService.getSharingEntriesCount());
 
-		Assert.assertNull(
-			CMSDefaultPermissionUtil.fetchObjectEntry(
+		Assert.assertNull(_fetchObjectEntry(objectEntryFolder));
+	}
+
+	@Test
+	public void testUpdateObjectEntryFolder() throws Exception {
+		ObjectEntryFolder objectEntryFolder1 =
+			_objectEntryFolderLocalService.
+				getObjectEntryFolderByExternalReferenceCode(
+					ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS,
+					_group.getGroupId(), _group.getCompanyId());
+
+		ObjectEntryFolder objectEntryFolder2 = _addObjectEntryFolder(
+			objectEntryFolder1.getObjectEntryFolderId());
+
+		JSONObject jsonObject = CMSDefaultPermissionUtil.getJSONObject(
+			objectEntryFolder2.getCompanyId(), objectEntryFolder2.getUserId(),
+			objectEntryFolder2.getExternalReferenceCode(),
+			objectEntryFolder2.getModelClassName(), _filterFactory);
+
+		_assertResourcePermissions(jsonObject, objectEntryFolder2, null);
+
+		ObjectEntryFolder objectEntryFolder3 = _addObjectEntryFolder(
+			objectEntryFolder1.getObjectEntryFolderId());
+
+		_assertResourcePermissions(jsonObject, objectEntryFolder3, null);
+
+		ObjectEntry objectEntry = _fetchObjectEntry(objectEntryFolder2);
+
+		Assert.assertNotNull(objectEntry);
+
+		String randomActionId = RandomTestUtil.randomString();
+
+		jsonObject.put(
+			ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS,
+			JSONUtil.put(
+				RoleConstants.CMS_ADMINISTRATOR,
+				JSONUtil.putAll(
+					ActionKeys.UPDATE, ActionKeys.VIEW, randomActionId)
+			).put(
+				RoleConstants.USER, JSONUtil.putAll(ActionKeys.VIEW)
+			));
+
+		CMSDefaultPermissionUtil.addOrUpdateObjectEntry(
+			objectEntry.getExternalReferenceCode(),
+			objectEntryFolder2.getCompanyId(), objectEntryFolder2.getUserId(),
+			objectEntryFolder2.getExternalReferenceCode(),
+			objectEntryFolder2.getModelClassName(), jsonObject,
+			objectEntryFolder2.getGroupId(), objectEntryFolder2.getTreePath());
+
+		objectEntryFolder3 =
+			_objectEntryFolderLocalService.moveObjectEntryFolder(
+				objectEntryFolder3.getUserId(),
+				objectEntryFolder3.getObjectEntryFolderId(),
+				objectEntryFolder2.getObjectEntryFolderId(), false,
+				ServiceContextTestUtil.getServiceContext());
+
+		_assertResourcePermissions(
+			jsonObject, objectEntryFolder3, randomActionId);
+	}
+
+	private ObjectEntryFolder _addObjectEntryFolder(
+			long parentObjectEntryFolderId)
+		throws Exception {
+
+		return _objectEntryFolderLocalService.addObjectEntryFolder(
+			RandomTestUtil.randomString(), _group.getGroupId(),
+			_group.getCreatorUserId(), parentObjectEntryFolderId, "",
+			HashMapBuilder.put(
+				LocaleUtil.ENGLISH, RandomTestUtil.randomString()
+			).build(),
+			RandomTestUtil.randomString(), new ServiceContext());
+	}
+
+	private void _assertResourcePermissions(
+			JSONObject expectedDefaultPermissionsJSONObject,
+			ObjectEntryFolder objectEntryFolder, String randomActionId)
+		throws Exception {
+
+		JSONObject actualDefaultPermissionsJSONObject =
+			CMSDefaultPermissionUtil.getJSONObject(
 				objectEntryFolder.getCompanyId(), objectEntryFolder.getUserId(),
 				objectEntryFolder.getExternalReferenceCode(),
-				objectEntryFolder.getModelClassName(), _filterFactory));
+				objectEntryFolder.getModelClassName(), _filterFactory);
+
+		Assert.assertEquals(
+			expectedDefaultPermissionsJSONObject.toString(),
+			actualDefaultPermissionsJSONObject.toString());
+
+		JSONObject jsonObject =
+			expectedDefaultPermissionsJSONObject.getJSONObject(
+				"OBJECT_ENTRY_FOLDERS");
+
+		for (String roleName : jsonObject.keySet()) {
+			Set<String> actionIds = JSONUtil.toStringSet(
+				jsonObject.getJSONArray(roleName));
+
+			ResourcePermission resourcePermission = _fetchResourcePermission(
+				objectEntryFolder, roleName);
+
+			for (ResourceAction resourceAction :
+					_resourceActionLocalService.getResourceActions(
+						ObjectEntryFolder.class.getName())) {
+
+				String actionId = resourceAction.getActionId();
+
+				if ((objectEntryFolder.getParentObjectEntryFolderId() ==
+						ObjectEntryFolderConstants.
+							PARENT_OBJECT_ENTRY_FOLDER_ID_DEFAULT) &&
+					Objects.equals(actionId, ActionKeys.DELETE)) {
+
+					Assert.assertFalse(
+						resourcePermission.hasActionId(actionId));
+				}
+				else {
+					Assert.assertEquals(
+						actionIds.toString(), actionIds.contains(actionId),
+						resourcePermission.hasActionId(actionId));
+				}
+			}
+
+			Assert.assertFalse(resourcePermission.hasActionId(randomActionId));
+		}
 	}
 
 	private void _deleteFile(Bundle bundle, String fileName) {
@@ -331,6 +369,42 @@ public class ObjectEntryFolderModelListenerTest {
 		}
 	}
 
+	private ObjectEntry _fetchObjectEntry(ObjectEntryFolder objectEntryFolder)
+		throws Exception {
+
+		return CMSDefaultPermissionUtil.fetchObjectEntry(
+			objectEntryFolder.getCompanyId(), objectEntryFolder.getUserId(),
+			objectEntryFolder.getExternalReferenceCode(),
+			objectEntryFolder.getModelClassName(), _filterFactory);
+	}
+
+	private ResourcePermission _fetchResourcePermission(
+			ObjectEntryFolder objectEntryFolder, String roleName)
+		throws Exception {
+
+		Role role = RoleLocalServiceUtil.getRole(
+			_group.getCompanyId(), roleName);
+
+		return _resourcePermissionLocalService.fetchResourcePermission(
+			_group.getCompanyId(), ObjectEntryFolder.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(objectEntryFolder.getObjectEntryFolderId()),
+			role.getRoleId());
+	}
+
+	private boolean _isCMSSiteInitialized() throws Exception {
+		ObjectFolder objectFolder =
+			_objectFolderLocalService.fetchObjectFolderByExternalReferenceCode(
+				ObjectFolderConstants.EXTERNAL_REFERENCE_CODE_FILE_TYPES,
+				TestPropsValues.getCompanyId());
+
+		if (objectFolder != null) {
+			return true;
+		}
+
+		return false;
+	}
+
 	@Inject
 	private BatchEngineUnitProcessor _batchEngineUnitProcessor;
 
@@ -338,7 +412,7 @@ public class ObjectEntryFolderModelListenerTest {
 	private BatchEngineUnitReader _batchEngineUnitReader;
 
 	@Inject
-	private CompanyLocalService _companyLocalService;
+	private DepotEntryLocalService _depotEntryLocalService;
 
 	@Inject(
 		filter = "filter.factory.key=" + ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT
@@ -349,12 +423,10 @@ public class ObjectEntryFolderModelListenerTest {
 	private Group _group;
 
 	@Inject
-	private GroupLocalService _groupLocalService;
-
-	private ObjectEntryFolder _objectEntryFolder;
+	private ObjectEntryFolderLocalService _objectEntryFolderLocalService;
 
 	@Inject
-	private ObjectEntryFolderLocalService _objectEntryFolderLocalService;
+	private ObjectFolderLocalService _objectFolderLocalService;
 
 	@Inject
 	private Portal _portal;
@@ -366,12 +438,6 @@ public class ObjectEntryFolderModelListenerTest {
 	private ResourcePermissionLocalService _resourcePermissionLocalService;
 
 	@Inject
-	private RoleLocalService _roleLocalService;
-
-	@Inject
 	private SharingEntryLocalService _sharingEntryLocalService;
-
-	@Inject
-	private SiteInitializerRegistry _siteInitializerRegistry;
 
 }

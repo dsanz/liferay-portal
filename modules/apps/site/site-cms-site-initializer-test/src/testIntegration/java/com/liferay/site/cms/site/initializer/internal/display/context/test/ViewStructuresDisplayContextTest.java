@@ -14,6 +14,7 @@ import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -34,7 +35,9 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Marco Galluzzi
  */
-@FeatureFlag("LPD-17564")
+@FeatureFlags(
+	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-32050")}
+)
 @RunWith(Arquillian.class)
 public class ViewStructuresDisplayContextTest
 	extends BaseDisplayContextTestCase {
@@ -70,29 +73,26 @@ public class ViewStructuresDisplayContextTest
 				"getFDSActionDropdownItems", new Class<?>[0]);
 
 		Assert.assertEquals(
-			fdsActionDropdownItems.toString(), 7,
+			fdsActionDropdownItems.toString(), 6,
 			fdsActionDropdownItems.size());
 
 		_assertFDSActionDropdownItem(
 			fdsActionDropdownItems.get(0), "pencil", "edit", "edit", "get",
-			Map.of("system", false));
+			null);
 		_assertFDSActionDropdownItem(
 			fdsActionDropdownItems.get(1), "list-ul", "viewUsages",
 			"view-usages", "get", null);
 		_assertFDSActionDropdownItem(
-			fdsActionDropdownItems.get(2), "copy", "copy", "make-a-copy", null,
-			null);
+			fdsActionDropdownItems.get(2), "export", "export", "export-as-json",
+			"get", null);
 		_assertFDSActionDropdownItem(
-			fdsActionDropdownItems.get(3), "export", "export", "export-as-json",
-			"get", Map.of("system", false));
+			fdsActionDropdownItems.get(3), "import", "import",
+			"import-and-override", "get", null);
 		_assertFDSActionDropdownItem(
-			fdsActionDropdownItems.get(4), "import", "import",
-			"import-and-override", "get", Map.of("system", false));
-		_assertFDSActionDropdownItem(
-			fdsActionDropdownItems.get(5), "password-policies", "permissions",
+			fdsActionDropdownItems.get(4), "password-policies", "permissions",
 			"permissions", "get", null);
 		_assertFDSActionDropdownItem(
-			fdsActionDropdownItems.get(6), "trash", "delete", "delete",
+			fdsActionDropdownItems.get(5), "trash", "delete", "delete",
 			"delete", Map.of("system", false));
 	}
 

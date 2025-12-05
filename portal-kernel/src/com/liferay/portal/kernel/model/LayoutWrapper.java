@@ -64,11 +64,13 @@ public class LayoutWrapper
 		attributes.put("iconImageId", getIconImageId());
 		attributes.put("themeId", getThemeId());
 		attributes.put("colorSchemeId", getColorSchemeId());
-		attributes.put("styleBookEntryId", getStyleBookEntryId());
+		attributes.put("styleBookEntryERC", getStyleBookEntryERC());
 		attributes.put("css", getCss());
 		attributes.put("priority", getPriority());
 		attributes.put("faviconFileEntryId", getFaviconFileEntryId());
-		attributes.put("masterLayoutPlid", getMasterLayoutPlid());
+		attributes.put(
+			"masterLayoutPageTemplateEntryERC",
+			getMasterLayoutPageTemplateEntryERC());
 		attributes.put("layoutPrototypeUuid", getLayoutPrototypeUuid());
 		attributes.put(
 			"layoutPrototypeLinkEnabled", isLayoutPrototypeLinkEnabled());
@@ -267,10 +269,10 @@ public class LayoutWrapper
 			setColorSchemeId(colorSchemeId);
 		}
 
-		Long styleBookEntryId = (Long)attributes.get("styleBookEntryId");
+		String styleBookEntryERC = (String)attributes.get("styleBookEntryERC");
 
-		if (styleBookEntryId != null) {
-			setStyleBookEntryId(styleBookEntryId);
+		if (styleBookEntryERC != null) {
+			setStyleBookEntryERC(styleBookEntryERC);
 		}
 
 		String css = (String)attributes.get("css");
@@ -291,10 +293,12 @@ public class LayoutWrapper
 			setFaviconFileEntryId(faviconFileEntryId);
 		}
 
-		Long masterLayoutPlid = (Long)attributes.get("masterLayoutPlid");
+		String masterLayoutPageTemplateEntryERC = (String)attributes.get(
+			"masterLayoutPageTemplateEntryERC");
 
-		if (masterLayoutPlid != null) {
-			setMasterLayoutPlid(masterLayoutPlid);
+		if (masterLayoutPageTemplateEntryERC != null) {
+			setMasterLayoutPageTemplateEntryERC(
+				masterLayoutPageTemplateEntryERC);
 		}
 
 		String layoutPrototypeUuid = (String)attributes.get(
@@ -983,10 +987,15 @@ public class LayoutWrapper
 	}
 
 	/**
-	 * Returns the master layout plid of this layout.
+	 * Returns the master layout page template entry erc of this layout.
 	 *
-	 * @return the master layout plid of this layout
+	 * @return the master layout page template entry erc of this layout
 	 */
+	@Override
+	public String getMasterLayoutPageTemplateEntryERC() {
+		return model.getMasterLayoutPageTemplateEntryERC();
+	}
+
 	@Override
 	public long getMasterLayoutPlid() {
 		return model.getMasterLayoutPlid();
@@ -1316,13 +1325,13 @@ public class LayoutWrapper
 	}
 
 	/**
-	 * Returns the style book entry ID of this layout.
+	 * Returns the style book entry erc of this layout.
 	 *
-	 * @return the style book entry ID of this layout
+	 * @return the style book entry erc of this layout
 	 */
 	@Override
-	public long getStyleBookEntryId() {
-		return model.getStyleBookEntryId();
+	public String getStyleBookEntryERC() {
+		return model.getStyleBookEntryERC();
 	}
 
 	/**
@@ -2275,13 +2284,16 @@ public class LayoutWrapper
 	}
 
 	/**
-	 * Sets the master layout plid of this layout.
+	 * Sets the master layout page template entry erc of this layout.
 	 *
-	 * @param masterLayoutPlid the master layout plid of this layout
+	 * @param masterLayoutPageTemplateEntryERC the master layout page template entry erc of this layout
 	 */
 	@Override
-	public void setMasterLayoutPlid(long masterLayoutPlid) {
-		model.setMasterLayoutPlid(masterLayoutPlid);
+	public void setMasterLayoutPageTemplateEntryERC(
+		String masterLayoutPageTemplateEntryERC) {
+
+		model.setMasterLayoutPageTemplateEntryERC(
+			masterLayoutPageTemplateEntryERC);
 	}
 
 	/**
@@ -2553,13 +2565,13 @@ public class LayoutWrapper
 	}
 
 	/**
-	 * Sets the style book entry ID of this layout.
+	 * Sets the style book entry erc of this layout.
 	 *
-	 * @param styleBookEntryId the style book entry ID of this layout
+	 * @param styleBookEntryERC the style book entry erc of this layout
 	 */
 	@Override
-	public void setStyleBookEntryId(long styleBookEntryId) {
-		model.setStyleBookEntryId(styleBookEntryId);
+	public void setStyleBookEntryERC(String styleBookEntryERC) {
+		model.setStyleBookEntryERC(styleBookEntryERC);
 	}
 
 	/**

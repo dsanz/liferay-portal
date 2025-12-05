@@ -18,6 +18,8 @@ import com.liferay.batch.engine.model.BatchEngineImportTaskError;
 import com.liferay.batch.engine.service.BatchEngineImportTaskErrorLocalService;
 import com.liferay.batch.engine.service.BatchEngineImportTaskLocalService;
 import com.liferay.blogs.model.BlogsEntry;
+import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
+import com.liferay.exportimport.report.service.ExportImportReportEntryLocalService;
 import com.liferay.headless.admin.user.client.dto.v1_0.Account;
 import com.liferay.headless.admin.user.client.http.HttpInvoker;
 import com.liferay.headless.admin.user.client.resource.v1_0.AccountResource;
@@ -108,6 +110,17 @@ public class BatchEngineImportTaskExecutorTest
 	}
 
 	@Test
+	public void testCreateBlogPostingsFromCSVFileWithBOM() throws Exception {
+		_importBlogPostings(
+			BatchEngineTaskOperation.CREATE,
+			_getBlogPostingsCSVCreateContent(
+				TestPropsValues.getGroupId(), _BOM_FIELD_NAMES),
+			"CSV", _fieldNamesMappingMap);
+
+		_assertCreatedBlogPostings();
+	}
+
+	@Test
 	public void testCreateBlogPostingsFromCSVFileWithFieldMappings()
 		throws Exception {
 
@@ -122,6 +135,12 @@ public class BatchEngineImportTaskExecutorTest
 
 	@Test
 	public void testCreateBlogPostingsFromInvalidJSONFile() throws Exception {
+		ExportImportThreadLocal.setLayoutImportInProcess(true);
+
+		int exportImportReportEntriesCount =
+			_exportImportReportEntryLocalService.
+				getExportImportReportEntriesCount();
+
 		StringBundler sb = new StringBundler();
 
 		sb.append(StringPool.OPEN_BRACKET);
@@ -149,11 +168,25 @@ public class BatchEngineImportTaskExecutorTest
 				"JSON", null);
 
 			_assertInvalidFileImportWithOnErrorFailStrategy(1, 1, logCapture);
+
+			Assert.assertEquals(
+				exportImportReportEntriesCount + 1,
+				_exportImportReportEntryLocalService.
+					getExportImportReportEntriesCount());
+		}
+		finally {
+			ExportImportThreadLocal.setLayoutImportInProcess(false);
 		}
 	}
 
 	@Test
 	public void testCreateBlogPostingsFromInvalidJSONLFile() throws Exception {
+		ExportImportThreadLocal.setLayoutImportInProcess(true);
+
+		int exportImportReportEntriesCount =
+			_exportImportReportEntryLocalService.
+				getExportImportReportEntriesCount();
+
 		StringBundler sb = new StringBundler();
 
 		_createJSONRow(
@@ -177,11 +210,25 @@ public class BatchEngineImportTaskExecutorTest
 				"JSONL", null);
 
 			_assertInvalidFileImportWithOnErrorFailStrategy(1, 1, logCapture);
+
+			Assert.assertEquals(
+				exportImportReportEntriesCount + 1,
+				_exportImportReportEntryLocalService.
+					getExportImportReportEntriesCount());
+		}
+		finally {
+			ExportImportThreadLocal.setLayoutImportInProcess(false);
 		}
 	}
 
 	@Test
 	public void testCreateBlogPostingsFromInvalidXLSFile() throws Exception {
+		ExportImportThreadLocal.setLayoutImportInProcess(true);
+
+		int exportImportReportEntriesCount =
+			_exportImportReportEntryLocalService.
+				getExportImportReportEntriesCount();
+
 		XSSFWorkbook xssfWorkbook = new XSSFWorkbook();
 
 		Sheet sheet = xssfWorkbook.createSheet();
@@ -204,6 +251,14 @@ public class BatchEngineImportTaskExecutorTest
 				"XLS", null);
 
 			_assertInvalidFileImportWithOnErrorFailStrategy(1, 1, logCapture);
+
+			Assert.assertEquals(
+				exportImportReportEntriesCount + 1,
+				_exportImportReportEntryLocalService.
+					getExportImportReportEntriesCount());
+		}
+		finally {
+			ExportImportThreadLocal.setLayoutImportInProcess(false);
 		}
 	}
 
@@ -283,6 +338,12 @@ public class BatchEngineImportTaskExecutorTest
 	public void testCreateBlogPostingsWithInvalidCSVFileAndOnErrorContinue()
 		throws Exception {
 
+		ExportImportThreadLocal.setLayoutImportInProcess(true);
+
+		int exportImportReportEntriesCount =
+			_exportImportReportEntryLocalService.
+				getExportImportReportEntriesCount();
+
 		StringBundler sb = new StringBundler();
 
 		_createCSVRow(sb, FIELD_NAMES);
@@ -318,8 +379,8 @@ public class BatchEngineImportTaskExecutorTest
 		String content = sb.toString();
 
 		try (LogCapture logCapture1 = LoggerTestUtil.configureLog4JLogger(
-				"com.liferay.batch.engine.internal.strategy." +
-					"OnErrorContinueBatchEngineImportStrategy",
+				"com.liferay.batch.engine.internal." +
+					"BatchEngineImportTaskExecutorImpl",
 				LoggerTestUtil.ERROR);
 			LogCapture logCapture2 = LoggerTestUtil.configureLog4JLogger(
 				_CLASS_NAME_BATCH_ENGINE_IMPORT_TASK_EXECUTOR_IMPL,
@@ -332,6 +393,14 @@ public class BatchEngineImportTaskExecutorTest
 				"CSV", null,
 				BatchEngineImportTaskConstants.
 					IMPORT_STRATEGY_ON_ERROR_CONTINUE);
+
+			Assert.assertEquals(
+				exportImportReportEntriesCount + 1,
+				_exportImportReportEntryLocalService.
+					getExportImportReportEntriesCount());
+		}
+		finally {
+			ExportImportThreadLocal.setLayoutImportInProcess(false);
 		}
 
 		_assertInvalidFileImportWithOnErrorContinueStrategy(
@@ -468,8 +537,8 @@ public class BatchEngineImportTaskExecutorTest
 				new QueryDefinition<>(WorkflowConstants.STATUS_ANY)));
 
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
-				"com.liferay.batch.engine.internal.strategy." +
-					"OnErrorContinueBatchEngineImportStrategy",
+				"com.liferay.batch.engine.internal." +
+					"BatchEngineImportTaskExecutorImpl",
 				LoggerTestUtil.ERROR)) {
 
 			_importBlogPostings(
@@ -1336,6 +1405,13 @@ public class BatchEngineImportTaskExecutorTest
 
 	private static final int _BATCH_SIZE = 10;
 
+	private static final byte[] _BOM = {(byte)0xEF, (byte)0xBB, (byte)0xBF};
+
+	private static final String[] _BOM_FIELD_NAMES = {
+		new String(_BOM) + "alternativeHeadline1", "articleBody1",
+		"datePublished1", "headline1", "siteId1"
+	};
+
 	private static final String
 		_CLASS_NAME_BATCH_ENGINE_IMPORT_TASK_EXECUTOR_IMPL =
 			"com.liferay.batch.engine.internal." +
@@ -1356,6 +1432,10 @@ public class BatchEngineImportTaskExecutorTest
 	@Inject
 	private BatchEngineImportTaskLocalService
 		_batchEngineImportTaskLocalService;
+
+	@Inject
+	private ExportImportReportEntryLocalService
+		_exportImportReportEntryLocalService;
 
 	@Inject
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;

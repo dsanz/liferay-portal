@@ -63,6 +63,7 @@ export interface IDataSet {
 	description?: string;
 	externalReferenceCode: string;
 	filtersOrder?: string;
+	hideManagementBarInEmptyState?: boolean;
 	id: string;
 	itemActionsOrder?: string;
 	label: string;

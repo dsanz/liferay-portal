@@ -114,22 +114,19 @@ public class DDMIndexerImpl implements DDMIndexer {
 
 		for (Field field : fields) {
 			try {
-				String indexType = ddmStructure.getFieldProperty(
-					field.getName(), "indexType");
+				DDMFormField ddmFormField = ddmStructure.getDDMFormField(
+					field.getName(), false);
+
+				String indexType = ddmFormField.getIndexType();
 
 				if (Validator.isNull(indexType) || indexType.equals("none")) {
 					continue;
 				}
 
-				DDMFormField ddmFormField = ddmStructure.getDDMFormField(
-					field.getName());
 				String name = null;
 				Serializable value = null;
 
-				if (GetterUtil.getBoolean(
-						ddmStructure.getFieldProperty(
-							field.getName(), "localizable"))) {
-
+				if (ddmFormField.isLocalizable()) {
 					for (Locale locale : locales) {
 						name = encodeName(
 							ddmStructure.getStructureId(),
@@ -597,7 +594,9 @@ public class DDMIndexerImpl implements DDMIndexer {
 		else if (type.equals(DDMFormFieldTypeConstants.RICH_TEXT)) {
 			sb.append(_htmlParser.extractText(valueString));
 		}
-		else if (type.equals(DDMFormFieldTypeConstants.SELECT)) {
+		else if (type.equals(DDMFormFieldTypeConstants.CHECKBOX_MULTIPLE) ||
+				 type.equals(DDMFormFieldTypeConstants.SELECT)) {
+
 			JSONArray jsonArray = _jsonFactory.createJSONArray(valueString);
 
 			sb.append(ArrayUtil.toStringArray(jsonArray));
@@ -769,7 +768,9 @@ public class DDMIndexerImpl implements DDMIndexer {
 				document.addGeoLocation(
 					name.concat("_geolocation"), latitude, longitude);
 			}
-			else if (type.equals(DDMFormFieldTypeConstants.SELECT)) {
+			else if (type.equals(DDMFormFieldTypeConstants.CHECKBOX_MULTIPLE) ||
+					 type.equals(DDMFormFieldTypeConstants.SELECT)) {
+
 				document.addKeyword(
 					_getFieldName(name), _toStringArray(sortableValue));
 				document.addKeyword(
@@ -876,9 +877,7 @@ public class DDMIndexerImpl implements DDMIndexer {
 				}
 
 				_extractIndexableAttribute(
-					ddmFormField, defaultLocale,
-					ddmStructure.getFieldProperty(
-						ddmFormField.getName(), "indexType"),
+					ddmFormField, defaultLocale, ddmFormField.getIndexType(),
 					ddmFormFieldLocale, sb, ddmFormFieldValue.getValue());
 			}
 			catch (Exception exception) {

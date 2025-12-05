@@ -78,7 +78,7 @@ public class ObjectEntryInfoItemObjectProviderTest {
 			ObjectEntryManagerRegistry.class);
 
 		Mockito.when(
-			_objectEntryManagerRegistry.getObjectEntryManager(null)
+			_objectEntryManagerRegistry.getObjectEntryManager(0, null)
 		).thenReturn(
 			_objectEntryManager
 		);
@@ -224,7 +224,8 @@ public class ObjectEntryInfoItemObjectProviderTest {
 		);
 
 		_objectEntryUtilMockedStatic.verify(
-			() -> ObjectEntryUtil.toObjectEntry(0L, proxyObjectEntry));
+			() -> ObjectEntryUtil.toObjectEntry(
+				_objectDefinition, proxyObjectEntry));
 	}
 
 	@Test
@@ -323,7 +324,8 @@ public class ObjectEntryInfoItemObjectProviderTest {
 		);
 
 		_objectEntryUtilMockedStatic.verify(
-			() -> ObjectEntryUtil.toObjectEntry(0L, proxyObjectEntry));
+			() -> ObjectEntryUtil.toObjectEntry(
+				_objectDefinition, proxyObjectEntry));
 
 		_assertObjectEntriesAttribute(
 			attributes, ercInfoItemIdentifier, objectEntry);
@@ -439,7 +441,8 @@ public class ObjectEntryInfoItemObjectProviderTest {
 		);
 
 		_objectEntryUtilMockedStatic.when(
-			() -> ObjectEntryUtil.toObjectEntry(0L, proxyObjectEntry)
+			() -> ObjectEntryUtil.toObjectEntry(
+				_objectDefinition, proxyObjectEntry)
 		).thenReturn(
 			objectEntry
 		);

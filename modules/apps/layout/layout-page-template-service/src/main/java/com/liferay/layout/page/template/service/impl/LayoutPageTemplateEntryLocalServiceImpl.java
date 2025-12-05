@@ -53,7 +53,6 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
-import com.liferay.portal.kernel.security.auth.GuestOrUserUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -206,9 +205,22 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		layoutPageTemplateEntry.setLayoutPrototypeId(layoutPrototypeId);
 
 		if (plid == 0) {
+			String masterLayoutPageTemplateEntryERC = null;
+
+			if (masterLayoutPlid != 0) {
+				LayoutPageTemplateEntry masterLayoutPageTemplateEntry =
+					fetchLayoutPageTemplateEntryByPlid(masterLayoutPlid);
+
+				if (masterLayoutPageTemplateEntry != null) {
+					masterLayoutPageTemplateEntryERC =
+						masterLayoutPageTemplateEntry.
+							getExternalReferenceCode();
+				}
+			}
+
 			Layout layout = _addLayout(
-				userId, groupId, name, type, masterLayoutPlid, status,
-				serviceContext);
+				userId, groupId, name, type, masterLayoutPageTemplateEntryERC,
+				status, serviceContext);
 
 			if (layout != null) {
 				plid = layout.getPlid();
@@ -295,11 +307,12 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			layoutPageTemplateEntryPersistence.findByPrimaryKey(
 				sourceLayoutPageTemplateEntryId);
 
-		String name = UniqueUtil.getCopyValue(
-			copyValue -> {
+		String name = UniqueUtil.getUniqueValue(
+			"copy",
+			uniqueValue -> {
 				LayoutPageTemplateEntry layoutPageTemplateEntry =
 					layoutPageTemplateEntryPersistence.fetchByG_L_N_T(
-						groupId, layoutPageTemplateCollectionId, copyValue,
+						groupId, layoutPageTemplateCollectionId, uniqueValue,
 						sourceLayoutPageTemplateEntry.getType());
 
 				if (layoutPageTemplateEntry == null) {
@@ -359,7 +372,10 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP,
+		type = SystemEventConstants.TYPE_DELETE
+	)
 	public LayoutPageTemplateEntry deleteLayoutPageTemplateEntry(
 			LayoutPageTemplateEntry layoutPageTemplateEntry)
 		throws PortalException {
@@ -436,8 +452,9 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			long layoutPageTemplateEntryId)
 		throws PortalException {
 
-		return deleteLayoutPageTemplateEntry(
-			getLayoutPageTemplateEntry(layoutPageTemplateEntryId));
+		return layoutPageTemplateEntryLocalService.
+			deleteLayoutPageTemplateEntry(
+				getLayoutPageTemplateEntry(layoutPageTemplateEntryId));
 	}
 
 	@Override
@@ -770,7 +787,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 
 	@Override
 	public LayoutPageTemplateEntry updateLayoutPageTemplateEntry(
-			long layoutPageTemplateEntryId, long classNameId, long classTypeId)
+			long userId, long layoutPageTemplateEntryId, long classNameId,
+			long classTypeId)
 		throws PortalException {
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
@@ -781,8 +799,7 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			layoutPageTemplateEntry.getPlid());
 
 		if ((draftLayout != null) &&
-			!draftLayout.isUnlocked(
-				Constants.EDIT, GuestOrUserUtil.getUserId())) {
+			!draftLayout.isUnlocked(Constants.EDIT, userId)) {
 
 			throw new LockedLayoutException();
 		}
@@ -881,9 +898,9 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			draftLayout.getKeywordsMap(), draftLayout.getRobotsMap(),
 			draftLayout.getType(), draftLayout.isHidden(),
 			draftLayout.getFriendlyURLMap(), draftLayout.getIconImage(), null,
-			draftLayout.getStyleBookEntryId(),
+			draftLayout.getStyleBookEntryERC(),
 			draftLayout.getFaviconFileEntryId(),
-			draftLayout.getMasterLayoutPlid(), serviceContext);
+			draftLayout.getMasterLayoutPageTemplateEntryERC(), serviceContext);
 
 		Layout layout = _layoutLocalService.getLayout(
 			layoutPageTemplateEntry.getPlid());
@@ -894,8 +911,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			layout.getDescriptionMap(), layout.getKeywordsMap(),
 			layout.getRobotsMap(), layout.getType(), layout.isHidden(),
 			layout.getFriendlyURLMap(), layout.getIconImage(), null,
-			layout.getStyleBookEntryId(), layout.getFaviconFileEntryId(),
-			layout.getMasterLayoutPlid(), serviceContext);
+			layout.getStyleBookEntryERC(), layout.getFaviconFileEntryId(),
+			layout.getMasterLayoutPageTemplateEntryERC(), serviceContext);
 
 		return layoutPageTemplateEntry;
 	}
@@ -930,7 +947,8 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 
 	private Layout _addLayout(
 			long userId, long groupId, String name, int type,
-			long masterLayoutPlid, int status, ServiceContext serviceContext)
+			String masterLayoutPageTemplateEntryERC, int status,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		boolean privateLayout = false;
@@ -955,7 +973,7 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		}
 
 		if ((type == LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT) ||
-			(masterLayoutPlid > 0)) {
+			Validator.isNotNull(masterLayoutPageTemplateEntryERC)) {
 
 			typeSettingsUnicodeProperties.setProperty(
 				"lfr-theme:regular:show-footer", Boolean.FALSE.toString());
@@ -978,12 +996,12 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		Layout layout = _layoutLocalService.addLayout(
 			null, userId, groupId, privateLayout, 0, 0, 0, titleMap, titleMap,
 			null, null, null, layoutType, typeSettings, true, true,
-			new HashMap<>(), masterLayoutPlid, serviceContext);
+			new HashMap<>(), masterLayoutPageTemplateEntryERC, serviceContext);
 
 		Layout draftLayout = layout.fetchDraftLayout();
 
 		if ((type == LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT) ||
-			(masterLayoutPlid > 0)) {
+			Validator.isNotNull(masterLayoutPageTemplateEntryERC)) {
 
 			LayoutSet layoutSet = _layoutSetLocalService.getLayoutSet(
 				groupId, false);

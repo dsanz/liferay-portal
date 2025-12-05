@@ -11,10 +11,26 @@ import {DataSetPage} from './DataSetPage';
 
 // Page for All, Content and Files page
 
+interface ExecItemActionArgs {
+	action:
+		| 'Delete'
+		| 'Download'
+		| 'Edit'
+		| 'Expire'
+		| 'Share'
+		| 'Show Details'
+		| 'View'
+		| 'View History';
+	filter: string;
+}
+
 export class AssetsPage {
 	readonly page: Page;
 
 	readonly dataSetFragmentPage: DataSetPage;
+	readonly galleryNavigation: Locator;
+	readonly galleryPreview: Locator;
+	readonly galleryThumbnails: Locator;
 	readonly modalDeleteButton: Locator;
 	readonly newButton: Locator;
 	readonly processingTasksButton: Locator;
@@ -42,7 +58,10 @@ export class AssetsPage {
 		this.page = page;
 
 		this.dataSetFragmentPage = new DataSetPage(page);
-		this.newButton = page.getByLabel('New');
+		this.galleryNavigation = page.locator('.fds-gallery-view__navigation');
+		this.galleryPreview = page.locator('.fds-gallery-view__preview');
+		this.galleryThumbnails = page.locator('.fds-gallery-view__thumbnails');
+		this.newButton = page.getByTestId('fdsCreationActionButton').first();
 		this.processingTasksButton = page.getByRole('button', {
 			name: /Processing Tasks?/,
 		}) as Locator;
@@ -80,16 +99,17 @@ export class AssetsPage {
 
 	async gotoAll() {
 		await this.page.goto(PORTLET_URLS.cmsAll);
-		await this.page
-			.getByRole('heading', {name: 'All Restricted Page'})
-			.waitFor();
+		await this.page.getByRole('heading', {name: 'All'}).waitFor();
+	}
+
+	async gotoContents() {
+		await this.page.goto(PORTLET_URLS.cmsContents);
+		await this.page.getByRole('heading', {name: 'Contents'}).waitFor();
 	}
 
 	async gotoFiles() {
 		await this.page.goto(PORTLET_URLS.cmsFiles);
-		await this.page
-			.getByRole('heading', {name: 'Files Restricted Page'})
-			.waitFor();
+		await this.page.getByRole('heading', {name: 'Files'}).waitFor();
 	}
 
 	async createContent(type: string) {
@@ -108,13 +128,7 @@ export class AssetsPage {
 		await this.dataSetFragmentPage.execBulkItemAction({action});
 	}
 
-	async execItemAction({
-		action,
-		filter,
-	}: {
-		action: 'Download' | 'Share' | 'Show Details' | 'View';
-		filter: string;
-	}) {
+	async execItemAction({action, filter}: ExecItemActionArgs) {
 		await this.dataSetFragmentPage.execItemAction({
 			action,
 			filter,
@@ -131,9 +145,30 @@ export class AssetsPage {
 		for (const title of titles) {
 			const card = this.page
 				.locator('tr', {hasText: title})
-				.or(this.page.locator('.card-row', {hasText: title}));
+				.or(this.getCardItem(title));
 
 			await card.getByRole('checkbox').check();
 		}
+	}
+
+	async navigateByGalleryArrows(direction: 'Previous' | 'Next') {
+		await this.galleryNavigation
+			.getByRole('button', {name: direction})
+			.click();
+	}
+
+	getCardItem(name: string) {
+		return this.page.locator('.card', {hasText: name});
+	}
+
+	async execCardItemAction({action, filter}: ExecItemActionArgs) {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {
+				exact: true,
+				name: action,
+			}),
+			trigger: this.getCardItem(filter).getByLabel('More actions'),
+		});
 	}
 }

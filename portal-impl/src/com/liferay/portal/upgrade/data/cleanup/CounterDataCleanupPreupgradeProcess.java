@@ -10,15 +10,18 @@ import com.liferay.counter.kernel.service.CounterLocalServiceUtil;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.dao.orm.common.SQLTransformer;
+import com.liferay.portal.db.DBResourceUtil;
 import com.liferay.portal.kernel.annotation.ImplementationClassName;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.upgrade.data.cleanup.DataCleanupPreupgradeProcess;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.PortalClassLoaderUtil;
+import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.sql.PreparedStatement;
@@ -27,6 +30,8 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,6 +43,15 @@ public class CounterDataCleanupPreupgradeProcess
 
 	@Override
 	protected void doUpgrade() throws Exception {
+		_liferayTableNames.addAll(
+			DBResourceUtil.getServiceComponentModuleTableNames(connection));
+		_liferayTableNames.addAll(
+			DBResourceUtil.getServiceComponentPortalTableNames(connection));
+		_liferayTableNames.addAll(
+			DBResourceUtil.getModuleTableNames(connection));
+		_liferayTableNames.addAll(
+			DBResourceUtil.getPortalTableNames(connection));
+
 		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				"select name, currentId from Counter");
 			ResultSet resultSet = preparedStatement.executeQuery()) {
@@ -46,20 +60,27 @@ public class CounterDataCleanupPreupgradeProcess
 			DBInspector dbInspector = new DBInspector(connection);
 			List<String> excludedTableNames = new ArrayList<>();
 			String kernelCounterName = "";
-			long kernelCounterValue = 0;
 
 			while (resultSet.next()) {
 				String counterName = resultSet.getString(1);
-				long counterValue = resultSet.getLong(2);
+
+				if (counterName.equals(Company.class.getName()) &&
+					!PropsValues.COMPANY_PREDICTABLE_COMPANY_IDS_ENABLED) {
+
+					_deleteCounter(counterName);
+
+					continue;
+				}
 
 				if (counterName.equals(Counter.class.getName()) ||
 					counterName.equals("com.liferay.counter.model.Counter")) {
 
 					kernelCounterName = counterName;
-					kernelCounterValue = counterValue;
 
 					continue;
 				}
+
+				long counterValue = resultSet.getLong(2);
 
 				Matcher matcher = _layoutSpecificCounterNamePattern.matcher(
 					counterName);
@@ -109,7 +130,9 @@ public class CounterDataCleanupPreupgradeProcess
 					tableName = StringUtil.extractLast(counterName, '.');
 				}
 
-				if (!dbInspector.hasTable(tableName)) {
+				if (!dbInspector.hasTable(tableName) ||
+					!_isLiferayTable(dbInspector, tableName)) {
+
 					continue;
 				}
 
@@ -123,13 +146,12 @@ public class CounterDataCleanupPreupgradeProcess
 			}
 
 			_checkKernelCounter(
-				kernelCounterName, kernelCounterValue, dbInspector,
-				excludedTableNames);
+				kernelCounterName, dbInspector, excludedTableNames);
 		}
 	}
 
 	private void _checkKernelCounter(
-			String counterName, long counterValue, DBInspector dbInspector,
+			String counterName, DBInspector dbInspector,
 			List<String> excludedTableNames)
 		throws Exception {
 
@@ -143,6 +165,12 @@ public class CounterDataCleanupPreupgradeProcess
 		String maxValueTableName = null;
 
 		for (String tableName : tableNames) {
+			if (!dbInspector.isObjectTable(tableName) &&
+				!_isLiferayTable(dbInspector, tableName)) {
+
+				continue;
+			}
+
 			String columnName = _getPrimaryKeyColumnName(
 				dbInspector, tableName);
 
@@ -157,6 +185,20 @@ public class CounterDataCleanupPreupgradeProcess
 			if (maxValue > latestCounterValue) {
 				latestCounterValue = maxValue;
 				maxValueTableName = tableName;
+			}
+		}
+
+		long counterValue = 0L;
+
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				"select currentId from Counter where name = ?")) {
+
+			preparedStatement.setString(1, counterName);
+
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					counterValue = resultSet.getLong(1);
+				}
 			}
 		}
 
@@ -185,40 +227,31 @@ public class CounterDataCleanupPreupgradeProcess
 		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				SQLTransformer.transform(
 					StringBundler.concat(
-						"select max(layoutId) from Layout where groupId = ",
-						groupId, " and privateLayout = ",
-						privateLayout ? "[$TRUE$]" : "[$FALSE$]")));
-			ResultSet resultSet = preparedStatement1.executeQuery()) {
+						"select max(layoutId) from Layout where groupId = ? ",
+						"and privateLayout = ",
+						privateLayout ? "[$TRUE$]" : "[$FALSE$]")))) {
 
-			if (resultSet.next()) {
-				long maxValue = resultSet.getLong(1);
+			preparedStatement1.setLong(1, groupId);
 
-				if (resultSet.wasNull()) {
-					try (PreparedStatement preparedStatement2 =
-							connection.prepareStatement(
-								"delete from Counter where name = '" +
-									counterName + "'")) {
+			try (ResultSet resultSet = preparedStatement1.executeQuery()) {
+				if (resultSet.next()) {
+					long maxValue = resultSet.getLong(1);
 
-						preparedStatement2.executeUpdate();
+					if (resultSet.wasNull()) {
+						_deleteCounter(counterName);
 
-						if (_log.isInfoEnabled()) {
-							_log.info(
-								"Deleted counter " + counterName +
-									" because it is unused");
-						}
+						return;
 					}
 
-					return;
-				}
+					if (counterValue >= maxValue) {
+						return;
+					}
 
-				if (counterValue >= maxValue) {
-					return;
-				}
+					CounterLocalServiceUtil.reset(counterName, maxValue);
 
-				CounterLocalServiceUtil.reset(counterName, maxValue);
-
-				if (_log.isInfoEnabled()) {
-					_log.info(_getLogMessage(counterName, maxValue, null));
+					if (_log.isInfoEnabled()) {
+						_log.info(_getLogMessage(counterName, maxValue, null));
+					}
 				}
 			}
 		}
@@ -249,6 +282,19 @@ public class CounterDataCleanupPreupgradeProcess
 
 		if (_log.isInfoEnabled()) {
 			_log.info(_getLogMessage(counterName, maxValue, null));
+		}
+	}
+
+	private void _deleteCounter(String counterName) throws Exception {
+		try (PreparedStatement preparedStatement = connection.prepareStatement(
+				"delete from Counter where name = '" + counterName + "'")) {
+
+			preparedStatement.executeUpdate();
+
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					"Deleted counter " + counterName + " because it is unused");
+			}
 		}
 	}
 
@@ -326,10 +372,25 @@ public class CounterDataCleanupPreupgradeProcess
 		return primaryKeyColumnNames.get(0);
 	}
 
+	private boolean _isLiferayTable(DBInspector dbInspector, String tableName)
+		throws Exception {
+
+		if (dbInspector.isObjectTable(tableName) ||
+			_liferayTableNames.contains(tableName)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		CounterDataCleanupPreupgradeProcess.class);
 
 	private static final Pattern _layoutSpecificCounterNamePattern =
 		Pattern.compile("^([a-zA-Z0-9_.]+)#(\\d+)#(true|false)$");
+
+	private final Set<String> _liferayTableNames = new TreeSet<>(
+		String.CASE_INSENSITIVE_ORDER);
 
 }

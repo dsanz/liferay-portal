@@ -5,12 +5,12 @@
 
 import {IInternalRenderer} from '@liferay/frontend-data-set-web';
 import {openModal} from 'frontend-js-components-web';
-import {sub} from 'frontend-js-web';
+import {navigate, sub} from 'frontend-js-web';
 
 import {defaultPermissionsBulkAction} from '../default_permission/BulkDefaultPermissionModalContent';
 import DefaultPermissionModalContent from '../default_permission/DefaultPermissionModalContent';
 import {permissionsBulkAction} from '../default_permission/SpacesBulkPermissionModalContent';
-import deleteEntryAction from './actions/deleteEntryAction';
+import confirmAndDeleteEntryAction from './actions/confirmAndDeleteEntryAction';
 import manageConnectedSitesAction, {
 	ManageConnectedSitesData,
 } from './actions/manageConnectedSitesAction';
@@ -49,7 +49,7 @@ export default function AllSpacesFDSPropsTransformer({
 					component: ({itemData, value}) =>
 						SpaceRenderer({
 							href: additionalProps.baseSpaceURL + itemData.id,
-							itemData,
+							logoColor: itemData.settings.logoColor,
 							size: 'sm',
 							value,
 						}),
@@ -104,7 +104,10 @@ export default function AllSpacesFDSPropsTransformer({
 			};
 			loadData: () => {};
 		}) => {
-			if (action.data.id === 'default-permissions') {
+			if (
+				action.data.id === 'default-permissions' ||
+				action.data.id === 'edit-and-propagate-default-permissions'
+			) {
 				openModal({
 					containerProps: {
 						className: '',
@@ -117,6 +120,9 @@ export default function AllSpacesFDSPropsTransformer({
 						DefaultPermissionModalContent({
 							...(additionalProps.defaultPermissionAdditionalProps ||
 								{}),
+							allowPropagate:
+								action.data.id ===
+								'edit-and-propagate-default-permissions',
 							apiURL:
 
 								// @ts-ignore
@@ -134,12 +140,14 @@ export default function AllSpacesFDSPropsTransformer({
 			else if (action.data.id === 'delete') {
 				event?.preventDefault();
 
-				deleteEntryAction({
+				confirmAndDeleteEntryAction({
 					bodyHTML: Liferay.Language.get(
 						'delete-space-confirmation-body'
 					),
 					deleteAction: itemData.actions.delete,
-					loadData,
+					loadData: () => {
+						navigate(window.location.href);
+					},
 					successMessage: sub(
 						Liferay.Language.get('x-was-successfully-deleted'),
 						itemData.name

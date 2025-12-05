@@ -7,7 +7,6 @@ import {expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../../../fixtures/dataApiHelpersTest';
 import {featureFlagsTest} from '../../../../fixtures/featureFlagsTest';
-import {isolatedSiteTest} from '../../../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../../../fixtures/loginTest';
 import {checkAccessibility} from '../../../../utils/checkAccessibility';
 import {clickAndExpectToBeVisible} from '../../../../utils/clickAndExpectToBeVisible';
@@ -23,22 +22,33 @@ const test = mergeTests(
 	dataApiHelpersTest,
 	featureFlagsTest({
 		'LPD-17564': {enabled: true},
-		'LPS-179669': {enabled: true},
 	}),
-	loginTest(),
-	isolatedSiteTest
+	loginTest()
 );
 
 let vocabularyName: string;
 let vocabularyId: number;
 
-test.beforeEach('Create Vocabulary via API', async ({apiHelpers, site}) => {
+test.beforeEach('Create Vocabulary via API', async ({apiHelpers}) => {
 	vocabularyName = getRandomString();
+
+	const siteId = await apiHelpers.headlessAdminUser
+		.getSiteByFriendlyUrlPath('cms')
+		.then((response) => response.id);
 
 	vocabularyId = await apiHelpers.headlessAdminTaxonomy
 		.postSiteTaxonomyVocabulary({
+			assetLibraries: [{id: -1}],
+			assetTypes: [
+				{
+					required: true,
+					subtype: 'AllAssetSubtypes',
+					type: 'AllAssetTypes',
+				},
+			],
 			name: vocabularyName,
-			siteId: site.id,
+			siteId,
+			visibilityType: 'PUBLIC',
 		})
 		.then((response) => response.id);
 });
@@ -97,17 +107,37 @@ test.describe('Category tests that focus on creation', () => {
 	);
 
 	test(
-		'Validate the create Category form inputs when saving',
-		{tag: '@LPD-32753'},
+		'Validate category inputs',
+		{tag: ['@LPD-32753', '@LPD-69687']},
 		async ({editCategoryPage, page}) => {
 			await editCategoryPage.gotoCreateCategory(vocabularyId);
 
-			// Shouldn't be able to save if Name field is empty
+			await expect(editCategoryPage.saveButton).toBeDisabled();
+
+			await expect(
+				editCategoryPage.saveAndAddAnotherButton
+			).toBeDisabled();
+
+			await editCategoryPage.fillName(getRandomString());
+
+			await expect(editCategoryPage.saveButton).not.toBeDisabled();
+
+			await expect(
+				editCategoryPage.saveAndAddAnotherButton
+			).not.toBeDisabled();
+
+			await editCategoryPage.fillName('');
 
 			await clickAndExpectToBeVisible({
 				target: page.getByText('The Name field is required'),
-				trigger: editCategoryPage.saveButton,
+				trigger: page.getByTestId('description-input'),
 			});
+
+			await expect(editCategoryPage.saveButton).toBeDisabled();
+
+			await expect(
+				editCategoryPage.saveAndAddAnotherButton
+			).toBeDisabled();
 		}
 	);
 

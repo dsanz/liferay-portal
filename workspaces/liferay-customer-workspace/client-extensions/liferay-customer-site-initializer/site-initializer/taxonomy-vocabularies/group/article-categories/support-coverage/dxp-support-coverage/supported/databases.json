@@ -1,0 +1,11 @@
+{
+	"externalReferenceCode": "AC_SC_DSC_S_DATABASES",
+	"name": "Databases",
+	"name_i18n": {
+		"en_US": "Databases",
+		"es-ES": "Bases de datos",
+		"ja-JP": "データベース",
+		"pt-BR": "Banco de dados"
+	},
+	"viewableBy": "Anyone"
+}

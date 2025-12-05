@@ -48,7 +48,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.Serializable;
 
-import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -65,9 +65,8 @@ import org.osgi.framework.FrameworkUtil;
  */
 @FeatureFlags(
 	featureFlags = {
-		@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-21926"),
-		@FeatureFlag("LPD-31149"), @FeatureFlag("LPD-34594"),
-		@FeatureFlag("LPS-179669")
+		@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-32050"),
+		@FeatureFlag("LPD-34594")
 	}
 )
 @RunWith(Arquillian.class)
@@ -81,10 +80,18 @@ public class OverviewResourceTest extends BaseOverviewResourceTestCase {
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.
 				getObjectDefinitionByExternalReferenceCode(
-					"L_BASIC_WEB_CONTENT", testCompany.getCompanyId());
+					"L_CMS_BASIC_WEB_CONTENT", testCompany.getCompanyId());
+
+		Map<String, Serializable> objectEntryValues =
+			HashMapBuilder.<String, Serializable>put(
+				"title_i18n",
+				HashMapBuilder.put(
+					"en_US", RandomTestUtil.randomString()
+				).build()
+			).build();
 
 		_objectEntry = ObjectEntryTestUtil.addObjectEntry(
-			_depotEntry.getGroupId(), objectDefinition, Collections.emptyMap());
+			_depotEntry.getGroupId(), objectDefinition, objectEntryValues);
 
 		Trend positiveTrend = new Trend();
 
@@ -104,7 +111,7 @@ public class OverviewResourceTest extends BaseOverviewResourceTestCase {
 			overviewResource.getContentOverview(null, null, null, 7, null));
 
 		_objectEntry = ObjectEntryTestUtil.addObjectEntry(
-			_depotEntry.getGroupId(), objectDefinition, Collections.emptyMap());
+			_depotEntry.getGroupId(), objectDefinition, objectEntryValues);
 
 		AssetEntry assetEntry = _assetEntryLocalService.getEntry(
 			objectDefinition.getClassName(), _objectEntry.getObjectEntryId());
@@ -144,7 +151,7 @@ public class OverviewResourceTest extends BaseOverviewResourceTestCase {
 			overviewResource.getContentOverview(null, null, null, 7, null));
 
 		_objectEntry = ObjectEntryTestUtil.addObjectEntry(
-			_depotEntry.getGroupId(), objectDefinition, Collections.emptyMap(),
+			_depotEntry.getGroupId(), objectDefinition, objectEntryValues,
 			RandomTestUtil.randomString());
 
 		Assert.assertEquals(
@@ -182,12 +189,17 @@ public class OverviewResourceTest extends BaseOverviewResourceTestCase {
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.
 				getObjectDefinitionByExternalReferenceCode(
-					"L_BASIC_DOCUMENT", testCompany.getCompanyId());
+					"L_CMS_BASIC_DOCUMENT", testCompany.getCompanyId());
 
 		_objectEntry = ObjectEntryTestUtil.addObjectEntry(
 			_depotEntry.getGroupId(), objectDefinition,
 			HashMapBuilder.<String, Serializable>put(
 				"file", String.valueOf(_dlFileEntry.getFileEntryId())
+			).put(
+				"title_i18n",
+				HashMapBuilder.put(
+					"en_US", RandomTestUtil.randomString()
+				).build()
 			).build());
 
 		Trend positiveTrend = new Trend();

@@ -13,6 +13,7 @@
 	},
 	"items": [
 		{
+			"enableFormContainer": false,
 			"externalReferenceCode": "L_DATA_SET",
 			"label": {
 				"en_US": "Data Set"
@@ -126,6 +127,22 @@
 					"state": false,
 					"system": true,
 					"type": "Clob"
+				},
+				{
+					"DBType": "Boolean",
+					"businessType": "Boolean",
+					"defaultValue": false,
+					"externalReferenceCode": "HIDE_MANAGEMENT_BAR_IN_EMPTY_STATE",
+					"indexed": true,
+					"indexedAsKeyword": false,
+					"label": {
+						"en_US": "Hide Management Bar in Empty State"
+					},
+					"name": "hideManagementBarInEmptyState",
+					"required": false,
+					"state": false,
+					"system": true,
+					"type": "Boolean"
 				},
 				{
 					"DBType": "Clob",
@@ -422,6 +439,7 @@
 			"titleObjectFieldName": "label"
 		},
 		{
+			"enableFormContainer": false,
 			"enableLocalization": true,
 			"externalReferenceCode": "L_DATA_SET_ACTION",
 			"label": {
@@ -685,6 +703,7 @@
 			"system": true
 		},
 		{
+			"enableFormContainer": false,
 			"externalReferenceCode": "L_DATA_SET_CARDS_SECTION",
 			"label": {
 				"en_US": "Data Set Cards Section"
@@ -768,6 +787,7 @@
 			"system": true
 		},
 		{
+			"enableFormContainer": false,
 			"enableLocalization": true,
 			"externalReferenceCode": "L_DATA_SET_CLIENT_EXTENSION_FILTER",
 			"label": {
@@ -855,6 +875,7 @@
 			"system": true
 		},
 		{
+			"enableFormContainer": false,
 			"enableLocalization": true,
 			"externalReferenceCode": "L_DATA_SET_DATE_FILTER",
 			"label": {
@@ -974,6 +995,7 @@
 			"system": true
 		},
 		{
+			"enableFormContainer": false,
 			"externalReferenceCode": "L_DATA_SET_LIST_SECTION",
 			"label": {
 				"en_US": "Data Set List Section"
@@ -1057,6 +1079,7 @@
 			"system": true
 		},
 		{
+			"enableFormContainer": false,
 			"enableLocalization": true,
 			"externalReferenceCode": "L_DATA_SET_SELECTION_FILTER",
 			"label": {
@@ -1288,6 +1311,7 @@
 			"system": true
 		},
 		{
+			"enableFormContainer": false,
 			"enableLocalization": true,
 			"externalReferenceCode": "L_DATA_SET_SORT",
 			"label": {
@@ -1391,6 +1415,7 @@
 			"system": true
 		},
 		{
+			"enableFormContainer": false,
 			"enableLocalization": true,
 			"externalReferenceCode": "L_DATA_SET_TABLE_SECTION",
 			"label": {

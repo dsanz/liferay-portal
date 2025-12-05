@@ -7,16 +7,19 @@ import {expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
 import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
+import {isolatedLayoutTest} from '../../../fixtures/isolatedLayoutTest';
 import {isolatedSiteTest} from '../../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {pageEditorPagesTest} from '../../../fixtures/pageEditorPagesTest';
 import {searchExperiencesPagesTest} from '../../../fixtures/searchExperiencesPageTest';
+import {searchPageTest} from '../../../fixtures/searchPageTest';
 import {DEFAULT_SXP_BLUEPRINT_CONFIGURATION} from '../../../helpers/SearchExperiencesApiHelper';
 import {getRandomInt} from '../../../utils/getRandomInt';
 import getRandomString from '../../../utils/getRandomString';
 import getDataStructureDefinition from '../../journal-web/main/utils/getDataStructureDefinition';
 
 export const test = mergeTests(
+	isolatedLayoutTest({type: 'portlet'}),
 	dataApiHelpersTest,
 	featureFlagsTest({
 		'LPS-129412': {enabled: true}, // Collection Providers for Blueprint
@@ -25,6 +28,7 @@ export const test = mergeTests(
 	isolatedSiteTest,
 	pageEditorPagesTest,
 	loginTest(),
+	searchPageTest,
 	searchExperiencesPagesTest
 );
 

@@ -18,6 +18,8 @@ public interface DownstreamBuildReport extends BuildReport {
 
 	public int getFailCount();
 
+	public String getJobVariant();
+
 	public int getPassCount();
 
 	public int getSkipCount();
@@ -27,5 +29,7 @@ public interface DownstreamBuildReport extends BuildReport {
 	public List<TestReport> getTestReports();
 
 	public TopLevelBuildReport getTopLevelBuildReport();
+
+	public boolean isBuildCached();
 
 }

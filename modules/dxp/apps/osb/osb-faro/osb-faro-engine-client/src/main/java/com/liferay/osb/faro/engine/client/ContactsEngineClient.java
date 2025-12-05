@@ -15,6 +15,7 @@ import com.liferay.osb.faro.engine.client.model.Asset;
 import com.liferay.osb.faro.engine.client.model.Author;
 import com.liferay.osb.faro.engine.client.model.BlockedKeyword;
 import com.liferay.osb.faro.engine.client.model.Channel;
+import com.liferay.osb.faro.engine.client.model.ChannelDataSource;
 import com.liferay.osb.faro.engine.client.model.Credentials;
 import com.liferay.osb.faro.engine.client.model.DXPGroup;
 import com.liferay.osb.faro.engine.client.model.DXPOrganization;
@@ -131,7 +132,8 @@ public interface ContactsEngineClient {
 	public void deleteFields(FaroProject faroProject, String id)
 		throws FaroEngineClientException;
 
-	public void deleteIndividualSegment(FaroProject faroProject, String id)
+	public void deleteIndividualSegments(
+			FaroProject faroProject, List<String> ids)
 		throws Exception;
 
 	public void deleteMembership(
@@ -215,6 +217,10 @@ public interface ContactsEngineClient {
 
 	public Channel getChannel(FaroProject faroProject, String id)
 		throws FaroEngineClientException;
+
+	public Results<ChannelDataSource> getChannelDataSources(
+		FaroProject faroProject, Long dataSourceId, Boolean enabled,
+		String name, int cur, int delta, List<OrderByField> orderByFields);
 
 	public Results<Channel> getChannels(
 		FaroProject faroProject, int cur, int delta, List<String> ids,
@@ -397,9 +403,9 @@ public interface ContactsEngineClient {
 
 	public Results<IndividualSegment> getIndividualSegments(
 		FaroProject faroProject, String channelId, String dataSourceId,
-		String query, List<String> fields, String name, String segmentType,
-		String state, String status, int cur, int delta,
-		List<OrderByField> orderByFields);
+		String query, List<String> fields, String name,
+		List<String> segmentTypes, String state, String status, int cur,
+		int delta, List<OrderByField> orderByFields);
 
 	public Results<IndividualTransformation> getIndividualTransformations(
 		FaroProject faroProject, String individualSegmentId, String query,
@@ -432,6 +438,12 @@ public interface ContactsEngineClient {
 			FaroProject faroProject, String path,
 			Map<String, List<String>> queryParameters)
 		throws Exception;
+
+	public long getSalesforceAccountsCount(
+		String dataSourceId, FaroProject faroProject);
+
+	public long getSalesforceUsersCount(
+		String dataSourceId, FaroProject faroProject);
 
 	public Results<String> getSessionValues(
 		FaroProject faroProject, String channelId, String fieldName,

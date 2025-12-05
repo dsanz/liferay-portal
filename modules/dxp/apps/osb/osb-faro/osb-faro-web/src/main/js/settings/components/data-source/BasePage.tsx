@@ -1,4 +1,4 @@
-import BasePage from 'settings/components/BasePage';
+import BasePage from 'settings/components/base-page/BasePage';
 import DataSourceStatus from './DataSourceStatus';
 import getCN from 'classnames';
 import React from 'react';
@@ -130,7 +130,6 @@ const BaseDataSourcePage: React.FC<IBaseDataSourcePageProps> = ({
 			documentTitle={`${
 				documentTitle || pageTitle
 			} - ${Liferay.Language.get('data-sources')}`}
-			groupId={groupId}
 			pageActions={
 				ENABLE_DELETE_DATA_SOURCE_BUTTON &&
 				id &&
