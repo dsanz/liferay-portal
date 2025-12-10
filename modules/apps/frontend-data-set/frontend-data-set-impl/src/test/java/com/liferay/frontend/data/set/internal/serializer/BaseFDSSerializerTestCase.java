@@ -8,9 +8,11 @@ package com.liferay.frontend.data.set.internal.serializer;
 import com.liferay.frontend.data.set.SystemFDSEntry;
 import com.liferay.frontend.data.set.action.FDSCreationMenu;
 import com.liferay.frontend.data.set.action.FDSItemsActions;
+import com.liferay.frontend.data.set.filter.FDSFiltersGroups;
 import com.liferay.frontend.data.set.internal.SystemFDSEntryRegistryImpl;
 import com.liferay.frontend.data.set.internal.action.FDSCreationMenuRegistryImpl;
 import com.liferay.frontend.data.set.internal.action.FDSItemsActionsRegistryImpl;
+import com.liferay.frontend.data.set.internal.filter.FDSFiltersGroupsRegistryImpl;
 import com.liferay.frontend.data.set.internal.sort.FDSSortsRegistryImpl;
 import com.liferay.frontend.data.set.internal.view.FDSViewContextContributorRegistryImpl;
 import com.liferay.frontend.data.set.internal.view.FDSViewRegistryImpl;
@@ -57,6 +59,18 @@ public abstract class BaseFDSSerializerTestCase {
 	public void setUp() {
 		bundleContext = SystemBundleUtil.getBundleContext();
 
+		systemFDSSerializer.fdsFiltersGroupsRegistry =
+			new FDSFiltersGroupsRegistryImpl(
+				(ServiceTrackerMap
+					<String,
+					 ServiceTrackerCustomizerFactory.ServiceWrapper
+						 <FDSFiltersGroups>>)_registerServiceTrackerMap(
+							 ServiceTrackerMapFactory.openSingleValueMap(
+								 bundleContext, FDSFiltersGroups.class,
+								 "frontend.data.set.name",
+								 ServiceTrackerCustomizerFactory.
+									 <FDSFiltersGroups>serviceWrapper(
+										 bundleContext))));
 		systemFDSSerializer.fdsCreationMenuRegistry =
 			new FDSCreationMenuRegistryImpl(
 				(ServiceTrackerMap
@@ -214,13 +228,13 @@ public abstract class BaseFDSSerializerTestCase {
 
 	protected static final String[] ICONS = RandomTestUtil.randomStrings(2);
 
-	protected static final String[] IDS = RandomTestUtil.randomStrings(4);
+	protected static final String[] IDS = RandomTestUtil.randomStrings(6);
 
 	protected static final String[] IMAGES = RandomTestUtil.randomStrings(2);
 
 	protected static final String ITEM_KEY = RandomTestUtil.randomString();
 
-	protected static final String[] LABELS = RandomTestUtil.randomStrings(4);
+	protected static final String[] LABELS = RandomTestUtil.randomStrings(6);
 
 	protected static final String LINK = RandomTestUtil.randomString();
 
