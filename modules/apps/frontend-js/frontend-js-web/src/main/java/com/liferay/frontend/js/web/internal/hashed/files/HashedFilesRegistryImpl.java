@@ -7,6 +7,7 @@ package com.liferay.frontend.js.web.internal.hashed.files;
 
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.frontend.hashed.files.HashedFilesRegistry;
 import com.liferay.portal.kernel.frontend.hashed.files.HashedFilesUtil;
@@ -14,6 +15,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import jakarta.servlet.ServletContext;
 
@@ -57,6 +59,46 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 		_lazyActivate();
 
 		return _map.get(unhashedFileURI);
+	}
+
+	@Override
+	public String getImportMapAsString(String cdnHost) {
+		_lazyActivate();
+
+		String cdnHostKey = cdnHost;
+
+		if (Validator.isNull(cdnHost)) {
+			cdnHostKey = "null";
+		}
+
+		String importMap = _cdnHostMap.get(cdnHostKey);
+
+		if (importMap != null) {
+			return importMap;
+		}
+
+		StringBundler importMapSB = new StringBundler(_jsMap.size());
+
+		if (Validator.isNull(cdnHost)) {
+			for (Map.Entry<String, String> entry : _jsMap.entrySet()) {
+				importMapSB.append(entry.getValue());
+			}
+		}
+		else {
+			for (Map.Entry<String, String> entry : _jsMap.entrySet()) {
+				String key = entry.getKey();
+
+				importMapSB.append(
+					StringUtil.insert(
+						entry.getValue(), cdnHost, key.length() + 7));
+			}
+		}
+
+		importMap = importMapSB.toString();
+
+		_cdnHostMap.put(cdnHostKey, importMap);
+
+		return importMap;
 	}
 
 	@Override
@@ -106,6 +148,8 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 
 	@Deactivate
 	protected void deactivate() {
+		_cdnHostMap.clear();
+		_jsMap.clear();
 		_map.clear();
 
 		if (_serviceTracker != null) {
@@ -129,6 +173,8 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 			@Override
 			public Map<String, String> addingService(
 				ServiceReference<ServletContext> serviceReference) {
+
+				_cdnHostMap.clear();
 
 				ServletContext servletContext = _bundleContext.getService(
 					serviceReference);
@@ -163,14 +209,33 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 
 					Map<String, String> map = new HashMap<>();
 
+					Map<String, String> jsMap = new HashMap<>();
+
 					String contextPath = servletContext.getContextPath();
 
 					for (String hashedResourcePath : hashedResourcePaths) {
-						map.put(
+						String unhashedFileURI =
 							contextPath +
-								HashedFilesUtil.removeHash(hashedResourcePath),
-							contextPath + hashedResourcePath);
+								HashedFilesUtil.removeHash(hashedResourcePath);
+
+						String hashedFileURI = contextPath + hashedResourcePath;
+
+						map.put(unhashedFileURI, hashedFileURI);
+
+						if (hashedResourcePath.endsWith(".js")) {
+							StringBundler valueSB = new StringBundler(5);
+
+							valueSB.append(", \"");
+							valueSB.append(unhashedFileURI);
+							valueSB.append("\": \"");
+							valueSB.append(hashedFileURI);
+							valueSB.append(StringPool.QUOTE);
+
+							jsMap.put(unhashedFileURI, valueSB.toString());
+						}
 					}
+
+					_jsMap.putAll(jsMap);
 
 					_map.putAll(map);
 
@@ -201,8 +266,12 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 				ServiceReference<ServletContext> serviceReference,
 				Map<String, String> map) {
 
+				_cdnHostMap.clear();
+
 				for (String key : map.keySet()) {
 					_map.remove(key);
+
+					_jsMap.remove(key);
 				}
 			}
 
@@ -274,6 +343,8 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 		HashedFilesRegistryImpl.class);
 
 	private BundleContext _bundleContext;
+	private final Map<String, String> _cdnHostMap = new ConcurrentHashMap<>();
+	private final Map<String, String> _jsMap = new ConcurrentHashMap<>();
 	private final Map<String, String> _map = new ConcurrentHashMap<>();
 
 	@Reference

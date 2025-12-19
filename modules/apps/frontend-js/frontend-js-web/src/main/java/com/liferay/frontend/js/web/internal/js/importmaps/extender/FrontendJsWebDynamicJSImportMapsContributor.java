@@ -6,7 +6,6 @@
 package com.liferay.frontend.js.web.internal.js.importmaps.extender;
 
 import com.liferay.frontend.js.importmaps.extender.DynamicJSImportMapsContributor;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.frontend.hashed.files.HashedFilesRegistry;
 import com.liferay.portal.kernel.util.Portal;
@@ -40,24 +39,7 @@ public class FrontendJsWebDynamicJSImportMapsContributor
 		writer.write(_portal.getPathContext(httpServletRequest));
 		writer.write("/o/js/language/\"");
 
-		_hashedFilesRegistry.forEach(
-			(unhashedFileURI, hashedFileURI) -> {
-				if (!unhashedFileURI.endsWith(".js")) {
-					return;
-				}
-
-				try {
-					writer.write(", \"");
-					writer.write(unhashedFileURI);
-					writer.write("\": \"");
-					writer.write(cdnHost);
-					writer.write(hashedFileURI);
-					writer.write(StringPool.QUOTE);
-				}
-				catch (Exception exception) {
-					throw new RuntimeException(exception);
-				}
-			});
+		writer.write(_hashedFilesRegistry.getImportMapAsString(cdnHost));
 	}
 
 	@Override

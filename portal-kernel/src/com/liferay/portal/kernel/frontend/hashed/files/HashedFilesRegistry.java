@@ -17,6 +17,15 @@ public interface HashedFilesRegistry {
 	public void forEach(BiConsumer<String, String> biConsumer);
 
 	/**
+	 * Returns the string representation of the import map for the existing
+	 * JS entries in the registry, prepending the cdnHost if it is not null
+	 *
+	 * @return string that can be written to the import map script
+	 * @review
+	 */
+	public String getImportMapAsString(String cdnHost);
+
+	/**
 	 * Get the URI of the hashed file associated to an unhashed file URI.
 	 *
 	 * The URI is absolute to DXP server, i.e., it must contain a prefix when
