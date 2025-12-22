@@ -22,11 +22,9 @@ import jakarta.servlet.ServletContext;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -105,36 +103,17 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 	public URL getResource(String path) {
 		_lazyActivate();
 
-		List<String> pathParts = Arrays.asList(path.split(StringPool.SLASH));
-
-		int subpathIndex = 3;
-
-		String contextPath = _portal.getPathContext();
-
-		String proxyPath = _portal.getPathProxy();
-
-		contextPath = contextPath.substring(proxyPath.length());
-
-		if (!contextPath.isEmpty()) {
-			subpathIndex = 4;
-		}
+		int endIndex = path.indexOf(StringPool.SLASH, _startIndex + 1);
 
 		ServletContext servletContext = _serviceTrackerMap.getService(
-			StringUtil.merge(
-				pathParts.subList(0, subpathIndex), StringPool.SLASH));
+			path.substring(0, endIndex));
 
 		if (servletContext == null) {
 			return null;
 		}
 
-		String subpath = StringUtil.merge(
-			pathParts.subList(subpathIndex, pathParts.size()),
-			StringPool.SLASH);
-
-		subpath = StringPool.SLASH + subpath;
-
 		try {
-			return servletContext.getResource(subpath);
+			return servletContext.getResource(path.substring(endIndex));
 		}
 		catch (MalformedURLException malformedURLException) {
 			throw new RuntimeException(malformedURLException);
@@ -303,6 +282,18 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 	}
 
 	private void _lazyActivate() {
+		if (_startIndex == -1) {
+			String proxyPath = _portal.getPathProxy();
+
+			String contextPath = _portal.getPathContext();
+
+			if (!proxyPath.isEmpty()) {
+				contextPath = contextPath.substring(proxyPath.length() - 1);
+			}
+
+			_startIndex = contextPath.length() + 2;
+		}
+
 		if (_serviceTracker == null) {
 			synchronized (this) {
 				if (_serviceTracker == null) {
@@ -341,6 +332,8 @@ public class HashedFilesRegistryImpl implements HashedFilesRegistry {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		HashedFilesRegistryImpl.class);
+
+	private static int _startIndex = -1;
 
 	private BundleContext _bundleContext;
 	private final Map<String, String> _cdnHostMap = new ConcurrentHashMap<>();
