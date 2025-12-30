@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {ObjectDefinitionAPI} from '@liferay/object-admin-rest-client-js';
 import {expect, mergeTests} from '@playwright/test';
 import {createReadStream} from 'fs';
 import path from 'path';
@@ -26,15 +25,13 @@ import createUserWithPermissions from '../../../utils/createUserWithPermissions'
 import {expandSection} from '../../../utils/expandSection';
 import getRandomString from '../../../utils/getRandomString';
 import {hoverAndExpectToBeVisible} from '../../../utils/hoverAndExpectToBeVisible';
-import {performUserSwitch} from '../../../utils/performLogin';
+import {performLogout, performUserSwitch} from '../../../utils/performLogin';
 import {closeProductMenu, openProductMenu} from '../../../utils/productMenu';
 import getBasicWebContentStructureId from '../../../utils/structured-content/getBasicWebContentStructureId';
 import {waitForAlert} from '../../../utils/waitForAlert';
 import {journalPagesTest} from '../../journal-web/main/fixtures/journalPagesTest';
 import {ANIMALS_COLLECTION_NAME} from '../../setup/page-management-site/main/constants/animals';
-import {getObjectERC} from '../../setup/page-management-site/main/utils/getObjectERC';
 import getCollectionDefinition from './utils/getCollectionDefinition';
-import getFormContainerDefinition from './utils/getFormContainerDefinition';
 import getFragmentDefinition from './utils/getFragmentDefinition';
 import getGridDefinition from './utils/getGridDefinition';
 import getPageDefinition from './utils/getPageDefinition';
@@ -683,9 +680,24 @@ test.describe('Fragments Panel', () => {
 			],
 		});
 
-		apiHelpers.data.push({id: user1.id, type: 'userAccount'});
+		const user2 = await createUserWithPermissions({
+			apiHelpers,
+			rolePermissions: [
+				{
+					actionIds: ['UPDATE'],
+					primaryKey: company.companyId,
+					resourceName: 'com.liferay.portal.kernel.model.Layout',
+					scope: 1,
+				},
+			],
+		});
 
-		await pageEditorPage.goto(layout, site.friendlyUrlPath, user1.id);
+		apiHelpers.data.push({id: user1.id, type: 'userAccount'});
+		apiHelpers.data.push({id: user2.id, type: 'userAccount'});
+
+		await performUserSwitch(page, user1.alternateName);
+
+		await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 		// Open the "Components" and get the first set of fragments
 
@@ -747,13 +759,16 @@ test.describe('Fragments Panel', () => {
 
 		// Go back to the Fragments tab and check that the position of the first fragment has changed
 
-		await page.getByRole('tab', {exact: true, name: 'Fragments'}).click();
+		await page
+			.getByLabel('Components Panel')
+			.getByRole('tab', {exact: true, name: 'Fragments'})
+			.click();
 
 		await expect(fragmentSets.nth(2)).toContainText(firstFragmentSet);
 
 		// Refresh the page and check that order is maintained
 
-		await pageEditorPage.goto(layout, site.friendlyUrlPath, user1.id);
+		await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 		await expect(fragmentSets.nth(2)).toContainText(firstFragmentSet);
 
@@ -763,12 +778,16 @@ test.describe('Fragments Panel', () => {
 
 		// Create a Widget page and check that the order is maintained on the widget page
 
+		await performUserSwitch(page, 'test');
+
 		const widgetLayout = await apiHelpers.jsonWebServicesLayout.addLayout({
 			groupId: site.id,
 			title: getRandomString(),
 		});
 
-		await widgetPagePage.goto(widgetLayout, site.friendlyUrlPath, user1.id);
+		await performUserSwitch(page, user1.alternateName);
+
+		await widgetPagePage.goto(widgetLayout, site.friendlyUrlPath);
 
 		await widgetPagePage.openAddPanel();
 
@@ -780,25 +799,15 @@ test.describe('Fragments Panel', () => {
 
 		// Check that a new user with update permissions cannot see the changes
 
-		const user2 = await createUserWithPermissions({
-			apiHelpers,
-			rolePermissions: [
-				{
-					actionIds: ['UPDATE'],
-					primaryKey: company.companyId,
-					resourceName: 'com.liferay.portal.kernel.model.Layout',
-					scope: 1,
-				},
-			],
-		});
+		await performUserSwitch(page, user2.alternateName);
 
-		apiHelpers.data.push({id: user2.id, type: 'userAccount'});
-
-		await widgetPagePage.goto(widgetLayout, site.friendlyUrlPath, user2.id);
+		await widgetPagePage.goto(widgetLayout, site.friendlyUrlPath);
 
 		await widgetPagePage.openAddPanel();
 
 		await expect(widgetSets.nth(0)).toContainText(firstWidgetSet);
+
+		await performLogout(page);
 	});
 
 	test(
@@ -1254,13 +1263,7 @@ test.describe('Page Contents Panel', () => {
 				) {
 					await page
 						.locator('.journal-article-button-row')
-						.getByRole('button', {name: 'Publish'})
-						.click();
-
-					await page
-						.getByRole('menuitem', {
-							name: 'Publish',
-						})
+						.getByRole('button', {exact: true, name: 'Publish'})
 						.click({timeout: 500});
 				}
 
@@ -2086,523 +2089,6 @@ test.describe('Page Design Options', () => {
 	);
 });
 
-test.describe('Rules Panel', () => {
-	test(
-		'Add, edit and delete page rule',
-		{
-			tag: ['@LPS-196461', '@LPS-196462', '@LPS-200349'],
-		},
-		async ({apiHelpers, page, pageEditorPage, site}) => {
-
-			// Create content page with a button fragment and go to edit mode
-
-			const buttonId = getRandomString();
-
-			const buttonDefinition = getFragmentDefinition({
-				id: buttonId,
-				key: 'BASIC_COMPONENT-button',
-			});
-
-			const layout = await apiHelpers.headlessDelivery.createSitePage({
-				pageDefinition: getPageDefinition([buttonDefinition]),
-				siteId: site.id,
-				title: getRandomString(),
-			});
-
-			await pageEditorPage.goto(layout, site.friendlyUrlPath);
-
-			// Assert info message
-
-			await pageEditorPage.goToSidebarTab('Page Rules');
-
-			await expect(
-				page.getByText('Fortunately, it is very easy to add new ones.')
-			).toBeVisible();
-
-			// Open new rule modal
-
-			const modal = page.locator('.modal-dialog');
-
-			await clickAndExpectToBeVisible({
-				target: modal.getByRole('heading', {name: 'New Rule'}),
-				trigger: page.getByRole('button', {name: 'New Rule'}),
-			});
-
-			// Create new rule
-
-			const ruleName = getRandomString();
-
-			await modal.getByLabel('Rule Name').fill(ruleName);
-
-			// Check empty rules are not allowed
-
-			await modal
-				.getByRole('button', {exact: true, name: 'Save'})
-				.click();
-
-			await expect(
-				modal.getByText('The rule is incomplete')
-			).toBeVisible();
-
-			// Start adding a condition
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'User'}),
-				trigger: page.getByLabel('Select Item for the Condition'),
-			});
-
-			// Check we can delete the condition
-
-			await page.getByLabel('Delete Condition').click();
-
-			await expect(
-				page.getByLabel('Select Item for the Condition')
-			).not.toHaveText('User');
-
-			// Continue adding the condition
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'User'}),
-				trigger: page.getByLabel('Select Item for the Condition'),
-			});
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'Is the User'}),
-				trigger: page.getByLabel('Select Condition'),
-			});
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'test'}),
-				trigger: page.getByLabel('Select User'),
-			});
-
-			// Action
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'Hide'}),
-				trigger: page.getByLabel('Select Action'),
-			});
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'Button'}),
-				trigger: page.getByLabel('Select Fragment'),
-			});
-
-			await modal
-				.getByRole('button', {exact: true, name: 'Save'})
-				.click();
-
-			await waitForAlert(
-				page,
-				'Success:The rule was created successfully.'
-			);
-
-			// Assert rule is created
-
-			await expect(
-				page.getByText('IfUserIs the UsertestHideButton')
-			).toBeVisible();
-
-			// Edit rule
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('menuitem', {name: 'Edit'}),
-				trigger: page.getByLabel(`View ${ruleName} Options`),
-			});
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'Has the Role Of'}),
-				trigger: page.getByLabel('Select Condition'),
-			});
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {exact: true, name: 'Guest'}),
-				trigger: page.getByLabel('Select Role'),
-			});
-
-			await modal
-				.getByRole('button', {exact: true, name: 'Save'})
-				.click();
-
-			await waitForAlert(
-				page,
-				'Success:The rule was updated successfully.'
-			);
-
-			// Assert rule was updated
-
-			await expect(
-				page.getByText('IfUserHas the Role OfGuestHideButton')
-			).toBeVisible();
-
-			// Delete rule
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('menuitem', {name: 'Delete'}),
-				trigger: page.getByLabel(`View ${ruleName} Options`),
-			});
-
-			// Assert rule was deleted
-
-			await expect(
-				page.getByText('Fortunately, it is very easy to add new ones.')
-			).toBeVisible();
-		}
-	);
-
-	test(
-		'Apply a page rule with Has the Role Of condition',
-		{
-			tag: ['@LPS-200332'],
-		},
-		async ({apiHelpers, page, pageEditorPage, site}) => {
-
-			// Create content page with a heading and a button fragment and go to edit mode
-
-			const buttonDefinition = getFragmentDefinition({
-				id: getRandomString(),
-				key: 'BASIC_COMPONENT-button',
-			});
-
-			const headingDefinition = getFragmentDefinition({
-				id: getRandomString(),
-				key: 'BASIC_COMPONENT-heading',
-			});
-
-			const layout = await apiHelpers.headlessDelivery.createSitePage({
-				pageDefinition: getPageDefinition([
-					buttonDefinition,
-					headingDefinition,
-				]),
-				siteId: site.id,
-				title: getRandomString(),
-			});
-
-			await pageEditorPage.goto(layout, site.friendlyUrlPath);
-
-			// Create a rule to hide button for Guest Users
-
-			await pageEditorPage.goToSidebarTab('Page Rules');
-
-			const modal = page.locator('.modal-dialog');
-
-			await clickAndExpectToBeVisible({
-				target: modal.getByRole('heading', {name: 'New Rule'}),
-				trigger: page.getByRole('button', {name: 'New Rule'}),
-			});
-
-			// Create new rule
-
-			const ruleName = getRandomString();
-
-			await modal.getByLabel('Rule Name').fill(ruleName);
-
-			// Add condition
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'User'}),
-				trigger: page.getByLabel('Select Item for the Condition'),
-			});
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'Has the Role Of'}),
-				trigger: page.getByLabel('Select Condition'),
-			});
-
-			await page.getByLabel('Select Role').click();
-
-			await expect(async () => {
-				await page.keyboard.press('ArrowDown');
-
-				await expect(
-					page.getByRole('option', {
-						exact: true,
-						name: 'User',
-					})
-				).toHaveClass(/focus/, {timeout: 250});
-			}).toPass();
-
-			await page.keyboard.press('Enter');
-
-			await expect(page.getByLabel('Select Role')).toHaveText('User');
-
-			// Action
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'Hide'}),
-				trigger: page.getByLabel('Select Action'),
-			});
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'Button'}),
-				trigger: page.getByLabel('Select Fragment'),
-			});
-
-			await modal
-				.getByRole('button', {exact: true, name: 'Save'})
-				.click();
-
-			await waitForAlert(
-				page,
-				'Success:The rule was created successfully.'
-			);
-
-			// Publish the page
-
-			await pageEditorPage.publishPage();
-
-			// Assert rule works
-
-			await page.goto(
-				`/web${site.friendlyUrlPath}${layout.friendlyUrlPath}`
-			);
-
-			await expect(page.getByText('Heading Example')).toBeVisible();
-
-			await expect(page.getByText('Go Somewhere')).not.toBeVisible();
-		}
-	);
-
-	test(
-		'Apply a page rule with Form input condition',
-		{
-			tag: '@LPD-44720',
-		},
-		async ({apiHelpers, page, pageEditorPage, pageManagementSite}) => {
-
-			// Create a page
-
-			const objectDefinitionAPIClient =
-				await apiHelpers.buildRestClient(ObjectDefinitionAPI);
-
-			const {className: objectDefinitionClassName} = (
-				await objectDefinitionAPIClient.getObjectDefinitionByExternalReferenceCode(
-					getObjectERC('All Fields')
-				)
-			).body;
-
-			const checkboxId = getRandomString();
-
-			const checkboxDefinition = getFragmentDefinition({
-				fragmentConfig: {
-					inputFieldId: 'ObjectField_boolean',
-				},
-				id: checkboxId,
-				key: 'INPUTS-checkbox',
-			});
-
-			const submitFragmentDefinition = getFragmentDefinition({
-				id: getRandomString(),
-				key: 'INPUTS-submit-button',
-			});
-
-			const headingFragmentDefinition = getFragmentDefinition({
-				id: getRandomString(),
-				key: 'BASIC_COMPONENT-heading',
-			});
-
-			const formDefinition = getFormContainerDefinition({
-				id: getRandomString(),
-				objectDefinitionClassName,
-				pageElements: [checkboxDefinition, submitFragmentDefinition],
-			});
-
-			const layout = await apiHelpers.headlessDelivery.createSitePage({
-				pageDefinition: getPageDefinition([
-					formDefinition,
-					headingFragmentDefinition,
-				]),
-				siteId: pageManagementSite.id,
-				title: getRandomString(),
-			});
-
-			await pageEditorPage.goto(
-				layout,
-				pageManagementSite.friendlyUrlPath
-			);
-
-			// Create a rule
-
-			await pageEditorPage.goToSidebarTab('Page Rules');
-
-			const modal = page.locator('.modal-dialog');
-
-			await clickAndExpectToBeVisible({
-				target: modal.getByRole('heading', {name: 'New Rule'}),
-				trigger: page.getByRole('button', {name: 'New Rule'}),
-			});
-
-			// Create new rule
-
-			const ruleName = getRandomString();
-
-			await modal.getByLabel('Rule Name').fill(ruleName);
-
-			// Add condition when the checkbox is checked
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'Form Fragment'}),
-				trigger: page.getByLabel('Select Item for the Condition'),
-			});
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'Checkbox'}),
-				trigger: page.getByLabel('Select Fragment'),
-			});
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'Is Equal To'}),
-				trigger: page.getByLabel('Select Type'),
-			});
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'True'}),
-				trigger: page.getByLabel('Select Value'),
-			});
-
-			// Add action to disable the submit button
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'Disable'}),
-				trigger: page.getByLabel('Select Action'),
-			});
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'Form Button'}),
-				trigger: page
-					.getByLabel('Actions', {exact: true})
-					.getByLabel('Select Fragment'),
-			});
-
-			// Add action to hide the heading
-
-			await page.getByRole('button', {name: 'Add Action'}).click();
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'Hide'}),
-				trigger: page.getByLabel('Select Action').last(),
-			});
-
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {name: 'Heading'}),
-				trigger: page
-					.getByLabel('Actions', {exact: true})
-					.getByLabel('Select Fragment')
-					.last(),
-			});
-
-			await modal
-				.getByRole('button', {exact: true, name: 'Save'})
-				.click();
-
-			await waitForAlert(
-				page,
-				'Success:The rule was created successfully.'
-			);
-
-			// Publish the page
-
-			await pageEditorPage.publishPage();
-
-			// Assert rule works
-
-			await page.goto(
-				`/web${pageManagementSite.friendlyUrlPath}${layout.friendlyUrlPath}`
-			);
-
-			// Wait for rules to be loaded
-
-			await page.waitForTimeout(1000);
-
-			// Check the checkbox and assert the submit button is disabled and the heading is hidden
-
-			await page.getByLabel('Boolean (Read Only)', {exact: true}).check();
-
-			await expect(
-				page.getByRole('button', {name: 'Submit'})
-			).toBeDisabled();
-
-			await expect(
-				page.getByText('Heading Example', {exact: true})
-			).not.toBeVisible();
-
-			// Uncheck the checkbox and assert the submit button is enabled and the heading is visible
-
-			await page
-				.getByLabel('Boolean (Read Only)', {exact: true})
-				.uncheck();
-
-			await expect(
-				page.getByRole('button', {name: 'Submit'})
-			).toBeEnabled();
-
-			await expect(
-				page.getByText('Heading Example', {exact: true})
-			).toBeVisible();
-		}
-	);
-
-	test('Checks the accessibility of the rule modal by filling out a condition and an action', async ({
-		apiHelpers,
-		page,
-		pageEditorPage,
-		site,
-	}) => {
-
-		// Create content page with a Heading fragment and go to edit mode
-
-		const layout = await apiHelpers.headlessDelivery.createSitePage({
-			pageDefinition: getPageDefinition([
-				getFragmentDefinition({
-					id: getRandomString(),
-					key: 'BASIC_COMPONENT-heading',
-				}),
-			]),
-			siteId: site.id,
-			title: getRandomString(),
-		});
-
-		await pageEditorPage.goto(layout, site.friendlyUrlPath);
-
-		// Add rule and check accessibility of modal
-
-		await pageEditorPage.goToSidebarTab('Page Rules');
-
-		await page.getByRole('button', {name: 'New Rule'}).click();
-
-		await pageEditorPage.addRuleCondition();
-
-		await pageEditorPage.addRuleAction();
-
-		await checkAccessibility({
-			page,
-			selectors: ['.modal-body'],
-		});
-	});
-});
-
 test.describe('Comments Panel', () => {
 	test('Prevent fragment deletion by pressing the Backspace key while editing a comment', async ({
 		apiHelpers,
@@ -2815,18 +2301,6 @@ test(
 	},
 	async ({apiHelpers, page, pageEditorPage, site}) => {
 
-		// Create a new user with admin role
-
-		const user = await apiHelpers.headlessAdminUser.postUserAccount();
-
-		const role =
-			await apiHelpers.headlessAdminUser.getRoleByName('Administrator');
-
-		await apiHelpers.headlessAdminUser.assignUserToRole(
-			role.externalReferenceCode,
-			user.id
-		);
-
 		// Create a page
 
 		const layout = await apiHelpers.headlessDelivery.createSitePage({
@@ -2837,7 +2311,7 @@ test(
 
 		// Go to edit layout and look for the badge in the marketplace button
 
-		await pageEditorPage.goto(layout, site.friendlyUrlPath, user.id);
+		await pageEditorPage.goto(layout, site.friendlyUrlPath);
 
 		const panel = page.getByLabel('Components Panel');
 

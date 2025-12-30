@@ -79,18 +79,23 @@ public class DisplayPageTemplateFolderResourceImpl
 		return new ExportImportDescriptor() {
 
 			@Override
-			public String getItemClassName() {
-				return LayoutPageTemplateCollection.class.getName();
+			public String getLabelLanguageKey() {
+				return "display-page-template-folders";
 			}
 
 			@Override
-			public String getLabel() {
-				return "display-page-template-folders";
+			public String getModelClassName() {
+				return LayoutPageTemplateCollection.class.getName();
 			}
 
 			@Override
 			public String getPortletId() {
 				return LayoutAdminPortletKeys.GROUP_PAGES;
+			}
+
+			@Override
+			public String getResourceClassName() {
+				return DisplayPageTemplateFolderResourceImpl.class.getName();
 			}
 
 			@Override
@@ -101,6 +106,11 @@ public class DisplayPageTemplateFolderResourceImpl
 			@Override
 			public boolean isActive(PortletDataContext portletDataContext) {
 				return FeatureFlagManagerUtil.isEnabled("LPD-35443");
+			}
+
+			@Override
+			public boolean isStagingSupported() {
+				return true;
 			}
 
 		};

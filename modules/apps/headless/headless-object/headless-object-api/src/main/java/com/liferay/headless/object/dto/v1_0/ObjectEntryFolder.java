@@ -833,6 +833,49 @@ public class ObjectEntryFolder implements Serializable {
 	@JsonIgnore
 	private Supplier<Date> _removedDateSupplier;
 
+	@io.swagger.v3.oas.annotations.media.Schema
+	@Valid
+	public com.liferay.portal.vulcan.scope.Scope getScope() {
+		if (_scopeSupplier != null) {
+			scope = _scopeSupplier.get();
+
+			_scopeSupplier = null;
+		}
+
+		return scope;
+	}
+
+	public void setScope(com.liferay.portal.vulcan.scope.Scope scope) {
+		this.scope = scope;
+
+		_scopeSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setScope(
+		UnsafeSupplier<com.liferay.portal.vulcan.scope.Scope, Exception>
+			scopeUnsafeSupplier) {
+
+		_scopeSupplier = () -> {
+			try {
+				return scopeUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected com.liferay.portal.vulcan.scope.Scope scope;
+
+	@JsonIgnore
+	private Supplier<com.liferay.portal.vulcan.scope.Scope> _scopeSupplier;
+
 	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "The scope id of the object entry folder."
 	)
@@ -1338,6 +1381,18 @@ public class ObjectEntryFolder implements Serializable {
 			sb.append("\"");
 		}
 
+		com.liferay.portal.vulcan.scope.Scope scope = getScope();
+
+		if (scope != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"scope\": ");
+
+			sb.append(scope);
+		}
+
 		Long scopeId = getScopeId();
 
 		if (scopeId != null) {
@@ -1404,9 +1459,7 @@ public class ObjectEntryFolder implements Serializable {
 			sb.append("\"viewableBy\": ");
 
 			sb.append("\"");
-
 			sb.append(viewableBy);
-
 			sb.append("\"");
 		}
 

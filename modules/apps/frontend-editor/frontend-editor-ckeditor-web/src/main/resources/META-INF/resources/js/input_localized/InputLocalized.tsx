@@ -3,8 +3,8 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {EventInfo} from '@ckeditor/ckeditor5-utils/dist/index.js';
 import {useLiferayState} from '@liferay/frontend-js-state-web/react';
-import {EventInfo} from 'ckeditor5';
 import {
 	TranslationAdminSelector,
 	Translations,
@@ -22,6 +22,8 @@ interface IInputLocalizedProps extends Translations {
 	componentId: string;
 	contents: string;
 	editorConfig?: LiferayEditorConfig;
+	fieldPrefix?: string;
+	fieldPrefixSeparator?: string;
 	languagesDropdownVisible: boolean;
 	name: string;
 	onBlur?: (event: EventInfo, editor: TEditor) => void;
@@ -42,6 +44,8 @@ function InputLocalized({
 	componentId,
 	defaultLanguageId,
 	editorConfig,
+	fieldPrefix,
+	fieldPrefixSeparator,
 	languagesDropdownVisible,
 	name,
 	onBlur,
@@ -353,6 +357,7 @@ function InputLocalized({
 						},
 					}}
 					data={translations?.[selectedLanguageId] || ''}
+					formInputEnabled={false}
 					key={selectedLanguageId}
 					onBlur={handleBlur}
 					onChange={handleChange}
@@ -400,7 +405,9 @@ function InputLocalized({
 					data-languageid={languageId}
 					id={`${portletNamespace}${name}_${languageId}`}
 					key={languageId}
-					name={`${portletNamespace}${name}_${languageId}`}
+					name={`${portletNamespace}${fieldPrefix ?? ''}${
+						fieldPrefixSeparator ?? ''
+					}${name}_${languageId}${fieldPrefixSeparator ?? ''}`}
 					type="hidden"
 					value={
 						translations?.[languageId as Liferay.Language.Locale]

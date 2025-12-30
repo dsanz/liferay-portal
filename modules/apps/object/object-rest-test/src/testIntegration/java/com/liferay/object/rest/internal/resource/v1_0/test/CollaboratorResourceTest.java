@@ -305,7 +305,7 @@ public class CollaboratorResourceTest {
 
 	private static ObjectDefinition _getObjectDefinition() throws Exception {
 		return ObjectDefinitionTestUtil.publishObjectDefinition(
-			true, ObjectDefinitionTestUtil.getRandomName(),
+			ObjectDefinitionTestUtil.getRandomName(),
 			Collections.singletonList(
 				new TextObjectFieldBuilder(
 				).labelMap(

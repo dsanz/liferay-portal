@@ -13,6 +13,8 @@ import com.liferay.layout.util.constants.LayoutClassedModelUsageConstants;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.dao.orm.common.SQLTransformer;
+import com.liferay.portal.kernel.dao.db.DB;
+import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
@@ -348,9 +350,11 @@ public class JournalArticleLayoutClassedModelUsageUpgradeProcess
 			String usageType, String... indexColumnNames)
 		throws Exception {
 
+		DB db = DBManagerUtil.getDB();
+
 		try (LoggingTimer loggingTimer = new LoggingTimer();
-			SafeCloseable safeCloseable = addTemporaryIndex(
-				"AssetEntry", false, indexColumnNames)) {
+			SafeCloseable safeCloseable = db.addTemporaryIndex(
+				connection, "AssetEntry", false, indexColumnNames)) {
 
 			processConcurrently(
 				SQLTransformer.transform(sql),
@@ -403,11 +407,13 @@ public class JournalArticleLayoutClassedModelUsageUpgradeProcess
 		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"select Layout.plid, LayoutPageTemplateEntry.type_ from ",
-					"Layout left join LayoutPageTemplateEntry on ",
-					"(Layout.classPK = 0 and LayoutPageTemplateEntry.plid = ",
-					plid,
-					") or (LayoutPageTemplateEntry.plid = Layout.classPK) ",
-					"where Layout.plid = ", plid))) {
+					"Layout left join LayoutPageTemplateEntry on (Layout.",
+					"classPK = 0 and LayoutPageTemplateEntry.plid = ?) or (",
+					"LayoutPageTemplateEntry.plid = Layout.classPK) where ",
+					"Layout.plid = ?"))) {
+
+			preparedStatement.setLong(1, plid);
+			preparedStatement.setLong(2, plid);
 
 			try (ResultSet resultSet = preparedStatement.executeQuery()) {
 				while (resultSet.next()) {

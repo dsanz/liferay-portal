@@ -10,18 +10,18 @@ import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.dao.jdbc.util.DataSourceWrapper;
 import com.liferay.portal.db.partition.db.DBPartitionDB;
 import com.liferay.portal.db.partition.db.DBPartitionMySQLDB;
 import com.liferay.portal.db.partition.db.DBPartitionPostgreSQLDB;
+import com.liferay.portal.kernel.concurrent.SystemExecutorServiceUtil;
 import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.db.DBType;
 import com.liferay.portal.kernel.dao.jdbc.CurrentConnectionUtil;
+import com.liferay.portal.kernel.dao.jdbc.DataSourceWrapper;
 import com.liferay.portal.kernel.dao.jdbc.util.ConnectionWrapper;
 import com.liferay.portal.kernel.dao.jdbc.util.StatementWrapper;
-import com.liferay.portal.kernel.db.partition.DBPartition;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.instance.PortalInstancePool;
 import com.liferay.portal.kernel.log.Log;
@@ -58,7 +58,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import javax.sql.DataSource;
@@ -71,7 +70,7 @@ public class DBPartitionUtil {
 	public static boolean addDBPartition(long companyId)
 		throws PortalException {
 
-		if (!DBPartition.isPartitionEnabled() ||
+		if (!PropsValues.DATABASE_PARTITION_ENABLED ||
 			(companyId == _defaultCompanyId)) {
 
 			return false;
@@ -90,7 +89,7 @@ public class DBPartitionUtil {
 	public static void checkDatabasePartitionSchemaNamePrefix()
 		throws PortalException {
 
-		if (DBPartition.isPartitionEnabled() &&
+		if (PropsValues.DATABASE_PARTITION_ENABLED &&
 			(PropsValues.DATABASE_PARTITION_SCHEMA_NAME_PREFIX.length() > 11)) {
 
 			throw new PortalException(
@@ -103,7 +102,7 @@ public class DBPartitionUtil {
 	public static boolean copyDBPartition(long fromCompanyId, long toCompanyId)
 		throws PortalException {
 
-		if (!DBPartition.isPartitionEnabled() ||
+		if (!PropsValues.DATABASE_PARTITION_ENABLED ||
 			(fromCompanyId == _defaultCompanyId)) {
 
 			return false;
@@ -120,7 +119,7 @@ public class DBPartitionUtil {
 	}
 
 	public static boolean exportCompany(long companyId) throws PortalException {
-		if (DBPartition.isPartitionEnabled() ||
+		if (PropsValues.DATABASE_PARTITION_ENABLED ||
 			(companyId == _defaultCompanyId)) {
 
 			return false;
@@ -164,7 +163,7 @@ public class DBPartitionUtil {
 	public static boolean exportDBPartition(long companyId)
 		throws PortalException {
 
-		if (!DBPartition.isPartitionEnabled() ||
+		if (!PropsValues.DATABASE_PARTITION_ENABLED ||
 			(companyId == _defaultCompanyId)) {
 
 			return false;
@@ -184,7 +183,7 @@ public class DBPartitionUtil {
 			UnsafeConsumer<Long, Exception> unsafeConsumer)
 		throws Exception {
 
-		if (!DBPartition.isPartitionEnabled()) {
+		if (!PropsValues.DATABASE_PARTITION_ENABLED) {
 			unsafeConsumer.accept(null);
 
 			return;
@@ -196,7 +195,9 @@ public class DBPartitionUtil {
 			return;
 		}
 
-		if (PropsValues.DATABASE_PARTITION_THREAD_POOL_ENABLED) {
+		if (PropsValues.DATABASE_PARTITION_THREAD_POOL_ENABLED &&
+			!SystemExecutorServiceUtil.isOnSystemExecutorServiceThread()) {
+
 			_forEachCompanyIdConcurrently(unsafeConsumer);
 
 			return;
@@ -278,7 +279,7 @@ public class DBPartitionUtil {
 	}
 
 	public static String getPartitionKey(Object key) {
-		if (!DBPartition.isPartitionEnabled()) {
+		if (!PropsValues.DATABASE_PARTITION_ENABLED) {
 			return key.toString();
 		}
 
@@ -288,7 +289,7 @@ public class DBPartitionUtil {
 	public static String getPartitionKey(
 		String key, ShardedModel shardedModel) {
 
-		if (!DBPartition.isPartitionEnabled()) {
+		if (!PropsValues.DATABASE_PARTITION_ENABLED) {
 			return key;
 		}
 
@@ -308,7 +309,7 @@ public class DBPartitionUtil {
 	public static boolean importDBPartition(long companyId)
 		throws PortalException {
 
-		if (!DBPartition.isPartitionEnabled()) {
+		if (!PropsValues.DATABASE_PARTITION_ENABLED) {
 			return false;
 		}
 
@@ -325,7 +326,7 @@ public class DBPartitionUtil {
 	public static boolean removeDBPartition(long companyId)
 		throws PortalException {
 
-		if (!DBPartition.isPartitionEnabled() ||
+		if (!PropsValues.DATABASE_PARTITION_ENABLED ||
 			(companyId == _defaultCompanyId)) {
 
 			return false;
@@ -375,7 +376,7 @@ public class DBPartitionUtil {
 	public static void setDefaultCompanyId(Connection connection)
 		throws SQLException {
 
-		if (DBPartition.isPartitionEnabled()) {
+		if (PropsValues.DATABASE_PARTITION_ENABLED) {
 			try (PreparedStatement preparedStatement =
 					connection.prepareStatement(
 						"select companyId from Company where webId = '" +
@@ -390,7 +391,7 @@ public class DBPartitionUtil {
 	}
 
 	public static void setDefaultCompanyId(long companyId) {
-		if (DBPartition.isPartitionEnabled()) {
+		if (PropsValues.DATABASE_PARTITION_ENABLED) {
 			_defaultCompanyId = companyId;
 		}
 	}
@@ -398,7 +399,7 @@ public class DBPartitionUtil {
 	public static DataSource wrapDataSource(DataSource dataSource)
 		throws SQLException {
 
-		if (!DBPartition.isPartitionEnabled()) {
+		if (!PropsValues.DATABASE_PARTITION_ENABLED) {
 			return dataSource;
 		}
 
@@ -1052,10 +1053,8 @@ public class DBPartitionUtil {
 			UnsafeConsumer<Long, Exception> unsafeConsumer)
 		throws Exception {
 
-		Runtime runtime = Runtime.getRuntime();
-
-		ExecutorService executorService = Executors.newFixedThreadPool(
-			runtime.availableProcessors());
+		ExecutorService executorService =
+			SystemExecutorServiceUtil.getExecutorService();
 
 		List<Future<Void>> futures = new ArrayList<>();
 
@@ -1102,8 +1101,6 @@ public class DBPartitionUtil {
 			}
 		}
 		finally {
-			executorService.shutdown();
-
 			for (Future<Void> future : futures) {
 				future.get();
 			}

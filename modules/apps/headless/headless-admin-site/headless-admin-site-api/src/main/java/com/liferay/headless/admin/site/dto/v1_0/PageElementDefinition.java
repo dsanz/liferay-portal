@@ -48,14 +48,12 @@ import java.util.function.Supplier;
 @JsonSubTypes(
 	{
 		@JsonSubTypes.Type(
-			name = "Collection", value = CollectionPageElementDefinition.class
+			name = "CollectionDisplay",
+			value = CollectionDisplayPageElementDefinition.class
 		),
 		@JsonSubTypes.Type(
 			name = "CollectionItem",
 			value = CollectionItemPageElementDefinition.class
-		),
-		@JsonSubTypes.Type(
-			name = "Column", value = ColumnPageElementDefinition.class
 		),
 		@JsonSubTypes.Type(
 			name = "Container", value = ContainerPageElementDefinition.class
@@ -64,7 +62,8 @@ import java.util.function.Supplier;
 			name = "DropZone", value = DropZonePageElementDefinition.class
 		),
 		@JsonSubTypes.Type(
-			name = "Form", value = FormPageElementDefinition.class
+			name = "FormContainer",
+			value = FormContainerPageElementDefinition.class
 		),
 		@JsonSubTypes.Type(
 			name = "FormStep", value = FormStepPageElementDefinition.class
@@ -86,7 +85,10 @@ import java.util.function.Supplier;
 			value = FragmentDropZonePageElementDefinition.class
 		),
 		@JsonSubTypes.Type(
-			name = "Row", value = RowPageElementDefinition.class
+			name = "Grid", value = GridPageElementDefinition.class
+		),
+		@JsonSubTypes.Type(
+			name = "Module", value = ModulePageElementDefinition.class
 		),
 		@JsonSubTypes.Type(
 			name = "Widget", value = WidgetInstancePageElementDefinition.class
@@ -94,7 +96,7 @@ import java.util.function.Supplier;
 	}
 )
 @JsonTypeInfo(
-	include = JsonTypeInfo.As.PROPERTY, property = "type",
+	include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type",
 	use = JsonTypeInfo.Id.NAME, visible = true
 )
 @XmlRootElement(name = "PageElementDefinition")
@@ -110,7 +112,7 @@ public abstract class PageElementDefinition implements Serializable {
 	}
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "The page element definition's type (collection, collection item, column, container, drop zone, form, form step, form step container, fragment, fragment composition, fragment drop zone, row or widget)."
+		description = "The page element definition's type (collection display, collection item, container, drop zone, form container, form step, form step container, fragment, fragment composition, fragment drop zone, grid,  module or widget)."
 	)
 	@JsonGetter("type")
 	@Valid
@@ -157,7 +159,7 @@ public abstract class PageElementDefinition implements Serializable {
 	}
 
 	@GraphQLField(
-		description = "The page element definition's type (collection, collection item, column, container, drop zone, form, form step, form step container, fragment, fragment composition, fragment drop zone, row or widget)."
+		description = "The page element definition's type (collection display, collection item, container, drop zone, form container, form step, form step container, fragment, fragment composition, fragment drop zone, grid,  module or widget)."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Type type;
@@ -203,9 +205,7 @@ public abstract class PageElementDefinition implements Serializable {
 			sb.append("\"type\": ");
 
 			sb.append("\"");
-
 			sb.append(type);
-
 			sb.append("\"");
 		}
 
@@ -224,12 +224,13 @@ public abstract class PageElementDefinition implements Serializable {
 	@GraphQLName("Type")
 	public static enum Type {
 
-		COLLECTION("Collection"), COLLECTION_ITEM("CollectionItem"),
-		COLUMN("Column"), CONTAINER("Container"), DROP_ZONE("DropZone"),
-		FORM("Form"), FORM_STEP("FormStep"),
-		FORM_STEP_CONTAINER("FormStepContainer"), FRAGMENT("Fragment"),
-		FRAGMENT_COMPOSITION("FragmentComposition"),
-		FRAGMENT_DROP_ZONE("FragmentDropZone"), ROW("Row"), WIDGET("Widget");
+		COLLECTION_DISPLAY("CollectionDisplay"),
+		COLLECTION_ITEM("CollectionItem"), CONTAINER("Container"),
+		DROP_ZONE("DropZone"), FORM_CONTAINER("FormContainer"),
+		FORM_STEP("FormStep"), FORM_STEP_CONTAINER("FormStepContainer"),
+		FRAGMENT("Fragment"), FRAGMENT_COMPOSITION("FragmentComposition"),
+		FRAGMENT_DROP_ZONE("FragmentDropZone"), GRID("Grid"), MODULE("Module"),
+		WIDGET("Widget");
 
 		@JsonCreator
 		public static Type create(String value) {

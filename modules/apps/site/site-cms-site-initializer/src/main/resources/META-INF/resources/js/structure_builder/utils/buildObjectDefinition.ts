@@ -5,12 +5,12 @@
 
 import {isNullOrUndefined} from '@liferay/layout-js-components-web';
 
-import {config} from '../config';
 import {
 	ObjectDefinition,
 	ObjectField,
 	ObjectRelationship,
-} from '../types/ObjectDefinition';
+} from '../../common/types/ObjectDefinition';
+import {config} from '../config';
 import {
 	ReferencedStructure,
 	RepeatableGroup,
@@ -26,6 +26,7 @@ import {isFieldTextSearchable} from './isFieldTextSearchable';
 export default function buildObjectDefinition({
 	children = new Map(),
 	erc,
+	id,
 	label,
 	name,
 	spaces,
@@ -34,6 +35,7 @@ export default function buildObjectDefinition({
 }: {
 	children?: Structure['children'];
 	erc: Structure['erc'];
+	id?: Structure['id'];
 	label: Structure['label'];
 	name: Structure['name'];
 	spaces: Structure['spaces'];
@@ -64,6 +66,10 @@ export default function buildObjectDefinition({
 		},
 		titleObjectFieldName: 'title',
 	};
+
+	if (id) {
+		objectDefinition.id = id;
+	}
 
 	if (name) {
 		objectDefinition.name = name;

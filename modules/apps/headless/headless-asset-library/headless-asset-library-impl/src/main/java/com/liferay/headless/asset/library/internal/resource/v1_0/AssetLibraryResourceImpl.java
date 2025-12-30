@@ -39,6 +39,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
@@ -81,49 +82,35 @@ import org.osgi.service.component.annotations.ServiceScope;
 public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 
 	@Override
-	public void deleteAssetLibrary(Long assetLibraryId) throws Exception {
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+	public void deleteAssetLibrary(String assetLibraryExternalReferenceCode)
+		throws Exception {
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
-		DepotEntry depotEntry = _getGroupDepotEntry(assetLibraryId);
+		DepotEntry depotEntry = _getGroupDepotEntry(
+			_getGroupIdByExternalReferenceCode(
+				assetLibraryExternalReferenceCode));
 
 		_depotEntryService.deleteDepotEntry(depotEntry.getDepotEntryId());
 	}
 
 	@Override
-	public void deleteAssetLibraryByExternalReferenceCode(
-			String externalReferenceCode)
+	public void deleteAssetLibraryPin(String assetLibraryExternalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
-		deleteAssetLibrary(
-			_getGroupIdByExternalReferenceCode(externalReferenceCode));
-	}
-
-	@Override
-	public void deleteAssetLibraryByExternalReferenceCodePin(
-			String externalReferenceCode)
-		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
-
-		deleteAssetLibraryPin(
-			_getGroupIdByExternalReferenceCode(externalReferenceCode));
-	}
-
-	@Override
-	public void deleteAssetLibraryPin(Long assetLibraryId) throws Exception {
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
-
-		DepotEntry depotEntry = _getGroupDepotEntry(assetLibraryId);
+		DepotEntry depotEntry = _getGroupDepotEntry(
+			_getGroupIdByExternalReferenceCode(
+				assetLibraryExternalReferenceCode));
 
 		_depotEntryPinService.deleteDepotEntryPin(
 			contextUser.getUserId(), depotEntry.getDepotEntryId());
@@ -134,7 +121,9 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 			Pagination pagination)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
@@ -160,51 +149,34 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	}
 
 	@Override
-	public Page<Permission>
-			getAssetLibraryByExternalReferenceCodePermissionsPage(
-				String externalReferenceCode, String roleNames)
-		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
-
-		return getAssetLibraryPermissionsPage(
-			_getGroupIdByExternalReferenceCode(externalReferenceCode),
-			roleNames);
-	}
-
-	@Override
 	public EntityModel getEntityModel(MultivaluedMap multivaluedMap) {
 		return _assetLibraryEntityModel;
 	}
 
 	@Override
 	public AssetLibrary patchAssetLibrary(
-			Long assetLibraryId, AssetLibrary assetLibrary)
+			String assetLibraryExternalReferenceCode, AssetLibrary assetLibrary)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
-		DepotEntry depotEntry = _getGroupDepotEntry(assetLibraryId);
+		DepotEntry depotEntry = _getGroupDepotEntry(
+			_getGroupIdByExternalReferenceCode(
+				assetLibraryExternalReferenceCode));
 
 		Group group = depotEntry.getGroup();
 
 		String name = _getValue(
 			() -> group.getName(contextAcceptLanguage.getPreferredLocale()),
 			assetLibrary::getName);
-		Map<String, String> nameMap = _getValue(
-			() -> LocalizedMapUtil.getI18nMap(group.getNameMap()),
-			assetLibrary::getName_i18n);
 		String description = _getValue(
 			() -> group.getDescription(
 				contextAcceptLanguage.getPreferredLocale()),
 			assetLibrary::getDescription);
-		Map<String, String> descriptionMap = _getValue(
-			() -> LocalizedMapUtil.getI18nMap(group.getDescriptionMap()),
-			assetLibrary::getDescription_i18n);
 
 		if (assetLibrary.getSettings() == null) {
 			assetLibrary.setSettings(Settings::new);
@@ -219,12 +191,15 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 		AssetLibrary updatedAssetLibrary = _toAssetLibrary(
 			_addOrUpdateDepotEntry(
 				assetLibrary,
-				LocalizedMapUtil.getLocalizedMap(
+				LocalizedMapUtil.patchLocalizedMap(
+					group.getDescriptionMap(),
 					contextAcceptLanguage.getPreferredLocale(), description,
-					descriptionMap),
+					assetLibrary.getDescription_i18n()),
 				group.getExternalReferenceCode(),
-				LocalizedMapUtil.getLocalizedMap(
-					contextAcceptLanguage.getPreferredLocale(), name, nameMap),
+				LocalizedMapUtil.patchLocalizedMap(
+					group.getNameMap(),
+					contextAcceptLanguage.getPreferredLocale(), name,
+					assetLibrary.getName_i18n()),
 				_getServiceContext(), unicodeProperties,
 				_dlSizeLimitConfigurationProvider.getGroupMimeTypeSizeLimit(
 					group.getGroupId())));
@@ -233,7 +208,7 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 
 		if (permissions != null) {
 			Page<Permission> permissionsPage = putAssetLibraryPermissionsPage(
-				updatedAssetLibrary.getId(), permissions);
+				updatedAssetLibrary.getExternalReferenceCode(), permissions);
 
 			updatedAssetLibrary.setPermissions(
 				() -> NestedFieldsSupplier.supply(
@@ -250,56 +225,19 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	}
 
 	@Override
-	public AssetLibrary patchAssetLibraryByExternalReferenceCode(
-			String externalReferenceCode, AssetLibrary assetLibrary)
+	public AssetLibrary putAssetLibraryPin(
+			String assetLibraryExternalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
-		return patchAssetLibrary(
-			_getGroupIdByExternalReferenceCode(externalReferenceCode),
-			assetLibrary);
-	}
-
-	@Override
-	public Page<Permission>
-			putAssetLibraryByExternalReferenceCodePermissionsPage(
-				String externalReferenceCode, Permission[] permissions)
-		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
-
-		return putAssetLibraryPermissionsPage(
-			_getGroupIdByExternalReferenceCode(externalReferenceCode),
-			permissions);
-	}
-
-	@Override
-	public AssetLibrary putAssetLibraryByExternalReferenceCodePin(
-			String externalReferenceCode)
-		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
-
-		return putAssetLibraryPin(
-			_getGroupIdByExternalReferenceCode(externalReferenceCode));
-	}
-
-	@Override
-	public AssetLibrary putAssetLibraryPin(Long assetLibraryId)
-		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
-
-		DepotEntry depotEntry = _getGroupDepotEntry(assetLibraryId);
+		DepotEntry depotEntry = _getGroupDepotEntry(
+			_getGroupIdByExternalReferenceCode(
+				assetLibraryExternalReferenceCode));
 
 		_depotEntryPinService.addDepotEntryPin(
 			contextUser.getUserId(), depotEntry.getDepotEntryId());
@@ -313,7 +251,9 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 			Pagination pagination, Sort[] sorts)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
@@ -338,48 +278,40 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	}
 
 	@Override
-	protected AssetLibrary doGetAssetLibrary(Long assetLibraryId)
+	protected AssetLibrary doGetAssetLibrary(
+			String assetLibraryExternalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
 
-		return _toAssetLibrary(_getGroupDepotEntry(assetLibraryId));
-	}
-
-	@Override
-	protected AssetLibrary doGetAssetLibraryByExternalReferenceCode(
-			String externalReferenceCode)
-		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
 			throw new UnsupportedOperationException();
 		}
 
 		return _toAssetLibrary(
 			_depotEntryService.getGroupDepotEntry(
-				_getGroupIdByExternalReferenceCode(externalReferenceCode)));
+				_getGroupIdByExternalReferenceCode(
+					assetLibraryExternalReferenceCode)));
 	}
 
 	@Override
 	protected AssetLibrary doPostAssetLibrary(AssetLibrary assetLibrary)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
 		return _toAssetLibrary(
 			_addOrUpdateDepotEntry(
 				assetLibrary,
-				LocalizedMapUtil.getLocalizedMap(
-					contextAcceptLanguage.getPreferredLocale(),
+				_getLocalizedMap(
 					assetLibrary.getDescription(),
 					assetLibrary.getDescription_i18n()),
 				StringPool.BLANK,
-				LocalizedMapUtil.getLocalizedMap(
-					contextAcceptLanguage.getPreferredLocale(),
+				_getLocalizedMap(
 					assetLibrary.getName(), assetLibrary.getName_i18n()),
 				_getServiceContext(),
 				_putUnicodeProperties(assetLibrary.getSettings()),
@@ -387,24 +319,24 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	}
 
 	@Override
-	protected AssetLibrary doPutAssetLibraryByExternalReferenceCode(
-			String externalReferenceCode, AssetLibrary assetLibrary)
+	protected AssetLibrary doPutAssetLibrary(
+			String assetLibraryExternalReferenceCode, AssetLibrary assetLibrary)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
 		return _toAssetLibrary(
 			_addOrUpdateDepotEntry(
 				assetLibrary,
-				LocalizedMapUtil.getLocalizedMap(
-					contextAcceptLanguage.getPreferredLocale(),
+				_getLocalizedMap(
 					assetLibrary.getDescription(),
 					assetLibrary.getDescription_i18n()),
-				externalReferenceCode,
-				LocalizedMapUtil.getLocalizedMap(
-					contextAcceptLanguage.getPreferredLocale(),
+				assetLibraryExternalReferenceCode,
+				_getLocalizedMap(
 					assetLibrary.getName(), assetLibrary.getName_i18n()),
 				_getServiceContext(),
 				_putUnicodeProperties(assetLibrary.getSettings()),
@@ -412,21 +344,31 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	}
 
 	@Override
-	protected Long getPermissionCheckerGroupId(Object id) throws Exception {
-		DepotEntry depotEntry = _getGroupDepotEntry(GetterUtil.getLong(id));
+	protected Long getPermissionCheckerGroupId(
+			String groupExternalReferenceCode)
+		throws Exception {
 
-		return depotEntry.getGroupId();
+		Group group = _groupLocalService.fetchGroupByExternalReferenceCode(
+			groupExternalReferenceCode, contextCompany.getCompanyId());
+
+		return group.getGroupId();
 	}
 
 	@Override
-	protected Long getPermissionCheckerResourceId(Object id) throws Exception {
-		DepotEntry depotEntry = _getGroupDepotEntry(GetterUtil.getLong(id));
+	protected Long getPermissionCheckerResourceId(String externalReferenceCode)
+		throws Exception {
+
+		DepotEntry depotEntry = _depotEntryService.getGroupDepotEntry(
+			getPermissionCheckerGroupId(externalReferenceCode));
 
 		return depotEntry.getDepotEntryId();
 	}
 
 	@Override
-	protected String getPermissionCheckerResourceName(Object id) {
+	protected String getPermissionCheckerResourceName(
+			String externalReferenceCode)
+		throws Exception {
+
 		return DepotEntry.class.getName();
 	}
 
@@ -466,7 +408,12 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 				depotEntry.getDepotEntryId(), nameMap, descriptionMap,
 				_getDepotAppCustomizationMap(
 					depotEntry.getCompanyId(), externalReferenceCode),
-				unicodeProperties, serviceContext);
+				UnicodePropertiesBuilder.create(
+					group.getTypeSettingsProperties(), true
+				).putAll(
+					unicodeProperties
+				).build(),
+				serviceContext);
 		}
 
 		DepotEntry depotEntry = _depotEntryService.addDepotEntry(
@@ -487,7 +434,12 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 			}
 
 			if ((unicodeProperties != null) && !unicodeProperties.isEmpty()) {
-				group.setTypeSettingsProperties(unicodeProperties);
+				group.setTypeSettingsProperties(
+					UnicodePropertiesBuilder.create(
+						group.getTypeSettingsProperties(), true
+					).putAll(
+						unicodeProperties
+					).build());
 			}
 
 			group = _groupLocalService.updateGroup(group);
@@ -571,6 +523,20 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 			externalReferenceCode, contextCompany.getCompanyId());
 
 		return group.getGroupId();
+	}
+
+	private Map<Locale, String> _getLocalizedMap(
+		String defaultValue, Map<String, String> i18nMap) {
+
+		Map<Locale, String> localizedMap = LocalizedMapUtil.getLocalizedMap(
+			contextAcceptLanguage.getPreferredLocale(), defaultValue, i18nMap);
+
+		if (!localizedMap.containsKey(LocaleUtil.getDefault())) {
+			localizedMap = LocalizedMapUtil.patchLocalizedMap(
+				localizedMap, LocaleUtil.getDefault(), defaultValue, i18nMap);
+		}
+
+		return localizedMap;
 	}
 
 	private ServiceContext _getServiceContext() throws Exception {

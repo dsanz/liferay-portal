@@ -8,17 +8,16 @@ import classNames from 'classnames';
 import React from 'react';
 
 import SpaceSticker from '../../../common/components/SpaceSticker';
+import {LogoColor} from '../../../common/types/Space';
 
 const SpaceRenderer = ({
 	href,
-	itemData,
-	size,
+	logoColor,
+	size = 'xs',
 	value,
 }: {
 	href?: string;
-	itemData: {
-		settings?: {logoColor: IClayStickerProps['displayType']};
-	};
+	logoColor?: LogoColor;
 	size?: IClayStickerProps['size'];
 	value: string;
 }) => {
@@ -32,10 +31,10 @@ const SpaceRenderer = ({
 			)}
 		>
 			<SpaceSticker
-				displayType={itemData.settings?.logoColor}
+				displayType={logoColor}
 				href={href}
 				name={value}
-				size={size || 'xs'}
+				size={size}
 			/>
 		</span>
 	);

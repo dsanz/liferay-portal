@@ -27,18 +27,8 @@ async function addSpace({
 	);
 }
 
-async function getSpace({
-	externalReferenceCode,
-	spaceId,
-}: {
-	externalReferenceCode?: string;
-	spaceId?: number | string;
-}): Promise<Space> {
-	let url = `/o/headless-asset-library/v1.0/asset-libraries/by-external-reference-code/${externalReferenceCode}`;
-
-	if (spaceId) {
-		url = `/o/headless-asset-library/v1.0/asset-libraries/${spaceId}`;
-	}
+async function getSpace(externalReferenceCode: string): Promise<Space> {
+	const url = `/o/headless-asset-library/v1.0/asset-libraries/${externalReferenceCode}`;
 
 	const {data, error} = await ApiHelper.get<Space>(url);
 
@@ -46,7 +36,26 @@ async function getSpace({
 		return data;
 	}
 
-	throw new Error(error);
+	throw new Error(error || 'Failed to fetch space data.');
+}
+
+const spaceCache = new Map<string, Promise<Space>>();
+
+async function getSpaceWithCache(
+	externalReferenceCode: string
+): Promise<Space> {
+	if (spaceCache.has(externalReferenceCode)) {
+		return spaceCache.get(externalReferenceCode)!;
+	}
+
+	const fetchPromise = getSpace(externalReferenceCode).catch((error) => {
+		spaceCache.delete(externalReferenceCode);
+		throw error;
+	});
+
+	spaceCache.set(externalReferenceCode, fetchPromise);
+
+	return fetchPromise;
 }
 
 async function getSpaceUserGroups({
@@ -81,7 +90,7 @@ async function getSpaceUserGroups({
 		page: number;
 		totalCount: number;
 	}>(
-		`/o/headless-asset-library/v1.0/asset-libraries/by-external-reference-code/${externalReferenceCode}/user-groups?${urlParams.toString()}${nestedFields ? '&nestedFields=' + nestedFields : ''}`
+		`/o/headless-asset-library/v1.0/asset-libraries/${externalReferenceCode}/user-groups?${urlParams.toString()}${nestedFields ? '&nestedFields=' + nestedFields : ''}`
 	);
 
 	if (data) {
@@ -123,7 +132,7 @@ async function getSpaceUsers({
 		page: number;
 		totalCount: number;
 	}>(
-		`/o/headless-asset-library/v1.0/asset-libraries/by-external-reference-code/${externalReferenceCode}/user-accounts?${urlParams.toString()}${nestedFields ? '&nestedFields=' + nestedFields : ''}`
+		`/o/headless-asset-library/v1.0/asset-libraries/${externalReferenceCode}/user-accounts?${urlParams.toString()}${nestedFields ? '&nestedFields=' + nestedFields : ''}`
 	);
 
 	if (data) {
@@ -148,7 +157,7 @@ async function linkUserToSpace({
 	userExternalReferenceCode: string;
 }) {
 	return await ApiHelper.put(
-		`/o/headless-asset-library/v1.0/asset-libraries/by-external-reference-code/${spaceExternalReferenceCode}/user-accounts/by-external-reference-code/${userExternalReferenceCode}`
+		`/o/headless-asset-library/v1.0/asset-libraries/${spaceExternalReferenceCode}/user-accounts/${userExternalReferenceCode}`
 	);
 }
 
@@ -160,7 +169,7 @@ async function linkUserGroupToSpace({
 	userGroupExternalReferenceCode: string;
 }) {
 	return await ApiHelper.put(
-		`/o/headless-asset-library/v1.0/asset-libraries/by-external-reference-code/${spaceExternalReferenceCode}/user-groups/by-external-reference-code/${userGroupExternalReferenceCode}`
+		`/o/headless-asset-library/v1.0/asset-libraries/${spaceExternalReferenceCode}/user-groups/${userGroupExternalReferenceCode}`
 	);
 }
 
@@ -172,7 +181,7 @@ async function unlinkUserFromSpace({
 	userExternalReferenceCode: string;
 }) {
 	return await ApiHelper.delete(
-		`/o/headless-asset-library/v1.0/asset-libraries/by-external-reference-code/${spaceExternalReferenceCode}/user-accounts/by-external-reference-code/${userExternalReferenceCode}`
+		`/o/headless-asset-library/v1.0/asset-libraries/${spaceExternalReferenceCode}/user-accounts/${userExternalReferenceCode}`
 	);
 }
 
@@ -184,14 +193,14 @@ async function unlinkUserGroupFromSpace({
 	userGroupExternalReferenceCode: string;
 }) {
 	return await ApiHelper.delete(
-		`/o/headless-asset-library/v1.0/asset-libraries/by-external-reference-code/${spaceExternalReferenceCode}/user-groups/by-external-reference-code/${userGroupExternalReferenceCode}`
+		`/o/headless-asset-library/v1.0/asset-libraries/${spaceExternalReferenceCode}/user-groups/${userGroupExternalReferenceCode}`
 	);
 }
 
 async function updateSpace(externalReferenceCode: string, body: any) {
 	return await ApiHelper.patch(
 		body,
-		`/o/headless-asset-library/v1.0/asset-libraries/by-external-reference-code/${externalReferenceCode}`
+		`/o/headless-asset-library/v1.0/asset-libraries/${externalReferenceCode}`
 	);
 }
 
@@ -208,7 +217,7 @@ async function updateUserRoles(payload: {
 	}));
 
 	return await ApiHelper.put(
-		`/o/headless-asset-library/v1.0/asset-libraries/by-external-reference-code/${spaceExternalReferenceCode}/user-accounts/by-external-reference-code/${userExternalReferenceCode}/roles`,
+		`/o/headless-asset-library/v1.0/asset-libraries/${spaceExternalReferenceCode}/user-accounts/${userExternalReferenceCode}/roles`,
 		body
 	);
 }
@@ -229,7 +238,7 @@ async function updateUserGroupRoles(payload: {
 	}));
 
 	return await ApiHelper.put(
-		`/o/headless-asset-library/v1.0/asset-libraries/by-external-reference-code/${spaceExternalReferenceCode}/user-groups/by-external-reference-code/${userGroupExternalReferenceCode}/roles`,
+		`/o/headless-asset-library/v1.0/asset-libraries/${spaceExternalReferenceCode}/user-groups/${userGroupExternalReferenceCode}/roles`,
 		body
 	);
 }
@@ -239,6 +248,7 @@ export default {
 	getSpace,
 	getSpaceUserGroups,
 	getSpaceUsers,
+	getSpaceWithCache,
 	getSpaces,
 	linkUserGroupToSpace,
 	linkUserToSpace,

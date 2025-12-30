@@ -77,7 +77,7 @@ export default function MultipleFilesUploadModalContent({
 		failedFiles,
 		successFiles,
 	}: {
-		assetLibrary: AssetLibrary;
+		assetLibrary: AssetLibrary | null;
 		failedFiles: string[];
 		successFiles: string[];
 	}) => {
@@ -86,24 +86,26 @@ export default function MultipleFilesUploadModalContent({
 
 			let toastMessage;
 
-			if (successFiles.length === 1) {
-				toastMessage = sub(
-					Liferay.Language.get(
-						'x-file-was-successfully-uploaded-to-x-space'
-					),
-					['1', getAssetLibraryLink(assetLibrary)]
-				);
-			}
-			else {
-				toastMessage = sub(
-					Liferay.Language.get(
-						'x-files-were-successfully-uploaded-to-x-space'
-					),
-					[
-						String(successFiles.length),
-						getAssetLibraryLink(assetLibrary),
-					]
-				);
+			if (assetLibrary) {
+				if (successFiles.length === 1) {
+					toastMessage = sub(
+						Liferay.Language.get(
+							'x-file-was-successfully-uploaded-to-x-space'
+						),
+						['1', getAssetLibraryLink(assetLibrary)]
+					);
+				}
+				else {
+					toastMessage = sub(
+						Liferay.Language.get(
+							'x-files-were-successfully-uploaded-to-x-space'
+						),
+						[
+							String(successFiles.length),
+							getAssetLibraryLink(assetLibrary),
+						]
+					);
+				}
 			}
 
 			openToast({
@@ -119,7 +121,9 @@ export default function MultipleFilesUploadModalContent({
 
 	return (
 		<>
-			<ClayModal.Header>
+			<ClayModal.Header
+				closeButtonAriaLabel={Liferay.Language.get('close')}
+			>
 				{sub(
 					Liferay.Language.get('upload-x'),
 					Liferay.Language.get('multiple-files')

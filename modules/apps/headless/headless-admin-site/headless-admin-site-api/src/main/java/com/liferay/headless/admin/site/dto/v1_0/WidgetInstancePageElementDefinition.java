@@ -55,6 +55,53 @@ public class WidgetInstancePageElementDefinition
 	}
 
 	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "The fragment's background image."
+	)
+	@Valid
+	public FragmentImage getBackgroundFragmentImage() {
+		if (_backgroundFragmentImageSupplier != null) {
+			backgroundFragmentImage = _backgroundFragmentImageSupplier.get();
+
+			_backgroundFragmentImageSupplier = null;
+		}
+
+		return backgroundFragmentImage;
+	}
+
+	public void setBackgroundFragmentImage(
+		FragmentImage backgroundFragmentImage) {
+
+		this.backgroundFragmentImage = backgroundFragmentImage;
+
+		_backgroundFragmentImageSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setBackgroundFragmentImage(
+		UnsafeSupplier<FragmentImage, Exception>
+			backgroundFragmentImageUnsafeSupplier) {
+
+		_backgroundFragmentImageSupplier = () -> {
+			try {
+				return backgroundFragmentImageUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(description = "The fragment's background image.")
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected FragmentImage backgroundFragmentImage;
+
+	@JsonIgnore
+	private Supplier<FragmentImage> _backgroundFragmentImageSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "A list of CSS classes that are applied to the widget instance page element."
 	)
 	public String[] getCssClasses() {
@@ -100,31 +147,37 @@ public class WidgetInstancePageElementDefinition
 	private Supplier<String[]> _cssClassesSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "Custom CSS that is applied on the widget instance page element."
+		description = "The draft widget instance external reference code."
 	)
-	public String getCustomCSS() {
-		if (_customCSSSupplier != null) {
-			customCSS = _customCSSSupplier.get();
+	public String getDraftWidgetInstanceExternalReferenceCode() {
+		if (_draftWidgetInstanceExternalReferenceCodeSupplier != null) {
+			draftWidgetInstanceExternalReferenceCode =
+				_draftWidgetInstanceExternalReferenceCodeSupplier.get();
 
-			_customCSSSupplier = null;
+			_draftWidgetInstanceExternalReferenceCodeSupplier = null;
 		}
 
-		return customCSS;
+		return draftWidgetInstanceExternalReferenceCode;
 	}
 
-	public void setCustomCSS(String customCSS) {
-		this.customCSS = customCSS;
+	public void setDraftWidgetInstanceExternalReferenceCode(
+		String draftWidgetInstanceExternalReferenceCode) {
 
-		_customCSSSupplier = null;
+		this.draftWidgetInstanceExternalReferenceCode =
+			draftWidgetInstanceExternalReferenceCode;
+
+		_draftWidgetInstanceExternalReferenceCodeSupplier = null;
 	}
 
 	@JsonIgnore
-	public void setCustomCSS(
-		UnsafeSupplier<String, Exception> customCSSUnsafeSupplier) {
+	public void setDraftWidgetInstanceExternalReferenceCode(
+		UnsafeSupplier<String, Exception>
+			draftWidgetInstanceExternalReferenceCodeUnsafeSupplier) {
 
-		_customCSSSupplier = () -> {
+		_draftWidgetInstanceExternalReferenceCodeSupplier = () -> {
 			try {
-				return customCSSUnsafeSupplier.get();
+				return draftWidgetInstanceExternalReferenceCodeUnsafeSupplier.
+					get();
 			}
 			catch (RuntimeException runtimeException) {
 				throw runtimeException;
@@ -136,106 +189,13 @@ public class WidgetInstancePageElementDefinition
 	}
 
 	@GraphQLField(
-		description = "Custom CSS that is applied on the widget instance page element."
+		description = "The draft widget instance external reference code."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	protected String customCSS;
+	protected String draftWidgetInstanceExternalReferenceCode;
 
 	@JsonIgnore
-	private Supplier<String> _customCSSSupplier;
-
-	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "The custom CSS viewports of the widget instance page element."
-	)
-	@Valid
-	public CustomCSSViewport[] getCustomCSSViewports() {
-		if (_customCSSViewportsSupplier != null) {
-			customCSSViewports = _customCSSViewportsSupplier.get();
-
-			_customCSSViewportsSupplier = null;
-		}
-
-		return customCSSViewports;
-	}
-
-	public void setCustomCSSViewports(CustomCSSViewport[] customCSSViewports) {
-		this.customCSSViewports = customCSSViewports;
-
-		_customCSSViewportsSupplier = null;
-	}
-
-	@JsonIgnore
-	public void setCustomCSSViewports(
-		UnsafeSupplier<CustomCSSViewport[], Exception>
-			customCSSViewportsUnsafeSupplier) {
-
-		_customCSSViewportsSupplier = () -> {
-			try {
-				return customCSSViewportsUnsafeSupplier.get();
-			}
-			catch (RuntimeException runtimeException) {
-				throw runtimeException;
-			}
-			catch (Exception exception) {
-				throw new RuntimeException(exception);
-			}
-		};
-	}
-
-	@GraphQLField(
-		description = "The custom CSS viewports of the widget instance page element."
-	)
-	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	protected CustomCSSViewport[] customCSSViewports;
-
-	@JsonIgnore
-	private Supplier<CustomCSSViewport[]> _customCSSViewportsSupplier;
-
-	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "The fragment style of the widget instance page element."
-	)
-	@Valid
-	public FragmentStyle getFragmentStyle() {
-		if (_fragmentStyleSupplier != null) {
-			fragmentStyle = _fragmentStyleSupplier.get();
-
-			_fragmentStyleSupplier = null;
-		}
-
-		return fragmentStyle;
-	}
-
-	public void setFragmentStyle(FragmentStyle fragmentStyle) {
-		this.fragmentStyle = fragmentStyle;
-
-		_fragmentStyleSupplier = null;
-	}
-
-	@JsonIgnore
-	public void setFragmentStyle(
-		UnsafeSupplier<FragmentStyle, Exception> fragmentStyleUnsafeSupplier) {
-
-		_fragmentStyleSupplier = () -> {
-			try {
-				return fragmentStyleUnsafeSupplier.get();
-			}
-			catch (RuntimeException runtimeException) {
-				throw runtimeException;
-			}
-			catch (Exception exception) {
-				throw new RuntimeException(exception);
-			}
-		};
-	}
-
-	@GraphQLField(
-		description = "The fragment style of the widget instance page element."
-	)
-	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	protected FragmentStyle fragmentStyle;
-
-	@JsonIgnore
-	private Supplier<FragmentStyle> _fragmentStyleSupplier;
+	private Supplier<String> _draftWidgetInstanceExternalReferenceCodeSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "A list of fragment viewports of the widget instance page element."
@@ -283,6 +243,51 @@ public class WidgetInstancePageElementDefinition
 
 	@JsonIgnore
 	private Supplier<FragmentViewport[]> _fragmentViewportsSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "A flag that indicates whether the widget instance page element is indexed or not."
+	)
+	public Boolean getIndexed() {
+		if (_indexedSupplier != null) {
+			indexed = _indexedSupplier.get();
+
+			_indexedSupplier = null;
+		}
+
+		return indexed;
+	}
+
+	public void setIndexed(Boolean indexed) {
+		this.indexed = indexed;
+
+		_indexedSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setIndexed(
+		UnsafeSupplier<Boolean, Exception> indexedUnsafeSupplier) {
+
+		_indexedSupplier = () -> {
+			try {
+				return indexedUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(
+		description = "A flag that indicates whether the widget instance page element is indexed or not."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Boolean indexed;
+
+	@JsonIgnore
+	private Supplier<Boolean> _indexedSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "The custom name of a widget instance page element."
@@ -372,6 +377,54 @@ public class WidgetInstancePageElementDefinition
 	@JsonIgnore
 	private Supplier<WidgetInstance> _widgetInstanceSupplier;
 
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "The widget instance external reference code."
+	)
+	public String getWidgetInstanceExternalReferenceCode() {
+		if (_widgetInstanceExternalReferenceCodeSupplier != null) {
+			widgetInstanceExternalReferenceCode =
+				_widgetInstanceExternalReferenceCodeSupplier.get();
+
+			_widgetInstanceExternalReferenceCodeSupplier = null;
+		}
+
+		return widgetInstanceExternalReferenceCode;
+	}
+
+	public void setWidgetInstanceExternalReferenceCode(
+		String widgetInstanceExternalReferenceCode) {
+
+		this.widgetInstanceExternalReferenceCode =
+			widgetInstanceExternalReferenceCode;
+
+		_widgetInstanceExternalReferenceCodeSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setWidgetInstanceExternalReferenceCode(
+		UnsafeSupplier<String, Exception>
+			widgetInstanceExternalReferenceCodeUnsafeSupplier) {
+
+		_widgetInstanceExternalReferenceCodeSupplier = () -> {
+			try {
+				return widgetInstanceExternalReferenceCodeUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(description = "The widget instance external reference code.")
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String widgetInstanceExternalReferenceCode;
+
+	@JsonIgnore
+	private Supplier<String> _widgetInstanceExternalReferenceCodeSupplier;
+
 	@Override
 	public boolean equals(Object object) {
 		if (this == object) {
@@ -402,6 +455,18 @@ public class WidgetInstancePageElementDefinition
 
 		sb.append("{");
 
+		FragmentImage backgroundFragmentImage = getBackgroundFragmentImage();
+
+		if (backgroundFragmentImage != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"backgroundFragmentImage\": ");
+
+			sb.append(String.valueOf(backgroundFragmentImage));
+		}
+
 		String[] cssClasses = getCssClasses();
 
 		if (cssClasses != null) {
@@ -428,54 +493,21 @@ public class WidgetInstancePageElementDefinition
 			sb.append("]");
 		}
 
-		String customCSS = getCustomCSS();
+		String draftWidgetInstanceExternalReferenceCode =
+			getDraftWidgetInstanceExternalReferenceCode();
 
-		if (customCSS != null) {
+		if (draftWidgetInstanceExternalReferenceCode != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
 			}
 
-			sb.append("\"customCSS\": ");
+			sb.append("\"draftWidgetInstanceExternalReferenceCode\": ");
 
 			sb.append("\"");
 
-			sb.append(_escape(customCSS));
+			sb.append(_escape(draftWidgetInstanceExternalReferenceCode));
 
 			sb.append("\"");
-		}
-
-		CustomCSSViewport[] customCSSViewports = getCustomCSSViewports();
-
-		if (customCSSViewports != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"customCSSViewports\": ");
-
-			sb.append("[");
-
-			for (int i = 0; i < customCSSViewports.length; i++) {
-				sb.append(String.valueOf(customCSSViewports[i]));
-
-				if ((i + 1) < customCSSViewports.length) {
-					sb.append(", ");
-				}
-			}
-
-			sb.append("]");
-		}
-
-		FragmentStyle fragmentStyle = getFragmentStyle();
-
-		if (fragmentStyle != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"fragmentStyle\": ");
-
-			sb.append(String.valueOf(fragmentStyle));
 		}
 
 		FragmentViewport[] fragmentViewports = getFragmentViewports();
@@ -498,6 +530,18 @@ public class WidgetInstancePageElementDefinition
 			}
 
 			sb.append("]");
+		}
+
+		Boolean indexed = getIndexed();
+
+		if (indexed != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"indexed\": ");
+
+			sb.append(indexed);
 		}
 
 		String name = getName();
@@ -528,6 +572,23 @@ public class WidgetInstancePageElementDefinition
 			sb.append(String.valueOf(widgetInstance));
 		}
 
+		String widgetInstanceExternalReferenceCode =
+			getWidgetInstanceExternalReferenceCode();
+
+		if (widgetInstanceExternalReferenceCode != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"widgetInstanceExternalReferenceCode\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(widgetInstanceExternalReferenceCode));
+
+			sb.append("\"");
+		}
+
 		Type type = getType();
 
 		if (type != null) {
@@ -538,9 +599,7 @@ public class WidgetInstancePageElementDefinition
 			sb.append("\"type\": ");
 
 			sb.append("\"");
-
 			sb.append(type);
-
 			sb.append("\"");
 		}
 

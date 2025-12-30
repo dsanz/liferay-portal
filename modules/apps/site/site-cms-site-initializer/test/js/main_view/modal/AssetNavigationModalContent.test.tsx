@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 
 // eslint-disable-next-line
 import {checkAccessibility} from '@liferay/layout-js-components-web/test/__lib__/index';
@@ -11,6 +11,7 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 
 import AssetNavigationModalContent from '../../../../src/main/resources/META-INF/resources/js/main_view/modal/asset_navigation_view/AssetNavigationModalContent';
+import {addParams} from '../../__mocks__/frontend-js-web';
 
 const ACTIONS = {
 	get: {href: '/link-to-get-action'},
@@ -44,7 +45,7 @@ const item1 = {
 			externalReferenceCode: '7468ba44-4db5-760b-cac4-1c56b9041a86',
 			id: 36530,
 			link: {
-				href: '/documents/36523/36525/liferay+icon.png/7468ba44-4db5-760b-cac4-1c56b9041a86?version=1.0&t=1757930508059&download=true&groupExternalReferenceCode=5e059871-285a-5a19-46a7-27127417ad9f&objectDefinitionExternalReferenceCode=L_BASIC_DOCUMENT&objectEntryExternalReferenceCode=cd9c3564-80ad-8d3f-300f-76659955e96d',
+				href: '/documents/36523/36525/liferay+icon.png/7468ba44-4db5-760b-cac4-1c56b9041a86?version=1.0&t=1757930508059&download=true&groupExternalReferenceCode=5e059871-285a-5a19-46a7-27127417ad9f&objectDefinitionExternalReferenceCode=L_CMS_BASIC_DOCUMENT&objectEntryExternalReferenceCode=cd9c3564-80ad-8d3f-300f-76659955e96d',
 				label: 'liferay icon.png',
 			},
 			mimeType: 'image/png',
@@ -109,12 +110,17 @@ const item3 = {
 	title: 'First Blog',
 };
 
+const sharingItem = {
+	...item3,
+	actionIds: ['VIEW'],
+};
+
 const DEFAULT_PROPS = {
 	additionalProps: {
 		assetLibraries: [{groupId: 35393, name: 'Default'}],
 		cmsGroupId: 123,
 		commentsProps: {
-			addCommentURL: '',
+			addCommentURL: '/my-random-add-url',
 			comments: [],
 			deleteCommentURL: '',
 			editCommentURL: '',
@@ -131,6 +137,12 @@ const renderComponent = (props = DEFAULT_PROPS) => {
 	return render(<AssetNavigationModalContent {...props} />);
 };
 
+const renderComponentInSharing = (props = DEFAULT_PROPS) => {
+	return render(
+		<AssetNavigationModalContent {...props} showInfoPanel={false} />
+	);
+};
+
 describe('AssetNavigationModalContent', () => {
 	it('checks the accessibility of the item navigation component', async () => {
 		const {container} = renderComponent();
@@ -141,11 +153,19 @@ describe('AssetNavigationModalContent', () => {
 	it('renders with the first item with the download link', () => {
 		renderComponent();
 
-		expect(screen.getByText('liferay icon.png')).toBeInTheDocument();
+		expect(
+			document.querySelector(
+				'.modal-title [data-testid="modal-header-name"]'
+			)?.textContent
+		).toEqual('liferay icon.png');
 		expect(
 			screen.getByRole('link', {name: 'download'})
 		).toBeInTheDocument();
-		expect(screen.getByRole('img')).toBeInTheDocument();
+		expect(
+			document.querySelector(
+				'.asset-navigation-container > div:not(.c-slideout) img.preview-file-image'
+			)
+		).toBeInTheDocument();
 	});
 
 	it('navigates to next item when right arrow key is pressed', () => {
@@ -191,10 +211,38 @@ describe('AssetNavigationModalContent', () => {
 	});
 
 	it('can see comments panel', () => {
+		addParams.mockReturnValue('/my-random-add-url?someParams');
+
 		const {getByLabelText} = renderComponent();
 
 		fireEvent.click(getByLabelText('show-comments'));
 
 		expect(screen.getByText('add-comment')).toBeInTheDocument();
+	});
+
+	describe('Sharing items', () => {
+		it('info panel is hidden', () => {
+			const {getByLabelText, queryByText} = renderComponentInSharing();
+
+			expect(queryByText('show-details')).not.toBeInTheDocument();
+			expect(getByLabelText('show-comments')).toBeInTheDocument();
+		});
+
+		it('comment panel is hidden if sharing item has no permission', () => {
+			const {getByLabelText, queryByText} = renderComponentInSharing({
+				...DEFAULT_PROPS,
+				items: [item1, item2, sharingItem],
+			});
+
+			expect(getByLabelText('show-comments')).toBeInTheDocument();
+
+			fireEvent.click(getByLabelText('previous'));
+
+			expect(queryByText('show-comments')).not.toBeInTheDocument();
+
+			fireEvent.click(getByLabelText('previous'));
+
+			expect(getByLabelText('show-comments')).toBeInTheDocument();
+		});
 	});
 });

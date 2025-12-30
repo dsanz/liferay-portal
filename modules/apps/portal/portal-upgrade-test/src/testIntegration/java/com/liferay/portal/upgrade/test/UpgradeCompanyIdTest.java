@@ -19,9 +19,9 @@ import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.portal.upgrade.v7_0_0.UpgradeCompanyId;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -44,10 +44,15 @@ public class UpgradeCompanyIdTest {
 			PermissionCheckerMethodTestRule.INSTANCE);
 
 	@BeforeClass
-	public static void setUpClass() throws SQLException {
+	public static void setUpClass() throws Exception {
 		_connection = DataAccess.getConnection();
 
 		_dbInspector = new DBInspector(_connection);
+	}
+
+	@AfterClass
+	public static void tearDownClass() {
+		DataAccess.cleanUp(_connection);
 	}
 
 	@Before
@@ -57,23 +62,23 @@ public class UpgradeCompanyIdTest {
 				_upgradeProcess.runSQL(
 					StringBundler.concat(
 						"create table ", _MAPPING_TABLE_NAME, " (",
-						_COLUMN_NAME, " LONG not null primary key);"));
+						_COLUMN_NAME, " LONG not null primary key)"));
 
 				_upgradeProcess.runSQL(
 					StringBundler.concat(
 						"insert into ", _MAPPING_TABLE_NAME, " (", _COLUMN_NAME,
-						") values (", _COLUMN_VALUE, ");"));
+						") values (", _COLUMN_VALUE, ")"));
 
 				_upgradeProcess.runSQL(
 					StringBundler.concat(
 						"create table ", _TABLE_NAME, " (", _COLUMN_NAME,
-						" LONG not null primary key, companyId LONG);"));
+						" LONG not null primary key, companyId LONG)"));
 
 				_upgradeProcess.runSQL(
 					StringBundler.concat(
 						"insert into ", _TABLE_NAME, " (", _COLUMN_NAME,
 						", companyId) values (", _COLUMN_VALUE,
-						", (select max(companyId) from Company));"));
+						", (select max(companyId) from Company))"));
 			});
 	}
 
@@ -102,7 +107,7 @@ public class UpgradeCompanyIdTest {
 		_upgradeProcess.runSQL(
 			StringBundler.concat(
 				"insert into ", _MAPPING_TABLE_NAME, " (", _COLUMN_NAME,
-				") values (", _COLUMN_VALUE - 1, ");"));
+				") values (", _COLUMN_VALUE - 1, ")"));
 
 		try {
 			_upgradeProcess.upgrade();

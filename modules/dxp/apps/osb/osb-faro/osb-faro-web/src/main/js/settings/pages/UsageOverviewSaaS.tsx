@@ -1,4 +1,4 @@
-import BasePage from 'settings/components/BasePage';
+import BasePage from 'settings/components/base-page/BasePage';
 
 import ClayLayout from '@clayui/layout';
 
@@ -14,11 +14,7 @@ export type Resource = {
 	measurement: string;
 };
 
-interface IUsageOverviewSaaS {
-	groupId: string;
-}
-
-export const UsageOverviewSaaS: React.FC<IUsageOverviewSaaS> = ({groupId}) => {
+export const UsageOverviewSaaS = () => {
 	const currentUser = useCurrentUser();
 
 	let pageActions = [];
@@ -60,7 +56,6 @@ export const UsageOverviewSaaS: React.FC<IUsageOverviewSaaS> = ({groupId}) => {
 
 	return (
 		<BasePage
-			groupId={groupId}
 			key='UsageOverview'
 			pageActions={pageActions}
 			pageDescription={Liferay.Language.get(

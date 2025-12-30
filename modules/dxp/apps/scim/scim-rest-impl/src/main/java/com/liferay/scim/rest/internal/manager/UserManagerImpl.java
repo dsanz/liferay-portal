@@ -1190,7 +1190,7 @@ public class UserManagerImpl implements UserManager {
 		portalUser = _userService.updateUser(
 			portalUser.getUserId(), scimUser.getPassword(), StringPool.BLANK,
 			StringPool.BLANK, false, portalUser.getReminderQueryQuestion(),
-			portalUser.getReminderQueryAnswer(), portalUser.getScreenName(),
+			portalUser.getReminderQueryAnswer(), scimUser.getScreenName(),
 			scimUser.getEmailAddresses()[0], false, null,
 			portalUser.getLanguageId(), scimUser.getTimeZoneId(),
 			portalUser.getGreeting(), portalUser.getComments(),

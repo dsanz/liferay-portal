@@ -7,9 +7,13 @@ package com.liferay.document.library.internal.security.permission.resource.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.document.library.kernel.model.DLFileEntry;
+import com.liferay.document.library.kernel.model.DLFileVersion;
 import com.liferay.document.library.kernel.model.DLFolder;
+import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.document.library.test.util.DLTestUtil;
 import com.liferay.petra.lang.SafeCloseable;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
@@ -21,22 +25,37 @@ import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUti
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.PropsValuesTestUtil;
+import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
+import java.io.ByteArrayInputStream;
+
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.springframework.mock.web.MockHttpServletRequest;
 
 /**
  * @author Jürgen Kappler
@@ -56,6 +75,18 @@ public class DLFileEntryModelResourcePermissionTest {
 		_user = UserTestUtil.addUser();
 
 		_permissionChecker = PermissionCheckerFactoryUtil.create(_user);
+
+		_serviceContext = ServiceContextTestUtil.getServiceContext(
+			_group.getGroupId(), TestPropsValues.getUserId());
+
+		_serviceContext.setRequest(new MockHttpServletRequest());
+
+		ServiceContextThreadLocal.pushServiceContext(_serviceContext);
+	}
+
+	@After
+	public void tearDown() throws Exception {
+		ServiceContextThreadLocal.popServiceContext();
 	}
 
 	@Test
@@ -86,6 +117,36 @@ public class DLFileEntryModelResourcePermissionTest {
 		}
 	}
 
+	@Test
+	public void testContainsWithScheduledFileEntryAndRegularUser()
+		throws Exception {
+
+		DLFileEntry dlFileEntry = _dlFileEntryLocalService.addFileEntry(
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
+			_group.getGroupId(), DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			StringUtil.randomString(), ContentTypes.TEXT_PLAIN,
+			StringUtil.randomString(), StringUtil.randomString(),
+			StringPool.BLANK, StringPool.BLANK, -1, new HashMap<>(), null,
+			new ByteArrayInputStream(new byte[0]), 0,
+			new Date(System.currentTimeMillis() + Time.MONTH),
+			new Date(System.currentTimeMillis() + Time.YEAR), new Date(),
+			_serviceContext);
+
+		DLFileVersion dlFileVersion = dlFileEntry.getFileVersion();
+
+		_dlFileEntryLocalService.updateStatus(
+			TestPropsValues.getUserId(), dlFileVersion.getFileVersionId(),
+			WorkflowConstants.STATUS_SCHEDULED, _serviceContext,
+			new HashMap<>());
+
+		Assert.assertFalse(
+			_dlFileEntryModelResourcePermission.contains(
+				_permissionChecker, dlFileEntry, ActionKeys.DOWNLOAD));
+		Assert.assertFalse(
+			_dlFileEntryModelResourcePermission.contains(
+				_permissionChecker, dlFileEntry, ActionKeys.VIEW));
+	}
+
 	private void _removeViewResourcePermission(
 			DLFolder dlFolder, Group group, Role guestRole)
 		throws Exception {
@@ -114,6 +175,9 @@ public class DLFileEntryModelResourcePermissionTest {
 	private static ModelResourcePermission<DLFolder>
 		_dlFolderModelResourcePermission;
 
+	@Inject
+	private DLFileEntryLocalService _dlFileEntryLocalService;
+
 	@DeleteAfterTestRun
 	private Group _group;
 
@@ -124,6 +188,8 @@ public class DLFileEntryModelResourcePermissionTest {
 
 	@Inject
 	private RoleLocalService _roleLocalService;
+
+	private ServiceContext _serviceContext;
 
 	@DeleteAfterTestRun
 	private User _user;

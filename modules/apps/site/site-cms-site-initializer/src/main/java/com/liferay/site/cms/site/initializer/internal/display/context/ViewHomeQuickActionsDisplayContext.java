@@ -190,29 +190,33 @@ public class ViewHomeQuickActionsDisplayContext {
 			_objectDefinitionService.getCMSObjectDefinitions(
 				_themeDisplay.getCompanyId(),
 				new String[] {
+					ObjectFolderConstants.EXTERNAL_REFERENCE_CODE_FILE_TYPES,
 					ObjectFolderConstants.
 						EXTERNAL_REFERENCE_CODE_CONTENT_STRUCTURES
 				});
 
-		for (int i = 0; i < objectDefinitions.size(); i++) {
-			ObjectDefinition objectDefinition = objectDefinitions.get(i);
+		for (ObjectDefinition objectDefinition : objectDefinitions) {
+			String actionIcon = _icons.get(
+				objectDefinition.getExternalReferenceCode());
+
+			if (actionIcon == null) {
+				String entryFolderERC =
+					_getObjectEntryFolderExternalReferenceCode(
+						objectDefinition);
+
+				actionIcon = _icons.getOrDefault(entryFolderERC, "forms");
+			}
 
 			quickActions.add(
 				_createQuickAction(
-					depotEntriesJSONArray, _ICONS[i], objectDefinition));
+					depotEntriesJSONArray, actionIcon, objectDefinition));
 		}
 
-		quickActions.add(
-			_createQuickAction(
-				depotEntriesJSONArray, _ICONS[_ICONS.length - 2],
-				_objectDefinitionService.
-					getObjectDefinitionByExternalReferenceCode(
-						"L_BASIC_DOCUMENT", _themeDisplay.getCompanyId())));
 		quickActions.add(
 			HashMapBuilder.<String, Object>put(
 				"action", "createVocabulary"
 			).put(
-				"icon", _ICONS[_ICONS.length - 1]
+				"icon", _icons.get("L_CMS_VOCABULARY")
 			).put(
 				"redirect",
 				PortalUtil.getLayoutFullURL(
@@ -228,12 +232,24 @@ public class ViewHomeQuickActionsDisplayContext {
 		return quickActions;
 	}
 
-	private static final String[] _ICONS = {
-		"forms", "blogs", "wiki", "documents-and-media", "vocabulary"
-	};
-
 	private static final Log _log = LogFactoryUtil.getLog(
 		ViewHomeQuickActionsDisplayContext.class);
+
+	private static final Map<String, String> _icons = HashMapBuilder.put(
+		"L_CMS_BASIC_DOCUMENT", "documents-and-media"
+	).put(
+		"L_CMS_BASIC_WEB_CONTENT", "forms"
+	).put(
+		"L_CMS_BLOG", "blogs"
+	).put(
+		"L_CMS_EXTERNAL_VIDEO", "video"
+	).put(
+		"L_CMS_VOCABULARY", "vocabulary"
+	).put(
+		"L_CONTENTS", "web-content"
+	).put(
+		"L_FILES", "document-default"
+	).build();
 
 	private final DepotEntryLocalService _depotEntryLocalService;
 	private final GroupLocalService _groupLocalService;

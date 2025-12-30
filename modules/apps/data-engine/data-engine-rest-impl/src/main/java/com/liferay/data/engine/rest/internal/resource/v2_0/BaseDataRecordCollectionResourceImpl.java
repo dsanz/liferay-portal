@@ -366,9 +366,9 @@ public abstract class BaseDataRecordCollectionResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(dataRecordCollectionId);
-		String resourceName = getPermissionCheckerResourceName(
-			dataRecordCollectionId);
 		Long resourceId = getPermissionCheckerResourceId(
+			dataRecordCollectionId);
+		String resourceName = getPermissionCheckerResourceName(
 			dataRecordCollectionId);
 
 		PermissionServiceUtil.checkPermission(
@@ -734,9 +734,9 @@ public abstract class BaseDataRecordCollectionResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(dataRecordCollectionId);
-		String resourceName = getPermissionCheckerResourceName(
-			dataRecordCollectionId);
 		Long resourceId = getPermissionCheckerResourceId(
+			dataRecordCollectionId);
+		String resourceName = getPermissionCheckerResourceName(
 			dataRecordCollectionId);
 
 		PermissionServiceUtil.checkPermission(
@@ -1162,6 +1162,9 @@ public abstract class BaseDataRecordCollectionResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

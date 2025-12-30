@@ -29,13 +29,13 @@ import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectFieldSettingConstants;
 import com.liferay.object.constants.ObjectRelationshipConstants;
 import com.liferay.object.definition.notification.term.util.ObjectDefinitionNotificationTermUtil;
-import com.liferay.object.field.builder.AssigneeObjectFieldBuilder;
 import com.liferay.object.field.builder.AttachmentObjectFieldBuilder;
 import com.liferay.object.field.builder.BooleanObjectFieldBuilder;
 import com.liferay.object.field.builder.DateObjectFieldBuilder;
 import com.liferay.object.field.builder.DateTimeObjectFieldBuilder;
 import com.liferay.object.field.builder.IntegerObjectFieldBuilder;
 import com.liferay.object.field.builder.LongIntegerObjectFieldBuilder;
+import com.liferay.object.field.builder.LongTextObjectFieldBuilder;
 import com.liferay.object.field.builder.MultiselectPicklistObjectFieldBuilder;
 import com.liferay.object.field.builder.PicklistObjectFieldBuilder;
 import com.liferay.object.field.builder.TextObjectFieldBuilder;
@@ -55,6 +55,7 @@ import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.test.util.ObjectActionTestUtil;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.petra.function.transform.TransformUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -69,10 +70,12 @@ import com.liferay.portal.kernel.model.UserConstants;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.ListTypeLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
@@ -104,6 +107,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -115,6 +119,46 @@ public class BaseNotificationTypeTest {
 
 	@BeforeClass
 	public static void setUpClass() throws Exception {
+		user1 = TestPropsValues.getUser();
+
+		dtoConverterContext = new DefaultDTOConverterContext(
+			false, Collections.emptyMap(),
+			BaseNotificationTypeTest.dtoConverterRegistry, null,
+			LocaleUtil.getDefault(), null, user1);
+
+		_originalName = PrincipalThreadLocal.getName();
+		_originalPermissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		resourcePermissionLocalService.addResourcePermission(
+			TestPropsValues.getCompanyId(), ListTypeDefinition.class.getName(),
+			ResourceConstants.SCOPE_COMPANY,
+			String.valueOf(TestPropsValues.getCompanyId()), role.getRoleId(),
+			ActionKeys.VIEW);
+
+		ListType prefixListType = _listTypeLocalService.getListType(
+			user1.getCompanyId(), "dr", ListTypeConstants.CONTACT_PREFIX);
+		ListType suffixListType = _listTypeLocalService.getListType(
+			user1.getCompanyId(), "ii", ListTypeConstants.CONTACT_SUFFIX);
+
+		user2 = userLocalService.addUser(
+			user1.getUserId(), user1.getCompanyId(), true, null, null, true,
+			null, RandomTestUtil.randomString() + "@liferay.com",
+			user1.getLocale(),
+			RandomTestUtil.randomString(
+				firstName -> !firstName.equals(user1.getFirstName())),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			prefixListType.getListTypeId(), suffixListType.getListTypeId(),
+			true, Month.FEBRUARY.getValue(), 7, 1988, null,
+			UserConstants.TYPE_REGULAR, null, null,
+			new long[] {role.getRoleId()}, null, true, null);
+
+		PermissionThreadLocal.setPermissionChecker(
+			PermissionCheckerFactoryUtil.create(user2));
+		PrincipalThreadLocal.setName(user2.getUserId());
+
 		ListTypeEntry listTypeEntry1 = ListTypeEntryUtil.createListTypeEntry(
 			RandomTestUtil.randomString(),
 			Collections.singletonMap(LocaleUtil.US, "listTypeEntry1Value"));
@@ -127,7 +171,8 @@ public class BaseNotificationTypeTest {
 				null, TestPropsValues.getUserId(),
 				Collections.singletonMap(
 					LocaleUtil.US, RandomTestUtil.randomString()),
-				false, Arrays.asList(listTypeEntry1, listTypeEntry2));
+				false, Arrays.asList(listTypeEntry1, listTypeEntry2),
+				new ServiceContext());
 
 		childObjectEntryValues = LinkedHashMapBuilder.<String, Object>put(
 			"booleanObjectField", "true"
@@ -140,9 +185,16 @@ public class BaseNotificationTypeTest {
 		).put(
 			"integerObjectField", "12345"
 		).put(
+			"localizedPicklistObjectField", ""
+		).put(
 			"localizedTextObjectField", "localizedTextObjectFieldValue"
 		).put(
 			"longIntegerObjectField", "123456789"
+		).put(
+			"multipleRecipientsLongTextObjectField",
+			StringUtil.merge(
+				new long[] {user1.getUserId(), user2.getUserId()},
+				StringPool.COMMA)
 		).put(
 			"multiselectPicklistObjectField",
 			Arrays.asList(
@@ -166,6 +218,8 @@ public class BaseNotificationTypeTest {
 					name = listTypeEntry1.getName(LocaleUtil.US);
 				}
 			}
+		).put(
+			"singleRecipientTextObjectField", String.valueOf(user2.getUserId())
 		).put(
 			"textObjectField", "textObjectFieldValue"
 		).build();
@@ -192,6 +246,11 @@ public class BaseNotificationTypeTest {
 				return simpleDateFormat.format(RandomTestUtil.nextDate());
 			}
 		).put(
+			"multipleRecipientsLongTextObjectField",
+			StringUtil.merge(
+				new long[] {user1.getUserId(), user2.getUserId()},
+				StringPool.COMMA)
+		).put(
 			"multiselectPicklistObjectField",
 			Arrays.asList(
 				new ListEntry() {
@@ -215,51 +274,26 @@ public class BaseNotificationTypeTest {
 				}
 			}
 		).put(
+			"singleRecipientTextObjectField", String.valueOf(user2.getUserId())
+		).put(
 			"systemObjectField", RandomTestUtil.randomString()
 		).put(
 			"textObjectField", RandomTestUtil.randomString()
 		).build();
+	}
 
-		user1 = TestPropsValues.getUser();
+	@AfterClass
+	public static void tearDownClass() throws Exception {
+		PermissionThreadLocal.setPermissionChecker(_originalPermissionChecker);
 
-		dtoConverterContext = new DefaultDTOConverterContext(
-			false, Collections.emptyMap(),
-			BaseNotificationTypeTest.dtoConverterRegistry, null,
-			LocaleUtil.getDefault(), null, user1);
-
-		ListType prefixListType = _listTypeLocalService.getListType(
-			user1.getCompanyId(), "dr", ListTypeConstants.CONTACT_PREFIX);
-		ListType suffixListType = _listTypeLocalService.getListType(
-			user1.getCompanyId(), "ii", ListTypeConstants.CONTACT_SUFFIX);
-
-		role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
-
-		resourcePermissionLocalService.addResourcePermission(
-			TestPropsValues.getCompanyId(), ListTypeDefinition.class.getName(),
-			ResourceConstants.SCOPE_COMPANY,
-			String.valueOf(TestPropsValues.getCompanyId()), role.getRoleId(),
-			ActionKeys.VIEW);
-
-		user2 = userLocalService.addUser(
-			user1.getUserId(), user1.getCompanyId(), true, null, null, true,
-			null, RandomTestUtil.randomString() + "@liferay.com",
-			user1.getLocale(), RandomTestUtil.randomString(),
-			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
-			prefixListType.getListTypeId(), suffixListType.getListTypeId(),
-			true, Month.FEBRUARY.getValue(), 7, 1988, null,
-			UserConstants.TYPE_REGULAR, null, null,
-			new long[] {role.getRoleId()}, null, true, null);
-
-		PermissionThreadLocal.setPermissionChecker(
-			PermissionCheckerFactoryUtil.create(user2));
-		PrincipalThreadLocal.setName(user2.getUserId());
+		PrincipalThreadLocal.setName(_originalName);
 	}
 
 	@Before
 	public void setUp() throws Exception {
 		childObjectDefinition =
 			objectDefinitionLocalService.addCustomObjectDefinition(
-				user1.getUserId(), 0, null, false, true, false, true, true,
+				null, user1.getUserId(), 0, null, false, true, false, true,
 				false, false, false, false, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionTestUtil.getRandomName(), null, null,
@@ -340,6 +374,13 @@ public class BaseNotificationTypeTest {
 					).name(
 						"longIntegerObjectField"
 					).build(),
+					new LongTextObjectFieldBuilder(
+					).labelMap(
+						LocalizedMapUtil.getLocalizedMap(
+							RandomTestUtil.randomString())
+					).name(
+						"multipleRecipientsLongTextObjectField"
+					).build(),
 					new MultiselectPicklistObjectFieldBuilder(
 					).labelMap(
 						LocalizedMapUtil.getLocalizedMap(
@@ -348,6 +389,17 @@ public class BaseNotificationTypeTest {
 						"multiselectPicklistObjectField"
 					).listTypeDefinitionId(
 						_listTypeDefinition.getListTypeDefinitionId()
+					).build(),
+					new PicklistObjectFieldBuilder(
+					).labelMap(
+						LocalizedMapUtil.getLocalizedMap(
+							RandomTestUtil.randomString())
+					).listTypeDefinitionId(
+						_listTypeDefinition.getListTypeDefinitionId()
+					).localized(
+						true
+					).name(
+						"localizedPicklistObjectField"
 					).build(),
 					new PicklistObjectFieldBuilder(
 					).labelMap(
@@ -379,9 +431,16 @@ public class BaseNotificationTypeTest {
 						LocalizedMapUtil.getLocalizedMap(
 							RandomTestUtil.randomString())
 					).name(
+						"singleRecipientTextObjectField"
+					).build(),
+					new TextObjectFieldBuilder(
+					).labelMap(
+						LocalizedMapUtil.getLocalizedMap(
+							RandomTestUtil.randomString())
+					).name(
 						"textObjectField"
 					).build()),
-				Collections.emptyList());
+				Collections.emptyList(), new ServiceContext());
 
 		childObjectDefinition =
 			objectDefinitionLocalService.publishCustomObjectDefinition(
@@ -390,7 +449,7 @@ public class BaseNotificationTypeTest {
 
 		parentObjectDefinition =
 			objectDefinitionLocalService.addCustomObjectDefinition(
-				user1.getUserId(), 0, null, false, true, false, true, false,
+				null, user1.getUserId(), 0, null, false, true, false, true,
 				false, false, false, false, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				"ParentObjectDefinition", null, null,
@@ -421,6 +480,13 @@ public class BaseNotificationTypeTest {
 								ObjectFieldSettingConstants.
 									VALUE_USE_INPUT_AS_ENTERED
 							).build())
+					).build(),
+					new LongTextObjectFieldBuilder(
+					).labelMap(
+						LocalizedMapUtil.getLocalizedMap(
+							RandomTestUtil.randomString())
+					).name(
+						"multipleRecipientsLongTextObjectField"
 					).build(),
 					new MultiselectPicklistObjectFieldBuilder(
 					).labelMap(
@@ -456,11 +522,18 @@ public class BaseNotificationTypeTest {
 						LocalizedMapUtil.getLocalizedMap(
 							RandomTestUtil.randomString())
 					).name(
+						"singleRecipientTextObjectField"
+					).build(),
+					new TextObjectFieldBuilder(
+					).labelMap(
+						LocalizedMapUtil.getLocalizedMap(
+							RandomTestUtil.randomString())
+					).name(
 						"textObjectField"
 					).objectFieldSettings(
 						Collections.emptyList()
 					).build()),
-				Collections.emptyList());
+				Collections.emptyList(), new ServiceContext());
 
 		parentObjectDefinition =
 			objectDefinitionLocalService.publishCustomObjectDefinition(
@@ -546,28 +619,10 @@ public class BaseNotificationTypeTest {
 			ObjectActionKeys.ADD_OBJECT_ENTRY);
 	}
 
-	protected ObjectDefinition
-			addObjectDefinitionWithNotificationTemplateObjectAction(
-				List<NotificationRecipientSetting>
-					notificationRecipientSettings,
-				String subject, String type)
+	protected void addNotificationTemplateObjectAction(
+			List<NotificationRecipientSetting> notificationRecipientSettings,
+			ObjectDefinition objectDefinition, String subject, String type)
 		throws Exception {
-
-		ObjectDefinition objectDefinition =
-			ObjectDefinitionTestUtil.publishObjectDefinition(
-				Arrays.asList(
-					new AssigneeObjectFieldBuilder(
-					).labelMap(
-						RandomTestUtil.randomLocaleStringMap()
-					).name(
-						"assignee"
-					).build(),
-					new TextObjectFieldBuilder(
-					).labelMap(
-						RandomTestUtil.randomLocaleStringMap()
-					).name(
-						"textObjectField"
-					).build()));
 
 		resourcePermissionLocalService.addResourcePermission(
 			TestPropsValues.getCompanyId(), objectDefinition.getResourceName(),
@@ -593,8 +648,6 @@ public class BaseNotificationTypeTest {
 			notificationTemplateLocalService.addNotificationTemplate(
 				notificationContext),
 			objectDefinition);
-
-		return objectDefinition;
 	}
 
 	protected void addViewResourcePermission(
@@ -689,6 +742,16 @@ public class BaseNotificationTypeTest {
 			objectAction.getObjectActionId());
 	}
 
+	protected String getObjectFieldTermName(
+		ObjectDefinition objectDefinition, String objectFieldName) {
+
+		return StringBundler.concat(
+			"[%",
+			StringUtil.toUpperCase(
+				objectDefinition.getShortName() + "_" + objectFieldName),
+			"%]");
+	}
+
 	protected String getObjectRelationshipObjectField2Name()
 		throws PortalException {
 
@@ -726,15 +789,20 @@ public class BaseNotificationTypeTest {
 				getTermName("dateTimeObjectField"),
 				getTermName("emailTextObjectField"),
 				getTermName("integerObjectField"),
+				getTermName("localizedPicklistObjectField"),
 				getTermName("localizedTextObjectField"),
 				getTermName("longIntegerObjectField"),
+				getTermName("multipleRecipientsLongTextObjectField"),
 				getTermName("multiselectPicklistObjectField"),
 				getTermName("picklistObjectField"),
+				getTermName("singleRecipientTextObjectField"),
 				getTermName("textObjectField"),
 				getTermName(true, "dateObjectField"),
 				getTermName(true, "dateTimeObjectField"),
+				getTermName(true, "multipleRecipientsLongTextObjectField"),
 				getTermName(true, "multiselectPicklistObjectField"),
 				getTermName(true, "picklistObjectField"),
+				getTermName(true, "singleRecipientTextObjectField"),
 				getTermName(true, "systemObjectField"),
 				getTermName(true, "textObjectField")));
 	}
@@ -881,6 +949,9 @@ public class BaseNotificationTypeTest {
 
 	@Inject
 	private static ListTypeLocalService _listTypeLocalService;
+
+	private static String _originalName;
+	private static PermissionChecker _originalPermissionChecker;
 
 	private Map<String, Object> _childAuthorTermValues;
 	private Map<String, Object> _generalTermValues;

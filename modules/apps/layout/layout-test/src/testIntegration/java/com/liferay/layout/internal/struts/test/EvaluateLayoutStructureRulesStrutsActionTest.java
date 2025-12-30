@@ -106,7 +106,8 @@ public class EvaluateLayoutStructureRulesStrutsActionTest {
 				ObjectFieldUtil.createObjectField(
 					ObjectFieldConstants.BUSINESS_TYPE_BOOLEAN,
 					ObjectFieldConstants.DB_TYPE_BOOLEAN,
-					RandomTestUtil.randomString(), "boolean")));
+					RandomTestUtil.randomString(), "boolean")),
+			false);
 	}
 
 	@Test
@@ -303,7 +304,8 @@ public class EvaluateLayoutStructureRulesStrutsActionTest {
 			ContentLayoutTestUtil.addFragmentEntryLinkToLayout(
 				editableValues, fragmentEntry.getCss(),
 				fragmentEntry.getConfiguration(),
-				fragmentEntry.getFragmentEntryId(), fragmentEntry.getHtml(),
+				fragmentEntry.getExternalReferenceCode(),
+				fragmentEntry.getScopeERC(), fragmentEntry.getHtml(),
 				fragmentEntry.getJs(), _draftLayout,
 				fragmentEntry.getFragmentEntryKey(), fragmentEntry.getType(),
 				parentItemId, position, segmentsExperienceId);

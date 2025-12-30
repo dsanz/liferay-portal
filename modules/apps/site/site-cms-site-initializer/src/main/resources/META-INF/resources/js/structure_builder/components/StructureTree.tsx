@@ -24,7 +24,6 @@ import selectInvalids from '../selectors/selectInvalids';
 import selectSelection from '../selectors/selectSelection';
 import selectStructure from '../selectors/selectStructure';
 import selectStructureChildren from '../selectors/selectStructureChildren';
-import selectStructureError from '../selectors/selectStructureError';
 import selectStructureLocalizedLabel from '../selectors/selectStructureLocalizedLabel';
 import selectStructureUuid from '../selectors/selectStructureUuid';
 import {
@@ -37,6 +36,7 @@ import {Uuid} from '../types/Uuid';
 import {FIELD_TYPE_ICON, FieldType} from '../utils/field';
 import isLocked from '../utils/isLocked';
 import isReferenced from '../utils/isReferenced';
+import AddChildDropdown from './AddChildDropdown';
 
 type TreeItem = {
 	actions?: Array<{
@@ -67,7 +67,6 @@ export default function StructureTree({search}: {search: string}) {
 	const selection = useSelector(selectSelection);
 	const structureLabel = useSelector(selectStructureLocalizedLabel);
 	const structureUuid = useSelector(selectStructureUuid);
-	const structureError = useSelector(selectStructureError);
 	const structure = useSelector(selectStructure);
 
 	const {load: loadObjectDefinitions, status: objectDefinitionsStatus} =
@@ -241,8 +240,7 @@ export default function StructureTree({search}: {search: string}) {
 							<></>
 						)}
 
-						{item.invalid ||
-						(item.id === structureUuid && structureError) ? (
+						{item.invalid ? (
 							<ClayIcon
 								className="ml-2 text-danger"
 								data-title={Liferay.Language.get(
@@ -259,25 +257,36 @@ export default function StructureTree({search}: {search: string}) {
 						{(childItem, selectedKeys) => (
 							<ClayTreeView.Item
 								actions={
-									childItem.actions?.length ? (
-										<ClayDropDownWithItems
-											items={childItem.actions}
-											trigger={
-												<ClayButtonWithIcon
-													aria-label={Liferay.Language.get(
-														'field-options'
-													)}
-													borderless
-													disabled={
-														selection.length > 1
-													}
-													displayType="unstyled"
-													size="sm"
-													symbol="ellipsis-v"
-												/>
-											}
-										/>
-									) : undefined
+									<>
+										{childItem.type ===
+										'repeatable-group' ? (
+											<AddChildDropdown
+												className="component-action quick-action-item"
+												displayType="unstyled"
+												parentUuid={childItem.id}
+											/>
+										) : null}
+
+										{childItem.actions?.length ? (
+											<ClayDropDownWithItems
+												items={childItem.actions}
+												trigger={
+													<ClayButtonWithIcon
+														aria-label={Liferay.Language.get(
+															'field-options'
+														)}
+														borderless
+														disabled={
+															selection.length > 1
+														}
+														displayType="unstyled"
+														size="sm"
+														symbol="ellipsis-v"
+													/>
+												}
+											/>
+										) : undefined}
+									</>
 								}
 								className={classNames({
 									active: selectedKeys.has(childItem.id),

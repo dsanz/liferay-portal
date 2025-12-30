@@ -123,7 +123,8 @@ public class DisplayPagesImporterTest {
 						ObjectFieldUtil.createObjectField(
 							ObjectFieldConstants.BUSINESS_TYPE_TEXT,
 							ObjectFieldConstants.DB_TYPE_STRING, "First Name",
-							"firstName")));
+							"firstName")),
+					false);
 
 			LayoutPageTemplateEntry layoutPageTemplateEntry =
 				_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
@@ -221,7 +222,8 @@ public class DisplayPagesImporterTest {
 						ObjectFieldUtil.createObjectField(
 							ObjectFieldConstants.BUSINESS_TYPE_TEXT,
 							ObjectFieldConstants.DB_TYPE_STRING, "First Name",
-							"firstName")));
+							"firstName")),
+					false);
 
 			LayoutPageTemplateEntry layoutPageTemplateEntry =
 				_layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
@@ -248,8 +250,9 @@ public class DisplayPagesImporterTest {
 			ContentLayoutTestUtil.addFragmentEntryLinkToLayout(
 				_fragmentEntryLinkLocalService.addFragmentEntryLink(
 					null, TestPropsValues.getUserId(), draftLayout.getGroupId(),
-					0, 0, segmentsExperienceId, draftLayout.getPlid(),
-					StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
+					null, null, null, segmentsExperienceId,
+					draftLayout.getPlid(), StringPool.BLANK, StringPool.BLANK,
+					StringPool.BLANK,
 					JSONFactoryUtil.toString(
 						fragmentRenderer.getConfigurationJSONObject(
 							new DefaultFragmentRendererContext(null))),

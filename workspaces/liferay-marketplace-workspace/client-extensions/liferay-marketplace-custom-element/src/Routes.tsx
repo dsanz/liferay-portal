@@ -18,9 +18,11 @@ const lazyRoutes = {
 	'finance-dashboard': React.lazy(
 		() => import('./pages/FinanceDashboard/FinanceDashboardRouter')
 	),
-	'get-app': React.lazy(() => import('./pages/GetApp/GetAppRouter')),
 	'license-agreement': React.lazy(
 		() => import('./pages/LicenseAgreementPage')
+	),
+	'new-account-trigger': React.lazy(
+		() => import('./pages/NewAccount/NewAccountButton')
 	),
 	'next-steps': React.lazy(() => import('./pages/NextSteps')),
 	'oauth2-authorize': React.lazy(
@@ -61,7 +63,13 @@ export default function Routes({path, properties}: AppRoutesProps) {
 
 	return (
 		<Suspense
-			fallback={<Loading displayType="secondary" shape="squares" />}
+			fallback={
+				<Loading
+					className="mt-4"
+					displayType="secondary"
+					shape="squares"
+				/>
+			}
 		>
 			<Route properties={properties} />
 		</Suspense>

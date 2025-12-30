@@ -38,10 +38,12 @@ const fetchUsageAssetData = async ({
 	});
 
 	const {data, error} = await ApiHelper.post<BulkActionItemResponse>(
-		`/o/headless-cms/v1.0/bulk-action-item/preview${queryString}`,
+		`/o/bulk/v1.0/bulk-action-item/preview${queryString}`,
 		{
 			bulkActionItems,
-			selectAll,
+			selectionScope: {
+				selectAll,
+			},
 			type: 'DeleteBulkAction',
 		}
 	);
@@ -99,10 +101,11 @@ const openAssetUsageListModal = async ({
 
 	const firstItem = data?.items[0].attributes;
 
-	if (
-		!!firstItem?.usages ||
-		(firstItem?.type === 'FOLDER' && !!firstItem?.itemsCount)
-	) {
+	const folderThatContainsUsages = data?.items
+		.filter((item) => item.attributes.type === 'FOLDER')
+		.some(({attributes}) => (attributes?.itemsCount ?? 0) > 0);
+
+	if (!!firstItem?.usages || folderThatContainsUsages) {
 		openModal({
 			contentComponent: ({closeModal}: {closeModal: () => void}) => (
 				<AssetUsageListModal

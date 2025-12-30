@@ -3,6 +3,10 @@
 		"pageElements": [
 			{
 				"definition": {
+					"cssClasses": [
+						"p-3",
+						"p-lg-4"
+					],
 					"indexed": true,
 					"layout": {
 					}
@@ -27,10 +31,7 @@
 									"fragmentFields": [
 									],
 									"fragmentStyle": {
-										"marginBottom": "3",
-										"marginLeft": "3",
-										"marginRight": "3",
-										"marginTop": "3"
+										"marginBottom": "3"
 									},
 									"indexed": true
 								},
@@ -105,12 +106,7 @@
 												"borderColor": "rgb(241, 242, 245)",
 												"borderRadius": "10px",
 												"borderWidth": "2px",
-												"marginBottom": "3",
-												"marginLeft": "3",
-												"marginTop": "3",
-												"paddingLeft": "3",
-												"paddingRight": "3",
-												"paddingTop": "3"
+												"marginBottom": "3"
 											},
 											"indexed": true
 										},
@@ -155,13 +151,7 @@
 											"fragmentStyle": {
 												"borderColor": "rgb(241, 242, 245)",
 												"borderRadius": "10px",
-												"borderWidth": "2px",
-												"marginBottom": "3",
-												"marginRight": "3",
-												"marginTop": "3",
-												"paddingLeft": "1",
-												"paddingRight": "1",
-												"paddingTop": "3"
+												"borderWidth": "2px"
 											},
 											"indexed": true
 										},

@@ -171,9 +171,7 @@ definition {
 
 		CommerceEntry.gotoMenuTab(menuTab = "Visibility");
 
-		for (var nameList : list "Channels,Account Groups") {
-			CommerceEntry.assertCheckedSpecificToggle(name = ${nameList});
-		}
+		CommerceEntry.assertCheckedSpecificToggle(name = "Channels");
 
 		CommerceEntry.gotoMenuTab(menuTab = "Product Relations");
 

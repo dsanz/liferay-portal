@@ -141,7 +141,7 @@ export default function UpperToolbar({
 			);
 		}
 		else {
-			const xmlDefinition = currentEditor.getData();
+			const xmlDefinition = currentEditor.getValue();
 
 			if (XMLUtil.validateDefinition(xmlDefinition)) {
 				const deserializeUtil = new DeserializeUtil();
@@ -532,7 +532,7 @@ export default function UpperToolbar({
 									onClick={() => {
 										if (
 											XMLUtil.validateDefinition(
-												currentEditor.getData()
+												currentEditor.getValue()
 											)
 										) {
 											setSourceView(false);
@@ -565,6 +565,7 @@ export default function UpperToolbar({
 				<ClayAlert.ToastContainer>
 					<ClayAlert
 						autoClose={5000}
+						closeButtonAriaLabel={Liferay.Language.get('close')}
 						displayType={alertType}
 						onClose={() => resetAlert()}
 						title={

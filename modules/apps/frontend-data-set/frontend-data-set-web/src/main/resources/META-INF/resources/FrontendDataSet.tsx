@@ -12,6 +12,7 @@ import {openToast} from 'frontend-js-components-web';
 import {
 	ClientExtensionDefinition,
 	ClientExtensionResolution,
+	deepClone,
 	fetch,
 	getObjectValueFromPath,
 	loadClientExtensions,
@@ -83,7 +84,7 @@ import {
 	VisibleFieldNames,
 } from './utils/types';
 import useConfigInURL, {useUpdateConfig} from './utils/useConfigInURL';
-import ViewsContext from './views/ViewsContext';
+import ViewsContext, {ISnapshot} from './views/ViewsContext';
 
 // @ts-ignore
 
@@ -103,19 +104,19 @@ const FrontendDataSetContent = ({
 	apiURL,
 	appURL,
 	bulkActions = [],
-	configInURLSettings = EConfigInURLBehavior.OFF,
+	configInURLBehavior = EConfigInURLBehavior.PUSH,
 	creationMenu: initialCreationMenu,
 	currentURL,
 	customDataRenderers,
 	customRenderers,
-	customViews = '{}',
-	customViewsEnabled,
 	defaultSelectedItems,
 	emptyState,
 	filters: initialFilters,
+	filtersGroups,
 	formId,
 	formName,
 	header,
+	hideManagementBarInEmptyState = false,
 	id,
 	infoPanelComponent,
 	inlineAddingSettings,
@@ -142,6 +143,8 @@ const FrontendDataSetContent = ({
 	showSearch = true,
 	showSelectAll = false,
 	sidePanelId,
+	snapshots = [],
+	snapshotsEnabled,
 	sorts: sortsProp = [],
 	style = 'default',
 	uniformActionsDisplay,
@@ -151,7 +154,7 @@ const FrontendDataSetContent = ({
 	const dataSetWrapperRef: RefObject<HTMLDivElement> = useRef(null);
 
 	const [getActiveSorts, updateActiveSorts] = useConfigInURL({
-		configInURLSettings,
+		configInURLBehavior,
 		configReader: (sorts: Array<TSort> | undefined) => {
 			return sorts;
 		},
@@ -179,7 +182,7 @@ const FrontendDataSetContent = ({
 	});
 
 	const [getFilters, updateFilters] = useConfigInURL({
-		configInURLSettings,
+		configInURLBehavior,
 		configReader: (filters: Array<any> | undefined) => {
 			return filters;
 		},
@@ -234,7 +237,7 @@ const FrontendDataSetContent = ({
 				value: 1,
 			},
 		],
-		configInURLSettings,
+		configInURLBehavior,
 		configReader: (delta: number | undefined) => {
 			if (!delta || isNaN(delta) || delta < 1) {
 				return undefined;
@@ -250,7 +253,7 @@ const FrontendDataSetContent = ({
 	});
 
 	const [getPageNumber, updatePageNumber] = useConfigInURL({
-		configInURLSettings,
+		configInURLBehavior,
 		configReader: (pageNumber: number | undefined) => {
 			if (!pageNumber || isNaN(pageNumber) || pageNumber < 1) {
 				return 1;
@@ -266,7 +269,7 @@ const FrontendDataSetContent = ({
 	});
 
 	const [getSearchParam, updateSearchParam] = useConfigInURL({
-		configInURLSettings,
+		configInURLBehavior,
 
 		configReader: (searchParam: string | undefined) => {
 			if (!searchParam) {
@@ -290,7 +293,7 @@ const FrontendDataSetContent = ({
 	});
 
 	const [getView, updateView] = useConfigInURL({
-		configInURLSettings,
+		configInURLBehavior,
 		configReader: (viewName: string | undefined) => {
 			const view = views.find(({name}) => name === viewName);
 
@@ -308,7 +311,7 @@ const FrontendDataSetContent = ({
 	});
 
 	const [getVisibleFields, updateVisibleFields] = useConfigInURL({
-		configInURLSettings,
+		configInURLBehavior,
 		configReader: (visibleFieldNames: VisibleFieldNames | undefined) => {
 			const view = views.find(
 				({name}) => name && name.toLowerCase().includes('table')
@@ -351,10 +354,18 @@ const FrontendDataSetContent = ({
 	});
 
 	const updateConfig = useUpdateConfig({
-		configInURLSettings,
+		configInURLBehavior,
 		id,
 	});
 
+	const [cellClientExtensionsLoaded, setCellClientExtensionsLoaded] =
+		useState(false);
+	const [cellClientExtensionsLoading, setCellClientExtensionsLoading] =
+		useState(false);
+	const [filterClientExtensionsLoaded, setFilterClientExtensionsLoaded] =
+		useState(false);
+	const [filterClientExtensionsLoading, setFilterClientExtensionsLoading] =
+		useState(false);
 	const [componentLoading, setComponentLoading] = useState(false);
 	const [creationMenu, setCreationMenu] = useState(initialCreationMenu);
 	const [dataLoading, setDataLoading] = useState(!!apiURL);
@@ -422,6 +433,7 @@ const FrontendDataSetContent = ({
 						filter.type === 'selection' && filter.items?.length
 							? {
 									...filter.selectedData,
+									exclude: newFilter.selectedData.exclude,
 									selectedItems:
 										newFilter.selectedData.selectedItems.map(
 											(newItem: any) => {
@@ -496,6 +508,13 @@ const FrontendDataSetContent = ({
 	};
 
 	const getInitialViewsState = () => {
+		const defaultSnapshot: any = {
+			modifiedFields: {},
+			paginationDelta:
+				showPagination &&
+				(pagination?.initialDelta || DEFAULT_PAGINATION_DELTA),
+		};
+
 		const customInternalViews =
 			customRenderers?.views?.map((customRenderer: TRenderer) => ({
 
@@ -518,9 +537,14 @@ const FrontendDataSetContent = ({
 			views[0] ||
 			(customInternalViews?.length && customInternalViews[0]);
 
+		defaultSnapshot.activeView = {
+			component: getViewComponent(initialActiveView as IView),
+			...initialActiveView,
+		};
+
 		let initialVisibleFieldNames = {};
 
-		if (activeViewSettings) {
+		if (!Liferay.FeatureFlags['LPD-10683'] && activeViewSettings) {
 			const {name: activeViewName, visibleFieldNames} =
 				JSON.parse(activeViewSettings);
 
@@ -540,6 +564,8 @@ const FrontendDataSetContent = ({
 		}
 
 		const visibleFieldNames = getVisibleFields();
+
+		defaultSnapshot.visibleFieldNames = initialVisibleFieldNames;
 
 		let saveVisibleFieldNames = false;
 
@@ -572,29 +598,29 @@ const FrontendDataSetContent = ({
 			...initialActiveView,
 		};
 
+		defaultSnapshot.filters = initialFilters
+			? initialFilters.map((filter) => {
+					const preloadedData = deepClone(filter.preloadedData);
+					if (preloadedData) {
+						filter = activateFilter({
+							filter,
+							selectedData: preloadedData,
+						});
+					}
+
+					return filter;
+				})
+			: [];
+
 		const filters = initialFilters
 			? updateFilterActivation({
 					newFilters: getFilters(),
-					oldFilters: initialFilters.map((filter) => {
-						const preloadedData = filter.preloadedData;
-
-						if (preloadedData) {
-							filter = activateFilter({
-								filter,
-								selectedData: preloadedData,
-							});
-						}
-
-						return filter;
-					}),
+					oldFilters: deepClone(defaultSnapshot.filters),
 				})
 			: [];
 
 		const paginationDelta =
-			showPagination &&
-			(getDelta() ||
-				pagination?.initialDelta ||
-				DEFAULT_PAGINATION_DELTA);
+			showPagination && (getDelta() || defaultSnapshot.paginationDelta);
 
 		const pageNumber =
 			getPageNumber() ||
@@ -602,6 +628,8 @@ const FrontendDataSetContent = ({
 			DEFAULT_PAGINATION_PAGE_NUMBER;
 
 		const searchParam = getSearchParam();
+
+		defaultSnapshot.sorts = sortsProp;
 
 		const sorts = updateSortsActivation({
 			newSorts: getActiveSorts(),
@@ -635,22 +663,22 @@ const FrontendDataSetContent = ({
 			});
 		}
 
+		const parsedSnapshots = snapshots?.map((snapshot: ISnapshot) => ({
+			...snapshot,
+			configuration: JSON.parse(snapshot.configuration),
+		}));
+
 		return {
 			activeView,
-			customViews: customViews && JSON.parse(customViews),
-			customViewsEnabled,
-			defaultView: {
-				activeView,
-				filters,
-				paginationDelta,
-				sorts,
-				visibleFieldNames: initialVisibleFieldNames,
-			},
+			defaultSnapshot,
 			filters,
+			filtersGroups,
 			modifiedFields: {},
 			pageNumber,
 			paginationDelta,
 			searchParam,
+			snapshots: parsedSnapshots,
+			snapshotsEnabled,
 			sorts,
 			views: [...views, ...customInternalViews],
 			visibleFieldNames: initialVisibleFieldNames,
@@ -790,20 +818,83 @@ const FrontendDataSetContent = ({
 	);
 
 	useEffect(() => {
+		const filterClientExtensionDefinitions = filters
+			? filters
+					.filter((filter: any) => filter.clientExtensionFilterURL)
+					.map((filter: any) => ({
+						context: filter,
+						importDeclaration: `default from ${filter.clientExtensionFilterURL}`,
+					}))
+			: [];
+
+		if (
+			!filterClientExtensionsLoaded &&
+			filterClientExtensionDefinitions.length
+		) {
+			setFilterClientExtensionsLoading(true);
+		}
+		else {
+			setFilterClientExtensionsLoaded(true);
+		}
+
+		const cellClientExtensionDefinitions = views.reduce(
+			(
+				clientExtensionDefinitions: Array<
+					ClientExtensionDefinition<any>
+				>,
+				view: IView
+			) => {
+				if (view.schema && 'fields' in view.schema) {
+					if (!view.schema.fields.length) {
+						return clientExtensionDefinitions;
+					}
+
+					const clientExtensionFields = view.schema.fields.filter(
+						(field: IField) =>
+							!!field.contentRendererClientExtension
+					);
+
+					for (const field of clientExtensionFields) {
+						clientExtensionDefinitions.push({
+							context: field,
+							importDeclaration: field.contentRendererModuleURL,
+						});
+					}
+
+					return clientExtensionDefinitions;
+				}
+				else {
+					return [];
+				}
+			},
+			[]
+		);
+
+		if (
+			!cellClientExtensionsLoaded &&
+			cellClientExtensionDefinitions.length
+		) {
+			setCellClientExtensionsLoading(true);
+		}
+		else {
+			setCellClientExtensionsLoaded(true);
+		}
+
+		if (
+			(!filterClientExtensionDefinitions.length &&
+				!cellClientExtensionDefinitions.length) ||
+			(cellClientExtensionsLoaded && filterClientExtensionsLoaded)
+		) {
+			return;
+		}
+
 		loadClientExtensions([
 			{
-				clientExtensionDefinitions: initialFilters
-					? initialFilters
-							.filter((filter) => filter.clientExtensionFilterURL)
-							.map((filter) => ({
-								context: filter,
-								importDeclaration: `default from ${filter.clientExtensionFilterURL}`,
-							}))
-					: [],
+				clientExtensionDefinitions: filterClientExtensionDefinitions,
 				onLoad: (
 					resolutions: Array<ClientExtensionResolution<any>>
 				) => {
-					const newFilters = initialFilters?.map((filter) => {
+					const newFilters = filters?.map((filter: any) => {
 						const resolution = resolutions.find(
 							(resolution: ClientExtensionResolution<any>) =>
 								resolution.context.clientExtensionFilterURL ===
@@ -829,44 +920,17 @@ const FrontendDataSetContent = ({
 						return filter;
 					});
 
-					viewsDispatch(updateFilters(newFilters || []));
+					viewsDispatch({
+						type: 'UPDATE_FILTERS_CX',
+						value: newFilters,
+					});
+
+					setFilterClientExtensionsLoading(false);
+					setFilterClientExtensionsLoaded(true);
 				},
 			},
 			{
-				clientExtensionDefinitions: views.reduce(
-					(
-						clientExtensionDefinitions: Array<
-							ClientExtensionDefinition<any>
-						>,
-						view: IView
-					) => {
-						if (view.schema && 'fields' in view.schema) {
-							if (!view.schema.fields.length) {
-								return clientExtensionDefinitions;
-							}
-
-							const clientExtensionFields =
-								view.schema.fields.filter(
-									(field: IField) =>
-										!!field.contentRendererClientExtension
-								);
-
-							for (const field of clientExtensionFields) {
-								clientExtensionDefinitions.push({
-									context: field,
-									importDeclaration:
-										field.contentRendererModuleURL,
-								});
-							}
-
-							return clientExtensionDefinitions;
-						}
-						else {
-							return [];
-						}
-					},
-					[]
-				),
+				clientExtensionDefinitions: cellClientExtensionDefinitions,
 				onLoad: (
 					resolutions: Array<ClientExtensionResolution<any>>
 				) => {
@@ -893,10 +957,19 @@ const FrontendDataSetContent = ({
 							},
 						});
 					});
+
+					setCellClientExtensionsLoading(false);
+					setCellClientExtensionsLoaded(true);
 				},
 			},
 		]);
-	}, [initialFilters, views, updateFilters, viewsDispatch]);
+	}, [
+		cellClientExtensionsLoaded,
+		filterClientExtensionsLoaded,
+		filters,
+		views,
+		viewsDispatch,
+	]);
 
 	useEffect(() => {
 		if (itemsProp) {
@@ -1015,7 +1088,7 @@ const FrontendDataSetContent = ({
 				type: EViewsActionTypes.UPDATE_FILTERS,
 				value: updateFilterActivation({
 					newFilters: activeFilters,
-					oldFilters: filters,
+					oldFilters: deepClone(filters),
 				}),
 			});
 		}
@@ -1291,7 +1364,7 @@ const FrontendDataSetContent = ({
 		Liferay.on(EVENTS.UPDATE_DISPLAY, handleRefreshFromTheOutside);
 
 		const registerPopstateEvent =
-			configInURLSettings === EConfigInURLBehavior.PUSH &&
+			configInURLBehavior === EConfigInURLBehavior.PUSH &&
 			(!Liferay.SPA || !Liferay.SPA.app);
 
 		if (registerPopstateEvent) {
@@ -1308,9 +1381,21 @@ const FrontendDataSetContent = ({
 				window.removeEventListener('popstate', handlePopState);
 			}
 		};
-	}, [configInURLSettings, handlePopState, id, refreshData]);
+	}, [configInURLBehavior, handlePopState, id, refreshData]);
 
-	const managementBar = showManagementBar ? (
+	const hasSearch = !!searchParam;
+	const hasActiveFilters = filters
+		? filters.some((filter: any) => filter.active)
+		: false;
+
+	const showManagementToolbar =
+		showManagementBar &&
+		(!!items.length ||
+			hasSearch ||
+			hasActiveFilters ||
+			!hideManagementBarInEmptyState);
+
+	const managementBar = showManagementToolbar ? (
 		<div className="management-bar-wrapper">
 			<ManagementBar
 				bulkActions={bulkActions}
@@ -1564,6 +1649,55 @@ const FrontendDataSetContent = ({
 		});
 	}
 
+	const handleSnapshotChange = ({defaultSnapshot, snapshots, value}: any) => {
+		if (value === 'DEFAULT_VIEW') {
+			updateConfig({
+				[EConfigInURLKeys.ACTIVE_FILTERS]: defaultSnapshot.filters,
+				[EConfigInURLKeys.ACTIVE_SORTS]: defaultSnapshot.sorts,
+				[EConfigInURLKeys.DELTA]: {...defaultSnapshot.paginationDelta},
+				[EConfigInURLKeys.VIEW_NAME]: {
+					...defaultSnapshot.activeView.name,
+				},
+				[EConfigInURLKeys.VISIBLE_FIELDS]: {
+					...defaultSnapshot.visibleFieldNames,
+				},
+			});
+
+			viewsDispatch({
+				type: EViewsActionTypes.RESET_TO_DEFAULT_SNAPSHOT,
+			});
+		}
+		else {
+			const snapshot = deepClone(
+				snapshots.find((view: ISnapshot) => view.erc === value)
+			);
+
+			updateConfig({
+				[EConfigInURLKeys.ACTIVE_FILTERS]: updateFilterActivation({
+					newFilters: snapshot.configuration.filters.filter(
+						(filter: any) => filter.active
+					),
+					oldFilters: deepClone(filters),
+				}),
+				[EConfigInURLKeys.ACTIVE_SORTS]: updateSortsActivation({
+					newSorts: snapshot.configuration.sorts,
+					oldSorts: sorts,
+				}),
+				[EConfigInURLKeys.DELTA]:
+					snapshot.configuration.paginationDelta,
+				[EConfigInURLKeys.VIEW_NAME]:
+					snapshot.configuration.activeView.name,
+				[EConfigInURLKeys.VISIBLE_FIELDS]:
+					snapshot.configuration.visibleFieldNames,
+			});
+
+			viewsDispatch({
+				type: EViewsActionTypes.UPDATE_ACTIVE_SNAPSHOT,
+				value: snapshot,
+			});
+		}
+	};
+
 	function toggleItemInlineEdit(itemKey: any) {
 		setItemsChanges(({[itemKey]: foundItem, ...itemsChanges}) => {
 			return foundItem
@@ -1706,6 +1840,8 @@ const FrontendDataSetContent = ({
 				executeAsyncItemAction,
 				formId,
 				formName,
+				handleSnapshotChange,
+				hideManagementBarInEmptyState,
 				highlightItems,
 				highlightedItemsValue,
 				id,
@@ -1759,72 +1895,77 @@ const FrontendDataSetContent = ({
 					<DragLayer dataSetWrapperRef={dataSetWrapperRef} />
 				)}
 
-				<div className="fds" ref={fdsRef}>
-					<Modal
-						id={dataSetSupportModalIdRef.current}
-						onClose={refreshData}
-					/>
-
-					{!sidePanelId && (
-						<SidePanel
-							id={dataSetSupportSidePanelIdRef.current}
-							onAfterSubmit={refreshData}
+				{filterClientExtensionsLoading ||
+				cellClientExtensionsLoading ? (
+					<ClayLoadingIndicator className="my-7" />
+				) : (
+					<div className="fds" ref={fdsRef}>
+						<Modal
+							id={dataSetSupportModalIdRef.current}
+							onClose={refreshData}
 						/>
-					)}
 
-					{infoPanelComponent && (
-						<InfoPanel
-							className="fds-info-panel"
-							component={infoPanelComponent}
-							containerRef={fdsRef}
-							id={dataSetSupportInfoPanelIdRef.current}
-							onOpenChange={setInfoPanelOpen}
-							open={infoPanelOpen}
-						/>
-					)}
-
-					<div
-						className={classNames(
-							`data-set-wrapper visualization-mode-${activeView.contentRenderer}`,
-							className,
-							selectable
-						)}
-						data-testid={`visualization-mode-${activeView.name}`}
-						ref={dataSetWrapperRef}
-					>
-						{style === 'default' && (
-							<div className="data-set data-set-inline">
-								{managementBar}
-
-								{view}
-
-								{paginationComponent}
-							</div>
+						{!sidePanelId && (
+							<SidePanel
+								id={dataSetSupportSidePanelIdRef.current}
+								onAfterSubmit={refreshData}
+							/>
 						)}
 
-						{style === 'stacked' && (
-							<div className="data-set data-set-stacked">
-								{managementBar}
-
-								{view}
-
-								{paginationComponent}
-							</div>
+						{infoPanelComponent && (
+							<InfoPanel
+								className="fds-info-panel"
+								component={infoPanelComponent}
+								containerRef={fdsRef}
+								id={dataSetSupportInfoPanelIdRef.current}
+								onOpenChange={setInfoPanelOpen}
+								open={infoPanelOpen}
+							/>
 						)}
 
-						{style === 'fluid' && (
-							<div className="data-set data-set-fluid">
-								{managementBar}
+						<div
+							className={classNames(
+								`data-set-wrapper visualization-mode-${activeView.contentRenderer}`,
+								className,
+								selectable
+							)}
+							data-testid={`visualization-mode-${activeView.name}`}
+							ref={dataSetWrapperRef}
+						>
+							{style === 'default' && (
+								<div className="data-set data-set-inline">
+									{managementBar}
 
-								<div className="container-fluid mt-3">
 									{view}
 
 									{paginationComponent}
 								</div>
-							</div>
-						)}
+							)}
+
+							{style === 'stacked' && (
+								<div className="data-set data-set-stacked">
+									{managementBar}
+
+									{view}
+
+									{paginationComponent}
+								</div>
+							)}
+
+							{style === 'fluid' && (
+								<div className="data-set data-set-fluid">
+									{managementBar}
+
+									<div className="container-fluid mt-3">
+										{view}
+
+										{paginationComponent}
+									</div>
+								</div>
+							)}
+						</div>
 					</div>
-				</div>
+				)}
 			</ViewsContext.Provider>
 		</FrontendDataSetContext.Provider>
 	);

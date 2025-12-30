@@ -311,7 +311,7 @@ public class UpgradeJakartaTest {
 			new UnicodeProperties(
 				HashMapBuilder.put(
 					_PARAMETERS_KEY,
-					"-Xms256M -Xmx1024M -Djavax.xml.ws.client=xyz"
+					"-Djavax.xml.ws.client=xyz -Xms256M -Xmx1024M"
 				).build(),
 				false));
 
@@ -335,7 +335,7 @@ public class UpgradeJakartaTest {
 			updatedDispatchTrigger.getDispatchTaskSettingsUnicodeProperties();
 
 		Assert.assertEquals(
-			"-Xms256M -Xmx1024M -Djakarta.xml.ws.client=xyz",
+			"-Djakarta.xml.ws.client=xyz -Xms256M -Xmx1024M",
 			unicodeProperties.getProperty(_PARAMETERS_KEY));
 
 		_dispatchTriggerLocalService.deleteDispatchTrigger(
@@ -407,8 +407,9 @@ public class UpgradeJakartaTest {
 
 		FragmentEntryLink fragmentEntryLink =
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
-				null, TestPropsValues.getUserId(), _group.getGroupId(), 0,
-				fragmentEntry.getFragmentEntryId(),
+				null, TestPropsValues.getUserId(), _group.getGroupId(), null,
+				fragmentEntry.getExternalReferenceCode(),
+				fragmentEntry.getScopeERC(),
 				_segmentsExperienceLocalService.
 					fetchDefaultSegmentsExperienceId(_layout.getPlid()),
 				_layout.getPlid(), fragmentEntry.getCss(), _JAVAX_HTML,

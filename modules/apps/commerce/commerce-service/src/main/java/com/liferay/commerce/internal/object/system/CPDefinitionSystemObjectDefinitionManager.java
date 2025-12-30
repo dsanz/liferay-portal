@@ -55,10 +55,12 @@ public class CPDefinitionSystemObjectDefinitionManager
 	extends BaseSystemObjectDefinitionManager {
 
 	@Override
-	public long addBaseModel(User user, Map<String, Object> values)
+	public long addBaseModel(
+			boolean checkPermissions, User user, Map<String, Object> values)
 		throws Exception {
 
-		ProductResource productResource = _buildProductResource(false, user);
+		ProductResource productResource = _buildProductResource(
+			checkPermissions, user);
 
 		Product product = productResource.postProduct(_toProduct(values));
 
@@ -73,21 +75,8 @@ public class CPDefinitionSystemObjectDefinitionManager
 			long primaryKey, String actionId)
 		throws PortalException {
 
-		CPDefinition cpDefinition = _cpDefinitionLocalService.fetchCPDefinition(
-			primaryKey);
-
-		if (cpDefinition == null) {
-			cpDefinition =
-				_cpDefinitionLocalService.getCPDefinitionByCProductId(
-					primaryKey);
-		}
-
-		CommerceCatalog commerceCatalog =
-			_commerceCatalogLocalService.fetchCommerceCatalogByGroupId(
-				cpDefinition.getGroupId());
-
 		_commerceCatalogModelResourcePermission.check(
-			permissionChecker, commerceCatalog, actionId);
+			permissionChecker, _getCommerceCatalog(primaryKey), actionId);
 	}
 
 	@Override
@@ -325,6 +314,16 @@ public class CPDefinitionSystemObjectDefinitionManager
 	}
 
 	@Override
+	public boolean hasModelResourcePermission(
+			long objectDefinitionId, PermissionChecker permissionChecker,
+			long primaryKey, String actionId)
+		throws PortalException {
+
+		return _commerceCatalogModelResourcePermission.contains(
+			permissionChecker, _getCommerceCatalog(primaryKey), actionId);
+	}
+
+	@Override
 	public boolean isEnableLocalization() {
 		return true;
 	}
@@ -359,6 +358,22 @@ public class CPDefinitionSystemObjectDefinitionManager
 		).user(
 			user
 		).build();
+	}
+
+	private CommerceCatalog _getCommerceCatalog(long primaryKey)
+		throws PortalException {
+
+		CPDefinition cpDefinition = _cpDefinitionLocalService.fetchCPDefinition(
+			primaryKey);
+
+		if (cpDefinition == null) {
+			cpDefinition =
+				_cpDefinitionLocalService.getCPDefinitionByCProductId(
+					primaryKey);
+		}
+
+		return _commerceCatalogLocalService.fetchCommerceCatalogByGroupId(
+			cpDefinition.getGroupId());
 	}
 
 	private Product _toProduct(Map<String, Object> values) {

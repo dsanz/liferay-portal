@@ -26,6 +26,7 @@ import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 import java.util.Collections;
 
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -44,6 +45,12 @@ public class ObjectLayoutResourceTest extends BaseObjectLayoutResourceTestCase {
 
 		_objectDefinition =
 			ObjectDefinitionTestUtil.addCustomObjectDefinition();
+
+		_objectDefinition.setEnableFriendlyURLCustomization(true);
+
+		_objectDefinition =
+			_objectDefinitionLocalService.updateObjectDefinition(
+				_objectDefinition);
 
 		_objectField = ObjectFieldUtil.addCustomObjectField(
 			new TextObjectFieldBuilder(
@@ -81,6 +88,17 @@ public class ObjectLayoutResourceTest extends BaseObjectLayoutResourceTestCase {
 	@Override
 	@Test
 	public void testGraphQLGetObjectLayoutNotFound() {
+	}
+
+	@Override
+	@Test
+	public void testPostObjectDefinitionObjectLayout() throws Exception {
+		super.testPostObjectDefinitionObjectLayout();
+
+		_testPostObjectLayoutObjectLayoutBox(
+			ObjectLayoutBox.Type.CATEGORIZATION);
+		_testPostObjectLayoutObjectLayoutBox(ObjectLayoutBox.Type.REGULAR);
+		_testPostObjectLayoutObjectLayoutBox(ObjectLayoutBox.Type.SEO);
 	}
 
 	@Override
@@ -206,17 +224,49 @@ public class ObjectLayoutResourceTest extends BaseObjectLayoutResourceTestCase {
 			_objectDefinition.getObjectDefinitionId(), randomObjectLayout());
 	}
 
-	private ObjectLayoutBox _randomObjectLayoutBox() {
+	private ObjectLayout _randomObjectLayout(
+			ObjectLayoutBox.Type objectLayoutBoxType)
+		throws Exception {
+
+		ObjectLayout objectLayout = randomObjectLayout();
+
+		objectLayout.setObjectLayoutTabs(
+			new ObjectLayoutTab[] {
+				new ObjectLayoutTab() {
+					{
+						name = Collections.singletonMap(
+							"en_US", RandomTestUtil.randomString());
+						objectLayoutBoxes = new ObjectLayoutBox[] {
+							_randomObjectLayoutBox(objectLayoutBoxType)
+						};
+						priority = RandomTestUtil.randomInt();
+					}
+				}
+			});
+
+		return objectLayout;
+	}
+
+	private ObjectLayoutBox _randomObjectLayoutBox(
+		ObjectLayoutBox.Type objectLayoutBoxType) {
+
 		return new ObjectLayoutBox() {
 			{
 				collapsable = RandomTestUtil.randomBoolean();
 				name = Collections.singletonMap(
 					"en_US", RandomTestUtil.randomString());
-				objectLayoutRows = new ObjectLayoutRow[] {
-					_randomObjectLayoutRow()
-				};
+
+				if ((objectLayoutBoxType !=
+						ObjectLayoutBox.Type.CATEGORIZATION) &&
+					(objectLayoutBoxType != ObjectLayoutBox.Type.SEO)) {
+
+					objectLayoutRows = new ObjectLayoutRow[] {
+						_randomObjectLayoutRow()
+					};
+				}
+
 				priority = RandomTestUtil.randomInt();
-				type = Type.REGULAR;
+				type = objectLayoutBoxType;
 			}
 		};
 	}
@@ -248,12 +298,30 @@ public class ObjectLayoutResourceTest extends BaseObjectLayoutResourceTestCase {
 				name = Collections.singletonMap(
 					"en_US", RandomTestUtil.randomString());
 				objectLayoutBoxes = new ObjectLayoutBox[] {
-					_randomObjectLayoutBox()
+					_randomObjectLayoutBox(ObjectLayoutBox.Type.REGULAR)
 				};
 				objectRelationshipId = 0L;
 				priority = RandomTestUtil.randomInt();
 			}
 		};
+	}
+
+	private void _testPostObjectLayoutObjectLayoutBox(
+			ObjectLayoutBox.Type objectLayoutBoxType)
+		throws Exception {
+
+		ObjectLayout objectLayout = _randomObjectLayout(objectLayoutBoxType);
+
+		objectLayout = objectLayoutResource.postObjectDefinitionObjectLayout(
+			_objectDefinition.getObjectDefinitionId(), objectLayout);
+
+		ObjectLayoutTab[] objectLayoutTab = objectLayout.getObjectLayoutTabs();
+
+		ObjectLayoutBox[] objectLayoutBoxes =
+			objectLayoutTab[0].getObjectLayoutBoxes();
+
+		Assert.assertEquals(
+			objectLayoutBoxType, objectLayoutBoxes[0].getType());
 	}
 
 	private ObjectDefinition _objectDefinition;

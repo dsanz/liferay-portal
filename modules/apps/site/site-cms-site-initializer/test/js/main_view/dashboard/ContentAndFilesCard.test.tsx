@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import {
 	RangeSelectors,
 	TrendClassification,
@@ -138,5 +138,27 @@ describe('[CMS Dashboard] Components: ContentAndFilesCard', () => {
 			name: 'caret-bottom',
 		});
 		expect(trendIcon).toBeInTheDocument();
+	});
+
+	it('formats percentage to two decimal places correctly', async () => {
+		jest.spyOn(ApiHelper, 'get').mockResolvedValue({
+			data: {
+				...mockedResponse,
+				trend: {
+					classification: TrendClassification.Positive,
+					percentage: 3.14159265,
+				},
+			},
+			error: null,
+		});
+
+		render(<WrappedComponent />);
+
+		await waitForElementToBeRemoved(
+			screen.getByTestId('loading-animation')
+		);
+
+		const percentageText = screen.getByText('3.14%');
+		expect(percentageText).toBeInTheDocument();
 	});
 });

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 import {DndProvider} from 'react-dnd';
@@ -41,7 +41,7 @@ const COLLECTION = {
 const renderComponent = ({initialOpen = true} = {}) => {
 	return render(
 		<DndProvider backend={HTML5Backend}>
-			<div role="menubar">
+			<div data-menu role="menu">
 				<TabCollection
 					collection={COLLECTION}
 					displayStyle="list"

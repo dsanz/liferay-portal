@@ -6,6 +6,7 @@
 import {
 	findFieldByFieldName,
 	removeEmptyRows,
+	removeNestedEmptyRows,
 } from '../../utils/FormSupport.es';
 import {FIELD_TYPE_FIELDSET} from '../../utils/constants';
 import {addFieldToPage, getParentField} from '../../utils/fieldSupport';
@@ -78,19 +79,14 @@ export default function dragAndDropReducer(state, action, config) {
 			if (
 				sourceParentField &&
 				sourceParentField.type === FIELD_TYPE_FIELDSET &&
-				sourceParentField.nestedFields.length === 1
+				sourceParentField.nestedFields.length === 1 &&
+				sourceParentField.fieldName !== targetParentFieldName
 			) {
-				let sourceParentFieldName = sourceParentField
-					? sourceParentField.fieldName
-					: '';
+				const sourceParentFieldName = sourceParentField.fieldName;
 
 				do {
-					if (sourceParentField) {
-						sourceParentFieldName = sourceParentField.fieldName;
-					}
-
 					sourceParentField = getParentField(
-						pages,
+						updatedPages,
 						sourceParentField.fieldName
 					);
 				} while (
@@ -111,12 +107,17 @@ export default function dragAndDropReducer(state, action, config) {
 						fieldNameGenerator,
 						fieldPage: sourceFieldPage,
 						generateFieldNameUsingFieldLabel,
-						pages,
+						pages: updatedPages,
 					});
 				}
 			}
 
 			if (targetFieldName) {
+				updatedPages[sourceFieldPage].rows = removeNestedEmptyRows(
+					updatedPages,
+					sourceFieldPage
+				);
+
 				updatedPages = deleteField({
 					clean: true,
 					defaultLanguageId,
@@ -125,7 +126,7 @@ export default function dragAndDropReducer(state, action, config) {
 					fieldNameGenerator,
 					fieldPage: sourceFieldPage,
 					generateFieldNameUsingFieldLabel,
-					pages,
+					pages: updatedPages,
 				});
 
 				return sectionAdded(
@@ -184,7 +185,7 @@ export default function dragAndDropReducer(state, action, config) {
 				return field;
 			});
 
-			updatedPages[sourceFieldPage].rows = removeEmptyRows(
+			updatedPages[sourceFieldPage].rows = removeNestedEmptyRows(
 				updatedPages,
 				sourceFieldPage
 			);

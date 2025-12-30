@@ -13,12 +13,13 @@ import {datetimeUtils} from '@liferay/object-js-components-web';
 import {LiferayEditorConfig} from 'frontend-editor-ckeditor-web';
 import {openToast} from 'frontend-js-components-web';
 import {fetch, objectToFormData} from 'frontend-js-web';
-import moment from 'moment';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
+import {IAssetObjectEntry} from '../../common/types/AssetType';
 import focusInvalidElement from '../../common/utils/focusInvalidElement';
 import {Comment} from '../services/CommentService';
-import {EVENT_VALIDATE_FORM} from './ContentEditorManagementBar';
+import {EVENT_VALIDATE_FORM} from './ContentEditorToolbar';
+import {dateConfig, toMomentDate, toServerISOFormat} from './ScheduleField';
 import CategorizationPanel from './panels/CategorizationPanel';
 import CommentsPanel from './panels/CommentsPanel';
 import GeneralPanel from './panels/GeneralPanel';
@@ -26,6 +27,8 @@ import SchedulePanel from './panels/SchedulePanel';
 
 type Props = {
 	addCommentURL: string;
+	assetLibraryId: string;
+	cmsGroupId: string;
 	comments: Comment[];
 	contentAPIURL: string;
 	deleteCommentURL: string;
@@ -34,7 +37,7 @@ type Props = {
 	entryClassName: string;
 	expirationDate: string;
 	getCommentsURL: string;
-	groupId: string;
+	hasUpdatePermission: boolean;
 	id: string;
 	isSubscribed: boolean;
 	reviewDate: string;
@@ -44,6 +47,7 @@ type Props = {
 };
 
 type SidePanelProps = Props & {
+	categorizationFields: CategorizationFields;
 	dateConfig: datetimeUtils.DateConfig;
 	onUpdateCategorization: (props: UpdateCategorizationProps) => void;
 	onUpdateSchedule: (props: UpdateScheduleProps) => void;
@@ -60,13 +64,19 @@ type Item = {
 
 type BaseScheduleData = {
 	error: string;
-	neverExpire: boolean;
+	neverCheckbox: {label: string; value: boolean};
 	value: string;
 };
 
 export type CategorizationFields = {
-	assetCategoryIds: string;
-	assetTagNames: string;
+	assetCategoryIds: {
+		serverValue: string;
+		value: IAssetObjectEntry['taxonomyCategoryBriefs'];
+	};
+	assetTagNames: {
+		serverValue: string;
+		value: IAssetObjectEntry['keywords'];
+	};
 };
 
 type ScheduleFieldData = BaseScheduleData & {
@@ -78,10 +88,10 @@ export type ScheduleFields = {
 	reviewDate: ScheduleFieldData;
 };
 
-export type UpdateCategorizationProps = {
-	name: keyof CategorizationFields;
-	value: string;
-};
+export type UpdateCategorizationProps = [
+	keyof CategorizationFields,
+	CategorizationFields[keyof CategorizationFields],
+];
 
 export type UpdateScheduleProps = BaseScheduleData & {
 	name: keyof ScheduleFields;
@@ -114,36 +124,36 @@ const items: Item[] = [
 	},
 ];
 
-const dateConfig = datetimeUtils.generateDateConfigurations({
-	defaultLanguageId: Liferay.ThemeDisplay.getDefaultLanguageId(),
-	locale: Liferay.ThemeDisplay.getLanguageId(),
-	type: 'DateTime',
-});
-
 export default function ContentEditorSidePanel(props: Props) {
 	const [formId, setFormId] = useState<string | undefined>();
 	const [scheduleFields, setScheduleFields] = useState<ScheduleFields>({
 		expirationDate: {
 			error: '',
-			neverExpire: Boolean(props.expirationDate),
+			neverCheckbox: {
+				label: Liferay.Language.get('never-expire'),
+				value: !props.expirationDate,
+			},
 			serverValue: props.expirationDate,
 			value: toMomentDate(props.expirationDate),
 		},
 		reviewDate: {
 			error: '',
-			neverExpire: Boolean(props.reviewDate),
+			neverCheckbox: {
+				label: Liferay.Language.get('never-review'),
+				value: !props.reviewDate,
+			},
 			serverValue: props.reviewDate,
 			value: toMomentDate(props.reviewDate),
 		},
 	});
 	const [categorizationFields, setCategorizationFields] =
 		useState<CategorizationFields>({
-			assetCategoryIds: '',
-			assetTagNames: '',
+			assetCategoryIds: {serverValue: '', value: []},
+			assetTagNames: {serverValue: '', value: []},
 		});
 
 	const onUpdateCategorization = useCallback(
-		({name, value}: UpdateCategorizationProps) => {
+		([name, value]: UpdateCategorizationProps) => {
 			setCategorizationFields((fields) => ({
 				...fields,
 				[name]: value,
@@ -155,13 +165,13 @@ export default function ContentEditorSidePanel(props: Props) {
 	const onUpdateSchedule = ({
 		error,
 		name,
-		neverExpire,
+		neverCheckbox,
 		value,
 	}: UpdateScheduleProps) => {
-		const values = neverExpire
+		const values = neverCheckbox
 			? {serverValue: ''}
 			: {
-					serverValue: toServerFormat(value).replace(' ', 'T'),
+					serverValue: toServerISOFormat(value),
 					value,
 				};
 
@@ -191,6 +201,7 @@ export default function ContentEditorSidePanel(props: Props) {
 		<>
 			<SidePanel
 				{...props}
+				categorizationFields={categorizationFields}
 				dateConfig={dateConfig}
 				onUpdateCategorization={onUpdateCategorization}
 				onUpdateSchedule={onUpdateSchedule}
@@ -200,21 +211,23 @@ export default function ContentEditorSidePanel(props: Props) {
 				<input
 					form={formId}
 					key={name}
-					name={name}
+					name={`ObjectEntry_${name}`}
 					type="hidden"
 					value={serverValue}
 				/>
 			))}
 
-			{Object.entries(categorizationFields).map(([name, value]) => (
-				<input
-					form={formId}
-					key={name}
-					name={name}
-					type="hidden"
-					value={value}
-				/>
-			))}
+			{Object.entries(categorizationFields).map(
+				([name, {serverValue}]) => (
+					<input
+						form={formId}
+						key={name}
+						name={name}
+						type="hidden"
+						value={serverValue}
+					/>
+				)
+			)}
 		</>
 	);
 }
@@ -386,15 +399,5 @@ function SubscribeButton({
 			symbol={subscribed ? 'bell-off' : 'bell-on'}
 			title={title}
 		/>
-	);
-}
-
-function toMomentDate(value: string) {
-	return value ? moment(value).format(dateConfig.momentFormat) : '';
-}
-
-export function toServerFormat(value: string) {
-	return moment(value, dateConfig.momentFormat, true).format(
-		dateConfig.serverFormat
 	);
 }

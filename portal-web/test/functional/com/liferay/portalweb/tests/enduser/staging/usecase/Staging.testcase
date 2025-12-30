@@ -1,6 +1,7 @@
 @component-name = "portal-headless"
 definition {
 
+	property browser.chrome.version = "139.0";
 	property ci.retries.disabled = "true";
 	property custom.properties = "feature.flag.LPD-35013=false";
 	property osgi.modules.includes = "wiki";
@@ -2118,75 +2119,6 @@ definition {
 				wikiPageContent = "Wiki Page Content",
 				wikiPageTitle = "Wiki Page Title");
 		}
-	}
-
-	@description = "This is a use case for LPS-89981 and LPS-88298."
-	@priority = 3
-	test PublishVocabularyDeletionViaRemoteStagingOnGlobalSite {
-		property app.server.bundles.size = "1";
-		property custom.properties = "auth.verifier.TunnelAuthVerifier.hosts.allowed=${line.separator}feature.flag.LPD-35013=true${line.separator}tunneling.servlet.shared.secret=1234567890123456";
-		property databases.size = "1";
-		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
-
-		var siteId = JSONGroupSetter.setGroupId(
-			groupName = "Global",
-			portalURL = "http://localhost:9080");
-
-		Staging.openStagingAdmin(siteURLKey = "global");
-
-		Staging.activateStagingCP(
-			remotePort = 9080,
-			remoteStaging = "true",
-			siteId = ${siteId},
-			siteName = "Global");
-
-		Category.openCategoriesAdmin(siteURLKey = "global");
-
-		Vocabulary.addCP(vocabularyName = "Vocabulary Name");
-
-		Staging.publishToLiveNowViaPortletCP();
-
-		User.logoutPG();
-
-		User.firstLoginUI(
-			password = PropsUtil.get("default.admin.password"),
-			specificURL = "http://localhost:9080",
-			userEmailAddress = "test@liferay.com");
-
-		Category.openCategoriesAdmin(
-			baseURL = "http://localhost:9080",
-			siteURLKey = "global");
-
-		Vocabulary.viewCP(vocabularyName = "Vocabulary Name");
-
-		User.logoutPG(specificURL = "http://localhost:9080");
-
-		User.loginPG(
-			password = PropsUtil.get("default.admin.password"),
-			userEmailAddress = "test@liferay.com");
-
-		Category.openCategoriesAdmin(siteURLKey = "global");
-
-		Vocabulary.deleteByIconCP(vocabularyName = "Vocabulary Name");
-
-		Staging.publishToLiveNowViaPortletCP(replicateIndividualDeletions = "true");
-
-		User.logoutPG();
-
-		User.firstLoginUI(
-			password = PropsUtil.get("default.admin.password"),
-			specificURL = "http://localhost:9080",
-			userEmailAddress = "test@liferay.com");
-
-		Category.openCategoriesAdmin(
-			baseURL = "http://localhost:9080",
-			siteURLKey = "global");
-
-		AssertTextNotPresent(
-			key_navNested = "Vocabulary Name",
-			locator1 = "NavNested#NAV_NESTED_LINK",
-			value1 = "Vocabulary Name");
 	}
 
 	@priority = 3

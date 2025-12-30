@@ -32,8 +32,8 @@ public class ExportImportReportEntryLocalServiceImpl
 	@Indexable(type = IndexableType.REINDEX)
 	public ExportImportReportEntry addEmptyExportImportReportEntry(
 		long groupId, long companyId, String classExternalReferenceCode,
-		long classNameId, long exportImportConfigurationId, String modelName,
-		int origin, String scope, String scopeKey) {
+		long classNameId, long exportImportConfigurationId,
+		String modelNameLanguageKey, int origin) {
 
 		ExportImportReportEntry exportImportReportEntry =
 			exportImportReportEntryPersistence.create(
@@ -46,10 +46,8 @@ public class ExportImportReportEntryLocalServiceImpl
 		exportImportReportEntry.setClassNameId(classNameId);
 		exportImportReportEntry.setExportImportConfigurationId(
 			exportImportConfigurationId);
-		exportImportReportEntry.setModelName(modelName);
+		exportImportReportEntry.setModelNameLanguageKey(modelNameLanguageKey);
 		exportImportReportEntry.setOrigin(origin);
-		exportImportReportEntry.setScope(scope);
-		exportImportReportEntry.setScopeKey(scopeKey);
 		exportImportReportEntry.setType(
 			ExportImportReportEntryConstants.TYPE_EMPTY);
 		exportImportReportEntry.setStatus(
@@ -64,8 +62,8 @@ public class ExportImportReportEntryLocalServiceImpl
 	public ExportImportReportEntry addErrorExportImportReportEntry(
 		long groupId, long companyId, String classExternalReferenceCode,
 		long classNameId, long classPK, long exportImportConfigurationId,
-		String errorMessage, String errorStacktrace, String modelName,
-		int origin, String scope, String scopeKey) {
+		String errorMessage, String errorStacktrace,
+		String modelNameLanguageKey, int origin) {
 
 		ExportImportReportEntry exportImportReportEntry =
 			exportImportReportEntryPersistence.create(
@@ -81,10 +79,8 @@ public class ExportImportReportEntryLocalServiceImpl
 			exportImportConfigurationId);
 		exportImportReportEntry.setErrorMessage(errorMessage);
 		exportImportReportEntry.setErrorStacktrace(errorStacktrace);
-		exportImportReportEntry.setModelName(modelName);
+		exportImportReportEntry.setModelNameLanguageKey(modelNameLanguageKey);
 		exportImportReportEntry.setOrigin(origin);
-		exportImportReportEntry.setScope(scope);
-		exportImportReportEntry.setScopeKey(scopeKey);
 		exportImportReportEntry.setType(
 			ExportImportReportEntryConstants.TYPE_ERROR);
 		exportImportReportEntry.setStatus(

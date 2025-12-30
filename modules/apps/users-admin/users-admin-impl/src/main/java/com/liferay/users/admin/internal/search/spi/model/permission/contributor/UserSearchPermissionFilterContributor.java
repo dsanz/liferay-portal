@@ -10,6 +10,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Contact;
 import com.liferay.portal.kernel.model.ContactTable;
+import com.liferay.portal.kernel.model.Organization;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.filter.BooleanFilter;
@@ -18,11 +19,15 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.UserBag;
 import com.liferay.portal.kernel.service.ContactLocalService;
+import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.service.permission.OrganizationPermissionUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.search.spi.model.permission.contributor.SearchPermissionFilterContributor;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -47,15 +52,19 @@ public class UserSearchPermissionFilterContributor
 			return;
 		}
 
-		_addManagedOrganizationUsersFilter(booleanFilter, permissionChecker);
+		_addManagedOrganizationUsersFilter(
+			booleanFilter, companyId, permissionChecker);
 		_addOwnedUsersFilter(booleanFilter, permissionChecker, userId);
 	}
 
 	private void _addManagedOrganizationUsersFilter(
-		BooleanFilter booleanFilter, PermissionChecker permissionChecker) {
+		BooleanFilter booleanFilter, long companyId,
+		PermissionChecker permissionChecker) {
 
 		try {
 			TermsFilter termsFilter = new TermsFilter("organizationIds");
+
+			Set<Long> organizationIds = new HashSet<>();
 
 			UserBag userBag = permissionChecker.getUserBag();
 
@@ -66,8 +75,28 @@ public class UserSearchPermissionFilterContributor
 						permissionChecker, userOrgId,
 						ActionKeys.MANAGE_USERS)) {
 
-					termsFilter.addValue(String.valueOf(userOrgId));
+					organizationIds.add(userOrgId);
 				}
+
+				if (OrganizationPermissionUtil.contains(
+						permissionChecker, userOrgId,
+						ActionKeys.MANAGE_SUBORGANIZATIONS_USERS)) {
+
+					Organization organization =
+						_organizationLocalService.getOrganization(userOrgId);
+
+					for (Organization suborganization :
+							_organizationLocalService.getOrganizations(
+								companyId, organization.getTreePath() + "%/")) {
+
+						organizationIds.add(
+							suborganization.getOrganizationId());
+					}
+				}
+			}
+
+			if (!organizationIds.isEmpty()) {
+				termsFilter.addValues(ArrayUtil.toStringArray(organizationIds));
 			}
 
 			if (!termsFilter.isEmpty()) {
@@ -121,6 +150,9 @@ public class UserSearchPermissionFilterContributor
 
 	@Reference
 	private ContactLocalService _contactLocalService;
+
+	@Reference
+	private OrganizationLocalService _organizationLocalService;
 
 	@Reference
 	private Portal _portal;

@@ -12,11 +12,13 @@ import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.UnsafeRunnable;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Region;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.PropsValues;
@@ -101,9 +103,70 @@ public class CounterDataCleanupPreupgradeProcessTest
 	}
 
 	@Test
+	public void testUpgradeCustomCounter() throws Exception {
+		String counterName = StringBundler.concat(
+			"com.", RandomTestUtil.randomString(), StringPool.PERIOD,
+			_TABLE_NAME);
+
+		_test(
+			(UnsafeRunnable<Exception>)() -> {
+				runSQL(
+					"delete from Counter where name = '" + counterName + "'");
+				runSQL("drop table " + _TABLE_NAME);
+			},
+			(UnsafeRunnable<Exception>)() -> {
+				runSQL(
+					StringBundler.concat(
+						"create table ", _TABLE_NAME,
+						" (mvccVersion LONG default 0 not null, testId LONG ",
+						"not null primary key)"));
+				runSQL(
+					"insert into Counter (name, currentId) values ('" +
+						counterName + "', 100 )");
+
+				runSQL(
+					StringBundler.concat(
+						"insert into ", _TABLE_NAME, " (mvccVersion, testId) ",
+						"values (0, ", 1000, ")"));
+			},
+			(UnsafeConsumer<List<String>, Exception>)
+				messages -> Assert.assertTrue(
+					messages.toString(), messages.isEmpty()));
+	}
+
+	@Test
+	public void testUpgradeCustomTableDoesNotAffectKernelCounter()
+		throws Exception {
+
+		long testId =
+			CounterLocalServiceUtil.getCurrentId(Counter.class.getName()) +
+				1000;
+
+		_test(
+			(UnsafeRunnable<Exception>)() -> runSQL(
+				"drop table " + _TABLE_NAME),
+			(UnsafeRunnable<Exception>)() -> {
+				runSQL(
+					StringBundler.concat(
+						"create table ", _TABLE_NAME,
+						" (mvccVersion LONG default 0 not null, testId LONG ",
+						"not null primary key)"));
+
+				runSQL(
+					StringBundler.concat(
+						"insert into ", _TABLE_NAME, " (mvccVersion, testId) ",
+						"values (0, ", testId, ")"));
+			},
+			(UnsafeConsumer<List<String>, Exception>)
+				messages -> Assert.assertTrue(
+					messages.toString(), messages.isEmpty()));
+	}
+
+	@Test
 	public void testUpgradeDLFileEntryKernelCounter() throws Exception {
 		long fileEntryId =
-			CounterLocalServiceUtil.getCurrentId(Counter.class.getName()) + 10;
+			CounterLocalServiceUtil.getCurrentId(Counter.class.getName()) +
+				1000;
 		long name = CounterLocalServiceUtil.increment(
 			DLFileEntry.class.getName());
 
@@ -157,7 +220,8 @@ public class CounterDataCleanupPreupgradeProcessTest
 	@Test
 	public void testUpgradeKernelCounter() throws Exception {
 		long roleId =
-			CounterLocalServiceUtil.getCurrentId(Counter.class.getName()) + 10;
+			CounterLocalServiceUtil.getCurrentId(Counter.class.getName()) +
+				1000;
 
 		_test(
 			(UnsafeRunnable<Exception>)() -> runSQL(
@@ -232,9 +296,44 @@ public class CounterDataCleanupPreupgradeProcessTest
 	}
 
 	@Test
+	public void testUpgradeObjectTableAffectsKernelCounter() throws Exception {
+		String tableName =
+			_TABLE_NAME + "_x_" + CompanyThreadLocal.getCompanyId();
+		long testId =
+			CounterLocalServiceUtil.getCurrentId(Counter.class.getName()) +
+				1000;
+
+		_test(
+			(UnsafeRunnable<Exception>)() -> runSQL("drop table " + tableName),
+			(UnsafeRunnable<Exception>)() -> {
+				runSQL(
+					StringBundler.concat(
+						"create table ", tableName,
+						" (mvccVersion LONG default 0 not null, testId LONG ",
+						"not null primary key)"));
+
+				runSQL(
+					StringBundler.concat(
+						"insert into ", tableName, " (mvccVersion, testId) ",
+						"values (0, ", testId, ")"));
+			},
+			(UnsafeConsumer<List<String>, Exception>)messages -> {
+				Assert.assertEquals(messages.toString(), 1, messages.size());
+				Assert.assertTrue(
+					messages.toString(),
+					messages.contains(
+						StringBundler.concat(
+							"Counter ", Counter.class.getName(),
+							" has been reset to value ", testId,
+							" due to table ",
+							_dbInspector.normalizeName(tableName))));
+			});
+	}
+
+	@Test
 	public void testUpgradeSpecificCounter() throws Exception {
 		long regionId =
-			CounterLocalServiceUtil.getCurrentId(Region.class.getName()) + 10;
+			CounterLocalServiceUtil.getCurrentId(Region.class.getName()) + 1000;
 
 		_test(
 			(UnsafeRunnable<Exception>)() -> runSQL(
@@ -292,6 +391,8 @@ public class CounterDataCleanupPreupgradeProcessTest
 			postUnsafeRunnable.run();
 		}
 	}
+
+	private static final String _TABLE_NAME = "TestTable";
 
 	private Connection _connection;
 	private DBInspector _dbInspector;

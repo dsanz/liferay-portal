@@ -3,6 +3,7 @@
 		"@liferay/eslint-plugin": "1.9.1",
 		"@liferay/prettier-plugin": "1.1.5",
 		"@liferay/stylelint-plugin": "1.1.0",
+		"@testing-library/react": "16.3.0",
 		"@types/ckeditor4": "4.16.2",
 		"@types/codemirror": "^5.60.5",
 		"@types/react": "18.2.19",
@@ -29,9 +30,9 @@
 	},
 	"scripts": {
 		"checkFormat": "node-scripts check:ci",
-		"format": "node-scripts format",
-		"formatCurrentBranch": "node-scripts format --current-branch",
-		"formatLocalChanges": "node-scripts format --local-changes",
+		"format": "node-scripts format:ci --all",
+		"formatCurrentBranch": "node-scripts format:ci --current-branch",
+		"formatLocalChanges": "node-scripts format:ci --local-changes",
 		"test:all": "node-scripts test"
 	},
 	"workspaces": {

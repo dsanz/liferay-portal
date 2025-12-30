@@ -1244,6 +1244,10 @@ public abstract class PortletRequestImpl implements LiferayPortletRequest {
 		for (String checkboxName : StringUtil.split(checkboxNames)) {
 			String value = dynamicServletRequest.getParameter(checkboxName);
 
+			if (checkboxName.contains("ExpandoAttribute")) {
+				continue;
+			}
+
 			if (value == null) {
 				dynamicServletRequest.setParameter(
 					checkboxName, Boolean.FALSE.toString());

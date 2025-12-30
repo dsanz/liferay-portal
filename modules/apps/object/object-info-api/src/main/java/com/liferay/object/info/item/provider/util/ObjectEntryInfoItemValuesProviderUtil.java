@@ -43,7 +43,6 @@ import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
@@ -55,6 +54,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 
@@ -189,28 +189,24 @@ public class ObjectEntryInfoItemValuesProviderUtil {
 					namespace, objectRelationshipLocalService, themeDisplay,
 					value);
 
-				if (FeatureFlagManagerUtil.isEnabled(
-						parentObjectDefinition.getCompanyId(), "LPD-21926")) {
+				infoFieldValues.add(
+					new InfoFieldValue<>(
+						ObjectEntryInfoItemFields.getFriendlyURLInfoField(
+							parentObjectDefinition.
+								isEnableFriendlyURLCustomization(),
+							objectRelationship.getName(), namespace),
+						() -> {
+							if (objectEntry == null) {
+								return null;
+							}
 
-					infoFieldValues.add(
-						new InfoFieldValue<>(
-							ObjectEntryInfoItemFields.getFriendlyURLInfoField(
-								parentObjectDefinition.
-									isEnableFriendlyURLCustomization(),
-								objectRelationship.getName(), namespace),
-							() -> {
-								if (objectEntry == null) {
-									return null;
-								}
-
-								return getFriendlyURLInfoFieldValue(
-									portal.getClassNameId(
-										parentObjectDefinition.getClassName()),
-									friendlyURLEntryLocalService,
-									GetterUtil.getLong(
-										values.get(objectField.getName())));
-							}));
-				}
+							return getFriendlyURLInfoFieldValue(
+								portal.getClassNameId(
+									parentObjectDefinition.getClassName()),
+								friendlyURLEntryLocalService,
+								GetterUtil.getLong(
+									values.get(objectField.getName())));
+						}));
 			}
 		}
 
@@ -499,6 +495,9 @@ public class ObjectEntryInfoItemValuesProviderUtil {
 			ListEntry listEntry = (ListEntry)object;
 
 			key = listEntry.getKey();
+		}
+		else if (object instanceof Map) {
+			key = MapUtil.getString((Map)object, "key");
 		}
 		else {
 			key = GetterUtil.getString(object);

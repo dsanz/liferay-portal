@@ -861,20 +861,22 @@ public class CTCollectionLocalServiceImpl
 						StringBundler.concat(
 							"select count(*) from ",
 							ctPersistence.getTableName(),
-							" where ctCollectionId = ", ctCollectionId,
-							" and status not in (",
+							" where ctCollectionId = ? and status not in (",
 							StringUtil.merge(
 								_getStatuses(
 									ctCollectionId, ctPersistence, entry),
 								StringPool.COMMA),
-							")"));
-				ResultSet resultSet = preparedStatement.executeQuery()) {
+							")"))) {
 
-				if (resultSet.next()) {
-					int count = resultSet.getInt(1);
+				preparedStatement.setLong(1, ctCollectionId);
 
-					if (count > 0) {
-						return true;
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					if (resultSet.next()) {
+						int count = resultSet.getInt(1);
+
+						if (count > 0) {
+							return true;
+						}
 					}
 				}
 			}
@@ -916,7 +918,7 @@ public class CTCollectionLocalServiceImpl
 		CTCollection fromCTCollection =
 			ctCollectionPersistence.findByPrimaryKey(fromCTCollectionId);
 
-		if ((fromCTCollection.getStatus() != WorkflowConstants.STATUS_DRAFT) &&
+		if (!fromCTCollection.isInProgress() &&
 			(fromCTCollection.getStatus() !=
 				WorkflowConstants.STATUS_EXPIRED) &&
 			(fromCTCollection.getStatus() !=
@@ -1351,18 +1353,10 @@ public class CTCollectionLocalServiceImpl
 
 			long classNameId = enclosureEntry.getKey();
 
-			Set<Long> classPKs = enclosureEntry.getValue();
-
-			List<CTEntry> ctEntries = new ArrayList<>(classPKs.size());
-
-			for (long classPK : classPKs) {
-				CTEntry ctEntry = _ctEntryPersistence.fetchByC_MCNI_MCPK(
-					ctCollection.getCtCollectionId(), classNameId, classPK);
-
-				if (ctEntry != null) {
-					ctEntries.add(ctEntry);
-				}
-			}
+			List<CTEntry> ctEntries = TransformUtil.transform(
+				enclosureEntry.getValue(),
+				classPK -> _ctEntryPersistence.fetchByC_MCNI_MCPK(
+					ctCollection.getCtCollectionId(), classNameId, classPK));
 
 			if (ctEntries.isEmpty()) {
 				continue;

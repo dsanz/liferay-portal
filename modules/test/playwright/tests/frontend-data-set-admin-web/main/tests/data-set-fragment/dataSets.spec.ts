@@ -41,8 +41,8 @@ const adminUserDataSetConfig = {
 	erc: getRandomString(),
 	label: getRandomString(),
 	restApplication: '/headless-admin-user/v1.0',
-	restEndpoint: '/v1.0/roles',
-	restSchema: 'Role',
+	restEndpoint: '/v1.0/user-accounts',
+	restSchema: 'UserAccount',
 };
 
 const structuredContentDataSetConfig = {
@@ -90,11 +90,14 @@ test(
 	async ({dataSetFragmentPage, dataSetManagerApiHelpers, layout, page}) => {
 		const dataSetERC1 = getRandomString();
 		const dataSetERC2 = getRandomString();
+		const dataSetERC3 = getRandomString();
 		const dataSetLabel1 = getRandomString();
 		const dataSetLabel2 = getRandomString();
+		const dataSetLabel3 = getRandomString();
 
 		dataSetERCs.push(dataSetERC1);
 		dataSetERCs.push(dataSetERC2);
+		dataSetERCs.push(dataSetERC3);
 
 		const dataSetInput1 =
 			dataSetFragmentPage.selectDataSetModalFrame.locator(
@@ -103,6 +106,10 @@ test(
 		const dataSetInput2 =
 			dataSetFragmentPage.selectDataSetModalFrame.locator(
 				`li:has-text("${dataSetLabel2}") input.custom-control-input`
+			);
+		const dataSetInput3 =
+			dataSetFragmentPage.selectDataSetModalFrame.locator(
+				`li:has-text("${dataSetLabel3}")`
 			);
 
 		await test.step('Create data sets', async () => {
@@ -114,6 +121,11 @@ test(
 			await dataSetManagerApiHelpers.createDataSet({
 				erc: dataSetERC2,
 				label: dataSetLabel2,
+			});
+
+			await dataSetManagerApiHelpers.createDataSet({
+				erc: dataSetERC3,
+				label: dataSetLabel3,
 			});
 		});
 
@@ -141,7 +153,7 @@ test(
 			await dataSetFragmentPage.addDataSetFragment(layout);
 		});
 
-		await test.step('Check that only one data set can be selected', async () => {
+		await test.step('Open Data Set selection list', async () => {
 			await dataSetFragmentPage.selectDataSetButton.click();
 
 			await page.getByRole('dialog').isVisible();
@@ -149,7 +161,17 @@ test(
 			await page.getByRole('heading', {name: 'Select'}).isVisible();
 
 			await dataSetFragmentPage.selectionListContainer.waitFor();
+		});
 
+		await test.step('Check that data set without visualization modes are marked', async () => {
+			const warningIcon = dataSetInput3.locator(
+				'svg.lexicon-icon-exclamation-circle'
+			);
+
+			await expect(warningIcon).toBeVisible();
+		});
+
+		await test.step('Check that only one data set can be selected', async () => {
 			await dataSetInput1.setChecked(true);
 
 			await expect(dataSetInput1).toBeChecked();
@@ -319,7 +341,7 @@ test(
 			});
 		});
 
-		await test.step('Create an Admin User Schema (Roles) Data Set and add fields', async () => {
+		await test.step('Create an Admin User Schema (User Accounts) Data Set and add fields', async () => {
 			dataSetERCs.push(adminUserDataSetConfig.erc);
 
 			await dataSetManagerApiHelpers.createDataSet({
@@ -332,9 +354,9 @@ test(
 
 			await dataSetManagerApiHelpers.createDataSetTableSection({
 				dataSetERC: adminUserDataSetConfig.erc,
-				fieldName: 'roleType',
+				fieldName: 'familyName',
 				label_i18n: {
-					en_US: 'Role Type',
+					en_US: 'Family Name',
 				},
 				sortable: false,
 				type: 'string',
@@ -412,7 +434,7 @@ test(
 			);
 		});
 
-		await test.step('Confirm that we can change the Data Set and display the Roles Data Set', async () => {
+		await test.step('Confirm that we can change the Data Set and display the User Accounts Data Set', async () => {
 			await dataSetFragmentPage.editPage({layout});
 
 			await dataSetFragmentPage.table.container.click();
@@ -440,7 +462,7 @@ test(
 				.waitFor({state: 'visible'});
 		});
 
-		await test.step('Assert that the User Schema (Roles) Data Set is available on the page', async () => {
+		await test.step('Assert that the User Schema (User Accounts) Data Set is available on the page', async () => {
 			await dataSetFragmentPage.table.container.waitFor({
 				state: 'visible',
 			});
@@ -451,7 +473,7 @@ test(
 				await dataSetFragmentPage.table.headRow
 					.locator('th')
 					.allInnerTexts()
-			).toEqual(['Role Type', 'Name', 'Manage Columns Visibility']);
+			).toEqual(['Family Name', 'Name', 'Manage Columns Visibility']);
 
 			expect(
 				await dataSetFragmentPage.table.bodyRows.count()

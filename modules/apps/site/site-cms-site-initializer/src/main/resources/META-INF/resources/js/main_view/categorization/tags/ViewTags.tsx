@@ -18,12 +18,14 @@ import MergeTagsModal from './MergeTagsModal';
 export default function ViewTags({
 	cmsGroupId,
 	dataSetId,
+	invalidTagCharacters,
 	tagUsagesURL,
 	tagsURL,
 	vocabulariesURL,
 }: {
 	cmsGroupId: number;
 	dataSetId: string;
+	invalidTagCharacters: string;
 	tagUsagesURL: string;
 	tagsURL: string;
 	vocabulariesURL: string;
@@ -45,6 +47,7 @@ export default function ViewTags({
 								closeModal,
 								cmsGroupId,
 								dataSetId,
+								invalidTagCharacters,
 							}),
 						size: 'md',
 					});
@@ -183,9 +186,11 @@ export default function ViewTags({
 					closeModal,
 					cmsGroupId,
 					loadData,
-					tagId: itemData.id,
-					tagName: itemData.name,
+					selectIntoTags: [
+						{label: itemData.name, value: itemData.id},
+					],
 				}),
+			id: 'mergeModal',
 			size: 'md',
 		});
 	};
@@ -262,6 +267,7 @@ export default function ViewTags({
 						label: Liferay.Language.get('merge'),
 					},
 					{
+						className: 'text-danger',
 						data: {
 							permissionKey: 'delete',
 						},

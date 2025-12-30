@@ -13,15 +13,19 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.template.react.renderer.ComponentDescriptor;
 import com.liferay.portal.template.react.renderer.ReactRenderer;
 
@@ -110,6 +114,20 @@ public class FDSRendererImpl implements FDSRenderer {
 			}
 		}
 		else {
+			Boolean snapshotsEnabled;
+
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)httpServletRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
+			if (!themeDisplay.isSignedIn()) {
+				snapshotsEnabled = false;
+			}
+			else {
+				snapshotsEnabled = fdsSerializer.serializeSnapshotsEnabled(
+					fdsName, httpServletRequest);
+			}
+
 			props.putAll(
 				HashMapBuilder.<String, Object>put(
 					"additionalAPIURLParameters",
@@ -180,6 +198,29 @@ public class FDSRendererImpl implements FDSRenderer {
 						return filtersJSONArray;
 					}
 				).put(
+					"filtersGroups",
+					() -> {
+						JSONArray groupedFDSFiltersJSONArray =
+							fdsSerializer.serializeGroupedFDSFilters(
+								fdsName, httpServletRequest);
+
+						if (JSONUtil.isEmpty(groupedFDSFiltersJSONArray) ||
+							!FeatureFlagManagerUtil.isEnabled(
+								PortalUtil.getCompanyId(httpServletRequest),
+								"LPD-68829")) {
+
+							return null;
+						}
+
+						return groupedFDSFiltersJSONArray;
+					}
+				).put(
+					"hideManagementBarInEmptyState",
+					() -> fdsSerializer.serializeHideManagementBarInEmptyState(
+						fdsName, httpServletRequest)
+				).put(
+					"id", fdsName
+				).put(
 					"itemsActions",
 					() -> {
 						List<FDSActionDropdownItem> fdsActionDropdownItems =
@@ -205,6 +246,25 @@ public class FDSRendererImpl implements FDSRenderer {
 
 						return paginationJSONObject;
 					}
+				).put(
+					"snapshots",
+					() -> {
+						if (!snapshotsEnabled) {
+							return null;
+						}
+
+						JSONArray snapshotsJSONArray =
+							fdsSerializer.serializeSnapshots(
+								fdsName, httpServletRequest);
+
+						if (JSONUtil.isEmpty(snapshotsJSONArray)) {
+							return null;
+						}
+
+						return snapshotsJSONArray;
+					}
+				).put(
+					"snapshotsEnabled", snapshotsEnabled
 				).put(
 					"sorts",
 					() -> {

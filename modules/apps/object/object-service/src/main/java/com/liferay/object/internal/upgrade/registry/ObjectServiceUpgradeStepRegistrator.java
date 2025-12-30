@@ -166,11 +166,8 @@ public class ObjectServiceUpgradeStepRegistrator
 			new BaseExternalReferenceCodeUpgradeProcess() {
 
 				@Override
-				protected String[][] getTableAndPrimaryKeyColumnNames() {
-					return new String[][] {
-						{"ObjectEntry", "objectEntryId"},
-						{"ObjectField", "objectFieldId"}
-					};
+				protected String[] getTableNames() {
+					return new String[] {"ObjectEntry", "ObjectField"};
 				}
 
 			});
@@ -230,10 +227,8 @@ public class ObjectServiceUpgradeStepRegistrator
 			new BaseExternalReferenceCodeUpgradeProcess() {
 
 				@Override
-				protected String[][] getTableAndPrimaryKeyColumnNames() {
-					return new String[][] {
-						{"ObjectDefinition", "objectDefinitionId"}
-					};
+				protected String[] getTableNames() {
+					return new String[] {"ObjectDefinition"};
 				}
 
 			});
@@ -280,8 +275,8 @@ public class ObjectServiceUpgradeStepRegistrator
 			new BaseExternalReferenceCodeUpgradeProcess() {
 
 				@Override
-				protected String[][] getTableAndPrimaryKeyColumnNames() {
-					return new String[][] {{"ObjectAction", "objectActionId"}};
+				protected String[] getTableNames() {
+					return new String[] {"ObjectAction"};
 				}
 
 			});
@@ -394,10 +389,8 @@ public class ObjectServiceUpgradeStepRegistrator
 			new BaseExternalReferenceCodeUpgradeProcess() {
 
 				@Override
-				protected String[][] getTableAndPrimaryKeyColumnNames() {
-					return new String[][] {
-						{"ObjectValidationRule", "objectValidationRuleId"}
-					};
+				protected String[] getTableNames() {
+					return new String[] {"ObjectValidationRule"};
 				}
 
 			});
@@ -425,10 +418,8 @@ public class ObjectServiceUpgradeStepRegistrator
 			new BaseExternalReferenceCodeUpgradeProcess() {
 
 				@Override
-				protected String[][] getTableAndPrimaryKeyColumnNames() {
-					return new String[][] {
-						{"ObjectRelationship", "objectRelationshipId"}
-					};
+				protected String[] getTableNames() {
+					return new String[] {"ObjectRelationship"};
 				}
 
 			});
@@ -510,9 +501,15 @@ public class ObjectServiceUpgradeStepRegistrator
 				"ObjectEntry", "externalReferenceCode", "VARCHAR(1000)"));
 
 		registry.register(
-			"10.1.0", "10.1.1",
-			new ObjectDefinitionStaleUserIdUpgradeProcess(_userLocalService),
-			new ObjectFieldStaleUserIdUpgradeProcess(_userLocalService),
+			"10.1.0", "10.1.0.step-1",
+			new ObjectDefinitionStaleUserIdUpgradeProcess(_userLocalService));
+
+		registry.register(
+			"10.1.0.step-1", "10.1.0.step-2",
+			new ObjectFieldStaleUserIdUpgradeProcess(_userLocalService));
+
+		registry.register(
+			"10.1.0.step-2", "10.1.1",
 			new ObjectRelationshipStaleUserIdUpgradeProcess(_userLocalService));
 
 		registry.register(
@@ -543,9 +540,15 @@ public class ObjectServiceUpgradeStepRegistrator
 				"ObjectEntry", "externalReferenceCode", "VARCHAR(1000)"));
 
 		registry.register(
-			"10.5.0", "10.5.1",
-			new ObjectDefinitionStaleUserIdUpgradeProcess(_userLocalService),
-			new ObjectFieldStaleUserIdUpgradeProcess(_userLocalService),
+			"10.5.0", "10.5.0.step-1",
+			new ObjectDefinitionStaleUserIdUpgradeProcess(_userLocalService));
+
+		registry.register(
+			"10.5.0.step-1", "10.5.0.step-2",
+			new ObjectFieldStaleUserIdUpgradeProcess(_userLocalService));
+
+		registry.register(
+			"10.5.0.step-2", "10.5.1",
 			new ObjectRelationshipStaleUserIdUpgradeProcess(_userLocalService));
 
 		registry.register(
@@ -670,6 +673,16 @@ public class ObjectServiceUpgradeStepRegistrator
 			"10.24.0", "10.25.0",
 			new com.liferay.object.internal.upgrade.v10_25_0.
 				SchemaUpgradeProcess());
+
+		registry.register(
+			"10.25.0", "10.25.1",
+			UpgradeProcessFactory.alterColumnType(
+				"ObjectFieldSetting", "value", "TEXT"));
+
+		registry.register(
+			"10.25.1", "10.26.0",
+			UpgradeProcessFactory.dropColumns(
+				"ObjectDefinition", "enableLocalization"));
 	}
 
 	@Reference

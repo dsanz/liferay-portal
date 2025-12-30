@@ -151,11 +151,13 @@ public class Sidecar {
 				}
 			}
 			catch (Exception exception) {
-				if (_log.isWarnEnabled()) {
-					_log.warn(
+				if (_log.isDebugEnabled()) {
+					_log.debug(
 						"Unable to get a started sidecar process, will restart",
 						exception);
 				}
+
+				_sidecarProcessFile.delete();
 			}
 		}
 
@@ -523,7 +525,7 @@ public class Sidecar {
 
 		// Configure paths
 
-		Path dataParentPath = _sidecarWorkPath.resolve("data/elasticsearch7");
+		Path dataParentPath = _sidecarWorkPath.resolve("data/elasticsearch8");
 
 		settingsHelperImpl.put(
 			"path.data", String.valueOf(dataParentPath.resolve("indices")));

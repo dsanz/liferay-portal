@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import {useResource} from '@clayui/data-provider';
 import {
 	fireEvent,
@@ -19,12 +19,10 @@ import Assignee from '../../js/Assignee/Assignee';
 const mockResourceWithImage = {
 	items: [
 		{
-			embedded: {
-				externalReferenceCode: '456',
-				image: '/image.jpg',
-				name: 'Test Test',
-			},
-			entryClassName: 'com.liferay.portal.kernel.model.User',
+			externalReferenceCode: '456',
+			image: '/image.jpg',
+			name: 'Test Test',
+			type: 'User',
 		},
 	],
 };
@@ -32,11 +30,9 @@ const mockResourceWithImage = {
 const mockResourceWithoutImage = {
 	items: [
 		{
-			embedded: {
-				externalReferenceCode: '789',
-				name: 'Publications Admin',
-			},
-			entryClassName: 'com.liferay.portal.kernel.model.Role',
+			externalReferenceCode: '789',
+			name: 'Publications Admin',
+			type: 'Role',
 		},
 	],
 };
@@ -47,6 +43,17 @@ jest.mock('@clayui/data-provider', () => {
 	return {
 		...originalModule,
 		useResource: jest.fn(),
+	};
+});
+
+jest.mock('data-engine-js-components-web', () => {
+	const originalModule = jest.requireActual('data-engine-js-components-web');
+
+	return {
+		...originalModule,
+		useConfig: () => ({
+			portletNamespace: 'portletNamespace_',
+		}),
 	};
 });
 
@@ -73,6 +80,7 @@ describe('Assignee object field', () => {
 				label="Assignee"
 				name="assignee"
 				onChange={() => {}}
+				searchURL=""
 				value={{
 					externalReferenceCode: '123',
 					name: 'Test Test',
@@ -89,6 +97,32 @@ describe('Assignee object field', () => {
 		);
 	});
 
+	it('calls onChange with null value when input field is empty', () => {
+		(useResource as jest.Mock).mockReturnValue({resource: null});
+
+		const onChange = jest.fn();
+
+		const {getByRole} = render(
+			<Assignee
+				label="Assignee"
+				name="assignee"
+				onChange={onChange}
+				searchURL=""
+				value={{
+					externalReferenceCode: '123',
+					name: 'Test Test',
+					type: 'User',
+				}}
+			/>
+		);
+
+		const input = getByRole('combobox');
+
+		fireEvent.change(input, {target: {value: ''}});
+
+		expect(onChange).toHaveBeenLastCalledWith({target: {value: null}});
+	});
+
 	it('calls onChange with the correct value when an item is selected', async () => {
 		(useResource as jest.Mock).mockReturnValue({
 			resource: mockResourceWithImage,
@@ -97,7 +131,7 @@ describe('Assignee object field', () => {
 		const onChange = jest.fn();
 
 		const {getByRole} = render(
-			<Assignee label="" name="" onChange={onChange} />
+			<Assignee label="" name="" onChange={onChange} searchURL="" />
 		);
 
 		const input = getByRole('combobox');
@@ -123,8 +157,9 @@ describe('Assignee object field', () => {
 
 	it('calls the API with the correct search term', async () => {
 		(useResource as jest.Mock).mockReturnValue({resource: null});
+
 		const {getByRole} = render(
-			<Assignee label="" name="" onChange={() => {}} />
+			<Assignee label="" name="" onChange={() => {}} searchURL="" />
 		);
 
 		const input = getByRole('combobox');
@@ -134,7 +169,7 @@ describe('Assignee object field', () => {
 		await waitFor(() => {
 			expect(useResource).toHaveBeenCalledWith(
 				expect.objectContaining({
-					variables: {search: 'Test'},
+					variables: {['portletNamespace_search']: 'Test'},
 				})
 			);
 		});
@@ -146,7 +181,7 @@ describe('Assignee object field', () => {
 		});
 
 		const {getByRole} = render(
-			<Assignee label="" name="" onChange={() => {}} />
+			<Assignee label="" name="" onChange={() => {}} searchURL="" />
 		);
 
 		const input = getByRole('combobox');
@@ -167,7 +202,7 @@ describe('Assignee object field', () => {
 		});
 
 		const {getByRole, getByText} = render(
-			<Assignee label="" name="" onChange={() => {}} />
+			<Assignee label="" name="" onChange={() => {}} searchURL="" />
 		);
 
 		const input = getByRole('combobox');

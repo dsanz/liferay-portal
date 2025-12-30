@@ -12,13 +12,15 @@ import React, {
 	useReducer,
 } from 'react';
 
+import {ObjectDefinitions} from '../../common/types/ObjectDefinition';
 import {Space} from '../../common/types/Space';
 import {Workflow} from '../../common/types/Workflow';
-import {ObjectDefinitions} from '../types/ObjectDefinition';
+import getLocalizedValue from '../../common/utils/getLocalizedValue';
 import {
 	ReferencedStructure,
 	RepeatableGroup,
 	Structure,
+	StructureChild,
 } from '../types/Structure';
 import {Uuid} from '../types/Uuid';
 import actionGeneratesChanges from '../utils/actionGeneratesChanges';
@@ -43,24 +45,25 @@ import sortChildren from '../utils/sortChildren';
 import ungroup from '../utils/ungroup';
 import updateChild from '../utils/updateChild';
 import {
+	ErrorMap,
 	ValidationError,
+	ValidationProperty,
 	validateField,
 	validateRepeatableGroup,
 	validateStructure,
 } from '../utils/validation';
 
-const DEFAULT_STRUCTURE_LABEL = Liferay.Language.get(
-	'untitled-content-structure'
-);
+type UndeletableReason = 'is-locked' | 'is-referenced' | 'causes-invalid-group';
 
 type History = {
 	deletedChildren: boolean;
+	deletedGroupERCs: Array<RepeatableGroup['erc']>;
+	modifiedNames: Set<Uuid>;
 };
 
 export type State = {
-	error: string | null;
 	history: History;
-	invalids: Map<Uuid, Set<ValidationError>>;
+	invalids: Map<Uuid, ErrorMap>;
 	publishedChildren: Set<Uuid>;
 	selection: Uuid[];
 	structure: Structure;
@@ -68,9 +71,10 @@ export type State = {
 };
 
 const INITIAL_STATE: State = {
-	error: null,
 	history: {
 		deletedChildren: false,
+		deletedGroupERCs: [],
+		modifiedNames: new Set(),
 	},
 	invalids: new Map(),
 	publishedChildren: new Set(),
@@ -78,42 +82,42 @@ const INITIAL_STATE: State = {
 	structure: {
 		children: new Map(),
 		erc: '',
-		label: {
-			[Liferay.ThemeDisplay.getDefaultLanguageId()]:
-				DEFAULT_STRUCTURE_LABEL,
-		},
-		name: normalizeName(DEFAULT_STRUCTURE_LABEL),
-		spaces: [],
+		label: {},
+		name: '',
+		spaces: 'all',
 		status: 'new',
+		system: false,
 		uuid: getUuid(),
 		workflows: {},
 	},
 	unsavedChanges: false,
 };
 
-type AddFieldAction = {field: Field; type: 'add-field'};
+type AddFieldAction = {field: Field; parentUuid?: Uuid; type: 'add-field'};
 
 type AddReferencedStructuresAction = {
 	referencedStructures: ReferencedStructure[];
 	type: 'add-referenced-structures';
 };
 
-type AddRepeatableGroup = {
+type AddRepeatableGroupAction = {
 	type: 'add-repeatable-group';
 	uuid?: Uuid;
 };
 
-type AddValidationError = {
+type AddErrorAction = {
 	error: ValidationError;
-	type: 'add-validation-error';
+	property: ValidationProperty;
+	type: 'add-error';
 	uuid: Uuid;
 };
 
-type ClearErrorAction = {
-	type: 'clear-error';
+type ClearErrorsAction = {
+	type: 'clear-errors';
 };
 
 type CreateStructureAction = {
+	id: number;
 	type: 'create-structure';
 };
 
@@ -121,16 +125,14 @@ type DeleteChildAction = {type: 'delete-child'; uuid: Uuid};
 
 type DeleteSelectionAction = {type: 'delete-selection'};
 
-type PublishStructureAction = {type: 'publish-structure'};
+type PublishStructureAction = {id?: number; type: 'publish-structure'};
 
 type RefreshReferencedStructuresAction = {
 	objectDefinitions: ObjectDefinitions;
 	type: 'refresh-referenced-structures';
 };
 
-type SetErrorAction = {error: string | null; type: 'set-error'};
-
-type SetSelection = {
+type SetSelectionAction = {
 	selection: State['selection'];
 	type: 'set-selection';
 };
@@ -170,6 +172,7 @@ type UpdateStructureAction = {
 	erc?: string;
 	label?: Liferay.Language.LocalizedValue<string>;
 	name?: string;
+	objectDefinitions?: ObjectDefinitions;
 	spaces?: Structure['spaces'];
 	type: 'update-structure';
 };
@@ -182,16 +185,15 @@ type ValidateAction = {
 export type Action =
 	| AddFieldAction
 	| AddReferencedStructuresAction
-	| AddRepeatableGroup
-	| AddValidationError
-	| ClearErrorAction
+	| AddRepeatableGroupAction
+	| AddErrorAction
+	| ClearErrorsAction
 	| CreateStructureAction
 	| DeleteChildAction
 	| DeleteSelectionAction
 	| PublishStructureAction
 	| RefreshReferencedStructuresAction
-	| SetErrorAction
-	| SetSelection
+	| SetSelectionAction
 	| SetWorkflowAction
 	| UngroupAction
 	| UpdateFieldAction
@@ -206,24 +208,44 @@ function reducer(state: State, action: Action): State {
 
 	switch (action.type) {
 		case 'add-field': {
-			const {field} = action;
+			const {field, parentUuid} = action;
 
 			const {structure} = state;
 
-			const name = findAvailableFieldName(structure.children, field.name);
+			let parent: Structure | RepeatableGroup = structure;
 
-			const children = new Map(structure.children);
+			if (parentUuid) {
+				const item = findChild({root: structure, uuid: parentUuid});
+
+				if (item?.type === 'repeatable-group') {
+					parent = item;
+				}
+			}
+
+			const name = findAvailableFieldName(parent.children, field.name);
+
+			const children = new Map(parent.children);
 
 			children.set(field.uuid, {...field, name});
 
-			const sortedChildren = sortChildren(children);
+			let nextChildren;
+
+			if (parent.type === 'repeatable-group') {
+				nextChildren = updateChild({
+					child: {...parent, children: sortChildren(children)},
+					root: structure,
+				});
+			}
+			else {
+				nextChildren = sortChildren(children);
+			}
 
 			return {
 				...state,
 				selection: [field.uuid],
 				structure: {
 					...structure,
-					children: sortedChildren,
+					children: nextChildren,
 				},
 			};
 		}
@@ -270,70 +292,44 @@ function reducer(state: State, action: Action): State {
 
 			const uuids = uuid ? [uuid] : selection;
 
-			const groupChildren = uuids.map(
+			const items = uuids.map(
 				(uuid) => findChild({root: structure, uuid})!
 			);
 
-			let parent: Structure | RepeatableGroup = structure;
+			const undeletables = getUndeletableItems(items, structure);
 
-			if (groupChildren[0].parent !== structure.uuid) {
-				parent = findChild({
-					root: structure,
-					uuid: groupChildren[0].parent,
-				})! as RepeatableGroup;
+			const reasons = [...undeletables.values()];
+
+			if (reasons.includes('is-locked')) {
+				showWarning({
+					text: Liferay.Language.get(
+						'the-repeatable-group-cannot-be-created-because-one-or-more-fields-of-the-selection-are-system-fields'
+					),
+					title: Liferay.Language.get(
+						'repeatable-group-creation-not-allowed'
+					),
+				});
+
+				return state;
 			}
 
-			for (const child of groupChildren) {
-				if (isLocked(child)) {
-					showWarning({
-						text: Liferay.Language.get(
-							'the-repeatable-group-cannot-be-created-because-one-or-more-fields-of-the-selection-are-system-fields'
-						),
-						title: Liferay.Language.get(
-							'repeatable-group-creation-not-allowed'
-						),
-					});
+			if (
+				reasons.includes('is-referenced') ||
+				items.some(({uuid}) => publishedChildren.has(uuid))
+			) {
+				showWarning({
+					text: Liferay.Language.get(
+						'the-repeatable-group-cannot-be-created-because-one-or-more-fields-of-the-selection-are-already-published'
+					),
+					title: Liferay.Language.get(
+						'repeatable-group-creation-not-allowed'
+					),
+				});
 
-					return state;
-				}
-
-				if (
-					publishedChildren.has(child.uuid) ||
-					isReferenced({item: child, root: structure})
-				) {
-					showWarning({
-						text: Liferay.Language.get(
-							'the-repeatable-group-cannot-be-created-because-one-or-more-fields-of-the-selection-are-already-published'
-						),
-						title: Liferay.Language.get(
-							'repeatable-group-creation-not-allowed'
-						),
-					});
-
-					return state;
-				}
-
-				if (child.parent !== parent.uuid) {
-					showWarning({
-						text: Liferay.Language.get(
-							'a-repeatable-group-requires-all-selected-items-to-be-at-the-same-hierarchy-level'
-						),
-						title: Liferay.Language.get(
-							'repeatable-group-creation-not-allowed'
-						),
-					});
-
-					return state;
-				}
+				return state;
 			}
 
-			const parentFields = Array.from(parent.children.values()).filter(
-				(child) =>
-					child.type !== 'referenced-structure' &&
-					child.type !== 'repeatable-group'
-			);
-
-			if (parentFields.length === groupChildren.length) {
+			if (reasons.includes('causes-invalid-group')) {
 				showWarning({
 					text: Liferay.Language.get(
 						'the-repeatable-group-cannot-be-created-because-at-least-one-field-is-required'
@@ -346,11 +342,34 @@ function reducer(state: State, action: Action): State {
 				return state;
 			}
 
+			const parents = items.map(
+				(item) =>
+					findChild({
+						root: structure,
+						uuid: item.parent,
+					}) || structure
+			);
+
+			const isSameParent = new Set(parents).size === 1;
+
+			if (!isSameParent) {
+				showWarning({
+					text: Liferay.Language.get(
+						'a-repeatable-group-requires-all-selected-items-to-be-at-the-same-hierarchy-level'
+					),
+					title: Liferay.Language.get(
+						'repeatable-group-creation-not-allowed'
+					),
+				});
+
+				return state;
+			}
+
 			const groupUuid = getUuid();
 
 			const children = insertGroup({
-				groupChildren,
-				groupParent: parent.uuid,
+				groupChildren: items,
+				groupParent: parents[0].uuid,
 				groupUuid,
 				root: structure,
 			});
@@ -363,26 +382,26 @@ function reducer(state: State, action: Action): State {
 				structure: {...structure, children: sortedChildren},
 			};
 		}
-		case 'add-validation-error': {
-			const {error, uuid} = action;
+		case 'add-error': {
+			const {error, property, uuid} = action;
 
 			const invalids = new Map(state.invalids);
 
-			const currentErrors = new Set(invalids.get(uuid));
+			const errors = new Map(invalids.get(uuid));
 
-			currentErrors.add(error);
+			errors.set(property, error);
 
-			invalids.set(uuid, currentErrors);
+			invalids.set(uuid, errors);
 
 			return {
 				...state,
 				invalids,
 			};
 		}
-		case 'clear-error': {
+		case 'clear-errors': {
 			return {
 				...state,
-				error: INITIAL_STATE.error,
+				invalids: new Map(),
 			};
 		}
 		case 'create-structure': {
@@ -390,9 +409,10 @@ function reducer(state: State, action: Action): State {
 
 			return {
 				...state,
-				error: INITIAL_STATE.error,
+				invalids: new Map(),
 				structure: {
 					...structure,
+					id: action.id,
 					status: 'draft' as Structure['status'],
 				},
 			};
@@ -404,6 +424,19 @@ function reducer(state: State, action: Action): State {
 			const child = findChild({root: structure, uuid});
 
 			if (!child) {
+				return state;
+			}
+
+			const undeletables = getUndeletableItems([child], structure);
+
+			if (undeletables.get(child.uuid) === 'causes-invalid-group') {
+				showWarning({
+					text: Liferay.Language.get(
+						'you-must-keep-at-least-one-field-in-a-repeatable-group'
+					),
+					title: Liferay.Language.get('deletion-not-allowed'),
+				});
+
 				return state;
 			}
 
@@ -434,6 +467,19 @@ function reducer(state: State, action: Action): State {
 					...nextState,
 					history: {...nextState.history, deletedChildren: true},
 				};
+
+				if (child.type === 'repeatable-group') {
+					nextState = {
+						...nextState,
+						history: {
+							...nextState.history,
+							deletedGroupERCs: [
+								...nextState.history.deletedGroupERCs,
+								child.erc,
+							],
+						},
+					};
+				}
 			}
 
 			return nextState;
@@ -445,60 +491,76 @@ function reducer(state: State, action: Action): State {
 				(uuid) => findChild({root: structure, uuid})!
 			);
 
-			if (items.some((item) => isLocked(item))) {
+			const undeletables = getUndeletableItems(items, structure);
+
+			if (undeletables.size) {
 				showWarning({
 					text: Liferay.Language.get(
-						'system-fields-cannot-be-deleted'
+						'one-or-more-selected-fields-are-system-or-referenced-fields'
 					),
 					title: Liferay.Language.get(
-						'some-fields-cannot-be-deleted'
-					),
-				});
-			}
-			else if (
-				items.some((item) => isReferenced({item, root: structure}))
-			) {
-				showWarning({
-					text: Liferay.Language.get(
-						'referenced-content-structure-fields-cannot-be-deleted'
-					),
-					title: Liferay.Language.get(
-						'some-fields-cannot-be-deleted'
+						'some-fields-could-not-be-deleted'
 					),
 				});
 			}
 
 			const nextChildren = deleteChildren({
 				root: structure,
-				uuids: selection,
+				uuids: selection.filter((uuid) => !undeletables.has(uuid)),
 			});
 
-			const undeletableItems = items.filter(
-				(item) =>
-					isLocked(item) || isReferenced({item, root: structure})
-			);
-
-			return {
+			let nextState = {
 				...state,
-				selection: undeletableItems.map(({uuid}) => uuid),
+				selection: [...undeletables.keys()],
 				structure: {
 					...structure,
 					children: nextChildren,
 				},
 			};
+
+			for (const uuid of selection) {
+				const child = findChild({root: structure, uuid});
+
+				if (!child) {
+					continue;
+				}
+
+				if (state.publishedChildren.has(uuid)) {
+					nextState = {
+						...nextState,
+						history: {...nextState.history, deletedChildren: true},
+					};
+
+					if (child.type === 'repeatable-group') {
+						nextState = {
+							...nextState,
+							history: {
+								...nextState.history,
+								deletedGroupERCs: [
+									...nextState.history.deletedGroupERCs,
+									child.erc,
+								],
+							},
+						};
+					}
+				}
+			}
+
+			return nextState;
 		}
 		case 'publish-structure': {
 			const {structure} = state;
 
 			const nextStructure = {
 				...structure,
+				id: action.id || structure.id,
 				status: 'published' as Structure['status'],
 			};
 
 			return {
 				...state,
-				error: INITIAL_STATE.error,
 				history: INITIAL_STATE.history,
+				invalids: new Map(),
 				publishedChildren: getChildrenUuids({root: structure}),
 				structure: nextStructure,
 				unsavedChanges: false,
@@ -521,12 +583,6 @@ function reducer(state: State, action: Action): State {
 
 			return {...state, structure: nextStructure};
 		}
-		case 'set-error':
-			return {
-				...state,
-				error: action.error,
-				selection: [state.structure.uuid],
-			};
 		case 'set-selection': {
 			const {selection} = action;
 
@@ -586,12 +642,28 @@ function reducer(state: State, action: Action): State {
 				uuid,
 			} = action;
 
-			const {structure} = state;
+			const {history, publishedChildren, structure} = state;
 
 			const field = findChild({root: structure, uuid}) as Field;
 
 			if (!field) {
 				return state;
+			}
+
+			// If name is being updated manually, mark it
+
+			const modifiedNames = new Set(history.modifiedNames);
+
+			if (name && name !== field.name) {
+				modifiedNames.add(field.uuid);
+			}
+
+			// Calculate new name
+
+			let nextName = field.name;
+
+			if (!publishedChildren.has(field.uuid)) {
+				nextName = getNextName({action, item: field, modifiedNames});
 			}
 
 			// Prepare updated field
@@ -602,7 +674,7 @@ function reducer(state: State, action: Action): State {
 				indexableConfig: indexableConfig ?? field.indexableConfig,
 				label: label ?? field.label,
 				localized: localized ?? field.localized,
-				name: name ?? field.name,
+				name: nextName,
 				required: required ?? field.required,
 				settings: settings ?? field.settings,
 			};
@@ -624,8 +696,13 @@ function reducer(state: State, action: Action): State {
 			const {type: _, ...data} = action;
 
 			const errors = validateField({
+				children: structure.children,
 				currentErrors: invalids.get(nextField.uuid),
-				data,
+				data: {
+					...data,
+					name: nextName,
+				},
+				uuid: nextField.uuid,
 			});
 
 			if (errors.size) {
@@ -639,6 +716,10 @@ function reducer(state: State, action: Action): State {
 
 			return {
 				...state,
+				history: {
+					...history,
+					modifiedNames,
+				},
 				invalids,
 				selection: [nextField.uuid],
 				structure: {
@@ -686,10 +767,10 @@ function reducer(state: State, action: Action): State {
 			});
 
 			if (errors.size) {
-				invalids.set(structure.uuid, errors);
+				invalids.set(group.uuid, errors);
 			}
 			else {
-				invalids.delete(structure.uuid);
+				invalids.delete(group.uuid);
 			}
 
 			// Return new state
@@ -703,17 +784,42 @@ function reducer(state: State, action: Action): State {
 
 			// Prepare updated state
 
-			const {erc, label, name, spaces} = action;
+			const {erc, label, name, objectDefinitions, spaces} = action;
 
-			const {structure} = state;
+			const {history, structure} = state;
+
+			// If name is being updated manually, mark it
+
+			const modifiedNames = new Set(history.modifiedNames);
+
+			if (name && name !== structure.name) {
+				modifiedNames.add(structure.uuid);
+			}
+
+			// Calculate new name
+
+			const isPublished = structure.status === 'published';
+			let nextName = structure.name;
+
+			if (!isPublished) {
+				nextName = getNextName({
+					action,
+					item: structure,
+					modifiedNames,
+				});
+			}
 
 			const nextState: State = {
 				...state,
+				history: {
+					...history,
+					modifiedNames,
+				},
 				structure: {
 					...state.structure,
 					erc: erc ?? structure.erc,
 					label: label ?? structure.label,
-					name: name ?? structure.name,
+					name: nextName,
 					spaces: spaces ?? structure.spaces,
 				},
 			};
@@ -724,7 +830,13 @@ function reducer(state: State, action: Action): State {
 
 			const errors = validateStructure({
 				currentErrors: invalids.get(structure.uuid),
-				data: {erc, label, name, spaces},
+				data: {
+					erc,
+					label,
+					spaces,
+					...(!isPublished && {name: nextName}),
+				},
+				objectDefinitions,
 			});
 
 			if (errors.size) {
@@ -748,7 +860,6 @@ function reducer(state: State, action: Action): State {
 
 			return {
 				...state,
-				error: INITIAL_STATE.error,
 				invalids,
 				selection: [firstUuid],
 			};
@@ -845,6 +956,78 @@ function getDefaultChildren(structureUuid: Uuid) {
 	}
 
 	return children;
+}
+
+function getNextName({
+	action,
+	item,
+	modifiedNames,
+}: {
+	action: UpdateStructureAction | UpdateFieldAction;
+	item: Structure | Field;
+	modifiedNames: State['history']['modifiedNames'];
+}): string {
+	if ('name' in action) {
+		return action.name!;
+	}
+
+	if (!action.label || modifiedNames.has(item.uuid)) {
+		return item.name;
+	}
+
+	const localizedLabel = getLocalizedValue(action.label);
+
+	return normalizeName(localizedLabel, {
+		style: 'status' in item ? 'pascal' : 'camel',
+	});
+}
+
+function getUndeletableItems(
+	items: StructureChild[],
+	structure: Structure
+): Map<Uuid, UndeletableReason> {
+	const undeletables = new Map<Uuid, UndeletableReason>();
+
+	for (const item of items) {
+		if (isLocked(item)) {
+			undeletables.set(item.uuid, 'is-locked');
+		}
+
+		if (isReferenced({item, root: structure})) {
+			undeletables.set(item.uuid, 'is-referenced');
+		}
+
+		const parent = findChild({
+			root: structure,
+			uuid: item.parent,
+		});
+
+		if (parent?.type === 'repeatable-group') {
+			const groupFields = Array.from(parent.children.values()).filter(
+				(child) =>
+					child.type !== 'referenced-structure' &&
+					child.type !== 'repeatable-group'
+			);
+
+			const fields = items.filter(
+				(item) =>
+					item.type !== 'referenced-structure' &&
+					item.type !== 'repeatable-group'
+			);
+
+			if (
+				groupFields.every(({uuid}) =>
+					fields.some((field) => field.uuid === uuid)
+				)
+			) {
+				groupFields.forEach((field) => {
+					undeletables.set(field.uuid, 'causes-invalid-group');
+				});
+			}
+		}
+	}
+
+	return undeletables;
 }
 
 function showWarning({text, title}: {text: string; title: string}) {

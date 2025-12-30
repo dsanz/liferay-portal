@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutPrototypeLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.GroupThreadLocal;
@@ -75,8 +76,8 @@ public class DepotAssetRendererFactoryWrapper<T>
 	}
 
 	@Override
-	public AssetEntry getAssetEntry(T entry) throws PortalException {
-		return _assetRendererFactory.getAssetEntry(entry);
+	public long getAssetEntryClassPK(T entry) {
+		return _assetRendererFactory.getAssetEntryClassPK(entry);
 	}
 
 	@Override
@@ -317,6 +318,12 @@ public class DepotAssetRendererFactoryWrapper<T>
 
 			if (scopeGroupId != 0) {
 				return _groupLocalService.fetchGroup(scopeGroupId);
+			}
+
+			ThemeDisplay themeDisplay = serviceContext.getThemeDisplay();
+
+			if (themeDisplay != null) {
+				return themeDisplay.getScopeGroup();
 			}
 
 			if (serviceContext.getScopeGroupId() != 0) {

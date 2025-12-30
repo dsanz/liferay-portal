@@ -5,8 +5,10 @@
 
 package com.liferay.site.cms.site.initializer.internal.model.listener;
 
+import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.object.constants.ObjectDefinitionConstants;
+import com.liferay.object.constants.ObjectEntryFolderConstants;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectEntryFolder;
@@ -14,24 +16,22 @@ import com.liferay.object.rest.filter.factory.FilterFactory;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryFolderLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
-import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.sql.dsl.expression.Predicate;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
-import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.ModelListener;
-import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
-import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -39,7 +39,7 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.sharing.service.SharingEntryLocalService;
 import com.liferay.site.cms.site.initializer.util.CMSDefaultPermissionUtil;
 
-import java.util.Iterator;
+import java.util.Arrays;
 import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
@@ -74,6 +74,83 @@ public class ObjectEntryFolderModelListener
 		}
 		catch (Exception exception) {
 			throw new ModelListenerException(exception);
+		}
+	}
+
+	@Override
+	public void onAfterUpdate(
+			ObjectEntryFolder originalObjectEntryFolder,
+			ObjectEntryFolder objectEntryFolder)
+		throws ModelListenerException {
+
+		try {
+			if (originalObjectEntryFolder.getParentObjectEntryFolderId() !=
+					objectEntryFolder.getParentObjectEntryFolderId()) {
+
+				_updateCMSDefaultPermissions(objectEntryFolder);
+			}
+		}
+		catch (Exception exception) {
+			throw new ModelListenerException(exception);
+		}
+	}
+
+	private void _addCMSDefaultPermissions(ObjectEntryFolder objectEntryFolder)
+		throws Exception {
+
+		JSONObject defaultPermissionsJSONObject =
+			_getCMSDefaultPermissionJSONObject(objectEntryFolder);
+
+		if ((defaultPermissionsJSONObject == null) ||
+			JSONUtil.isEmpty(defaultPermissionsJSONObject)) {
+
+			return;
+		}
+
+		CMSDefaultPermissionUtil.addOrUpdateObjectEntry(
+			null, objectEntryFolder.getCompanyId(),
+			objectEntryFolder.getUserId(),
+			objectEntryFolder.getExternalReferenceCode(),
+			objectEntryFolder.getModelClassName(), defaultPermissionsJSONObject,
+			objectEntryFolder.getGroupId(), objectEntryFolder.getTreePath());
+
+		JSONObject objectEntryFoldersJSONObject =
+			defaultPermissionsJSONObject.getJSONObject("OBJECT_ENTRY_FOLDERS");
+
+		if (objectEntryFoldersJSONObject == null) {
+			return;
+		}
+
+		List<String> resourceActions = ResourceActionsUtil.getResourceActions(
+			ObjectEntryFolder.class.getName());
+
+		List<Role> roles = _roleLocalService.getGroupRolesAndTeamRoles(
+			objectEntryFolder.getCompanyId(), null,
+			Arrays.asList(
+				RoleConstants.ADMINISTRATOR,
+				DepotRolesConstants.ASSET_LIBRARY_OWNER),
+			null, null,
+			new int[] {RoleConstants.TYPE_REGULAR, RoleConstants.TYPE_DEPOT}, 0,
+			0, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		for (Role role : roles) {
+			String[] actionIds = JSONUtil.toStringArray(
+				objectEntryFoldersJSONObject.getJSONArray(role.getName()));
+
+			if (objectEntryFolder.getParentObjectEntryFolderId() ==
+					ObjectEntryFolderConstants.
+						PARENT_OBJECT_ENTRY_FOLDER_ID_DEFAULT) {
+
+				actionIds = ArrayUtil.remove(actionIds, ActionKeys.DELETE);
+			}
+
+			_resourcePermissionLocalService.setResourcePermissions(
+				objectEntryFolder.getCompanyId(),
+				ObjectEntryFolder.class.getName(),
+				ResourceConstants.SCOPE_INDIVIDUAL,
+				String.valueOf(objectEntryFolder.getObjectEntryFolderId()),
+				role.getRoleId(),
+				ArrayUtil.filter(actionIds, resourceActions::contains));
 		}
 	}
 
@@ -116,22 +193,6 @@ public class ObjectEntryFolderModelListener
 			_filterFactory);
 	}
 
-	private Role _getOrAddCMSAdministratorRole(long companyId, long userId)
-		throws Exception {
-
-		String name = RoleConstants.CMS_ADMINISTRATOR;
-
-		Role role = _roleLocalService.fetchRole(companyId, name);
-
-		if (role != null) {
-			return role;
-		}
-
-		return _roleLocalService.addRole(
-			null, userId, null, 0, name, null, null, RoleConstants.TYPE_REGULAR,
-			null, null);
-	}
-
 	private void _onAfterCreate(ObjectEntryFolder objectEntryFolder)
 		throws Exception {
 
@@ -141,78 +202,7 @@ public class ObjectEntryFolderModelListener
 			return;
 		}
 
-		Role cmsAdministratorRole = _getOrAddCMSAdministratorRole(
-			objectEntryFolder.getCompanyId(), objectEntryFolder.getUserId());
-
-		_resourcePermissionLocalService.setResourcePermissions(
-			objectEntryFolder.getCompanyId(), ObjectEntryFolder.class.getName(),
-			ResourceConstants.SCOPE_INDIVIDUAL,
-			String.valueOf(objectEntryFolder.getObjectEntryFolderId()),
-			cmsAdministratorRole.getRoleId(),
-			TransformUtil.transformToArray(
-				_resourceActionLocalService.getResourceActions(
-					ObjectEntryFolder.class.getName()),
-				ResourceAction::getActionId, String.class));
-
-		if (objectEntryFolder.getParentObjectEntryFolderId() == 0) {
-			return;
-		}
-
-		JSONObject defaultPermissionsJSONObject =
-			_getCMSDefaultPermissionJSONObject(objectEntryFolder);
-
-		if ((defaultPermissionsJSONObject == null) ||
-			JSONUtil.isEmpty(defaultPermissionsJSONObject)) {
-
-			return;
-		}
-
-		CMSDefaultPermissionUtil.addOrUpdateObjectEntry(
-			null, objectEntryFolder.getCompanyId(),
-			objectEntryFolder.getUserId(),
-			objectEntryFolder.getExternalReferenceCode(),
-			objectEntryFolder.getModelClassName(), defaultPermissionsJSONObject,
-			objectEntryFolder.getGroupId(), objectEntryFolder.getTreePath());
-
-		JSONObject objectEntryFoldersJSONObject =
-			defaultPermissionsJSONObject.getJSONObject("OBJECT_ENTRY_FOLDERS");
-
-		if (objectEntryFoldersJSONObject == null) {
-			return;
-		}
-
-		List<String> resourceActions = ResourceActionsUtil.getResourceActions(
-			ObjectEntryFolder.class.getName());
-
-		Iterator<String> iterator = objectEntryFoldersJSONObject.keys();
-
-		while (iterator.hasNext()) {
-			String key = iterator.next();
-
-			JSONArray jsonArray = objectEntryFoldersJSONObject.getJSONArray(
-				key);
-
-			if ((jsonArray == null) || JSONUtil.isEmpty(jsonArray)) {
-				continue;
-			}
-
-			Role role = _roleLocalService.fetchRole(
-				objectEntryFolder.getCompanyId(), key);
-
-			if (role == null) {
-				continue;
-			}
-
-			_resourcePermissionLocalService.setResourcePermissions(
-				objectEntryFolder.getCompanyId(),
-				ObjectEntryFolder.class.getName(),
-				ResourceConstants.SCOPE_INDIVIDUAL,
-				String.valueOf(objectEntryFolder.getObjectEntryFolderId()),
-				role.getRoleId(),
-				ArrayUtil.filter(
-					JSONUtil.toStringArray(jsonArray),
-					action -> resourceActions.contains(action)));
-		}
+		_addCMSDefaultPermissions(objectEntryFolder);
 	}
 
 	private void _onAfterRemove(ObjectEntryFolder objectEntryFolder)
@@ -251,6 +241,38 @@ public class ObjectEntryFolderModelListener
 			objectEntry.getObjectEntryId());
 	}
 
+	private void _updateCMSDefaultPermissions(
+			ObjectEntryFolder objectEntryFolder)
+		throws Exception {
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				objectEntryFolder.getCompanyId(), "LPD-17564")) {
+
+			return;
+		}
+
+		JSONObject defaultPermissionsJSONObject =
+			_getCMSDefaultPermissionJSONObject(objectEntryFolder);
+
+		if ((defaultPermissionsJSONObject == null) ||
+			JSONUtil.isEmpty(defaultPermissionsJSONObject)) {
+
+			return;
+		}
+
+		ObjectEntry objectEntry = CMSDefaultPermissionUtil.fetchObjectEntry(
+			objectEntryFolder.getCompanyId(), objectEntryFolder.getUserId(),
+			objectEntryFolder.getExternalReferenceCode(),
+			objectEntryFolder.getModelClassName(), _filterFactory);
+
+		if (objectEntry != null) {
+			_objectEntryLocalService.deleteObjectEntry(
+				objectEntry.getObjectEntryId());
+		}
+
+		_addCMSDefaultPermissions(objectEntryFolder);
+	}
+
 	@Reference(
 		target = "(filter.factory.key=" + ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT + ")"
 	)
@@ -270,9 +292,6 @@ public class ObjectEntryFolderModelListener
 
 	@Reference
 	private Portal _portal;
-
-	@Reference
-	private ResourceActionLocalService _resourceActionLocalService;
 
 	@Reference
 	private ResourcePermissionLocalService _resourcePermissionLocalService;

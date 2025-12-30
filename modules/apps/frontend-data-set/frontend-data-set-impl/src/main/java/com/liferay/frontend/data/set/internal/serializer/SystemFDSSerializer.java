@@ -17,6 +17,8 @@ import com.liferay.frontend.data.set.filter.FDSFilter;
 import com.liferay.frontend.data.set.filter.FDSFilterContextContributor;
 import com.liferay.frontend.data.set.filter.FDSFilterContextContributorRegistry;
 import com.liferay.frontend.data.set.filter.FDSFilterRegistry;
+import com.liferay.frontend.data.set.filter.GroupedFDSFilters;
+import com.liferay.frontend.data.set.filter.GroupedFDSFiltersRegistry;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.frontend.data.set.model.FDSSortItem;
 import com.liferay.frontend.data.set.serializer.FDSSerializer;
@@ -27,18 +29,25 @@ import com.liferay.frontend.data.set.view.FDSViewContextContributor;
 import com.liferay.frontend.data.set.view.FDSViewContextContributorRegistry;
 import com.liferay.frontend.data.set.view.FDSViewRegistry;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
+import com.liferay.object.rest.manager.v1_0.ObjectEntryManagerRegistry;
+import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -86,7 +95,7 @@ public class SystemFDSSerializer
 			httpServletRequest, systemFDSEntry.getRESTApplication(),
 			systemFDSEntry.getRESTEndpoint(), systemFDSEntry.getRESTSchema()
 		).addQueryString(
-			systemFDSEntry.getAdditionalAPIURLParameters()
+			systemFDSEntry.getAdditionalAPIURLParameters(httpServletRequest)
 		).setTokenResolutions(
 			tokenResolutionsJSONObject
 		).buildQueryString(
@@ -169,6 +178,62 @@ public class SystemFDSSerializer
 	}
 
 	@Override
+	public JSONArray serializeGroupedFDSFilters(
+		String fdsName, HttpServletRequest httpServletRequest) {
+
+		JSONArray jsonArray = JSONUtil.putAll();
+
+		GroupedFDSFilters groupedFDSFilters =
+			groupedFDSFiltersRegistry.getGroupedFDSFilters(fdsName);
+
+		if (groupedFDSFilters == null) {
+			return jsonArray;
+		}
+
+		JSONArray groupedFDSFiltersJSONArray =
+			groupedFDSFilters.getGroupedFDSFiltersJSONArray(httpServletRequest);
+
+		for (int i = 0; i < groupedFDSFiltersJSONArray.length(); i++) {
+			JSONObject jsonObject = groupedFDSFiltersJSONArray.getJSONObject(i);
+
+			String key = StringPool.BLANK;
+
+			Iterator<String> iterator = jsonObject.keys();
+
+			while (iterator.hasNext()) {
+				key = iterator.next();
+
+				if (Validator.isBlank(key)) {
+					continue;
+				}
+
+				jsonArray.put(
+					JSONUtil.put(
+						"filters", jsonObject.getJSONArray(key)
+					).put(
+						"label", key
+					));
+			}
+		}
+
+		return jsonArray;
+	}
+
+	@Override
+	public boolean serializeHideManagementBarInEmptyState(
+		String fdsName, HttpServletRequest httpServletRequest) {
+
+		SystemFDSEntry systemFDSEntry =
+			systemFDSEntryRegistry.getSystemFDSEntry(fdsName);
+
+		if (systemFDSEntry == null) {
+			return false;
+		}
+
+		return systemFDSEntry.getHideManagementBarInEmptyState();
+	}
+
+	@Override
 	public List<FDSActionDropdownItem> serializeItemsActions(
 		String fdsName, HttpServletRequest httpServletRequest) {
 
@@ -241,6 +306,36 @@ public class SystemFDSSerializer
 	}
 
 	@Override
+	public JSONArray serializeSnapshots(
+		String fdsName, HttpServletRequest httpServletRequest) {
+
+		try {
+			return serializeSnapshots(
+				fdsName, httpServletRequest, _objectDefinitionLocalService,
+				_objectEntryManagerRegistry);
+		}
+		catch (Exception exception) {
+			_log.error("Unable to serialize snapshots", exception);
+
+			return JSONUtil.putAll();
+		}
+	}
+
+	@Override
+	public boolean serializeSnapshotsEnabled(
+		String fdsName, HttpServletRequest httpServletRequest) {
+
+		SystemFDSEntry systemFDSEntry =
+			systemFDSEntryRegistry.getSystemFDSEntry(fdsName);
+
+		if (systemFDSEntry == null) {
+			return false;
+		}
+
+		return systemFDSEntry.getSnapshotsEnabled();
+	}
+
+	@Override
 	public List<FDSSortItem> serializeSorts(
 		String fdsName, HttpServletRequest httpServletRequest) {
 
@@ -266,7 +361,7 @@ public class SystemFDSSerializer
 				"contentRendererModuleURL",
 				fdsView.getContentRendererModuleURL()
 			).put(
-				"default", fdsView.isDefault()
+				"default", fdsView.isDefault(fdsName)
 			).put(
 				"label",
 				LanguageUtil.get(
@@ -335,6 +430,9 @@ public class SystemFDSSerializer
 	protected FDSViewRegistry fdsViewRegistry;
 
 	@Reference
+	protected GroupedFDSFiltersRegistry groupedFDSFiltersRegistry;
+
+	@Reference
 	protected SystemFDSEntryRegistry systemFDSEntryRegistry;
 
 	private void _serializeFilters(
@@ -386,6 +484,9 @@ public class SystemFDSSerializer
 		}
 	}
 
+	private static final Log _log = LogFactoryUtil.getLog(
+		SystemFDSSerializer.class);
+
 	private static final SystemFDSEntry _systemFDSEntry = new SystemFDSEntry() {
 
 		public int getDefaultItemsPerPage() {
@@ -427,5 +528,11 @@ public class SystemFDSSerializer
 		}
 
 	};
+
+	@Reference
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private ObjectEntryManagerRegistry _objectEntryManagerRegistry;
 
 }

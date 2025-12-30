@@ -68,10 +68,10 @@ export default {
 	},
 
 	changeMasterLayout({
-		masterLayoutPlid,
+		masterLayoutPageTemplateEntryERC,
 		onNetworkStatus,
 	}: {
-		masterLayoutPlid: string;
+		masterLayoutPageTemplateEntryERC: string;
 		onNetworkStatus: OnNetworkStatus;
 	}) {
 		return draftServiceFetch<
@@ -82,21 +82,21 @@ export default {
 			| undefined
 		>(
 			config.changeMasterLayoutURL,
-			{body: {masterLayoutPlid}},
+			{body: {masterLayoutPageTemplateEntryERC}},
 			onNetworkStatus
 		);
 	},
 
 	changeStyleBookEntry({
 		onNetworkStatus,
-		styleBookEntryId,
+		styleBookEntryERC,
 	}: {
 		onNetworkStatus: OnNetworkStatus;
-		styleBookEntryId: string;
+		styleBookEntryERC: string;
 	}) {
 		return draftServiceFetch<{tokenValues: StyleBookTokenValueMap}>(
 			config.changeStyleBookEntryURL,
-			{body: {styleBookEntryId}},
+			{body: {styleBookEntryERC}},
 			onNetworkStatus
 		);
 	},

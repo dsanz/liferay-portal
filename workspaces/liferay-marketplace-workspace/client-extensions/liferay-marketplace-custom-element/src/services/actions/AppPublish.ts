@@ -17,15 +17,17 @@ import {
 	SkuOptions,
 	getOfferingTypes,
 } from '../../enums/Product';
+import {MarketplaceProperties} from '../../utils/attributes';
 import {base64ToText, fileToBase64} from '../../utils/file';
 import HeadlessCommerceAdminCatalogImpl from '../rest/HeadlessCommerceAdminCatalog';
 import HeadlessCommerceAdminPricing from '../rest/HeadlessCommerceAdminPricing';
 import BaseAppPublish from './BaseAppPublish';
 import PublisherAsset from './PublisherAsset';
 
-type ProductConfig = {
+export type ProductConfig = {
 	isDraft: boolean;
 	isEdit?: boolean;
+	properties: MarketplaceProperties;
 };
 
 type TemporaryData = {
@@ -71,7 +73,11 @@ function isTierPriceChanged(
 }
 
 export default class AppPublish extends BaseAppPublish {
-	private config: ProductConfig = {isDraft: false};
+	private config: ProductConfig = {
+		isDraft: false,
+		properties: {},
+	} as ProductConfig;
+
 	private temporary: TemporaryData = {
 		compatibleOfferings: null,
 		description: null,
@@ -687,7 +693,11 @@ export default class AppPublish extends BaseAppPublish {
 		);
 	}
 
-	async processLiferayPackages(product: Product) {
+	async processLiferayPackages(product: Product, config?: ProductConfig) {
+		if (config) {
+			this.config = config;
+		}
+
 		const {
 			build: {liferayPackages},
 		} = this.context;
@@ -695,18 +705,21 @@ export default class AppPublish extends BaseAppPublish {
 		const liferayVersions = [];
 
 		for (const liferayPackage of liferayPackages) {
-			const {file, versions} = liferayPackage;
+			const {file, id, uploaded, versions} = liferayPackage;
 
-			if (file && file.file) {
+			if (!!file.length && !uploaded) {
 				const publisherAsset = new PublisherAsset(
 					file,
+					id,
 					product,
+					this.config?.properties ?? {},
 					versions.toString()
 				);
 
 				await publisherAsset.process();
+
+				liferayVersions.push(...versions);
 			}
-			liferayVersions.push(...versions);
 		}
 
 		const liferayVersionSpecifications = Array.from(

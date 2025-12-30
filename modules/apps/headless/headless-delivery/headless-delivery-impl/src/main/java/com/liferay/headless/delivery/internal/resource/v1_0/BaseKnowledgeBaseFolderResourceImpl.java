@@ -378,9 +378,9 @@ public abstract class BaseKnowledgeBaseFolderResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(knowledgeBaseFolderId);
+		Long resourceId = getPermissionCheckerResourceId(knowledgeBaseFolderId);
 		String resourceName = getPermissionCheckerResourceName(
 			knowledgeBaseFolderId);
-		Long resourceId = getPermissionCheckerResourceId(knowledgeBaseFolderId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -997,9 +997,9 @@ public abstract class BaseKnowledgeBaseFolderResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(knowledgeBaseFolderId);
+		Long resourceId = getPermissionCheckerResourceId(knowledgeBaseFolderId);
 		String resourceName = getPermissionCheckerResourceName(
 			knowledgeBaseFolderId);
-		Long resourceId = getPermissionCheckerResourceId(knowledgeBaseFolderId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -1619,6 +1619,9 @@ public abstract class BaseKnowledgeBaseFolderResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

@@ -11,22 +11,25 @@ import React from 'react';
 
 import {FileData} from './MultipleFileUploader';
 
-export default function FailedFiles({failedFiles}: {failedFiles: FileData[]}) {
+export default function FailedFiles({
+	errorMessage,
+	failedFiles,
+}: {
+	errorMessage: string;
+	failedFiles: FileData[];
+}) {
 	return (
 		<div className="has-error">
 			<p className="text-3 text-danger text-weight-semi-bold">
 				<ClayIcon className="mr-1" symbol="times-circle-full" />
 
-				{sub(
-					Liferay.Language.get('x-files-could-not-be-uploaded'),
-					failedFiles.length
-				)}
+				{sub(errorMessage, failedFiles.length)}
 			</p>
 
 			{failedFiles.map((fileData) => (
 				<>
 					<ClayLayout.ContentRow
-						className="align-items-center form-control has-error mt-2"
+						className="align-items-center border-left-0 border-right-0 border-top-0 form-control mt-2 rounded-0"
 						key={fileData.name}
 						padded
 					>

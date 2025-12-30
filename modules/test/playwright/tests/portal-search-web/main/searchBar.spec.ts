@@ -25,7 +25,7 @@ export const test = mergeTests(
 	searchPageTest
 );
 
-test.describe('Search Bar with user input', () => {
+test.describe('Alerts and Search Inputs', () => {
 	test('Alert does not display on search page @LPD-39110', async ({page}) => {
 		await test.step('Check that an alert with message does not appear', async () => {
 			page.on('dialog', async (dialog) => {
@@ -51,7 +51,39 @@ test.describe('Search Bar with user input', () => {
 	});
 });
 
-test.describe('Search Bar directs to correct page', () => {
+test.describe('Redirect URL', () => {
+	test('Disregards manually input currentURL @LPD-68675', async ({
+		layout,
+		page,
+		searchPage,
+	}) => {
+		await test.step('Add search bar and results portlet to new page', async () => {
+			await page.goto('/web/guest' + layout.friendlyURL);
+
+			await searchPage.addPortlet('Search Bar', 'Search');
+
+			await searchPage.addPortlet('Search Results', 'Search');
+		});
+
+		await test.step('Navigate to page with faulty currentURL', async () => {
+			await page.goto(
+				'/web/guest' +
+					layout.friendlyURL +
+					'?currentURL=https%253a//example.com&q=test'
+			);
+		});
+
+		await test.step('Click on enter in search bar', async () => {
+			await searchPage.searchBarInputInMainContent.press('Enter');
+		});
+
+		await test.step('Assert the search page does not redirect to faulty currentURL', async () => {
+			await expect(page).not.toHaveURL(/^https.\/\/example.com\/\?/);
+
+			await expect(searchPage.searchResults).toBeVisible();
+		});
+	});
+
 	test('Retains impersonation parameter when suggestions is disabled @LPD-17509', async ({
 		apiHelpers,
 		layout,

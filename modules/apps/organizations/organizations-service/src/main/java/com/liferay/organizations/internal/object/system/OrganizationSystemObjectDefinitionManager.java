@@ -23,6 +23,8 @@ import com.liferay.portal.kernel.model.OrganizationTable;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.OrganizationLocalService;
 import com.liferay.portal.kernel.service.OrganizationService;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -45,11 +47,12 @@ public class OrganizationSystemObjectDefinitionManager
 	extends BaseSystemObjectDefinitionManager {
 
 	@Override
-	public long addBaseModel(User user, Map<String, Object> values)
+	public long addBaseModel(
+			boolean checkPermissions, User user, Map<String, Object> values)
 		throws Exception {
 
 		OrganizationResource organizationResource = _buildOrganizationResource(
-			false, user);
+			checkPermissions);
 
 		Organization organization = organizationResource.postOrganization(
 			_toOrganization(values));
@@ -169,7 +172,7 @@ public class OrganizationSystemObjectDefinitionManager
 		throws Exception {
 
 		OrganizationResource organizationResource = _buildOrganizationResource(
-			true, user);
+			true);
 
 		return organizationResource.getOrganizationsPage(
 			null, search, filter, pagination, sorts);
@@ -205,14 +208,26 @@ public class OrganizationSystemObjectDefinitionManager
 			long primaryKey, User user, Map<String, Object> values)
 		throws Exception {
 
-		throw new UnsupportedOperationException();
+		OrganizationResource organizationResource = _buildOrganizationResource(
+			true);
+
+		Organization organization = organizationResource.patchOrganization(
+			String.valueOf(primaryKey), _toOrganization(values));
+
+		setExtendedProperties(
+			Organization.class.getName(), organization, user, values);
 	}
 
 	private OrganizationResource _buildOrganizationResource(
-		boolean checkPermissions, User user) {
+		boolean checkPermissions) {
 
 		OrganizationResource.Builder builder =
 			_organizationResourceFactory.create();
+
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		User user = permissionChecker.getUser();
 
 		return builder.checkPermissions(
 			checkPermissions

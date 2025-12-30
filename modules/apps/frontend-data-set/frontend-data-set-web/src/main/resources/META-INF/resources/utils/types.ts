@@ -6,6 +6,8 @@
 import {ModalStatus} from 'frontend-js-components-web';
 import React from 'react';
 
+import {ISnapshot} from '../views/ViewsContext';
+
 export declare function FrontendDataSet({
 	actionParameterName,
 	activeViewSettings,
@@ -15,8 +17,6 @@ export declare function FrontendDataSet({
 	creationMenu,
 	currentURL,
 	customDataRenderers,
-	customViews,
-	customViewsEnabled,
 	emptyState,
 	filters,
 	formId,
@@ -43,6 +43,8 @@ export declare function FrontendDataSet({
 	showPagination,
 	showSearch,
 	sidePanelId,
+	snapshots,
+	snapshotsEnabled,
 	sorts,
 	style,
 	views,
@@ -245,9 +247,10 @@ export interface IListSchema {
 	description: string;
 	image?: string;
 	sticker?: string;
-	symbol: string;
+	symbol?: string;
 	title: string;
 	titleRenderer: IListTitleRenderer;
+	tooltip?: string;
 }
 
 export type ISchema = ITableSchema | ICardSchema | IListSchema;
@@ -281,7 +284,7 @@ export interface IFrontendDataSetProps {
 	apiURL?: string;
 	appURL?: string;
 	bulkActions?: any[];
-	configInURLSettings?: EConfigInURLBehavior;
+	configInURLBehavior?: EConfigInURLBehavior;
 	creationMenu?: {
 		loadData?: Function;
 		primaryItems: Array<ICreationActionItem>;
@@ -293,8 +296,6 @@ export interface IFrontendDataSetProps {
 		tableCell?: Array<TRenderer>;
 		views?: Array<TRenderer>;
 	};
-	customViews?: string;
-	customViewsEnabled?: boolean;
 	defaultSelectedItems?: any[];
 	emptyState?: IEmptyStateConfiguration;
 	enableInlineAddModeSetting?: {
@@ -302,9 +303,11 @@ export interface IFrontendDataSetProps {
 	};
 	fileDropSettings?: IFileDropSettings;
 	filters?: Array<any>;
+	filtersGroups?: Array<any>;
 	formId?: string;
 	formName?: string;
 	header?: IHeader;
+	hideManagementBarInEmptyState?: boolean;
 	id: string;
 	infoPanelComponent?: React.ComponentType<IInfoPanelComponent>;
 	inlineAddingSettings?: {
@@ -339,6 +342,8 @@ export interface IFrontendDataSetProps {
 	showSearch?: boolean;
 	showSelectAll?: boolean;
 	sidePanelId?: string;
+	snapshots?: Array<ISnapshot>;
+	snapshotsEnabled?: boolean;
 	sorts?: TSort[];
 	style?: 'default' | 'fluid' | 'stacked';
 	uniformActionsDisplay?: boolean;

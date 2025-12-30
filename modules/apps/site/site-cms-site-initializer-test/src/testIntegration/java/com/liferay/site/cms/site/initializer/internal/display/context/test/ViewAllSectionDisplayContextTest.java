@@ -52,26 +52,26 @@ public class ViewAllSectionDisplayContextTest
 		throws PortalException {
 
 		return LinkedHashMapBuilder.put(
-			"basic-content",
+			"basic-web-content",
 			getRedirect(
-				"L_BASIC_WEB_CONTENT",
+				"L_CMS_BASIC_WEB_CONTENT",
 				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS)
 		).put(
 			"single-file",
 			getRedirect(
-				"L_BASIC_DOCUMENT",
+				"L_CMS_BASIC_DOCUMENT",
 				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES)
 		).put(
 			"multiple-files", StringPool.BLANK
 		).put(
 			"blog",
 			getRedirect(
-				"L_BLOG",
+				"L_CMS_BLOG",
 				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS)
 		).put(
-			"external-video-shortcut",
+			"external-video",
 			getRedirect(
-				"L_EXTERNAL_VIDEO",
+				"L_CMS_EXTERNAL_VIDEO",
 				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES)
 		).build();
 	}

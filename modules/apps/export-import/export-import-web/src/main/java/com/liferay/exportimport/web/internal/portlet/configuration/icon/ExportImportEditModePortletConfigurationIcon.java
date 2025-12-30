@@ -76,14 +76,14 @@ public class ExportImportEditModePortletConfigurationIcon
 	public boolean isShow(
 		HttpServletRequest httpServletRequest, String portletResource) {
 
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
-		Portlet portlet = _portletLocalService.getPortletById(
-			themeDisplay.getCompanyId(), portletResource);
-
 		try {
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)httpServletRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
+			Portlet portlet = _portletLocalService.getPortletById(
+				themeDisplay.getCompanyId(), portletResource);
+
 			if (!PortletPermissionUtil.contains(
 					themeDisplay.getPermissionChecker(),
 					themeDisplay.getScopeGroupId(), themeDisplay.getLayout(),
@@ -104,9 +104,9 @@ public class ExportImportEditModePortletConfigurationIcon
 			if (_log.isDebugEnabled()) {
 				_log.debug(portalException);
 			}
-		}
 
-		return false;
+			return false;
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

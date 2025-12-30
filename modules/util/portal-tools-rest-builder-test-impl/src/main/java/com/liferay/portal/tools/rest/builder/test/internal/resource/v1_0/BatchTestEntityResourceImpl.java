@@ -95,8 +95,14 @@ public class BatchTestEntityResourceImpl
 		return new ExportImportDescriptor() {
 
 			@Override
-			public String getItemClassName() {
-				return BatchTestEntity.class.getName();
+			public String getLabelLanguageKey() {
+				return "batch-test-entity";
+			}
+
+			@Override
+			public String getModelClassName() {
+				return "com_liferay_portal_tools_rest_builder_test_portlet_" +
+					"BatchTestEntityPortlet";
 			}
 
 			@Override
@@ -111,8 +117,24 @@ public class BatchTestEntityResourceImpl
 			}
 
 			@Override
+			public String getResourceClassName() {
+				return BatchTestEntityResourceImpl.class.getName();
+			}
+
+			@Override
 			public Scope getScope() {
 				return Scope.COMPANY;
+			}
+
+			@Override
+			public boolean isApplicableExternalReferenceCode(
+				String externalReferenceCode) {
+
+				if (_fetchBatchTestEntity(externalReferenceCode) != null) {
+					return true;
+				}
+
+				return false;
 			}
 
 		};

@@ -119,7 +119,10 @@ test.describe('Manage root model elements through View Object Entries', () => {
 				.getByRole('link', {name: objectDefinition2.name})
 				.click();
 
-			await viewObjectEntriesPage.addObjectEntryButton.click();
+			await page
+				.getByRole('button', {name: 'Create New'})
+				.first()
+				.click();
 
 			await page.getByRole('textbox', {name: 'textField'}).fill('b1');
 
@@ -341,7 +344,7 @@ test.describe('Manage root model elements through View Object Entries', () => {
 			);
 
 			await editObjectDetailsPage.enableAccountRestriction(
-				objectRelationship.label['en_us']
+				objectRelationship.label['en_US']
 			);
 
 			await page.getByRole('button', {name: 'Save'}).click();
@@ -376,7 +379,10 @@ test.describe('Manage root model elements through View Object Entries', () => {
 				.getByRole('link', {name: objectDefinition2.name})
 				.click();
 
-			await viewObjectEntriesPage.addObjectEntryButton.click();
+			await page
+				.getByRole('button', {name: 'Create New'})
+				.first()
+				.click();
 
 			await page.getByRole('textbox', {name: 'textField'}).fill('b1');
 
@@ -386,7 +392,9 @@ test.describe('Manage root model elements through View Object Entries', () => {
 
 			await viewObjectEntriesPage.goto(objectDefinition1.className);
 
-			await viewObjectEntriesPage.addObjectEntryButton.click();
+			await viewObjectEntriesPage.clickAddObjectEntry(
+				objectDefinition1.label['en_US']
+			);
 
 			await viewObjectEntriesPage.selectDropdownItemWithSearch(
 				account2.name
@@ -406,7 +414,10 @@ test.describe('Manage root model elements through View Object Entries', () => {
 				.getByRole('link', {name: objectDefinition2.name})
 				.click();
 
-			await viewObjectEntriesPage.addObjectEntryButton.click();
+			await page
+				.getByRole('button', {name: 'Create New'})
+				.first()
+				.click();
 
 			await page.getByRole('textbox', {name: 'textField'}).fill('b2');
 
@@ -931,23 +942,18 @@ test.describe('Manage root models elements through Objects Admin', () => {
 
 				await objectLayoutsPage.createObjectLayout(objectLayoutName);
 
-				await objectLayoutsPage.createObjectLayoutContent({
-					objectLayoutBlockName: getRandomString(),
-					objectLayoutName,
-					objectLayoutTabName: getRandomString(),
-				});
-
-				await objectLayoutsPage.fieldSelect.waitFor({state: 'visible'});
-
 				const customObjectField =
 					parentObjectDefinition.objectFields.find(
 						(objectField: ObjectField) =>
 							objectField.system === false
 					);
 
-				await objectLayoutsPage.addObjectLayoutObjectField(
-					customObjectField.label['en_US']
-				);
+				await objectLayoutsPage.createObjectLayoutContent({
+					objectFieldNames: [customObjectField.label['en_US']],
+					objectLayoutName,
+					objectLayoutRegularBlockName: getRandomString(),
+					objectLayoutTabName: getRandomString(),
+				});
 
 				const objectLayoutRelationshipTabName = getRandomString();
 
@@ -987,13 +993,19 @@ test.describe('Manage root models elements through Objects Admin', () => {
 
 				await objectLayoutsPage.createObjectLayout(objectLayoutName);
 
-				await objectLayoutsPage.createObjectLayoutContent({
-					objectLayoutBlockName: getRandomString(),
-					objectLayoutName,
-					objectLayoutTabName: getRandomString(),
+				await objectLayoutsPage.openObjectLayoutConfiguration(
+					objectLayoutName
+				);
+
+				await objectLayoutsPage.createObjectLayoutTab(
+					getRandomString()
+				);
+
+				await objectLayoutsPage.createObjectLayoutBlock({
+					objectLayoutRegularBlockName: getRandomString(),
 				});
 
-				await objectLayoutsPage.fieldSelect.waitFor({state: 'visible'});
+				await objectLayoutsPage.openObjectLayoutObjectField();
 
 				await expect(
 					objectLayoutsPage.iframeLocator.getByRole('option', {
@@ -1001,12 +1013,16 @@ test.describe('Manage root models elements through Objects Admin', () => {
 					})
 				).toBeHidden();
 
-				await objectLayoutsPage.iframeLocator
-					.getByRole('option')
-					.filter({hasText: 'objectRelationship'})
-					.click();
+				await objectLayoutsPage.goto(
+					childObjectDefinition.label['en_US']
+				);
 
-				await objectLayoutsPage.saveAddFieldButton.click();
+				await objectLayoutsPage.createObjectLayoutContent({
+					objectFieldNames: ['objectRelationship'],
+					objectLayoutName,
+					objectLayoutRegularBlockName: getRandomString(),
+					objectLayoutTabName: getRandomString(),
+				});
 
 				await objectLayoutsPage.setObjectLayoutAsDefault();
 

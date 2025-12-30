@@ -8,6 +8,7 @@ import {Locator, Page} from '@playwright/test';
 import {PORTLET_URLS} from '../../utils/portletUrls';
 
 export class ProductMenuPage {
+	readonly backButton: Locator;
 	readonly blogsButton: Locator;
 	readonly closeProductMenuButton: Locator;
 	readonly configurationButton: Locator;
@@ -30,6 +31,7 @@ export class ProductMenuPage {
 	readonly webContentButton: Locator;
 
 	constructor(page: Page) {
+		this.backButton = page.getByRole('link', {name: 'Back'});
 		this.blogsButton = page.getByRole('menuitem', {
 			name: 'Blogs',
 		});
@@ -137,7 +139,29 @@ export class ProductMenuPage {
 			})
 			.evaluate((element) => element.getAttribute('href'));
 
-		await this.page.goto(pagesLink);
+		const waitForPagesReady = async () => {
+			await this.page.waitForSelector('form[id*="GroupPagesPortlet"]', {
+				state: 'visible',
+				timeout: 2000,
+			});
+		};
+
+		for (let attempt = 1; attempt <= 3; attempt++) {
+			await this.page.goto(pagesLink, {
+				waitUntil: 'domcontentloaded',
+			});
+
+			try {
+				await waitForPagesReady();
+
+				return;
+			}
+			catch (error) {
+				if (attempt === 3) {
+					throw error;
+				}
+			}
+		}
 	}
 
 	async goToPublishingExport() {

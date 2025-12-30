@@ -16,10 +16,19 @@ import {ApiHelpers} from '../../../helpers/ApiHelpers';
 import {AccountSettingsPage} from '../../../pages/users-admin-web/AccountSettingsPage';
 import performLogin, {userData} from '../../../utils/performLogin';
 import {
+	OptionalProductAnalyticsCookieTypes,
 	clearProductAnalyticsCookies,
 	expectAllCookiesAccepted,
 	expectAllCookiesDeclined,
 } from './utils/cookies';
+
+export const disabledTest = mergeTests(
+	accountSettingsPagesTest,
+	featureFlagsTest({
+		'LPD-51356': {enabled: false},
+	}),
+	loginTest()
+);
 
 export const test = mergeTests(
 	accountSettingsPagesTest,
@@ -33,27 +42,45 @@ export const test = mergeTests(
 	systemSettingsPageTest
 );
 
-export enum OptionalProductAnalyticsCookieTypes {
-	Functional = 'PRODUCT_ANALYTICS_CONSENT_TYPE_FUNCTIONAL',
-	Performance = 'PRODUCT_ANALYTICS_CONSENT_TYPE_PERFORMANCE',
-	Personalization = 'PRODUCT_ANALYTICS_CONSENT_TYPE_PERSONALIZATION',
-	ProductAnalytics = 'PRODUCT_ANALYTICS_CONSENT_TYPE_PRODUCT_ANALYTICS',
-}
-
-export type ProductAnalyticsCookie = {
-	name: string;
-	value: boolean;
-};
-
-export enum RequiredProductAnalyticsCookieTypes {
-	Necessary = 'PRODUCT_ANALYTICS_CONSENT_TYPE_NECESSARY',
-}
-
 test.afterEach(async ({page}) => {
 	await test.step('Clear Product Analytics cookies if present', async () => {
 		await clearProductAnalyticsCookies(page);
 	});
 });
+
+disabledTest(
+	'Data and Privacy tab is not visible',
+	{tag: '@LPD-72749'},
+	async ({accountSettingsPage}) => {
+		await accountSettingsPage.goToAccountSettings();
+
+		const dataAndPrivacyTab = await accountSettingsPage.page.locator(
+			'.nav-link',
+			{
+				hasText: 'Data And Privacy',
+			}
+		);
+
+		await expect(await dataAndPrivacyTab).not.toBeVisible();
+	}
+);
+
+test(
+	'Data and Privacy tab is visible',
+	{tag: '@LPD-72749'},
+	async ({accountSettingsPage}) => {
+		await accountSettingsPage.goToAccountSettings();
+
+		const dataAndPrivacyTab = await accountSettingsPage.page.locator(
+			'.nav-link',
+			{
+				hasText: 'Data And Privacy',
+			}
+		);
+
+		await expect(await dataAndPrivacyTab).toBeVisible();
+	}
+);
 
 test(
 	'Verify Product Analytics Consent Panel buttons and order from Account Settings',
@@ -65,13 +92,7 @@ test(
 	}) => {
 		await productAnalyticsBannerPage.acceptAllButton.click();
 
-		await test.step('Go to Product Analytics Account Settings', async () => {
-			await accountSettingsPage.goToDataAndPrivacy();
-
-			await accountSettingsPage.productAnalyticsMenuItem.waitFor();
-
-			await accountSettingsPage.productAnalyticsMenuItem.click();
-		});
+		await accountSettingsPage.goToDataAndPrivacy();
 
 		await test.step('Verify Customize button displays Consent Panel', async () => {
 			await expectProductAnalyticsConsentPanelButtons(
@@ -214,10 +235,6 @@ test(
 		await test.step('AC3: Verify Product Analytics Account Settings', async () => {
 			await accountSettingsPage.goToDataAndPrivacy();
 
-			await accountSettingsPage.productAnalyticsMenuItem.waitFor();
-
-			await accountSettingsPage.productAnalyticsMenuItem.click();
-
 			await productAnalyticsConsentPanelPage.consentPanelFormLocator.waitFor();
 		});
 
@@ -326,19 +343,20 @@ async function expectProductAnalyticsAccountSettingsVisibility(
 
 	const accountSettingsPage = new AccountSettingsPage(newPage);
 
-	await accountSettingsPage.goToDataAndPrivacy();
+	await accountSettingsPage.goToAccountSettings();
 
-	await accountSettingsPage.page.waitForLoadState();
+	const dataAndPrivacyTab = await accountSettingsPage.page.locator(
+		'.nav-link',
+		{
+			hasText: 'Data And Privacy',
+		}
+	);
 
 	if (isVisible) {
-		await expect(
-			await accountSettingsPage.productAnalyticsMenuItem
-		).toBeVisible();
+		await expect(await dataAndPrivacyTab).toBeVisible();
 	}
 	else {
-		await expect(
-			await accountSettingsPage.productAnalyticsMenuItem
-		).not.toBeVisible();
+		await expect(await dataAndPrivacyTab).not.toBeVisible();
 	}
 }
 

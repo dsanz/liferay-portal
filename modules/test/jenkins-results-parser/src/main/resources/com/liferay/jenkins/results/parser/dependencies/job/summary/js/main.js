@@ -72,6 +72,18 @@ function getAxisElement(axis) {
 
 	divElement.appendChild(ulElement);
 
+	if (axis.test_tasks && axis.test_tasks.length > 0) {
+		for (var i = 0; i < axis.test_tasks.length; i++) {
+			let liElement = document.createElement("li");
+
+			ulElement.appendChild(liElement);
+
+			liElement.appendChild(getTestTaskElement(axis.test_tasks[i]));
+		}
+
+		return detailsElement;
+	}
+
 	for (var i = 0; i < axis.test_classes.length; i++) {
 		let liElement = document.createElement("li");
 
@@ -144,7 +156,7 @@ function getBatchElement(batch) {
 	ulElement.appendChild(batchSegmentsLiElement);
 
 	for (var i = 0; i < batch.segments.length; i++) {
-	    batchSegmentsLiElement.append(getSegmentElement(batch.segments[i]));
+		batchSegmentsLiElement.append(getSegmentElement(batch.segments[i]));
 	}
 
 	return detailsElement;
@@ -307,13 +319,13 @@ function getSegmentElement(segment) {
 
 	divElement.appendChild(ulElement);
 
-    for (var i = 0; i < segment.axes.length; i++) {
-        let liElement = document.createElement("li");
+	for (var i = 0; i < segment.axes.length; i++) {
+		let liElement = document.createElement("li");
 
-        ulElement.appendChild(liElement);
+		ulElement.appendChild(liElement);
 
-        liElement.appendChild(getAxisElement(segment.axes[i]));
-    }
+		liElement.appendChild(getAxisElement(segment.axes[i]));
+	}
 
 	return detailsElement;
 }
@@ -338,6 +350,31 @@ function getTestClassElement(test_class) {
 		liElement.innerHTML = test_class.methods[i].name;
 
 		ulElement.appendChild(liElement);
+	}
+
+	return detailsElement;
+}
+
+function getTestTaskElement(test_task) {
+	let detailsElement = createDetailsElement();
+
+	let summaryElement = detailsElement.childNodes[0];
+
+	summaryElement.innerHTML = test_task.name + " - " + getDurationString(test_task.average_duration);
+	summaryElement.setAttribute("class", "level-5");
+
+	let divElement = detailsElement.childNodes[1];
+
+	let ulElement = document.createElement("ul");
+
+	divElement.appendChild(ulElement);
+
+	for (var i = 0; i < test_task.test_classes.length; i++) {
+		let liElement = document.createElement("li");
+
+		ulElement.appendChild(liElement);
+
+		liElement.appendChild(getTestClassElement(test_task.test_classes[i]));
 	}
 
 	return detailsElement;

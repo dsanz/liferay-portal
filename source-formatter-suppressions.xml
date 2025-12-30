@@ -117,6 +117,8 @@
 		<suppress checks="JavaTaglibMethodCheck" files="util-taglib/src/com/liferay/taglib/ui/SearchFormTag\.java" />
 		<suppress checks="JavaUnsafeCastingCheck" files="portal-impl/src/com/liferay/portal/util/PortalImpl\.java" />
 		<suppress checks="JavaUpgradeClassCheck" files="portal-impl/src/com/liferay/portal/upgrade/data/cleanup/CounterDataCleanupPreupgradeProcess\.java" />
+		<suppress checks="JavaUpgradeCreateTableCheck" files="portal-impl/src/com/liferay/portal/upgrade/v7_0_3/UpgradeMessageBoards\.java" />
+		<suppress checks="JavaUpgradeCreateTableCheck" files="portal-impl/src/com/liferay/portal/upgrade/v7_2_x/UpgradeLayout\.java" />
 		<suppress checks="JavaUpgradeIndexCheck" files="portal-impl/src/com/liferay/portal/upgrade/v6_2_0/UpgradeDocumentLibrary\.java" />
 		<suppress checks="JavaUpgradeIndexCheck" files="portal-impl/src/com/liferay/portal/upgrade/v6_2_0/UpgradeJournal.java" />
 		<suppress checks="JavaUpgradeIndexCheck" files="portal-impl/src/com/liferay/portal/upgrade/v6_2_0/UpgradeSchema\.java" />
@@ -174,10 +176,6 @@
 		<suppress checks="XMLServiceEntityNameCheck" files="portal-impl/src/com/liferay/portal/service\.xml" />
 		<suppress checks="XMLServiceEntityNameCheck" files="portal-impl/src/com/liferay/portlet/exportimport/service\.xml" />
 		<suppress checks="XMLSpringFileCheck" files="portal-impl/src/META-INF/portal-spring\.xml" />
-		<suppress checks="YMLDefinitionOrderCheck" files="cloud/helm/aws/charts/backup-restore/templates/_scripts\.tpl" />
-		<suppress checks="YMLEmptyLinesCheck" files="cloud/helm/aws/charts/backup-restore/templates/_scripts\.tpl" />
-		<suppress checks="YMLIndentationCheck" files="cloud/helm/aws/charts/backup-restore/templates/_scripts\.tpl" />
-		<suppress checks="YMLWhitespaceCheck" files="cloud/helm/aws/charts/backup-restore/templates/_scripts\.tpl" />
 
 		<!-- Temporary suppressions for deprecated apps (LPS-100170) -->
 

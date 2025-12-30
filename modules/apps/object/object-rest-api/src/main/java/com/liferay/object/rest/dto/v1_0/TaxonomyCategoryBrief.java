@@ -138,7 +138,7 @@ public class TaxonomyCategoryBrief implements Serializable {
 	}
 
 	@GraphQLField(description = "The category's parent category.")
-	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected ParentTaxonomyCategory parentTaxonomyCategory;
 
 	@JsonIgnore
@@ -185,7 +185,7 @@ public class TaxonomyCategoryBrief implements Serializable {
 	}
 
 	@GraphQLField(description = "The parent category's `TaxonomyVocabulary`.")
-	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected ParentTaxonomyVocabulary parentTaxonomyVocabulary;
 
 	@JsonIgnore
@@ -194,7 +194,7 @@ public class TaxonomyCategoryBrief implements Serializable {
 
 	@io.swagger.v3.oas.annotations.media.Schema
 	@Valid
-	public Scope getScope() {
+	public com.liferay.portal.vulcan.scope.Scope getScope() {
 		if (_scopeSupplier != null) {
 			scope = _scopeSupplier.get();
 
@@ -204,14 +204,17 @@ public class TaxonomyCategoryBrief implements Serializable {
 		return scope;
 	}
 
-	public void setScope(Scope scope) {
+	public void setScope(com.liferay.portal.vulcan.scope.Scope scope) {
 		this.scope = scope;
 
 		_scopeSupplier = null;
 	}
 
 	@JsonIgnore
-	public void setScope(UnsafeSupplier<Scope, Exception> scopeUnsafeSupplier) {
+	public void setScope(
+		UnsafeSupplier<com.liferay.portal.vulcan.scope.Scope, Exception>
+			scopeUnsafeSupplier) {
+
 		_scopeSupplier = () -> {
 			try {
 				return scopeUnsafeSupplier.get();
@@ -227,10 +230,10 @@ public class TaxonomyCategoryBrief implements Serializable {
 
 	@GraphQLField
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	protected Scope scope;
+	protected com.liferay.portal.vulcan.scope.Scope scope;
 
 	@JsonIgnore
-	private Supplier<Scope> _scopeSupplier;
+	private Supplier<com.liferay.portal.vulcan.scope.Scope> _scopeSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "The category's external reference code."
@@ -495,7 +498,7 @@ public class TaxonomyCategoryBrief implements Serializable {
 			sb.append(String.valueOf(parentTaxonomyVocabulary));
 		}
 
-		Scope scope = getScope();
+		com.liferay.portal.vulcan.scope.Scope scope = getScope();
 
 		if (scope != null) {
 			if (sb.length() > 1) {
@@ -504,7 +507,7 @@ public class TaxonomyCategoryBrief implements Serializable {
 
 			sb.append("\"scope\": ");
 
-			sb.append(String.valueOf(scope));
+			sb.append(scope);
 		}
 
 		String taxonomyCategoryExternalReferenceCode =

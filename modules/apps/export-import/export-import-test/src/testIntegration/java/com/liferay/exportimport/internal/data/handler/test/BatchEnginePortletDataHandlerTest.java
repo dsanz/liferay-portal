@@ -19,6 +19,7 @@ import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.kernel.lar.PortletDataContextFactoryUtil;
 import com.liferay.exportimport.kernel.lar.PortletDataException;
 import com.liferay.exportimport.kernel.lar.PortletDataHandler;
+import com.liferay.exportimport.kernel.lar.PortletDataHandlerControl;
 import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.exportimport.kernel.lar.StagedModelDataHandler;
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
@@ -32,21 +33,32 @@ import com.liferay.exportimport.report.service.ExportImportReportEntryLocalServi
 import com.liferay.exportimport.vulcan.batch.engine.ExportImportVulcanBatchEngineTaskItemDelegate;
 import com.liferay.journal.constants.JournalContentPortletKeys;
 import com.liferay.layout.test.util.LayoutTestUtil;
+import com.liferay.list.type.model.ListTypeDefinition;
+import com.liferay.list.type.model.ListTypeEntry;
+import com.liferay.list.type.service.ListTypeDefinitionLocalService;
+import com.liferay.list.type.service.ListTypeEntryLocalService;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
 import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.constants.ObjectFieldSettingConstants;
+import com.liferay.object.constants.ObjectPortletKeys;
 import com.liferay.object.constants.ObjectRelationshipConstants;
 import com.liferay.object.exception.NoSuchObjectEntryException;
+import com.liferay.object.field.builder.TextObjectFieldBuilder;
 import com.liferay.object.field.setting.builder.ObjectFieldSettingBuilder;
 import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectRelationship;
+import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
+import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.object.test.util.ObjectRelationshipTestUtil;
+import com.liferay.object.test.util.TreeTestUtil;
+import com.liferay.object.tree.Tree;
 import com.liferay.petra.function.UnsafeBiConsumer;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.lang.SafeCloseable;
@@ -66,6 +78,7 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -73,6 +86,7 @@ import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.AssertUtils;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
@@ -85,7 +99,9 @@ import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
+import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -108,6 +124,7 @@ import com.liferay.portal.vulcan.batch.engine.VulcanBatchEngineTaskItemDelegate;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
+import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 import com.liferay.staging.StagingGroupHelper;
 
 import jakarta.portlet.GenericPortlet;
@@ -271,8 +288,8 @@ public class BatchEnginePortletDataHandlerTest {
 			values.get(_OBJECT_FIELD_NAME_TEXT));
 
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
-				"com.liferay.batch.engine.internal.strategy." +
-					"OnErrorContinueBatchEngineImportStrategy",
+				"com.liferay.batch.engine.internal." +
+					"BatchEngineImportTaskExecutorImpl",
 				LoggerTestUtil.OFF)) {
 
 			_importLayouts(
@@ -336,7 +353,9 @@ public class BatchEnginePortletDataHandlerTest {
 
 		Group group2 = GroupTestUtil.addGroup();
 
-		_importLayouts(false, false, larFile, group2.getGroupId(), true, false);
+		_importLayouts(
+			false, false, larFile, group2.getGroupId(), true, false,
+			new Object[0]);
 
 		layout1 = _layoutLocalService.fetchLayoutByExternalReferenceCode(
 			layout1.getExternalReferenceCode(), group2.getGroupId());
@@ -347,6 +366,69 @@ public class BatchEnginePortletDataHandlerTest {
 			layout2.getExternalReferenceCode(), group2.getGroupId());
 
 		Assert.assertNull(layout2);
+	}
+
+	@Test
+	public void testExportImportListTypeDefinitions() throws Exception {
+		Group group = _stagingGroupHelper.fetchCompanyGroup(
+			TestPropsValues.getCompanyId());
+
+		ListTypeDefinition listTypeDefinition = _addListTypeDefinition();
+
+		ListTypeEntry[] listTypeEntries = _addListTypeEntries(
+			3, listTypeDefinition);
+
+		File larFile1 = _exportLayouts(
+			false, group.getGroupId(), false, null, listTypeDefinition);
+
+		_listTypeEntryLocalService.deleteListTypeEntry(listTypeEntries[0]);
+		_listTypeEntryLocalService.deleteListTypeEntry(listTypeEntries[1]);
+
+		File larFile2 = _exportLayouts(
+			false, group.getGroupId(), false, null, listTypeDefinition);
+
+		_listTypeDefinitionLocalService.deleteListTypeDefinition(
+			listTypeDefinition);
+
+		_importLayouts(
+			false, false, larFile1, group.getGroupId(), listTypeDefinition);
+
+		_assertListTypeDefinition(
+			listTypeDefinition, listTypeEntries.length, listTypeEntries);
+
+		_importLayouts(
+			false, false, larFile2, group.getGroupId(), listTypeDefinition);
+
+		_assertListTypeDefinition(listTypeDefinition, 1, listTypeEntries[2]);
+	}
+
+	@Test
+	public void testExportImportObjectDefinitions() throws Exception {
+		Group group = _stagingGroupHelper.fetchCompanyGroup(
+			TestPropsValues.getCompanyId());
+
+		ObjectDefinition objectDefinition =
+			ObjectDefinitionTestUtil.addCustomObjectDefinition();
+
+		ObjectField[] objectFields = _addObjectFields(3, objectDefinition);
+
+		File larFile1 = _exportLayouts(false, group.getGroupId(), false, null);
+
+		_objectFieldLocalService.deleteObjectField(objectFields[0]);
+		_objectFieldLocalService.deleteObjectField(objectFields[1]);
+
+		File larFile2 = _exportLayouts(false, group.getGroupId(), false, null);
+
+		_objectDefinitionLocalService.deleteObjectDefinition(objectDefinition);
+
+		_importLayouts(false, false, larFile1, group.getGroupId());
+
+		_assertObjectDefinition(
+			objectDefinition, objectFields.length, objectFields);
+
+		_importLayouts(false, false, larFile2, group.getGroupId());
+
+		_assertObjectDefinition(objectDefinition, 1, objectFields[2]);
 	}
 
 	@Test
@@ -387,9 +469,9 @@ public class BatchEnginePortletDataHandlerTest {
 
 		Group group2 = GroupTestUtil.addGroup();
 
-		BundleContext bundleContext = FrameworkUtil.getBundle(
-			getClass()
-		).getBundleContext();
+		Bundle bundle = FrameworkUtil.getBundle(getClass());
+
+		BundleContext bundleContext = bundle.getBundleContext();
 
 		ServiceRegistration<?> serviceRegistration =
 			bundleContext.registerService(
@@ -461,7 +543,9 @@ public class BatchEnginePortletDataHandlerTest {
 
 		Group group2 = GroupTestUtil.addGroup();
 
-		_importLayouts(false, false, larFile, group2.getGroupId(), false, true);
+		_importLayouts(
+			false, false, larFile, group2.getGroupId(), false, true,
+			new Object[0]);
 
 		layout1 = _layoutLocalService.fetchLayoutByExternalReferenceCode(
 			layout1.getExternalReferenceCode(), group2.getGroupId());
@@ -665,43 +749,17 @@ public class BatchEnginePortletDataHandlerTest {
 			_portletDataHandlerProvider.provide(
 				TestPropsValues.getCompanyId(), portletId));
 
-		try (SafeCloseable safeCloseable1 = _registerServiceWithSafeCloseable(
-				Portlet.class,
-				new GenericPortlet() {
+		try (SafeCloseable safeCloseable = _register(
+				filter -> {
+					if (filter != null) {
+						return Page.of(Arrays.asList(new TestItem(1)));
+					}
+
+					return Page.of(
+						Arrays.asList(
+							new TestItem(1), new TestItem(2), new TestItem(3)));
 				},
-				MapUtil.singletonDictionary("jakarta.portlet.name", portletId));
-			SafeCloseable safeCloseable2 = _registerServiceWithSafeCloseable(
-				VulcanBatchEngineTaskItemDelegate.class,
-				new TestExportImportVulcanBatchEngineTaskItemDelegate(
-					filter -> {
-						if (filter != null) {
-							return Page.of(Arrays.asList(new TestItem(1)));
-						}
-
-						return Page.of(
-							Arrays.asList(
-								new TestItem(1), new TestItem(2),
-								new TestItem(3)));
-					},
-					portletId),
-				HashMapDictionaryBuilder.put(
-					"batch.engine.task.item.delegate", "true"
-				).put(
-					"batch.engine.task.item.delegate.class.name",
-					TestItem.class.getName()
-				).put(
-					"batch.engine.task.item.delegate.name",
-					RandomTestUtil.randomString()
-				).put(
-					"companyId", String.valueOf(TestPropsValues.getCompanyId())
-				).put(
-					"export.import.vulcan.batch.engine.task.item.delegate",
-					"true"
-				).build())) {
-
-			// Filter is not null
-
-			Thread.sleep(1000);
+				portletId)) {
 
 			PortletDataHandler portletDataHandler =
 				_portletDataHandlerProvider.provide(
@@ -742,6 +800,73 @@ public class BatchEnginePortletDataHandlerTest {
 		_testGetExportModelCount(
 			TestPropsValues.getGroupId(),
 			_addObjectDefinition(ObjectDefinitionConstants.SCOPE_SITE));
+	}
+
+	@FeatureFlag("LPD-34594")
+	@Test
+	public void testGetExportPortletDataHandlerControlsWithRootModelHierarchy()
+		throws Exception {
+
+		Tree tree = TreeTestUtil.createObjectDefinitionTree(
+			_objectDefinitionLocalService, _objectRelationshipLocalService,
+			true,
+			LinkedHashMapBuilder.put(
+				"A", new String[] {"AA"}
+			).put(
+				"AA", new String[] {"AAA"}
+			).put(
+				"AAA", new String[0]
+			).build());
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionLocalService.getObjectDefinition(
+				TestPropsValues.getCompanyId(), "C_A");
+
+		PortletDataHandler portletDataHandler =
+			_portletDataHandlerProvider.provide(
+				TestPropsValues.getCompanyId(),
+				objectDefinition.getPortletId());
+
+		PortletDataHandlerControl[] exportPortletDataHandlerControls =
+			portletDataHandler.getExportPortletDataHandlerControls();
+
+		Assert.assertEquals(
+			Arrays.toString(exportPortletDataHandlerControls), 1,
+			exportPortletDataHandlerControls.length);
+
+		PortletDataHandlerControl exportPortletDataHandlerControl =
+			exportPortletDataHandlerControls[0];
+
+		List<String> subtitles = exportPortletDataHandlerControl.getSubtitles();
+
+		Assert.assertEquals(subtitles.toString(), 2, subtitles.size());
+
+		TreeTestUtil.forEachNodeObjectDefinition(
+			tree.iterator(), _objectDefinitionLocalService,
+			nodeObjectDefinition -> {
+				if (nodeObjectDefinition.isRootNode()) {
+					return;
+				}
+
+				String modelResourceNamePrefix =
+					ResourceActionsUtil.getModelResourceNamePrefix();
+
+				Assert.assertTrue(
+					ListUtil.exists(
+						subtitles,
+						subtitle -> StringUtil.equals(
+							subtitle,
+							modelResourceNamePrefix +
+								nodeObjectDefinition.getResourceName())));
+			});
+
+		Assert.assertEquals(
+			"root-object", exportPortletDataHandlerControl.getTag());
+
+		TreeTestUtil.deleteObjectDefinitionHierarchy(
+			_objectDefinitionLocalService,
+			new String[] {"C_A", "C_AA", "C_AAA"}, _objectEntryLocalService,
+			_objectRelationshipLocalService);
 	}
 
 	@Test
@@ -788,6 +913,34 @@ public class BatchEnginePortletDataHandlerTest {
 			objectEntries[1]);
 	}
 
+	@FeatureFlag("LPD-41367")
+	@Test
+	@TestInfo("LPD-70661")
+	public void testIsConfigurationEnabled() throws Exception {
+		_testIsConfigurationEnabled(false);
+		_testIsConfigurationEnabled(true);
+	}
+
+	@Test
+	@TestInfo("LPD-73132")
+	public void testIsStagedWithObjectDefinitions() throws Exception {
+		String portletId = StringBundler.concat(
+			ObjectPortletKeys.OBJECT_DEFINITIONS, StringPool.POUND,
+			RandomTestUtil.randomString());
+
+		Assert.assertNull(
+			_portletDataHandlerProvider.provide(
+				TestPropsValues.getCompanyId(), portletId));
+
+		try (SafeCloseable safeCloseable = _register(null, portletId)) {
+			PortletDataHandler portletDataHandler =
+				_portletDataHandlerProvider.provide(
+					TestPropsValues.getCompanyId(), portletId);
+
+			Assert.assertFalse(portletDataHandler.isStaged());
+		}
+	}
+
 	public static class TestItem implements Serializable {
 
 		public TestItem(long id) {
@@ -820,6 +973,31 @@ public class BatchEnginePortletDataHandlerTest {
 
 		return _dlFileEntryLocalService.getFileEntry(
 			fileEntry.getFileEntryId());
+	}
+
+	private ListTypeDefinition _addListTypeDefinition() throws Exception {
+		return _listTypeDefinitionLocalService.addListTypeDefinition(
+			null, TestPropsValues.getUserId(),
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			false, Collections.emptyList(), new ServiceContext());
+	}
+
+	private ListTypeEntry[] _addListTypeEntries(
+			int count, ListTypeDefinition listTypeDefinition)
+		throws Exception {
+
+		ListTypeEntry[] listTypeEntries = new ListTypeEntry[count];
+
+		for (int i = 0; i < count; i++) {
+			listTypeEntries[i] = _listTypeEntryLocalService.addListTypeEntry(
+				null, TestPropsValues.getUserId(),
+				listTypeDefinition.getListTypeDefinitionId(),
+				RandomTestUtil.randomString(),
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				listTypeDefinition.isSystem());
+		}
+
+		return listTypeEntries;
 	}
 
 	private ObjectDefinition _addObjectDefinition(String scope)
@@ -989,6 +1167,31 @@ public class BatchEnginePortletDataHandlerTest {
 			ServiceContextTestUtil.getServiceContext());
 	}
 
+	private ObjectField[] _addObjectFields(
+			int count, ObjectDefinition objectDefinition)
+		throws Exception {
+
+		ObjectField[] objectFields = new ObjectField[count];
+
+		for (int i = 0; i < count; i++) {
+			objectFields[i] = ObjectFieldUtil.addCustomObjectField(
+				new TextObjectFieldBuilder(
+				).labelMap(
+					RandomTestUtil.randomLocaleStringMap()
+				).name(
+					StringUtil.randomId()
+				).objectDefinitionId(
+					objectDefinition.getObjectDefinitionId()
+				).required(
+					false
+				).userId(
+					TestPropsValues.getUserId()
+				).build());
+		}
+
+		return objectFields;
+	}
+
 	private FileEntry _addTempFileEntry(
 			ObjectDefinition objectDefinition, String tempFileName)
 		throws Exception {
@@ -1001,6 +1204,38 @@ public class BatchEnginePortletDataHandlerTest {
 			ContentTypes.TEXT_PLAIN);
 	}
 
+	private void _assertListTypeDefinition(
+			ListTypeDefinition listTypeDefinition, int listTypeEntriesCount,
+			ListTypeEntry... listTypeEntries)
+		throws Exception {
+
+		ListTypeDefinition importedListTypeDefinition =
+			_listTypeDefinitionLocalService.
+				getListTypeDefinitionByExternalReferenceCode(
+					listTypeDefinition.getExternalReferenceCode(),
+					listTypeDefinition.getCompanyId());
+
+		Assert.assertEquals(
+			listTypeDefinition.getName(LocaleUtil.getDefault()),
+			importedListTypeDefinition.getName(LocaleUtil.getDefault()));
+		Assert.assertEquals(
+			listTypeEntriesCount,
+			_listTypeEntryLocalService.getListTypeEntriesCount(
+				importedListTypeDefinition.getListTypeDefinitionId()));
+
+		for (ListTypeEntry listTypeEntry : listTypeEntries) {
+			ListTypeEntry importedListTypeEntry =
+				_listTypeEntryLocalService.
+					getListTypeEntryByExternalReferenceCode(
+						listTypeEntry.getExternalReferenceCode(),
+						listTypeEntry.getCompanyId(),
+						importedListTypeDefinition.getListTypeDefinitionId());
+
+			Assert.assertEquals(
+				listTypeEntry.getKey(), importedListTypeEntry.getKey());
+		}
+	}
+
 	private void _assertNull(
 		long objectDefinitionId, ObjectEntry... objectEntries) {
 
@@ -1009,6 +1244,41 @@ public class BatchEnginePortletDataHandlerTest {
 				_objectEntryLocalService.fetchObjectEntry(
 					objectEntry.getExternalReferenceCode(),
 					objectEntry.getGroupId(), objectDefinitionId));
+		}
+	}
+
+	private void _assertObjectDefinition(
+			ObjectDefinition objectDefinition, int objectFieldsCount,
+			ObjectField... objectFields)
+		throws Exception {
+
+		ObjectDefinition importedObjectDefinition =
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					objectDefinition.getExternalReferenceCode(),
+					objectDefinition.getCompanyId());
+
+		Assert.assertEquals(
+			objectDefinition.getLabel(LocaleUtil.getDefault()),
+			importedObjectDefinition.getLabel(LocaleUtil.getDefault()));
+		Assert.assertEquals(
+			objectDefinition.getName(), importedObjectDefinition.getName());
+		Assert.assertEquals(
+			objectFieldsCount,
+			_objectFieldLocalService.getObjectFieldsCount(
+				importedObjectDefinition.getObjectDefinitionId(), false));
+
+		for (ObjectField objectField : objectFields) {
+			ObjectField importedObjectField =
+				_objectFieldLocalService.getObjectField(
+					objectField.getExternalReferenceCode(),
+					importedObjectDefinition.getObjectDefinitionId());
+
+			Assert.assertEquals(
+				objectField.getLabel(LocaleUtil.getDefault()),
+				importedObjectField.getLabel(LocaleUtil.getDefault()));
+			Assert.assertEquals(
+				objectField.getName(), importedObjectField.getName());
 		}
 	}
 
@@ -1087,7 +1357,7 @@ public class BatchEnginePortletDataHandlerTest {
 	private File _exportLayouts(
 			boolean deletions, long groupId,
 			boolean includeLayoutSetLayoutsPortlet, boolean privateLayouts,
-			long[] layoutIds, ObjectDefinition... objectDefinitions)
+			long[] layoutIds, Object... objects)
 		throws Exception {
 
 		return _exportImportLocalService.exportLayoutsAsFile(
@@ -1101,17 +1371,16 @@ public class BatchEnginePortletDataHandlerTest {
 							layoutIds,
 							_getExportImportParameterMap(
 								deletions, includeLayoutSetLayoutsPortlet,
-								Arrays.asList(objectDefinitions)))));
+								Arrays.asList(objects)))));
 	}
 
 	private File _exportLayouts(
 			boolean deletions, long groupId, boolean privateLayouts,
-			long[] layoutIds, ObjectDefinition... objectDefinitions)
+			long[] layoutIds, Object... objects)
 		throws Exception {
 
 		return _exportLayouts(
-			deletions, groupId, false, privateLayouts, layoutIds,
-			objectDefinitions);
+			deletions, groupId, false, privateLayouts, layoutIds, objects);
 	}
 
 	private String _getBatchFileNameWithPath(String fileName, long groupId) {
@@ -1163,7 +1432,7 @@ public class BatchEnginePortletDataHandlerTest {
 
 	private Map<String, String[]> _getExportImportParameterMap(
 		boolean deletions, boolean includeLayoutSetLayoutsPortlet,
-		List<ObjectDefinition> objectDefinitions) {
+		List<Object> objects) {
 
 		Map<String, String[]> parameterMap = HashMapBuilder.put(
 			PortletDataHandlerKeys.DELETIONS,
@@ -1184,6 +1453,10 @@ public class BatchEnginePortletDataHandlerTest {
 			PortletDataHandlerKeys.PORTLET_DATA,
 			new String[] {Boolean.TRUE.toString()}
 		).put(
+			PortletDataHandlerKeys.PORTLET_DATA + "_" +
+				ObjectPortletKeys.OBJECT_DEFINITIONS,
+			new String[] {Boolean.TRUE.toString()}
+		).put(
 			PortletDataHandlerKeys.PORTLET_DATA_CONTROL_DEFAULT,
 			new String[] {Boolean.FALSE.toString()}
 		).put(
@@ -1201,11 +1474,20 @@ public class BatchEnginePortletDataHandlerTest {
 			}
 		).build();
 
-		objectDefinitions.forEach(
-			objectDefinition -> parameterMap.put(
-				PortletDataHandlerKeys.PORTLET_DATA + "_" +
-					objectDefinition.getPortletId(),
-				new String[] {Boolean.TRUE.toString()}));
+		for (Object object : objects) {
+			if (object instanceof ListTypeDefinition) {
+				parameterMap.put(
+					PortletDataHandlerKeys.PORTLET_DATA + "_" +
+						ObjectPortletKeys.LIST_TYPE_DEFINITIONS,
+					new String[] {Boolean.TRUE.toString()});
+			}
+			else if (object instanceof ObjectDefinition objectDefinition) {
+				parameterMap.put(
+					PortletDataHandlerKeys.PORTLET_DATA + "_" +
+						objectDefinition.getPortletId(),
+					new String[] {Boolean.TRUE.toString()});
+			}
+		}
 
 		return parameterMap;
 	}
@@ -1254,8 +1536,8 @@ public class BatchEnginePortletDataHandlerTest {
 
 		if (expectError) {
 			logCapture = LoggerTestUtil.configureLog4JLogger(
-				"com.liferay.batch.engine.internal.strategy." +
-					"OnErrorContinueBatchEngineImportStrategy",
+				"com.liferay.batch.engine.internal." +
+					"BatchEngineImportTaskExecutorImpl",
 				LoggerTestUtil.ERROR);
 		}
 
@@ -1293,7 +1575,7 @@ public class BatchEnginePortletDataHandlerTest {
 	private ExportImportConfiguration _importLayouts(
 			boolean deletions, boolean expectError, File file, long groupId,
 			boolean includeLayoutSetLayoutsPortlet, boolean privateLayout,
-			ObjectDefinition... objectDefinitions)
+			Object... objects)
 		throws Exception {
 
 		try (LogCapture logCapture = _getLogCapture(expectError)) {
@@ -1308,7 +1590,7 @@ public class BatchEnginePortletDataHandlerTest {
 								privateLayout, null,
 								_getExportImportParameterMap(
 									deletions, includeLayoutSetLayoutsPortlet,
-									Arrays.asList(objectDefinitions))));
+									Arrays.asList(objects))));
 
 			if (deletions) {
 				_exportImportLocalService.importLayoutsDataDeletions(
@@ -1324,12 +1606,56 @@ public class BatchEnginePortletDataHandlerTest {
 
 	private ExportImportConfiguration _importLayouts(
 			boolean deletions, boolean expectError, File file, long groupId,
-			ObjectDefinition... objectDefinitions)
+			Object... objects)
 		throws Exception {
 
 		return _importLayouts(
-			deletions, expectError, file, groupId, false, false,
-			objectDefinitions);
+			deletions, expectError, file, groupId, false, false, objects);
+	}
+
+	private SafeCloseable _register(
+			Function<Filter, Page<TestItem>> function, String portletId)
+		throws Exception {
+
+		return _register(function, portletId, false);
+	}
+
+	private SafeCloseable _register(
+			Function<Filter, Page<TestItem>> function, String portletId,
+			boolean stagingSupported)
+		throws Exception {
+
+		SafeCloseable safeCloseable1 = _registerServiceWithSafeCloseable(
+			Portlet.class,
+			new GenericPortlet() {
+			},
+			MapUtil.singletonDictionary("jakarta.portlet.name", portletId));
+		SafeCloseable safeCloseable2 = _registerServiceWithSafeCloseable(
+			VulcanBatchEngineTaskItemDelegate.class,
+			new TestExportImportVulcanBatchEngineTaskItemDelegate(
+				function, portletId, stagingSupported),
+			HashMapDictionaryBuilder.put(
+				"batch.engine.task.item.delegate", "true"
+			).put(
+				"batch.engine.task.item.delegate.class.name",
+				TestItem.class.getName()
+			).put(
+				"batch.engine.task.item.delegate.name",
+				RandomTestUtil.randomString()
+			).put(
+				"companyId", String.valueOf(TestPropsValues.getCompanyId())
+			).put(
+				"export.import.vulcan.batch.engine.task.item.delegate", "true"
+			).build());
+
+		return () -> {
+			try {
+				safeCloseable2.close();
+			}
+			finally {
+				safeCloseable1.close();
+			}
+		};
 	}
 
 	private <S> SafeCloseable _registerServiceWithSafeCloseable(
@@ -1414,9 +1740,8 @@ public class BatchEnginePortletDataHandlerTest {
 		Assert.assertEquals(
 			objectEntry.getGroupId(), exportImportReportEntry.getGroupId());
 		Assert.assertEquals(
-			objectDefinition.getShortName(),
-			exportImportReportEntry.getModelName());
-		Assert.assertEquals(scope, exportImportReportEntry.getScope());
+			"model.resource." + objectDefinition.getResourceName(),
+			exportImportReportEntry.getModelNameLanguageKey());
 		Assert.assertEquals(
 			ExportImportReportEntryConstants.TYPE_ERROR,
 			exportImportReportEntry.getType());
@@ -1463,56 +1788,56 @@ public class BatchEnginePortletDataHandlerTest {
 		if (Objects.equals(
 				ObjectRelationshipConstants.TYPE_MANY_TO_MANY, type)) {
 
-			for (int i = 0; i < objectEntries1.length; i++) {
-				ObjectEntry objectEntry = objectEntries1[i];
-
-				JSONAssert.assertEquals(
-					JSONUtil.put(
+			JSONAssert.assertEquals(
+				JSONUtil.toJSONArray(
+					objectEntries1,
+					objectEntry -> JSONUtil.put(
 						_toSimplifiedObjectEntryJSONObject(
-							group, objectEntry, scope)
-					).toString(),
-					exportedObjectEntriesJSONArray.getJSONObject(
-						i
-					).getJSONArray(
-						objectRelationship.getName()
-					).toString(),
-					JSONCompareMode.STRICT);
-			}
+							group, objectEntry, scope))
+				).toString(),
+				JSONUtil.toJSONArray(
+					JSONUtil.toList(
+						exportedObjectEntriesJSONArray,
+						objectEntry -> objectEntry),
+					exportedObjectEntry -> exportedObjectEntry.getJSONArray(
+						objectRelationship.getName())
+				).toString(),
+				JSONCompareMode.NON_EXTENSIBLE);
 
 			exportedObjectEntriesJSONArray = _getExportedObjectEntriesJSONArray(
 				objectDefinition1.getName(), larFile, group.getGroupId());
 
-			for (int i = 0; i < objectEntries2.length; i++) {
-				ObjectEntry objectEntry = objectEntries2[i];
-
-				JSONAssert.assertEquals(
-					JSONUtil.put(
+			JSONAssert.assertEquals(
+				JSONUtil.toJSONArray(
+					objectEntries2,
+					objectEntry -> JSONUtil.put(
 						_toSimplifiedObjectEntryJSONObject(
-							group, objectEntry, scope)
-					).toString(),
-					exportedObjectEntriesJSONArray.getJSONObject(
-						i
-					).getJSONArray(
-						objectRelationship.getName()
-					).toString(),
-					JSONCompareMode.STRICT);
-			}
+							group, objectEntry, scope))
+				).toString(),
+				JSONUtil.toJSONArray(
+					JSONUtil.toList(
+						exportedObjectEntriesJSONArray,
+						objectEntry -> objectEntry),
+					exportedObjectEntry -> exportedObjectEntry.getJSONArray(
+						objectRelationship.getName())
+				).toString(),
+				JSONCompareMode.NON_EXTENSIBLE);
 		}
 		else {
-			for (int i = 0; i < objectEntries1.length; i++) {
-				ObjectEntry objectEntry = objectEntries1[i];
-
-				JSONAssert.assertEquals(
-					_toSimplifiedObjectEntryJSONObject(
-						group, objectEntry, scope
-					).toString(),
-					exportedObjectEntriesJSONArray.getJSONObject(
-						i
-					).getJSONObject(
-						objectRelationship.getName()
-					).toString(),
-					JSONCompareMode.STRICT);
-			}
+			JSONAssert.assertEquals(
+				JSONUtil.toJSONArray(
+					objectEntries1,
+					objectEntry -> _toSimplifiedObjectEntryJSONObject(
+						group, objectEntry, scope)
+				).toString(),
+				JSONUtil.toJSONArray(
+					JSONUtil.toList(
+						exportedObjectEntriesJSONArray,
+						objectEntry -> objectEntry),
+					exportedObjectEntry -> exportedObjectEntry.getJSONObject(
+						objectRelationship.getName())
+				).toString(),
+				JSONCompareMode.NON_EXTENSIBLE);
 		}
 
 		_deleteObjectEntries(objectEntries1);
@@ -1635,6 +1960,25 @@ public class BatchEnginePortletDataHandlerTest {
 					portletDataHandler)));
 	}
 
+	private void _testIsConfigurationEnabled(boolean stagingSupported)
+		throws Exception {
+
+		String portletId = RandomTestUtil.randomString();
+
+		try (SafeCloseable safeCloseable = _register(
+				null, portletId, stagingSupported)) {
+
+			Thread.sleep(1000);
+
+			PortletDataHandler portletDataHandler =
+				_portletDataHandlerProvider.provide(
+					TestPropsValues.getCompanyId(), portletId);
+
+			Assert.assertEquals(
+				stagingSupported, portletDataHandler.isConfigurationEnabled());
+		}
+	}
+
 	/**
 	 * @see com.liferay.object.rest.internal.dto.v1_0.converter.ObjectEntryDTOConverter#_toSimplifiedObjectEntry(
 	 *      com.liferay.object.rest.dto.v1_0.ObjectEntry, ObjectDefinition,
@@ -1706,7 +2050,19 @@ public class BatchEnginePortletDataHandlerTest {
 	private LayoutLocalService _layoutLocalService;
 
 	@Inject
+	private ListTypeDefinitionLocalService _listTypeDefinitionLocalService;
+
+	@Inject
+	private ListTypeEntryLocalService _listTypeEntryLocalService;
+
+	@Inject
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Inject
 	private ObjectEntryLocalService _objectEntryLocalService;
+
+	@Inject
+	private ObjectFieldLocalService _objectFieldLocalService;
 
 	@Inject
 	private ObjectRelationshipLocalService _objectRelationshipLocalService;
@@ -1736,6 +2092,17 @@ public class BatchEnginePortletDataHandlerTest {
 
 			_function = function;
 			_portletId = portletId;
+
+			_stagingSupported = true;
+		}
+
+		public TestExportImportVulcanBatchEngineTaskItemDelegate(
+			Function<Filter, Page<TestItem>> function, String portletId,
+			boolean stagingSupported) {
+
+			_function = function;
+			_portletId = portletId;
+			_stagingSupported = stagingSupported;
 		}
 
 		@Override
@@ -1767,8 +2134,13 @@ public class BatchEnginePortletDataHandlerTest {
 			return new ExportImportDescriptor() {
 
 				@Override
-				public String getItemClassName() {
-					return _itemClassName;
+				public String getLabelLanguageKey() {
+					return _modelClassName;
+				}
+
+				@Override
+				public String getModelClassName() {
+					return _modelClassName;
 				}
 
 				@Override
@@ -1777,8 +2149,18 @@ public class BatchEnginePortletDataHandlerTest {
 				}
 
 				@Override
+				public String getResourceClassName() {
+					return _resourceClassName;
+				}
+
+				@Override
 				public Scope getScope() {
 					return Scope.COMPANY;
+				}
+
+				@Override
+				public boolean isStagingSupported() {
+					return _stagingSupported;
 				}
 
 			};
@@ -1861,10 +2243,11 @@ public class BatchEnginePortletDataHandlerTest {
 			};
 		}
 
-		private static String _itemClassName = RandomTestUtil.randomString();
-
 		private final Function<Filter, Page<TestItem>> _function;
+		private final String _modelClassName = RandomTestUtil.randomString();
 		private final String _portletId;
+		private final String _resourceClassName = RandomTestUtil.randomString();
+		private final boolean _stagingSupported;
 
 	}
 

@@ -3,8 +3,11 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {
+	ObjectDefinition,
+	ObjectDefinitions,
+} from '../../common/types/ObjectDefinition';
 import {State} from '../contexts/StateContext';
-import {ObjectDefinition, ObjectDefinitions} from '../types/ObjectDefinition';
 import buildStructure from './buildStructure';
 import {getChildrenUuids} from './getChildrenUuids';
 
@@ -22,9 +25,10 @@ export default function buildState({
 	const structure = buildStructure({mainObjectDefinition, objectDefinitions});
 
 	return {
-		error: null,
 		history: {
 			deletedChildren: false,
+			deletedGroupERCs: [],
+			modifiedNames: new Set(),
 		},
 		invalids: new Map(),
 		publishedChildren:
