@@ -1,0 +1,326 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ClayPanel renders 1`] = `
+<div>
+  <div
+    class="panel"
+  >
+    <div
+      class="panel-header"
+    >
+      <span
+        class="panel-title"
+      >
+        Display Title
+      </span>
+    </div>
+    <div
+      class="panel-header"
+    >
+      Header!
+    </div>
+    <div
+      class="panel-body"
+    >
+      Body!
+    </div>
+    <div
+      class="panel-footer"
+    >
+      Footer!
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayPanel renders with custom displayTitle 1`] = `
+<div>
+  <div
+    class="panel"
+  >
+    <button
+      aria-controls="clay-id-10"
+      aria-expanded="false"
+      class="panel-header panel-header-link collapse-icon collapse-icon-middle collapsed btn btn-unstyled"
+      type="button"
+    >
+      <div>
+        <h3>
+          Custom Panel Title
+        </h3>
+      </div>
+      <span
+        class="collapse-icon-closed"
+      >
+        <svg
+          class="lexicon-icon lexicon-icon-angle-right"
+          role="presentation"
+        >
+          <use
+            href="/foo/bar#angle-right"
+          />
+        </svg>
+      </span>
+      <span
+        class="collapse-icon-open"
+      >
+        <svg
+          class="lexicon-icon lexicon-icon-angle-down"
+          role="presentation"
+        >
+          <use
+            href="/foo/bar#angle-down"
+          />
+        </svg>
+      </span>
+    </button>
+    <div
+      aria-labelledby="clay-id-10"
+      class="panel-collapse collapse"
+      id="clay-id-10"
+      role="region"
+    >
+      <div
+        class="panel-header"
+      >
+        Header!
+      </div>
+      <div
+        class="panel-body"
+      >
+        Body!
+      </div>
+      <div
+        class="panel-footer"
+      >
+        Footer!
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayPanel renders with different displayType 1`] = `
+<div>
+  <div
+    class="panel panel-block"
+  >
+    <div
+      class="panel-header"
+    >
+      <span
+        class="panel-title"
+      >
+        Display Title
+      </span>
+    </div>
+    <div
+      class="panel-header"
+    >
+      Header!
+    </div>
+    <div
+      class="panel-body"
+    >
+      Body!
+    </div>
+    <div
+      class="panel-footer"
+    >
+      Footer!
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayPanel renders with different size 1`] = `
+<div>
+  <div
+    class="panel panel-sm"
+  >
+    <div
+      class="panel-header"
+    >
+      <span
+        class="panel-title"
+      >
+        Display Title
+      </span>
+    </div>
+    <div
+      class="panel-header"
+    >
+      Header!
+    </div>
+    <div
+      class="panel-body"
+    >
+      Body!
+    </div>
+    <div
+      class="panel-footer"
+    >
+      Footer!
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayPanel renders with multiple panels 1`] = `
+<div>
+  <div
+    class="panel-group"
+  >
+    <div
+      class="panel"
+    >
+      <div
+        class="panel-header"
+      >
+        <span
+          class="panel-title"
+        >
+          Display Title
+        </span>
+      </div>
+      <div
+        class="panel-body"
+      >
+        Body!
+      </div>
+    </div>
+    <div
+      class="panel"
+    >
+      <div
+        class="panel-header"
+      >
+        <span
+          class="panel-title"
+        >
+          Display Title
+        </span>
+      </div>
+      <div
+        class="panel-body"
+      >
+        Body!
+      </div>
+    </div>
+    <div
+      class="panel"
+    >
+      <button
+        aria-controls="clay-id-6"
+        aria-expanded="false"
+        class="panel-header panel-header-link collapse-icon collapse-icon-middle collapsed btn btn-unstyled"
+        type="button"
+      >
+        <span
+          class="panel-title"
+        >
+          Display Title
+        </span>
+        <span
+          class="collapse-icon-closed"
+        >
+          <svg
+            class="lexicon-icon lexicon-icon-angle-right"
+            role="presentation"
+          >
+            <use
+              href="/foo/bar#angle-right"
+            />
+          </svg>
+        </span>
+        <span
+          class="collapse-icon-open"
+        >
+          <svg
+            class="lexicon-icon lexicon-icon-angle-down"
+            role="presentation"
+          >
+            <use
+              href="/foo/bar#angle-down"
+            />
+          </svg>
+        </span>
+      </button>
+      <div
+        aria-labelledby="clay-id-6"
+        class="panel-collapse collapse"
+        id="clay-id-6"
+        role="region"
+      >
+        <div
+          class="panel-body"
+        >
+          Body!
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayPanel renders without displayTitle 1`] = `
+<div>
+  <div
+    class="panel"
+  >
+    <button
+      aria-controls="clay-id-11"
+      aria-expanded="false"
+      class="panel-header panel-header-link collapse-icon collapse-icon-middle collapsed btn btn-unstyled"
+      type="button"
+    >
+      <span
+        class="collapse-icon-closed"
+      >
+        <svg
+          class="lexicon-icon lexicon-icon-angle-right"
+          role="presentation"
+        >
+          <use
+            href="/foo/bar#angle-right"
+          />
+        </svg>
+      </span>
+      <span
+        class="collapse-icon-open"
+      >
+        <svg
+          class="lexicon-icon lexicon-icon-angle-down"
+          role="presentation"
+        >
+          <use
+            href="/foo/bar#angle-down"
+          />
+        </svg>
+      </span>
+    </button>
+    <div
+      aria-labelledby="clay-id-11"
+      class="panel-collapse collapse"
+      id="clay-id-11"
+      role="region"
+    >
+      <div
+        class="panel-header"
+      >
+        Header!
+      </div>
+      <div
+        class="panel-body"
+      >
+        Body!
+      </div>
+      <div
+        class="panel-footer"
+      >
+        Footer!
+      </div>
+    </div>
+  </div>
+</div>
+`;

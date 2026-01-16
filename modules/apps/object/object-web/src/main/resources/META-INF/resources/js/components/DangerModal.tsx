@@ -5,9 +5,10 @@
 
 import ClayButton from '@clayui/button';
 import ClayModal from '@clayui/modal';
-import {Observer} from '@clayui/modal/lib/types';
 import {Input} from '@liferay/object-js-components-web';
 import React, {useState} from 'react';
+
+import type {Observer} from '@clayui/modal/src/types';
 
 export default function DangerModal({
 	children,
@@ -23,7 +24,11 @@ export default function DangerModal({
 
 	return (
 		<ClayModal center observer={observer} status="danger">
-			<ClayModal.Header>{title}</ClayModal.Header>
+			<ClayModal.Header
+				closeButtonAriaLabel={Liferay.Language.get('close')}
+			>
+				{title}
+			</ClayModal.Header>
 
 			<ClayModal.Body>
 				{children}

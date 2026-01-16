@@ -1,4 +1,4 @@
-import BasePage from 'settings/components/BasePage';
+import BasePage from 'settings/components/base-page/BasePage';
 import Card from 'shared/components/Card';
 import ClayAlert from '@clayui/alert';
 import ClayLayout from '@clayui/layout';
@@ -65,7 +65,7 @@ const getAlertStatusCode = currentPlan => {
 	return null;
 };
 
-export const UsageOverview = ({groupId, project}) => {
+export const UsageOverview = ({project}) => {
 	const [showAlert, setShowAlert] = useState(true);
 	const currentUser = useCurrentUser();
 	const admin = currentUser.isAdmin();
@@ -96,7 +96,6 @@ export const UsageOverview = ({groupId, project}) => {
 
 	return (
 		<BasePage
-			groupId={groupId}
 			key='UsageOverview'
 			pageActions={pageActions}
 			pageDescription={Liferay.Language.get(

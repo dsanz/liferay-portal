@@ -216,7 +216,9 @@ public class SemanticSearchConfigurationFormRenderer
 					CompanyThreadLocal.getCompanyId(), true,
 					WorkflowConstants.STATUS_APPROVED)) {
 
-			if (!objectDefinition.isEnableIndexSearch()) {
+			if (!objectDefinition.isEnableIndexSearch() ||
+				!objectDefinition.isModifiable()) {
+
 				continue;
 			}
 

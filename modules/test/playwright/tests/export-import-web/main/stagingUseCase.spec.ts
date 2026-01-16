@@ -21,6 +21,7 @@ import {uiElementsPageTest} from '../../../fixtures/uiElementsTest';
 import {webContentDisplayPageTest} from '../../../fixtures/webContentDisplayPageTest';
 import {workflowPagesTest} from '../../../fixtures/workflowPagesTest';
 import getRandomString from '../../../utils/getRandomString';
+import {normalizeRestPath} from '../../../utils/normalizeRestPath';
 import {reloadUntilVisible} from '../../../utils/reloadUntilVisible';
 import {enableLocalStaging} from '../../../utils/staging';
 import getBasicWebContentStructureId from '../../../utils/structured-content/getBasicWebContentStructureId';
@@ -31,9 +32,10 @@ import {stagingConfigurationPageTest} from './fixtures/stagingConfigurationPageT
 import {stagingPageTest} from './fixtures/stagingPageTest';
 import {unzipAndCheckFolder} from './utils/stagingUtil';
 
-export const test = mergeTests(
+const test = mergeTests(
 	dataApiHelpersTest,
 	featureFlagsTest({
+		'LPD-35443': {enabled: true},
 		'LPD-35914': {enabled: true},
 	}),
 	loginTest(),
@@ -51,6 +53,58 @@ export const test = mergeTests(
 	webContentDisplayPageTest,
 	workflowPagesTest,
 	uiElementsPageTest
+);
+
+const testWithBatchStagingFF = mergeTests(
+	dataApiHelpersTest,
+	featureFlagsTest({
+		'LPD-35443': {enabled: true},
+		'LPD-35914': {enabled: true},
+		'LPD-41367': {enabled: true},
+	}),
+	loginTest(),
+	stagingConfigurationPageTest,
+	stagingPageTest
+);
+
+testWithBatchStagingFF(
+	'Object entries can not be staged through batch',
+	{tag: ['@LPD-70661', '@LPD-72343']},
+	async ({apiHelpers, stagingPage}) => {
+		const objectDefinition =
+			await apiHelpers.objectAdmin.postRandomObjectDefinition({
+				scope: 'site',
+				status: {code: 0},
+			});
+
+		apiHelpers.data.push({
+			id: objectDefinition.id,
+			type: 'objectDefinition',
+		});
+
+		const site = await apiHelpers.headlessSite.createSite({
+			name: getRandomString(),
+		});
+
+		apiHelpers.data.push({
+			id: site.id,
+			type: 'site',
+		});
+
+		await apiHelpers.objectEntry.postObjectEntry(
+			{externalReferenceCode: getRandomString(), name: getRandomString()},
+			`${normalizeRestPath(objectDefinition.restContextPath)}/scopes/${site.name}`
+		);
+
+		await stagingPage.goto(site.name);
+		await stagingPage.localStagingButton.click();
+
+		await expect(
+			stagingPage.stagedPortletCheckbox(
+				objectDefinition.pluralLabel.en_US
+			)
+		).toHaveCount(0);
+	}
 );
 
 test('Staging only approved content goes to live', async ({
@@ -145,6 +199,10 @@ test('Staging only approved content goes to live', async ({
 	await workflowTasksPage.approve(webContent1.title);
 
 	await pageEditorPage.goto(layout1, stagingSite.friendlyUrlPath);
+	await reloadUntilVisible({
+		myLocator: page.getByText(webcontentContent1, {exact: true}),
+		page,
+	});
 	await expect(
 		page.getByText(webcontentContent1, {exact: true})
 	).toBeVisible();
@@ -385,7 +443,9 @@ test(
 		);
 
 		await stagingPage.goto(site.name + '-staging');
-		await stagingPage.publish(['Web Content 1 Items Web']);
+		await stagingPage.publish({
+			includeIfModified: ['Web Content 1 Items Web'],
+		});
 
 		const tomcatDir = exportImportConfig.environment.tomcatDir;
 

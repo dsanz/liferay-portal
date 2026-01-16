@@ -1,5 +1,5 @@
 import * as API from 'shared/api';
-import BasePage from 'settings/components/BasePage';
+import BasePage from 'settings/components/base-page/BasePage';
 import BundleRouter from 'route-middleware/BundleRouter';
 import Card from 'shared/components/Card';
 import ClayBadge from '@clayui/badge';
@@ -65,7 +65,6 @@ export const User = ({className}) => {
 	return (
 		<BasePage
 			className={getCN('user-list-page-root', className)}
-			groupId={groupId}
 			key='userListPage'
 			pageDescription={Liferay.Language.get(
 				'invite-new-users-to-analytics-cloud-and-or-configure-existing-users'

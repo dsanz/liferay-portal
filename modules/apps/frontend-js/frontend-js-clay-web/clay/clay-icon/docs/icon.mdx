@@ -1,0 +1,48 @@
+---
+title: 'Icon'
+description: 'Icons are a visual representation of an idea and/or action.'
+lexiconDefinition: 'https://liferay.design/lexicon/core-components/icons/'
+packageNpm: '@clayui/icon'
+packageUse: "import Icon from '@clayui/icon';"
+packageTypes: ['clay-icon/src/index.tsx']
+---
+
+import {IconSearch} from './IconSearch';
+import {flagsData, iconsData} from './aliases';
+
+## Icon List
+
+<IconSearch source={iconsData} />
+
+## Language Flags
+
+<IconSearch
+	label="Search Flags"
+	placeholder="Search Flags..."
+	source={flagsData}
+	type="flag"
+/>
+
+## Best Practices
+
+For Icons, we use SVG elements that link to an SVG sprite. So, it becomes necessary to pass a parameter that points to a path where this [`spritemap`](#api-spritemap) is located.
+If you are using the spritemap from `@clayui/css` you can download that svg [here](https://unpkg.com/@clayui/css@latest/lib/images/icons/icons.svg).
+
+```jsx
+<ClayIcon symbol="heart" spritemap={spritemap} />
+```
+
+### Using Context
+
+<div className="clay-site-alert alert alert-info">
+	For V3, an API was added to utilize context for passing spritemap down
+	instead of having to pass the prop everywhere.
+</div>
+
+Add `import { ClayIconSpriteContext } from "@clayui/icon"` use the context as a provider. `<ClayIconSpriteContext.Provider value="path/to/sprite.svg">`.
+
+```jsx
+<ClayIconSpriteContext.Provider value="/icons.svg">
+	<ClayIcon symbol="add-cell" />
+</ClayIconSpriteContext.Provider>
+```

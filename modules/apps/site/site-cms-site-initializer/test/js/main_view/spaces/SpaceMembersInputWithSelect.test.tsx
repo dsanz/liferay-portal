@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import {RenderResult, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -237,9 +237,7 @@ describe('SpaceMembersInputWithSelect', () => {
 
 		await userEvent.type(input, 'non-existent');
 
-		await waitFor(() => {
-			expect(screen.getByText('no-results-found')).toBeInTheDocument();
-		});
+		expect(await screen.findByText('no-results-found')).toBeInTheDocument();
 	});
 
 	it('calls "onAutocompleteItemSelected" callback when a user is selected', async () => {

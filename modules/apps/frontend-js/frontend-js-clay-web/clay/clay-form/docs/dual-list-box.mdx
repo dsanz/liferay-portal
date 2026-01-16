@@ -1,0 +1,90 @@
+---
+title: 'Dual List Box'
+description: 'Dual List Box provides users with two Select Boxes with the ability to move items between lists.'
+lexiconDefinition: 'https://liferay.design/lexicon/core-components/dual-listbox/'
+packageNpm: '@clayui/form'
+packageUse: "import {ClayDualListBox} from '@clayui/form';"
+storybookPath: 'design-system-components-duallistbox'
+packageTypes: ['clay-form/src/DualListBox.tsx']
+---
+
+ClayDualListBox consists of low-level utilities that provides the ability to create a Select with multiple options selectable.
+Users are allowed to multi-select different items from a list and sometimes, options in use can be re-order.
+It's a high level component using `ClaySelectBox` under the hood.
+
+> Note: The actual select functionality will not work here due to a pending issue at [FormidableLabs/react-live#196](https://github.com/FormidableLabs/react-live/issues/196). To see it in action, check out the [storybook demo](https://storybook.clayui.com/?path=/story/design-system-components-duallistbox--default).
+
+```jsx preview
+import {Provider} from '@clayui/core';
+import {ClayDualListBox} from '@clayui/form';
+import React, {useState} from 'react';
+
+import '@clayui/css/lib/css/atlas.css';
+
+export default function App() {
+	const moveBoxesOptions = [
+		[
+			{
+				label: 'Reddit',
+				value: 'reddit',
+			},
+			{
+				label: 'Slack',
+				value: 'slack',
+			},
+			{
+				label: 'Twitter',
+				value: 'twitter',
+			},
+		],
+		[
+			{
+				label: 'Discord',
+				value: 'discord',
+			},
+			{
+				label: 'Evernote',
+				value: 'evernote',
+			},
+			{
+				label: 'Facebook',
+				value: 'facebook',
+			},
+			{
+				label: 'LinkedIn',
+				value: 'linkedin',
+			},
+		],
+	];
+
+	const [items, setItems] = useState(moveBoxesOptions);
+	const [leftSelected, setLeftSelected] = useState([]);
+	const [rightSelected, setRightSelected] = useState([]);
+
+	const [firstSelectBoxItems, secondSelectBoxItems] = items;
+
+	return (
+		<Provider spritemap="/public/icons.svg">
+			<div className="p-4">
+				<ClayDualListBox
+					disableLTR={firstSelectBoxItems.length === 0}
+					disableRTL={secondSelectBoxItems.length === 0}
+					items={items}
+					left={{
+						label: 'Available',
+						onSelectChange: setLeftSelected,
+						selected: leftSelected,
+					}}
+					onItemsChange={setItems}
+					right={{
+						label: 'In Use',
+						onSelectChange: setRightSelected,
+						selected: rightSelected,
+					}}
+					size={8}
+				/>
+			</div>
+		</Provider>
+	);
+}
+```

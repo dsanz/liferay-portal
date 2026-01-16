@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {Page, expect, mergeTests} from '@playwright/test';
-import path from 'path';
+import {FrameLocator, Page, expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
 import {formsPagesTest} from '../../../fixtures/formsPagesTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {getRandomInt} from '../../../utils/getRandomInt';
 import performLoginViaApi, {performLogout} from '../../../utils/performLogin';
+import {waitForAlert} from '../../../utils/waitForAlert';
 import {deleteItems} from './utils/deleteItems';
 
 export const test = mergeTests(dataApiHelpersTest, loginTest(), formsPagesTest);
@@ -54,6 +54,44 @@ test.describe('Manage fields through Form Preview page', () => {
 		await expect(newTabPage.getByLabel('Text')).toHaveValue('');
 
 		await newTabPage.close();
+	});
+
+	test('Assert that it is possible to delete the decimal separator of a numeric field without removing the character before it', async ({
+		formBuilderPage,
+		formBuilderSidePanelPage,
+		page,
+	}) => {
+		await formBuilderPage.goToNew();
+
+		await formBuilderPage.fillFormTitle('Form' + getRandomInt());
+
+		await formBuilderSidePanelPage.addFieldByDoubleClick('Numeric');
+
+		await formBuilderSidePanelPage.numericTypeDecimal.check();
+
+		await expect(formBuilderSidePanelPage.numericTypeDecimal).toBeChecked();
+
+		await formBuilderSidePanelPage.advancedTab.click();
+
+		await formBuilderSidePanelPage.inputMaskToggle.check();
+
+		await expect(page.getByLabel('Thousands Separator')).toBeVisible();
+
+		await formBuilderPage.saveButton.click();
+
+		await waitForAlert(page);
+
+		const newTabPage = await formBuilderPage.openPreviewForm();
+
+		const numericInput = newTabPage.getByLabel('Numeric');
+
+		await numericInput.fill('22.');
+
+		await numericInput.click();
+
+		await newTabPage.keyboard.press('Backspace');
+
+		await expect(numericInput).toHaveValue('22');
 	});
 
 	test('Duplicating field with evaluation rules has correct behavior', async ({
@@ -169,90 +207,6 @@ test.describe('Manage fields through Form Preview page', () => {
 		}
 	);
 
-	test('Make sure the aria-labelledby reference is present in the captcha form view', async ({
-		formBuilderPage,
-		formBuilderSidePanelPage,
-	}) => {
-		await formBuilderPage.goToNew();
-
-		await formBuilderPage.fillFormTitle('Form' + getRandomInt());
-
-		await formBuilderSidePanelPage.addFieldByDoubleClick('Text');
-
-		await formBuilderPage.formSettingsButton.click();
-
-		await formBuilderPage.requireCaptchaToggle.click();
-
-		await formBuilderPage.formSettingsDoneButton.click();
-
-		const newTabPage = await formBuilderPage.openPreviewForm();
-
-		const captchaContainer = newTabPage.locator(
-			"[data-field-reference='_CAPTCHA_']"
-		);
-
-		await expect(captchaContainer).toBeVisible();
-
-		const captchaContainerAriaLabelledby =
-			await captchaContainer.getAttribute('aria-labelledby');
-
-		const screenReaderOnlyCaptchaSpan = newTabPage.locator(
-			`span[id='${captchaContainerAriaLabelledby}']`
-		);
-
-		await expect(screenReaderOnlyCaptchaSpan).toHaveClass('sr-only');
-
-		await expect(screenReaderOnlyCaptchaSpan).toContainText('captcha');
-
-		await newTabPage.close();
-	});
-
-	test('Verify boolean field aria-labelledby is only created when there is corresponding label rendered', async ({
-		formBuilderPage,
-		formBuilderSidePanelPage,
-	}) => {
-		await formBuilderPage.goToNew();
-
-		await formBuilderPage.fillFormTitle('Form' + getRandomInt());
-
-		await formBuilderSidePanelPage.addFieldByDoubleClick('Boolean');
-
-		await formBuilderSidePanelPage.label.fill('Boolean without helptext');
-
-		await formBuilderSidePanelPage.backButton.click();
-
-		await formBuilderSidePanelPage.addFieldByDoubleClick('Boolean');
-
-		await formBuilderSidePanelPage.label.fill('Boolean with helptext');
-
-		await formBuilderSidePanelPage.helpText.fill('Help text');
-
-		await formBuilderSidePanelPage.backButton.click();
-
-		const newTabPage = await formBuilderPage.openPreviewForm();
-
-		const elementWithoutHelpText = newTabPage
-			.locator('.form-group')
-			.first();
-
-		await expect(elementWithoutHelpText).not.toHaveAttribute(
-			'aria-labelledby'
-		);
-
-		const elementWithHelpText = newTabPage.locator('.form-group').last();
-
-		await expect(elementWithHelpText).toHaveAttribute('aria-labelledby');
-
-		const helpTextLabelId =
-			await elementWithHelpText.getAttribute('aria-labelledby');
-
-		await expect(
-			newTabPage.locator(`[id="${helpTextLabelId}"]`)
-		).toBeVisible();
-
-		await newTabPage.close();
-	});
-
 	test('Verify if temporary files are removed', async ({
 		apiHelpers,
 		formBuilderPage,
@@ -354,50 +308,77 @@ test.describe('Manage fields through Form Preview page', () => {
 test.describe('Manage fields through Form Builder page', () => {
 	test('Assert edition of a rich text field predefined value that contains a rule', async ({
 		formBuilderPage,
-		formsPage,
+		formBuilderSidePanelPage,
 		page,
+		rulesBuilderPage,
 	}) => {
-		await formsPage.goTo();
+		let richTextPredefinedValueIframe: FrameLocator;
 
-		await formsPage.importForm(
-			path.join(
-				__dirname,
-				'dependencies',
-				'form-with-rich-text.portlet.lar'
-			)
-		);
+		await test.step('create a new form with a richText field and set a predefined value for it', async () => {
+			await formBuilderPage.goToNew();
 
-		await formsPage.openForm('Form with rich text field');
+			await formBuilderSidePanelPage.addFieldByDoubleClick('Rich Text');
 
-		await expect(
-			page.getByRole('textbox', {name: 'Rich Text'})
-		).toBeVisible();
+			await formBuilderPage.openFieldSettings('Rich Text');
 
-		await formBuilderPage.openFieldSettings('Rich Text');
+			await formBuilderSidePanelPage.advancedTab.click();
 
-		await formBuilderPage.settingsAdvancedTab.click();
+			richTextPredefinedValueIframe = page
+				.getByRole('textbox', {name: 'Predefined Value'})
+				.frameLocator('iframe');
 
-		const richTextPredefinedValueIframe = page
-			.getByRole('textbox', {name: 'Predefined Value'})
-			.frameLocator('iframe');
+			await richTextPredefinedValueIframe.getByRole('paragraph').click();
 
-		await richTextPredefinedValueIframe
-			.getByText("Rich's text predefined value")
-			.click();
+			await page.keyboard.type('Rich text predefined value');
+		});
 
-		await page.keyboard.press('Control+A');
+		await test.step('create a rule involving richText field', async () => {
+			await rulesBuilderPage.rulesTab.click();
 
-		await page.keyboard.press('Backspace');
+			await rulesBuilderPage.addElementsButton.click();
 
-		await page.keyboard.type(
-			'Typing a new predefined value for the rich text field.'
-		);
+			await rulesBuilderPage.selectConditionLeftFormField('Rich Text');
 
-		await expect(
-			richTextPredefinedValueIframe.getByText(
+			await rulesBuilderPage.selectConditionOperator('Is Empty');
+
+			await rulesBuilderPage.selectAction('Require');
+
+			await page.getByTitle('Choose an Option').click();
+
+			await page.getByRole('option', {name: 'Rich Text'}).click();
+
+			await rulesBuilderPage.saveButton.click();
+		});
+
+		await test.step('edit previous predefined value after adding the rule', async () => {
+			await formBuilderPage.formTab.click();
+
+			await expect(
+				page.getByRole('textbox', {name: 'Rich Text'})
+			).toBeVisible();
+
+			await formBuilderPage.openFieldSettings('Rich Text');
+
+			await formBuilderSidePanelPage.advancedTab.click();
+
+			await richTextPredefinedValueIframe
+				.getByText('Rich text predefined value')
+				.click();
+
+			await page.keyboard.press('Control+A');
+
+			await page.keyboard.press('Backspace');
+
+			await page.keyboard.type(
 				'Typing a new predefined value for the rich text field.'
-			)
-		).toBeVisible();
+			);
+
+			await expect(
+				richTextPredefinedValueIframe.getByText(
+					'Typing a new predefined value for the rich text field.'
+				)
+			).toBeVisible();
+		});
 	});
 
 	test('Assert that a date field can be previewed', async ({
@@ -647,4 +628,109 @@ test.describe('Manage fields through Form Builder page', () => {
 			).not.toBeVisible();
 		});
 	});
+
+	test(
+		'Validates field group automatic deletion when the last field is dragged out, covering deletion of nested child groups and top-level groups',
+		{tag: ['@LPD-70472', '@LPD-71315']},
+		async ({formBuilderPage, formBuilderSidePanelPage, page}) => {
+			let textFieldReference1;
+
+			let textFieldReference2;
+
+			let textFieldReference3;
+
+			await test.step('go to form builder and create 3 text fields', async () => {
+				await formBuilderPage.goToNew();
+
+				await formBuilderSidePanelPage.addFieldByDoubleClick('Text');
+
+				await formBuilderPage.openFieldSettings('Text', 0);
+
+				textFieldReference1 =
+					await formBuilderSidePanelPage.getFieldReference();
+
+				await formBuilderSidePanelPage.backButton.click();
+
+				await formBuilderSidePanelPage.addFieldByDoubleClick('Text');
+
+				await formBuilderPage.openFieldSettings('Text', 1);
+
+				textFieldReference2 =
+					await formBuilderSidePanelPage.getFieldReference();
+
+				await formBuilderSidePanelPage.backButton.click();
+
+				await formBuilderSidePanelPage.addFieldByDoubleClick('Text');
+
+				await formBuilderPage.openFieldSettings('Text', 2);
+
+				textFieldReference3 =
+					await formBuilderSidePanelPage.getFieldReference();
+
+				await formBuilderSidePanelPage.backButton.click();
+			});
+
+			await test.step('create the three-level nested field group structure', async () => {
+				await formBuilderSidePanelPage.dragAndDropField(
+					textFieldReference1,
+					textFieldReference2
+				);
+
+				await formBuilderSidePanelPage.dragAndDropField(
+					textFieldReference3,
+					textFieldReference1
+				);
+
+				await formBuilderSidePanelPage.dragAndDropField(
+					textFieldReference1,
+					textFieldReference2
+				);
+			});
+
+			await test.step('test case 1: drag the innermost field (textFieldReference3) to a field in a higher level to delete its parent group', async () => {
+				await formBuilderSidePanelPage.dragAndDropField(
+					textFieldReference3,
+					textFieldReference2
+				);
+
+				const dropZoneTargets = page.locator('.ddm-target');
+
+				await expect(dropZoneTargets).toHaveCount(16);
+			});
+
+			await test.step('test case 2: clean up field structure and drag the last remaining field out of its group to validate group deletion', async () => {
+				await formBuilderPage.deleteField(textFieldReference1);
+
+				await formBuilderPage.deleteField(textFieldReference2);
+
+				const lastFieldsGroupLocator = page
+					.locator(
+						'.ddm-field-container[data-field-name^="Fieldset"]'
+					)
+					.last();
+
+				const lastFieldsGroupName =
+					await lastFieldsGroupLocator.evaluate(
+						(element) => element.dataset.fieldName
+					);
+
+				await formBuilderSidePanelPage.dragAndDropField(
+					textFieldReference3,
+					4
+				);
+
+				await expect(
+					page.locator(
+						`.ddm-field-container[data-field-name="${lastFieldsGroupName}"]`
+					)
+				).toHaveCount(0);
+
+				await expect(
+					page.locator(
+						`.ddm-field-container[data-field-name="${textFieldReference3}"]`
+					)
+				).toBeVisible();
+			});
+		}
+	);
 });

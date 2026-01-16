@@ -8,7 +8,6 @@ import {loadModule} from 'frontend-js-web';
 import React, {ReactElement, useContext, useEffect, useState} from 'react';
 
 import FrontendDataSetContext from '../../../FrontendDataSetContext';
-import {activateFilter} from '../../../utils/filters/activateFilter';
 import ViewsContext from '../../../views/ViewsContext';
 
 // @ts-ignore
@@ -43,10 +42,13 @@ interface FilterConfiguration {
 	id: string;
 }
 
-interface FilterComponentArgs {
+export interface IFilter {
+	clientExtensionResolutionError: any;
 	id: string;
+	label: string;
 	moduleURL: string;
 	onClose: () => void;
+	selectedItemsLabel: string;
 	type: 'clientExtension' | 'dateRange' | 'selection';
 }
 
@@ -56,13 +58,7 @@ const FILTER_IMPLEMENTATIONS = {
 	selection: selectionFilterImplementation,
 };
 
-const Filter = ({
-	id,
-	moduleURL,
-	onClose,
-	type,
-	...otherProps
-}: FilterComponentArgs) => {
+const Filter = ({id, moduleURL, onClose, type, ...otherProps}: IFilter) => {
 	const {setSearching, updateFilters} = useContext(FrontendDataSetContext);
 	const [{filters}, viewsDispatch] = useContext(ViewsContext);
 
@@ -97,10 +93,15 @@ const Filter = ({
 			...filters.find(
 				(filter: FilterConfiguration) => filter.id === filterId
 			),
+			selectedData,
 			...otherProps,
 		};
 
-		activateFilter({filter: newFilter, selectedData});
+		newFilter.odataFilterString = filterImplementation.getOdataString(
+			newFilter as any
+		);
+		newFilter.selectedItemsLabel =
+			filterImplementation.getSelectedItemsLabel(newFilter as any);
 
 		setSearching(true);
 

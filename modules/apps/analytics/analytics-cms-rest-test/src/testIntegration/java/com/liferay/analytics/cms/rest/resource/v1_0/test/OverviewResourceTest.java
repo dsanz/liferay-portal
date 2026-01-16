@@ -16,8 +16,6 @@ import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
-import com.liferay.batch.engine.unit.BatchEngineUnitProcessor;
-import com.liferay.batch.engine.unit.BatchEngineUnitReader;
 import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
@@ -43,32 +41,22 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
+import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.Serializable;
 
-import java.util.Collections;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-
 /**
  * @author Rachael Koestartyo
  */
 @FeatureFlags(
-	featureFlags = {
-		@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-21926"),
-		@FeatureFlag("LPD-31149"), @FeatureFlag("LPD-34594"),
-		@FeatureFlag("LPS-179669")
-	}
+	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-34594")}
 )
 @RunWith(Arquillian.class)
 public class OverviewResourceTest extends BaseOverviewResourceTestCase {
@@ -81,10 +69,18 @@ public class OverviewResourceTest extends BaseOverviewResourceTestCase {
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.
 				getObjectDefinitionByExternalReferenceCode(
-					"L_BASIC_WEB_CONTENT", testCompany.getCompanyId());
+					"L_CMS_BASIC_WEB_CONTENT", testCompany.getCompanyId());
+
+		Map<String, Serializable> objectEntryValues =
+			HashMapBuilder.<String, Serializable>put(
+				"title_i18n",
+				HashMapBuilder.put(
+					"en_US", RandomTestUtil.randomString()
+				).build()
+			).build();
 
 		_objectEntry = ObjectEntryTestUtil.addObjectEntry(
-			_depotEntry.getGroupId(), objectDefinition, Collections.emptyMap());
+			_depotEntry.getGroupId(), objectDefinition, objectEntryValues);
 
 		Trend positiveTrend = new Trend();
 
@@ -104,7 +100,7 @@ public class OverviewResourceTest extends BaseOverviewResourceTestCase {
 			overviewResource.getContentOverview(null, null, null, 7, null));
 
 		_objectEntry = ObjectEntryTestUtil.addObjectEntry(
-			_depotEntry.getGroupId(), objectDefinition, Collections.emptyMap());
+			_depotEntry.getGroupId(), objectDefinition, objectEntryValues);
 
 		AssetEntry assetEntry = _assetEntryLocalService.getEntry(
 			objectDefinition.getClassName(), _objectEntry.getObjectEntryId());
@@ -144,7 +140,7 @@ public class OverviewResourceTest extends BaseOverviewResourceTestCase {
 			overviewResource.getContentOverview(null, null, null, 7, null));
 
 		_objectEntry = ObjectEntryTestUtil.addObjectEntry(
-			_depotEntry.getGroupId(), objectDefinition, Collections.emptyMap(),
+			_depotEntry.getGroupId(), objectDefinition, objectEntryValues,
 			RandomTestUtil.randomString());
 
 		Assert.assertEquals(
@@ -182,12 +178,17 @@ public class OverviewResourceTest extends BaseOverviewResourceTestCase {
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.
 				getObjectDefinitionByExternalReferenceCode(
-					"L_BASIC_DOCUMENT", testCompany.getCompanyId());
+					"L_CMS_BASIC_DOCUMENT", testCompany.getCompanyId());
 
 		_objectEntry = ObjectEntryTestUtil.addObjectEntry(
 			_depotEntry.getGroupId(), objectDefinition,
 			HashMapBuilder.<String, Serializable>put(
 				"file", String.valueOf(_dlFileEntry.getFileEntryId())
+			).put(
+				"title_i18n",
+				HashMapBuilder.put(
+					"en_US", RandomTestUtil.randomString()
+				).build()
 			).build());
 
 		Trend positiveTrend = new Trend();
@@ -208,39 +209,8 @@ public class OverviewResourceTest extends BaseOverviewResourceTestCase {
 			overviewResource.getFileOverview(null, null, null, 7, null));
 	}
 
-	private void _deleteFile(Bundle bundle, String fileName) {
-		File file = bundle.getDataFile(
-			".com.liferay.site.initializer.cms.internal.batch." + fileName +
-				".batch.engine.data.json.0.processed");
-
-		if ((file != null) && file.exists()) {
-			file.delete();
-		}
-	}
-
 	private void _setUpCMSContext() throws Exception {
-		Bundle testBundle = FrameworkUtil.getBundle(OverviewResourceTest.class);
-
-		BundleContext bundleContext = testBundle.getBundleContext();
-
-		for (Bundle bundle : bundleContext.getBundles()) {
-			if (Objects.equals(
-					bundle.getSymbolicName(),
-					"com.liferay.site.initializer.cms")) {
-
-				_deleteFile(bundle, "00.list.type.definition");
-				_deleteFile(bundle, "01.object.folder");
-				_deleteFile(bundle, "02.object.definition");
-
-				CompletableFuture<Void> completableFuture =
-					_batchEngineUnitProcessor.processBatchEngineUnits(
-						_batchEngineUnitReader.getBatchEngineUnits(bundle));
-
-				completableFuture.join();
-
-				break;
-			}
-		}
+		CMSTestUtil.getOrAddGroup(OverviewResourceTest.class);
 
 		_serviceContext = ServiceContextTestUtil.getServiceContext(
 			testGroup.getGroupId(), TestPropsValues.getUserId());
@@ -279,12 +249,6 @@ public class OverviewResourceTest extends BaseOverviewResourceTestCase {
 
 	@Inject
 	private AssetVocabularyLocalService _assetVocabularyLocalService;
-
-	@Inject
-	private BatchEngineUnitProcessor _batchEngineUnitProcessor;
-
-	@Inject
-	private BatchEngineUnitReader _batchEngineUnitReader;
 
 	@DeleteAfterTestRun
 	private DepotEntry _depotEntry;

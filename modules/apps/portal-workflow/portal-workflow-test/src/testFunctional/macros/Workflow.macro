@@ -271,8 +271,6 @@ definition {
 		Button.clickDone();
 
 		Alert.viewSuccessMessage();
-
-		WaitForLiferayEvent.initializeLiferayEventLog();
 	}
 
 	@summary = "Default summary"
@@ -315,6 +313,10 @@ definition {
 		}
 
 		Workflow.confirmWorkflowAction();
+
+		if (IsElementNotPresent(key_tab = "Assigned to Me", locator1 = "NavTab#TAB_LINK")) {
+			Refresh();
+		}
 
 		Workflow.viewTaskAssignedToMe(
 			ddlDataDefinitionName = ${ddlDataDefinitionName},

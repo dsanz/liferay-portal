@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -44,8 +44,6 @@ describe('LengthField', () => {
 		// Caused by: https://github.com/jsdom/jsdom/issues/2499
 
 		await userEvent.click(screen.getByLabelText('select-a-unit'));
-
-		document.activeElement.blur = () => {};
 	}
 
 	it('renders LengthField', () => {

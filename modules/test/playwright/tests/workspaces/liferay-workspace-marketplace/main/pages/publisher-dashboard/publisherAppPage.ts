@@ -77,20 +77,16 @@ export class PublisherAppPage {
 				ram: page.getByPlaceholder('Enter the required RAM'),
 			},
 			profile: {
-				areas: page.getByPlaceholder('Select areas'),
-				category: page.getByLabel('Category'),
+				areas: page.getByLabel('Area'),
+				category: page.getByLabel('Categories'),
 				description: page.getByPlaceholder('Enter app description'),
 				name: page.getByPlaceholder('Enter app name'),
-				tags: page.getByPlaceholder('Select tags'),
+				tags: page.getByLabel('Tags'),
 			},
 			support: {
-				publisherWebsiteUrl: page
-					.getByPlaceholder('http:// Enter app name')
-					.nth(1),
-				supportEmail: page.getByPlaceholder(
-					'Enter Support Email Address'
-				),
-				supportPhone: page.getByPlaceholder('Enter Support Phone'),
+				publisherWebsiteUrl: page.getByLabel('Publisher Website URL'),
+				supportEmail: page.getByLabel('Support Email Address'),
+				supportPhone: page.getByLabel('Support Phone Number'),
 			},
 			version: {
 				notes: page.getByPlaceholder('Enter app description'),
@@ -115,7 +111,7 @@ export class PublisherAppPage {
 		this.standardLicenses = page.getByText('Standard License prices');
 		this.submissionCheckbox = page.getByRole('checkbox');
 		this.submitButton = page.getByRole('button', {
-			name: 'Submit App',
+			name: 'Submit',
 		});
 		this.zipFilesContainer = page.locator(
 			'.document-file-list-item-container'
@@ -143,6 +139,7 @@ export class PublisherAppPage {
 	}
 
 	async continue() {
+		await this.page.waitForLoadState('networkidle');
 		expect(this.continueButton).toBeEnabled();
 
 		await this.continueButton.click();
@@ -154,8 +151,6 @@ export class PublisherAppPage {
 	}
 
 	async fillProfile() {
-		await this.waitForStep('profile');
-
 		expect(this.continueButton).toBeDisabled();
 
 		await this.importFile(
@@ -173,11 +168,13 @@ export class PublisherAppPage {
 
 		for (const area of this.publishProductPayload.areas ?? []) {
 			await this.form.profile.areas.click();
+			await this.waitForStep('profile');
 			await this.page.getByText(area, {exact: true}).click();
 		}
 
 		for (const tag of this.publishProductPayload.tags ?? []) {
 			await this.form.profile.tags.click();
+			await this.waitForStep('profile');
 			await this.page.getByText(tag, {exact: true}).click();
 		}
 
@@ -243,23 +240,29 @@ export class PublisherAppPage {
 
 		let i = 0;
 
+		const fileName =
+			this.publishProductPayload.appType === 'dxp'
+				? '../../dependencies/folder.marketplace.jar'
+				: '../../dependencies/folder.marketplace.zip';
+
 		for (const _ of this.publishProductPayload.dxpVersions) {
 			await this.importFile(
 				this.selectFileButton.nth(i),
-				await zipFolder(
-					path.join(
-						__dirname,
-						'../../dependencies/folder.marketplace.jar'
-					)
-				)
+				await zipFolder(path.join(__dirname, fileName))
 			);
 
 			i++;
 		}
 
-		await this.continue();
+		await expect
+			.poll(async () => {
+				return await this.page
+					.locator('.file-list-container > div')
+					.count();
+			})
+			.toBeGreaterThan(0);
 
-		expect(this.continueButton).toBeDisabled();
+		await this.continue();
 
 		await this.waitForStep('storefront');
 	}
@@ -282,13 +285,10 @@ export class PublisherAppPage {
 
 		await this.continue();
 
-		expect(this.continueButton).toBeDisabled();
-
 		await this.waitForStep('version');
 	}
 
 	async fillVersion() {
-		expect(this.continueButton).toBeDisabled();
 		expect(this.form.version.notes).toHaveValue('');
 		expect(this.form.version.version).toHaveValue('1.0');
 
@@ -353,7 +353,13 @@ export class PublisherAppPage {
 	}
 
 	async waitForStep(step: Steps) {
-		await this.page.waitForSelector(`.list-item-selected-${step}`);
+		await this.page.waitForSelector(
+			`.app-flow-list-item-container:has(
+				svg.app-flow-list-item-icon-selected
+			):has(
+				li:has-text("${step}")
+			)`
+		);
 	}
 
 	async goto() {

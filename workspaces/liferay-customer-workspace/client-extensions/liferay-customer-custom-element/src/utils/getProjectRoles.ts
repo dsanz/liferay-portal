@@ -16,9 +16,13 @@ const getCurrentRoleType = (roleKey: string) => {
 };
 
 export function getRolesFiltered(items: any[], project: IProject) {
-	const projectHasSLAGoldPlatinum =
+	const hasPrioritySLA =
+		project?.slaCurrent?.includes(SLA_TYPES.global) ||
 		project?.slaCurrent?.includes(SLA_TYPES.gold) ||
-		project?.slaCurrent?.includes(SLA_TYPES.platinum);
+		project?.slaCurrent?.includes(SLA_TYPES.platinum) ||
+		project?.slaCurrent?.includes(SLA_TYPES.premier) ||
+		project?.slaCurrent?.includes(SLA_TYPES.standard) ||
+		project?.slaCurrent?.includes(SLA_TYPES.strategic);
 
 	const isProjectPartner = project?.partner;
 
@@ -30,7 +34,7 @@ export function getRolesFiltered(items: any[], project: IProject) {
 				const roleType = getCurrentRoleType(role.name);
 
 				if (roleType?.raysourceName) {
-					if (!projectHasSLAGoldPlatinum) {
+					if (!hasPrioritySLA) {
 						isValidRole = role.name !== ROLE_TYPES.requester.key;
 					}
 

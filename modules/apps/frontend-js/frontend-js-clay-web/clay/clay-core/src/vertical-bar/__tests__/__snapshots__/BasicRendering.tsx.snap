@@ -1,0 +1,417 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`VerticalBar basic rendering render component in left position 1`] = `
+<div>
+  <div
+    class="c-slideout c-slideout-shown c-slideout-fixed c-slideout-start sidenav-start"
+  >
+    <nav
+      class="tbar tbar-stacked c-slideout-show tbar-dark-l2"
+    >
+      <ul
+        aria-orientation="vertical"
+        class="tbar-nav"
+        role="tablist"
+      >
+        <li
+          class="tbar-item tbar-divider-after"
+          role="none"
+        >
+          <button
+            aria-controls="clay-id-13-verticalbar-tabpanel-$.0"
+            aria-selected="false"
+            class="tbar-btn tbar-btn-monospaced btn"
+            id="clay-id-13-verticalbar-tab-$.0"
+            role="tab"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-tag"
+              role="presentation"
+            >
+              <use
+                href="icons.svg#tag"
+              />
+            </svg>
+          </button>
+        </li>
+        <li
+          class="tbar-item"
+          role="none"
+        >
+          <button
+            aria-controls="clay-id-13-verticalbar-tabpanel-$.1"
+            aria-selected="false"
+            class="tbar-btn tbar-btn-monospaced btn"
+            id="clay-id-13-verticalbar-tab-$.1"
+            role="tab"
+            tabindex="-1"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-message"
+              role="presentation"
+            >
+              <use
+                href="icons.svg#message"
+              />
+            </svg>
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+`;
+
+exports[`VerticalBar basic rendering render dark theme 1`] = `
+<div>
+  <div
+    class="c-slideout c-slideout-shown c-slideout-end c-slideout-fixed"
+  >
+    <nav
+      class="tbar tbar-stacked c-slideout-show tbar-dark-l2"
+    >
+      <ul
+        aria-orientation="vertical"
+        class="tbar-nav"
+        role="tablist"
+      >
+        <li
+          class="tbar-item tbar-divider-after"
+          role="none"
+        >
+          <button
+            aria-controls="clay-id-10-verticalbar-tabpanel-$.0"
+            aria-selected="false"
+            class="tbar-btn tbar-btn-monospaced btn"
+            id="clay-id-10-verticalbar-tab-$.0"
+            role="tab"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-tag"
+              role="presentation"
+            >
+              <use
+                href="icons.svg#tag"
+              />
+            </svg>
+          </button>
+        </li>
+        <li
+          class="tbar-item"
+          role="none"
+        >
+          <button
+            aria-controls="clay-id-10-verticalbar-tabpanel-$.1"
+            aria-selected="false"
+            class="tbar-btn tbar-btn-monospaced btn"
+            id="clay-id-10-verticalbar-tab-$.1"
+            role="tab"
+            tabindex="-1"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-message"
+              role="presentation"
+            >
+              <use
+                href="icons.svg#message"
+              />
+            </svg>
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+`;
+
+exports[`VerticalBar basic rendering render dynamic content 1`] = `
+<div>
+  <div
+    class="c-slideout c-slideout-shown c-slideout-end c-slideout-fixed"
+  >
+    <nav
+      class="tbar tbar-stacked c-slideout-show tbar-dark-l2"
+    >
+      <ul
+        aria-orientation="vertical"
+        class="tbar-nav"
+        role="tablist"
+      >
+        <li
+          class="tbar-item"
+          role="none"
+        >
+          <button
+            aria-controls="clay-id-4-verticalbar-tabpanel-Tag"
+            aria-selected="false"
+            class="tbar-btn tbar-btn-monospaced btn"
+            id="clay-id-4-verticalbar-tab-Tag"
+            role="tab"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-tag"
+              role="presentation"
+            >
+              <use
+                href="icons.svg#tag"
+              />
+            </svg>
+          </button>
+        </li>
+        <li
+          class="tbar-item tbar-divider-after"
+          role="none"
+        >
+          <button
+            aria-controls="clay-id-4-verticalbar-tabpanel-Message"
+            aria-selected="false"
+            class="tbar-btn tbar-btn-monospaced btn"
+            id="clay-id-4-verticalbar-tab-Message"
+            role="tab"
+            tabindex="-1"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-message"
+              role="presentation"
+            >
+              <use
+                href="icons.svg#message"
+              />
+            </svg>
+          </button>
+        </li>
+        <li
+          class="tbar-item"
+          role="none"
+        >
+          <button
+            aria-controls="clay-id-4-verticalbar-tabpanel-Effects"
+            aria-selected="false"
+            class="tbar-btn tbar-btn-monospaced btn"
+            id="clay-id-4-verticalbar-tab-Effects"
+            role="tab"
+            tabindex="-1"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-effects"
+              role="presentation"
+            >
+              <use
+                href="icons.svg#effects"
+              />
+            </svg>
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+`;
+
+exports[`VerticalBar basic rendering render light theme 1`] = `
+<div>
+  <div
+    class="c-slideout c-slideout-shown c-slideout-end c-slideout-fixed"
+  >
+    <nav
+      class="tbar tbar-stacked c-slideout-show tbar-light"
+    >
+      <ul
+        aria-orientation="vertical"
+        class="tbar-nav"
+        role="tablist"
+      >
+        <li
+          class="tbar-item tbar-divider-after"
+          role="none"
+        >
+          <button
+            aria-controls="clay-id-7-verticalbar-tabpanel-$.0"
+            aria-selected="false"
+            class="tbar-btn tbar-btn-monospaced btn"
+            id="clay-id-7-verticalbar-tab-$.0"
+            role="tab"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-tag"
+              role="presentation"
+            >
+              <use
+                href="icons.svg#tag"
+              />
+            </svg>
+          </button>
+        </li>
+        <li
+          class="tbar-item"
+          role="none"
+        >
+          <button
+            aria-controls="clay-id-7-verticalbar-tabpanel-$.1"
+            aria-selected="false"
+            class="tbar-btn tbar-btn-monospaced btn"
+            id="clay-id-7-verticalbar-tab-$.1"
+            role="tab"
+            tabindex="-1"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-message"
+              role="presentation"
+            >
+              <use
+                href="icons.svg#message"
+              />
+            </svg>
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+`;
+
+exports[`VerticalBar basic rendering render static content 1`] = `
+<div>
+  <div
+    class="c-slideout c-slideout-shown c-slideout-end c-slideout-fixed"
+  >
+    <nav
+      class="tbar tbar-stacked c-slideout-show tbar-dark-l2"
+    >
+      <ul
+        aria-orientation="vertical"
+        class="tbar-nav"
+        role="tablist"
+      >
+        <li
+          class="tbar-item tbar-divider-after"
+          role="none"
+        >
+          <button
+            aria-controls="clay-id-1-verticalbar-tabpanel-$.0"
+            aria-selected="false"
+            class="tbar-btn tbar-btn-monospaced btn"
+            id="clay-id-1-verticalbar-tab-$.0"
+            role="tab"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-tag"
+              role="presentation"
+            >
+              <use
+                href="icons.svg#tag"
+              />
+            </svg>
+          </button>
+        </li>
+        <li
+          class="tbar-item"
+          role="none"
+        >
+          <button
+            aria-controls="clay-id-1-verticalbar-tabpanel-$.1"
+            aria-selected="false"
+            class="tbar-btn tbar-btn-monospaced btn"
+            id="clay-id-1-verticalbar-tab-$.1"
+            role="tab"
+            tabindex="-1"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-message"
+              role="presentation"
+            >
+              <use
+                href="icons.svg#message"
+              />
+            </svg>
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+`;
+
+exports[`VerticalBar basic rendering renders the component with the active panel 1`] = `
+<div>
+  <div
+    class="c-slideout c-slideout-shown c-slideout-end c-slideout-fixed"
+  >
+    <div
+      aria-labelledby="clay-id-16-verticalbar-tab-$.0"
+      class="sidebar c-slideout-show sidebar-light"
+      id="clay-id-16-verticalbar-tabpanel-$.0"
+      role="tabpanel"
+      style="width: 320px;"
+    >
+      Tag
+    </div>
+    <nav
+      class="tbar tbar-stacked c-slideout-show tbar-dark-l2"
+    >
+      <ul
+        aria-orientation="vertical"
+        class="tbar-nav"
+        role="tablist"
+      >
+        <li
+          class="tbar-item tbar-divider-after"
+          role="none"
+        >
+          <button
+            aria-controls="clay-id-16-verticalbar-tabpanel-$.0"
+            aria-selected="true"
+            class="tbar-btn tbar-btn-monospaced active btn"
+            id="clay-id-16-verticalbar-tab-$.0"
+            role="tab"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-tag"
+              role="presentation"
+            >
+              <use
+                href="icons.svg#tag"
+              />
+            </svg>
+          </button>
+        </li>
+        <li
+          class="tbar-item"
+          role="none"
+        >
+          <button
+            aria-controls="clay-id-16-verticalbar-tabpanel-$.1"
+            aria-selected="false"
+            class="tbar-btn tbar-btn-monospaced btn"
+            id="clay-id-16-verticalbar-tab-$.1"
+            role="tab"
+            tabindex="-1"
+            type="button"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-message"
+              role="presentation"
+            >
+              <use
+                href="icons.svg#message"
+              />
+            </svg>
+          </button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</div>
+`;

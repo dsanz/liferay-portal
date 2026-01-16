@@ -7,7 +7,6 @@ import ClayButton from '@clayui/button';
 import ClayForm, {ClayInput} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import ClayModal from '@clayui/modal';
-import {Observer} from '@clayui/modal/lib/types';
 import classnames from 'classnames';
 import {sub} from 'frontend-js-web';
 import React, {useCallback, useRef, useState} from 'react';
@@ -20,6 +19,8 @@ import {
 	IFieldError,
 	IPostalAddress,
 } from './Types';
+
+import type {Observer} from '@clayui/modal/src/types';
 
 const MANDATORY_FIELDS = ['name'];
 
@@ -144,7 +145,9 @@ const DeliveryGroupModal = ({
 			observer={observerModal}
 			spritemap={spritemap}
 		>
-			<ClayModal.Header>
+			<ClayModal.Header
+				closeButtonAriaLabel={Liferay.Language.get('close')}
+			>
 				{sub(
 					deliveryGroup
 						? Liferay.Language.get('edit-x')

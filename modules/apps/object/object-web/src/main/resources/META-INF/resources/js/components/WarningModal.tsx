@@ -5,8 +5,9 @@
 
 import ClayButton from '@clayui/button';
 import ClayModal from '@clayui/modal';
-import {Observer} from '@clayui/modal/lib/types';
 import React from 'react';
+
+import type {Observer} from '@clayui/modal/src/types';
 
 export default function WarningModal({
 	children,
@@ -16,7 +17,11 @@ export default function WarningModal({
 }: IProps) {
 	return (
 		<ClayModal center observer={observer} status="warning">
-			<ClayModal.Header>{title}</ClayModal.Header>
+			<ClayModal.Header
+				closeButtonAriaLabel={Liferay.Language.get('close')}
+			>
+				{title}
+			</ClayModal.Header>
 
 			<ClayModal.Body>{children}</ClayModal.Body>
 

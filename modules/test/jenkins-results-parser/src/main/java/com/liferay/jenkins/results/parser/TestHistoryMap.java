@@ -45,8 +45,6 @@ public class TestHistoryMap {
 			testrayBuilds = testrayBuilds.subList(0, maxBuildCount);
 		}
 
-		_latestTestrayBuild = testrayBuilds.get(0);
-
 		for (TestrayBuild testrayBuild : testrayBuilds) {
 			TopLevelBuildReport topLevelBuildReport =
 				testrayBuild.getTopLevelBuildReport();
@@ -56,6 +54,10 @@ public class TestHistoryMap {
 					topLevelBuildReport.getResult())) {
 
 				continue;
+			}
+
+			if (_latestTestrayBuild == null) {
+				setLatestTestrayBuild(testrayBuild);
 			}
 
 			for (DownstreamBuildReport downstreamBuildReport :
@@ -75,32 +77,6 @@ public class TestHistoryMap {
 			}
 		}
 
-		for (BatchHistory batchHistory : _batchHistoryMap.values()) {
-			TestrayCaseType testrayCaseType = batchHistory.getTestrayCaseType();
-			TestrayRun testrayRun = batchHistory.getTestrayRun();
-
-			if ((testrayCaseType == null) || (testrayRun == null)) {
-				continue;
-			}
-
-			List<TestrayCaseResult> testrayCaseResults =
-				_latestTestrayBuild.getTestrayCaseResults(
-					testrayCaseType, testrayRun, false);
-
-			for (TestrayCaseResult testrayCaseResult : testrayCaseResults) {
-				String testClassName = testrayCaseResult.getName();
-
-				TestClassHistory testClassHistory =
-					batchHistory.getTestClassHistory(testClassName);
-
-				if (testClassHistory == null) {
-					continue;
-				}
-
-				testClassHistory.setTestrayCaseResult(testrayCaseResult);
-			}
-		}
-
 		System.out.println(
 			JenkinsResultsParserUtil.combine(
 				"Test history map populated in ",
@@ -110,6 +86,10 @@ public class TestHistoryMap {
 
 	public TestrayBuild getLatestTestrayBuild() {
 		return _latestTestrayBuild;
+	}
+
+	public void setLatestTestrayBuild(TestrayBuild testrayBuild) {
+		_latestTestrayBuild = testrayBuild;
 	}
 
 	public void setMinimumStatusChanges(int minimumStatusChanges) {
@@ -171,6 +151,14 @@ public class TestHistoryMap {
 				testJSONObject.put(
 					"averageDuration", testTaskHistory.getAverageDuration()
 				).put(
+					"averageTotalDuration",
+					testTaskHistory.getAverageTotalDuration()
+				).put(
+					"latestReportMissing",
+					testTaskHistory.isLatestReportMissing()
+				).put(
+					"longestDuration", testTaskHistory.getLongestDuration()
+				).put(
 					"testTaskCount", testTaskHistory.getTestTaskCount()
 				).put(
 					"testTaskName", testTaskHistory.getTestTaskName()
@@ -225,88 +213,6 @@ public class TestHistoryMap {
 		}
 	}
 
-	public void writeDurationDataJavaScriptFile(
-			String filePath, String batchNameRegex)
-		throws IOException {
-
-		JSONArray durationDataJSONArray = new JSONArray();
-
-		durationDataJSONArray.put(
-			new String[] {
-				"Name", "Batch Type", "Results", "Duration", "Average Duration"
-			});
-
-		for (BatchHistory batchHistory : _batchHistoryMap.values()) {
-			String batchName = batchHistory.getBatchName();
-
-			if (!batchName.matches(batchNameRegex)) {
-				continue;
-			}
-
-			for (TestHistory testHistory : batchHistory.getTestHistories()) {
-				if (testHistory.getAverageDuration() <= _minimumTestDuration) {
-					continue;
-				}
-
-				JSONArray jsonArray = new JSONArray();
-
-				jsonArray.put(testHistory.getTestName());
-
-				jsonArray.put(testHistory.getBatchName());
-
-				JSONArray durationJSONArray = new JSONArray();
-				JSONArray statusesJSONArray = new JSONArray();
-
-				long totalDuration = 0;
-
-				for (TestReport testReport : testHistory.getTestReports()) {
-					long duration = testReport.getDuration();
-
-					if (duration > _MAXIMUM_TEST_DURATION) {
-						continue;
-					}
-
-					totalDuration = totalDuration + duration;
-
-					durationJSONArray.put(duration);
-
-					JSONArray statusJSONArray = new JSONArray();
-
-					statusJSONArray.put(_fixStatus(testReport.getStatus()));
-
-					DownstreamBuildReport downstreamBuildReport =
-						testReport.getDownstreamBuildReport();
-
-					statusJSONArray.put(downstreamBuildReport.getBuildURL());
-
-					statusesJSONArray.put(statusJSONArray);
-				}
-
-				jsonArray.put(statusesJSONArray);
-
-				jsonArray.put(durationJSONArray);
-
-				jsonArray.put(testHistory.getAverageDuration());
-
-				durationDataJSONArray.put(jsonArray);
-			}
-		}
-
-		StringBuilder sb = new StringBuilder();
-
-		sb.append("var durationData = ");
-		sb.append(durationDataJSONArray);
-		sb.append(";\nvar durationDataGeneratedDate = new Date(");
-		sb.append(JenkinsResultsParserUtil.getCurrentTimeMillis());
-		sb.append(");\nvar testrayRoutineURL = \"");
-		sb.append(_testrayRoutine.getURL());
-		sb.append("\";\nvar testrayRoutineName = \"");
-		sb.append(_testrayRoutine.getName());
-		sb.append("\";");
-
-		JenkinsResultsParserUtil.write(filePath, sb.toString());
-	}
-
 	public void writeFlakyTestDataJavaScriptFile(String filePath)
 		throws IOException {
 
@@ -316,26 +222,31 @@ public class TestHistoryMap {
 			new String[] {"Name", "Batch Type", "Results", "Status Changes"});
 
 		for (BatchHistory batchHistory : _batchHistoryMap.values()) {
-			for (TestHistory testHistory : batchHistory.getTestHistories()) {
-				if (!testHistory.isFlaky()) {
+			for (TestClassHistory testClassHistory :
+					batchHistory.getTestClassHistories()) {
+
+				if (!testClassHistory.isFlaky()) {
 					continue;
 				}
 
 				JSONArray jsonArray = new JSONArray();
 
-				jsonArray.put(testHistory.getTestName());
+				jsonArray.put(testClassHistory.getTestClassName());
 
-				jsonArray.put(testHistory.getBatchName());
+				jsonArray.put(testClassHistory.getBatchName());
 
 				JSONArray statusesJSONArray = new JSONArray();
 
-				for (TestReport testReport : testHistory.getTestReports()) {
+				for (TestClassReport testClassReport :
+						testClassHistory.getTestClassReports()) {
+
 					JSONArray statusJSONArray = new JSONArray();
 
-					statusJSONArray.put(_fixStatus(testReport.getStatus()));
+					statusJSONArray.put(
+						_fixStatus(testClassReport.getStatus()));
 
 					DownstreamBuildReport downstreamBuildReport =
-						testReport.getDownstreamBuildReport();
+						testClassReport.getDownstreamBuildReport();
 
 					statusJSONArray.put(downstreamBuildReport.getBuildURL());
 
@@ -344,7 +255,7 @@ public class TestHistoryMap {
 
 				jsonArray.put(statusesJSONArray);
 
-				jsonArray.put(testHistory.getStatusChanges());
+				jsonArray.put(testClassHistory.getStatusChanges());
 
 				flakyTestDataJSONArray.put(jsonArray);
 			}
@@ -399,7 +310,7 @@ public class TestHistoryMap {
 		Pattern.compile("test\\.execution\\.duration(?<testTaskName>\\..+)");
 
 	private final Map<String, BatchHistory> _batchHistoryMap = new HashMap<>();
-	private final TestrayBuild _latestTestrayBuild;
+	private TestrayBuild _latestTestrayBuild;
 	private int _minimumStatusChanges = 3;
 	private long _minimumTestDuration = 60 * 1000;
 	private final TestrayRoutine _testrayRoutine;
@@ -437,22 +348,71 @@ public class TestHistoryMap {
 				testClassHistory.addTestClassReport(testClassReport);
 			}
 
-			StopWatchRecordsGroup stopWatchRecordsGroup =
-				downstreamBuildReport.getStopWatchRecordsGroup();
+			if (!(downstreamBuildReport instanceof
+					ModulesJUnitDownstreamBuildReport)) {
 
-			for (StopWatchRecord stopWatchRecord :
-					stopWatchRecordsGroup.getAllStopWatchRecords()) {
+				return;
+			}
 
-				Matcher matcher = _stopWatchGroupTestTaskNamePattern.matcher(
-					stopWatchRecord.getName());
+			boolean latestReport = false;
 
-				if (!matcher.find()) {
-					continue;
+			TestrayBuild latestTestrayBuild = getLatestTestrayBuild();
+
+			if (Objects.equals(
+					downstreamBuildReport.getTopLevelBuildReport(),
+					latestTestrayBuild.getTopLevelBuildReport())) {
+
+				latestReport = true;
+			}
+
+			ModulesJUnitDownstreamBuildReport
+				modulesJUnitDownstreamBuildReport =
+					(ModulesJUnitDownstreamBuildReport)downstreamBuildReport;
+
+			List<TestTaskReport> testTaskReports =
+				modulesJUnitDownstreamBuildReport.getTestTaskReports();
+
+			if ((testTaskReports == null) || testTaskReports.isEmpty()) {
+				testTaskReports = new ArrayList<>();
+
+				StopWatchRecordsGroup stopWatchRecordsGroup =
+					downstreamBuildReport.getStopWatchRecordsGroup();
+
+				for (StopWatchRecord stopWatchRecord :
+						stopWatchRecordsGroup.getAllStopWatchRecords()) {
+
+					Matcher matcher =
+						_stopWatchGroupTestTaskNamePattern.matcher(
+							stopWatchRecord.getName());
+
+					if (!matcher.find()) {
+						continue;
+					}
+
+					String testTaskName = matcher.group("testTaskName");
+
+					JSONObject jsonObject = new JSONObject();
+
+					jsonObject.put(
+						"duration", stopWatchRecord.getDuration()
+					).put(
+						"name", testTaskName.replaceAll("\\.", ":")
+					);
+
+					TestTaskReport testTaskReport =
+						TestTaskReportFactory.newTestTaskReport(
+							downstreamBuildReport, jsonObject);
+
+					if (testTaskReports.contains(testTaskReport)) {
+						continue;
+					}
+
+					testTaskReports.add(testTaskReport);
 				}
+			}
 
-				String testTaskName = matcher.group("testTaskName");
-
-				testTaskName = testTaskName.replaceAll("\\.", ":");
+			for (TestTaskReport testTaskReport : testTaskReports) {
+				String testTaskName = testTaskReport.getName();
 
 				TestTaskHistory testTaskHistory = _testTaskHistoryMap.get(
 					testTaskName);
@@ -461,27 +421,11 @@ public class TestHistoryMap {
 					testTaskHistory = new TestTaskHistory(testTaskName);
 				}
 
-				long testTaskDuration = stopWatchRecord.getDuration();
-
-				for (TestClassReport testClassReport :
-						downstreamBuildReport.getTestClassReports()) {
-
-					if (!Objects.equals(
-							testTaskName, testClassReport.getTestTaskName())) {
-
-						continue;
-					}
-
-					testTaskDuration -= testClassReport.getDuration();
+				if (latestReport && testTaskReport.isMissing()) {
+					testTaskHistory.setLatestReportMissing(true);
 				}
 
-				if ((testTaskDuration <= 0) ||
-					(testTaskDuration >= _MAXIMUM_TEST_DURATION)) {
-
-					continue;
-				}
-
-				testTaskHistory.addTestTaskDuration(testTaskDuration);
+				testTaskHistory.addTestTaskReport(testTaskReport);
 
 				_testTaskHistoryMap.put(testTaskName, testTaskHistory);
 			}
@@ -521,18 +465,6 @@ public class TestHistoryMap {
 
 		public TestClassHistory getTestClassHistory(String testClassName) {
 			return _testClassHistoryMap.get(testClassName);
-		}
-
-		public List<TestHistory> getTestHistories() {
-			List<TestHistory> testHistories = new ArrayList<>();
-
-			for (TestClassHistory testClassHistory :
-					_testClassHistoryMap.values()) {
-
-				testHistories.addAll(testClassHistory.getTestHistories());
-			}
-
-			return testHistories;
 		}
 
 		public TestrayCaseType getTestrayCaseType() {
@@ -633,24 +565,6 @@ public class TestHistoryMap {
 
 		public void addTestClassReport(TestClassReport testClassReport) {
 			_testClassReports.add(testClassReport);
-
-			for (TestReport testReport : testClassReport.getTestReports()) {
-				if (_excludeTestReport(testReport)) {
-					continue;
-				}
-
-				String testName = testReport.getTestName();
-
-				TestHistory testHistory = _testHistoryMap.get(testName);
-
-				if (testHistory == null) {
-					testHistory = new TestHistory(_batchHistory, testName);
-
-					_testHistoryMap.put(testName, testHistory);
-				}
-
-				testHistory.addTestReport(testReport);
-			}
 		}
 
 		public long getAverageDuration() {
@@ -702,6 +616,10 @@ public class TestHistoryMap {
 			return totalOverheadDuration / count;
 		}
 
+		public String getBatchName() {
+			return _batchHistory.getBatchName();
+		}
+
 		public int getFailureCount() {
 			int failureCount = 0;
 
@@ -744,12 +662,12 @@ public class TestHistoryMap {
 			return _testClassName;
 		}
 
-		public int getTestCount() {
-			return _testClassReports.size();
+		public List<TestClassReport> getTestClassReports() {
+			return _testClassReports;
 		}
 
-		public List<TestHistory> getTestHistories() {
-			return new ArrayList<>(_testHistoryMap.values());
+		public int getTestCount() {
+			return _testClassReports.size();
 		}
 
 		public TestrayCaseResult getTestrayCaseResult() {
@@ -770,118 +688,6 @@ public class TestHistoryMap {
 			return testClassReport.getTestTaskName();
 		}
 
-		public void setTestrayCaseResult(TestrayCaseResult testrayCaseResult) {
-			_testrayCaseResult = testrayCaseResult;
-		}
-
-		private boolean _excludeTestReport(TestReport testReport) {
-			String status = _fixStatus(testReport.getStatus());
-
-			if (status.equals("SKIPPED")) {
-				return true;
-			}
-
-			String testName = testReport.getTestName();
-
-			if (testName.contains("PortalLogAssertorTest") ||
-				testName.contains("JenkinsLogAsserterTest")) {
-
-				return true;
-			}
-
-			for (String excludedTestNameRegex : _getExcludedTestNameRegexes()) {
-				if (testName.matches(".*" + excludedTestNameRegex + ".*")) {
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		private final BatchHistory _batchHistory;
-		private final String _testClassName;
-		private final List<TestClassReport> _testClassReports =
-			new ArrayList<>();
-		private final Map<String, TestHistory> _testHistoryMap =
-			new HashMap<>();
-		private TestrayCaseResult _testrayCaseResult;
-
-	}
-
-	private class TestHistory {
-
-		public TestHistory(BatchHistory batchHistory, String testName) {
-			_batchHistory = batchHistory;
-			_testName = testName;
-		}
-
-		public void addTestReport(TestReport testReport) {
-			_testReports.add(testReport);
-		}
-
-		public long getAverageDuration() {
-			long count = 0;
-			long totalDuration = 0;
-
-			for (TestReport testReport : _testReports) {
-				DownstreamBuildReport downstreamBuildReport =
-					testReport.getDownstreamBuildReport();
-
-				long duration = testReport.getDuration();
-
-				if ((duration <= 0) || (duration >= _MAXIMUM_TEST_DURATION) ||
-					(duration >= downstreamBuildReport.getDuration())) {
-
-					continue;
-				}
-
-				count++;
-				totalDuration = totalDuration + duration;
-			}
-
-			if (count == 0) {
-				return 0;
-			}
-
-			return totalDuration / count;
-		}
-
-		public String getBatchName() {
-			return _batchHistory.getBatchName();
-		}
-
-		public int getStatusChanges() {
-			int statusChanges = 0;
-
-			String lastStatus = null;
-
-			for (TestReport testReport : _testReports) {
-				String status = _fixStatus(testReport.getStatus());
-
-				if (lastStatus == null) {
-					lastStatus = status;
-
-					continue;
-				}
-
-				if (!lastStatus.equals(status)) {
-					lastStatus = status;
-
-					statusChanges++;
-				}
-			}
-
-			return statusChanges;
-		}
-
-		public String getTestName() {
-			return _testName;
-		}
-
-		public List<TestReport> getTestReports() {
-			return _testReports;
-		}
-
 		public boolean isFlaky() {
 			if (getStatusChanges() >= _minimumStatusChanges) {
 				return true;
@@ -890,9 +696,15 @@ public class TestHistoryMap {
 			return false;
 		}
 
+		public void setTestrayCaseResult(TestrayCaseResult testrayCaseResult) {
+			_testrayCaseResult = testrayCaseResult;
+		}
+
 		private final BatchHistory _batchHistory;
-		private final String _testName;
-		private final List<TestReport> _testReports = new ArrayList<>();
+		private final String _testClassName;
+		private final List<TestClassReport> _testClassReports =
+			new ArrayList<>();
+		private TestrayCaseResult _testrayCaseResult;
 
 	}
 
@@ -902,40 +714,69 @@ public class TestHistoryMap {
 			_testTaskName = testTaskName;
 		}
 
-		public void addTestTaskDuration(long testTaskDuration) {
-			if ((testTaskDuration <= 0) ||
-				(testTaskDuration >= _MAXIMUM_TEST_DURATION)) {
-
-				return;
-			}
-
-			_testTaskDurations.add(testTaskDuration);
+		public void addTestTaskReport(TestTaskReport testTaskReport) {
+			_testTaskReports.add(testTaskReport);
 		}
 
 		public long getAverageDuration() {
-			if (_testTaskDurations.isEmpty()) {
+			if (_testTaskReports.isEmpty()) {
 				return 0;
 			}
 
 			long totalDuration = 0;
 
-			for (long testTaskDuration : _testTaskDurations) {
-				totalDuration += testTaskDuration;
+			for (TestTaskReport testTaskReport : _testTaskReports) {
+				totalDuration += testTaskReport.getOverheadDuration();
 			}
 
-			return totalDuration / _testTaskDurations.size();
+			return totalDuration / _testTaskReports.size();
+		}
+
+		public long getAverageTotalDuration() {
+			if (_testTaskReports.isEmpty()) {
+				return 0;
+			}
+
+			long totalDuration = 0;
+
+			for (TestTaskReport testTaskReport : _testTaskReports) {
+				totalDuration += testTaskReport.getDuration();
+			}
+
+			return totalDuration / _testTaskReports.size();
+		}
+
+		public long getLongestDuration() {
+			long longestDuration = 0L;
+
+			for (TestTaskReport testTaskReport : _testTaskReports) {
+				if (longestDuration <= testTaskReport.getDuration()) {
+					longestDuration = testTaskReport.getDuration();
+				}
+			}
+
+			return longestDuration;
 		}
 
 		public int getTestTaskCount() {
-			return _testTaskDurations.size();
+			return _testTaskReports.size();
 		}
 
 		public String getTestTaskName() {
 			return _testTaskName;
 		}
 
-		private final List<Long> _testTaskDurations = new ArrayList<>();
+		public boolean isLatestReportMissing() {
+			return _latestReportMissing;
+		}
+
+		public void setLatestReportMissing(boolean latestReportMissing) {
+			_latestReportMissing = latestReportMissing;
+		}
+
+		private boolean _latestReportMissing;
 		private final String _testTaskName;
+		private final List<TestTaskReport> _testTaskReports = new ArrayList<>();
 
 	}
 

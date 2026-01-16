@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`FocusTrap basic rendering render static content when focus trap is actived 1`] = `
+<body>
+  <div>
+    <div
+      class="c-focus-trap"
+    >
+      <span
+        data-focus-scope-start="true"
+      />
+      <button
+        class="btn btn-primary"
+        type="button"
+      >
+        Apple
+      </button>
+      <span
+        data-focus-scope-end="true"
+      />
+    </div>
+  </div>
+</body>
+`;
+
+exports[`FocusTrap basic rendering render static content when focus trap is not actived 1`] = `
+<body>
+  <div>
+    <div
+      class="c-focus-trap"
+    >
+      <button
+        class="btn btn-primary"
+        type="button"
+      >
+        Apple
+      </button>
+    </div>
+  </div>
+</body>
+`;

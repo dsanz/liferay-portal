@@ -278,6 +278,23 @@ public class MBCommentManagerImpl implements CommentManager {
 	}
 
 	@Override
+	public List<Comment> getComments(
+		String className, long classPK, int status, int start, int end) {
+
+		MBDiscussion mbDiscussion = _mbDiscussionLocalService.fetchDiscussion(
+			className, classPK);
+
+		if (mbDiscussion == null) {
+			return Collections.emptyList();
+		}
+
+		return TransformUtil.transform(
+			_mbMessageLocalService.getThreadMessages(
+				mbDiscussion.getThreadId(), status, start, end),
+			MBCommentImpl::new);
+	}
+
+	@Override
 	public int getCommentsCount(String className, long classPK) {
 		return _mbMessageLocalService.getDiscussionMessagesCount(
 			_portal.getClassNameId(className), classPK,
@@ -310,6 +327,17 @@ public class MBCommentManagerImpl implements CommentManager {
 	@Override
 	public DiscussionStagingHandler getDiscussionStagingHandler() {
 		return new MBDiscussionStagingHandler();
+	}
+
+	@Override
+	public Comment getOrAddEmptyComment(
+			String externalReferenceCode, long userId, long groupId,
+			String className, long classPK)
+		throws PortalException {
+
+		return new MBCommentImpl(
+			_mbMessageLocalService.getOrAddEmptyDiscussionMessage(
+				externalReferenceCode, userId, groupId, className, classPK));
 	}
 
 	@Override

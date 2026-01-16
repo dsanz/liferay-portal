@@ -62,7 +62,7 @@ export const products = {
 			ram: 0,
 		},
 		support: {
-			publisherWebsiteUrl: 'www.liferay.com',
+			publisherWebsiteUrl: 'https://www.liferay.com',
 			supportEmail: 'test@liferay.com',
 			supportPhone: '+00 00 000000000',
 		},
@@ -113,7 +113,7 @@ export const products = {
 			ram: 0,
 		},
 		support: {
-			publisherWebsiteUrl: 'www.liferay.com',
+			publisherWebsiteUrl: 'https://www.liferay.com',
 			supportEmail: 'test@liferay.com',
 			supportPhone: '+00 00 000000000',
 		},
@@ -160,7 +160,7 @@ export const products = {
 			ram: 0,
 		},
 		support: {
-			publisherWebsiteUrl: 'www.liferay.com',
+			publisherWebsiteUrl: 'https://www.liferay.com',
 			supportEmail: 'test@liferay.com',
 			supportPhone: '+00 00 000000000',
 		},
@@ -207,7 +207,7 @@ export const products = {
 			ram: 0,
 		},
 		support: {
-			publisherWebsiteUrl: 'www.liferay.com',
+			publisherWebsiteUrl: 'https://www.liferay.com',
 			supportEmail: 'test@liferay.com',
 			supportPhone: '+00 00 000000000',
 		},
@@ -262,7 +262,7 @@ export const products = {
 			ram: 0,
 		},
 		support: {
-			publisherWebsiteUrl: 'www.liferay.com',
+			publisherWebsiteUrl: 'https://www.liferay.com',
 			supportEmail: 'test@liferay.com',
 			supportPhone: '+00 00 000000000',
 		},
@@ -334,8 +334,8 @@ export enum ORDER_WORKFLOW_STATUS_CODE {
 }
 
 export enum ORDER_TYPES {
-	DXPAPP = 'DXPAPP',
-	CLOUDAPP = 'CLOUDAPP',
+	DXP_APP = 'DXP_APP',
+	CLOUD_APP = 'CLOUD_APP',
 	SOLUTIONS7 = 'SOLUTIONS7',
 	SOLUTIONS30 = 'SOLUTIONS30',
 }

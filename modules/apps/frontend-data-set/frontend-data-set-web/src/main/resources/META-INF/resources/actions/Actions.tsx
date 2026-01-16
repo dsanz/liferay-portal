@@ -56,7 +56,7 @@ function Actions({
 	const [loading, setLoading] = useState(false);
 	const [menuActive, setMenuActive] = useState(false);
 
-	const isRowSelected =
+	const isItemSelected =
 		allItemsSelectedActive ||
 		selectedItemsValue?.some(
 			(selectedItemValue) => String(selectedItemValue) === String(itemId)
@@ -102,6 +102,7 @@ function Actions({
 			executeAsyncItemAction,
 			highlightItems,
 			infoPanelOpen,
+			isItemSelected,
 			itemData,
 			itemId,
 			items,
@@ -116,17 +117,18 @@ function Actions({
 		});
 	};
 
-	const quickActions =
-		formattedActions[0]?.type === EItemActionsType.GROUP
+	const quickActions = formattedActions.length
+		? formattedActions[0].type === EItemActionsType.GROUP
 			? formattedActions[0].items?.slice(0, QUICK_ACTIONS_MAX_NUMBER) ||
 				[]
-			: formattedActions.slice(0, QUICK_ACTIONS_MAX_NUMBER);
+			: formattedActions.slice(0, QUICK_ACTIONS_MAX_NUMBER)
+		: [];
 
 	return (
 		<>
 			{quickActionsEnabled &&
 				quickActions.length > 1 &&
-				!isRowSelected && (
+				!isItemSelected && (
 					<QuickActions
 						actions={quickActions}
 						itemData={itemData}

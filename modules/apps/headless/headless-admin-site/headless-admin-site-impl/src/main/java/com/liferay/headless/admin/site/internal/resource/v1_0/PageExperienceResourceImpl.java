@@ -5,6 +5,7 @@
 
 package com.liferay.headless.admin.site.internal.resource.v1_0;
 
+import com.liferay.fragment.processor.FragmentEntryProcessorRegistry;
 import com.liferay.headless.admin.site.dto.v1_0.PageExperience;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.GroupUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.SegmentsExperienceUtil;
@@ -15,6 +16,7 @@ import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRel;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureRelLocalService;
+import com.liferay.layout.util.LayoutServiceContextHelperUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.model.Layout;
@@ -177,23 +179,24 @@ public class PageExperienceResourceImpl extends BasePageExperienceResourceImpl {
 			return _addPageExperience(groupId, pageExperience);
 		}
 
-		if ((pageExperience.getPriority() != null) &&
-			(segmentsExperience.getPriority() !=
-				pageExperience.getPriority())) {
+		try (AutoCloseable autoCloseable =
+				LayoutServiceContextHelperUtil.getServiceContextAutoCloseable(
+					layout, contextUser)) {
 
-			segmentsExperience =
-				_segmentsExperienceService.updateSegmentsExperiencePriority(
-					segmentsExperience.getSegmentsExperienceId(),
-					GetterUtil.getInteger(pageExperience.getPriority()));
+			int priority = segmentsExperience.getPriority();
+
+			if (pageExperience.getPriority() != null) {
+				priority = pageExperience.getPriority();
+			}
+
+			return _toPageExperience(
+				SegmentsExperienceUtil.updateSegmentsExperience(
+					_fragmentEntryProcessorRegistry, _infoItemServiceRegistry,
+					layout, pageExperience, priority, segmentsExperience,
+					ServiceContextUtil.createServiceContext(
+						groupId, contextHttpServletRequest,
+						contextUser.getUserId())));
 		}
-
-		return _toPageExperience(
-			SegmentsExperienceUtil.updateSegmentsExperience(
-				_infoItemServiceRegistry, layout, pageExperience,
-				segmentsExperience,
-				ServiceContextUtil.createServiceContext(
-					groupId, contextHttpServletRequest,
-					contextUser.getUserId())));
 	}
 
 	@Override
@@ -218,12 +221,21 @@ public class PageExperienceResourceImpl extends BasePageExperienceResourceImpl {
 			throw new UnsupportedOperationException();
 		}
 
-		return _toPageExperience(
-			SegmentsExperienceUtil.addSegmentsExperience(
-				_infoItemServiceRegistry, layout, pageExperience,
-				ServiceContextUtil.createServiceContext(
-					groupId, contextHttpServletRequest,
-					contextUser.getUserId())));
+		try (AutoCloseable autoCloseable =
+				LayoutServiceContextHelperUtil.getServiceContextAutoCloseable(
+					layout, contextUser)) {
+
+			SegmentsExperienceUtil.validateSegmentsExperienceLayout(layout);
+
+			return _toPageExperience(
+				SegmentsExperienceUtil.addSegmentsExperience(
+					_fragmentEntryProcessorRegistry, _infoItemServiceRegistry,
+					layout, pageExperience,
+					GetterUtil.getInteger(pageExperience.getPriority()),
+					ServiceContextUtil.createServiceContext(
+						groupId, contextHttpServletRequest,
+						contextUser.getUserId())));
+		}
 	}
 
 	private PageExperience _toPageExperience(
@@ -251,11 +263,16 @@ public class PageExperienceResourceImpl extends BasePageExperienceResourceImpl {
 			new DefaultDTOConverterContext(null, null, null, null, null);
 
 		dtoConverterContext.setAttribute(
+			"companyId", layoutPageTemplateStructureRel.getCompanyId());
+		dtoConverterContext.setAttribute(
 			"scopeGroupId", layoutPageTemplateStructureRel.getGroupId());
 
 		return _pageExperienceDTOConverter.toDTO(
 			dtoConverterContext, layoutPageTemplateStructureRel);
 	}
+
+	@Reference
+	private FragmentEntryProcessorRegistry _fragmentEntryProcessorRegistry;
 
 	@Reference
 	private InfoItemServiceRegistry _infoItemServiceRegistry;

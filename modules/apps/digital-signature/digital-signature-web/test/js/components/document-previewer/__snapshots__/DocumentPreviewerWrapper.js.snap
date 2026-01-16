@@ -113,6 +113,7 @@ exports[`DocumentPreviewerWrapper renders with a document 1`] = `
         >
           <div
             class="page-link"
+            data-testid="prevArrow"
           >
             <svg
               class="lexicon-icon lexicon-icon-angle-left"
@@ -140,6 +141,7 @@ exports[`DocumentPreviewerWrapper renders with a document 1`] = `
         >
           <div
             class="page-link"
+            data-testid="nextArrow"
           >
             <svg
               class="lexicon-icon lexicon-icon-angle-right"
@@ -252,6 +254,7 @@ exports[`DocumentPreviewerWrapper renders with a document without preview 1`] = 
         >
           <div
             class="page-link"
+            data-testid="prevArrow"
           >
             <svg
               class="lexicon-icon lexicon-icon-angle-left"
@@ -279,6 +282,7 @@ exports[`DocumentPreviewerWrapper renders with a document without preview 1`] = 
         >
           <div
             class="page-link"
+            data-testid="nextArrow"
           >
             <svg
               class="lexicon-icon lexicon-icon-angle-right"
@@ -398,6 +402,7 @@ exports[`DocumentPreviewerWrapper renders with an image 1`] = `
         >
           <div
             class="page-link"
+            data-testid="prevArrow"
           >
             <svg
               class="lexicon-icon lexicon-icon-angle-left"
@@ -425,6 +430,7 @@ exports[`DocumentPreviewerWrapper renders with an image 1`] = `
         >
           <div
             class="page-link"
+            data-testid="nextArrow"
           >
             <svg
               class="lexicon-icon lexicon-icon-angle-right"

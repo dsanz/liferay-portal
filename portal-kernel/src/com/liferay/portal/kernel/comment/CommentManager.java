@@ -97,6 +97,10 @@ public interface CommentManager {
 	public Comment getComment(long groupId, String externalReferenceCode)
 		throws PortalException;
 
+	public List<Comment> getComments(
+			String className, long classPK, int status, int start, int end)
+		throws PortalException;
+
 	public int getCommentsCount(String className, long classPK);
 
 	public Discussion getDiscussion(
@@ -105,6 +109,11 @@ public interface CommentManager {
 		throws PortalException;
 
 	public DiscussionStagingHandler getDiscussionStagingHandler();
+
+	public Comment getOrAddEmptyComment(
+			String externalReferenceCode, long userId, long groupId,
+			String className, long classPK)
+		throws PortalException;
 
 	/**
 	 * Returns a range of all the model's root comments matching the class name,

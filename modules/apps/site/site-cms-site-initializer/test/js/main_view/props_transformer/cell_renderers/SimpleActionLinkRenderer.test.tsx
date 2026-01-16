@@ -3,10 +3,14 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
+
+// eslint-disable-next-line
+import {checkAccessibility} from '@liferay/layout-js-components-web/test/__lib__/index';
 import {render, screen} from '@testing-library/react';
 import React from 'react';
 
+import {OBJECT_ENTRY_FOLDER_CLASS_NAME} from '../../../../../src/main/resources/META-INF/resources/js/common/utils/constants';
 import SimpleActionLinkRenderer from '../../../../../src/main/resources/META-INF/resources/js/main_view/props_transformer/cell_renderers/SimpleActionLinkRenderer';
 
 const testActionBase = {
@@ -29,11 +33,11 @@ const testAdditionalProps = {
 		image: 'document-image',
 	},
 	objectDefinitionCssClasses: {
-		L_BASIC_WEB_CONTENT: 'content-icon-basic-content',
+		L_CMS_BASIC_WEB_CONTENT: 'content-icon-basic-content',
 		default: 'content-icon-custom-structure',
 	},
 	objectDefinitionIcons: {
-		L_BASIC_WEB_CONTENT: 'web-content',
+		L_CMS_BASIC_WEB_CONTENT: 'web-content',
 		default: 'forms',
 	},
 };
@@ -45,7 +49,7 @@ const testBaseProps = {
 		embedded: {
 			systemProperties: {
 				objectDefinitionBrief: {
-					externalReferenceCode: 'L_BASIC_WEB_CONTENT',
+					externalReferenceCode: 'L_CMS_BASIC_WEB_CONTENT',
 				},
 			},
 		},
@@ -61,7 +65,7 @@ const testFolderProps = {
 	actions: [testActionBase, testActionFolder],
 	additionalProps: testAdditionalProps,
 	itemData: {
-		entryClassName: 'com.liferay.object.model.ObjectEntryFolder',
+		entryClassName: OBJECT_ENTRY_FOLDER_CLASS_NAME,
 	},
 	options: {
 		actionId: 'view',
@@ -121,6 +125,18 @@ describe('SimpleActionLinkRenderer. Render the link.', () => {
 			screen.getByRole('link', {name: testFolderProps.value})
 		).toHaveAttribute('href', testActionFolder.href);
 	});
+
+	it('empty title string', () => {
+		render(<SimpleActionLinkRenderer {...testBaseProps} value="" />);
+
+		expect(screen.queryByRole('link')).toBeInTheDocument();
+
+		expect(
+			screen.getByRole('link', {
+				name: 'untitled-asset',
+			})
+		).toHaveAttribute('aria-label', 'untitled-asset');
+	});
 });
 
 describe('SimpleActionLinkRenderer. Show type icon.', () => {
@@ -137,6 +153,14 @@ describe('SimpleActionLinkRenderer. Show type icon.', () => {
 		);
 	});
 
+	it('checks the accessibility of component', async () => {
+		const {container} = render(
+			<SimpleActionLinkRenderer {...testBaseProps} />
+		);
+
+		await checkAccessibility({bestPractices: true, context: container});
+	});
+
 	it('folder item with folder icon', () => {
 		const {container} = render(
 			<SimpleActionLinkRenderer {...testFolderProps} />
@@ -148,5 +172,23 @@ describe('SimpleActionLinkRenderer. Show type icon.', () => {
 		expect(screen.getByRole('presentation', {name: ''})).toHaveClass(
 			'lexicon-icon-folder'
 		);
+	});
+});
+
+describe('SimpleActionLinkRenderer. Show lock icon.', () => {
+	it('shows lock icon if it is a system link', () => {
+		render(
+			<SimpleActionLinkRenderer
+				{...testBaseProps}
+				itemData={{
+					...testBaseProps.itemData,
+					system: true,
+				}}
+			/>
+		);
+
+		expect(
+			screen.getByLabelText('system-default-structure')
+		).toBeInTheDocument();
 	});
 });

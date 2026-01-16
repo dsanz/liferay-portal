@@ -138,6 +138,22 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		return averageDuration;
 	}
 
+	public long getAverageTotalTestTaskDuration(String testName) {
+		TestTaskHistory testTaskHistory = _getTestTaskHistory(testName);
+
+		if (testTaskHistory == null) {
+			return _getDefaultTestTaskDuration();
+		}
+
+		long averageTotalDuration = testTaskHistory.getAverageTotalDuration();
+
+		if (averageTotalDuration == 0) {
+			return _getDefaultTestTaskDuration();
+		}
+
+		return testTaskHistory.getAverageTotalDuration();
+	}
+
 	public int getAxisCount() {
 		if (ignore()) {
 			return 0;
@@ -213,7 +229,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		return batchName;
 	}
 
-	public DownstreamBuildReport getCachedDownstreamBuildReport(
+	public List<DownstreamBuildReport> getCachedDownstreamBuildReports(
 		String axisName) {
 
 		if (!isBuildCachingEnabled() ||
@@ -222,7 +238,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 			return null;
 		}
 
-		if (!_cachedReportsInitialized) {
+		if (!_cachedReportsInitialized.get()) {
 			_initializeCachedReports();
 		}
 
@@ -240,7 +256,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 			return null;
 		}
 
-		if (!_cachedReportsInitialized) {
+		if (!_cachedReportsInitialized.get()) {
 			_initializeCachedReports();
 		}
 
@@ -254,8 +270,8 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 	public List<TestClassReport> getCachedTestClassReportByPrefix(
 		String testClassName) {
 
-		TreeMap<String, TestClassReport> testClassReportsMap =
-			(TreeMap)_cachedTestClassReportsMap;
+		SortedMap<String, TestClassReport> testClassReportsMap =
+			(SortedMap)_cachedTestClassReportsMap;
 
 		SortedMap<String, TestClassReport> prefixedTestClassReportsMap =
 			testClassReportsMap.subMap(
@@ -271,7 +287,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 			return null;
 		}
 
-		if (!_cachedReportsInitialized) {
+		if (!_cachedReportsInitialized.get()) {
 			_initializeCachedReports();
 		}
 
@@ -309,7 +325,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 
 		String batchJobSuffix = "-downstream";
 
-		String slaveLabel = getSlaveLabel();
+		String slaveLabel = getBaseSlaveLabel();
 
 		if (slaveLabel.contains("win")) {
 			batchJobSuffix = "-windows-downstream";
@@ -326,6 +342,25 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 
 	public Map<String, List<String>> getGlobTestClassMethodNamesMap() {
 		return _globTestClassMethodNamesMap;
+	}
+
+	public GroupingStrategy getGroupingStrategy() {
+		JobProperty jobProperty = getJobProperty(
+			"test.batch.grouping.strategy");
+
+		if (jobProperty == null) {
+			return GroupingStrategy.DEFAULT;
+		}
+
+		String jobPropertyValue = jobProperty.getValue();
+
+		if (!GroupingStrategy.isValid(jobPropertyValue)) {
+			return GroupingStrategy.DEFAULT;
+		}
+
+		recordJobProperty(jobProperty);
+
+		return GroupingStrategy.getByString(jobPropertyValue);
 	}
 
 	@Override
@@ -376,6 +411,22 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		return jsonObject;
 	}
 
+	public long getLongestTestTaskDuration(String testName) {
+		TestTaskHistory testTaskHistory = _getTestTaskHistory(testName);
+
+		if (testTaskHistory == null) {
+			return 0L;
+		}
+
+		long longestDuration = testTaskHistory.getLongestDuration();
+
+		if (longestDuration <= 0) {
+			return 0L;
+		}
+
+		return longestDuration;
+	}
+
 	public Integer getMaximumSlavesPerHost() {
 		JobProperty jobProperty = getJobProperty(
 			"test.batch.maximum.slaves.per.host");
@@ -406,6 +457,23 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		return JenkinsMaster.getSlaveRAMMinimumDefault();
 	}
 
+	@Override
+	public String getOSArchitecture() {
+		try {
+			String osArchitecture = JenkinsResultsParserUtil.getBuildProperty(
+				"test.batch.os.architecture", getBatchName());
+
+			if (!JenkinsResultsParserUtil.isNullOrEmpty(osArchitecture)) {
+				return osArchitecture;
+			}
+		}
+		catch (IOException ioException) {
+			ioException.printStackTrace();
+		}
+
+		return _OS_ARCHITECTURE_DEFAULT;
+	}
+
 	public PortalGitWorkingDirectory getPortalGitWorkingDirectory() {
 		return portalGitWorkingDirectory;
 	}
@@ -424,55 +492,6 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 
 	public List<SegmentTestClassGroup> getSegmentTestClassGroups() {
 		return _segmentTestClassGroups;
-	}
-
-	public String getSlaveLabel() {
-		JobProperty jobProperty = getJobProperty("test.batch.slave.label");
-
-		String jobPropertyValue = jobProperty.getValue();
-
-		if (jobPropertyValue != null) {
-			recordJobProperty(jobProperty);
-
-			return jobPropertyValue;
-		}
-
-		if (!JenkinsResultsParserUtil.isCloudCINode()) {
-			return SLAVE_LABEL_DEFAULT;
-		}
-
-		String slaveLabel = null;
-
-		try {
-			slaveLabel = JenkinsResultsParserUtil.getBuildProperty(
-				"jenkins.osb.jenkins.web.slave.label", getBatchJobName(),
-				getTestSuiteName());
-
-			if (JenkinsResultsParserUtil.isNullOrEmpty(slaveLabel)) {
-				slaveLabel = JenkinsResultsParserUtil.getBuildProperty(
-					"jenkins.osb.jenkins.web.slave.label.minimum.ram",
-					String.valueOf(getMinimumSlaveRAM()));
-			}
-
-			if (JenkinsResultsParserUtil.isNullOrEmpty(slaveLabel)) {
-				slaveLabel = JenkinsResultsParserUtil.getBuildProperty(
-					"cloud.fleet.primary.label");
-			}
-
-			if (JenkinsResultsParserUtil.isNullOrEmpty(slaveLabel)) {
-				slaveLabel = JenkinsResultsParserUtil.getBuildProperty(
-					"master.auto.scaling.group.name");
-			}
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
-		}
-
-		if (!JenkinsResultsParserUtil.isNullOrEmpty(slaveLabel)) {
-			return slaveLabel;
-		}
-
-		return SLAVE_LABEL_DEFAULT;
 	}
 
 	public String getTestCasePropertiesContent() {
@@ -502,6 +521,16 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		Job job = getJob();
 
 		return job.isBuildCachingEnabled();
+	}
+
+	public boolean isLatestReportMissing(String testName) {
+		TestTaskHistory testTaskHistory = _getTestTaskHistory(testName);
+
+		if (testTaskHistory == null) {
+			return false;
+		}
+
+		return testTaskHistory.isLatestReportMissing();
 	}
 
 	public boolean isTestAnalyticsCloud() {
@@ -617,6 +646,56 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		}
 
 		return AXES_SIZE_MAX_DEFAULT;
+	}
+
+	@Override
+	protected String getBaseSlaveLabel() {
+		JobProperty jobProperty = getJobProperty("test.batch.slave.label");
+
+		String jobPropertyValue = jobProperty.getValue();
+
+		if (jobPropertyValue != null) {
+			recordJobProperty(jobProperty);
+
+			return jobPropertyValue;
+		}
+
+		if (!JenkinsResultsParserUtil.isCloudCINode()) {
+			return SLAVE_LABEL_DEFAULT;
+		}
+
+		String slaveLabel = null;
+
+		try {
+			slaveLabel = JenkinsResultsParserUtil.getBuildProperty(
+				"jenkins.osb.jenkins.web.slave.label", getBatchJobName(),
+				getTestSuiteName());
+
+			if (JenkinsResultsParserUtil.isNullOrEmpty(slaveLabel)) {
+				slaveLabel = JenkinsResultsParserUtil.getBuildProperty(
+					"jenkins.osb.jenkins.web.slave.label.minimum.ram",
+					String.valueOf(getMinimumSlaveRAM()));
+			}
+
+			if (JenkinsResultsParserUtil.isNullOrEmpty(slaveLabel)) {
+				slaveLabel = JenkinsResultsParserUtil.getBuildProperty(
+					"cloud.fleet.primary.label");
+			}
+
+			if (JenkinsResultsParserUtil.isNullOrEmpty(slaveLabel)) {
+				slaveLabel = JenkinsResultsParserUtil.getBuildProperty(
+					"master.auto.scaling.group.name");
+			}
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
+		}
+
+		if (!JenkinsResultsParserUtil.isNullOrEmpty(slaveLabel)) {
+			return slaveLabel;
+		}
+
+		return SLAVE_LABEL_DEFAULT;
 	}
 
 	protected List<String> getGlobs(List<JobProperty> jobProperties) {
@@ -1444,8 +1523,8 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		return _testTaskHistories.get(testName);
 	}
 
-	private void _initializeCachedReports() {
-		if (_cachedReportsInitialized) {
+	private synchronized void _initializeCachedReports() {
+		if (_cachedReportsInitialized.get()) {
 			return;
 		}
 
@@ -1456,7 +1535,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		List<Workspace> workspaces = buildDatabase.getWorkspaces();
 
 		if (workspaces.isEmpty()) {
-			_cachedReportsInitialized = true;
+			_cachedReportsInitialized.set(true);
 
 			return;
 		}
@@ -1476,7 +1555,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 			"cached-build-report-files/" + path);
 
 		if (!baseDir.exists()) {
-			_cachedReportsInitialized = true;
+			_cachedReportsInitialized.set(true);
 
 			return;
 		}
@@ -1484,7 +1563,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		File[] buildReportFiles = baseDir.listFiles();
 
 		if (buildReportFiles == null) {
-			_cachedReportsInitialized = true;
+			_cachedReportsInitialized.set(true);
 
 			return;
 		}
@@ -1511,8 +1590,12 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 						getBatchName(), new JSONObject(buildReportFileContent),
 						null);
 
-				_cachedDownstreamBuildReportsMap.put(
-					downstreamBuildReport.getAxisName(), downstreamBuildReport);
+				List<DownstreamBuildReport> cachedDownstreamBuildReports =
+					_cachedDownstreamBuildReportsMap.computeIfAbsent(
+						downstreamBuildReport.getAxisName(),
+						k -> new ArrayList<>());
+
+				cachedDownstreamBuildReports.add(downstreamBuildReport);
 
 				for (TestReport testReport :
 						downstreamBuildReport.getTestReports()) {
@@ -1546,7 +1629,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 			}
 		}
 
-		_cachedReportsInitialized = true;
+		_cachedReportsInitialized.set(true);
 	}
 
 	private boolean _isIgnoreTargetAxisDuration() {
@@ -1629,7 +1712,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 				new HashMap<>();
 
 			for (AxisTestClassGroup axisTestClassGroup : axisTestClassGroups) {
-				String slaveLabel = axisTestClassGroup.getSlaveLabel();
+				String slaveLabel = axisTestClassGroup.getBaseSlaveLabel();
 
 				List<AxisTestClassGroup> slaveLabelAxisTestClassGroups =
 					axisTestClassGroupsMap.get(slaveLabel);
@@ -1738,6 +1821,8 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		testRelevantJUnitTestsOnlyInStable = false;
 	}
 
+	private static final String _OS_ARCHITECTURE_DEFAULT = "x86";
+
 	private static final int _SEGMENT_MAX_CHILDREN_DEFAULT = 25;
 
 	private static final AtomicBoolean _buildReportsDownloaded =
@@ -1749,9 +1834,9 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 	private final Map<String, Long> _averageTestOverheadDurations =
 		new HashMap<>();
 	private BatchHistory _batchHistory;
-	private final Map<String, DownstreamBuildReport>
+	private final Map<String, List<DownstreamBuildReport>>
 		_cachedDownstreamBuildReportsMap = new TreeMap<>();
-	private boolean _cachedReportsInitialized;
+	private final AtomicBoolean _cachedReportsInitialized = new AtomicBoolean();
 	private final Map<String, TestClassReport> _cachedTestClassReportsMap =
 		new TreeMap<>();
 	private final Map<String, TestReport> _cachedTestReportsMap =

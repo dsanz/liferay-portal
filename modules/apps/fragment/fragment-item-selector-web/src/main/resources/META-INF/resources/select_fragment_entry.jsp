@@ -33,8 +33,9 @@ FragmentEntriesDisplayContext fragmentEntriesDisplayContext = (FragmentEntriesDi
 				<clay:vertical-card
 					data-fragmententrykey="<%= fragmentEntry.getFragmentEntryKey() %>"
 					data-fragmententryname="<%= fragmentEntry.getName() %>"
+					data-groupid="<%= fragmentEntriesDisplayContext.getGroupId() %>"
 					data-groupkey="<%= fragmentEntriesDisplayContext.getGroupKey() %>"
-					verticalCard="<%= new FragmentEntryVerticalCard(fragmentEntry) %>"
+					verticalCard="<%= new FragmentEntryVerticalCard(fragmentEntry, themeDisplay) %>"
 				/>
 			</liferay-ui:search-container-column-text>
 		</liferay-ui:search-container-row>

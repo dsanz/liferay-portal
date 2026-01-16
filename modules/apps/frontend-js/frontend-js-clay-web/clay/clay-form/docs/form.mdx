@@ -1,0 +1,279 @@
+---
+title: 'Form'
+description: 'Forms obtain user data and transmit it to the system to either store the data, produce an action, or both.'
+lexiconDefinition: 'https://liferay.design/lexicon/core-components/forms/'
+packageNpm: '@clayui/form'
+storybookPath: 'design-system-components-input'
+packageUse: "import ClayForm, {ClayInput} from '@clayui/form';"
+---
+
+Use `ClayForm` components for composing forms.
+
+For controlling groups inside forms, use `ClayForm.Group` components like the code below:
+
+```jsx preview
+import {Provider} from '@clayui/core';
+import Form, {ClayInput} from '@clayui/form';
+import React, {useState} from 'react';
+
+import '@clayui/css/lib/css/atlas.css';
+
+export default function App() {
+	return (
+		<Provider spritemap="/public/icons.svg">
+			<div className="p-4">
+				<Form>
+					<Form.Group className="form-group-sm">
+						<label htmlFor="basicInput">Name</label>
+						<ClayInput
+							id="basicInput"
+							placeholder="Name"
+							type="text"
+						/>
+					</Form.Group>
+					<Form.Group className="form-group-sm">
+						<label htmlFor="basicInputDescription">
+							Description
+						</label>
+						<textarea
+							className="form-control"
+							id="basicInputDescription"
+							placeholder="Description"
+						/>
+					</Form.Group>
+				</Form>
+			</div>
+		</Provider>
+	);
+}
+```
+
+## Help Texts
+
+```jsx preview
+import {Provider} from '@clayui/core';
+import Form, {ClayInput} from '@clayui/form';
+import React, {useState} from 'react';
+
+import '@clayui/css/lib/css/atlas.css';
+
+export default function App() {
+	return (
+		<Provider spritemap="/public/icons.svg">
+			<div className="p-4">
+				<Form>
+					<Form.Group>
+						<label htmlFor="helpTextName">
+							Name
+							<Form.HelpText>
+								Please type your name in the input below.
+							</Form.HelpText>
+						</label>
+						<Form.FeedbackGroup>
+							<Form.HelpText>
+								Please type your name in the input below.
+							</Form.HelpText>
+						</Form.FeedbackGroup>
+						<ClayInput
+							id="helpTextName"
+							placeholder="Name"
+							type="text"
+						/>
+						<Form.FeedbackGroup>
+							<Form.HelpText>
+								Please type your name in the input above.
+							</Form.HelpText>
+							<Form.BlockquoteText>
+								Please type your name in the input above.
+							</Form.BlockquoteText>
+						</Form.FeedbackGroup>
+					</Form.Group>
+				</Form>
+			</div>
+		</Provider>
+	);
+}
+```
+
+## Validation
+
+`.has-error`, `.has-success` and `.has-warning` classes are used in `ClayForm.Group` to identifier validation state of the form group items.
+
+Use `ClayForm.FeedbackGroup` and `ClayForm.FeedbackItem` for creating custom feedback messages for Form Groups.
+
+`ClayForm.FeedbackIndicator` is used to apply an Icon on the feedback message, like the following example:
+
+```jsx preview
+import {Provider} from '@clayui/core';
+import Form, {ClayInput} from '@clayui/form';
+import React, {useState} from 'react';
+
+import '@clayui/css/lib/css/atlas.css';
+
+export default function App() {
+	return (
+		<Provider spritemap="/public/icons.svg">
+			<div className="p-4">
+				<Form>
+					<Form.Group className="has-success">
+						<label htmlFor="basicInputValidationName">Name</label>
+						<ClayInput
+							id="basicInputValidationName"
+							placeholder="Name"
+							type="text"
+						/>
+						<Form.FeedbackGroup>
+							<Form.FeedbackItem>
+								This is a form-feedback-item.
+							</Form.FeedbackItem>
+							<Form.FeedbackItem>
+								<Form.FeedbackIndicator symbol="check-circle-full" />
+								This is a form-feedback-item with a check feedback
+								indicator.
+							</Form.FeedbackItem>
+						</Form.FeedbackGroup>
+					</Form.Group>
+					<Form.Group className="has-warning">
+						<label htmlFor="basicInputValidationDescription">
+							Description
+						</label>
+						<textarea
+							className="form-control"
+							id="basicInputValidationDescription"
+							placeholder="Description"
+						/>
+						<Form.FeedbackGroup>
+							<Form.FeedbackItem>
+								This is a form-feedback-item.
+							</Form.FeedbackItem>
+							<Form.FeedbackItem>
+								<Form.FeedbackIndicator symbol="warning-full" />
+								This is a form-feedback-item with a warning feedback
+								indicator.
+							</Form.FeedbackItem>
+						</Form.FeedbackGroup>
+					</Form.Group>
+					<Form.Group className="has-error">
+						<label htmlFor="basicInputValidationPassword">
+							Password
+						</label>
+						<ClayInput
+							id="basicInputValidationPassword"
+							placeholder="Name"
+							type="password"
+						/>
+						<Form.FeedbackGroup>
+							<Form.FeedbackItem>
+								This is a form-feedback-item.
+							</Form.FeedbackItem>
+							<Form.FeedbackItem>
+								<Form.FeedbackIndicator symbol="exclamation-full" />
+								This is a form-feedback-item with a error feedback
+								indicator.
+							</Form.FeedbackItem>
+						</Form.FeedbackGroup>
+					</Form.Group>
+				</Form>
+			</div>
+		</Provider>
+	);
+}
+```
+
+```jsx preview
+import {Provider} from '@clayui/core';
+import ClayForm from '@clayui/form';
+import LocalizedInput from '@clayui/localized-input';
+import React, {useState} from 'react';
+
+import '@clayui/css/lib/css/atlas.css';
+
+export default function App() {
+	const locales = [
+		{
+			label: 'en-US',
+			symbol: 'en-us',
+		},
+		{
+			label: 'es-ES',
+			symbol: 'es-es',
+		},
+		{
+			label: 'fr-FR',
+			symbol: 'fr-fr',
+		},
+		{
+			label: 'hr-HR',
+			symbol: 'hr-hr',
+		},
+	];
+
+	const [selectedLocaleError, setSelectedLocaleError] = useState(locales[0]);
+	const [translationsError, setTranslationsError] = useState({
+		'en-US': 'Apple',
+		'es-ES': 'Manzana',
+	});
+
+	return (
+		<Provider spritemap="/public/icons.svg">
+			<div className="p-4">
+				<ClayForm.Group className="has-error">
+					<LocalizedInput
+						id="locale3"
+						label="Localized Input Error State"
+						locales={locales}
+						onSelectedLocaleChange={setSelectedLocaleError}
+						onTranslationsChange={setTranslationsError}
+						selectedLocale={selectedLocaleError}
+						translations={translationsError}
+					/>
+					<ClayForm.FeedbackGroup>
+						<ClayForm.Text>Clay Form Text</ClayForm.Text>
+						<ClayForm.FeedbackItem id="input-group-error">
+							<ClayForm.FeedbackIndicator symbol="exclamation-full" />
+							This is a description of the error!
+						</ClayForm.FeedbackItem>
+					</ClayForm.FeedbackGroup>
+				</ClayForm.Group>
+			</div>
+		</Provider>
+	);
+}
+```
+
+## Group Caption
+
+Use `ClayForm.Text` for creating a caption on Form Groups.
+
+```jsx preview
+import {Provider} from '@clayui/core';
+import Form, {ClayInput} from '@clayui/form';
+import React, {useState} from 'react';
+
+import '@clayui/css/lib/css/atlas.css';
+
+export default function App() {
+	return (
+		<Provider spritemap="/public/icons.svg">
+			<div className="p-4">
+				<Form>
+					<Form.Group className="has-success">
+						<label htmlFor="groupCaptionName">Name</label>
+						<ClayInput
+							id="groupCaptionName"
+							placeholder="Name"
+							type="text"
+						/>
+						<Form.FeedbackGroup>
+							<Form.FeedbackItem>
+								This is a form-feedback-item.
+							</Form.FeedbackItem>
+							<Form.Text>{''}</Form.Text>
+						</Form.FeedbackGroup>
+					</Form.Group>
+				</Form>
+			</div>
+		</Provider>
+	);
+}
+```

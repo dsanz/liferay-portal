@@ -39,6 +39,7 @@ import {config as commerceInventoryWebConfig} from './tests/commerce/commerce-in
 import {config as commerceOrderContentWebConfig} from './tests/commerce/commerce-order-content-web/main/config';
 import {config as commerceOrderWebConfig} from './tests/commerce/commerce-order-web/main/config';
 import {config as commercePaymentsWebConfig} from './tests/commerce/commerce-payment-web/main/config';
+import {config as commercePricingWebConfig} from './tests/commerce/commerce-pricing-web/main/config';
 import {config as commerceProductAssetCategoriesWebConfig} from './tests/commerce/commerce-product-asset-categories-web/main/config';
 import {config as commerceProductContentSearchWebConfig} from './tests/commerce/commerce-product-content-search-web/main/config';
 import {config as commerceProductContentWebConfig} from './tests/commerce/commerce-product-content-web/main/config';
@@ -52,12 +53,16 @@ import {config as commerceWishListWebConfig} from './tests/commerce/commerce-wis
 import {config as configurationAdminWebConfig} from './tests/configuration-admin-web/main/config';
 import {config as contentDashboardWebConfig} from './tests/content-dashboard-web/main/config';
 import {config as cookiesBannerWebConfig} from './tests/cookies-banner-web/main/config';
+import {config as dataCleanupConfig} from './tests/data-cleanup/main/config';
 import {config as depotWebConfig} from './tests/depot-web/main/config';
+import {config as digitalSalesRoomWebConfig} from './tests/digital-sales-room-web/main/config';
 import {config as dispatchWebConfig} from './tests/dispatch-web/main/config';
 import {config as documentLibraryWebConfig} from './tests/document-library-web/main/config';
 import {config as dynamicDataMappingFormWebConfig} from './tests/dynamic-data-mapping-form-web/main/config';
+import {config as expandoWebConfig} from './tests/expando-web/main/config';
 import {config as exportImportServiceConfig} from './tests/export-import-service/main/config';
 import {config as exportImportWebConfig} from './tests/export-import-web/main/config';
+import {config as exportImportWebRevampConfig} from './tests/export-import-web/revamp/config';
 import {config as featureFlagWebConfig} from './tests/feature-flag-web/main/config';
 import {config as fragmentWebConfig} from './tests/fragment-web/main/config';
 import {config as friendlyURLConfig} from './tests/friendly-url-web/main/config';
@@ -91,6 +96,7 @@ import {config as layoutLockedLayoutsWebConfig} from './tests/layout-locked-layo
 import {config as layoutPageTemplateAdminWebConfig} from './tests/layout-page-template-admin-web/main/config';
 import {config as layoutSetPrototypeWebConfig} from './tests/layout-set-prototype-web/main/config';
 import {config as lockedItemsWebConfig} from './tests/locked-items-web/main/config';
+import {config as loginWebMainCaptchaEnableConfig} from './tests/login-web/main-captcha-enable/config';
 import {config as loginWebConfig} from './tests/login-web/main/config';
 import {config as loginWebSetupAdminConfig} from './tests/login-web/setup-admin/config';
 import {config as marketplaceAppManagerWebConfig} from './tests/marketplace-app-manager-web/main/config';
@@ -118,6 +124,7 @@ import {config as portalSecurityScriptManagementWebConfig} from './tests/portal-
 import {config as portalSecurityServiceAccessPolicyService} from './tests/portal-security-service-access-policy-service/main/config';
 import {config as portalToolsRestBuilderTestImpl} from './tests/portal-tools-rest-builder-test-impl/main/config';
 import {config as portalUserLocaleOptionsConfig} from './tests/portal-user-locale-options-web/main/config';
+import {config as portalWebCDNConfig} from './tests/portal-web/cdn/config';
 import {config as portalWebConfig} from './tests/portal-web/main/config';
 import {config as portalWorkflowKaleoDesignerWebConfig} from './tests/portal-workflow-kaleo-designer-web/main/config';
 import {config as portalWorkflowKaleoFormsWebConfig} from './tests/portal-workflow-kaleo-forms-web/main/config';
@@ -140,16 +147,20 @@ import {config as segmentExperimentWebConfig} from './tests/segment-experiment-w
 import {config as segmentsWebConfig} from './tests/segments-web/main/config';
 import {config as pageManagementSiteConfig} from './tests/setup/page-management-site/main/config';
 import {config as pageManagementSiteTeardownConfig} from './tests/setup/page-management-site/teardown/config';
+import {config as siteCmsSiteConfig} from './tests/setup/site-cms-site/main/config';
+import {config as siteCmsSiteTeardownConfig} from './tests/setup/site-cms-site/teardown/config';
 import {config as siteAdminWebConfig} from './tests/site-admin-web/main/config';
 import {config as siteCmsSiteInitializerConfig} from './tests/site-cms-site-initializer/main/config';
 import {config as siteCmsSiteInitializerPermissionsConfig} from './tests/site-cms-site-initializer/permissions/config';
 import {config as siteCmsSiteInitializerStructureBuilderConfig} from './tests/site-cms-site-initializer/structure-builder/config';
+import {config as siteMySitesWebConfig} from './tests/site-my-sites-web/main/config';
 import {config as siteNavigationAdminWebConfig} from './tests/site-navigation-admin-web/main/config';
 import {config as siteNavigationBreadcrumbWebConfig} from './tests/site-navigation-breadcrumb-web/main/config';
 import {config as siteNavigationDirectoryWebConfig} from './tests/site-navigation-directory-web/main/config';
 import {config as siteNavigationLanguageWebConfig} from './tests/site-navigation-language-web/main/config';
 import {config as siteNavigationMenuWebConfig} from './tests/site-navigation-menu-web/main/config';
 import {config as siteSitemapWebConfig} from './tests/site-sitemap-web/main/config';
+import {config as siteTeamsWebConfig} from './tests/site-teams-web/main/config';
 import {config as smokeConfig} from './tests/smoke/main/config';
 import {config as stagingConfig} from './tests/staging-configuration-web/main/config';
 import {config as stylebookWebConfig} from './tests/style-book-web/main/config';
@@ -167,6 +178,8 @@ import {config as marketplaceConfig} from './tests/workspaces/liferay-workspace-
 const setupProjects = [
 	pageManagementSiteConfig,
 	pageManagementSiteTeardownConfig,
+	siteCmsSiteConfig,
+	siteCmsSiteTeardownConfig,
 ];
 
 const resultsPath = 'test-results/TEST-playwright.xml';
@@ -210,6 +223,7 @@ export default defineConfig({
 		commerceOrderWebConfig,
 		commerceOrderContentWebConfig,
 		commercePaymentsWebConfig,
+		commercePricingWebConfig,
 		commerceProductAssetCategoriesWebConfig,
 		commerceProductContentSearchWebConfig,
 		commerceProductContentWebConfig,
@@ -226,11 +240,14 @@ export default defineConfig({
 		cookiesBannerWebConfig,
 		customerConfig,
 		depotWebConfig,
+		digitalSalesRoomWebConfig,
 		dispatchWebConfig,
 		documentLibraryWebConfig,
 		dynamicDataMappingFormWebConfig,
+		expandoWebConfig,
 		exportImportServiceConfig,
 		exportImportWebConfig,
+		exportImportWebRevampConfig,
 		featureFlagWebConfig,
 		fragmentWebConfig,
 		friendlyURLConfig,
@@ -266,6 +283,7 @@ export default defineConfig({
 		layoutSetPrototypeWebConfig,
 		lockedItemsWebConfig,
 		loginWebConfig,
+		loginWebMainCaptchaEnableConfig,
 		loginWebSetupAdminConfig,
 		marketplaceAppManagerWebConfig,
 		marketplaceConfig,
@@ -293,6 +311,7 @@ export default defineConfig({
 		portalSecurityServiceAccessPolicyService,
 		portalToolsRestBuilderTestImpl,
 		portalUserLocaleOptionsConfig,
+		portalWebCDNConfig,
 		portalWebConfig,
 		portalWorkflowKaleoDesignerWebConfig,
 		portalWorkflowKaleoFormsWebConfig,
@@ -308,6 +327,7 @@ export default defineConfig({
 		rolesAdminWebConfig,
 		rolesSelectorWebConfig,
 		rssWebConfig,
+		dataCleanupConfig,
 		samlWebConfig,
 		scimConfiguraitonWebConfig,
 		searchExperiencesWebConfig,
@@ -317,12 +337,14 @@ export default defineConfig({
 		siteCmsSiteInitializerConfig,
 		siteCmsSiteInitializerPermissionsConfig,
 		siteCmsSiteInitializerStructureBuilderConfig,
+		siteMySitesWebConfig,
 		siteNavigationAdminWebConfig,
 		siteNavigationBreadcrumbWebConfig,
 		siteNavigationDirectoryWebConfig,
 		siteNavigationLanguageWebConfig,
 		siteNavigationMenuWebConfig,
 		siteSitemapWebConfig,
+		siteTeamsWebConfig,
 		smokeConfig,
 		stagingConfig,
 		stylebookWebConfig,

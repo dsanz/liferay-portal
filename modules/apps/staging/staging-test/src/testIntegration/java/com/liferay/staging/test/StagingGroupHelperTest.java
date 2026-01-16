@@ -9,6 +9,7 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.exportimport.kernel.service.StagingLocalServiceUtil;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.petra.lang.SafeCloseable;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.instance.lifecycle.PortalInstanceLifecycleListener;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
 import com.liferay.portal.kernel.instance.lifecycle.PortalInstanceLifecycleManager;
@@ -35,6 +36,7 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -137,7 +139,9 @@ public class StagingGroupHelperTest {
 		}
 	}
 
-	@FeatureFlag("LPD-35914")
+	@FeatureFlags(
+		featureFlags = {@FeatureFlag("LPD-35443"), @FeatureFlag("LPD-35914")}
+	)
 	@Test
 	public void testFetchCompanyGroup() throws Exception {
 		FeatureFlagTestUtil.invokeFeatureFlagListeners(
@@ -1039,14 +1043,14 @@ public class StagingGroupHelperTest {
 		Layout layout = LayoutTestUtil.addTypePortletLayout(group);
 
 		return GroupLocalServiceUtil.addGroup(
-			TestPropsValues.getUserId(), GroupConstants.DEFAULT_PARENT_GROUP_ID,
-			Layout.class.getName(), layout.getPlid(),
-			GroupConstants.DEFAULT_LIVE_GROUP_ID,
+			StringPool.BLANK, TestPropsValues.getUserId(),
+			GroupConstants.DEFAULT_PARENT_GROUP_ID, Layout.class.getName(),
+			layout.getPlid(), GroupConstants.DEFAULT_LIVE_GROUP_ID,
 			HashMapBuilder.put(
 				LocaleUtil.getDefault(), String.valueOf(layout.getPlid())
 			).build(),
-			null, 0, true, GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION, null,
-			false, true, null);
+			null, 0, null, true, GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION,
+			null, false, false, true, null);
 	}
 
 	private Group _executeWithRemoteCredentials(Supplier<Group> groupSupplier) {

@@ -13,6 +13,7 @@
 				<action-key>MANAGE_AVAILABLE_ACCOUNTS_VIA_USER_CHANNEL_REL</action-key>
 				<action-key>MANAGE_CHANNEL_DEFAULTS</action-key>
 				<action-key>VIEW_CHANNEL_DEFAULTS</action-key>
+				<action-key>VIEW_CHANNELS_ACCOUNTS</action-key>
 			</supports>
 		</permissions>
 	</model-resource>
@@ -134,6 +135,7 @@
 				<action-key>VIEW_BILLING_ADDRESS</action-key>
 				<action-key>VIEW_COMMERCE_ORDERS</action-key>
 				<action-key>VIEW_OPEN_COMMERCE_ORDERS</action-key>
+				<action-key>VIEW_ORGANIZATION_COMMERCE_ORDERS</action-key>
 			</supports>
 			<site-member-defaults>
 				<action-key>ADD_COMMERCE_ORDER</action-key>
@@ -153,6 +155,7 @@
 				<action-key>MANAGE_COMMERCE_ORDERS</action-key>
 				<action-key>VIEW_COMMERCE_ORDERS</action-key>
 				<action-key>VIEW_OPEN_COMMERCE_ORDERS</action-key>
+				<action-key>VIEW_ORGANIZATION_COMMERCE_ORDERS</action-key>
 			</guest-unsupported>
 		</permissions>
 	</model-resource>

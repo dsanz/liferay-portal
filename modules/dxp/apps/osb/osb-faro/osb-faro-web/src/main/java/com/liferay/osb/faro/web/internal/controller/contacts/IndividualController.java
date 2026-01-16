@@ -7,25 +7,20 @@ package com.liferay.osb.faro.web.internal.controller.contacts;
 
 import com.liferay.osb.faro.contacts.model.constants.JSONConstants;
 import com.liferay.osb.faro.engine.client.constants.FieldMappingConstants;
-import com.liferay.osb.faro.engine.client.exception.DuplicateEntryException;
 import com.liferay.osb.faro.engine.client.model.Field;
 import com.liferay.osb.faro.engine.client.model.FieldMapping;
 import com.liferay.osb.faro.engine.client.model.Individual;
-import com.liferay.osb.faro.engine.client.model.IndividualSegment;
 import com.liferay.osb.faro.engine.client.model.Results;
 import com.liferay.osb.faro.engine.client.util.OrderByField;
 import com.liferay.osb.faro.model.FaroProject;
 import com.liferay.osb.faro.web.internal.constants.FaroConstants;
 import com.liferay.osb.faro.web.internal.controller.BaseFaroController;
 import com.liferay.osb.faro.web.internal.controller.FaroController;
-import com.liferay.osb.faro.web.internal.exception.FaroException;
 import com.liferay.osb.faro.web.internal.model.display.FaroResultsDisplay;
 import com.liferay.osb.faro.web.internal.model.display.contacts.IndividualDisplay;
 import com.liferay.osb.faro.web.internal.param.FaroParam;
 import com.liferay.osb.faro.web.internal.search.FaroSearchContext;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 
@@ -35,7 +30,6 @@ import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.FormParam;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
-import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
@@ -57,41 +51,6 @@ import org.osgi.service.component.annotations.Component;
 @Path("/{groupId}/individual")
 @Produces(MediaType.APPLICATION_JSON)
 public class IndividualController extends BaseFaroController {
-
-	@Path("/{id}/memberships")
-	@PUT
-	@RolesAllowed(RoleConstants.SITE_MEMBER)
-	public IndividualDisplay addMemberships(
-			@PathParam("groupId") long groupId, @PathParam("id") String id,
-			@FormParam("individualSegmentIds") FaroParam<List<String>>
-				individualSegmentIdsFaroParam)
-		throws Exception {
-
-		FaroProject faroProject =
-			faroProjectLocalService.getFaroProjectByGroupId(groupId);
-
-		validateAddMemberships(
-			faroProject, individualSegmentIdsFaroParam.getValue());
-
-		for (String individualSegmentId :
-				individualSegmentIdsFaroParam.getValue()) {
-
-			try {
-				contactsEngineClient.addMembership(
-					faroProject, individualSegmentId, id);
-			}
-			catch (DuplicateEntryException duplicateEntryException) {
-				if (_log.isInfoEnabled()) {
-					_log.info(
-						"The individual already belongs to the segment: " +
-							individualSegmentId,
-						duplicateEntryException);
-				}
-			}
-		}
-
-		return getIndividualDisplay(groupId, id, null);
-	}
 
 	@GET
 	@Path("/{id}/details")
@@ -206,7 +165,7 @@ public class IndividualController extends BaseFaroController {
 			@QueryParam("individualSegmentId") String individualSegmentId,
 			@QueryParam("notIndividualSegmentId") String notIndividualSegmentId,
 			@QueryParam("interestName") String interestName,
-			@QueryParam("filter") String filter,
+			@QueryParam("filter") String filterString,
 			@QueryParam("query") String query,
 			@QueryParam("includeAnonymousUsers") boolean includeAnonymousUsers,
 			@DefaultValue(JSONConstants.NULL_JSON_ARRAY)
@@ -220,7 +179,7 @@ public class IndividualController extends BaseFaroController {
 
 		return search(
 			groupId, accountId, channelId, dataSourceId, individualSegmentId,
-			notIndividualSegmentId, interestName, filter, query,
+			notIndividualSegmentId, interestName, filterString, query,
 			includeAnonymousUsers, includePropertyNamesFaroParam.getValue(),
 			cur, delta, orderByFieldsFaroParam.getValue());
 	}
@@ -236,7 +195,7 @@ public class IndividualController extends BaseFaroController {
 			@FormParam("individualSegmentId") String individualSegmentId,
 			@FormParam("notIndividualSegmentId") String notIndividualSegmentId,
 			@FormParam("interestName") String interestName,
-			@FormParam("filter") String filter,
+			@FormParam("filter") String filterString,
 			@FormParam("query") String query,
 			@FormParam("includeAnonymousUsers") boolean includeAnonymousUsers,
 			@DefaultValue(JSONConstants.NULL_JSON_ARRAY)
@@ -250,7 +209,7 @@ public class IndividualController extends BaseFaroController {
 
 		return search(
 			groupId, accountId, channelId, dataSourceId, individualSegmentId,
-			notIndividualSegmentId, interestName, filter, query,
+			notIndividualSegmentId, interestName, filterString, query,
 			includeAnonymousUsers, includePropertyNamesFaroParam.getValue(),
 			cur, delta, orderByFieldsFaroParam.getValue());
 	}
@@ -278,8 +237,8 @@ public class IndividualController extends BaseFaroController {
 	protected FaroResultsDisplay search(
 			long groupId, String accountId, String channelId,
 			String dataSourceId, String individualSegmentId,
-			String notIndividualSegmentId, String interestName, String filter,
-			String query, boolean includeAnonymousUsers,
+			String notIndividualSegmentId, String interestName,
+			String filterString, String query, boolean includeAnonymousUsers,
 			List<String> includePropertyNames, int cur, int delta,
 			List<OrderByField> orderByFields)
 		throws Exception {
@@ -289,8 +248,9 @@ public class IndividualController extends BaseFaroController {
 
 		Results<Individual> results = contactsEngineClient.getIndividuals(
 			faroProject, accountId, channelId, dataSourceId,
-			individualSegmentId, notIndividualSegmentId, interestName, filter,
-			query, FieldMappingConstants.getSearchFieldMappingNames(),
+			individualSegmentId, notIndividualSegmentId, interestName,
+			filterString, query,
+			FieldMappingConstants.getSearchFieldMappingNames(),
 			includeAnonymousUsers, cur, delta, orderByFields);
 
 		Function<Individual, IndividualDisplay> function = individual -> {
@@ -303,24 +263,6 @@ public class IndividualController extends BaseFaroController {
 		};
 
 		return new FaroResultsDisplay(results, function);
-	}
-
-	protected void validateAddMemberships(
-		FaroProject faroProject, List<String> individualSegmentIds) {
-
-		for (String individualSegmentId : individualSegmentIds) {
-			IndividualSegment individualSegment =
-				contactsEngineClient.getIndividualSegment(
-					faroProject, individualSegmentId, false);
-
-			String segmentType = individualSegment.getSegmentType();
-
-			if (!segmentType.equals(IndividualSegment.Type.STATIC.name())) {
-				throw new FaroException(
-					"You cannot modify memberships of: " +
-						individualSegment.getName());
-			}
-		}
 	}
 
 	private void _setFieldMappingDisplayName(
@@ -350,8 +292,5 @@ public class IndividualController extends BaseFaroController {
 	}
 
 	private static final int[] _ENTITY_TYPES = {FaroConstants.TYPE_INDIVIDUAL};
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		IndividualController.class);
 
 }

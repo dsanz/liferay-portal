@@ -49,11 +49,13 @@ renderResponse.setTitle(LanguageUtil.get(request, titleKey));
 		).put(
 			"functionActionExecutors", kaleoDesignerDisplayContext.getFunctionActionExecutorsJSONArray()
 		).put(
-			"isView", view || !kaleoDesignerDisplayContext.canPublishWorkflowDefinition()
+			"isView", view || kaleoDesignerDisplayContext.isReadOnly()
 		).put(
 			"languageIds", LocaleUtil.toLanguageIds(LanguageUtil.getAvailableLocales())
 		).put(
 			"portletNamespace", PortalUtil.getPortletNamespace(KaleoDesignerPortletKeys.KALEO_DESIGNER)
+		).put(
+			"scope", kaleoDesignerDisplayContext.getScope(renderRequest)
 		).put(
 			"scriptManagementConfigurationPortletURL", kaleoDesignerDisplayContext.getScriptManagementConfigurationPortletURL()
 		).put(

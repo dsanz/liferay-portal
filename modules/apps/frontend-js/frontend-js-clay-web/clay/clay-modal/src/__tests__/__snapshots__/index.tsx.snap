@@ -1,0 +1,425 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ClayModal renders 1`] = `
+<body
+  class="modal-open"
+>
+  <div>
+    <div
+      aria-hidden="true"
+      class="modal-backdrop fade show"
+      data-suppressed="true"
+    />
+    <div
+      class="fade modal d-block show"
+    >
+      <div
+        class="modal-dialog"
+      >
+        <div
+          aria-labelledby="clay-modal-label-1"
+          aria-modal="true"
+          class="modal-content"
+          role="dialog"
+          tabindex="-1"
+        >
+          <div
+            class="modal-header"
+          >
+            <h1
+              class="modal-title"
+              id="clay-modal-label-1"
+              tabindex="-1"
+            >
+              Foo
+            </h1>
+            <button
+              aria-label="Close"
+              class="close btn btn-unstyled"
+              type="button"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-times"
+                role="presentation"
+              >
+                <use
+                  href="icons.svg#times"
+                />
+              </svg>
+            </button>
+          </div>
+          <div
+            class="modal-body"
+          >
+            <h1>
+              Hello world!
+            </h1>
+          </div>
+          <div
+            class="modal-footer"
+          >
+            <div
+              class="modal-item-first"
+            />
+            <div
+              class="modal-item"
+            />
+            <div
+              class="modal-item-last"
+            >
+              <button
+                class="btn btn-primary"
+                type="button"
+              >
+                Primary
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+    data-suppressed="true"
+  />
+</body>
+`;
+
+exports[`ClayModal renders Header w/ low-level API 1`] = `
+<body
+  class="modal-open"
+>
+  <div>
+    <div
+      aria-hidden="true"
+      class="modal-backdrop fade show"
+      data-suppressed="true"
+    />
+    <div
+      class="fade modal d-block show"
+    >
+      <div
+        class="modal-dialog"
+      >
+        <div
+          aria-labelledby="clay-modal-label-3"
+          aria-modal="true"
+          class="modal-content"
+          role="dialog"
+          tabindex="-1"
+        >
+          <div
+            class="modal-header"
+          >
+            <div
+              class="modal-item-group"
+            >
+              <div
+                class="modal-item"
+              >
+                <div
+                  class="modal-title-section"
+                >
+                  <h1
+                    class="modal-title"
+                    id="clay-modal-label-3"
+                    tabindex="-1"
+                  >
+                    Modal Title
+                  </h1>
+                </div>
+              </div>
+              <div
+                class="modal-item modal-item-shrink"
+              >
+                <div
+                  class="modal-subtitle-section"
+                >
+                  <div
+                    class="modal-subtitle"
+                  >
+                    Modal Subtitle
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+    data-suppressed="true"
+  />
+</body>
+`;
+
+exports[`ClayModal renders a body component with url 1`] = `
+<body
+  class="modal-open"
+>
+  <div>
+    <div
+      aria-hidden="true"
+      class="modal-backdrop fade show"
+      data-suppressed="true"
+    />
+    <div
+      class="fade modal d-block show"
+    >
+      <div
+        class="modal-dialog"
+      >
+        <div
+          aria-labelledby="clay-modal-label-7"
+          aria-modal="true"
+          class="modal-content"
+          role="dialog"
+          tabindex="-1"
+        >
+          <div
+            class="modal-body modal-body-iframe"
+          >
+            <iframe
+              src="http://localhost"
+              title="http://localhost"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+    data-suppressed="true"
+  />
+</body>
+`;
+
+exports[`ClayModal renders a footer component with buttons 1`] = `
+<body
+  class="modal-open"
+>
+  <div>
+    <div
+      aria-hidden="true"
+      class="modal-backdrop fade show"
+      data-suppressed="true"
+    />
+    <div
+      class="fade modal d-block show"
+    >
+      <div
+        class="modal-dialog"
+      >
+        <div
+          aria-labelledby="clay-modal-label-8"
+          aria-modal="true"
+          class="modal-content"
+          role="dialog"
+          tabindex="-1"
+        >
+          <div
+            class="modal-footer"
+          >
+            <div
+              class="modal-item-first"
+            >
+              <button
+                class="btn btn-primary"
+                type="button"
+              >
+                Bar
+              </button>
+            </div>
+            <div
+              class="modal-item"
+            >
+              <button
+                class="btn btn-primary"
+                type="button"
+              >
+                Baz
+              </button>
+            </div>
+            <div
+              class="modal-item-last"
+            >
+              <button
+                class="btn btn-primary"
+                type="button"
+              >
+                Foo
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+    data-suppressed="true"
+  />
+</body>
+`;
+
+exports[`ClayModal renders with Header 1`] = `
+<body
+  class="modal-open"
+>
+  <div>
+    <div
+      aria-hidden="true"
+      class="modal-backdrop fade show"
+      data-suppressed="true"
+    />
+    <div
+      class="fade modal d-block show"
+    >
+      <div
+        class="modal-dialog"
+      >
+        <div
+          aria-labelledby="clay-modal-label-2"
+          aria-modal="true"
+          class="modal-content"
+          role="dialog"
+          tabindex="-1"
+        >
+          <div
+            class="modal-header"
+          >
+            <h1
+              class="modal-title"
+              id="clay-modal-label-2"
+              tabindex="-1"
+            >
+              Foo
+            </h1>
+            <button
+              aria-label="Close"
+              class="close btn btn-unstyled"
+              type="button"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-times"
+                role="presentation"
+              >
+                <use
+                  href="icons.svg#times"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+    data-suppressed="true"
+  />
+</body>
+`;
+
+exports[`ClayModal renders with center 1`] = `
+<body
+  class="modal-open"
+>
+  <div>
+    <div
+      aria-hidden="true"
+      class="modal-backdrop fade show"
+      data-suppressed="true"
+    />
+    <div
+      class="fade modal d-block show"
+    >
+      <div
+        class="modal-dialog modal-dialog-centered"
+      >
+        <div
+          aria-labelledby="clay-modal-label-6"
+          aria-modal="true"
+          class="modal-content"
+          role="dialog"
+          tabindex="-1"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+    data-suppressed="true"
+  />
+</body>
+`;
+
+exports[`ClayModal renders with size 1`] = `
+<body
+  class="modal-open"
+>
+  <div>
+    <div
+      aria-hidden="true"
+      class="modal-backdrop fade show"
+      data-suppressed="true"
+    />
+    <div
+      class="fade modal d-block show"
+    >
+      <div
+        class="modal-dialog modal-lg"
+      >
+        <div
+          aria-labelledby="clay-modal-label-4"
+          aria-modal="true"
+          class="modal-content"
+          role="dialog"
+          tabindex="-1"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+    data-suppressed="true"
+  />
+</body>
+`;
+
+exports[`ClayModal renders with status 1`] = `
+<body
+  class="modal-open"
+>
+  <div>
+    <div
+      aria-hidden="true"
+      class="modal-backdrop fade show"
+      data-suppressed="true"
+    />
+    <div
+      class="fade modal d-block show"
+    >
+      <div
+        class="modal-dialog modal-success"
+      >
+        <div
+          aria-labelledby="clay-modal-label-5"
+          aria-modal="true"
+          class="modal-content"
+          role="dialog"
+          tabindex="-1"
+        />
+      </div>
+    </div>
+  </div>
+  <div
+    aria-hidden="true"
+    data-suppressed="true"
+  />
+</body>
+`;

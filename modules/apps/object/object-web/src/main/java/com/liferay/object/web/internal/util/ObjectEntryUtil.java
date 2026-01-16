@@ -150,7 +150,7 @@ public class ObjectEntryUtil {
 	}
 
 	public static ObjectEntry toObjectEntry(
-		long objectDefinitionId,
+		ObjectDefinition objectDefinition,
 		com.liferay.object.rest.dto.v1_0.ObjectEntry objectEntry) {
 
 		ObjectEntry serviceBuilderObjectEntry =
@@ -160,7 +160,12 @@ public class ObjectEntryUtil {
 			objectEntry.getExternalReferenceCode());
 		serviceBuilderObjectEntry.setObjectEntryId(
 			GetterUtil.getLong(objectEntry.getId()));
-		serviceBuilderObjectEntry.setObjectDefinitionId(objectDefinitionId);
+		serviceBuilderObjectEntry.setGroupId(
+			GetterUtil.getLong(objectEntry.getScopeId()));
+		serviceBuilderObjectEntry.setObjectDefinitionId(
+			objectDefinition.getObjectDefinitionId());
+		serviceBuilderObjectEntry.setDefaultLanguageId(
+			objectEntry.getDefaultLanguageId());
 
 		return new ProxyObjectEntry(serviceBuilderObjectEntry, objectEntry);
 	}

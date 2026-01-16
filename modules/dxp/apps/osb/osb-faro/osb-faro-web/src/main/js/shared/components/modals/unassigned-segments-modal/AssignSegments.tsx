@@ -92,7 +92,7 @@ const AssignSegments: React.FC<IAssignSegmentsProps> = ({groupId, onClose}) => {
 				data-testid={`select-${id}`}
 				items={options as {label: string; value: string}[]}
 				onSelectionChange={selectedValue =>
-					updateSegment(id, selectedValue)
+					updateSegment(id, selectedValue as string)
 				}
 				required
 				selectedKey={channelMappings[id]}
@@ -114,7 +114,7 @@ const AssignSegments: React.FC<IAssignSegmentsProps> = ({groupId, onClose}) => {
 
 		const segmentsFn = toUpdate.map(({channelId, id}) => {
 			if (channelId === DELETE_OPTION.value) {
-				return () => API.individualSegment.delete({groupId, id});
+				return () => API.individualSegment.delete({groupId, ids: [id]});
 			}
 
 			return () =>

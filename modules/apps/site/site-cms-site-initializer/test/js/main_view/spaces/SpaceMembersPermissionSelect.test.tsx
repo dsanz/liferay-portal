@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -91,6 +91,20 @@ describe('SpaceMembersPermissionSelect', () => {
 		const triggerText = screen.getByTitle('Space Member US, Role 1 US');
 
 		expect(triggerText).toHaveTextContent('Space Member US, Role 1 US');
+	});
+
+	it('displays truncated trigger text when more than two roles are selected', () => {
+		render(
+			<SpaceMembersPermissionSelect
+				{...props}
+				selectedRoles={[SPACE_MEMBER_ROLE_NAME, 'Role 1', 'Role 2']}
+			/>
+		);
+
+		const trigger = screen.getByTitle(
+			'Space Member US, Role 1 US, Role 2 US'
+		);
+		expect(trigger).toHaveTextContent('Space Member US, Role 1 US, +1');
 	});
 
 	it('disables the "Space Member" role checkbox', async () => {

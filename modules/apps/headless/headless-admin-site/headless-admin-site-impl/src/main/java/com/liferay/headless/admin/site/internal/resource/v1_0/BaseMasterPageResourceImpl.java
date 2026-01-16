@@ -257,9 +257,9 @@ public abstract class BaseMasterPageResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(siteExternalReferenceCode);
-		String resourceName = getPermissionCheckerResourceName(
-			siteExternalReferenceCode, masterPageExternalReferenceCode);
 		Long resourceId = getPermissionCheckerResourceId(
+			siteExternalReferenceCode, masterPageExternalReferenceCode);
+		String resourceName = getPermissionCheckerResourceName(
 			siteExternalReferenceCode, masterPageExternalReferenceCode);
 
 		PermissionServiceUtil.checkPermission(
@@ -882,9 +882,9 @@ public abstract class BaseMasterPageResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(siteExternalReferenceCode);
-		String resourceName = getPermissionCheckerResourceName(
-			siteExternalReferenceCode, masterPageExternalReferenceCode);
 		Long resourceId = getPermissionCheckerResourceId(
+			siteExternalReferenceCode, masterPageExternalReferenceCode);
+		String resourceName = getPermissionCheckerResourceName(
 			siteExternalReferenceCode, masterPageExternalReferenceCode);
 
 		PermissionServiceUtil.checkPermission(
@@ -1284,6 +1284,9 @@ public abstract class BaseMasterPageResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

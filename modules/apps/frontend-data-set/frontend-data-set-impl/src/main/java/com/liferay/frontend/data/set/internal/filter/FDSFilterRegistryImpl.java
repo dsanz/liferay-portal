@@ -55,8 +55,7 @@ public class FDSFilterRegistryImpl implements FDSFilterRegistry {
 		}
 
 		return TransformUtil.transform(
-			fdsFilterServiceWrappers,
-			fdsFilterServiceWrapper -> fdsFilterServiceWrapper.getService());
+			fdsFilterServiceWrappers, ServiceWrapper::getService);
 	}
 
 	@Activate

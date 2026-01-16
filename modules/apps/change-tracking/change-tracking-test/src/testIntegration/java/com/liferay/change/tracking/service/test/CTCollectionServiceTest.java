@@ -11,6 +11,7 @@ import com.liferay.change.tracking.constants.CTActionKeys;
 import com.liferay.change.tracking.constants.CTConstants;
 import com.liferay.change.tracking.constants.CTDestinationNames;
 import com.liferay.change.tracking.exception.CTPublishConflictException;
+import com.liferay.change.tracking.internal.test.util.CTCollectionTestUtil;
 import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.change.tracking.model.CTEntry;
 import com.liferay.change.tracking.model.CTProcess;
@@ -26,7 +27,6 @@ import com.liferay.journal.service.JournalFolderLocalService;
 import com.liferay.journal.test.util.JournalFolderFixture;
 import com.liferay.journal.test.util.JournalTestUtil;
 import com.liferay.petra.lang.SafeCloseable;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.background.task.model.BackgroundTask;
 import com.liferay.portal.background.task.service.BackgroundTaskLocalService;
@@ -76,6 +76,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
@@ -129,6 +130,8 @@ public class CTCollectionServiceTest {
 			null, TestPropsValues.getCompanyId(), _user.getUserId(), 0,
 			RandomTestUtil.randomString(), null);
 
+		_ctCollections.add(_ctCollection);
+
 		Assert.assertTrue(
 			_ctCollectionModelResourcePermission.contains(
 				permissionChecker, _ctCollection, CTActionKeys.PUBLISH));
@@ -169,6 +172,8 @@ public class CTCollectionServiceTest {
 		_ctCollection = _ctCollectionService.addCTCollection(
 			null, _user.getCompanyId(), _user.getUserId(), 0,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString());
+
+		_ctCollections.add(_ctCollection);
 
 		try (SafeCloseable safeCloseable =
 				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
@@ -217,15 +222,17 @@ public class CTCollectionServiceTest {
 
 		try (Connection connection = DataAccess.getConnection();
 			PreparedStatement preparedStatement = connection.prepareStatement(
-				StringBundler.concat(
-					"select count(*) from JournalArticle where id_ = ",
-					journalArticle.getPrimaryKey(), " and ctCollectionId = ",
-					_ctCollection.getCtCollectionId()));
-			ResultSet resultSet = preparedStatement.executeQuery()) {
+				"select count(*) from JournalArticle where id_ = ? and " +
+					"ctCollectionId = ?")) {
 
-			Assert.assertTrue(resultSet.next());
+			preparedStatement.setLong(1, journalArticle.getPrimaryKey());
+			preparedStatement.setLong(2, _ctCollection.getCtCollectionId());
 
-			Assert.assertEquals(0, resultSet.getInt(1));
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				Assert.assertTrue(resultSet.next());
+
+				Assert.assertEquals(0, resultSet.getInt(1));
+			}
 		}
 
 		Destination destination = MessageBusUtil.getDestination(
@@ -277,6 +284,8 @@ public class CTCollectionServiceTest {
 			null, _user.getCompanyId(), _user.getUserId(), 0,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString());
 
+		_ctCollections.add(fromCollection);
+
 		JournalFolder journalFolder = null;
 		String folderName = RandomTestUtil.randomString();
 
@@ -291,6 +300,8 @@ public class CTCollectionServiceTest {
 		CTCollection toCTCollection = _ctCollectionService.addCTCollection(
 			null, _user.getCompanyId(), _user.getUserId(), 0,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString());
+
+		_ctCollections.add(toCTCollection);
 
 		try (SafeCloseable safeCloseable =
 				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
@@ -332,6 +343,8 @@ public class CTCollectionServiceTest {
 			null, _user.getCompanyId(), _user.getUserId(), 0,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString());
 
+		_ctCollections.add(fromCollection);
+
 		JournalArticle journalArticle1 = JournalTestUtil.addArticle(
 			_group.getGroupId(),
 			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
@@ -348,6 +361,8 @@ public class CTCollectionServiceTest {
 		CTCollection toCTCollection = _ctCollectionService.addCTCollection(
 			null, _user.getCompanyId(), _user.getUserId(), 0,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString());
+
+		_ctCollections.add(toCTCollection);
 
 		try (SafeCloseable safeCloseable =
 				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
@@ -389,6 +404,8 @@ public class CTCollectionServiceTest {
 			null, _user.getCompanyId(), _user.getUserId(), 0,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString());
 
+		_ctCollections.add(fromCollection);
+
 		JournalArticle journalArticle = null;
 
 		try (SafeCloseable safeCloseable =
@@ -403,6 +420,8 @@ public class CTCollectionServiceTest {
 		CTCollection toCTCollection = _ctCollectionService.addCTCollection(
 			null, _user.getCompanyId(), _user.getUserId(), 0,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString());
+
+		_ctCollections.add(toCTCollection);
 
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				"com.liferay.change.tracking.service.impl." +
@@ -442,8 +461,23 @@ public class CTCollectionServiceTest {
 			null, _user.getCompanyId(), _user.getUserId(), 0,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString());
 
+		_ctCollections.add(_ctCollection);
+
+		_assertPublishCTCollection(1);
+
+		_ctCollection =
+			CTCollectionTestUtil.createCTCollectionWithIncompleteStatus(_user);
+
+		_ctCollections.add(_ctCollection);
+
+		_assertPublishCTCollection(2);
+	}
+
+	private void _assertPublishCTCollection(long expectedCTCollectionsCount)
+		throws Exception {
+
 		Assert.assertEquals(
-			1,
+			expectedCTCollectionsCount,
 			_ctCollectionService.getCTCollectionsCount(
 				_user.getCompanyId(), null, ""));
 
@@ -522,7 +556,6 @@ public class CTCollectionServiceTest {
 	@Inject
 	private static RoleLocalService _roleLocalService;
 
-	@DeleteAfterTestRun
 	private CTCollection _ctCollection;
 
 	@Inject(
@@ -532,12 +565,11 @@ public class CTCollectionServiceTest {
 		_ctCollectionModelResourcePermission;
 
 	@DeleteAfterTestRun
-	private Group _group;
+	private final List<CTCollection> _ctCollections = new ArrayList<>();
 
+	private Group _group;
 	private final JournalFolderFixture _journalFolderFixture =
 		new JournalFolderFixture(_journalFolderLocalService);
-
-	@DeleteAfterTestRun
 	private Role _role;
 
 	@Inject
@@ -546,7 +578,6 @@ public class CTCollectionServiceTest {
 	@Inject
 	private SearchRequestBuilderFactory _searchRequestBuilderFactory;
 
-	@DeleteAfterTestRun
 	private User _user;
 
 }

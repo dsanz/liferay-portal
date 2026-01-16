@@ -173,13 +173,23 @@ public class RoleResourceImpl
 		return new ExportImportDescriptor() {
 
 			@Override
-			public String getItemClassName() {
+			public String getLabelLanguageKey() {
+				return "roles";
+			}
+
+			@Override
+			public String getModelClassName() {
 				return com.liferay.portal.kernel.model.Role.class.getName();
 			}
 
 			@Override
 			public String getPortletId() {
 				return RolesAdminPortletKeys.ROLES_ADMIN;
+			}
+
+			@Override
+			public String getResourceClassName() {
+				return RoleResourceImpl.class.getName();
 			}
 
 			@Override

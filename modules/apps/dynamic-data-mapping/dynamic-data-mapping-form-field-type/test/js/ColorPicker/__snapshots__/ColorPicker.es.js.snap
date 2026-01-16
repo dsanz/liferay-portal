@@ -3,7 +3,7 @@
 exports[`Field Color Picker renders field disabled 1`] = `
 <div>
   <div
-    class="form-group hide"
+    class="hide"
     data-field-name="colorPicker"
   >
     <input
@@ -72,7 +72,6 @@ exports[`Field Color Picker renders field disabled 1`] = `
 exports[`Field Color Picker renders field with helptext 1`] = `
 <div>
   <div
-    aria-labelledby="colorPicker_fieldDetails"
     class="form-group hide"
     data-field-name="colorPicker"
   >
@@ -132,9 +131,11 @@ exports[`Field Color Picker renders field with helptext 1`] = `
         aria-live="assertive"
         class="form-feedback-item"
       />
-      <div>
+      <span
+        class="form-help-text"
+      >
         Helptext
-      </div>
+      </span>
     </div>
     <span
       class="sr-only"
@@ -214,9 +215,11 @@ exports[`Field Color Picker renders field with label 1`] = `
         aria-live="assertive"
         class="form-feedback-item"
       />
-      <div>
+      <span
+        class="form-help-text"
+      >
         Helptext
-      </div>
+      </span>
     </div>
     <span
       class="sr-only"

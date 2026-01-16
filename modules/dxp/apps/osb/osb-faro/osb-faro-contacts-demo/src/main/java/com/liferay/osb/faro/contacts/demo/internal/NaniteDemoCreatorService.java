@@ -186,8 +186,7 @@ public class NaniteDemoCreatorService extends DemoCreatorService {
 			options.addPart("channelId", channelId);
 			options.addPart("filter", individualSegment.getValue());
 			options.addPart("name", individualSegment.getKey());
-			options.addPart(
-				"segmentType", IndividualSegment.Type.DYNAMIC.name());
+			options.addPart("segmentType", IndividualSegment.Type.BATCH.name());
 			options.setHeaders(headers);
 			options.setLocation(
 				"http://localhost:8080/o/faro/contacts/" +
@@ -405,7 +404,7 @@ public class NaniteDemoCreatorService extends DemoCreatorService {
 					HashMapBuilder.<String, Object>put(
 						"channelId", individualSegment.getChannelId()
 					).put(
-						"filter", individualSegment.getFilter()
+						"filter", individualSegment.getFilterString()
 					).put(
 						"id", individualSegment.getId()
 					).put(
@@ -458,11 +457,6 @@ public class NaniteDemoCreatorService extends DemoCreatorService {
 
 		// Field Mappings
 
-		createFieldMappings(
-			dataSource.getId(),
-			FieldMappingConstants.getSalesforceAccountFieldMappingMaps(),
-			FieldMappingConstants.CONTEXT_ORGANIZATION,
-			FieldMappingConstants.OWNER_TYPE_ACCOUNT);
 		createFieldMappings(
 			dataSource.getId(),
 			FieldMappingConstants.getSalesforceIndividualFieldMappingMaps(),
@@ -543,6 +537,13 @@ public class NaniteDemoCreatorService extends DemoCreatorService {
 		accountsConfiguration.setEnableAllAccounts(true);
 
 		salesforceProvider.setAccountsConfiguration(accountsConfiguration);
+
+		SalesforceProvider.ChannelsConfiguration channelsConfiguration =
+			new SalesforceProvider.ChannelsConfiguration();
+
+		channelsConfiguration.setEnableAllChannels(false);
+
+		salesforceProvider.setChannelsConfiguration(channelsConfiguration);
 
 		SalesforceProvider.ContactsConfiguration contactsConfiguration =
 			new SalesforceProvider.ContactsConfiguration();

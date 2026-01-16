@@ -110,9 +110,8 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 			unicodeProperties.remove("siteNavigationMenuId");
 
 			try {
-				_layoutLocalService.updateLayout(
-					layout.getGroupId(), layout.isPrivateLayout(),
-					layout.getLayoutId(), unicodeProperties.toString());
+				_layoutLocalService.updateTypeSettings(
+					layout, unicodeProperties.toString());
 
 				Layout draftLayout = layout.fetchDraftLayout();
 
@@ -125,10 +124,8 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 
 					unicodeProperties.remove("siteNavigationMenuId");
 
-					_layoutLocalService.updateLayout(
-						draftLayout.getGroupId(), draftLayout.isPrivateLayout(),
-						draftLayout.getLayoutId(),
-						unicodeProperties.toString());
+					_layoutLocalService.updateTypeSettings(
+						draftLayout, unicodeProperties.toString());
 				}
 			}
 			catch (PortalException portalException) {
@@ -183,9 +180,12 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 					siteNavigationMenuItem.getTypeSettings()
 				).build();
 
-			String layoutUuid = unicodeProperties.getProperty("layoutUuid");
+			String externalReferenceCode = unicodeProperties.getProperty(
+				"externalReferenceCode");
 
-			if (Objects.equals(layout.getUuid(), layoutUuid)) {
+			if (Objects.equals(
+					layout.getExternalReferenceCode(), externalReferenceCode)) {
+
 				_siteNavigationMenuItemLocalService.
 					deleteSiteNavigationMenuItem(
 						siteNavigationMenuItem.getSiteNavigationMenuItemId());
@@ -214,9 +214,13 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 					siteNavigationMenuItem.getTypeSettings()
 				).build();
 
-			String layoutUuid = unicodeProperties.getProperty("layoutUuid");
+			String externalReferenceCode = unicodeProperties.getProperty(
+				"externalReferenceCode");
 
-			if (Objects.equals(parentLayout.getUuid(), layoutUuid)) {
+			if (Objects.equals(
+					parentLayout.getExternalReferenceCode(),
+					externalReferenceCode)) {
+
 				return siteNavigationMenuItem.getSiteNavigationMenuItemId();
 			}
 		}
@@ -249,9 +253,12 @@ public class LayoutModelListener extends BaseModelListener<Layout> {
 					siteNavigationMenuItem.getTypeSettings()
 				).build();
 
-			String layoutUuid = unicodeProperties.getProperty("layoutUuid");
+			String externalReferenceCode = unicodeProperties.getProperty(
+				"externalReferenceCode");
 
-			if (Objects.equals(layout.getUuid(), layoutUuid)) {
+			if (Objects.equals(
+					layout.getExternalReferenceCode(), externalReferenceCode)) {
+
 				return true;
 			}
 		}

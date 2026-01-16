@@ -110,10 +110,6 @@ public class DLPortletDataHandler extends BasePortletDataHandler {
 	protected void activate() {
 		setDataLevel(DataLevel.PORTLET_INSTANCE);
 		setDataLocalized(true);
-		setDataPortletPreferences(
-			"rootFolderExternalReferenceCode",
-			"selectedGroupExternalReferenceCode",
-			"selectedRepositoryExternalReferenceCode");
 		setDeletionSystemEventStagedModelTypes(
 			new StagedModelType(DLFileEntryType.class),
 			new StagedModelType(DLFileShortcut.class),
@@ -122,7 +118,7 @@ public class DLPortletDataHandler extends BasePortletDataHandler {
 			new StagedModelType(
 				Repository.class.getName(),
 				StagedModelType.REFERRER_CLASS_NAME_ALL));
-		setExportControls(
+		setExportPortletDataHandlerControls(
 			new PortletDataHandlerBoolean(
 				getNamespace(), "repositories", true, false, null,
 				Repository.class.getName(),
@@ -159,7 +155,8 @@ public class DLPortletDataHandler extends BasePortletDataHandler {
 				DLFileShortcutConstants.getClassName()));
 		setPublishToLiveByDefault(PropsValues.DL_PUBLISH_TO_LIVE_BY_DEFAULT);
 		setRank(90);
-		setStagingControls(getExportControls());
+		setStagingPortletDataHandlerControls(
+			getExportPortletDataHandlerControls());
 	}
 
 	@Reference(

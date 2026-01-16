@@ -15,7 +15,6 @@ const test = mergeTests(
 	apiHelpersTest,
 	featureFlagsTest({
 		'LPD-17564': {enabled: true},
-		'LPS-179669': {enabled: true},
 	}),
 	cmsPagesTest,
 	loginTest()
@@ -45,7 +44,7 @@ test('CMS loads and sections are shown', async ({
 		await expect(contentsPage.newButton).toBeVisible({timeout: 2000});
 	}).toPass();
 
-	await contentsPage.createContent('Basic Content');
+	await contentsPage.createContent('Basic Web Content');
 
 	const title = getRandomString();
 

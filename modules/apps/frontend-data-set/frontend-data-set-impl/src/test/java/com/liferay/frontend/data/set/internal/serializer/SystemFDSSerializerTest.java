@@ -17,6 +17,7 @@ import com.liferay.frontend.data.set.filter.BaseSelectionFDSFilter;
 import com.liferay.frontend.data.set.filter.DateFDSFilterItem;
 import com.liferay.frontend.data.set.filter.FDSFilter;
 import com.liferay.frontend.data.set.filter.FDSFilterContextContributor;
+import com.liferay.frontend.data.set.filter.GroupedFDSFilters;
 import com.liferay.frontend.data.set.filter.SelectionFDSFilterItem;
 import com.liferay.frontend.data.set.internal.action.FDSBulkActionsRegistryImpl;
 import com.liferay.frontend.data.set.internal.filter.ClientExtensionFDSFilterContextContributor;
@@ -52,7 +53,9 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemBuilder;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerCustomizerFactory;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
+import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -117,6 +120,12 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 			themeDisplay
 		);
 
+		Mockito.when(
+			themeDisplay.getUser()
+		).thenReturn(
+			Mockito.mock(User.class)
+		);
+
 		_registerServices(_registerSystemFDSEntry(FDS_NAMES[0]));
 
 		Assert.assertNull(
@@ -168,6 +177,12 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 			httpServletRequest.getAttribute(WebKeys.THEME_DISPLAY)
 		).thenReturn(
 			themeDisplay
+		);
+
+		Mockito.when(
+			themeDisplay.getUser()
+		).thenReturn(
+			Mockito.mock(User.class)
 		);
 
 		_registerServices(_registerSystemFDSEntry(FDS_NAMES[0]));
@@ -781,6 +796,143 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 	}
 
 	@Test
+	public void testSerializeGroupedFDSFilters() throws Exception {
+
+		// Different grouped filters
+
+		mockLanguage();
+
+		GroupedFDSFilters groupedFDSFilters = new GroupedFDSFilters() {
+
+			@Override
+			public JSONArray getGroupedFDSFiltersJSONArray(
+				HttpServletRequest httpServletRequest) {
+
+				return JSONUtil.putAll(
+					JSONUtil.put(TITLES[0], JSONUtil.putAll(IDS[0], IDS[1])),
+					JSONUtil.put(TITLES[1], JSONUtil.putAll(IDS[2], IDS[3])));
+			}
+
+		};
+
+		String serializedGroupedFDSFilters = JSONUtil.putAll(
+			JSONUtil.put(
+				"filters", JSONUtil.putAll(IDS[0], IDS[1])
+			).put(
+				"label", TITLES[0]
+			),
+			JSONUtil.put(
+				"filters", JSONUtil.putAll(IDS[2], IDS[3])
+			).put(
+				"label", TITLES[1]
+			)
+		).toString();
+
+		_registerServices(
+			_registerGroupedFDSFilters(FDS_NAMES[0], groupedFDSFilters),
+			_registerGroupedFDSFilters(
+				FDS_NAMES[1],
+				new GroupedFDSFilters() {
+
+					@Override
+					public JSONArray getGroupedFDSFiltersJSONArray(
+						HttpServletRequest httpServletRequest) {
+
+						return JSONUtil.putAll(
+							JSONUtil.put(
+								TITLES[2], JSONUtil.putAll(IDS[4], IDS[5])));
+					}
+
+				}),
+			_registerSystemFDSEntry(FDS_NAMES[0]),
+			_registerSystemFDSEntry(FDS_NAMES[1]));
+
+		JSONAssert.assertEquals(
+			serializedGroupedFDSFilters,
+			systemFDSSerializer.serializeGroupedFDSFilters(
+				FDS_NAMES[0], httpServletRequest
+			).toString(),
+			JSONCompareMode.STRICT);
+
+		JSONAssert.assertEquals(
+			JSONUtil.putAll(
+				JSONUtil.put(
+					"filters", JSONUtil.putAll(IDS[4], IDS[5])
+				).put(
+					"label", TITLES[2]
+				)
+			).toString(),
+			systemFDSSerializer.serializeGroupedFDSFilters(
+				FDS_NAMES[1], httpServletRequest
+			).toString(),
+			JSONCompareMode.STRICT);
+
+		_unregisterServices();
+
+		// No grouped filters
+
+		_registerServices(_registerSystemFDSEntry(FDS_NAMES[0]));
+
+		JSONAssert.assertEquals(
+			"[]",
+			systemFDSSerializer.serializeGroupedFDSFilters(
+				FDS_NAMES[0], httpServletRequest
+			).toString(),
+			JSONCompareMode.STRICT);
+
+		_unregisterServices();
+
+		// Shared grouped filters
+
+		_registerServices(
+			_registerGroupedFDSFilters(FDS_NAMES[0], groupedFDSFilters),
+			_registerGroupedFDSFilters(FDS_NAMES[1], groupedFDSFilters),
+			_registerSystemFDSEntry(FDS_NAMES[0]),
+			_registerSystemFDSEntry(FDS_NAMES[1]));
+
+		JSONAssert.assertEquals(
+			serializedGroupedFDSFilters,
+			systemFDSSerializer.serializeGroupedFDSFilters(
+				FDS_NAMES[0], httpServletRequest
+			).toString(),
+			JSONCompareMode.STRICT);
+		JSONAssert.assertEquals(
+			serializedGroupedFDSFilters,
+			systemFDSSerializer.serializeGroupedFDSFilters(
+				FDS_NAMES[1], httpServletRequest
+			).toString(),
+			JSONCompareMode.STRICT);
+
+		_unregisterServices();
+	}
+
+	@Test
+	public void testSerializeHideManagementBarInEmptyState() throws Exception {
+		_registerServices(
+			_registerSystemFDSEntry(
+				SystemFDSEntryFactory.create(
+					FDS_NAMES[0]
+				).withHideManagementBarInEmptyState(
+					false
+				)),
+			_registerSystemFDSEntry(
+				SystemFDSEntryFactory.create(
+					FDS_NAMES[1]
+				).withHideManagementBarInEmptyState(
+					true
+				)));
+
+		Assert.assertFalse(
+			systemFDSSerializer.serializeHideManagementBarInEmptyState(
+				FDS_NAMES[0], httpServletRequest));
+		Assert.assertTrue(
+			systemFDSSerializer.serializeHideManagementBarInEmptyState(
+				FDS_NAMES[1], httpServletRequest));
+
+		_unregisterServices();
+	}
+
+	@Test
 	public void testSerializeItemsActions() throws Exception {
 
 		// Different items actions
@@ -1047,6 +1199,32 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 			systemFDSSerializer.serializePropsTransformer(
 				FDS_NAMES[0], httpServletRequest),
 			systemFDSSerializer.serializePropsTransformer(
+				FDS_NAMES[1], httpServletRequest));
+
+		_unregisterServices();
+	}
+
+	@Test
+	public void testSerializeSnapshotsEnabled() throws Exception {
+		_registerServices(
+			_registerSystemFDSEntry(
+				SystemFDSEntryFactory.create(
+					FDS_NAMES[0]
+				).withSnapshotsEnabled(
+					false
+				)),
+			_registerSystemFDSEntry(
+				SystemFDSEntryFactory.create(
+					FDS_NAMES[1]
+				).withSnapshotsEnabled(
+					true
+				)));
+
+		Assert.assertFalse(
+			systemFDSSerializer.serializeSnapshotsEnabled(
+				FDS_NAMES[0], httpServletRequest));
+		Assert.assertTrue(
+			systemFDSSerializer.serializeSnapshotsEnabled(
 				FDS_NAMES[1], httpServletRequest));
 
 		_unregisterServices();
@@ -1683,6 +1861,14 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 			MapUtil.singletonDictionary("frontend.data.set.name", fdsName));
 	}
 
+	private ServiceRegistration<GroupedFDSFilters> _registerGroupedFDSFilters(
+		String fdsName, GroupedFDSFilters groupedFDSFilters) {
+
+		return bundleContext.registerService(
+			GroupedFDSFilters.class, groupedFDSFilters,
+			MapUtil.singletonDictionary("frontend.data.set.name", fdsName));
+	}
+
 	private void _registerServices(
 		ServiceRegistration<?>... serviceRegistrations) {
 
@@ -1732,7 +1918,9 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 				new SystemFDSEntry() {
 
 					@Override
-					public String getAdditionalAPIURLParameters() {
+					public String getAdditionalAPIURLParameters(
+						HttpServletRequest httpServletRequest) {
+
 						return _additionalURLParameters;
 					}
 
@@ -1747,6 +1935,11 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 					@Override
 					public String getDescription() {
 						return "";
+					}
+
+					@Override
+					public boolean getHideManagementBarInEmptyState() {
+						return _hideManagementBarInEmptyState;
 					}
 
 					public int[] getListOfItemsPerPage() {
@@ -1787,6 +1980,11 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 					}
 
 					@Override
+					public boolean getSnapshotsEnabled() {
+						return _snapshotsEnabled;
+					}
+
+					@Override
 					public String getTitle() {
 						return "";
 					}
@@ -1800,6 +1998,14 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 			String additionalURLParameters) {
 
 			_additionalURLParameters = additionalURLParameters;
+
+			return this;
+		}
+
+		public SystemFDSEntryWrapper withHideManagementBarInEmptyState(
+			boolean hideManagementBarInEmptyState) {
+
+			_hideManagementBarInEmptyState = hideManagementBarInEmptyState;
 
 			return this;
 		}
@@ -1821,11 +2027,21 @@ public class SystemFDSSerializerTest extends BaseFDSSerializerTestCase {
 			return this;
 		}
 
+		public SystemFDSEntryWrapper withSnapshotsEnabled(
+			boolean snapshotsEnabled) {
+
+			_snapshotsEnabled = snapshotsEnabled;
+
+			return this;
+		}
+
 		private String _additionalURLParameters;
 		private int _defaultItemsPerPage = -1;
 		private final String _fdsName;
+		private boolean _hideManagementBarInEmptyState;
 		private int[] _listOfItemsPerPage;
 		private String _propsTransformer;
+		private boolean _snapshotsEnabled;
 
 	}
 

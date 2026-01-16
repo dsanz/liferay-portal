@@ -34,6 +34,7 @@ export default function UpperToolbar({
 	isView,
 	languageIds,
 	portletNamespace,
+	scope,
 }) {
 	const {
 		active,
@@ -141,7 +142,7 @@ export default function UpperToolbar({
 			);
 		}
 		else {
-			const xmlDefinition = currentEditor.getData();
+			const xmlDefinition = currentEditor.getValue();
 
 			if (XMLUtil.validateDefinition(xmlDefinition)) {
 				const deserializeUtil = new DeserializeUtil();
@@ -218,14 +219,17 @@ export default function UpperToolbar({
 		} = validXMLDefinition;
 
 		const publishedOrSavedDefinitionResponse =
-			await saveOrPublishDefinitionRequest({
-				active,
-				content: xmlDefinition,
-				name,
-				title: definitionTitle,
-				title_i18n: definitionTitleTranslations,
-				version,
-			});
+			await saveOrPublishDefinitionRequest(
+				{
+					active,
+					content: xmlDefinition,
+					name,
+					title: definitionTitle,
+					title_i18n: definitionTitleTranslations,
+					version,
+				},
+				scope ? scope : {}
+			);
 
 		const publishedOrSavedDefinitionResponseJSON =
 			await publishedOrSavedDefinitionResponse.json();
@@ -532,7 +536,7 @@ export default function UpperToolbar({
 									onClick={() => {
 										if (
 											XMLUtil.validateDefinition(
-												currentEditor.getData()
+												currentEditor.getValue()
 											)
 										) {
 											setSourceView(false);
@@ -565,6 +569,7 @@ export default function UpperToolbar({
 				<ClayAlert.ToastContainer>
 					<ClayAlert
 						autoClose={5000}
+						closeButtonAriaLabel={Liferay.Language.get('close')}
 						displayType={alertType}
 						onClose={() => resetAlert()}
 						title={

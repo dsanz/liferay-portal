@@ -32,10 +32,10 @@ dependencies {
 	compileInclude group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-smile", version: "2.18.2"
 	compileInclude group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-yaml", version: "2.18.2"
 	compileInclude group: "com.liferay", name: "org.apache.commons.logging", version: "1.2.LIFERAY-PATCHED-2"
-	compileInclude group: "com.liferay", name: "org.apache.logging.log4j", version: "2.17.1.LIFERAY-PATCHED-1"
 	compileInclude group: "com.liferay", name: "org.apache.logging.log4j.core", version: "2.17.1.LIFERAY-PATCHED-2"
 	compileInclude group: "com.liferay", name: "org.elasticsearch.plugin.legacy.geo", version: elasticsearchClientVersion
 	compileInclude group: "commons-lang", name: "commons-lang", version: "2.6"
+	compileInclude group: "org.apache.logging.log4j", name: "log4j-api", version: "2.17.1"
 	compileInclude group: "org.apache.lucene", name: "lucene-core", version: luceneVersion
 	compileInclude group: "org.apache.lucene", name: "lucene-highlighter", version: luceneVersion
 	compileInclude group: "org.apache.lucene", name: "lucene-join", version: luceneVersion
@@ -62,7 +62,6 @@ dependencies {
 	compileOnly group: "com.fasterxml.jackson.core", name: "jackson-core", version: "2.18.2"
 	compileOnly group: "com.fasterxml.jackson.dataformat", name: "jackson-dataformat-cbor", version: "2.18.2"
 	compileOnly group: "com.fasterxml.woodstox", name: "woodstox-core", version: "6.4.0"
-	compileOnly group: "com.google.code.gson", name: "gson", version: "2.9.0"
 	compileOnly group: "com.ibm.icu", name: "icu4j", version: "69.1"
 	compileOnly group: "com.liferay", name: "biz.aQute.bnd.annotation", version: "4.2.0.LIFERAY-PATCHED-2"
 	compileOnly group: "com.liferay.portal", name: "com.liferay.portal.impl", version: "default"

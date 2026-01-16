@@ -23,10 +23,10 @@ import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,26 +38,9 @@ import org.json.JSONObject;
 public class TestrayFactory {
 
 	public static TestrayCaseResult newBuildTestrayCaseResult(
-		TestrayBuild testrayBuild, TopLevelBuildReport topLevelBuildReport,
-		AxisTestClassGroup axisTestClassGroup) {
-
-		return newBuildTestrayCaseResult(
-			testrayBuild, topLevelBuildReport, axisTestClassGroup, null, null);
-	}
-
-	public static TestrayCaseResult newBuildTestrayCaseResult(
-		TestrayBuild testrayBuild, TopLevelBuildReport topLevelBuildReport,
-		AxisTestClassGroup axisTestClassGroup, TestClass testClass) {
-
-		return newBuildTestrayCaseResult(
-			testrayBuild, topLevelBuildReport, axisTestClassGroup, testClass,
-			null);
-	}
-
-	public static TestrayCaseResult newBuildTestrayCaseResult(
-		TestrayBuild testrayBuild, TopLevelBuildReport topLevelBuildReport,
 		AxisTestClassGroup axisTestClassGroup, TestClass testClass,
-		TestClassMethod testClassMethod) {
+		TestClassMethod testClassMethod, TestrayBuild testrayBuild,
+		TopLevelBuildReport topLevelBuildReport) {
 
 		if (testrayBuild == null) {
 			throw new RuntimeException("Testray build is null");
@@ -74,36 +57,36 @@ public class TestrayFactory {
 		if (testClass != null) {
 			if (axisTestClassGroup instanceof FunctionalAxisTestClassGroup) {
 				return new FunctionalBatchBuildTestrayCaseResult(
-					testrayBuild, topLevelBuildReport, axisTestClassGroup,
-					testClass);
+					axisTestClassGroup, testClass, testrayBuild,
+					topLevelBuildReport);
 			}
 			else if (axisTestClassGroup instanceof JSUnitAxisTestClassGroup) {
 				return new JSUnitBatchBuildTestrayCaseResult(
-					testrayBuild, topLevelBuildReport, axisTestClassGroup,
-					testClass);
+					axisTestClassGroup, testClass, testrayBuild,
+					topLevelBuildReport);
 			}
 			else if (axisTestClassGroup instanceof JUnitAxisTestClassGroup) {
 				return new JUnitBatchBuildTestrayCaseResult(
-					testrayBuild, topLevelBuildReport, axisTestClassGroup,
-					testClass);
+					axisTestClassGroup, testClass, testrayBuild,
+					topLevelBuildReport);
 			}
 			else if (axisTestClassGroup instanceof ModulesAxisTestClassGroup) {
 				if (testClass instanceof ServiceBuilderAntTargetTestClass) {
 					return new AntTargetBatchBuildTestrayCaseResult(
-						testrayBuild, topLevelBuildReport, axisTestClassGroup,
-						testClass);
+						axisTestClassGroup, testClass, testrayBuild,
+						topLevelBuildReport);
 				}
 
 				return new ModulesBatchBuildTestrayCaseResult(
-					testrayBuild, topLevelBuildReport, axisTestClassGroup,
-					testClass);
+					axisTestClassGroup, testClass, testrayBuild,
+					topLevelBuildReport);
 			}
 			else if (axisTestClassGroup instanceof
 						PlaywrightAxisTestClassGroup) {
 
 				return new PlaywrightBatchBuildTestrayCaseResult(
-					testrayBuild, topLevelBuildReport, axisTestClassGroup,
-					testClass, testClassMethod);
+					axisTestClassGroup, testClass, testClassMethod,
+					testrayBuild, topLevelBuildReport);
 			}
 		}
 
@@ -112,11 +95,28 @@ public class TestrayFactory {
 				"test-portal-source-format")) {
 
 			return new SFBatchBuildTestrayCaseResult(
-				testrayBuild, topLevelBuildReport, axisTestClassGroup);
+				axisTestClassGroup, testrayBuild, topLevelBuildReport);
 		}
 
-		return new BatchBuildTestrayCaseResult(
-			testrayBuild, topLevelBuildReport, axisTestClassGroup);
+		return new BatchBuildTestrayCaseResult<>(
+			axisTestClassGroup, testrayBuild, topLevelBuildReport);
+	}
+
+	public static TestrayCaseResult newBuildTestrayCaseResult(
+		AxisTestClassGroup axisTestClassGroup, TestClass testClass,
+		TestrayBuild testrayBuild, TopLevelBuildReport topLevelBuildReport) {
+
+		return newBuildTestrayCaseResult(
+			axisTestClassGroup, testClass, null, testrayBuild,
+			topLevelBuildReport);
+	}
+
+	public static TestrayCaseResult newBuildTestrayCaseResult(
+		AxisTestClassGroup axisTestClassGroup, TestrayBuild testrayBuild,
+		TopLevelBuildReport topLevelBuildReport) {
+
+		return newBuildTestrayCaseResult(
+			axisTestClassGroup, null, null, testrayBuild, topLevelBuildReport);
 	}
 
 	public static TestrayCaseResult newJSONObjectTestrayCaseResult(
@@ -133,11 +133,11 @@ public class TestrayFactory {
 
 	public static PortalLogBatchBuildTestrayCaseResult
 		newPortalLogTestrayCaseResult(
-			TestrayBuild testrayBuild, TopLevelBuildReport topLevelBuildReport,
-			AxisTestClassGroup axisTestClassGroup) {
+			AxisTestClassGroup axisTestClassGroup, TestrayBuild testrayBuild,
+			TopLevelBuildReport topLevelBuildReport) {
 
 		return new PortalLogBatchBuildTestrayCaseResult(
-			testrayBuild, topLevelBuildReport, axisTestClassGroup);
+			axisTestClassGroup, testrayBuild, topLevelBuildReport);
 	}
 
 	public static TestrayAttachment newTestrayAttachment(
@@ -282,6 +282,14 @@ public class TestrayFactory {
 	}
 
 	public static TestrayRun newTestrayRun(
+		TestrayBuild testrayBuild, AxisTestClassGroup axisTestClassGroup,
+		List<File> propertiesFiles) {
+
+		return new TestrayRun(
+			testrayBuild, axisTestClassGroup, propertiesFiles);
+	}
+
+	public static TestrayRun newTestrayRun(
 		TestrayBuild testrayBuild, JSONObject jsonObject) {
 
 		return new TestrayRun(testrayBuild, jsonObject);
@@ -356,17 +364,17 @@ public class TestrayFactory {
 	}
 
 	private static final Map<Build, TestrayAttachmentRecorder>
-		_testrayAttachmentRecorders = new HashMap<>();
+		_testrayAttachmentRecorders = new ConcurrentHashMap<>();
 	private static final Map<String, TestrayAttachmentUploader>
-		_testrayAttachmentUploaders = new HashMap<>();
+		_testrayAttachmentUploaders = new ConcurrentHashMap<>();
 	private static final Map<String, TestrayRoutine> _testrayRoutines =
-		new HashMap<>();
+		new ConcurrentHashMap<>();
 	private static final Map<String, TestrayServer> _testrayServers =
-		new HashMap<>();
+		new ConcurrentHashMap<>();
 	private static final Pattern _testrayURLPattern = Pattern.compile(
 		"https://(testray\\.liferay\\.com|webserver-testray2" +
 			"(-prd\\d*|-uat\\d*)?.lfr.cloud)");
 	private static final Map<Long, TopLevelStandaloneBuildTestrayCaseResult>
-		_topLevelBuildTestrayCaseResults = new HashMap<>();
+		_topLevelBuildTestrayCaseResults = new ConcurrentHashMap<>();
 
 }

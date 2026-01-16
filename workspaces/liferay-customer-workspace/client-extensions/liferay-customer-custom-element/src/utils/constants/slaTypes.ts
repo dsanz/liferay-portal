@@ -4,8 +4,12 @@
  */
 
 export const SLA_TYPES = {
+	global: 'Global 24/7',
 	gold: 'Gold',
 	limited: 'Limited',
 	platinum: 'Platinum',
+	premier: 'Premier 24/7',
 	premium: 'Premium',
+	standard: 'Standard 8/5',
+	strategic: 'Strategic 24/7',
 };

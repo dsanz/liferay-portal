@@ -83,7 +83,6 @@ test('Checks that a widget can be added and dragged to another part of the page'
 	await dragAndDropElement({
 		dragTarget: page.locator('[data-name="Sort"]'),
 		dropTarget: gridColumn.nth(2),
-		page,
 	});
 
 	expect(gridColumn.nth(2).locator('[data-name="Sort"]')).toBeVisible();
@@ -204,7 +203,7 @@ test(
 
 		const dropTarget = page.locator('[data-name="Container"]');
 
-		await dragAndDropElement({
+		await pageEditorPage.dragAndDropFragment({
 			dragTarget: page.locator('[data-name="Button"]'),
 			dropTarget,
 			page,
@@ -699,7 +698,7 @@ test(
 
 		const layout = await apiHelpers.jsonWebServicesLayout.addLayout({
 			groupId: site.id,
-			masterLayoutPlid: masterPage.plid,
+			masterLayoutPageTemplateEntryERC: masterPage.externalReferenceCode,
 			options: {type: 'content'},
 			title: getRandomString(),
 		});
@@ -708,18 +707,24 @@ test(
 
 		// Drag and drop a fragment inside master page fragments area, should throw an error
 
-		await dragAndDropElement({
-			dragTarget: page.getByRole('menuitem', {
-				name: 'Add Button',
-			}),
-			dropTarget: page.locator('.page-editor__fragment-content--master'),
-			force: true,
-			page,
-		});
+		await expect(async () => {
+			await pageEditorPage.dragAndDropFragment({
+				dragTarget: page.getByRole('menuitem', {
+					name: 'Add Button',
+				}),
+				dropTarget: page.locator(
+					'.page-editor__fragment-content--master'
+				),
+				force: true,
+				page,
+				timeout: 1000,
+			});
 
-		await expect(page.locator('.alert-danger')).toHaveText(
-			'Error:Fragments and widgets cannot be placed inside this area.'
-		);
+			await expect(page.locator('.alert-danger')).toHaveText(
+				'Error:Fragments and widgets cannot be placed inside this area.',
+				{timeout: 2000}
+			);
+		}).toPass();
 	}
 );
 

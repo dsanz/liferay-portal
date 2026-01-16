@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import {
 	fireEvent,
 	render,
@@ -314,10 +314,6 @@ describe('[CMS Dashboard] Components: AllCategoriesDropdown', () => {
 		expect(onSelectItem).toHaveBeenCalledTimes(0);
 
 		await waitFor(() => {
-			expect(
-				screen.queryByText('filter-by-category')
-			).not.toBeInTheDocument();
-
 			expect(screen.getAllByRole('menuitem').length).toBe(2);
 
 			expect(
@@ -338,8 +334,6 @@ describe('[CMS Dashboard] Components: AllCategoriesDropdown', () => {
 		expect(onSelectItem).toHaveBeenCalledTimes(0);
 
 		expect(screen.getAllByRole('menuitem').length).toBe(2);
-
-		expect(screen.queryByText('filter-by-category')).toBeInTheDocument();
 
 		expect(
 			screen.getByRole('menuitem', {name: 'vocabulary 01'})

@@ -7,7 +7,7 @@ import useTranslationProgress, {
 	fieldToTranslations,
 } from '../../../src/main/resources/META-INF/resources/js/translation_manager/useTranslationProgress';
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import {fireEvent, render, screen, within} from '@testing-library/react';
 import {act, renderHook} from '@testing-library/react-hooks';
 import userEvent from '@testing-library/user-event';
@@ -187,5 +187,28 @@ describe('TranslationManager', () => {
 			{fieldName: 'description', languages: ['ar_SA']},
 			{fieldName: 'name', languages: ['ca_ES']},
 		]);
+	});
+
+	it('shows two specific fields when switching from EN to ar_SA', async () => {
+		const descriptionMsg = document.createElement('p');
+		descriptionMsg.id =
+			DEFAULT_PROPS.namespace + 'descriptionNotTranslatableMessage';
+		descriptionMsg.hidden = true;
+		document.body.appendChild(descriptionMsg);
+
+		const friendlyMsg = document.createElement('p');
+		friendlyMsg.id =
+			DEFAULT_PROPS.namespace + 'friendlyURLNotTranslatableMessage';
+		friendlyMsg.hidden = true;
+		document.body.appendChild(friendlyMsg);
+
+		renderComponent();
+
+		userEvent.click(screen.getByRole('combobox'));
+		const listbox = await screen.findByRole('listbox');
+		fireEvent.click(within(listbox).getByText('ar-SA'));
+
+		expect(descriptionMsg.hidden).toBe(false);
+		expect(friendlyMsg.hidden).toBe(false);
 	});
 });

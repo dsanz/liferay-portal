@@ -1649,6 +1649,98 @@ public abstract class BaseObjectEntryFolderResourceTestCase {
 	}
 
 	@Test
+	public void testPostObjectEntryFolderByParentObjectEntryFolderCopy()
+		throws Exception {
+
+		ObjectEntryFolder randomObjectEntryFolder = randomObjectEntryFolder();
+
+		ObjectEntryFolder postObjectEntryFolder =
+			testPostObjectEntryFolderByParentObjectEntryFolderCopy_addObjectEntryFolder(
+				randomObjectEntryFolder);
+
+		assertEquals(randomObjectEntryFolder, postObjectEntryFolder);
+		assertValid(postObjectEntryFolder);
+	}
+
+	protected ObjectEntryFolder
+			testPostObjectEntryFolderByParentObjectEntryFolderCopy_addObjectEntryFolder(
+				ObjectEntryFolder objectEntryFolder)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testPostObjectEntryFolderByParentObjectEntryFolderCopyReplace()
+		throws Exception {
+
+		ObjectEntryFolder randomObjectEntryFolder = randomObjectEntryFolder();
+
+		ObjectEntryFolder postObjectEntryFolder =
+			testPostObjectEntryFolderByParentObjectEntryFolderCopyReplace_addObjectEntryFolder(
+				randomObjectEntryFolder);
+
+		assertEquals(randomObjectEntryFolder, postObjectEntryFolder);
+		assertValid(postObjectEntryFolder);
+	}
+
+	protected ObjectEntryFolder
+			testPostObjectEntryFolderByParentObjectEntryFolderCopyReplace_addObjectEntryFolder(
+				ObjectEntryFolder objectEntryFolder)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testPostObjectEntryFolderByParentObjectEntryFolderMove()
+		throws Exception {
+
+		ObjectEntryFolder randomObjectEntryFolder = randomObjectEntryFolder();
+
+		ObjectEntryFolder postObjectEntryFolder =
+			testPostObjectEntryFolderByParentObjectEntryFolderMove_addObjectEntryFolder(
+				randomObjectEntryFolder);
+
+		assertEquals(randomObjectEntryFolder, postObjectEntryFolder);
+		assertValid(postObjectEntryFolder);
+	}
+
+	protected ObjectEntryFolder
+			testPostObjectEntryFolderByParentObjectEntryFolderMove_addObjectEntryFolder(
+				ObjectEntryFolder objectEntryFolder)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testPostObjectEntryFolderByParentObjectEntryFolderMoveReplace()
+		throws Exception {
+
+		ObjectEntryFolder randomObjectEntryFolder = randomObjectEntryFolder();
+
+		ObjectEntryFolder postObjectEntryFolder =
+			testPostObjectEntryFolderByParentObjectEntryFolderMoveReplace_addObjectEntryFolder(
+				randomObjectEntryFolder);
+
+		assertEquals(randomObjectEntryFolder, postObjectEntryFolder);
+		assertValid(postObjectEntryFolder);
+	}
+
+	protected ObjectEntryFolder
+			testPostObjectEntryFolderByParentObjectEntryFolderMoveReplace_addObjectEntryFolder(
+				ObjectEntryFolder objectEntryFolder)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
 	public void testPostScopeScopeKeyObjectEntryFolder() throws Exception {
 		ObjectEntryFolder randomObjectEntryFolder = randomObjectEntryFolder();
 
@@ -2247,6 +2339,14 @@ public abstract class BaseObjectEntryFolderResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("scope", additionalAssertFieldName)) {
+				if (objectEntryFolder.getScope() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("scopeId", additionalAssertFieldName)) {
 				if (objectEntryFolder.getScopeId() == null) {
 					valid = false;
@@ -2608,6 +2708,17 @@ public abstract class BaseObjectEntryFolderResourceTestCase {
 				if (!Objects.deepEquals(
 						objectEntryFolder1.getRemovedDate(),
 						objectEntryFolder2.getRemovedDate())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("scope", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						objectEntryFolder1.getScope(),
+						objectEntryFolder2.getScope())) {
 
 					return false;
 				}
@@ -3106,6 +3217,11 @@ public abstract class BaseObjectEntryFolderResourceTestCase {
 			}
 
 			return sb.toString();
+		}
+
+		if (entityFieldName.equals("scope")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
 		}
 
 		if (entityFieldName.equals("scopeId")) {

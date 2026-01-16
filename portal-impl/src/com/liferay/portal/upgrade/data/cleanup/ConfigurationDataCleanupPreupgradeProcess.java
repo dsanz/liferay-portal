@@ -8,13 +8,16 @@ package com.liferay.portal.upgrade.data.cleanup;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.db.DBInspector;
+import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.instance.PortalInstancePool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.upgrade.data.cleanup.DataCleanupPreupgradeProcess;
 import com.liferay.portal.kernel.upgrade.data.cleanup.util.DataCleanupLoggingUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.PropsValues;
 
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -49,8 +52,10 @@ public class ConfigurationDataCleanupPreupgradeProcess
 
 		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
 				"select configurationId, dictionary from Configuration_");
-			PreparedStatement preparedStatement2 = connection.prepareStatement(
-				"delete from Configuration_ where configurationId = ?");
+			PreparedStatement preparedStatement2 =
+				AutoBatchPreparedStatementUtil.autoBatch(
+					connection,
+					"delete from Configuration_ where configurationId = ?");
 			ResultSet resultSet = preparedStatement1.executeQuery()) {
 
 			while (resultSet.next()) {
@@ -61,7 +66,10 @@ public class ConfigurationDataCleanupPreupgradeProcess
 				String configurationId = resultSet.getString("configurationId");
 
 				if (companyId > 0) {
-					if (!ArrayUtil.contains(companyIds, companyId)) {
+					if (!ArrayUtil.contains(companyIds, companyId) ||
+						(PropsValues.DATABASE_PARTITION_ENABLED &&
+						 (CompanyThreadLocal.getCompanyId() != companyId))) {
+
 						_deleteConfiguration(
 							configurationId, dbInspector, "companyId",
 							"Company", companyId, preparedStatement2);

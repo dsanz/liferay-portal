@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {BalloonEditor as BaseBalloonEditor, EventInfo} from 'ckeditor5';
+import {EventInfo} from '@ckeditor/ckeditor5-utils/dist/index.js';
 import React from 'react';
 
+import {BaseCKEditor5BalloonEditor} from '../index';
 import BaseEditor from './BaseEditor';
 import getDefaultEditorConfig from './utils/getDefaultEditorConfig';
 import {
@@ -19,12 +20,16 @@ const BalloonEditor = ({
 	className,
 	config,
 	data,
+	formInputEnabled,
+	formInputName,
 	onChange,
 	onReady,
 }: {
 	className?: string;
 	config?: LiferayEditorConfig;
 	data?: string;
+	formInputEnabled?: boolean;
+	formInputName?: string;
 	onChange?: (event: EventInfo, editor: TEditor) => void;
 	onReady?: (editor: TEditor) => void;
 }) => {
@@ -39,7 +44,9 @@ const BalloonEditor = ({
 				...config,
 			}}
 			data={data}
-			editor={BaseBalloonEditor}
+			editor={BaseCKEditor5BalloonEditor}
+			formInputEnabled={formInputEnabled}
+			formInputName={formInputName}
 			onChange={onChange}
 			onReady={onReady}
 		/>

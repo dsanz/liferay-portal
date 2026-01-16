@@ -8,8 +8,10 @@ import {ReactNode, createContext, useContext, useReducer} from 'react';
 import {useParams} from 'react-router-dom';
 import useSWR from 'swr';
 
+import {breadcrumbStore} from '../components/Breadcrumb/BreadcrumbStore';
 import {UploadedFile} from '../components/FileList/FileList';
 import Loading from '../components/Loading';
+import SearchBuilder from '../core/SearchBuilder';
 import {MarketplaceProduct} from '../entity/MarketplaceProduct';
 import {
 	ProductLicenseTier,
@@ -24,6 +26,7 @@ import {useGetVocabulariesAndCategories} from '../hooks/data/useGetVocabulariesA
 import HeadlessCommerceAdminCatalogImpl from '../services/rest/HeadlessCommerceAdminCatalog';
 import HeadlessDelivery from '../services/rest/HeadlessDelivery';
 import HeadlessPublisherAsset from '../services/rest/HeadlessPublisherAsset';
+import {useMarketplaceContext} from './MarketplaceContext';
 
 export type LicensePrice = {key: number; value: number};
 export type LicenseType = 'Perpetual' | 'Subscription';
@@ -665,7 +668,11 @@ export default function NewAppContextProvider({
 	catalog,
 	children,
 }: NewAppContextProviderProps) {
+	const {
+		properties: {featurePreview},
+	} = useMarketplaceContext();
 	const [state, dispatch] = useReducer(reducer, newAppInitialState);
+
 	const {productId} = useParams();
 	const {data = {}, isLoading: isLoadingVocabularies} =
 		useGetVocabulariesAndCategories([
@@ -688,6 +695,11 @@ export default function NewAppContextProvider({
 			),
 		{
 			onSuccess: (data) => {
+				breadcrumbStore.send({
+					replacements: {[productId as string]: data.name.en_US},
+					type: 'setReplacements',
+				});
+
 				dispatch({
 					payload: data,
 					type: NewAppTypes.SET_CONTEXT,
@@ -711,28 +723,52 @@ export default function NewAppContextProvider({
 	useSWR(
 		product ? `/product/publisher-assetses/${productId}` : null,
 		() =>
-			HeadlessPublisherAsset.getProductPublisherAssetsByProductId(
-				product!.id
+			HeadlessPublisherAsset.getPublisherAssets(
+				new URLSearchParams({
+					filter: SearchBuilder.eq(
+						featurePreview.includes(
+							'product-versioning-new-primary-key'
+						)
+							? 'r_productEntryToPublisherAssets_CProductId'
+							: 'r_productEntryToPublisherAssets_CPDefinitionId',
+						productId as string
+					),
+					nestedFields: 'publisherAssetsToAttachment',
+				})
 			).then((response) => response.items),
 		{
 			onSuccess: async (publisherAssetses) => {
 				const liferayPackages = await Promise.all(
 					publisherAssetses.map(async (publisherAsset) => {
-						const sourceFileDocument =
-							await HeadlessDelivery.getDocument(
-								publisherAsset.sourceCode.id
-							);
+						const packageFiles = await Promise.all(
+							publisherAsset.publisherAssetsToAttachment.map(
+								async (file: {
+									sourceCode: {
+										id: number;
+										link: {href: string};
+										name: string;
+									};
+								}) => {
+									const sourceFileDocument =
+										await HeadlessDelivery.getDocument(
+											file.sourceCode.id
+										);
+
+									return {
+										error: false,
+										fileName: file.sourceCode.name,
+										id: file.sourceCode.id,
+										readableSize: filesize(
+											sourceFileDocument.sizeInBytes
+										),
+										src: file.sourceCode.link.href,
+									};
+								}
+							)
+						);
 
 						return {
-							file: {
-								error: false,
-								fileName: publisherAsset.sourceCode.name,
-								id: publisherAsset.sourceCode.id,
-								readableSize: filesize(
-									sourceFileDocument.sizeInBytes
-								),
-								src: publisherAsset.sourceCode.link.href,
-							},
+							file: packageFiles,
 							id: publisherAsset.id,
 							uploaded: true,
 							versions: publisherAsset.version.split(','),

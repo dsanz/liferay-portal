@@ -6,8 +6,11 @@
 package com.liferay.object.rest.internal.resource.v1_0;
 
 import com.liferay.exportimport.vulcan.batch.engine.ExportImportVulcanBatchEngineTaskItemDelegate;
+import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.exception.ObjectEntryValidationException;
 import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectField;
+import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.model.ObjectRelationshipModel;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.object.rest.dto.v1_0.ValidationError;
@@ -26,31 +29,52 @@ import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.service.ObjectRelationshipService;
 import com.liferay.object.system.SystemObjectDefinitionManagerRegistry;
+import com.liferay.object.tree.Edge;
+import com.liferay.object.tree.Node;
+import com.liferay.object.tree.ObjectDefinitionTreeFactory;
+import com.liferay.object.tree.Tree;
 import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.string.CharPool;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.NoSuchModelException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.vulcan.aggregation.Aggregation;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import com.liferay.portal.vulcan.dto.converter.DefaultDTOConverterContext;
+import com.liferay.portal.vulcan.fields.NestedFieldsContext;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
+import com.liferay.portal.vulcan.resource.NestedFieldsContextResource;
+import com.liferay.portal.vulcan.util.NestedFieldsContextUtil;
+import com.liferay.translation.manager.TranslationManager;
 
 import jakarta.ws.rs.NotSupportedException;
 import jakarta.ws.rs.core.Context;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 
+import java.io.File;
 import java.io.Serializable;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -59,7 +83,8 @@ import java.util.Map;
  */
 public class ObjectEntryResourceImpl
 	extends BaseObjectEntryResourceImpl
-	implements ExportImportVulcanBatchEngineTaskItemDelegate<ObjectEntry> {
+	implements ExportImportVulcanBatchEngineTaskItemDelegate<ObjectEntry>,
+			   NestedFieldsContextResource {
 
 	public ObjectEntryResourceImpl(
 		DTOConverterRegistry dtoConverterRegistry,
@@ -74,7 +99,9 @@ public class ObjectEntryResourceImpl
 		ObjectRelationshipService objectRelationshipService,
 		ObjectScopeProviderRegistry objectScopeProviderRegistry,
 		SystemObjectDefinitionManagerRegistry
-			systemObjectDefinitionManagerRegistry) {
+			systemObjectDefinitionManagerRegistry,
+		TranslationManager translationManager,
+		UserLocalService userLocalService) {
 
 		_dtoConverterRegistry = dtoConverterRegistry;
 		_entityModelProvider = entityModelProvider;
@@ -89,6 +116,8 @@ public class ObjectEntryResourceImpl
 		_objectScopeProviderRegistry = objectScopeProviderRegistry;
 		_systemObjectDefinitionManagerRegistry =
 			systemObjectDefinitionManagerRegistry;
+		_translationManager = translationManager;
+		_userLocalService = userLocalService;
 	}
 
 	@Override
@@ -102,36 +131,83 @@ public class ObjectEntryResourceImpl
 				_objectDefinition.getScope());
 
 		if (objectScopeProvider.isGroupAware()) {
-			UnsafeFunction<ObjectEntry, ObjectEntry, Exception>
-				objectEntryUnsafeFunction = null;
-
-			String createStrategy = (String)parameters.getOrDefault(
-				"createStrategy", "INSERT");
-
-			if (StringUtil.equalsIgnoreCase(createStrategy, "INSERT")) {
-				objectEntryUnsafeFunction = objectEntry -> postScopeScopeKey(
-					_getScopeKey(parameters), objectEntry);
-			}
-
-			if (StringUtil.equalsIgnoreCase(createStrategy, "UPSERT")) {
-				objectEntryUnsafeFunction =
-					objectEntry -> putScopeScopeKeyByExternalReferenceCode(
-						_getScopeKey(parameters),
-						objectEntry.getExternalReferenceCode(), objectEntry);
-			}
-
-			if (objectEntryUnsafeFunction == null) {
-				throw new NotSupportedException(
-					"Create strategy \"" + createStrategy +
-						"\" is not supported");
-			}
-
-			contextBatchUnsafeBiConsumer.accept(
-				objectEntries, objectEntryUnsafeFunction);
+			_create(objectEntries, parameters);
 		}
 		else {
 			super.create(objectEntries, parameters);
 		}
+	}
+
+	@Override
+	public NestedFieldsContext customizeNestedFieldsContext(
+		NestedFieldsContext nestedFieldsContext) {
+
+		if (nestedFieldsContext == null) {
+			return null;
+		}
+
+		List<String> nestedFields = new ArrayList<>(
+			nestedFieldsContext.getNestedFields());
+
+		if (!nestedFields.contains("rootModelHierarchy")) {
+			return nestedFieldsContext;
+		}
+
+		int treeHeight = 1;
+
+		try {
+			ObjectDefinitionTreeFactory objectDefinitionTreeFactory =
+				new ObjectDefinitionTreeFactory(
+					_objectDefinitionLocalService,
+					_objectRelationshipLocalService);
+
+			Tree tree = objectDefinitionTreeFactory.create(
+				_objectDefinition.getObjectDefinitionId());
+
+			treeHeight += tree.getHeight(tree.getRootNode());
+
+			Iterator<Node> iterator = tree.iterator();
+
+			while (iterator.hasNext()) {
+				Node node = iterator.next();
+
+				List<Node> childNodes = node.getChildNodes();
+
+				if (ListUtil.isEmpty(childNodes)) {
+					continue;
+				}
+
+				for (int i = childNodes.size() - 1; i >= 0; i--) {
+					Node childNode = childNodes.get(i);
+
+					Edge edge = childNode.getEdge();
+
+					if (edge == null) {
+						continue;
+					}
+
+					ObjectRelationship objectRelationship =
+						_objectRelationshipLocalService.getObjectRelationship(
+							edge.getObjectRelationshipId());
+
+					nestedFields.add(objectRelationship.getName());
+				}
+			}
+		}
+		catch (Exception exception) {
+			_log.error(exception);
+
+			return nestedFieldsContext;
+		}
+
+		ListUtil.distinct(nestedFields);
+
+		return new NestedFieldsContext(
+			NestedFieldsContextUtil.limitDepth(treeHeight),
+			nestedFieldsContext.getMessage(), nestedFields,
+			nestedFieldsContext.getPathParameters(),
+			nestedFieldsContext.getQueryParameters(),
+			nestedFieldsContext.getResourceVersion());
 	}
 
 	@Override
@@ -206,6 +282,7 @@ public class ObjectEntryResourceImpl
 
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
+				_objectDefinition.getCompanyId(),
 				_objectDefinition.getStorageType());
 
 		objectEntryManager.deleteObjectEntry(
@@ -221,6 +298,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		defaultObjectEntryManager.deleteObjectEntryByVersion(
@@ -232,6 +310,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		defaultObjectEntryManager.deleteObjectEntry(
@@ -249,25 +328,13 @@ public class ObjectEntryResourceImpl
 	}
 
 	@Override
-	public void deleteObjectEntryByVersion(Long objectEntryId, Integer version)
-		throws Exception {
-
-		DefaultObjectEntryManager defaultObjectEntryManager =
-			DefaultObjectEntryManagerProvider.provide(
-				_objectEntryManagerRegistry.getObjectEntryManager(
-					_objectDefinition.getStorageType()));
-
-		defaultObjectEntryManager.deleteObjectEntryByVersion(
-			_objectDefinition, objectEntryId, version);
-	}
-
-	@Override
 	public void deleteScopeScopeKeyByExternalReferenceCode(
 			String scopeKey, String externalReferenceCode)
 		throws Exception {
 
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
+				_objectDefinition.getCompanyId(),
 				_objectDefinition.getStorageType());
 
 		objectEntryManager.deleteObjectEntry(
@@ -287,6 +354,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		defaultObjectEntryManager.deleteObjectEntryByVersion(
@@ -301,6 +369,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.getApprovedObjectEntry(
@@ -317,6 +386,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.getApprovedObjectEntries(
@@ -331,6 +401,7 @@ public class ObjectEntryResourceImpl
 
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
+				_objectDefinition.getCompanyId(),
 				_objectDefinition.getStorageType());
 
 		return objectEntryManager.getObjectEntry(
@@ -350,6 +421,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.getObjectEntryByVersion(
@@ -359,7 +431,7 @@ public class ObjectEntryResourceImpl
 
 	@Override
 	public Page<ObjectEntry> getByExternalReferenceCodeVersionsPage(
-			String externalReferenceCode, Pagination pagination)
+			String externalReferenceCode, Pagination pagination, Sort[] sorts)
 		throws Exception {
 
 		if (!_objectDefinition.isEnableObjectEntryVersioning()) {
@@ -369,11 +441,12 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.getVersionedObjectEntries(
 			_getDTOConverterContext(null), externalReferenceCode,
-			_objectDefinition, null, pagination);
+			_objectDefinition, null, pagination, sorts);
 	}
 
 	@Override
@@ -393,27 +466,49 @@ public class ObjectEntryResourceImpl
 		return new ExportImportDescriptor() {
 
 			@Override
-			public String getItemClassName() {
+			public String getLabelLanguageKey() {
+				return _getLabelLanguageKey(_objectDefinition);
+			}
+
+			@Override
+			public String getModelClassName() {
 				return _objectDefinition.getClassName();
 			}
 
 			@Override
-			public String getItemModelName() {
-				return _objectDefinition.getShortName();
-			}
-
-			@Override
 			public List<String> getNestedFields() {
-				return transform(
-					_objectRelationshipLocalService.
-						getObjectRelationshipsByObjectDefinitionId2(
-							_objectDefinition.getObjectDefinitionId()),
-					ObjectRelationshipModel::getName);
+				return ListUtil.concat(
+					List.of("rootModelHierarchy"),
+					transform(
+						_objectRelationshipLocalService.
+							getObjectRelationshipsByObjectDefinitionId2(
+								_objectDefinition.getObjectDefinitionId()),
+						ObjectRelationshipModel::getName));
 			}
 
 			@Override
 			public String getPortletId() {
 				return _objectDefinition.getPortletId();
+			}
+
+			@Override
+			public Map<String, String[]> getReferences() {
+				Map<String, String[]> references = new HashMap<>();
+
+				for (ObjectField objectField :
+						_objectFieldLocalService.getObjectFieldsByBusinessType(
+							_objectDefinition.getObjectDefinitionId(),
+							ObjectFieldConstants.BUSINESS_TYPE_RICH_TEXT)) {
+
+					references.put(
+						objectField.getName(), new String[] {"DLReferences"});
+				}
+
+				return references;
+			}
+
+			public String getResourceClassName() {
+				return _objectDefinition.getClassName();
 			}
 
 			@Override
@@ -433,6 +528,63 @@ public class ObjectEntryResourceImpl
 				return Scope.SITE;
 			}
 
+			@Override
+			public List<String> getSubtitleLanguageKeys() {
+				if (!_objectDefinition.isRootNode()) {
+					return null;
+				}
+
+				try {
+					List<String> subtitleLanguageKeys = new ArrayList<>();
+
+					ObjectDefinitionTreeFactory objectDefinitionTreeFactory =
+						new ObjectDefinitionTreeFactory(
+							_objectDefinitionLocalService,
+							_objectRelationshipLocalService);
+
+					Tree tree = objectDefinitionTreeFactory.create(
+						_objectDefinition.getObjectDefinitionId());
+
+					Iterator<Node> iterator = tree.iterator();
+
+					while (iterator.hasNext()) {
+						Node node = iterator.next();
+
+						if (node.isRoot()) {
+							continue;
+						}
+
+						subtitleLanguageKeys.add(
+							_getLabelLanguageKey(
+								_objectDefinitionLocalService.
+									getObjectDefinition(node.getPrimaryKey())));
+					}
+
+					return subtitleLanguageKeys;
+				}
+				catch (Exception exception) {
+					if (_log.isDebugEnabled()) {
+						_log.debug(exception);
+					}
+
+					return null;
+				}
+			}
+
+			@Override
+			public String getTagLanguageKey() {
+				if (!_objectDefinition.isRootNode()) {
+					return null;
+				}
+
+				return "root-object";
+			}
+
+			@Override
+			public boolean isStagingSupported() {
+				return false;
+			}
+
 		};
 	}
 
@@ -444,6 +596,7 @@ public class ObjectEntryResourceImpl
 
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
+				_objectDefinition.getCompanyId(),
 				_objectDefinition.getStorageType());
 
 		return objectEntryManager.getObjectEntries(
@@ -453,29 +606,11 @@ public class ObjectEntryResourceImpl
 	}
 
 	@Override
-	public Page<ObjectEntry> getObjectEntriesVersionsPage(
-			Long objectEntryId, Pagination pagination)
-		throws Exception {
-
-		if (!_objectDefinition.isEnableObjectEntryVersioning()) {
-			throw new UnsupportedOperationException();
-		}
-
-		DefaultObjectEntryManager defaultObjectEntryManager =
-			DefaultObjectEntryManagerProvider.provide(
-				_objectEntryManagerRegistry.getObjectEntryManager(
-					_objectDefinition.getStorageType()));
-
-		return defaultObjectEntryManager.getVersionedObjectEntries(
-			_getDTOConverterContext(objectEntryId), _objectDefinition,
-			objectEntryId, pagination);
-	}
-
-	@Override
 	public ObjectEntry getObjectEntry(Long objectEntryId) throws Exception {
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.getObjectEntry(
@@ -484,21 +619,58 @@ public class ObjectEntryResourceImpl
 	}
 
 	@Override
-	public ObjectEntry getObjectEntryByVersion(
-			Long objectEntryId, Integer version)
+	public Response getObjectEntryTranslation(
+			Long objectEntryId, String sourceLanguageId,
+			String targetLanguageIds, String version)
 		throws Exception {
 
-		if (!_objectDefinition.isEnableObjectEntryVersioning()) {
-			throw new UnsupportedOperationException();
+		_checkFeatureFlag();
+
+		String className = _objectDefinition.getClassName();
+
+		String xliffMimeType = null;
+
+		if (version != null) {
+			xliffMimeType = _xliffMimeTypes.get(version);
 		}
 
-		DefaultObjectEntryManager defaultObjectEntryManager =
-			DefaultObjectEntryManagerProvider.provide(
-				_objectEntryManagerRegistry.getObjectEntryManager(
-					_objectDefinition.getStorageType()));
+		if (xliffMimeType == null) {
+			xliffMimeType = "application/xliff+xml";
+		}
 
-		return defaultObjectEntryManager.getObjectEntryByVersion(
-			_getDTOConverterContext(objectEntryId), objectEntryId, version);
+		File xliffZipFile = _translationManager.getXLIFFZipFile(
+			className, new long[] {objectEntryId}, xliffMimeType,
+			contextAcceptLanguage.getPreferredLocale(), sourceLanguageId,
+			StringUtil.split(targetLanguageIds, CharPool.COMMA));
+
+		return Response.ok(
+			xliffZipFile
+		).header(
+			"content-disposition",
+			"attachment; filename=\"" + xliffZipFile.getName() + "\""
+		).build();
+	}
+
+	@Override
+	public Response getObjectEntryTranslationLanguage(
+			Long objectEntryId, String languageId, String targetLanguageId)
+		throws Exception {
+
+		_checkFeatureFlag();
+
+		File xliffFile = _translationManager.getXLIFFFile(
+			_objectDefinition.getClassName(), objectEntryId,
+			_getXLIFFMimeType(
+				contextHttpServletRequest.getHeader(HttpHeaders.ACCEPT)),
+			contextAcceptLanguage.getPreferredLocale(), languageId,
+			targetLanguageId);
+
+		return Response.ok(
+			xliffFile
+		).header(
+			"content-disposition",
+			"attachment; filename=\"" + xliffFile.getName() + "\""
+		).build();
 	}
 
 	@Override
@@ -514,6 +686,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.getApprovedObjectEntry(
@@ -530,6 +703,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.getApprovedObjectEntries(
@@ -545,6 +719,7 @@ public class ObjectEntryResourceImpl
 
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
+				_objectDefinition.getCompanyId(),
 				_objectDefinition.getStorageType());
 
 		return objectEntryManager.getObjectEntry(
@@ -564,6 +739,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.getObjectEntryByVersion(
@@ -572,10 +748,40 @@ public class ObjectEntryResourceImpl
 	}
 
 	@Override
+	public Response getScopeScopeKeyByExternalReferenceCodeTranslation(
+			String scopeKey, String externalReferenceCode,
+			String sourceLanguageId, String targetLanguageIds, String version)
+		throws Exception {
+
+		_checkFeatureFlag();
+
+		ObjectEntry objectEntry = getScopeScopeKeyByExternalReferenceCode(
+			scopeKey, externalReferenceCode);
+
+		return getObjectEntryTranslation(
+			objectEntry.getId(), sourceLanguageId, targetLanguageIds, version);
+	}
+
+	@Override
+	public Response getScopeScopeKeyByExternalReferenceCodeTranslationLanguage(
+			String scopeKey, String externalReferenceCode, String languageId,
+			String targetLanguageId)
+		throws Exception {
+
+		_checkFeatureFlag();
+
+		ObjectEntry objectEntry = getScopeScopeKeyByExternalReferenceCode(
+			scopeKey, externalReferenceCode);
+
+		return getObjectEntryTranslationLanguage(
+			objectEntry.getId(), languageId, targetLanguageId);
+	}
+
+	@Override
 	public Page<ObjectEntry>
 			getScopeScopeKeyByExternalReferenceCodeVersionsPage(
 				String scopeKey, String externalReferenceCode,
-				Pagination pagination)
+				Pagination pagination, Sort[] sorts)
 		throws Exception {
 
 		if (!_objectDefinition.isEnableObjectEntryVersioning()) {
@@ -585,11 +791,12 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.getVersionedObjectEntries(
 			_getDTOConverterContext(null), externalReferenceCode,
-			_objectDefinition, scopeKey, pagination);
+			_objectDefinition, scopeKey, pagination, sorts);
 	}
 
 	@Override
@@ -600,6 +807,7 @@ public class ObjectEntryResourceImpl
 
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
+				_objectDefinition.getCompanyId(),
 				_objectDefinition.getStorageType());
 
 		return objectEntryManager.getObjectEntries(
@@ -615,6 +823,7 @@ public class ObjectEntryResourceImpl
 
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
+				_objectDefinition.getCompanyId(),
 				_objectDefinition.getStorageType());
 
 		return objectEntryManager.partialUpdateObjectEntry(
@@ -630,6 +839,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.partialUpdateObjectEntry(
@@ -645,6 +855,7 @@ public class ObjectEntryResourceImpl
 
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
+				_objectDefinition.getCompanyId(),
 				_objectDefinition.getStorageType());
 
 		return objectEntryManager.partialUpdateObjectEntry(
@@ -660,6 +871,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.copyObjectEntryByVersion(
@@ -679,6 +891,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.expireObjectEntryByVersion(
@@ -687,17 +900,32 @@ public class ObjectEntryResourceImpl
 	}
 
 	@Override
-	public void postByExternalReferenceCodeSubscribe(
+	public ObjectEntry postByExternalReferenceCodeExpire(
 			String externalReferenceCode)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
 
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
+					_objectDefinition.getStorageType()));
+
+		return defaultObjectEntryManager.expireObjectEntry(
+			_getDTOConverterContext(null), externalReferenceCode,
+			_objectDefinition, StringPool.BLANK);
+	}
+
+	@Override
+	public void postByExternalReferenceCodeSubscribe(
+			String externalReferenceCode)
+		throws Exception {
+
+		_checkFeatureFlag();
+
+		DefaultObjectEntryManager defaultObjectEntryManager =
+			DefaultObjectEntryManagerProvider.provide(
+				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		defaultObjectEntryManager.subscribeObjectEntry(
@@ -709,13 +937,12 @@ public class ObjectEntryResourceImpl
 			String externalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
+		_checkFeatureFlag();
 
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		defaultObjectEntryManager.unsubscribeObjectEntry(
@@ -741,6 +968,7 @@ public class ObjectEntryResourceImpl
 
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
+				_objectDefinition.getCompanyId(),
 				_objectDefinition.getStorageType());
 
 		return objectEntryManager.addObjectEntry(
@@ -759,50 +987,67 @@ public class ObjectEntryResourceImpl
 	}
 
 	@Override
-	public ObjectEntry postObjectEntryByVersionCopy(
-			Long objectEntryId, Integer version)
+	public ObjectEntry postObjectEntryByObjectEntryFolderCopy(
+			Long objectEntryId, Long objectEntryFolderId)
 		throws Exception {
 
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
-		return defaultObjectEntryManager.copyObjectEntryByVersion(
-			_getDTOConverterContext(objectEntryId), _objectDefinition,
-			objectEntryId, version);
+		return defaultObjectEntryManager.copyObjectEntry(
+			_getDTOConverterContext(objectEntryId), objectEntryId,
+			objectEntryFolderId, false);
 	}
 
 	@Override
-	public ObjectEntry postObjectEntryByVersionExpire(
-			Long objectEntryId, Integer version)
+	public ObjectEntry postObjectEntryByObjectEntryFolderCopyReplace(
+			Long objectEntryId, Long objectEntryFolderId)
 		throws Exception {
-
-		if (!_objectDefinition.isEnableObjectEntryVersioning()) {
-			throw new UnsupportedOperationException();
-		}
 
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
-		return defaultObjectEntryManager.expireObjectEntryByVersion(
-			_getDTOConverterContext(null), _objectDefinition, objectEntryId,
-			version);
+		return defaultObjectEntryManager.copyObjectEntry(
+			_getDTOConverterContext(objectEntryId), objectEntryId,
+			objectEntryFolderId, true);
 	}
 
 	@Override
-	public ObjectEntry postObjectEntryExpire(Long objectEntryId)
+	public ObjectEntry postObjectEntryByObjectEntryFolderMove(
+			Long objectEntryId, Long objectEntryFolderId)
 		throws Exception {
 
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
-		return defaultObjectEntryManager.expireObjectEntry(
-			_getDTOConverterContext(objectEntryId), objectEntryId);
+		return defaultObjectEntryManager.moveObjectEntry(
+			_getDTOConverterContext(objectEntryId), objectEntryId,
+			objectEntryFolderId, false);
+	}
+
+	@Override
+	public ObjectEntry postObjectEntryByObjectEntryFolderMoveReplace(
+			Long objectEntryId, Long objectEntryFolderId)
+		throws Exception {
+
+		DefaultObjectEntryManager defaultObjectEntryManager =
+			DefaultObjectEntryManagerProvider.provide(
+				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
+					_objectDefinition.getStorageType()));
+
+		return defaultObjectEntryManager.moveObjectEntry(
+			_getDTOConverterContext(objectEntryId), objectEntryId,
+			objectEntryFolderId, true);
 	}
 
 	@Override
@@ -812,6 +1057,7 @@ public class ObjectEntryResourceImpl
 
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
+				_objectDefinition.getCompanyId(),
 				_objectDefinition.getStorageType());
 
 		return objectEntryManager.addObjectEntry(
@@ -831,6 +1077,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.copyObjectEntryByVersion(
@@ -850,6 +1097,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.expireObjectEntryByVersion(
@@ -865,6 +1113,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.expireObjectEntry(
@@ -877,13 +1126,12 @@ public class ObjectEntryResourceImpl
 			String scopeKey, String externalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
+		_checkFeatureFlag();
 
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		defaultObjectEntryManager.subscribeObjectEntry(
@@ -895,13 +1143,12 @@ public class ObjectEntryResourceImpl
 			String scopeKey, String externalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
+		_checkFeatureFlag();
 
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		defaultObjectEntryManager.unsubscribeObjectEntry(
@@ -930,6 +1177,7 @@ public class ObjectEntryResourceImpl
 
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
+				_objectDefinition.getCompanyId(),
 				_objectDefinition.getStorageType());
 
 		return objectEntryManager.updateObjectEntry(
@@ -949,6 +1197,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.restoreObjectEntryByVersion(
@@ -964,6 +1213,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		defaultObjectEntryManager.executeObjectAction(
@@ -976,13 +1226,12 @@ public class ObjectEntryResourceImpl
 			String externalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
+		_checkFeatureFlag();
 
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.restoreObjectEntry(
@@ -998,6 +1247,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.updateObjectEntry(
@@ -1016,25 +1266,6 @@ public class ObjectEntryResourceImpl
 	}
 
 	@Override
-	public ObjectEntry putObjectEntryByVersionRestore(
-			Long objectEntryId, Integer version)
-		throws Exception {
-
-		if (!_objectDefinition.isEnableObjectEntryVersioning()) {
-			throw new UnsupportedOperationException();
-		}
-
-		DefaultObjectEntryManager defaultObjectEntryManager =
-			DefaultObjectEntryManagerProvider.provide(
-				_objectEntryManagerRegistry.getObjectEntryManager(
-					_objectDefinition.getStorageType()));
-
-		return defaultObjectEntryManager.restoreObjectEntryByVersion(
-			_getDTOConverterContext(objectEntryId), _objectDefinition,
-			objectEntryId, version);
-	}
-
-	@Override
 	public void putObjectEntryObjectActionObjectActionName(
 			Long objectEntryId, String objectActionName)
 		throws Exception {
@@ -1042,6 +1273,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		defaultObjectEntryManager.executeObjectAction(
@@ -1057,6 +1289,7 @@ public class ObjectEntryResourceImpl
 
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
+				_objectDefinition.getCompanyId(),
 				_objectDefinition.getStorageType());
 
 		return objectEntryManager.updateObjectEntry(
@@ -1076,6 +1309,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.restoreObjectEntryByVersion(
@@ -1093,6 +1327,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		defaultObjectEntryManager.executeObjectAction(
@@ -1106,13 +1341,12 @@ public class ObjectEntryResourceImpl
 			String scopeKey, String externalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
+		_checkFeatureFlag();
 
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		return defaultObjectEntryManager.restoreObjectEntry(
@@ -1184,6 +1418,69 @@ public class ObjectEntryResourceImpl
 		}
 	}
 
+	private void _checkFeatureFlag() {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				_objectDefinition.getCompanyId(), "LPD-17564")) {
+
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	private void _create(
+			Collection<ObjectEntry> objectEntries,
+			Map<String, Serializable> parameters)
+		throws Exception {
+
+		String createStrategy = (String)parameters.getOrDefault(
+			"createStrategy", "INSERT");
+		String scopeKey = _getScopeKey(parameters);
+		UnsafeFunction<ObjectEntry, ObjectEntry, Exception> unsafeFunction =
+			null;
+
+		if (StringUtil.equalsIgnoreCase(createStrategy, "INSERT")) {
+			unsafeFunction = objectEntry -> postScopeScopeKey(
+				scopeKey, objectEntry);
+		}
+		else if (StringUtil.equalsIgnoreCase(createStrategy, "UPSERT")) {
+			String updateStrategy = (String)parameters.getOrDefault(
+				"updateStrategy", "UPDATE");
+
+			if (StringUtil.equalsIgnoreCase(updateStrategy, "PARTIAL_UPDATE")) {
+				unsafeFunction = objectEntry -> {
+					try {
+						ObjectEntry getObjectEntry =
+							getScopeScopeKeyByExternalReferenceCode(
+								scopeKey,
+								objectEntry.getExternalReferenceCode());
+
+						return patchObjectEntry(
+							getObjectEntry.getId(), objectEntry);
+					}
+					catch (NoSuchModelException noSuchModelException) {
+						if (_log.isDebugEnabled()) {
+							_log.debug(noSuchModelException);
+						}
+
+						return postScopeScopeKey(scopeKey, objectEntry);
+					}
+				};
+			}
+			else if (StringUtil.equalsIgnoreCase(updateStrategy, "UPDATE")) {
+				unsafeFunction =
+					objectEntry -> putScopeScopeKeyByExternalReferenceCode(
+						scopeKey, objectEntry.getExternalReferenceCode(),
+						objectEntry);
+			}
+		}
+
+		if (unsafeFunction == null) {
+			throw new NotSupportedException(
+				"Create strategy \"" + createStrategy + "\" is not supported");
+		}
+
+		contextBatchUnsafeBiConsumer.accept(objectEntries, unsafeFunction);
+	}
+
 	private DefaultDTOConverterContext _getDTOConverterContext(
 		Long objectEntryId) {
 
@@ -1196,7 +1493,11 @@ public class ObjectEntryResourceImpl
 
 	private String _getFilterString() {
 		if (contextHttpServletRequest != null) {
-			return ParamUtil.getString(contextHttpServletRequest, "filter");
+			return _getFilterString(
+				ParamUtil.getString(
+					contextHttpServletRequest,
+					"assigneeUserExternalReferenceCode"),
+				ParamUtil.getString(contextHttpServletRequest, "filter"));
 		}
 
 		if (contextUriInfo == null) {
@@ -1206,7 +1507,53 @@ public class ObjectEntryResourceImpl
 		MultivaluedMap<String, String> queryParameters =
 			contextUriInfo.getQueryParameters();
 
-		return queryParameters.getFirst("filter");
+		return _getFilterString(
+			queryParameters.getFirst("assigneeUserExternalReferenceCode"),
+			queryParameters.getFirst("filter"));
+	}
+
+	private String _getFilterString(
+		String assigneeUserExternalReferenceCode, String filterString) {
+
+		if (Validator.isNull(assigneeUserExternalReferenceCode)) {
+			return filterString;
+		}
+
+		ObjectField objectField =
+			_objectFieldLocalService.fetchObjectFieldByBusinessType(
+				_objectDefinition.getObjectDefinitionId(),
+				ObjectFieldConstants.BUSINESS_TYPE_ASSIGNEE, null);
+
+		if (objectField == null) {
+			return filterString;
+		}
+
+		long userId = 0;
+
+		User user = _userLocalService.fetchUserByExternalReferenceCode(
+			assigneeUserExternalReferenceCode, contextCompany.getCompanyId());
+
+		if (user != null) {
+			userId = user.getUserId();
+		}
+
+		String assigneeFilterString = StringBundler.concat(
+			objectField.getName(), " eq ", userId);
+
+		if (Validator.isNull(filterString)) {
+			return assigneeFilterString;
+		}
+
+		return StringBundler.concat(
+			"(", filterString, ") and ", assigneeFilterString);
+	}
+
+	private String _getLabelLanguageKey(ObjectDefinition objectDefinition) {
+		String modelResourceNamePrefix =
+			ResourceActionsUtil.getModelResourceNamePrefix();
+
+		return modelResourceNamePrefix.concat(
+			objectDefinition.getResourceName());
 	}
 
 	private String _getScopeKey(Map<String, Serializable> parameters) {
@@ -1225,6 +1572,20 @@ public class ObjectEntryResourceImpl
 		return null;
 	}
 
+	private String _getXLIFFMimeType(String accept) {
+		if (Validator.isBlank(accept)) {
+			return null;
+		}
+
+		for (Map.Entry<String, String> entry : _xliffMimeTypes.entrySet()) {
+			if (accept.contains(entry.getValue())) {
+				return entry.getValue();
+			}
+		}
+
+		return null;
+	}
+
 	private ValidationResponse _validateObjectEntry(
 			String scopeKey, ValidationRequest validationRequest)
 		throws Exception {
@@ -1232,6 +1593,7 @@ public class ObjectEntryResourceImpl
 		DefaultObjectEntryManager defaultObjectEntryManager =
 			DefaultObjectEntryManagerProvider.provide(
 				_objectEntryManagerRegistry.getObjectEntryManager(
+					_objectDefinition.getCompanyId(),
 					_objectDefinition.getStorageType()));
 
 		try {
@@ -1272,6 +1634,9 @@ public class ObjectEntryResourceImpl
 	private static final Log _log = LogFactoryUtil.getLog(
 		ObjectEntryResourceImpl.class);
 
+	private static final Map<String, String> _xliffMimeTypes = Map.of(
+		"1.2", "application/x-xliff+xml", "2.0", "application/xliff+xml");
+
 	private final DTOConverterRegistry _dtoConverterRegistry;
 	private final EntityModelProvider _entityModelProvider;
 
@@ -1289,5 +1654,7 @@ public class ObjectEntryResourceImpl
 	private final ObjectScopeProviderRegistry _objectScopeProviderRegistry;
 	private final SystemObjectDefinitionManagerRegistry
 		_systemObjectDefinitionManagerRegistry;
+	private final TranslationManager _translationManager;
+	private final UserLocalService _userLocalService;
 
 }

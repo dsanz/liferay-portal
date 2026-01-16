@@ -26,7 +26,6 @@ import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.WebsiteURLException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Address;
@@ -265,11 +264,6 @@ public class UserManagerImpl implements UserManager {
 			ScimUser scimUser = _getScimUser(
 				CompanyThreadLocal.getCompanyId(), GetterUtil.getLong(userId));
 
-			if (!scimUser.isActive()) {
-				throw new NotFoundException(
-					"No user found with user ID " + userId);
-			}
-
 			return ScimUtil.toUser(
 				_getGroups(
 					CompanyThreadLocal.getCompanyId(),
@@ -484,10 +478,6 @@ public class UserManagerImpl implements UserManager {
 			portalUser = _updatePortalUser(
 				birthdayMonth, birthdayDay, birthdayYear, portalUser, scimUser,
 				scimClientOAuth2ApplicationConfiguration);
-		}
-
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-56434")) {
-			return ScimUtil.toScimUser(portalUser);
 		}
 
 		_addOrUpdateExpandoValue(
@@ -769,9 +759,7 @@ public class UserManagerImpl implements UserManager {
 		portalUser.setExternalReferenceCode(
 			scimUser.getExternalReferenceCode());
 
-		if (FeatureFlagManagerUtil.isEnabled("LPD-56434") &&
-			Validator.isNotNull(scimUser.getTimeZoneId())) {
-
+		if (Validator.isNotNull(scimUser.getTimeZoneId())) {
 			portalUser.setTimeZoneId(scimUser.getTimeZoneId());
 		}
 
@@ -1190,7 +1178,7 @@ public class UserManagerImpl implements UserManager {
 		portalUser = _userService.updateUser(
 			portalUser.getUserId(), scimUser.getPassword(), StringPool.BLANK,
 			StringPool.BLANK, false, portalUser.getReminderQueryQuestion(),
-			portalUser.getReminderQueryAnswer(), portalUser.getScreenName(),
+			portalUser.getReminderQueryAnswer(), scimUser.getScreenName(),
 			scimUser.getEmailAddresses()[0], false, null,
 			portalUser.getLanguageId(), scimUser.getTimeZoneId(),
 			portalUser.getGreeting(), portalUser.getComments(),

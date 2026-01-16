@@ -9,7 +9,10 @@ import {getIconSpriteMap} from '../../liferay/constants';
 import {FieldBase} from '../FieldBase';
 
 type MultiSelectProps<T> = {
+	ariaLabel?: string;
 	className?: string;
+	disabledClearAll?: boolean;
+	errorMessage?: string;
 	helpMessage?: string;
 	hideFeedback?: boolean;
 	inputName: string;
@@ -27,7 +30,10 @@ type MultiSelectProps<T> = {
 };
 
 const MultiSelect: React.FC<MultiSelectProps<any>> = ({
+	ariaLabel,
 	className,
+	disabledClearAll = false,
+	errorMessage,
 	helpMessage,
 	hideFeedback,
 	inputName,
@@ -36,7 +42,6 @@ const MultiSelect: React.FC<MultiSelectProps<any>> = ({
 	multiselectKey,
 	onChange,
 	onItemsChange,
-	placeholder,
 	required,
 	selectedItems,
 	sourceItems,
@@ -46,6 +51,7 @@ const MultiSelect: React.FC<MultiSelectProps<any>> = ({
 	return (
 		<FieldBase
 			className={className}
+			errorMessage={errorMessage}
 			helpMessage={helpMessage}
 			hideFeedback={hideFeedback}
 			label={label}
@@ -54,12 +60,13 @@ const MultiSelect: React.FC<MultiSelectProps<any>> = ({
 			tooltip={tooltip}
 		>
 			<ClayMultiSelect
+				aria-label={ariaLabel}
+				disabledClearAll={disabledClearAll}
 				inputName={inputName}
 				items={selectedItems}
 				key={multiselectKey}
 				onChange={onChange}
 				onItemsChange={onItemsChange}
-				placeholder={placeholder}
 				sourceItems={sourceItems}
 				spritemap={getIconSpriteMap()}
 				value={value}

@@ -37,7 +37,9 @@ export const test = mergeTests(
 	dataApiHelpersTest,
 	displayPageTemplatesPagesTest,
 	featureFlagsTest({
+		'LPD-10562': {enabled: true},
 		'LPD-20379': {enabled: true},
+		'LPD-58472': {enabled: true},
 		'LPS-178052': {enabled: true},
 	}),
 	pageEditorPagesTest,
@@ -581,7 +583,9 @@ test(
 			.fill('2024-09-11');
 		await commerceLayoutsPage.saveButton.click();
 
-		await expect(page.getByText('9/11/24', {exact: true})).toBeVisible();
+		await expect(
+			page.getByText('Sep 11, 2024', {exact: true})
+		).toBeVisible();
 
 		await commerceLayoutsPage
 			.infoBoxButton('Requested Delivery Date')
@@ -591,7 +595,9 @@ test(
 			.fill('2024-09-13');
 		await commerceLayoutsPage.saveButton.click();
 
-		await expect(page.getByText('9/13/24', {exact: true})).toBeVisible();
+		await expect(
+			page.getByText('Sep 13, 2024', {exact: true})
+		).toBeVisible();
 
 		await apiHelpers.headlessCommerceDeliveryCart.checkoutCart(cart.id);
 
@@ -2016,6 +2022,10 @@ test(
 			)
 		).toBe(true);
 
+		await expect(
+			commerceLayoutsPage.infoBoxButton('Order notes')
+		).toBeVisible();
+
 		await commerceLayoutsPage.infoBoxButton('Order notes').click();
 
 		await expect(page.getByText(comment.items[0].author)).toBeVisible();
@@ -2023,6 +2033,34 @@ test(
 		await expect(commerceLayoutsPage.iconLock).toBeHidden();
 
 		await performLogout(page);
+
+		await performLoginViaApi({page, screenName: 'test'});
+
+		await apiHelpers.headlessCommerceAdminOrder.postOrder({
+			accountId: account.id,
+			channelId: channel.id,
+			name: 'order',
+			orderItems: [
+				{
+					quantity: 1,
+					skuId: sku.id.toString(),
+				},
+			],
+			orderStatus: '1',
+		});
+
+		await performLogout(page);
+
+		await performLoginViaApi({page, screenName: 'demo.unprivileged'});
+
+		await page.goto(
+			liferayConfig.environment.baseUrl +
+				`/web/${site.name}/order/${cart.id}`
+		);
+
+		await expect(
+			commerceLayoutsPage.infoBoxButton('Order notes')
+		).toBeVisible();
 	}
 );
 
@@ -2147,8 +2185,8 @@ test(
 			await dialog.accept();
 		});
 
-		await (await commerceThemeClassicOrdersPage.tableRow(11, 'Actions')).row
-			.getByRole('button')
+		await (await commerceThemeClassicOrdersPage.tableRow(1, cart.id)).row
+			.getByRole('button', {name: 'Actions'})
 			.click();
 		await commerceThemeClassicOrdersPage
 			.orderTableMenuItem('Delete')

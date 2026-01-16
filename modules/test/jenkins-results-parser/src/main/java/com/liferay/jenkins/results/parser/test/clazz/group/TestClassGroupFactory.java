@@ -50,6 +50,13 @@ public class TestClassGroupFactory {
 		}
 
 		if (batchTestClassGroup instanceof JUnitBatchTestClassGroup) {
+			if (batchTestClassGroup instanceof
+					ModulesJUnitBatchTestClassGroup) {
+
+				return new ModulesJUnitAxisTestClassGroup(
+					(ModulesJUnitBatchTestClassGroup)batchTestClassGroup);
+			}
+
 			return new JUnitAxisTestClassGroup(
 				(JUnitBatchTestClassGroup)batchTestClassGroup);
 		}
@@ -88,6 +95,13 @@ public class TestClassGroupFactory {
 		}
 
 		if (batchTestClassGroup instanceof JUnitBatchTestClassGroup) {
+			if (batchTestClassGroup instanceof
+					ModulesJUnitBatchTestClassGroup) {
+
+				return new ModulesJUnitAxisTestClassGroup(
+					jsonObject, segmentTestClassGroup);
+			}
+
 			return new JUnitAxisTestClassGroup(
 				jsonObject, segmentTestClassGroup);
 		}
@@ -182,6 +196,18 @@ public class TestClassGroupFactory {
 			return new FunctionalSegmentTestClassGroup(batchTestClassGroup);
 		}
 		else if (batchTestClassGroup instanceof JUnitBatchTestClassGroup) {
+			if (batchTestClassGroup instanceof
+					ModulesJUnitBatchTestClassGroup) {
+
+				if (jsonObject != null) {
+					return new ModulesJUnitSegmentTestClassGroup(
+						batchTestClassGroup, jsonObject);
+				}
+
+				return new ModulesJUnitSegmentTestClassGroup(
+					batchTestClassGroup);
+			}
+
 			if (jsonObject != null) {
 				return new JUnitSegmentTestClassGroup(
 					batchTestClassGroup, jsonObject);
@@ -340,6 +366,11 @@ public class TestClassGroupFactory {
 				if (jsonObject != null) {
 					batchTestClassGroup = new JUnitBatchTestClassGroup(
 						jsonObject, portalTestClassJob);
+				}
+				else if (testBatch != null) {
+					batchTestClassGroup = new JUnitBatchTestClassGroup(
+						batchName, portalTestClassJob,
+						(JUnitTestBatch)testBatch);
 				}
 				else {
 					batchTestClassGroup = new JUnitBatchTestClassGroup(

@@ -77,6 +77,16 @@
 			<type>java.util.Map</type>
 		</attribute>
 		<attribute>
+			<name>formInputEnabled</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>formInputName</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
 			<name>height</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
@@ -214,6 +224,16 @@
 		</attribute>
 		<attribute>
 			<name>editorName</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>fieldPrefix</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>fieldPrefixSeparator</name>
 			<required>false</required>
 			<rtexprvalue>true</rtexprvalue>
 		</attribute>

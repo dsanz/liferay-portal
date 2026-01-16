@@ -347,7 +347,9 @@ export default function ShareModalContent({
 
 	return (
 		<div className="share-modal-content">
-			<ClayModal.Header>
+			<ClayModal.Header
+				closeButtonAriaLabel={Liferay.Language.get('close')}
+			>
 				{sub(Liferay.Language.get('share-x'), `"${title}"`)}
 			</ClayModal.Header>
 
@@ -370,7 +372,7 @@ export default function ShareModalContent({
 									'enter-name-email-or-groups'
 								)}
 								sourceItems={
-									autocompleteValue && !!users?.items?.length
+									users?.items?.length
 										? users.items?.map((item: any) => {
 												if (
 													item.entryClassName?.includes(

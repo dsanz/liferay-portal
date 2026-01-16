@@ -1,4 +1,4 @@
-import BasePage from 'settings/components/BasePage';
+import BasePage from 'settings/components/base-page/BasePage';
 import Card from 'shared/components/Card';
 import ClayLink from '@clayui/link';
 import ClayList from '@clayui/list';
@@ -95,7 +95,6 @@ const items = (devMode: boolean = false): ListItem[] => [
 export const Overview: React.FC<IOverviewProps> = ({groupId}) => (
 	<BasePage
 		className='definitions-overview-root'
-		groupId={groupId}
 		pageDescription={Liferay.Language.get(
 			'select-the-entity-to-view-its-data-model'
 		)}

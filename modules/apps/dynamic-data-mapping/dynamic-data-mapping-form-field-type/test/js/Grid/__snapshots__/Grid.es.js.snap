@@ -102,7 +102,6 @@ exports[`Grid has a label 1`] = `
 exports[`Grid has a tip 1`] = `
 <div>
   <div
-    aria-labelledby="undefined_fieldDetails"
     class="form-group hide"
   >
     <div
@@ -182,9 +181,11 @@ exports[`Grid has a tip 1`] = `
         aria-live="assertive"
         class="form-feedback-item"
       />
-      <div>
+      <span
+        class="form-help-text"
+      >
         Type something
-      </div>
+      </span>
     </div>
     <span
       class="sr-only"
@@ -199,7 +200,7 @@ exports[`Grid has a tip 1`] = `
 exports[`Grid has an id 1`] = `
 <div>
   <div
-    class="form-group hide"
+    class="hide"
   >
     <div
       class="table-responsive"
@@ -286,7 +287,7 @@ exports[`Grid has an id 1`] = `
 exports[`Grid is not editable 1`] = `
 <div>
   <div
-    class="form-group hide"
+    class="hide"
   >
     <div
       class="table-responsive"
@@ -370,7 +371,7 @@ exports[`Grid is not editable 1`] = `
 exports[`Grid is not required 1`] = `
 <div>
   <div
-    class="form-group hide"
+    class="hide"
   >
     <div
       class="table-responsive"
@@ -557,7 +558,7 @@ exports[`Grid renders Label if showLabel is true 1`] = `
 exports[`Grid renders columns 1`] = `
 <div>
   <div
-    class="form-group hide"
+    class="hide"
   >
     <div
       class="table-responsive"
@@ -671,7 +672,7 @@ exports[`Grid renders columns 1`] = `
 exports[`Grid renders no columns when columns comes empty 1`] = `
 <div>
   <div
-    class="form-group hide"
+    class="hide"
   >
     <div
       class="table-responsive"
@@ -731,7 +732,7 @@ exports[`Grid renders no columns when columns comes empty 1`] = `
 exports[`Grid renders no rows when row comes empty 1`] = `
 <div>
   <div
-    class="form-group hide"
+    class="hide"
   >
     <div
       class="table-responsive"
@@ -781,7 +782,7 @@ exports[`Grid renders no rows when row comes empty 1`] = `
 exports[`Grid renders rows 1`] = `
 <div>
   <div
-    class="form-group hide"
+    class="hide"
   >
     <div
       class="table-responsive"

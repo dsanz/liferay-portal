@@ -180,6 +180,7 @@ const Profile = () => {
 					</Form.Label>
 
 					<Select
+						aria-label={i18n.translate('categories')}
 						className={categories?.value || 'select-empty-value'}
 						defaultOption
 						defaultOptionLabel={i18n.translate('select-category')}
@@ -229,6 +230,7 @@ const Profile = () => {
 					</Form.Label>
 
 					<MultiSelect
+						ariaLabel={i18n.translate('area')}
 						inputName="area"
 						key={`areas-${areas.length}`}
 						multiselectKey={`area-${
@@ -263,6 +265,7 @@ const Profile = () => {
 					</Form.Label>
 
 					<MultiSelect
+						ariaLabel={i18n.translate('tags')}
 						inputName="tags-selector"
 						key={`tags-${tags.length}`}
 						multiselectKey={`tag-${

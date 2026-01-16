@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 
+import {OBJECT_ENTRY_FOLDER_CLASS_NAME} from '../../../../../src/main/resources/META-INF/resources/js/common/utils/constants';
 import {transformItemCardView} from '../../../../../src/main/resources/META-INF/resources/js/main_view/props_transformer/utils/transformViewsItemProps';
 
 jest.mock('@clayui/icon', () => (props: any) => ({
@@ -37,11 +38,11 @@ describe('transformItemCardView', () => {
 		'video': 'document-multimedia',
 	};
 	const mockObjectDefinitionCssClasses = {
-		L_BASIC_WEB_CONTENT: 'content-icon-basic-content',
+		L_CMS_BASIC_WEB_CONTENT: 'content-icon-basic-content',
 		default: 'content-icon-custom-structure',
 	};
 	const mockObjectDefinitionIcons = {
-		L_BASIC_WEB_CONTENT: 'forms',
+		L_CMS_BASIC_WEB_CONTENT: 'forms',
 		default: 'web-content',
 	};
 
@@ -51,8 +52,7 @@ describe('transformItemCardView', () => {
 			'folder',
 			transformItemCardView(
 				{
-					entryClassName:
-						'com.liferay.object.model.ObjectEntryFolder',
+					entryClassName: OBJECT_ENTRY_FOLDER_CLASS_NAME,
 				},
 				mockFileMimeTypeCssClasses,
 				mockFileMimeTypeIcons,
@@ -72,7 +72,8 @@ describe('transformItemCardView', () => {
 					embedded: {
 						systemProperties: {
 							objectDefinitionBrief: {
-								externalReferenceCode: 'L_BASIC_WEB_CONTENT',
+								externalReferenceCode:
+									'L_CMS_BASIC_WEB_CONTENT',
 							},
 						},
 					},
@@ -121,7 +122,7 @@ describe('transformItemCardView', () => {
 						},
 						systemProperties: {
 							objectDefinitionBrief: {
-								externalReferenceCode: 'L_BASIC_DOCUMENT',
+								externalReferenceCode: 'L_CMS_BASIC_DOCUMENT',
 							},
 						},
 					},
@@ -147,7 +148,7 @@ describe('transformItemCardView', () => {
 						},
 						systemProperties: {
 							objectDefinitionBrief: {
-								externalReferenceCode: 'L_BASIC_DOCUMENT',
+								externalReferenceCode: 'L_CMS_BASIC_DOCUMENT',
 							},
 						},
 					},
@@ -173,7 +174,7 @@ describe('transformItemCardView', () => {
 						},
 						systemProperties: {
 							objectDefinitionBrief: {
-								externalReferenceCode: 'L_BASIC_DOCUMENT',
+								externalReferenceCode: 'L_CMS_BASIC_DOCUMENT',
 							},
 						},
 					},
@@ -199,7 +200,7 @@ describe('transformItemCardView', () => {
 						},
 						systemProperties: {
 							objectDefinitionBrief: {
-								externalReferenceCode: 'L_BASIC_DOCUMENT',
+								externalReferenceCode: 'L_CMS_BASIC_DOCUMENT',
 							},
 						},
 					},
@@ -211,5 +212,20 @@ describe('transformItemCardView', () => {
 				baseMockProps
 			)
 		);
+	});
+
+	it('Shows Untitled Asset if title is not present', () => {
+		const cardView = transformItemCardView(
+			{
+				entryClassName: OBJECT_ENTRY_FOLDER_CLASS_NAME,
+			},
+			mockFileMimeTypeCssClasses,
+			mockFileMimeTypeIcons,
+			mockObjectDefinitionCssClasses,
+			mockObjectDefinitionIcons,
+			baseMockProps
+		);
+
+		expect(cardView.title).toBe('untitled-asset');
 	});
 });

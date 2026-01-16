@@ -63,7 +63,7 @@ exports[`Sites Dashboard InterestDetails render 1`] = `
                     role="tablist"
                   />
                   <div
-                    class="navbar-form navbar-form-autofit"
+                    class="navbar-form navbar-form-autofit mx-2"
                   >
                     <div
                       class="input-group search"

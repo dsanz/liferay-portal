@@ -37,7 +37,10 @@
 								<p style="font-size: 14px; margin: 0;">Order ID: <b>[%ORDER_ID%]</b></p>
 								<p style="font-size: 14px; margin: 0;">Order Date: <b>[%ORDER_DATE%]</b></p>
 								<p style="font-size: 14px; margin: 0;">Order Payment Method: <b>[%ORDER_PAYMENT_METHOD%]</b></p>
-								<p style="font-size: 14px; margin: 0 0 16px 0;">Order Status: <b>[%ORDER_STATUS%]</b></p>
+								<p style="font-size: 14px; margin: 0;">Order Status: <b>[%ORDER_STATUS%]</b></p>
+								<p style="font-size: 14px; margin: 0;">Subscription Type: <b>[%SUBSCRIPTION_TYPE%]</b></p>
+								<p style="font-size: 14px; margin: 0;">Starting Date: <b>[%SUBSCRIPTION_STARTING_DATE%]</b></p>
+								<p style="font-size: 14px; margin: 0 0 16px 0;">Expiration Date: <b>[%SUBSCRIPTION_EXPIRATION_DATE%]</b></p>
 
 								<table border="0" cellpadding="0" cellspacing="0" style="margin-bottom: 16px;" width="100%">
 									<tbody>
@@ -80,6 +83,15 @@
 											<td align="right"><b>[%TOTAL_FORMATTED%]</b></td>
 											<td>
 												<span style="background-color: #E6EBF5; border-radius: 4px; color: #1C3667; font-size: 11px; margin-left: 8px; padding: 2px 8px;">[%LICENSE_TYPE%]</span>
+											</td>
+										</tr>
+										<tr>
+											<td align="left">Exchange Rate:</td>
+											<td align="right">
+												<b>[%EXCHANGE_RATE%]</b>
+											</td>
+											<td>
+												<span title="Exchange rate applied on [%ORDER_DATE%]" style="border: 1px solid #1C3667; border-radius: 50%; color: #1C3667; cursor: help; display: inline-block; font-size: 13px; font-weight: bold; height: 16px; line-height: 16px; margin-left: 5px; text-align: center; width: 16px;">?</span>
 											</td>
 										</tr>
 									</tbody>

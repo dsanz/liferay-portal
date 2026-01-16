@@ -61,9 +61,10 @@ test.describe('Can Publish and Manage Solutions', () => {
 	});
 
 	test('LPD-26707 New Solution Template button should be visible for Suppliers', async ({
+		marketplaceHelper,
 		publisherSolutionPage,
 	}) => {
-		await publisherSolutionPage.selectAccount(accountName);
+		await marketplaceHelper.selectAccount(accountName);
 		await expect(publisherSolutionPage.newSolutionButton).toBeEnabled();
 	});
 
@@ -87,6 +88,7 @@ test.describe('Can Publish and Manage Solutions', () => {
 			);
 
 			await expect(publisherSolutionPage.continueButton).toBeEnabled();
+			await publisherSolutionPage.continueButton.click();
 
 			await publisherSolutionPage.goToCustomizeSolutionHeader();
 			await publisherSolutionPage.fillCustomizeSolutionHeader(
@@ -175,9 +177,10 @@ test.describe(`Supplier Accounts without ${SOLUTION_PUBLISHER_ROLE} role can not
 	});
 
 	test('LPD-28486 New Solution Template button should NOT be visible', async ({
+		marketplaceHelper,
 		publisherSolutionPage,
 	}) => {
-		await publisherSolutionPage.selectAccount(accountName);
+		await marketplaceHelper.selectAccount(accountName);
 
 		await expect(publisherSolutionPage.newSolutionButton).toBeHidden();
 

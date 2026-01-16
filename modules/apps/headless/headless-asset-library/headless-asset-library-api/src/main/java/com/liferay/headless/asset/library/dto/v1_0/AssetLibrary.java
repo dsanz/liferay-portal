@@ -1292,9 +1292,7 @@ public class AssetLibrary implements Serializable {
 			sb.append("\"type\": ");
 
 			sb.append("\"");
-
 			sb.append(type);
-
 			sb.append("\"");
 		}
 
@@ -1357,7 +1355,7 @@ public class AssetLibrary implements Serializable {
 	@GraphQLName("Type")
 	public static enum Type {
 
-		ASSET_LIBRARY("AssetLibrary"), SPACE("Space");
+		ASSET_LIBRARY("AssetLibrary"), PROJECT("Project"), SPACE("Space");
 
 		@JsonCreator
 		public static Type create(String value) {

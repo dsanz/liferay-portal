@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -63,7 +64,9 @@ import org.junit.runner.RunWith;
 /**
  * @author Balazs Breier
  */
-@FeatureFlag("LPD-35914")
+@FeatureFlags(
+	featureFlags = {@FeatureFlag("LPD-35443"), @FeatureFlag("LPD-35914")}
+)
 @RunWith(Arquillian.class)
 public class AccountGroupsAdminPortletDataHandlerTest {
 
@@ -204,7 +207,7 @@ public class AccountGroupsAdminPortletDataHandlerTest {
 			ClassUtil.getClassName(portletDataHandler),
 			CoreMatchers.containsString("BatchEnginePortletDataHandler"));
 		Assert.assertEquals(
-			"com.liferay.headless.admin.user.dto.v1_0.AccountGroup",
+			AccountGroup.class.getName(),
 			portletDataHandler.getClassNames()[0]);
 		Assert.assertEquals(
 			AccountPortletKeys.ACCOUNT_GROUPS_ADMIN,

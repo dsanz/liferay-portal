@@ -1,0 +1,22 @@
+<!--
+* SPDX-FileCopyrightText: © 2020 Liferay, Inc. <https://liferay.com>
+* SPDX-FileCopyrightText: © 2020 Contributors to the project Clay <https://github.com/liferay/clay/graphs/contributors>
+*
+* SPDX-License-Identifier: BSD-3-Clause
+-->
+<svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+	<rect fill="#C0CFD8" height="384" width="512" y="64"></rect>
+	<rect fill="#E03232" height="32" width="480" x="16" y="80"></rect>
+	<rect fill="#FFFFFF" height="32" width="480" x="16" y="112"></rect>
+	<rect fill="#E03232" height="32" width="480" x="16" y="144"></rect>
+	<rect fill="#FFFFFF" height="32" width="480" x="16" y="176"></rect>
+	<rect fill="#E03232" height="32" width="480" x="16" y="208"></rect>
+	<rect fill="#FFFFFF" height="32" width="480" x="16" y="240"></rect>
+	<rect fill="#E03232" height="32" width="480" x="16" y="272"></rect>
+	<rect fill="#FFFFFF" height="32" width="480" x="16" y="304"></rect>
+	<rect fill="#E03232" height="32" width="480" x="16" y="336"></rect>
+	<rect fill="#FFFFFF" height="32" width="480" x="16" y="368"></rect>
+	<rect fill="#E03232" height="32" width="480" x="16" y="400"></rect>
+	<rect fill="#66A1CC" height="192" width="256" x="16" y="80"></rect>
+	<rect fill="#0035A0" height="192" width="256" x="16" y="80"></rect>
+</svg>

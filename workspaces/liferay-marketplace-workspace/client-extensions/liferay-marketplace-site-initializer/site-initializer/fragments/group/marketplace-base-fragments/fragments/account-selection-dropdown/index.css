@@ -12,6 +12,10 @@
 	position: relative;
 }
 
+.account-selection-dropdown .account-icon svg {
+	color: #0b5fff;
+}
+
 .account-selection-dropdown .account-list {
 	max-height: 200px;
 	overflow: auto;
@@ -106,6 +110,12 @@
 	border-radius: 8px;
 }
 
+.account-selection-dropdown .icon-wrapper {
+	font-size: 32px;
+	height: 64px;
+	width: 64px;
+}
+
 .account-selection-dropdown .item-list {
 	transition: var(--account-selection-dropdown-transition);
 }
@@ -130,6 +140,10 @@
 	margin-top: 8px;
 	padding: 6px;
 	width: 100%;
+}
+
+.account-selection-dropdown .text-gray-secondary {
+	color: #54555f !important;
 }
 
 .account-selection-dropdown:has(.active) .dropdown-arrow svg {

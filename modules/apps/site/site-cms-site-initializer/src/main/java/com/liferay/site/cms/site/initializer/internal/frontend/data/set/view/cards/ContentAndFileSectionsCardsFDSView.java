@@ -14,6 +14,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.site.cms.site.initializer.internal.constants.CMSSiteInitializerFDSNames;
+import com.liferay.site.cms.site.initializer.internal.util.FDSViewUtil;
 
 import java.util.Locale;
 
@@ -31,7 +32,8 @@ import org.osgi.service.component.annotations.Component;
 		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.CONTENTS_SECTION,
 		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.FILES_SECTION,
 		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.SPACE_FILES_SUMMARY_SECTION,
-		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.VIEW_FOLDER
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.VIEW_CONTENTS_FOLDER,
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.VIEW_FILES_FOLDER
 	},
 	service = FDSView.class
 )
@@ -82,6 +84,11 @@ public class ContentAndFileSectionsCardsFDSView extends BaseCardsFDSView {
 	@Override
 	public String getTitle() {
 		return "embedded.title";
+	}
+
+	@Override
+	public boolean isDefault(String fdsName) {
+		return FDSViewUtil.isDefault(fdsName, getName());
 	}
 
 	private static final Snapshot<FDSCardSchemaBuilderFactory>

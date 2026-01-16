@@ -25,7 +25,10 @@ import org.osgi.service.component.annotations.Component;
 		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.ALL_SECTION,
 		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.CONTENTS_SECTION,
 		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.FILES_SECTION,
-		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.STRUCTURE_USAGES
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.STRUCTURE_USAGES,
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.VIEW_CONTENTS_FOLDER,
+		"frontend.data.set.name=" + CMSSiteInitializerFDSNames.VIEW_FILES_FOLDER,
+		"service.ranking:Integer=95"
 	},
 	service = FDSFilter.class
 )
@@ -50,22 +53,10 @@ public class WorkflowStatusSelectionFDSFilter extends BaseSelectionFDSFilter {
 				WorkflowConstants.LABEL_APPROVED,
 				WorkflowConstants.STATUS_APPROVED),
 			new SelectionFDSFilterItem(
-				WorkflowConstants.LABEL_DENIED,
-				WorkflowConstants.STATUS_DENIED),
-			new SelectionFDSFilterItem(
 				WorkflowConstants.LABEL_DRAFT, WorkflowConstants.STATUS_DRAFT),
 			new SelectionFDSFilterItem(
 				WorkflowConstants.LABEL_EXPIRED,
 				WorkflowConstants.STATUS_EXPIRED),
-			new SelectionFDSFilterItem(
-				WorkflowConstants.LABEL_IN_TRASH,
-				WorkflowConstants.STATUS_IN_TRASH),
-			new SelectionFDSFilterItem(
-				WorkflowConstants.LABEL_INACTIVE,
-				WorkflowConstants.STATUS_INACTIVE),
-			new SelectionFDSFilterItem(
-				WorkflowConstants.LABEL_INCOMPLETE,
-				WorkflowConstants.STATUS_INCOMPLETE),
 			new SelectionFDSFilterItem(
 				WorkflowConstants.LABEL_PENDING,
 				WorkflowConstants.STATUS_PENDING),

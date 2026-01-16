@@ -17,7 +17,7 @@ import {useIsMounted} from '@liferay/frontend-js-react-web';
 import {FDSTableCellHTMLElementBuilderArgs} from '@liferay/js-api/data-set';
 import classNames from 'classnames';
 import {ClientExtension} from 'frontend-js-components-web';
-import {getObjectValueFromPath, throttle} from 'frontend-js-web';
+import {getObjectValueFromPath, sub, throttle} from 'frontend-js-web';
 import React, {useContext, useEffect, useMemo, useRef, useState} from 'react';
 
 import FrontendDataSetContext, {
@@ -85,10 +85,16 @@ const getVisibleFields = ({
 	visibleFieldNames,
 }: {
 	fields: Array<any>;
-	visibleFieldNames: Array<string>;
+	visibleFieldNames: VisibleFieldNames;
 }) => {
 	const visibleFields = fields.filter(
-		({fieldName}) => visibleFieldNames[fieldName]
+		({fieldName}: {fieldName: string | string[]}) => {
+			if (Array.isArray(fieldName)) {
+				return visibleFieldNames[fieldName.join(',')];
+			}
+
+			return visibleFieldNames[fieldName.replaceAll('.', ',')];
+		}
 	);
 
 	return visibleFields.length ? visibleFields : fields;
@@ -150,6 +156,7 @@ const Head = ({
 };
 
 const Row = ({
+	accessibleName,
 	active,
 	columns,
 	item,
@@ -160,6 +167,7 @@ const Row = ({
 	selectionType,
 	...otherProps
 }: {
+	accessibleName: string;
 	active: boolean;
 	columns: Array<Field>;
 	item: any;
@@ -229,6 +237,10 @@ const Row = ({
 							>
 								{!item.editable && (
 									<SelectionComponent
+										aria-label={sub(
+											Liferay.Language.get('select-x'),
+											accessibleName
+										)}
 										checked={active}
 										onChange={() =>
 											onItemSelectionChange(item)
@@ -332,6 +344,7 @@ const Body = ({
 	items,
 	itemsActions,
 	onItemSelectionChange,
+	schema,
 	selectionType,
 }: {
 	fields: Array<Field>;
@@ -343,6 +356,7 @@ const Body = ({
 	items: Array<any>;
 	itemsActions: Array<IItemsActions>;
 	onItemSelectionChange: Function;
+	schema: ITableSchema;
 	selectionType?: 'single' | 'multiple';
 }) => {
 	const {
@@ -351,6 +365,8 @@ const Body = ({
 		selectedItemsKey,
 		selectedItemsValue,
 	} = useContext(FrontendDataSetContext);
+
+	const {accessibleNameField} = schema;
 
 	const columns: Array<Field> = [
 		...(selectable ? [{fieldName: 'select'}] : []),
@@ -368,6 +384,14 @@ const Body = ({
 				{(item: any) => {
 					return (
 						<Row
+							accessibleName={
+								accessibleNameField
+									? getLocalizedValue(
+											item,
+											item[accessibleNameField]
+										)
+									: item[fields[0].fieldName]
+							}
 							active={
 								allItemsSelectedActive ||
 								!!selectedItemsValue?.find(
@@ -623,6 +647,7 @@ function CellRenderer({
 
 		if (
 			field.contentRendererClientExtension &&
+			modifiedField &&
 			!modifiedField.clientExtensionResolutionError
 		) {
 			const mergedField = {...field, ...modifiedField};
@@ -750,14 +775,6 @@ const Table = ({
 		visibleFieldNames,
 	});
 
-	const [visibleColumns, setVisibleColumns] = useState(() =>
-		getVisibleFieldsMap(
-			schema.fields as Array<Field>,
-			visibleFields,
-			selectable
-		)
-	);
-
 	const columnNames = [];
 
 	if (selectable) {
@@ -850,7 +867,9 @@ const Table = ({
 					});
 
 					visibleColumns.forEach((value: any, key: any) => {
-						visibleFieldNames[key] = true;
+						if (visibleFieldNames[key] !== undefined) {
+							visibleFieldNames[key] = true;
+						}
 					});
 
 					viewsDispatch(updateVisibleFields(visibleFieldNames));
@@ -861,11 +880,13 @@ const Table = ({
 						portletId,
 						settings: {visibleFieldNames},
 					});
-
-					setVisibleColumns(visibleColumns);
 				}}
 				sort={getSorting()}
-				visibleColumns={visibleColumns}
+				visibleColumns={getVisibleFieldsMap(
+					schema.fields as Array<Field>,
+					visibleFields,
+					selectable
+				)}
 			>
 				<Head
 					fields={schema.fields as Array<Field>}
@@ -880,6 +901,7 @@ const Table = ({
 					items={items}
 					itemsActions={itemsActions}
 					onItemSelectionChange={onItemSelectionChange}
+					schema={schema}
 					selectionType={selectionType}
 				/>
 			</ClayTable>

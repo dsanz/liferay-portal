@@ -1,0 +1,93 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ClayTabs renders 1`] = `
+<div>
+  <ul
+    class="nav nav-tabs"
+    role="tablist"
+  />
+</div>
+`;
+
+exports[`ClayTabs renders with items 1`] = `
+<div>
+  <ul
+    class="nav nav-tabs"
+    role="tablist"
+  >
+    <li
+      class="nav-item"
+      role="none"
+    >
+      <button
+        aria-selected="true"
+        class="nav-link active btn btn-unstyled"
+        data-testid="tabItem"
+        role="tab"
+        tabindex="0"
+        type="button"
+      >
+        Dummy1
+      </button>
+    </li>
+    <li
+      class="nav-item"
+      data-testid="tabItem2"
+      role="none"
+    >
+      <button
+        aria-selected="false"
+        class="nav-link btn btn-unstyled"
+        data-testid="tabItem"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        Dummy2
+      </button>
+    </li>
+    <li
+      class="nav-item"
+      role="none"
+    >
+      <button
+        aria-selected="false"
+        class="nav-link btn btn-unstyled"
+        data-testid="tabItem"
+        role="tab"
+        tabindex="-1"
+        type="button"
+      >
+        Dummy3
+      </button>
+    </li>
+  </ul>
+  <div
+    class="tab-content"
+  >
+    <div
+      class="tab-pane active show"
+      data-testid="tabPane1"
+      role="tabpanel"
+      tabindex="0"
+    >
+      Tab Content 1
+    </div>
+    <div
+      class="tab-pane"
+      data-testid="tabPane2"
+      role="tabpanel"
+      tabindex="0"
+    >
+      Tab Content 2
+    </div>
+    <div
+      class="tab-pane"
+      role="tabpanel"
+      tabindex="0"
+    >
+      Tab Content 3
+    </div>
+  </div>
+</div>
+`;

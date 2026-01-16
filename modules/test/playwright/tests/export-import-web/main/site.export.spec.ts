@@ -5,36 +5,51 @@
 
 import {expect, mergeTests} from '@playwright/test';
 
-import {applicationsMenuPageTest} from '../../../fixtures/applicationsMenuPageTest';
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
 import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
+import {isolatedSiteTest} from '../../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../../fixtures/loginTest';
+import {masterPagesPagesTest} from '../../../fixtures/masterPagesPagesTest';
+import {pageTemplatesPagesTest} from '../../../fixtures/pageTemplatesPagesTest';
 import {productMenuPageTest} from '../../../fixtures/productMenuPageTest';
 import {uiElementsPageTest} from '../../../fixtures/uiElementsTest';
 import getRandomString from '../../../utils/getRandomString';
 import {getTempDir} from '../../../utils/temp';
 import {exportImportPagesTest} from './fixtures/exportImportPagesTest';
 
-export const test = mergeTests(
-	applicationsMenuPageTest,
-	exportImportPagesTest,
+export const baseTest = mergeTests(
 	dataApiHelpersTest,
-	featureFlagsTest({
-		'LPD-35914': {enabled: false},
-	}),
+	exportImportPagesTest,
+	isolatedSiteTest,
 	loginTest(),
 	productMenuPageTest,
 	uiElementsPageTest
 );
 
-export const testWithExportImportAtInstanceLevelFF = mergeTests(
-	applicationsMenuPageTest,
-	exportImportPagesTest,
-	dataApiHelpersTest,
+export const test = mergeTests(
+	baseTest,
 	featureFlagsTest({
+		'LPD-35443': {enabled: false},
+		'LPD-35914': {enabled: false},
+	})
+);
+
+export const testWithExportImportAtInstanceLevelFF = mergeTests(
+	baseTest,
+	featureFlagsTest({
+		'LPD-35443': {enabled: true},
+		'LPD-35914': {enabled: true},
+	})
+);
+
+export const testWithHeadlessContentPagesFF = mergeTests(
+	baseTest,
+	featureFlagsTest({
+		'LPD-35443': {enabled: true},
 		'LPD-35914': {enabled: true},
 	}),
-	loginTest()
+	masterPagesPagesTest,
+	pageTemplatesPagesTest
 );
 
 async function expectExportName(exportImportPage, taskName: string) {
@@ -43,14 +58,6 @@ async function expectExportName(exportImportPage, taskName: string) {
 	await exportImportPage.newExportButton.click();
 
 	await exportImportPage.exportButton.click();
-
-	await expect(
-		exportImportPage.page
-			.locator('//h2[span[normalize-space()="' + taskName + '"]]')
-			.first()
-			.locator('../..')
-			.getByText('Successful')
-	).toBeVisible();
 
 	const exportFilePath =
 		await exportImportPage.downloadExportProcess(taskName);
@@ -65,18 +72,7 @@ test('can export at site level with custom export task name', async ({
 
 	const taskName = 'MyExport-' + getRandomString();
 
-	await exportImportPage.export(taskName);
-
-	await expect(
-		exportImportPage.page
-			.locator('//h2[span[normalize-space()="' + taskName + '"]]')
-			.first()
-			.locator('../..')
-			.getByText('Successful')
-	).toBeVisible();
-
-	const exportFilePath =
-		await exportImportPage.downloadExportProcess(taskName);
+	const exportFilePath = await exportImportPage.export({taskName});
 
 	expect(exportFilePath).toMatch(new RegExp(`^${getTempDir()}MyExport-`));
 });
@@ -127,5 +123,60 @@ test(
 		expect(deletionsLabelText?.replace(/\s+/g, ' ').trim()).toBe(
 			'Export Individual Deletions: If this is checked, the delete operations performed will be exported in the LAR file.'
 		);
+	}
+);
+
+testWithHeadlessContentPagesFF(
+	'can see the correct counts of master page templates at site level',
+	{tag: ['@LPD-67433']},
+	async ({
+		exportImportPage,
+		masterPagesPage,
+		pageTemplatesPage,
+		productMenuPage,
+		site,
+		uiElementsPage,
+	}) => {
+		await masterPagesPage.goto(site.friendlyUrlPath);
+		await masterPagesPage.createNewMaster(getRandomString());
+		await masterPagesPage.createNewMaster(getRandomString());
+
+		await pageTemplatesPage.goto(site.friendlyUrlPath);
+		await pageTemplatesPage.addPageTemplateCollection(getRandomString());
+		await pageTemplatesPage.addWidgetPageTemplate(getRandomString());
+
+		await pageTemplatesPage.goto(site.friendlyUrlPath);
+		await pageTemplatesPage.addWidgetPageTemplate(getRandomString());
+
+		await pageTemplatesPage.goto(site.friendlyUrlPath);
+
+		await productMenuPage.openProductMenuIfClosed();
+		await productMenuPage.goToPublishingExport();
+
+		uiElementsPage.clickNewButton();
+
+		await exportImportPage.page.getByLabel(/Pages\s+\d+\s+Items/i).check();
+		await exportImportPage.page
+			.locator('button.content-link[data-portlettitle="Pages"]')
+			.click();
+
+		expect(
+			exportImportPage.page.getByText('Master Pages (2)', {exact: true})
+		).toBeVisible();
+	}
+);
+
+testWithHeadlessContentPagesFF(
+	'cannot see Site Pages checkbox',
+	async ({exportImportPage, productMenuPage}) => {
+		await productMenuPage.openProductMenuIfClosed();
+		await productMenuPage.goToPublishingExport();
+		await productMenuPage.page
+			.getByRole('link', {name: 'Custom Export'})
+			.click();
+
+		await expect(
+			exportImportPage.page.getByLabel(/Site Pages\s+\d+\s+Items/)
+		).not.toBeVisible();
 	}
 );

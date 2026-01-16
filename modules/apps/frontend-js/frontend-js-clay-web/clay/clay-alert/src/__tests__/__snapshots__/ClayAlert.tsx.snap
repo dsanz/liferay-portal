@@ -1,0 +1,720 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ClayAlert render toast alert with stacked action 1`] = `
+<div>
+  <div
+    class="alert alert-info"
+  >
+    <div
+      class="alert-autofit-row autofit-row"
+      role="alert"
+    >
+      <div
+        class="autofit-col"
+      >
+        <div
+          class="autofit-section"
+        >
+          <span
+            class="alert-indicator"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-info-circle"
+              role="presentation"
+            >
+              <use
+                href="/foo/bar#info-circle"
+              />
+            </svg>
+          </span>
+        </div>
+      </div>
+      <div
+        class="autofit-col autofit-col-expand"
+      >
+        <div
+          class="autofit-section"
+        >
+          <strong
+            class="lead"
+          >
+            Foo:
+          </strong>
+          Bar!
+          <div
+            class="alert-footer"
+          >
+            <button
+              class="btn alert-btn btn-sm btn-primary"
+              type="button"
+            >
+              Baz
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayAlert renders 1`] = `
+<div>
+  <div
+    class="alert alert-info"
+  >
+    <div
+      class="alert-autofit-row autofit-row"
+      role="alert"
+    >
+      <div
+        class="autofit-col"
+      >
+        <div
+          class="autofit-section"
+        >
+          <span
+            class="alert-indicator"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-info-circle"
+              role="presentation"
+            >
+              <use
+                href="/foo/bar#info-circle"
+              />
+            </svg>
+          </span>
+        </div>
+      </div>
+      <div
+        class="autofit-col autofit-col-expand"
+      >
+        <div
+          class="autofit-section"
+        >
+          <strong
+            class="lead"
+          >
+            Hello!
+          </strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayAlert renders alert inline with action 1`] = `
+<div>
+  <div
+    class="alert alert-inline alert-info"
+  >
+    <div
+      class="alert-autofit-row autofit-row"
+      role="alert"
+    >
+      <div
+        class="autofit-col autofit-col-expand"
+      >
+        <div
+          class="autofit-section"
+        >
+          <span
+            class="alert-indicator"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-info-circle"
+              role="presentation"
+            >
+              <use
+                href="/foo/bar#info-circle"
+              />
+            </svg>
+          </span>
+          <strong
+            class="lead"
+          >
+            Foo:
+          </strong>
+          Bar!
+        </div>
+      </div>
+      <div
+        class="autofit-col"
+      >
+        <div
+          class="autofit-section"
+        >
+          <button
+            class="btn btn-sm btn-primary"
+            type="button"
+          >
+            Baz
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayAlert renders as \`feedback\` variant 1`] = `
+<div>
+  <div
+    class="alert alert-feedback alert-indicator-start alert-info"
+  >
+    <div
+      class="alert-autofit-row autofit-row"
+      role="alert"
+    >
+      <div
+        class="autofit-col autofit-col-expand"
+      >
+        <div
+          class="autofit-section"
+        >
+          <span
+            class="alert-indicator"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-info-circle"
+              role="presentation"
+            >
+              <use
+                href="/foo/bar#info-circle"
+              />
+            </svg>
+          </span>
+          <strong
+            class="lead"
+          >
+            Hello!
+          </strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayAlert renders as \`stripe\` variant 1`] = `
+<div>
+  <div
+    class="alert alert-fluid alert-info"
+  >
+    <div
+      class="container"
+    >
+      <div
+        class="alert-autofit-row autofit-row"
+        role="alert"
+      >
+        <div
+          class="autofit-col"
+        >
+          <div
+            class="autofit-section"
+          >
+            <span
+              class="alert-indicator"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-info-circle"
+                role="presentation"
+              >
+                <use
+                  href="/foo/bar#info-circle"
+                />
+              </svg>
+            </span>
+          </div>
+        </div>
+        <div
+          class="autofit-col autofit-col-expand"
+        >
+          <div
+            class="autofit-section"
+          >
+            <strong
+              class="lead"
+            >
+              Hello!
+            </strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayAlert renders as a different type 1`] = `
+<div>
+  <div
+    class="alert alert-danger"
+  >
+    <div
+      class="alert-autofit-row autofit-row"
+      role="alert"
+    >
+      <div
+        class="autofit-col"
+      >
+        <div
+          class="autofit-section"
+        >
+          <span
+            class="alert-indicator"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-exclamation-full"
+              role="presentation"
+            >
+              <use
+                href="/foo/bar#exclamation-full"
+              />
+            </svg>
+          </span>
+        </div>
+      </div>
+      <div
+        class="autofit-col autofit-col-expand"
+      >
+        <div
+          class="autofit-section"
+        >
+          <strong
+            class="lead"
+          >
+            Hello!
+          </strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayAlert renders with ToastContainer as a wrapper  1`] = `
+<div>
+  <div
+    class="alert-container container"
+  >
+    <div
+      class="alert-notifications alert-notifications-fixed"
+    >
+      <div
+        class="alert alert-info"
+      >
+        <div
+          class="alert-autofit-row autofit-row"
+          role="alert"
+        >
+          <div
+            class="autofit-col"
+          >
+            <div
+              class="autofit-section"
+            >
+              <span
+                class="alert-indicator"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-info-circle"
+                  role="presentation"
+                >
+                  <use
+                    href="/foo/bar#info-circle"
+                  />
+                </svg>
+              </span>
+            </div>
+          </div>
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <div
+              class="autofit-section"
+            >
+              <strong
+                class="lead"
+              >
+                One!
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="alert alert-info"
+      >
+        <div
+          class="alert-autofit-row autofit-row"
+          role="alert"
+        >
+          <div
+            class="autofit-col"
+          >
+            <div
+              class="autofit-section"
+            >
+              <span
+                class="alert-indicator"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-info-circle"
+                  role="presentation"
+                >
+                  <use
+                    href="/foo/bar#info-circle"
+                  />
+                </svg>
+              </span>
+            </div>
+          </div>
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <div
+              class="autofit-section"
+            >
+              <strong
+                class="lead"
+              >
+                Two!
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div
+        class="alert alert-info"
+      >
+        <div
+          class="alert-autofit-row autofit-row"
+          role="alert"
+        >
+          <div
+            class="autofit-col"
+          >
+            <div
+              class="autofit-section"
+            >
+              <span
+                class="alert-indicator"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-info-circle"
+                  role="presentation"
+                >
+                  <use
+                    href="/foo/bar#info-circle"
+                  />
+                </svg>
+              </span>
+            </div>
+          </div>
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <div
+              class="autofit-section"
+            >
+              <strong
+                class="lead"
+              >
+                Three!
+              </strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayAlert renders with a footer and button 1`] = `
+<div>
+  <div
+    class="alert alert-info"
+  >
+    <div
+      class="alert-autofit-row autofit-row"
+      role="alert"
+    >
+      <div
+        class="autofit-col"
+      >
+        <div
+          class="autofit-section"
+        >
+          <span
+            class="alert-indicator"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-info-circle"
+              role="presentation"
+            >
+              <use
+                href="/foo/bar#info-circle"
+              />
+            </svg>
+          </span>
+        </div>
+      </div>
+      <div
+        class="autofit-col autofit-col-expand"
+      >
+        <div
+          class="autofit-section"
+        >
+          <strong
+            class="lead"
+          >
+            Hello!
+          </strong>
+          <span>
+            test
+          </span>
+          <div
+            class="alert-footer"
+          >
+            <div
+              class="btn-group"
+              role="group"
+            >
+              <button
+                class="btn alert-btn btn-primary"
+                type="button"
+              >
+                View
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayAlert renders with a title and a message with markup 1`] = `
+<div>
+  <div
+    class="alert alert-info"
+  >
+    <div
+      class="alert-autofit-row autofit-row"
+      role="alert"
+    >
+      <div
+        class="autofit-col"
+      >
+        <div
+          class="autofit-section"
+        >
+          <span
+            class="alert-indicator"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-info-circle"
+              role="presentation"
+            >
+              <use
+                href="/foo/bar#info-circle"
+              />
+            </svg>
+          </span>
+        </div>
+      </div>
+      <div
+        class="autofit-col autofit-col-expand"
+      >
+        <div
+          class="autofit-section"
+        >
+          <strong
+            class="lead"
+          >
+            Hello!
+          </strong>
+          <span>
+            test
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayAlert renders with an icon for closing 1`] = `
+<div>
+  <div
+    class="alert alert-dismissible alert-info"
+  >
+    <div
+      class="alert-autofit-row autofit-row"
+      role="alert"
+    >
+      <div
+        class="autofit-col"
+      >
+        <div
+          class="autofit-section"
+        >
+          <span
+            class="alert-indicator"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-info-circle"
+              role="presentation"
+            >
+              <use
+                href="/foo/bar#info-circle"
+              />
+            </svg>
+          </span>
+        </div>
+      </div>
+      <div
+        class="autofit-col autofit-col-expand"
+      >
+        <div
+          class="autofit-section"
+        >
+          <strong
+            class="lead"
+          >
+            Hello!
+          </strong>
+        </div>
+      </div>
+    </div>
+    <button
+      aria-label="Close"
+      class="close"
+      type="button"
+    >
+      <svg
+        class="lexicon-icon lexicon-icon-times"
+        role="presentation"
+      >
+        <use
+          href="/foo/bar#times"
+        />
+      </svg>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`ClayAlert renders with an icon for closing with autoClose 1`] = `
+<div>
+  <div
+    class="alert alert-dismissible alert-info"
+  >
+    <div
+      class="alert-autofit-row autofit-row"
+      role="alert"
+    >
+      <div
+        class="autofit-col"
+      >
+        <div
+          class="autofit-section"
+        >
+          <span
+            class="alert-indicator"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-info-circle"
+              role="presentation"
+            >
+              <use
+                href="/foo/bar#info-circle"
+              />
+            </svg>
+          </span>
+        </div>
+      </div>
+      <div
+        class="autofit-col autofit-col-expand"
+      >
+        <div
+          class="autofit-section"
+        >
+          <strong
+            class="lead"
+          >
+            Hello!
+          </strong>
+        </div>
+      </div>
+    </div>
+    <button
+      aria-label="Close"
+      class="close"
+      type="button"
+    >
+      <svg
+        class="lexicon-icon lexicon-icon-times"
+        role="presentation"
+      >
+        <use
+          href="/foo/bar#times"
+        />
+      </svg>
+    </button>
+  </div>
+</div>
+`;
+
+exports[`ClayAlert renders with autoClose and without icon 1`] = `
+<div>
+  <div
+    class="alert alert-info"
+  >
+    <div
+      class="alert-autofit-row autofit-row"
+      role="alert"
+    >
+      <div
+        class="autofit-col"
+      >
+        <div
+          class="autofit-section"
+        >
+          <span
+            class="alert-indicator"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-info-circle"
+              role="presentation"
+            >
+              <use
+                href="/foo/bar#info-circle"
+              />
+            </svg>
+          </span>
+        </div>
+      </div>
+      <div
+        class="autofit-col autofit-col-expand"
+      >
+        <div
+          class="autofit-section"
+        >
+          <strong
+            class="lead"
+          >
+            Hello!
+          </strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

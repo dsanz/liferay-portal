@@ -96,14 +96,34 @@ public class JUnitTestClass extends BaseTestClass {
 		return jsonObject;
 	}
 
-	@Override
-	public long getSharedWeight() {
-		return getAverageTestTaskDuration();
-	}
+	public List<String> getTestClassFileMethodNames() {
+		List<String> testClassFileMethodNames = new ArrayList<>();
 
-	@Override
-	public String getSharedWeightName() {
-		return getTestTaskName();
+		Matcher matcher = _testClassFileNamePattern.matcher(
+			String.valueOf(getTestClassFile()));
+
+		if (!matcher.find()) {
+			return testClassFileMethodNames;
+		}
+
+		String testClassFileName = matcher.group("testClassFileName");
+
+		testClassFileName = testClassFileName.replace(".java", ".class");
+
+		List<String> testClassMethodNames = getTestClassMethodNames();
+
+		if ((testClassMethodNames == null) || testClassMethodNames.isEmpty()) {
+			testClassFileMethodNames.add(testClassFileName);
+
+			return testClassFileMethodNames;
+		}
+
+		for (String testClassMethodName : testClassMethodNames) {
+			testClassFileMethodNames.add(
+				testClassFileName + "#" + testClassMethodName);
+		}
+
+		return testClassFileMethodNames;
 	}
 
 	public List<String> getTestClassMethodNames() {
@@ -118,6 +138,23 @@ public class JUnitTestClass extends BaseTestClass {
 
 	public String getTestrayMainComponentName() {
 		return _testrayMainComponentName;
+	}
+
+	@Override
+	public String getTestTaskName() {
+		String taskName = _getTaskName();
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(taskName)) {
+			return super.getTestTaskName();
+		}
+
+		String testClassFilePath = JenkinsResultsParserUtil.getCanonicalPath(
+			getTestClassFile());
+
+		String testTaskName = testClassFilePath.replaceAll(
+			".*/modules(/.+)/src/" + taskName + "/.+", "$1");
+
+		return testTaskName.replaceAll("/", ":") + ":" + taskName;
 	}
 
 	@Override
@@ -415,6 +452,21 @@ public class JUnitTestClass extends BaseTestClass {
 			portalGitWorkingDirectory.getWorkingDirectory(), "modules");
 	}
 
+	private String _getTaskName() {
+		BatchTestClassGroup batchTestClassGroup = getBatchTestClassGroup();
+
+		String batchName = batchTestClassGroup.getBatchName();
+
+		if (batchName.startsWith("modules-integration")) {
+			return "testIntegration";
+		}
+		else if (batchName.startsWith("modules-unit")) {
+			return "test";
+		}
+
+		return null;
+	}
+
 	private void _initTestClassMethods(String fileContent) {
 		Matcher classHeaderMatcher = _classHeaderPattern.matcher(fileContent);
 
@@ -508,6 +560,8 @@ public class JUnitTestClass extends BaseTestClass {
 		JenkinsResultsParserUtil.combine(
 			"\\t(?<annotations>(@[\\s\\S]+?))public\\s+void\\s+",
 			"(?<methodName>[^\\(\\s]+)"));
+	private static final Pattern _testClassFileNamePattern = Pattern.compile(
+		".*/(?<testClassFileName>com/.*)");
 
 	private DownstreamBuildReport _cachedDownstreamBuildReport;
 	private List<TestClassReport> _cachedTestClassReports;

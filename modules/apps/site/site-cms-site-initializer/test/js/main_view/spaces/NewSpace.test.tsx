@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -26,7 +26,9 @@ const mockLearnResources = {
 
 describe('NewSpace', () => {
 	const props: NewSpaceProps = {
+		backURL: 'https://localhost/web/cms',
 		baseAddSpaceMembersURL: 'fake-add-member-url/',
+		description: 'section-description',
 		learnResources: mockLearnResources,
 	};
 
@@ -49,15 +51,15 @@ describe('NewSpace', () => {
 			screen.getByRole('heading', {name: 'add-space'})
 		).toBeInTheDocument();
 
-		expect(
-			screen.getByText(
-				'spaces-are-essential-for-organizing-defining-and-managing-your-content-and-files'
-			)
-		).toBeInTheDocument();
+		expect(screen.getByText('section-description')).toBeInTheDocument();
 
 		expect(
 			screen.getByRole('button', {name: 'continue'})
 		).toBeInTheDocument();
+
+		const cancelLink = screen.getByRole('link', {name: 'cancel'});
+		expect(cancelLink).toBeInTheDocument();
+		expect(cancelLink).toHaveAttribute('href', 'https://localhost/web/cms');
 	});
 
 	it('disables continue button until it has a value', async () => {

@@ -12,10 +12,12 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.odata.entity.CollectionEntityField;
 import com.liferay.portal.odata.entity.ComplexEntityField;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
@@ -23,6 +25,7 @@ import com.liferay.portal.vulcan.openapi.OpenAPIContext;
 import com.liferay.portal.vulcan.openapi.contributor.OpenAPIContributor;
 import com.liferay.portal.vulcan.resource.EntityModelResource;
 
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
@@ -33,7 +36,7 @@ import io.swagger.v3.oas.models.parameters.Parameter;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 
 import java.util.AbstractMap;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -41,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -58,28 +62,28 @@ public class FilterableFieldsOpenAPIContributor implements OpenAPIContributor {
 	public void contribute(OpenAPI openAPI, OpenAPIContext openAPIContext)
 		throws Exception {
 
-		if ((openAPIContext == null) || (openAPI.getComponents() == null)) {
+		Components components = openAPI.getComponents();
+
+		if ((components == null) || (openAPIContext == null)) {
 			return;
 		}
 
-		Map<String, Schema> schemas = openAPI.getComponents(
-		).getSchemas();
+		Map<String, Schema> schemas = components.getSchemas();
 
 		if (MapUtil.isEmpty(schemas)) {
 			return;
 		}
 
-		Map<String, List<String>> schemaNameFilterableFieldNames =
+		Map<String, Map<String, Object>> schemaNameFilterableFields =
 			new HashMap<>();
 
 		for (Schema schema : schemas.values()) {
-			List<String> filterableFieldNames = _getFilterableFieldNames(
+			Map<String, Object> filterableFields = _getFilterableFields(
 				openAPIContext, schema);
 
-			schema.addExtension("x-filterable", filterableFieldNames);
+			schema.addExtension("x-filterable", filterableFields);
 
-			schemaNameFilterableFieldNames.put(
-				schema.getName(), filterableFieldNames);
+			schemaNameFilterableFields.put(schema.getName(), filterableFields);
 		}
 
 		Paths paths = openAPI.getPaths();
@@ -89,18 +93,14 @@ public class FilterableFieldsOpenAPIContributor implements OpenAPIContributor {
 		}
 
 		for (PathItem pathItem : paths.values()) {
-			_setXFilterable(
-				schemaNameFilterableFieldNames, pathItem.getDelete());
-			_setXFilterable(schemaNameFilterableFieldNames, pathItem.getGet());
-			_setXFilterable(schemaNameFilterableFieldNames, pathItem.getHead());
-			_setXFilterable(
-				schemaNameFilterableFieldNames, pathItem.getOptions());
-			_setXFilterable(
-				schemaNameFilterableFieldNames, pathItem.getPatch());
-			_setXFilterable(schemaNameFilterableFieldNames, pathItem.getPost());
-			_setXFilterable(schemaNameFilterableFieldNames, pathItem.getPut());
-			_setXFilterable(
-				schemaNameFilterableFieldNames, pathItem.getTrace());
+			_setXFilterable(schemaNameFilterableFields, pathItem.getDelete());
+			_setXFilterable(schemaNameFilterableFields, pathItem.getGet());
+			_setXFilterable(schemaNameFilterableFields, pathItem.getHead());
+			_setXFilterable(schemaNameFilterableFields, pathItem.getOptions());
+			_setXFilterable(schemaNameFilterableFields, pathItem.getPatch());
+			_setXFilterable(schemaNameFilterableFields, pathItem.getPost());
+			_setXFilterable(schemaNameFilterableFields, pathItem.getPut());
+			_setXFilterable(schemaNameFilterableFields, pathItem.getTrace());
 		}
 	}
 
@@ -244,7 +244,7 @@ public class FilterableFieldsOpenAPIContributor implements OpenAPIContributor {
 		return null;
 	}
 
-	private List<String> _getFilterableFieldNames(
+	private Map<String, Object> _getFilterableFields(
 			OpenAPIContext openAPIContext, Schema schema)
 		throws Exception {
 
@@ -252,10 +252,10 @@ public class FilterableFieldsOpenAPIContributor implements OpenAPIContributor {
 			openAPIContext, schema);
 
 		if (MapUtil.isEmpty(entityFieldsMap)) {
-			return new ArrayList<>();
+			return Collections.emptyMap();
 		}
 
-		List<String> filterableFieldNames = new ArrayList<>();
+		Map<String, Object> filterableFields = new TreeMap<>();
 
 		Set<EntityField> visitedEntityFields = new HashSet<>();
 
@@ -273,8 +273,32 @@ public class FilterableFieldsOpenAPIContributor implements OpenAPIContributor {
 
 			EntityField entityField = entry1.getValue();
 
-			if (!(entityField instanceof ComplexEntityField)) {
-				filterableFieldNames.add(fieldName);
+			if (entityField instanceof
+					CollectionEntityField collectionEntityField) {
+
+				EntityField internalEntityField =
+					collectionEntityField.getEntityField();
+
+				filterableFields.put(
+					fieldName,
+					HashMapBuilder.put(
+						"items",
+						StringUtil.toLowerCase(
+							String.valueOf(internalEntityField.getType()))
+					).put(
+						"type", "array"
+					).build());
+
+				continue;
+			}
+			else if (!(entityField instanceof ComplexEntityField)) {
+				filterableFields.put(
+					fieldName,
+					HashMapBuilder.put(
+						"type",
+						StringUtil.toLowerCase(
+							String.valueOf(entityField.getType()))
+					).build());
 
 				continue;
 			}
@@ -299,11 +323,12 @@ public class FilterableFieldsOpenAPIContributor implements OpenAPIContributor {
 			}
 		}
 
-		return ListUtil.sort(filterableFieldNames);
+		return filterableFields;
 	}
 
 	private void _setXFilterable(
-		Map<String, List<String>> filterableFieldNames, Operation operation) {
+		Map<String, Map<String, Object>> schemaNameFilterableFields,
+		Operation operation) {
 
 		if (operation == null) {
 			return;
@@ -342,7 +367,7 @@ public class FilterableFieldsOpenAPIContributor implements OpenAPIContributor {
 		}
 
 		schema.addExtension(
-			"x-filterable", filterableFieldNames.get(tags.get(0)));
+			"x-filterable", schemaNameFilterableFields.get(tags.get(0)));
 	}
 
 	private BundleContext _bundleContext;

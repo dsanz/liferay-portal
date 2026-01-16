@@ -16,17 +16,23 @@ import getUuid from '../../../../src/main/resources/META-INF/resources/js/struct
 const DEFAULT_STRUCTURE: Structure = {
 	children: new Map(),
 	erc: 'default-erc',
-	label: 'untitled-structure' as any,
+	label: {
+		[Liferay.ThemeDisplay.getDefaultLanguageId()]: 'untitled-structure',
+	} as any,
 	name: 'UntitledStructure',
 	spaces: [],
 	status: 'new',
+	system: false,
 	uuid: getUuid(),
 	workflows: {},
 };
 
 const DEFAULT_STATE: State = {
-	error: null,
-	history: {deletedChildren: false},
+	history: {
+		deletedChildren: false,
+		deletedGroupERCs: [],
+		modifiedNames: new Set(),
+	},
 	invalids: new Map(),
 	publishedChildren: new Set(),
 	selection: [],

@@ -8,12 +8,14 @@ package com.liferay.headless.admin.site.internal.resource.v1_0.util;
 import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.headless.admin.site.dto.v1_0.ItemExternalReference;
 import com.liferay.headless.admin.site.dto.v1_0.OpenGraphSettings;
-import com.liferay.headless.admin.site.internal.dto.v1_0.util.ScopeUtil;
+import com.liferay.headless.admin.site.internal.dto.v1_0.util.ItemScopeUtil;
 import com.liferay.layout.seo.model.LayoutSEOEntry;
-import com.liferay.layout.seo.service.LayoutSEOEntryLocalService;
-import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
+
+import java.util.Locale;
+import java.util.Map;
 
 /**
  * @author Jürgen Kappler
@@ -22,23 +24,30 @@ import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 public class OpenGraphSettingsUtil {
 
 	public static OpenGraphSettings getOpenGraphSettings(
-		DLAppService dlAppService,
-		LayoutSEOEntryLocalService layoutSEOEntryLocalService, Layout layout) {
+		DLAppService dlAppService, LayoutSEOEntry layoutSEOEntry) {
 
-		LayoutSEOEntry layoutSEOEntry =
-			layoutSEOEntryLocalService.fetchLayoutSEOEntry(
-				layout.getGroupId(), layout.isPrivateLayout(),
-				layout.getLayoutId());
+		if ((layoutSEOEntry == null) ||
+			(MapUtil.isEmpty(layoutSEOEntry.getOpenGraphDescriptionMap()) &&
+			 MapUtil.isEmpty(layoutSEOEntry.getOpenGraphImageAltMap()) &&
+			 (layoutSEOEntry.getOpenGraphImageFileEntryId() == 0) &&
+			 MapUtil.isEmpty(layoutSEOEntry.getOpenGraphTitleMap()))) {
 
-		if (layoutSEOEntry == null) {
 			return null;
 		}
 
 		return new OpenGraphSettings() {
 			{
 				setDescription_i18n(
-					() -> LocalizedMapUtil.getI18nMap(
-						layoutSEOEntry.getOpenGraphDescriptionMap()));
+					() -> {
+						Map<Locale, String> map =
+							layoutSEOEntry.getOpenGraphDescriptionMap();
+
+						if (MapUtil.isEmpty(map)) {
+							return null;
+						}
+
+						return LocalizedMapUtil.getI18nMap(map);
+					});
 				setImage(
 					() -> {
 						long openGraphImageFileEntryId =
@@ -57,18 +66,34 @@ public class OpenGraphSettingsUtil {
 								setExternalReferenceCode(
 									fileEntry::getExternalReferenceCode);
 								setScope(
-									() -> ScopeUtil.getScope(
-										layout.getGroupId(),
-										fileEntry.getGroupId()));
+									() -> ItemScopeUtil.getItemScope(
+										fileEntry.getGroupId(),
+										layoutSEOEntry.getGroupId()));
 							}
 						};
 					});
 				setImageAlt_i18n(
-					() -> LocalizedMapUtil.getI18nMap(
-						layoutSEOEntry.getOpenGraphImageAltMap()));
+					() -> {
+						Map<Locale, String> map =
+							layoutSEOEntry.getOpenGraphImageAltMap();
+
+						if (MapUtil.isEmpty(map)) {
+							return null;
+						}
+
+						return LocalizedMapUtil.getI18nMap(map);
+					});
 				setTitle_i18n(
-					() -> LocalizedMapUtil.getI18nMap(
-						layoutSEOEntry.getOpenGraphTitleMap()));
+					() -> {
+						Map<Locale, String> map =
+							layoutSEOEntry.getOpenGraphTitleMap();
+
+						if (MapUtil.isEmpty(map)) {
+							return null;
+						}
+
+						return LocalizedMapUtil.getI18nMap(map);
+					});
 			}
 		};
 	}

@@ -1,8 +1,8 @@
 const currentLength = document.getElementById(
 	`${fragmentElementId}-current-length`
 );
-const errorMessage = document.getElementById(
-	`${fragmentElementId}-inline-text-input-error-message`
+const error = document.getElementById(
+	`${fragmentElementId}-inline-text-input-error`
 );
 const formGroup = document.getElementById(`${fragmentElementId}-form-group`);
 const inputElement = document.getElementById(
@@ -23,15 +23,20 @@ function main() {
 	else {
 		import('@liferay/fragment-impl/api').then(
 			({
+				focusInput,
 				handleInputLengthError,
 				hideLengthError,
 				registerLocalizedInput,
 				registerUnlocalizedInput,
 			}) => {
+				if (error) {
+					focusInput(inputElement);
+				}
+
 				currentLength.innerText = inputElement.value.length;
 
 				if (
-					!errorMessage &&
+					!error &&
 					inputElement.value.length > input.attributes.maxLength
 				) {
 					hideLengthError({
@@ -47,7 +52,7 @@ function main() {
 					handleInputLengthError({
 						configuration,
 						currentLength,
-						errorMessage,
+						errorContainer: error,
 						event,
 						formGroup,
 						input,

@@ -18,7 +18,6 @@ const test = mergeTests(
 	dataApiHelpersTest,
 	featureFlagsTest({
 		'LPD-17564': {enabled: true},
-		'LPS-179669': {enabled: true},
 	}),
 	loginTest(),
 	workflowPagesTest
@@ -260,7 +259,9 @@ test(
 			await homePage.assignedToMyRolesMenuItem.click();
 
 			await expect(page.getByText(account.name)).toBeHidden();
-			await expect(page.getByText(objectEntry.title)).toBeVisible();
+			await expect(
+				page.getByRole('link', {name: objectEntry.title})
+			).toBeVisible();
 		}
 		finally {
 			if (objectEntry) {

@@ -812,28 +812,33 @@ public class ContentManagerImpl implements ContentManager {
 		String redirect) {
 
 		try {
-			return PortletURLBuilder.create(
-				PortletProviderUtil.getPortletURL(
-					httpServletRequest, AssetListEntry.class.getName(),
-					PortletProvider.Action.EDIT)
-			).setRedirect(
-				redirect
-			).setBackURL(
-				redirect
-			).setParameter(
-				"assetListEntryId", assetListEntry.getAssetListEntryId()
-			).setParameter(
-				"backURLTitle",
-				() -> {
-					ThemeDisplay themeDisplay =
-						(ThemeDisplay)httpServletRequest.getAttribute(
-							WebKeys.THEME_DISPLAY);
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)httpServletRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
 
-					Layout layout = themeDisplay.getLayout();
+			if (_assetListEntryModelResourcePermission.contains(
+					themeDisplay.getPermissionChecker(), assetListEntry,
+					ActionKeys.UPDATE)) {
 
-					return layout.getName(themeDisplay.getLocale());
-				}
-			).buildString();
+				return PortletURLBuilder.create(
+					PortletProviderUtil.getPortletURL(
+						httpServletRequest, AssetListEntry.class.getName(),
+						PortletProvider.Action.EDIT)
+				).setRedirect(
+					redirect
+				).setBackURL(
+					redirect
+				).setParameter(
+					"assetListEntryId", assetListEntry.getAssetListEntryId()
+				).setParameter(
+					"backURLTitle",
+					() -> {
+						Layout layout = themeDisplay.getLayout();
+
+						return layout.getName(themeDisplay.getLocale());
+					}
+				).buildString();
+			}
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
@@ -847,11 +852,11 @@ public class ContentManagerImpl implements ContentManager {
 	private String _getAssetListEntryPermissionsURL(
 		AssetListEntry assetListEntry, HttpServletRequest httpServletRequest) {
 
-		ThemeDisplay themeDisplay =
-			(ThemeDisplay)httpServletRequest.getAttribute(
-				WebKeys.THEME_DISPLAY);
-
 		try {
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)httpServletRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
 			if (_assetListEntryModelResourcePermission.contains(
 					themeDisplay.getPermissionChecker(), assetListEntry,
 					ActionKeys.PERMISSIONS)) {

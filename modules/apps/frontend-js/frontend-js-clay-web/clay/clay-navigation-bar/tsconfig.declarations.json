@@ -1,0 +1,13 @@
+{
+	"compilerOptions": {
+		"baseUrl": ".",
+		"declarationDir": "./lib"
+	},
+	"exclude": [
+		"**/__tests__/**"
+	],
+	"extends": "../../tsconfig.declarations.json",
+	"include": [
+		"src"
+	]
+}

@@ -39,9 +39,11 @@ type GetVocabularyAndCategory = {
 
 export class MarketplaceHelper {
 	readonly apiHelpers: ApiHelpers;
+	readonly page: Page;
 
 	constructor(page: Page) {
 		this.apiHelpers = new ApiHelpers(page);
+		this.page = page;
 	}
 
 	async createAccountUserCatalog({
@@ -121,6 +123,30 @@ export class MarketplaceHelper {
 		}
 	}
 
+	async selectAccount(accountName: string) {
+		const accountSearchDropdown = this.page.locator(
+			'#account-search.dropdown'
+		);
+
+		await accountSearchDropdown.click();
+
+		const accountItem = this.page.locator('li.item-list', {
+			hasText: accountName,
+		});
+
+		await accountItem.waitFor();
+
+		if (
+			!(await accountItem.evaluate((element) =>
+				element.classList.contains('disabled')
+			))
+		) {
+			await accountItem.click();
+		}
+
+		await this.page.waitForLoadState('load');
+	}
+
 	async assignUserToAccountRole({
 		accountId,
 		accountRole,
@@ -176,7 +202,7 @@ export class MarketplaceHelper {
 							unitPrice: orderItems.UNIT_PRICE,
 						},
 					],
-					orderTypeExternalReferenceCode: ORDER_TYPES.DXPAPP,
+					orderTypeExternalReferenceCode: ORDER_TYPES.DXP_APP,
 				});
 
 			await this.apiHelpers.headlessCommerceAdminOrder.patchOrder(

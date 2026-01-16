@@ -5,15 +5,9 @@
 
 package com.liferay.customer;
 
-import com.liferay.customer.exception.JiraIssueClosedException;
-import com.liferay.customer.exception.JiraIssueNotFoundException;
 import com.liferay.customer.exception.JiraOrganizationNotFoundException;
-import com.liferay.customer.model.JiraSupportIssue;
 import com.liferay.customer.service.JiraService;
 import com.liferay.portal.kernel.util.Validator;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,48 +20,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class BaseRestController
 	extends com.liferay.client.extension.util.spring.boot3.BaseRestController {
 
-	protected String getAccountKey(String jiraIssueKey) throws Exception {
-		try {
-			return _getAccountKey(jiraIssueKey);
-		}
-		catch (JiraIssueClosedException jiraIssueClosedException) {
-			_log.error(jiraIssueClosedException, jiraIssueClosedException);
+	protected String getAccountKey(
+			String jiraOrganizationId, String jiraWorkspaceId)
+		throws JiraOrganizationNotFoundException {
 
-			throw jiraIssueClosedException;
-		}
-		catch (JiraIssueNotFoundException jiraIssueNotFoundException) {
-			_log.error(jiraIssueNotFoundException, jiraIssueNotFoundException);
+		if (Validator.isNull(jiraOrganizationId) ||
+			Validator.isNull(jiraWorkspaceId)) {
 
-			throw jiraIssueNotFoundException;
-		}
-		catch (Exception exception) {
-			_log.error(exception, exception);
-
-			throw new JiraOrganizationNotFoundException(exception);
-		}
-	}
-
-	private String _getAccountKey(String jiraIssueKey) throws Exception {
-		JiraSupportIssue jiraSupportIssue = _jiraService.getJiraSupportIssue(
-			jiraIssueKey);
-
-		if (jiraSupportIssue == null) {
-			throw new JiraIssueNotFoundException();
-		}
-
-		if (jiraSupportIssue.isClosed()) {
-			throw new JiraIssueClosedException();
-		}
-
-		String organizationId = jiraSupportIssue.getOrganizationId();
-		String workspaceId = jiraSupportIssue.getWorkspaceId();
-
-		if (Validator.isNull(organizationId) || Validator.isNull(workspaceId)) {
 			throw new JiraOrganizationNotFoundException();
 		}
 
 		JSONObject assetObjectJSONObject = _jiraService.getAssetObject(
-			workspaceId, organizationId);
+			jiraWorkspaceId, jiraOrganizationId);
 
 		JSONArray jsonArray = assetObjectJSONObject.getJSONArray("attributes");
 
@@ -94,8 +58,6 @@ public class BaseRestController
 
 		throw new JiraOrganizationNotFoundException();
 	}
-
-	private static final Log _log = LogFactory.getLog(BaseRestController.class);
 
 	@Autowired
 	private JiraService _jiraService;

@@ -223,9 +223,10 @@ public class CopyLayoutMVCActionCommandTest {
 				WorkflowConstants.STATUS_APPROVED,
 				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
-		_layout = _layoutLocalService.updateMasterLayoutPlid(
+		_layout = _layoutLocalService.updateMasterLayoutPageTemplateEntryERC(
 			_group.getGroupId(), _layout.isPrivateLayout(),
-			_layout.getLayoutId(), masterLayoutPageTemplateEntry.getPlid());
+			_layout.getLayoutId(),
+			masterLayoutPageTemplateEntry.getExternalReferenceCode());
 
 		_processAction(false, Collections.emptyMap());
 
@@ -312,7 +313,8 @@ public class CopyLayoutMVCActionCommandTest {
 		ContentLayoutTestUtil.addFragmentEntryLinkToLayout(
 			editableValues, fragmentEntry.getCss(),
 			fragmentEntry.getConfiguration(),
-			fragmentEntry.getFragmentEntryId(), fragmentEntry.getHtml(),
+			fragmentEntry.getExternalReferenceCode(),
+			fragmentEntry.getScopeERC(), fragmentEntry.getHtml(),
 			fragmentEntry.getJs(), _draftLayout,
 			fragmentEntry.getFragmentEntryKey(), _segmentsExperienceId,
 			fragmentEntry.getType());
@@ -353,16 +355,15 @@ public class CopyLayoutMVCActionCommandTest {
 		mockLiferayPortletActionRequest.addParameter(
 			"plid", String.valueOf(draftLayout.getPlid()));
 
-		HttpServletRequest mockHttpServletRequest =
-			new MockHttpServletRequest();
+		HttpServletRequest httpServletRequest = new MockHttpServletRequest();
 
-		mockHttpServletRequest.setAttribute(
+		httpServletRequest.setAttribute(
 			WebKeys.THEME_DISPLAY, _getThemeDisplay());
-		mockHttpServletRequest.setAttribute(
+		httpServletRequest.setAttribute(
 			WebKeys.USER_ID, TestPropsValues.getUserId());
 
 		mockLiferayPortletActionRequest.setAttribute(
-			PortletServlet.PORTLET_SERVLET_REQUEST, mockHttpServletRequest);
+			PortletServlet.PORTLET_SERVLET_REQUEST, httpServletRequest);
 
 		ReflectionTestUtil.invoke(
 			addSegmentsExperienceMVCActionCommand, "doTransactionalCommand",

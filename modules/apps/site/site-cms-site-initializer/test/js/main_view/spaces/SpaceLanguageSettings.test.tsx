@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 
 // eslint-disable-next-line
 import {checkAccessibility} from '@liferay/layout-js-components-web/test/__lib__/index';
@@ -68,7 +68,7 @@ const mockPropsWithCustomLanguages = {
 };
 
 const closeToast = async () => {
-	await userEvent.click(screen.getByRole('button', {name: 'Close'}));
+	await userEvent.click(screen.getByRole('button', {name: 'close'}));
 };
 
 const renderComponent = (props: any = mockProps) => {
@@ -207,7 +207,7 @@ describe('SpaceLanguageSettings', () => {
 
 			const selectedLanguages = screen
 				.getByRole('listbox', {
-					name: 'selected',
+					name: 'in-use',
 				})
 				.querySelectorAll('option');
 
@@ -223,7 +223,7 @@ describe('SpaceLanguageSettings', () => {
 			});
 
 			const selectedLanguagesSelect = screen.getByRole('listbox', {
-				name: 'selected',
+				name: 'in-use',
 			});
 
 			const ltrButton = screen.getByRole('button', {
@@ -250,7 +250,7 @@ describe('SpaceLanguageSettings', () => {
 			});
 
 			const selectedLanguagesSelect = screen.getByRole('listbox', {
-				name: 'selected',
+				name: 'in-use',
 			});
 
 			const ltrButton = screen.getByRole('button', {
@@ -281,7 +281,7 @@ describe('SpaceLanguageSettings', () => {
 			});
 
 			const selectedLanguagesSelect = screen.getByRole('listbox', {
-				name: 'selected',
+				name: 'in-use',
 			});
 
 			const rtlButton = screen.getByRole('button', {
@@ -309,7 +309,7 @@ describe('SpaceLanguageSettings', () => {
 			});
 
 			const selectedLanguagesSelect = screen.getByRole('listbox', {
-				name: 'selected',
+				name: 'in-use',
 			});
 
 			const rtlButton = screen.getByRole('button', {

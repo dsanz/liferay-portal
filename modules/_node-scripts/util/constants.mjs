@@ -53,6 +53,7 @@ export const BUNDLE_REPORTS_PATH = path.join('build', 'bundle-reports');
 
 const IGNORED_PROJECT_DIRS = ['modules'];
 const NO_RECURSE_PROJECT_DIRS = [
+	'clay',
 	'_node-scripts',
 	'build',
 	'classes',
@@ -60,6 +61,7 @@ const NO_RECURSE_PROJECT_DIRS = [
 	'osb-faro',
 	'sdk',
 	'test',
+	'vercel',
 ];
 
 export async function getBuildPropertiesPath() {

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 
 import {
 	DEFAULT_ORDER_DETAILS_PORTLET_ID,
@@ -12,9 +12,9 @@ import {
 import {
 	hasErrors,
 	parseOptions,
-	regenerateOrderDetailURL,
 	summaryDataMapper,
 } from '../../../../src/main/resources/META-INF/resources/components/mini_cart/util/index';
+import {regenerateOrderDetailURL} from '../../../../src/main/resources/META-INF/resources/utilities/regenerateOrderDetailURL';
 
 jest.mock(
 	'../../../../src/main/resources/META-INF/resources/ServiceProvider/index'

@@ -16,8 +16,16 @@ public class TestTaskHistory {
 		return _averageDuration;
 	}
 
+	public long getAverageTotalDuration() {
+		return _averageTotalDuration;
+	}
+
 	public BatchHistory getBatchHistory() {
 		return _batchHistory;
+	}
+
+	public long getLongestDuration() {
+		return _longestDuration;
 	}
 
 	public long getTestTaskCount() {
@@ -28,18 +36,28 @@ public class TestTaskHistory {
 		return _testTaskName;
 	}
 
+	public boolean isLatestReportMissing() {
+		return _latestReportMissing;
+	}
+
 	protected TestTaskHistory(
 		BatchHistory batchHistory, JSONObject jsonObject) {
 
 		_batchHistory = batchHistory;
 
 		_averageDuration = jsonObject.optLong("averageDuration");
+		_latestReportMissing = jsonObject.optBoolean("latestReportMissing");
+		_averageTotalDuration = jsonObject.optLong("averageTotalDuration");
+		_longestDuration = jsonObject.optLong("longestDuration");
 		_testTaskCount = jsonObject.optInt("testTaskCount");
 		_testTaskName = jsonObject.optString("testTaskName");
 	}
 
 	private final long _averageDuration;
+	private final long _averageTotalDuration;
 	private final BatchHistory _batchHistory;
+	private final boolean _latestReportMissing;
+	private final long _longestDuration;
 	private final int _testTaskCount;
 	private final String _testTaskName;
 

@@ -13,18 +13,23 @@ import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.product.navigation.control.menu.ProductNavigationControlMenuCategory;
+import com.liferay.product.navigation.control.menu.ProductNavigationControlMenuEntry;
+import com.liferay.product.navigation.control.menu.constants.ProductNavigationControlMenuCategoryKeys;
 import com.liferay.product.navigation.control.menu.manager.ProductNavigationControlMenuManager;
+import com.liferay.product.navigation.control.menu.util.ProductNavigationControlMenuCategoryRegistry;
+import com.liferay.product.navigation.control.menu.util.ProductNavigationControlMenuEntryRegistry;
 import com.liferay.site.configuration.MenuAccessConfiguration;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.List;
 import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
@@ -53,13 +58,16 @@ public class ProductNavigationControlMenuManagerImpl
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
+		boolean hasRelevantProductNavigationControlMenuEntries =
+			_hasRelevantProductNavigationControlMenuEntries(httpServletRequest);
+
 		Group group = themeDisplay.getScopeGroup();
 		Layout layout = themeDisplay.getLayout();
 
-		if (!group.isSite() || layout.isDraftLayout() ||
+		if ((!group.isCMS() && !group.isSite()) || layout.isDraftLayout() ||
 			layout.isTypeControlPanel()) {
 
-			return true;
+			return hasRelevantProductNavigationControlMenuEntries;
 		}
 
 		try {
@@ -76,16 +84,11 @@ public class ProductNavigationControlMenuManagerImpl
 				User user = themeDisplay.getUser();
 
 				for (Role role : user.getAllRoles()) {
-					if (Objects.equals(
-							role.getName(), RoleConstants.ADMINISTRATOR) ||
-						Objects.equals(
-							role.getRoleId(),
-							RoleConstants.SITE_ADMINISTRATOR) ||
-						ArrayUtil.contains(
+					if (ArrayUtil.contains(
 							accessToControlMenuRoleIds,
 							String.valueOf(role.getRoleId()))) {
 
-						return true;
+						return hasRelevantProductNavigationControlMenuEntries;
 					}
 				}
 
@@ -96,7 +99,46 @@ public class ProductNavigationControlMenuManagerImpl
 			_log.error(exception);
 		}
 
-		return true;
+		return hasRelevantProductNavigationControlMenuEntries;
+	}
+
+	private boolean _hasRelevantProductNavigationControlMenuEntries(
+		HttpServletRequest httpServletRequest) {
+
+		List<ProductNavigationControlMenuCategory>
+			productNavigationControlMenuCategories =
+				_productNavigationControlMenuCategoryRegistry.
+					getProductNavigationControlMenuCategories(
+						ProductNavigationControlMenuCategoryKeys.ROOT);
+
+		for (ProductNavigationControlMenuCategory
+				productNavigationControlMenuCategory :
+					productNavigationControlMenuCategories) {
+
+			List<ProductNavigationControlMenuEntry>
+				productNavigationControlMenuEntries =
+					_productNavigationControlMenuEntryRegistry.
+						getProductNavigationControlMenuEntries(
+							productNavigationControlMenuCategory,
+							httpServletRequest);
+
+			if (productNavigationControlMenuEntries.isEmpty()) {
+				continue;
+			}
+
+			for (ProductNavigationControlMenuEntry
+					productNavigationControlMenuEntry :
+						productNavigationControlMenuEntries) {
+
+				if (productNavigationControlMenuEntry.isRelevant(
+						httpServletRequest)) {
+
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 	private boolean _isGuestUser(HttpServletRequest httpServletRequest) {
@@ -143,5 +185,13 @@ public class ProductNavigationControlMenuManagerImpl
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private ProductNavigationControlMenuCategoryRegistry
+		_productNavigationControlMenuCategoryRegistry;
+
+	@Reference
+	private ProductNavigationControlMenuEntryRegistry
+		_productNavigationControlMenuEntryRegistry;
 
 }

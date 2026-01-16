@@ -7,6 +7,7 @@ import {expect, mergeTests} from '@playwright/test';
 
 import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
+import fillAndClickOutside from '../../../utils/fillAndClickOutside';
 import getRandomString from '../../../utils/getRandomString';
 import {cmsPagesTest} from '../main/fixtures/cmsPagesTest';
 
@@ -14,14 +15,13 @@ const test = mergeTests(
 	cmsPagesTest,
 	featureFlagsTest({
 		'LPD-17564': {enabled: true},
-		'LPS-179669': {enabled: true},
 	}),
 	loginTest()
 );
 
 test(
-	'Check the input errors',
-	{tag: '@LPD-52040'},
+	'Check validation errors and picklist and option submission',
+	{tag: ['@LPD-52040', '@LPD-74374']},
 	async ({page, picklistBuilderPage}) => {
 
 		// Go to the Picklist Builder
@@ -30,11 +30,19 @@ test(
 
 		// Check the error if the ERC input is empty
 
-		await picklistBuilderPage.ercInput.fill('');
+		await expect(
+			page.getByText('This field is required')
+		).not.toBeVisible();
 
-		await expect(picklistBuilderPage.ercInput.locator('..')).toContainText(
-			'This field is required.'
-		);
+		await expect(async () => {
+			await picklistBuilderPage.ercInput.fill('', {timeout: 1000});
+
+			await page.getByText('New Picklist').click({timeout: 1000});
+
+			await expect(page.getByText('This field is required')).toBeVisible({
+				timeout: 1000,
+			});
+		}).toPass();
 
 		// Check that the ERC input is focused when the Save button is pressed
 
@@ -42,21 +50,29 @@ test(
 
 		await expect(picklistBuilderPage.ercInput).toBeFocused();
 
-		// Fil the ERC input
+		// Fill the ERC input
 
-		await picklistBuilderPage.ercInput.fill(getRandomString());
+		await fillAndClickOutside(
+			page,
+			picklistBuilderPage.ercInput,
+			getRandomString()
+		);
 
 		await expect(
-			picklistBuilderPage.ercInput.locator('..')
-		).not.toContainText('This field is required.');
+			page.getByText('This field is required')
+		).not.toBeVisible();
 
 		// Check the error if the Name input is empty
 
-		await picklistBuilderPage.nameInput.fill('');
+		await expect(async () => {
+			await picklistBuilderPage.nameInput.fill('', {timeout: 1000});
 
-		await expect(page.locator('.input-localized')).toContainText(
-			'This field is required.'
-		);
+			await page.getByText('New Picklist').click({timeout: 1000});
+
+			await expect(page.getByText('This field is required')).toBeVisible({
+				timeout: 1000,
+			});
+		}).toPass();
 
 		// Check that the Name input is focused when the Save button is pressed
 
@@ -66,16 +82,28 @@ test(
 
 		// Fill the name input
 
-		await picklistBuilderPage.nameInput.fill('My new name');
-
-		await expect(page.locator('.input-localized')).not.toContainText(
-			'This field is required.'
+		await fillAndClickOutside(
+			page,
+			picklistBuilderPage.nameInput,
+			'My new name'
 		);
+
+		await expect(
+			page.getByText('This field is required')
+		).not.toBeVisible();
 
 		// Save the picklist
 
 		const {id: picklistId} = await picklistBuilderPage.savePicklist();
 
 		await picklistBuilderPage.deletePicklist(picklistId);
+
+		// Add option and check name is cleared for the next one
+
+		await picklistBuilderPage.addOption('Option 1', {addAnother: true});
+
+		await expect(
+			page.locator('.modal-body').getByLabel('Name')
+		).toHaveValue('Option');
 	}
 );

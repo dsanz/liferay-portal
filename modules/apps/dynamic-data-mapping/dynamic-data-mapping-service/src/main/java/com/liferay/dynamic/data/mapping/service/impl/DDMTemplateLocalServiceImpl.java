@@ -20,7 +20,6 @@ import com.liferay.dynamic.data.mapping.exception.TemplateScriptException;
 import com.liferay.dynamic.data.mapping.exception.TemplateSmallImageContentException;
 import com.liferay.dynamic.data.mapping.exception.TemplateSmallImageNameException;
 import com.liferay.dynamic.data.mapping.exception.TemplateSmallImageSizeException;
-import com.liferay.dynamic.data.mapping.internal.model.listener.DDMTemplateModelListener;
 import com.liferay.dynamic.data.mapping.internal.search.util.DDMSearchUtil;
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
 import com.liferay.dynamic.data.mapping.model.DDMTemplateVersion;
@@ -29,6 +28,7 @@ import com.liferay.dynamic.data.mapping.service.DDMTemplateVersionLocalService;
 import com.liferay.dynamic.data.mapping.service.base.DDMTemplateLocalServiceBaseImpl;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMTemplateLinkPersistence;
 import com.liferay.dynamic.data.mapping.service.persistence.DDMTemplateVersionPersistence;
+import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
@@ -39,7 +39,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Image;
-import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.SystemEventConstants;
 import com.liferay.portal.kernel.model.User;
@@ -76,13 +75,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.BiFunction;
 
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
@@ -394,19 +390,15 @@ public class DDMTemplateLocalServiceImpl
 			long targetClassPK, String type, ServiceContext serviceContext)
 		throws PortalException {
 
-		List<DDMTemplate> targetTemplates = new ArrayList<>();
-
 		List<DDMTemplate> sourceTemplates = ddmTemplatePersistence.findByC_C_T(
 			classNameId, sourceClassPK, type);
 
-		for (DDMTemplate sourceTemplate : sourceTemplates) {
-			DDMTemplate targetTemplate = _copyTemplate(
+		List<DDMTemplate> targetTemplates = TransformUtil.transform(
+			sourceTemplates,
+			sourceTemplate -> _copyTemplate(
 				userId, sourceTemplate, targetClassPK,
 				sourceTemplate.getNameMap(), sourceTemplate.getDescriptionMap(),
-				serviceContext);
-
-			targetTemplates.add(targetTemplate);
-		}
+				serviceContext));
 
 		Indexer<DDMTemplate> indexer = IndexerRegistryUtil.nullSafeGetIndexer(
 			DDMTemplate.class);
@@ -1615,20 +1607,7 @@ public class DDMTemplateLocalServiceImpl
 	protected void activate(
 		BundleContext bundleContext, Map<String, Object> properties) {
 
-		if (_textReplacerBiFunction != null) {
-			_serviceRegistration = bundleContext.registerService(
-				ModelListener.class,
-				new DDMTemplateModelListener(_textReplacerBiFunction), null);
-		}
-
 		modified(properties);
-	}
-
-	@Deactivate
-	protected void deactivate() {
-		if (_serviceRegistration != null) {
-			_serviceRegistration.unregister();
-		}
 	}
 
 	@Modified
@@ -1983,32 +1962,6 @@ public class DDMTemplateLocalServiceImpl
 		_siteConnectedGroupGroupProviderSnapshot = new Snapshot<>(
 			DDMTemplateLocalServiceImpl.class,
 			SiteConnectedGroupGroupProvider.class, null, true);
-	private static final BiFunction<String, String, String>
-		_textReplacerBiFunction;
-
-	static {
-		ClassLoader classLoader = ClassLoader.getSystemClassLoader();
-
-		Object instance = null;
-
-		try {
-			Class<?> clazz = classLoader.loadClass(
-				"com.liferay.portal.tools.jakarta.ee.transformer.function." +
-					"TextReplacerBiFunction");
-
-			instance = clazz.newInstance();
-		}
-		catch (ReflectiveOperationException reflectiveOperationException) {
-			if (!(reflectiveOperationException instanceof
-					ClassNotFoundException)) {
-
-				throw new ExceptionInInitializerError(
-					reflectiveOperationException);
-			}
-		}
-
-		_textReplacerBiFunction = (BiFunction<String, String, String>)instance;
-	}
 
 	@Reference
 	private ConfigurationProvider _configurationProvider;
@@ -2033,8 +1986,6 @@ public class DDMTemplateLocalServiceImpl
 
 	@Reference
 	private ResourceLocalService _resourceLocalService;
-
-	private ServiceRegistration<?> _serviceRegistration;
 
 	@Reference
 	private UserLocalService _userLocalService;

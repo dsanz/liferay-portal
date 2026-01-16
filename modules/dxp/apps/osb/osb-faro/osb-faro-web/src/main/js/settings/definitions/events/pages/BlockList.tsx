@@ -1,4 +1,4 @@
-import BasePage from 'settings/components/BasePage';
+import BasePage from 'settings/components/base-page/BasePage';
 import BlockListCard from '../components/BlockListCard';
 import React from 'react';
 import {getDefinitions} from 'shared/util/breadcrumbs';
@@ -20,7 +20,6 @@ const BlockList: React.FC<IBlockListProps> = ({groupId, ...otherProps}) => (
 			},
 			{active: true, label: Liferay.Language.get('block-list')}
 		]}
-		groupId={groupId}
 		pageDescription={Liferay.Language.get(
 			'blocked-events-are-not-processed-by-analytics-cloud'
 		)}
