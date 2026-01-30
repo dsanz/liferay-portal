@@ -5,71 +5,73 @@
 
 import {Button} from '@clayui/core';
 import List from '@clayui/list';
-import {fetch} from 'frontend-js-web';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 
 import {IAssetObjectEntry} from '../../../common/types/AssetType';
+import {displayErrorToast} from '../../../common/utils/toastUtil';
 import AssetVersionsListItem from '../components/AssetVersionsListItem';
 import {
 	AssetTypeInfoPanelContext,
 	IAssetTypeInfoPanelContext,
 } from '../context';
+import VersionService from '../services/VersionService';
 
 const MAX_LIST_SIZE = 10;
 
 const VersionsTabContent = () => {
-	const {objectEntries = []}: IAssetTypeInfoPanelContext = useContext(
+	const {actions, asset}: IAssetTypeInfoPanelContext = useContext(
 		AssetTypeInfoPanelContext
 	);
 
-	const [objectEntryVersions, setObjectEntryVersions] = useState<{
+	const [assetVersions, setAssetVersions] = useState<{
 		count: number;
 		items: IAssetObjectEntry[];
 	}>({count: 0, items: []});
 
-	const getObjectEntriesVersions = useCallback(async () => {
-		const [
-			{
-				actions: {
-					versions: {href = ''},
-				},
-			},
-		] = objectEntries;
+	const getAssetVersions = useCallback(async () => {
+		setAssetVersions({count: 0, items: []});
+
+		const href: string = actions?.versions?.href || '';
 
 		try {
-			const response = await fetch(
-				`${href}?page=1&pageSize=${MAX_LIST_SIZE}`
+			const {data, error} = await VersionService.getObjectEntryVersions(
+				href,
+				{page: 1, pageSize: MAX_LIST_SIZE, sort: 'version:desc'}
 			);
 
-			if (response.ok) {
-				const {items, totalCount} = await response.json();
+			if (error) {
+				throw new Error(error);
+			}
 
-				setObjectEntryVersions({count: totalCount, items});
+			if (data) {
+				setAssetVersions({
+					count: data.totalCount,
+					items: data.items,
+				});
 			}
 		}
 		catch {
-			Liferay.Util.openToast({
-				message: Liferay.Language.get(
-					'an-unexpected-system-error-occurred'
-				),
-				type: 'danger',
-			});
+			displayErrorToast();
 		}
-	}, [objectEntries, setObjectEntryVersions]);
+	}, [actions]);
 
 	useEffect(() => {
-		getObjectEntriesVersions();
-	}, [getObjectEntriesVersions]);
+		getAssetVersions();
+	}, [getAssetVersions]);
 
 	return (
 		<>
-			{objectEntryVersions.count > 0 && (
+			{assetVersions.count > 0 && (
 				<List>
-					<AssetVersionsListItem {...objectEntryVersions} />
+					<AssetVersionsListItem
+						{...assetVersions}
+						file={asset?.file}
+						getAssetVersions={getAssetVersions}
+					/>
 				</List>
 			)}
 
-			{objectEntryVersions.count > MAX_LIST_SIZE && (
+			{assetVersions.count > MAX_LIST_SIZE && (
 				<div className="d-flex justify-content-center">
 					<Button displayType="secondary">
 						{Liferay.Language.get('view-all')}

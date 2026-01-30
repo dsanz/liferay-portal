@@ -23,6 +23,9 @@ import com.liferay.headless.delivery.client.dto.v1_0.Creator;
 import com.liferay.headless.delivery.client.dto.v1_0.Document;
 import com.liferay.headless.delivery.client.dto.v1_0.DocumentType;
 import com.liferay.headless.delivery.client.http.HttpInvoker;
+import com.liferay.headless.delivery.client.pagination.Page;
+import com.liferay.headless.delivery.client.pagination.Pagination;
+import com.liferay.headless.delivery.client.permission.Permission;
 import com.liferay.headless.delivery.client.resource.v1_0.DocumentResource;
 import com.liferay.headless.delivery.client.serdes.v1_0.DocumentSerDes;
 import com.liferay.petra.string.StringPool;
@@ -30,6 +33,7 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.model.ResourcePermission;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.role.RoleConstants;
@@ -38,11 +42,13 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.test.constants.TestDataConstants;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
@@ -172,6 +178,14 @@ public class DocumentResourceTest extends BaseDocumentResourceTestCase {
 
 	@Override
 	@Test
+	public void testGetDocumentFolderDocumentsPage() throws Exception {
+		super.testGetDocumentFolderDocumentsPage();
+
+		_testGetDocumentFolderDocumentsPageActionsWithPermissions();
+	}
+
+	@Override
+	@Test
 	public void testGetDocumentRenderedContentByDisplayPageDisplayPageKey()
 		throws Exception {
 	}
@@ -238,6 +252,7 @@ public class DocumentResourceTest extends BaseDocumentResourceTestCase {
 
 		_testPostDocumentFolderDocumentWithDLFileEntryType();
 		_testPostDocumentFolderDocumentWithExternalVideoShortcutDLFileEntryType();
+		_testPostDocumentFolderDocumentWithPermission();
 	}
 
 	@Override
@@ -254,6 +269,7 @@ public class DocumentResourceTest extends BaseDocumentResourceTestCase {
 	public void testPutDocument() throws Exception {
 		super.testPutDocument();
 
+		_testPutSiteDocumentByExternalReferenceCodeWithSameFolderId();
 		_testPutSiteDocumentWithFriendlyUrlPath();
 		_testPutSiteDocumentWithNoMultipartFiles();
 	}
@@ -515,9 +531,8 @@ public class DocumentResourceTest extends BaseDocumentResourceTestCase {
 			documentType.getName());
 	}
 
-	private Document _getDLFileEntryTypePostDocument(
-			DLFileEntryType dlFileEntryType, Group group,
-			Map<String, File> multipartFiles)
+	private Document _postDocumentFolderDocument(
+			Document document, Group group, Map<String, File> multipartFiles)
 		throws Exception {
 
 		DLFolder dlFolder = _dlFolderLocalService.addFolder(
@@ -526,6 +541,14 @@ public class DocumentResourceTest extends BaseDocumentResourceTestCase {
 			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(), false,
 			ServiceContextTestUtil.getServiceContext(group.getGroupId()));
+
+		return documentResource.postDocumentFolderDocument(
+			dlFolder.getFolderId(), document, multipartFiles);
+	}
+
+	private Document _randomDocument(
+			DLFileEntryType dlFileEntryType, Group group)
+		throws Exception {
 
 		Document randomDocument = randomDocument();
 
@@ -537,8 +560,7 @@ public class DocumentResourceTest extends BaseDocumentResourceTestCase {
 			});
 		randomDocument.setSiteId(group.getGroupId());
 
-		return documentResource.postDocumentFolderDocument(
-			dlFolder.getFolderId(), randomDocument, multipartFiles);
+		return randomDocument;
 	}
 
 	private String _read(String url) throws Exception {
@@ -552,6 +574,66 @@ public class DocumentResourceTest extends BaseDocumentResourceTestCase {
 		HttpInvoker.HttpResponse httpResponse = httpInvoker.invoke();
 
 		return httpResponse.getContent();
+	}
+
+	private void _testGetDocumentFolderDocumentsPageActionsWithPermissions()
+		throws Exception {
+
+		Long documentFolderId =
+			testGetDocumentFolderDocumentsPage_getDocumentFolderId();
+
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		User user = UserTestUtil.addUser();
+
+		_roleLocalService.addUserRole(user.getUserId(), role.getRoleId());
+
+		String password = RandomTestUtil.randomString();
+
+		_userLocalService.updatePassword(
+			user.getUserId(), password, password, false, true);
+
+		_resourcePermissionLocalService.setResourcePermissions(
+			TestPropsValues.getCompanyId(), DLFolderConstants.getClassName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(documentFolderId), role.getRoleId(),
+			new String[] {ActionKeys.ADD_DOCUMENT});
+
+		DocumentResource documentResource = DocumentResource.builder(
+		).authentication(
+			user.getEmailAddress(), password
+		).endpoint(
+			testCompany.getVirtualHostname(), 8080, "http"
+		).locale(
+			LocaleUtil.getDefault()
+		).build();
+
+		Page<Document> documentFolderDocumentsPage =
+			documentResource.getDocumentFolderDocumentsPage(
+				documentFolderId, false, null, null, null, Pagination.of(1, 10),
+				null);
+
+		Map<String, Map<String, String>> actions =
+			documentFolderDocumentsPage.getActions();
+
+		Assert.assertTrue(actions.containsKey("create"));
+		Assert.assertTrue(actions.containsKey("createBatch"));
+
+		_resourcePermissionLocalService.removeResourcePermission(
+			testCompany.getCompanyId(), DLFolderConstants.getClassName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(documentFolderId), role.getRoleId(),
+			ActionKeys.ADD_DOCUMENT);
+
+		documentFolderDocumentsPage =
+			documentResource.getDocumentFolderDocumentsPage(
+				documentFolderId, false, null, null, null, Pagination.of(1, 10),
+				null);
+
+		actions = documentFolderDocumentsPage.getActions();
+
+		Assert.assertFalse(actions.containsKey("create"));
+		Assert.assertFalse(actions.containsKey("createBatch"));
 	}
 
 	private void _testPatchDocumentWithDates() throws Exception {
@@ -626,19 +708,27 @@ public class DocumentResourceTest extends BaseDocumentResourceTestCase {
 
 		DLFileEntryType dlFileEntryType = _addFileEntryType(testGroup);
 
+		Document document = _randomDocument(dlFileEntryType, testGroup);
+
 		Map<String, File> multipartFiles = getMultipartFiles();
 
-		Document postDocument = _getDLFileEntryTypePostDocument(
-			dlFileEntryType, testGroup, multipartFiles);
+		Document postDocument = _postDocumentFolderDocument(
+			document, testGroup, multipartFiles);
 
 		_assertDocumentType(dlFileEntryType, postDocument);
 
 		Group childGroup = GroupTestUtil.addGroup(testGroup.getGroupId());
 
-		postDocument = _getDLFileEntryTypePostDocument(
-			dlFileEntryType, childGroup, multipartFiles);
+		document = _randomDocument(dlFileEntryType, childGroup);
 
-		_assertDocumentType(dlFileEntryType, postDocument);
+		postDocument = _postDocumentFolderDocument(
+			document, childGroup, multipartFiles);
+
+		DocumentType documentType = postDocument.getDocumentType();
+
+		Assert.assertEquals(
+			dlFileEntryType.getName(LocaleUtil.getDefault()),
+			documentType.getName());
 
 		GroupTestUtil.deleteGroup(childGroup);
 	}
@@ -650,14 +740,54 @@ public class DocumentResourceTest extends BaseDocumentResourceTestCase {
 			_dlFileEntryTypeLocalService.getFileEntryType(
 				testCompany.getGroupId(), "DL_VIDEO_EXTERNAL_SHORTCUT");
 
-		Document postDocument = _getDLFileEntryTypePostDocument(
-			dlFileEntryType, testGroup, new HashMap<>());
+		Document postDocument = _postDocumentFolderDocument(
+			_randomDocument(dlFileEntryType, testGroup), testGroup,
+			new HashMap<>());
 
 		Assert.assertEquals(
 			ContentTypes.APPLICATION_VND_LIFERAY_VIDEO_EXTERNAL_SHORTCUT_HTML,
 			postDocument.getEncodingFormat());
 
 		_assertDocumentType(dlFileEntryType, postDocument);
+	}
+
+	private void _testPostDocumentFolderDocumentWithPermission()
+		throws Exception {
+
+		Document document = _randomDocument(
+			_addFileEntryType(testGroup), testGroup);
+
+		Role userRole = _roleLocalService.getRole(
+			TestPropsValues.getCompanyId(), RoleConstants.USER);
+
+		document.setPermissions(
+			new Permission[] {
+				new Permission() {
+					{
+						setActionIds(
+							new String[] {ActionKeys.UPDATE, ActionKeys.VIEW});
+						setRoleExternalReferenceCode(
+							userRole.getExternalReferenceCode());
+						setRoleName(userRole.getName());
+						setRoleType(userRole.getTypeLabel());
+					}
+				}
+			});
+
+		document.setViewableBy(Document.ViewableBy.OWNER);
+
+		Document postDocument = _postDocumentFolderDocument(
+			document, testGroup, getMultipartFiles());
+
+		ResourcePermission resourcePermission =
+			_resourcePermissionLocalService.getResourcePermission(
+				TestPropsValues.getCompanyId(), DLFileEntry.class.getName(),
+				ResourceConstants.SCOPE_INDIVIDUAL,
+				String.valueOf(postDocument.getId()), userRole.getRoleId());
+
+		Assert.assertFalse(resourcePermission.hasActionId(ActionKeys.DELETE));
+		Assert.assertTrue(resourcePermission.hasActionId(ActionKeys.UPDATE));
+		Assert.assertTrue(resourcePermission.hasActionId(ActionKeys.VIEW));
 	}
 
 	private void _testPostSiteDocumentWithFriendlyUrlPath() throws Exception {
@@ -686,6 +816,43 @@ public class DocumentResourceTest extends BaseDocumentResourceTestCase {
 		Assert.assertEquals(StringPool.BLANK, postDocument.getContentUrl());
 		Assert.assertEquals(
 			0, GetterUtil.getLong(postDocument.getSizeInBytes()));
+	}
+
+	private void _testPutSiteDocumentByExternalReferenceCodeWithSameFolderId()
+		throws Exception {
+
+		DLFolder dlFolder = _dlFolderLocalService.addFolder(
+			null, TestPropsValues.getUserId(), testGroup.getGroupId(),
+			testGroup.getGroupId(), false,
+			DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(), false,
+			ServiceContextTestUtil.getServiceContext(testGroup.getGroupId()));
+
+		Document randomDocument = randomDocument();
+
+		randomDocument.setDocumentFolderId(dlFolder.getFolderId());
+
+		Document putDocument =
+			documentResource.putSiteDocumentByExternalReferenceCode(
+				randomDocument.getSiteId(),
+				randomDocument.getExternalReferenceCode(), randomDocument,
+				getMultipartFiles());
+
+		Assert.assertEquals(
+			(Long)dlFolder.getFolderId(), putDocument.getDocumentFolderId());
+
+		randomDocument.setTitle(RandomTestUtil.randomString());
+
+		Document updatedDocument =
+			documentResource.putSiteDocumentByExternalReferenceCode(
+				putDocument.getSiteId(), putDocument.getExternalReferenceCode(),
+				randomDocument, getMultipartFiles());
+
+		Assert.assertEquals(
+			(Long)dlFolder.getFolderId(),
+			updatedDocument.getDocumentFolderId());
+		Assert.assertEquals(
+			randomDocument.getTitle(), updatedDocument.getTitle());
 	}
 
 	private void _testPutSiteDocumentWithFriendlyUrlPath() throws Exception {
@@ -742,5 +909,8 @@ public class DocumentResourceTest extends BaseDocumentResourceTestCase {
 
 	@Inject
 	private RoleLocalService _roleLocalService;
+
+	@Inject
+	private UserLocalService _userLocalService;
 
 }

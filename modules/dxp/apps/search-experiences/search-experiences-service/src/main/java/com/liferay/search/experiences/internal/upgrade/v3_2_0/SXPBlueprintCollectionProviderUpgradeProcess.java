@@ -6,9 +6,7 @@
 package com.liferay.search.experiences.internal.upgrade.v3_2_0;
 
 import com.liferay.asset.kernel.model.AssetEntry;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
@@ -20,8 +18,6 @@ import com.liferay.portal.kernel.util.Validator;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 /**
  * @author Joshua Cords
  */
@@ -30,32 +26,8 @@ public class SXPBlueprintCollectionProviderUpgradeProcess
 
 	@Override
 	protected void doUpgrade() throws Exception {
-		AtomicBoolean hasFeatureFlag = new AtomicBoolean(false);
-
 		CompanyLocalServiceUtil.forEachCompanyId(
-			companyId -> {
-				if (FeatureFlagManagerUtil.isEnabled(companyId, "LPS-129412")) {
-					hasFeatureFlag.set(true);
-
-					_upgradeSXPBlueprints(companyId);
-				}
-			});
-
-		if (!hasFeatureFlag.get()) {
-			try (PreparedStatement preparedStatement1 =
-					connection.prepareStatement(
-						StringBundler.concat(
-							"select distinct companyId from ",
-							"PortalPreferenceValue where key_ = 'LPS-129412' ",
-							"and smallValue = 'true'"))) {
-
-				try (ResultSet resultSet = preparedStatement1.executeQuery()) {
-					while (resultSet.next()) {
-						_upgradeSXPBlueprints(resultSet.getLong(1));
-					}
-				}
-			}
-		}
+			companyId -> _upgradeSXPBlueprints(companyId));
 
 		_upgradeSXPBlueprintSchemaVersion();
 	}
@@ -100,14 +72,15 @@ public class SXPBlueprintCollectionProviderUpgradeProcess
 
 	private void _upgradeSXPBlueprints(long companyId) throws Exception {
 		try (PreparedStatement preparedStatement1 = connection.prepareStatement(
-				StringBundler.concat(
-					"select configurationJSON, sxpBlueprintId from ",
-					"SXPBlueprint where companyId = ", companyId));
+				"select configurationJSON, sxpBlueprintId from SXPBlueprint " +
+					"where companyId = ?");
 			PreparedStatement preparedStatement2 =
 				AutoBatchPreparedStatementUtil.concurrentAutoBatch(
 					connection,
 					"update SXPBlueprint set configurationJSON = ?, " +
 						"schemaVersion = ? where sxpBlueprintId = ?")) {
+
+			preparedStatement1.setLong(1, companyId);
 
 			try (ResultSet resultSet1 = preparedStatement1.executeQuery()) {
 				while (resultSet1.next()) {

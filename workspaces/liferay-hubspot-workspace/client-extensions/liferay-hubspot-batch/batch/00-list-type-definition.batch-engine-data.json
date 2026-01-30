@@ -1,0 +1,56 @@
+{
+	"configuration": {
+		"className": "com.liferay.headless.admin.list.type.dto.v1_0.ListTypeDefinition",
+		"parameters": {
+			"containsHeaders": "true",
+			"createStrategy": "UPSERT",
+			"onErrorFail": "false",
+			"updateStrategy": "UPDATE"
+		},
+		"taskItemDelegateName": "DEFAULT"
+	},
+	"items": [
+		{
+			"externalReferenceCode": "HS10_LEAD_LABEL",
+			"listTypeEntries": [
+				{
+					"externalReferenceCode": "COLD",
+					"key": "cold",
+					"name": "Cold"
+				},
+				{
+					"externalReferenceCode": "HOT",
+					"key": "hot",
+					"name": "Hot"
+				},
+				{
+					"externalReferenceCode": "WARM",
+					"key": "warm",
+					"name": "Warm"
+				}
+			],
+			"name": "HS10 Lead Label"
+		},
+		{
+			"externalReferenceCode": "HS10_LEAD_TYPE",
+			"listTypeEntries": [
+				{
+					"externalReferenceCode": "NEW_BUSINESS",
+					"key": "newBusiness",
+					"name": "New Business"
+				},
+				{
+					"externalReferenceCode": "REATTEMPTING",
+					"key": "reattempting",
+					"name": "Reattempting"
+				},
+				{
+					"externalReferenceCode": "UPSELL",
+					"key": "upsell",
+					"name": "Upsell"
+				}
+			],
+			"name": "HS10 Lead Type"
+		}
+	]
+}

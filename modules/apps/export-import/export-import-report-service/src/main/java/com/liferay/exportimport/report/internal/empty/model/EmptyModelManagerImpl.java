@@ -7,9 +7,7 @@ package com.liferay.exportimport.report.internal.empty.model;
 
 import com.liferay.exportimport.kernel.empty.model.EmptyModelManager;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
-import com.liferay.exportimport.report.internal.util.ExportImportReportEntryUtil;
 import com.liferay.exportimport.report.service.ExportImportReportEntryLocalService;
-import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.petra.function.UnsafeBiFunction;
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.lang.SafeCloseable;
@@ -38,7 +36,8 @@ public class EmptyModelManagerImpl implements EmptyModelManager {
 			String externalReferenceCode,
 			BiFunction<String, Long, T> fetchByExternalReferenceCodeBiFunction,
 			UnsafeBiFunction<String, Long, T, E>
-				getByExternalReferenceCodeUnsafeBiFunction)
+				getByExternalReferenceCodeUnsafeBiFunction,
+			String modelNameLanguageKey)
 		throws E {
 
 		if (!LazyReferencingThreadLocal.isEnabled()) {
@@ -63,28 +62,10 @@ public class EmptyModelManagerImpl implements EmptyModelManager {
 					GetterUtil.getLong(
 						ExportImportThreadLocal.
 							getExportImportConfigurationId()),
-					clazz.getName(), ExportImportReportEntryUtil.getOrigin(),
-					ObjectDefinitionConstants.SCOPE_COMPANY, null);
+					modelNameLanguageKey);
 
 			return emptyModelUnsafeSupplier.get();
 		}
-	}
-
-	@Override
-	public <T, E extends PortalException> T getOrAddEmptyModel(
-			Class<T> clazz, UnsafeSupplier<T, E> emptyModelUnsafeSupplier,
-			String externalReferenceCode,
-			BiFunction<String, Long, T> fetchByExternalReferenceCodeBiFunction,
-			UnsafeBiFunction<String, Long, T, E>
-				getByExternalReferenceCodeUnsafeBiFunction,
-			long groupId)
-		throws E {
-
-		return getOrAddEmptyModel(
-			clazz.getName(), null, emptyModelUnsafeSupplier,
-			externalReferenceCode, fetchByExternalReferenceCodeBiFunction,
-			getByExternalReferenceCodeUnsafeBiFunction, groupId,
-			clazz.getName());
 	}
 
 	@Override
@@ -95,7 +76,7 @@ public class EmptyModelManagerImpl implements EmptyModelManager {
 			BiFunction<String, Long, T> fetchByExternalReferenceCodeBiFunction,
 			UnsafeBiFunction<String, Long, T, E>
 				getByExternalReferenceCodeUnsafeBiFunction,
-			long groupId, String modelName)
+			long groupId, String modelNameLanguageKey)
 		throws E {
 
 		if (!LazyReferencingThreadLocal.isEnabled()) {
@@ -126,9 +107,7 @@ public class EmptyModelManagerImpl implements EmptyModelManager {
 					GetterUtil.getLong(
 						ExportImportThreadLocal.
 							getExportImportConfigurationId()),
-					modelName, ExportImportReportEntryUtil.getOrigin(),
-					ExportImportReportEntryUtil.getScope(group),
-					ExportImportReportEntryUtil.getScopeKey(group));
+					modelNameLanguageKey);
 
 			return emptyModelUnsafeSupplier.get();
 		}

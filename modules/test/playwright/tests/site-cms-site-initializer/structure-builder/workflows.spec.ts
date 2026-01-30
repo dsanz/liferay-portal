@@ -19,7 +19,6 @@ const test = mergeTests(
 	cmsPagesTest,
 	featureFlagsTest({
 		'LPD-17564': {enabled: true},
-		'LPS-179669': {enabled: true},
 	}),
 	loginTest(),
 	pageEditorPagesTest,
@@ -37,7 +36,7 @@ test(
 
 		const spaceName = `Space ${getRandomString()}`;
 
-		const {id: spaceId} =
+		const {externalReferenceCode} =
 			await apiHelpers.headlessAssetLibrary.createAssetLibrary({
 				name: spaceName,
 				settings: {},
@@ -48,10 +47,7 @@ test(
 
 		const structureLabel = `StructureName${getRandomInt()}`;
 
-		const erc = getRandomString();
-
-		await structureBuilderPage.createStructureFromData({
-			erc,
+		const id = await structureBuilderPage.createStructureFromData({
 			label: structureLabel,
 			page: structureBuilderPage,
 		});
@@ -92,7 +88,7 @@ test(
 
 		// Edit again to check they were persisted
 
-		await structureBuilderPage.editStructure(erc);
+		await structureBuilderPage.editStructure(id);
 
 		await structureBuilderPage.switchTab('Workflow');
 
@@ -121,7 +117,7 @@ test(
 
 		await structureBuilderPage.publishStructure();
 
-		await structureBuilderPage.editStructure(erc);
+		await structureBuilderPage.editStructure(id);
 
 		await structureBuilderPage.switchTab('Workflow');
 
@@ -176,7 +172,9 @@ test(
 		// Delete space
 
 		expect(
-			await apiHelpers.headlessAssetLibrary.deleteAssetLibrary(spaceId)
+			await apiHelpers.headlessAssetLibrary.deleteAssetLibrary(
+				externalReferenceCode
+			)
 		).toBeOK();
 	}
 );

@@ -1,0 +1,3528 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ClayCard renders a ClayCard as a directory 1`] = `
+<div>
+  <div
+    class="card card-horizontal card-type-directory"
+  >
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-row"
+      >
+        <div
+          class="flex-col"
+        >
+          <span
+            class="sticker sticker-secondary"
+          >
+            <span
+              class="sticker-overlay inline-item"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-folder"
+                role="presentation"
+              >
+                <use
+                  href="/path/to/some/resource.svg#folder"
+                />
+              </svg>
+            </span>
+          </span>
+        </div>
+        <div
+          class="autofit-col autofit-col-expand autofit-col-gutters"
+        >
+          <div
+            class="autofit-section"
+          >
+            <p
+              class="card-title"
+              title="Very Large Folder"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  Very Large Folder
+                </span>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCard renders a ClayCard as a file card 1`] = `
+<div>
+  <div
+    class="card file-card card-type-asset"
+  >
+    <div
+      class="card-item-first aspect-ratio"
+    >
+      <div
+        class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+      >
+        <svg
+          class="lexicon-icon lexicon-icon-documents-and-media"
+          role="presentation"
+        >
+          <use
+            href="/path/to/some/resource.svg#documents-and-media"
+          />
+        </svg>
+      </div>
+      <span
+        class="sticker sticker-danger sticker-bottom-left"
+      >
+        <span
+          class="sticker-overlay"
+        >
+          DOC
+        </span>
+      </span>
+    </div>
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-row"
+      >
+        <div
+          class="autofit-col autofit-col-expand"
+        >
+          <section
+            class="autofit-section"
+          >
+            <p
+              class="card-title"
+              title="deliverable.doc"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  deliverable.doc
+                </span>
+              </span>
+            </p>
+            <p
+              class="card-subtitle"
+              title="Stevie Ray Vaughn"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  Stevie Ray Vaughn
+                </span>
+              </span>
+            </p>
+            <div
+              class="card-detail"
+            >
+              <span
+                class="label label-success"
+              >
+                <span
+                  class="label-item label-item-expand"
+                >
+                  Approved
+                </span>
+              </span>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCard renders a ClayCard as a selectable file card 1`] = `
+<div>
+  <div
+    class="file-card form-check-card form-check form-check-top-left card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="card-item-first aspect-ratio"
+      >
+        <div
+          class="custom-control custom-checkbox"
+        >
+          <label>
+            <input
+              class="custom-control-input"
+              type="checkbox"
+            />
+            <span
+              class="custom-control-label"
+            />
+            <div
+              class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-documents-and-media"
+                role="presentation"
+              >
+                <use
+                  href="/path/to/some/resource.svg#documents-and-media"
+                />
+              </svg>
+            </div>
+            <span
+              class="sticker sticker-danger sticker-bottom-left"
+            >
+              <span
+                class="sticker-overlay"
+              >
+                DOC
+              </span>
+            </span>
+          </label>
+        </div>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <section
+              class="autofit-section"
+            >
+              <p
+                class="card-title"
+                title="deliverable.doc"
+              >
+                <span
+                  class="text-truncate-inline"
+                >
+                  <span
+                    class="text-truncate"
+                  >
+                    deliverable.doc
+                  </span>
+                </span>
+              </p>
+              <p
+                class="card-subtitle"
+                title="Stevie Ray Vaughn"
+              >
+                <span
+                  class="text-truncate-inline"
+                >
+                  <span
+                    class="text-truncate"
+                  >
+                    Stevie Ray Vaughn
+                  </span>
+                </span>
+              </p>
+              <div
+                class="card-detail"
+              >
+                <span
+                  class="label label-success"
+                >
+                  <span
+                    class="label-item label-item-expand"
+                  >
+                    Approved
+                  </span>
+                </span>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCard renders a ClayCard as a selectable folder 1`] = `
+<div>
+  <div
+    class="form-check-card form-check form-check-middle-left card-type-directory"
+  >
+    <div
+      class="custom-control custom-checkbox"
+    >
+      <label>
+        <input
+          class="custom-control-input"
+          type="checkbox"
+        />
+        <span
+          class="custom-control-label"
+        />
+        <div
+          class="card-body"
+        >
+          <div
+            class="card-row"
+          >
+            <div
+              class="autofit-col"
+            >
+              <span
+                class="sticker sticker-secondary"
+              >
+                <span
+                  class="sticker-overlay inline-item"
+                >
+                  <svg
+                    class="lexicon-icon lexicon-icon-folder"
+                    role="presentation"
+                  >
+                    <use
+                      href="/path/to/some/resource.svg#folder"
+                    />
+                  </svg>
+                </span>
+              </span>
+            </div>
+            <div
+              class="autofit-col autofit-col-expand autofit-col-gutters"
+            >
+              <p
+                class="card-title"
+                title="Very Large Folder"
+              >
+                <span
+                  class="text-truncate-inline"
+                >
+                  <span
+                    class="text-truncate"
+                  >
+                    Very Large Folder
+                  </span>
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </label>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCard renders a ClayCard as a selectable image card 1`] = `
+<div>
+  <div
+    class="form-check-card form-check form-check-top-left image-card card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="card-item-first aspect-ratio"
+      >
+        <div
+          class="custom-control custom-checkbox"
+        >
+          <label>
+            <input
+              class="custom-control-input"
+              type="checkbox"
+            />
+            <span
+              class="custom-control-label"
+            />
+            <div
+              class="aspect-ratio"
+            >
+              <img
+                alt="thumbnail"
+                class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid"
+                src="https://via.placeholder.com/256"
+              />
+            </div>
+            <span
+              class="sticker sticker-danger sticker-bottom-left"
+            >
+              <span
+                class="sticker-overlay"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-document-image"
+                  role="presentation"
+                >
+                  <use
+                    href="/path/to/some/resource.svg#document-image"
+                  />
+                </svg>
+              </span>
+            </span>
+          </label>
+        </div>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              class="card-title"
+              title="thumbnail_coffee.jpg"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  thumbnail_coffee.jpg
+                </span>
+              </span>
+            </p>
+            <p
+              class="card-subtitle"
+              title="Author Action"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  Author Action
+                </span>
+              </span>
+            </p>
+            <div
+              class="card-detail"
+            >
+              <span
+                class="label label-success"
+              >
+                <span
+                  class="label-item label-item-expand"
+                >
+                  Approved
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCard renders a ClayCard as a template navigation card truncating text on description 1`] = `
+<div>
+  <a
+    class="card card-interactive card-interactive-primary card-type-template template-card"
+    href="/some/path"
+  >
+    <span
+      class="aspect-ratio"
+    >
+      <span
+        class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-flush"
+      >
+        <img
+          alt="content image"
+          src="/path/to/some/resource.gif"
+        />
+      </span>
+    </span>
+    <span
+      class="card-body"
+    >
+      <p
+        class="card-title"
+        title="Content Page"
+      >
+        <span
+          class="text-truncate-inline"
+        >
+          <span
+            class="text-truncate"
+          >
+            Content Page
+          </span>
+        </span>
+      </p>
+      <p
+        class="card-text"
+        title="This is an example of card-type-template using an anchor tag."
+      >
+        This is an example of card-type-template using an anchor tag.
+      </p>
+    </span>
+  </a>
+</div>
+`;
+
+exports[`ClayCard renders a ClayCard as image card 1`] = `
+<div>
+  <div
+    class="card image-card card-type-asset"
+  >
+    <div
+      class="card-item-first aspect-ratio"
+    >
+      <img
+        alt="thumbnail"
+        class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid"
+        src="https://via.placeholder.com/256"
+      />
+      <span
+        class="sticker sticker-danger sticker-bottom-left"
+      >
+        <span
+          class="sticker-overlay"
+        >
+          <svg
+            class="lexicon-icon lexicon-icon-document-image"
+            role="presentation"
+          >
+            <use
+              href="/path/to/some/resource.svg#document-image"
+            />
+          </svg>
+        </span>
+      </span>
+    </div>
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-row"
+      >
+        <div
+          class="autofit-col autofit-col-expand"
+        >
+          <p
+            class="card-title"
+            title="thumbnail_coffee.jpg"
+          >
+            <span
+              class="text-truncate-inline"
+            >
+              <span
+                class="text-truncate"
+              >
+                thumbnail_coffee.jpg
+              </span>
+            </span>
+          </p>
+          <p
+            class="card-subtitle"
+            title="Author Action"
+          >
+            <span
+              class="text-truncate-inline"
+            >
+              <span
+                class="text-truncate"
+              >
+                Author Action
+              </span>
+            </span>
+          </p>
+          <div
+            class="card-detail"
+          >
+            <span
+              class="label label-success"
+            >
+              <span
+                class="label-item label-item-expand"
+              >
+                Approved
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCard renders a ClayCard as template navigation card 1`] = `
+<div>
+  <a
+    class="card card-interactive card-interactive-primary card-type-template template-card"
+    href="/some/path"
+  >
+    <span
+      class="aspect-ratio"
+    >
+      <span
+        class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-flush"
+      >
+        <img
+          alt="portlet image"
+          src="/path/to/some/resource.gif"
+        />
+      </span>
+    </span>
+    <span
+      class="card-body"
+    >
+      <p
+        class="card-title"
+        title="Widget Page"
+      >
+        <span
+          class="text-truncate-inline"
+        >
+          <span
+            class="text-truncate"
+          >
+            Widget Page
+          </span>
+        </span>
+      </p>
+      <p
+        class="card-text"
+        title="Build a page by adding widgets and content."
+      >
+        <span
+          class="text-truncate-inline"
+        >
+          <span
+            class="text-truncate"
+          >
+            Build a page by adding widgets and content.
+          </span>
+        </span>
+      </p>
+    </span>
+  </a>
+</div>
+`;
+
+exports[`ClayCard renders a ClayCard as template navigation card as horizontal card 1`] = `
+<div>
+  <a
+    class="card card-interactive card-interactive-primary card-type-template template-card-horizontal"
+    href="/some/path"
+  >
+    <span
+      class="card-body"
+    >
+      <span
+        class="card-row"
+      >
+        <span
+          class="autofit-col"
+        >
+          <span
+            class="sticker sticker-light"
+          >
+            <span
+              class="sticker-overlay inline-item"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-page"
+                role="presentation"
+              >
+                <use
+                  href="/path/to/some/resource.svg#page"
+                />
+              </svg>
+            </span>
+          </span>
+        </span>
+        <span
+          class="autofit-col autofit-col-expand"
+        >
+          <span
+            class="autofit-section"
+          >
+            <p
+              class="card-title"
+              title="Full Page Application"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  Full Page Application
+                </span>
+              </span>
+            </p>
+          </span>
+        </span>
+      </span>
+    </span>
+  </a>
+</div>
+`;
+
+exports[`ClayCard renders a ClayCard as template navigation card with icon instead of image 1`] = `
+<div>
+  <a
+    class="card card-interactive card-interactive-primary card-type-template template-card"
+    href="/some/path"
+  >
+    <span
+      class="aspect-ratio"
+    >
+      <span
+        class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-flush"
+      >
+        <svg
+          class="lexicon-icon lexicon-icon-page-template"
+          role="presentation"
+        >
+          <use
+            href="/path/to/some/resource.svg#page-template"
+          />
+        </svg>
+      </span>
+    </span>
+    <span
+      class="card-body"
+    >
+      <p
+        class="card-title"
+        title="Blog"
+      >
+        <span
+          class="text-truncate-inline"
+        >
+          <span
+            class="text-truncate"
+          >
+            Blog
+          </span>
+        </span>
+      </p>
+    </span>
+  </a>
+</div>
+`;
+
+exports[`ClayCard renders a ClayCard as user card 1`] = `
+<div>
+  <div
+    class="card user-card card-type-asset"
+  >
+    <div
+      class="card-item-first aspect-ratio"
+    >
+      <div
+        class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+      >
+        <span
+          class="sticker sticker-user-icon sticker-circle sticker-secondary"
+        >
+          <span
+            class="sticker-overlay"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-user"
+              role="presentation"
+            >
+              <use
+                href="/path/to/some/resource.svg#user"
+              />
+            </svg>
+          </span>
+        </span>
+      </div>
+    </div>
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-row"
+      >
+        <div
+          class="autofit-col autofit-col-expand"
+        >
+          <p
+            class="card-title"
+            title="Adélaide"
+          >
+            <span
+              class="text-truncate-inline"
+            >
+              <span
+                class="text-truncate"
+              >
+                Adélaide
+              </span>
+            </span>
+          </p>
+          <p
+            class="card-subtitle"
+            title="Author Action"
+          >
+            <span
+              class="text-truncate-inline"
+            >
+              <span
+                class="text-truncate"
+              >
+                Author Action
+              </span>
+            </span>
+          </p>
+          <div
+            class="card-detail"
+          >
+            <span
+              class="label label-success"
+            >
+              <span
+                class="label-item label-item-expand"
+              >
+                Approved
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCard renders a ClayCard as user selectable card 1`] = `
+<div>
+  <div
+    class="form-check-card form-check form-check-top-left user-card card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="card-item-first aspect-ratio"
+      >
+        <div
+          class="custom-control custom-checkbox"
+        >
+          <label>
+            <input
+              class="custom-control-input"
+              type="checkbox"
+            />
+            <span
+              class="custom-control-label"
+            />
+            <div
+              class="aspect-ratio"
+            >
+              <div
+                class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+              >
+                <span
+                  class="sticker sticker-user-icon sticker-circle sticker-secondary"
+                >
+                  <span
+                    class="sticker-overlay"
+                  >
+                    <svg
+                      class="lexicon-icon lexicon-icon-user"
+                      role="presentation"
+                    >
+                      <use
+                        href="/path/to/some/resource.svg#user"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </div>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              class="card-title"
+              title="Adélaide"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  Adélaide
+                </span>
+              </span>
+            </p>
+            <p
+              class="card-subtitle"
+              title="Author Action"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  Author Action
+                </span>
+              </span>
+            </p>
+            <div
+              class="card-detail"
+            >
+              <span
+                class="label label-warning"
+              >
+                <span
+                  class="label-item label-item-expand"
+                >
+                  Rejected
+                </span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCard renders a ClayCard with an active selected state 1`] = `
+<div>
+  <div
+    class="active form-check-card form-check form-check-top-left card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="custom-control custom-checkbox"
+      >
+        <label>
+          <input
+            class="custom-control-input"
+            type="checkbox"
+          />
+          <span
+            class="custom-control-label"
+          />
+          <div
+            class="card-body"
+          >
+            <div
+              class="card-row"
+            >
+              <div
+                class="autofit-col"
+              >
+                <span
+                  class="sticker sticker-secondary"
+                >
+                  <span
+                    class="sticker-overlay inline-item"
+                  >
+                    <svg
+                      class="lexicon-icon lexicon-icon-folder"
+                      role="presentation"
+                    >
+                      <use
+                        href="/path/to/some/resource.svg#folder"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </div>
+              <div
+                class="autofit-col autofit-col-expand autofit-col-gutters"
+              >
+                <p
+                  class="card-title"
+                  title="Very Large Folder"
+                >
+                  <span
+                    class="text-truncate-inline"
+                  >
+                    <span
+                      class="text-truncate"
+                    >
+                      Very Large Folder
+                    </span>
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCard renders a group of ClayCards 1`] = `
+<div>
+  <ul
+    class="card-page"
+  >
+    <li
+      class="card-page-item card-page-item-header"
+    >
+      <p
+        class="card-section-header"
+      >
+        Test Files
+      </p>
+    </li>
+    <li
+      class="card-page-item card-page-item-directory"
+    >
+      <div
+        class="card file-card card-type-asset"
+      >
+        <div
+          class="card-item-first aspect-ratio"
+        >
+          <div
+            class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-documents-and-media"
+              role="presentation"
+            >
+              <use
+                href="/path/to/some/resource.svg#documents-and-media"
+              />
+            </svg>
+          </div>
+          <span
+            class="sticker sticker-danger sticker-bottom-left"
+          >
+            <span
+              class="sticker-overlay"
+            >
+              DOC
+            </span>
+          </span>
+        </div>
+        <div
+          class="card-body"
+        >
+          <div
+            class="card-row"
+          >
+            <div
+              class="autofit-col autofit-col-expand"
+            >
+              <section
+                class="autofit-section"
+              >
+                <p
+                  class="card-title"
+                  title="deliverable.doc"
+                >
+                  <span
+                    class="text-truncate-inline"
+                  >
+                    <span
+                      class="text-truncate"
+                    >
+                      deliverable.doc
+                    </span>
+                  </span>
+                </p>
+                <p
+                  class="card-subtitle"
+                  title="Stevie Ray Vaughn"
+                >
+                  <span
+                    class="text-truncate-inline"
+                  >
+                    <span
+                      class="text-truncate"
+                    >
+                      Stevie Ray Vaughn
+                    </span>
+                  </span>
+                </p>
+                <div
+                  class="card-detail"
+                >
+                  <span
+                    class="label label-success"
+                  >
+                    <span
+                      class="label-item label-item-expand"
+                    >
+                      Approved
+                    </span>
+                  </span>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+    <li
+      class="card-page-item card-page-item-directory"
+    >
+      <div
+        class="card file-card card-type-asset"
+      >
+        <div
+          class="card-item-first aspect-ratio"
+        >
+          <div
+            class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-documents-and-media"
+              role="presentation"
+            >
+              <use
+                href="/path/to/some/resource.svg#documents-and-media"
+              />
+            </svg>
+          </div>
+          <span
+            class="sticker sticker-danger sticker-bottom-left"
+          >
+            <span
+              class="sticker-overlay"
+            >
+              DOC
+            </span>
+          </span>
+        </div>
+        <div
+          class="card-body"
+        >
+          <div
+            class="card-row"
+          >
+            <div
+              class="autofit-col autofit-col-expand"
+            >
+              <section
+                class="autofit-section"
+              >
+                <p
+                  class="card-title"
+                  title="deliverable.doc"
+                >
+                  <span
+                    class="text-truncate-inline"
+                  >
+                    <span
+                      class="text-truncate"
+                    >
+                      deliverable.doc
+                    </span>
+                  </span>
+                </p>
+                <p
+                  class="card-subtitle"
+                  title="Stevie Ray Vaughn"
+                >
+                  <span
+                    class="text-truncate-inline"
+                  >
+                    <span
+                      class="text-truncate"
+                    >
+                      Stevie Ray Vaughn
+                    </span>
+                  </span>
+                </p>
+                <div
+                  class="card-detail"
+                >
+                  <span
+                    class="label label-success"
+                  >
+                    <span
+                      class="label-item label-item-expand"
+                    >
+                      Approved
+                    </span>
+                  </span>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+  </ul>
+  <ul
+    class="card-page"
+  >
+    <li
+      class="card-page-item card-page-item-header"
+    >
+      <p
+        class="card-section-header"
+      >
+        Test Users
+      </p>
+    </li>
+    <li
+      class="card-page-item card-page-item-directory"
+    >
+      <div
+        class="card user-card card-type-asset"
+      >
+        <div
+          class="card-item-first aspect-ratio"
+        >
+          <div
+            class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+          >
+            <span
+              class="sticker sticker-user-icon sticker-circle sticker-secondary"
+            >
+              <span
+                class="sticker-overlay"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-user"
+                  role="presentation"
+                >
+                  <use
+                    href="/path/to/some/resource.svg#user"
+                  />
+                </svg>
+              </span>
+            </span>
+          </div>
+        </div>
+        <div
+          class="card-body"
+        >
+          <div
+            class="card-row"
+          >
+            <div
+              class="autofit-col autofit-col-expand"
+            >
+              <p
+                class="card-title"
+                title="Adélaide"
+              >
+                <span
+                  class="text-truncate-inline"
+                >
+                  <span
+                    class="text-truncate"
+                  >
+                    Adélaide
+                  </span>
+                </span>
+              </p>
+              <p
+                class="card-subtitle"
+                title="Author Action"
+              >
+                <span
+                  class="text-truncate-inline"
+                >
+                  <span
+                    class="text-truncate"
+                  >
+                    Author Action
+                  </span>
+                </span>
+              </p>
+              <div
+                class="card-detail"
+              >
+                <span
+                  class="label label-success"
+                >
+                  <span
+                    class="label-item label-item-expand"
+                  >
+                    Approved
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+    <li
+      class="card-page-item card-page-item-directory"
+    >
+      <div
+        class="card user-card card-type-asset"
+      >
+        <div
+          class="card-item-first aspect-ratio"
+        >
+          <div
+            class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+          >
+            <span
+              class="sticker sticker-user-icon sticker-circle sticker-secondary"
+            >
+              <span
+                class="sticker-overlay"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-user"
+                  role="presentation"
+                >
+                  <use
+                    href="/path/to/some/resource.svg#user"
+                  />
+                </svg>
+              </span>
+            </span>
+          </div>
+        </div>
+        <div
+          class="card-body"
+        >
+          <div
+            class="card-row"
+          >
+            <div
+              class="autofit-col autofit-col-expand"
+            >
+              <p
+                class="card-title"
+                title="Adélaide"
+              >
+                <span
+                  class="text-truncate-inline"
+                >
+                  <span
+                    class="text-truncate"
+                  >
+                    Adélaide
+                  </span>
+                </span>
+              </p>
+              <p
+                class="card-subtitle"
+                title="Author Action"
+              >
+                <span
+                  class="text-truncate-inline"
+                >
+                  <span
+                    class="text-truncate"
+                  >
+                    Author Action
+                  </span>
+                </span>
+              </p>
+              <div
+                class="card-detail"
+              >
+                <span
+                  class="label label-success"
+                >
+                  <span
+                    class="label-item label-item-expand"
+                  >
+                    Approved
+                  </span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+`;
+
+exports[`ClayCardWithHorizontal renders as disabled 1`] = `
+<div>
+  <div
+    class="form-check-card form-check form-check-middle-left card-type-directory"
+  >
+    <div
+      class="custom-control custom-checkbox"
+    >
+      <label>
+        <input
+          class="custom-control-input"
+          disabled=""
+          type="checkbox"
+        />
+        <span
+          class="custom-control-label"
+        />
+        <div
+          class="card card-horizontal"
+        >
+          <div
+            class="card-body"
+          >
+            <div
+              class="card-row"
+            >
+              <div
+                class="autofit-col"
+              >
+                <span
+                  class="sticker"
+                >
+                  <span
+                    class="sticker-overlay inline-item"
+                  >
+                    <svg
+                      class="lexicon-icon lexicon-icon-folder"
+                      role="presentation"
+                    >
+                      <use
+                        href="/path/to/some/resource.svg#folder"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </div>
+              <div
+                class="autofit-col autofit-col-expand autofit-col-gutters"
+              >
+                <p
+                  aria-label="Foo Bar"
+                  class="card-title"
+                  title="Foo Bar"
+                >
+                  <span
+                    class="text-truncate-inline"
+                  >
+                    <span
+                      class="text-truncate"
+                    >
+                      Foo Bar
+                    </span>
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </label>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithHorizontal renders as not selectable 1`] = `
+<div>
+  <div
+    class="card card-horizontal card-type-directory"
+  >
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-row"
+      >
+        <div
+          class="autofit-col"
+        >
+          <span
+            class="sticker"
+          >
+            <span
+              class="sticker-overlay inline-item"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-folder"
+                role="presentation"
+              >
+                <use
+                  href="/path/to/some/resource.svg#folder"
+                />
+              </svg>
+            </span>
+          </span>
+        </div>
+        <div
+          class="autofit-col autofit-col-expand autofit-col-gutters"
+        >
+          <p
+            aria-label="Foo Bar"
+            class="card-title"
+            title="Foo Bar"
+          >
+            <span
+              class="text-truncate-inline"
+            >
+              <a
+                class="text-truncate"
+                href="#"
+              >
+                Foo Bar
+              </a>
+            </span>
+          </p>
+        </div>
+        <div
+          class="autofit-col"
+        >
+          <div
+            class="dropdown"
+          >
+            <button
+              aria-controls="clay-dropdown-menu-2"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-label="More actions"
+              class="dropdown-toggle component-action btn btn-monospaced btn-unstyled"
+              type="button"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-ellipsis-v"
+                role="presentation"
+              >
+                <use
+                  href="/path/to/some/resource.svg#ellipsis-v"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithHorizontal renders as selectable 1`] = `
+<div>
+  <div
+    class="form-check-card form-check form-check-middle-left card-type-directory"
+  >
+    <div
+      class="custom-control custom-checkbox"
+    >
+      <label>
+        <input
+          class="custom-control-input"
+          type="checkbox"
+        />
+        <span
+          class="custom-control-label"
+        />
+        <div
+          class="card card-horizontal"
+        >
+          <div
+            class="card-body"
+          >
+            <div
+              class="card-row"
+            >
+              <div
+                class="autofit-col"
+              >
+                <span
+                  class="sticker"
+                >
+                  <span
+                    class="sticker-overlay inline-item"
+                  >
+                    <svg
+                      class="lexicon-icon lexicon-icon-folder"
+                      role="presentation"
+                    >
+                      <use
+                        href="/path/to/some/resource.svg#folder"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </div>
+              <div
+                class="autofit-col autofit-col-expand autofit-col-gutters"
+              >
+                <p
+                  aria-label="Foo Bar"
+                  class="card-title"
+                  title="Foo Bar"
+                >
+                  <span
+                    class="text-truncate-inline"
+                  >
+                    <a
+                      class="text-truncate"
+                      href="#"
+                    >
+                      Foo Bar
+                    </a>
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </label>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithHorizontal renders with no truncate text 1`] = `
+<div>
+  <div
+    class="card user-card card-type-asset"
+  >
+    <div
+      class="card-item-first aspect-ratio"
+    >
+      <div
+        class="aspect-ratio-item-center-middle card-type-asset-icon"
+      >
+        <span
+          class="sticker sticker-user-icon sticker-circle"
+        >
+          <span
+            class="sticker-overlay"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-user"
+              role="presentation"
+            >
+              <use
+                href="/path/to/some/resource.svg#user"
+              />
+            </svg>
+          </span>
+        </span>
+      </div>
+    </div>
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-row"
+      >
+        <div
+          class="autofit-col autofit-col-expand"
+        >
+          <p
+            aria-label="Foo Bar"
+            class="card-title"
+            title="Foo Bar"
+          >
+            Foo Bar
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithHorizontal renders with radio button 1`] = `
+<div>
+  <div
+    class="form-check-card form-check form-check-middle-left card-type-directory"
+  >
+    <div
+      class="custom-control custom-radio"
+    >
+      <label>
+        <input
+          class="custom-control-input"
+          disabled=""
+          name="cards"
+          role="radio"
+          type="radio"
+          value="radio1"
+        />
+        <span
+          class="custom-control-label"
+        />
+        <div
+          class="card card-horizontal"
+        >
+          <div
+            class="card-body"
+          >
+            <div
+              class="card-row"
+            >
+              <div
+                class="autofit-col"
+              >
+                <span
+                  class="sticker"
+                >
+                  <span
+                    class="sticker-overlay inline-item"
+                  >
+                    <svg
+                      class="lexicon-icon lexicon-icon-folder"
+                      role="presentation"
+                    >
+                      <use
+                        href="/path/to/some/resource.svg#folder"
+                      />
+                    </svg>
+                  </span>
+                </span>
+              </div>
+              <div
+                class="autofit-col autofit-col-expand autofit-col-gutters"
+              >
+                <p
+                  aria-label="Foo Bar"
+                  class="card-title"
+                  title="Foo Bar"
+                >
+                  <span
+                    class="text-truncate-inline"
+                  >
+                    <span
+                      class="text-truncate"
+                    >
+                      Foo Bar
+                    </span>
+                  </span>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </label>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders as disabled 1`] = `
+<div>
+  <div
+    class="file-card form-check-card form-check form-check-top-left card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="custom-control custom-checkbox"
+      >
+        <label>
+          <input
+            class="custom-control-input"
+            disabled=""
+            type="checkbox"
+          />
+          <span
+            class="custom-control-label"
+          />
+          <div
+            class="card-item-first aspect-ratio"
+          >
+            <div
+              class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-documents-and-media"
+                role="presentation"
+              >
+                <use
+                  href="/path/to/some/resource.svg#documents-and-media"
+                />
+              </svg>
+            </div>
+            <span
+              class="sticker sticker-primary sticker-bottom-left"
+            >
+              <span
+                class="sticker-overlay"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-document-default"
+                  role="presentation"
+                >
+                  <use
+                    href="/path/to/some/resource.svg#document-default"
+                  />
+                </svg>
+              </span>
+            </span>
+          </div>
+        </label>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Foo Bar"
+              class="card-title"
+              title="Foo Bar"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  Foo Bar
+                </span>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders as file card specifying the displayType 1`] = `
+<div>
+  <div
+    class="file-card form-check-card form-check form-check-top-left card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="custom-control custom-checkbox"
+      >
+        <label>
+          <input
+            class="custom-control-input"
+            disabled=""
+            type="checkbox"
+          />
+          <span
+            class="custom-control-label"
+          />
+          <div
+            class="card-item-first aspect-ratio"
+          >
+            <div
+              class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-documents-and-media"
+                role="presentation"
+              >
+                <use
+                  href="/path/to/some/resource.svg#documents-and-media"
+                />
+              </svg>
+            </div>
+            <span
+              class="sticker sticker-primary sticker-bottom-left"
+            >
+              <span
+                class="sticker-overlay"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-document-default"
+                  role="presentation"
+                >
+                  <use
+                    href="/path/to/some/resource.svg#document-default"
+                  />
+                </svg>
+              </span>
+            </span>
+          </div>
+        </label>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Foo Bar"
+              class="card-title"
+              title="Foo Bar"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  Foo Bar
+                </span>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders as image card specifying imageProps and not the displayType 1`] = `
+<div>
+  <div
+    class="form-check-card form-check form-check-top-left image-card card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="custom-control custom-checkbox"
+      >
+        <label>
+          <input
+            class="custom-control-input"
+            disabled=""
+            type="checkbox"
+          />
+          <span
+            class="custom-control-label"
+          />
+          <div
+            class="card-item-first aspect-ratio"
+          >
+            <img
+              class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid"
+              src="path/to/an/image"
+            />
+            <span
+              class="sticker sticker-primary sticker-bottom-left"
+            >
+              <span
+                class="sticker-overlay"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-document-image"
+                  role="presentation"
+                >
+                  <use
+                    href="/path/to/some/resource.svg#document-image"
+                  />
+                </svg>
+              </span>
+            </span>
+          </div>
+        </label>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Foo Bar"
+              class="card-title"
+              title="Foo Bar"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  Foo Bar
+                </span>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders as image card specifying the displayType and imageProps 1`] = `
+<div>
+  <div
+    class="form-check-card form-check form-check-top-left image-card card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="custom-control custom-checkbox"
+      >
+        <label>
+          <input
+            class="custom-control-input"
+            disabled=""
+            type="checkbox"
+          />
+          <span
+            class="custom-control-label"
+          />
+          <div
+            class="card-item-first aspect-ratio"
+          >
+            <img
+              class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid"
+              src="path/to/an/image"
+            />
+            <span
+              class="sticker sticker-primary sticker-bottom-left"
+            >
+              <span
+                class="sticker-overlay"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-document-image"
+                  role="presentation"
+                >
+                  <use
+                    href="/path/to/some/resource.svg#document-image"
+                  />
+                </svg>
+              </span>
+            </span>
+          </div>
+        </label>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Foo Bar"
+              class="card-title"
+              title="Foo Bar"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  Foo Bar
+                </span>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders as image card specifying the displayType and no imageProps 1`] = `
+<div>
+  <div
+    class="form-check-card form-check form-check-top-left image-card card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="custom-control custom-checkbox"
+      >
+        <label>
+          <input
+            class="custom-control-input"
+            disabled=""
+            type="checkbox"
+          />
+          <span
+            class="custom-control-label"
+          />
+          <div
+            class="card-item-first aspect-ratio"
+          >
+            <div
+              class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-camera"
+                role="presentation"
+              >
+                <use
+                  href="/path/to/some/resource.svg#camera"
+                />
+              </svg>
+            </div>
+            <span
+              class="sticker sticker-primary sticker-bottom-left"
+            >
+              <span
+                class="sticker-overlay"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-document-image"
+                  role="presentation"
+                >
+                  <use
+                    href="/path/to/some/resource.svg#document-image"
+                  />
+                </svg>
+              </span>
+            </span>
+          </div>
+        </label>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Foo Bar"
+              class="card-title"
+              title="Foo Bar"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  Foo Bar
+                </span>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders as image card with flush horizontal 1`] = `
+<div>
+  <div
+    class="form-check-card form-check form-check-top-left image-card card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="custom-control custom-checkbox"
+      >
+        <label>
+          <input
+            class="custom-control-input"
+            type="checkbox"
+          />
+          <span
+            class="custom-control-label"
+          />
+          <div
+            class="card-item-first aspect-ratio"
+          >
+            <img
+              class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-flush"
+              src="path/to/an/image"
+            />
+            <span
+              class="sticker sticker-primary sticker-bottom-left"
+            >
+              <span
+                class="sticker-overlay"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-document-image"
+                  role="presentation"
+                >
+                  <use
+                    href="/path/to/some/resource.svg#document-image"
+                  />
+                </svg>
+              </span>
+            </span>
+          </div>
+        </label>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Foo Bar"
+              class="card-title"
+              title="Foo Bar"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <a
+                  class="text-truncate"
+                  href="#"
+                >
+                  Foo Bar
+                </a>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders as image card with flush vertical 1`] = `
+<div>
+  <div
+    class="form-check-card form-check form-check-top-left image-card card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="custom-control custom-checkbox"
+      >
+        <label>
+          <input
+            class="custom-control-input"
+            type="checkbox"
+          />
+          <span
+            class="custom-control-label"
+          />
+          <div
+            class="card-item-first aspect-ratio"
+          >
+            <img
+              class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-vertical-flush"
+              src="path/to/an/image"
+            />
+            <span
+              class="sticker sticker-primary sticker-bottom-left"
+            >
+              <span
+                class="sticker-overlay"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-document-image"
+                  role="presentation"
+                >
+                  <use
+                    href="/path/to/some/resource.svg#document-image"
+                  />
+                </svg>
+              </span>
+            </span>
+          </div>
+        </label>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Foo Bar"
+              class="card-title"
+              title="Foo Bar"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <a
+                  class="text-truncate"
+                  href="#"
+                >
+                  Foo Bar
+                </a>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders as not selectable 1`] = `
+<div>
+  <div
+    class="card file-card card-type-asset"
+  >
+    <div
+      class="card-item-first aspect-ratio"
+    >
+      <div
+        class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+      >
+        <svg
+          class="lexicon-icon lexicon-icon-documents-and-media"
+          role="presentation"
+        >
+          <use
+            href="/some/spritemap#documents-and-media"
+          />
+        </svg>
+      </div>
+      <span
+        class="sticker sticker-primary sticker-bottom-left"
+      >
+        <span
+          class="sticker-overlay"
+        >
+          <svg
+            class="lexicon-icon lexicon-icon-document-default"
+            role="presentation"
+          >
+            <use
+              href="/some/spritemap#document-default"
+            />
+          </svg>
+        </span>
+      </span>
+    </div>
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-row"
+      >
+        <div
+          class="autofit-col autofit-col-expand"
+        >
+          <p
+            aria-label="Very Large File"
+            class="card-title"
+            title="Very Large File"
+          >
+            <span
+              class="text-truncate-inline"
+            >
+              <a
+                class="text-truncate"
+                href="#"
+              >
+                Very Large File
+              </a>
+            </span>
+          </p>
+          <div
+            class="card-detail"
+          >
+            <span
+              class="label label-success"
+            >
+              <span
+                class="label-item label-item-expand"
+              >
+                Awesome
+              </span>
+            </span>
+          </div>
+        </div>
+        <div
+          class="autofit-col"
+        >
+          <div
+            class="dropdown"
+          >
+            <button
+              aria-controls="clay-dropdown-menu-3"
+              aria-expanded="false"
+              aria-haspopup="true"
+              aria-label="More actions"
+              class="dropdown-toggle component-action btn btn-monospaced btn-unstyled"
+              type="button"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-ellipsis-v"
+                role="presentation"
+              >
+                <use
+                  href="/some/spritemap#ellipsis-v"
+                />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders as selectable 1`] = `
+<div>
+  <div
+    class="file-card form-check-card form-check form-check-top-left card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="custom-control custom-checkbox"
+      >
+        <label>
+          <input
+            class="custom-control-input"
+            type="checkbox"
+          />
+          <span
+            class="custom-control-label"
+          />
+          <div
+            class="card-item-first aspect-ratio"
+          >
+            <div
+              class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-documents-and-media"
+                role="presentation"
+              >
+                <use
+                  href="/path/to/some/resource.svg#documents-and-media"
+                />
+              </svg>
+            </div>
+            <span
+              class="sticker sticker-primary sticker-bottom-left"
+            >
+              <span
+                class="sticker-overlay"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-document-default"
+                  role="presentation"
+                >
+                  <use
+                    href="/path/to/some/resource.svg#document-default"
+                  />
+                </svg>
+              </span>
+            </span>
+          </div>
+        </label>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Foo Bar"
+              class="card-title"
+              title="Foo Bar"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <a
+                  class="text-truncate"
+                  href="#"
+                >
+                  Foo Bar
+                </a>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders with custom sticker 1`] = `
+<div>
+  <div
+    class="card file-card card-type-asset"
+  >
+    <div
+      class="card-item-first aspect-ratio"
+    >
+      <div
+        class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+      >
+        <svg
+          class="lexicon-icon lexicon-icon-documents-and-media"
+          role="presentation"
+        >
+          <use
+            href="/some/spritemap#documents-and-media"
+          />
+        </svg>
+      </div>
+      <span
+        class="sticker custom-sticker-class sticker-circle sticker-danger sticker-top-right sticker-outside sticker-xl"
+      >
+        <span
+          class="sticker-overlay"
+        >
+          <svg
+            class="lexicon-icon lexicon-icon-document-default"
+            role="presentation"
+          >
+            <use
+              href="/some/spritemap#document-default"
+            />
+          </svg>
+        </span>
+      </span>
+    </div>
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-row"
+      >
+        <div
+          class="autofit-col autofit-col-expand"
+        >
+          <p
+            aria-label="Very Large File"
+            class="card-title"
+            title="Very Large File"
+          >
+            <span
+              class="text-truncate-inline"
+            >
+              <a
+                class="text-truncate"
+                href="#"
+              >
+                Very Large File
+              </a>
+            </span>
+          </p>
+          <div
+            class="card-detail"
+          >
+            <span
+              class="label label-success"
+            >
+              <span
+                class="label-item label-item-expand"
+              >
+                Awesome
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders with custom sticker with custom Icon 1`] = `
+<div>
+  <div
+    class="card file-card card-type-asset"
+  >
+    <div
+      class="card-item-first aspect-ratio"
+    >
+      <div
+        class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+      >
+        <svg
+          class="lexicon-icon lexicon-icon-documents-and-media"
+          role="presentation"
+        >
+          <use
+            href="/some/spritemap#documents-and-media"
+          />
+        </svg>
+      </div>
+      <span
+        class="sticker custom-sticker-class sticker-circle sticker-danger sticker-top-right sticker-outside sticker-xl"
+      >
+        <span
+          class="sticker-overlay"
+        >
+          <svg
+            class="lexicon-icon lexicon-icon-custom-symbol"
+            role="presentation"
+          >
+            <use
+              href="/path/to/some/resource.svg#custom-symbol"
+            />
+          </svg>
+        </span>
+      </span>
+    </div>
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-row"
+      >
+        <div
+          class="autofit-col autofit-col-expand"
+        >
+          <p
+            aria-label="Very Large File"
+            class="card-title"
+            title="Very Large File"
+          >
+            <span
+              class="text-truncate-inline"
+            >
+              <a
+                class="text-truncate"
+                href="#"
+              >
+                Very Large File
+              </a>
+            </span>
+          </p>
+          <div
+            class="card-detail"
+          >
+            <span
+              class="label label-success"
+            >
+              <span
+                class="label-item label-item-expand"
+              >
+                Awesome
+              </span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders with description 1`] = `
+<div>
+  <div
+    class="file-card form-check-card form-check form-check-top-left card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="custom-control custom-checkbox"
+      >
+        <label>
+          <input
+            class="custom-control-input"
+            type="checkbox"
+          />
+          <span
+            class="custom-control-label"
+          />
+          <div
+            class="card-item-first aspect-ratio"
+          >
+            <div
+              class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-documents-and-media"
+                role="presentation"
+              >
+                <use
+                  href="/path/to/some/resource.svg#documents-and-media"
+                />
+              </svg>
+            </div>
+            <span
+              class="sticker sticker-primary sticker-bottom-left"
+            >
+              <span
+                class="sticker-overlay"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-document-default"
+                  role="presentation"
+                >
+                  <use
+                    href="/path/to/some/resource.svg#document-default"
+                  />
+                </svg>
+              </span>
+            </span>
+          </div>
+        </label>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Foo Bar"
+              class="card-title"
+              title="Foo Bar"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <a
+                  class="text-truncate"
+                  href="#"
+                >
+                  Foo Bar
+                </a>
+              </span>
+            </p>
+            <p
+              class="card-subtitle"
+              title="A cool description"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  A cool description
+                </span>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders with no sticker 1`] = `
+<div>
+  <div
+    class="file-card form-check-card form-check form-check-top-left card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="custom-control custom-checkbox"
+      >
+        <label>
+          <input
+            class="custom-control-input"
+            type="checkbox"
+          />
+          <span
+            class="custom-control-label"
+          />
+          <div
+            class="card-item-first aspect-ratio"
+          >
+            <div
+              class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-documents-and-media"
+                role="presentation"
+              >
+                <use
+                  href="/path/to/some/resource.svg#documents-and-media"
+                />
+              </svg>
+            </div>
+          </div>
+        </label>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Foo Bar"
+              class="card-title"
+              title="Foo Bar"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <a
+                  class="text-truncate"
+                  href="#"
+                >
+                  Foo Bar
+                </a>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders with no truncate text 1`] = `
+<div>
+  <div
+    class="file-card form-check-card form-check form-check-top-left card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="custom-control custom-checkbox"
+      >
+        <label>
+          <input
+            class="custom-control-input"
+            type="checkbox"
+          />
+          <span
+            class="custom-control-label"
+          />
+          <div
+            class="card-item-first aspect-ratio"
+          >
+            <div
+              class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-documents-and-media"
+                role="presentation"
+              >
+                <use
+                  href="/path/to/some/resource.svg#documents-and-media"
+                />
+              </svg>
+            </div>
+            <span
+              class="sticker sticker-primary sticker-bottom-left"
+            >
+              <span
+                class="sticker-overlay"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-document-default"
+                  role="presentation"
+                >
+                  <use
+                    href="/path/to/some/resource.svg#document-default"
+                  />
+                </svg>
+              </span>
+            </span>
+          </div>
+        </label>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Foo Bar"
+              class="card-title"
+              title="Foo Bar"
+            >
+              Foo Bar
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithInfo renders with radio button 1`] = `
+<div>
+  <div
+    class="file-card form-check-card form-check form-check-top-left card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="custom-control custom-radio"
+      >
+        <label>
+          <input
+            class="custom-control-input"
+            name="cards"
+            role="radio"
+            type="radio"
+            value="radio1"
+          />
+          <span
+            class="custom-control-label"
+          />
+          <div
+            class="card-item-first aspect-ratio"
+          >
+            <div
+              class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-fluid card-type-asset-icon"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-documents-and-media"
+                role="presentation"
+              >
+                <use
+                  href="/path/to/some/resource.svg#documents-and-media"
+                />
+              </svg>
+            </div>
+          </div>
+        </label>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Radio Card"
+              class="card-title"
+              title="Radio Card"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <a
+                  class="text-truncate"
+                  href="#"
+                >
+                  Radio Card
+                </a>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithUser renders ClayCardWithNavigation with image 1`] = `
+<div>
+  <a
+    class="card card-interactive card-interactive-primary card-type-template template-card"
+    href="#"
+    tabindex="0"
+  >
+    <span
+      class="aspect-ratio"
+    >
+      <span
+        class="aspect-ratio-item aspect-ratio-item-center-middle aspect-ratio-item-flush"
+      >
+        <img
+          alt="portlet image"
+          src="/some/path"
+        />
+      </span>
+    </span>
+    <span
+      class="card-body"
+    >
+      <p
+        aria-label="Layout Page"
+        class="card-title"
+        title="Layout Page"
+      >
+        <span
+          class="text-truncate-inline"
+        >
+          <span
+            class="text-truncate"
+          >
+            Layout Page
+          </span>
+        </span>
+      </p>
+    </span>
+  </a>
+</div>
+`;
+
+exports[`ClayCardWithUser renders as disabled 1`] = `
+<div>
+  <div
+    class="form-check-card form-check form-check-top-left user-card card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="card-item-first aspect-ratio"
+      >
+        <div
+          class="custom-control custom-checkbox"
+        >
+          <label>
+            <input
+              class="custom-control-input"
+              disabled=""
+              type="checkbox"
+            />
+            <span
+              class="custom-control-label"
+            />
+            <div
+              class="aspect-ratio-item-center-middle card-type-asset-icon"
+            >
+              <span
+                class="sticker sticker-user-icon sticker-circle"
+              >
+                <span
+                  class="sticker-overlay"
+                >
+                  <svg
+                    class="lexicon-icon lexicon-icon-user"
+                    role="presentation"
+                  >
+                    <use
+                      href="/path/to/some/resource.svg#user"
+                    />
+                  </svg>
+                </span>
+              </span>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Foo Bar"
+              class="card-title"
+              title="Foo Bar"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <span
+                  class="text-truncate"
+                >
+                  Foo Bar
+                </span>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithUser renders as selectable 1`] = `
+<div>
+  <div
+    class="form-check-card form-check form-check-top-left user-card card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="card-item-first aspect-ratio"
+      >
+        <div
+          class="custom-control custom-checkbox"
+        >
+          <label>
+            <input
+              class="custom-control-input"
+              type="checkbox"
+            />
+            <span
+              class="custom-control-label"
+            />
+            <div
+              class="aspect-ratio-item-center-middle card-type-asset-icon"
+            >
+              <span
+                class="sticker sticker-user-icon sticker-circle"
+              >
+                <span
+                  class="sticker-overlay"
+                >
+                  <svg
+                    class="lexicon-icon lexicon-icon-user"
+                    role="presentation"
+                  >
+                    <use
+                      href="/path/to/some/resource.svg#user"
+                    />
+                  </svg>
+                </span>
+              </span>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Foo Bar"
+              class="card-title"
+              title="Foo Bar"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <a
+                  class="text-truncate"
+                  href="#"
+                >
+                  Foo Bar
+                </a>
+              </span>
+            </p>
+          </div>
+          <div
+            class="autofit-col"
+          >
+            <div
+              class="dropdown"
+            >
+              <button
+                aria-controls="clay-dropdown-menu-1"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-label="More actions"
+                class="dropdown-toggle component-action btn btn-monospaced btn-unstyled"
+                type="button"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-ellipsis-v"
+                  role="presentation"
+                >
+                  <use
+                    href="/path/to/some/resource.svg#ellipsis-v"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithUser renders with description 1`] = `
+<div>
+  <div
+    class="card user-card card-type-asset"
+  >
+    <div
+      class="card-item-first aspect-ratio"
+    >
+      <div
+        class="aspect-ratio-item-center-middle card-type-asset-icon"
+      >
+        <span
+          class="sticker sticker-user-icon sticker-circle"
+        >
+          <span
+            class="sticker-overlay"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-user"
+              role="presentation"
+            >
+              <use
+                href="/path/to/some/resource.svg#user"
+              />
+            </svg>
+          </span>
+        </span>
+      </div>
+    </div>
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-row"
+      >
+        <div
+          class="autofit-col autofit-col-expand"
+        >
+          <p
+            aria-label="Foo Bar"
+            class="card-title"
+            title="Foo Bar"
+          >
+            <span
+              class="text-truncate-inline"
+            >
+              <a
+                class="text-truncate"
+                href="#"
+              >
+                Foo Bar
+              </a>
+            </span>
+          </p>
+          <p
+            class="card-subtitle"
+            title="Awesome description of the user"
+          >
+            <span
+              class="text-truncate-inline"
+            >
+              <span
+                class="text-truncate"
+              >
+                Awesome description of the user
+              </span>
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithUser renders with icon 1`] = `
+<div>
+  <div
+    class="card user-card card-type-asset"
+  >
+    <div
+      class="card-item-first aspect-ratio"
+    >
+      <div
+        class="aspect-ratio-item-center-middle card-type-asset-icon"
+      >
+        <span
+          class="sticker sticker-user-icon sticker-circle"
+        >
+          <span
+            class="sticker-overlay"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-custom-icon"
+              role="presentation"
+            >
+              <use
+                href="/path/to/some/resource.svg#custom-icon"
+              />
+            </svg>
+          </span>
+        </span>
+      </div>
+    </div>
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-row"
+      >
+        <div
+          class="autofit-col autofit-col-expand"
+        >
+          <p
+            aria-label="Foo Bar"
+            class="card-title"
+            title="Foo Bar"
+          >
+            <span
+              class="text-truncate-inline"
+            >
+              <a
+                class="text-truncate"
+                href="#"
+              >
+                Foo Bar
+              </a>
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithUser renders with image 1`] = `
+<div>
+  <div
+    class="card user-card card-type-asset"
+  >
+    <div
+      class="card-item-first aspect-ratio"
+    >
+      <div
+        class="aspect-ratio-item-center-middle card-type-asset-icon"
+      >
+        <span
+          class="sticker sticker-user-icon sticker-circle"
+        >
+          <span
+            class="sticker-overlay"
+          >
+            <img
+              alt="thumbnail"
+              class="sticker-img"
+              src="/path/to/image.jpg"
+            />
+          </span>
+        </span>
+      </div>
+    </div>
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-row"
+      >
+        <div
+          class="autofit-col autofit-col-expand"
+        >
+          <p
+            aria-label="Foo Bar"
+            class="card-title"
+            title="Foo Bar"
+          >
+            <span
+              class="text-truncate-inline"
+            >
+              <a
+                class="text-truncate"
+                href="#"
+              >
+                Foo Bar
+              </a>
+            </span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithUser renders with no truncate text 1`] = `
+<div>
+  <div
+    class="card user-card card-type-asset"
+  >
+    <div
+      class="card-item-first aspect-ratio"
+    >
+      <div
+        class="aspect-ratio-item-center-middle card-type-asset-icon"
+      >
+        <span
+          class="sticker sticker-user-icon sticker-circle"
+        >
+          <span
+            class="sticker-overlay"
+          >
+            <svg
+              class="lexicon-icon lexicon-icon-user"
+              role="presentation"
+            >
+              <use
+                href="/path/to/some/resource.svg#user"
+              />
+            </svg>
+          </span>
+        </span>
+      </div>
+    </div>
+    <div
+      class="card-body"
+    >
+      <div
+        class="card-row"
+      >
+        <div
+          class="autofit-col autofit-col-expand"
+        >
+          <p
+            aria-label="Foo Bar"
+            class="card-title"
+            title="Foo Bar"
+          >
+            Foo Bar
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayCardWithUser renders with radio button 1`] = `
+<div>
+  <div
+    class="form-check-card form-check form-check-top-left user-card card-type-asset"
+  >
+    <div
+      class="card"
+    >
+      <div
+        class="card-item-first aspect-ratio"
+      >
+        <div
+          class="custom-control custom-radio"
+        >
+          <label>
+            <input
+              class="custom-control-input"
+              name="cards"
+              role="radio"
+              type="radio"
+              value="radio1"
+            />
+            <span
+              class="custom-control-label"
+            />
+            <div
+              class="aspect-ratio-item-center-middle card-type-asset-icon"
+            >
+              <span
+                class="sticker sticker-user-icon sticker-circle"
+              >
+                <span
+                  class="sticker-overlay"
+                >
+                  <svg
+                    class="lexicon-icon lexicon-icon-user"
+                    role="presentation"
+                  >
+                    <use
+                      href="/path/to/some/resource.svg#user"
+                    />
+                  </svg>
+                </span>
+              </span>
+            </div>
+          </label>
+        </div>
+      </div>
+      <div
+        class="card-body"
+      >
+        <div
+          class="card-row"
+        >
+          <div
+            class="autofit-col autofit-col-expand"
+          >
+            <p
+              aria-label="Foo Bar"
+              class="card-title"
+              title="Foo Bar"
+            >
+              <span
+                class="text-truncate-inline"
+              >
+                <a
+                  class="text-truncate"
+                  href="#"
+                >
+                  Foo Bar
+                </a>
+              </span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

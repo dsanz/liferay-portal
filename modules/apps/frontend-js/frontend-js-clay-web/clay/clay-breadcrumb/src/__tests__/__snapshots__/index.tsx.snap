@@ -1,0 +1,193 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ClayBreadcrumb calls callback when an item is clicked 1`] = `
+<div>
+  <nav
+    aria-label="Breadcrumb"
+    class="breadcrumb-bar"
+  >
+    <button
+      aria-expanded="false"
+      aria-label="See full nested"
+      class="breadcrumb-toggle btn btn-monospaced btn-xs"
+      title="See full nested"
+      type="button"
+    >
+      <svg
+        class="lexicon-icon lexicon-icon-angle-double-right"
+        role="presentation"
+      >
+        <use
+          href="path/to/spritemap#angle-double-right"
+        />
+      </svg>
+    </button>
+    <ol
+      class="breadcrumb"
+    >
+      <li
+        class="breadcrumb-item"
+      >
+        <button
+          class="breadcrumb-link btn btn-unstyled"
+          data-testid="testId4"
+          type="button"
+        >
+          4
+        </button>
+      </li>
+      <li
+        class="breadcrumb-item"
+      >
+        <button
+          class="breadcrumb-link btn btn-unstyled"
+          data-testid="testId5"
+          type="button"
+        >
+          5
+        </button>
+      </li>
+    </ol>
+  </nav>
+</div>
+`;
+
+exports[`ClayBreadcrumb renders 1`] = `
+<div>
+  <nav
+    aria-label="Breadcrumb"
+    class="breadcrumb-bar"
+  >
+    <button
+      aria-expanded="false"
+      aria-label="See full nested"
+      class="breadcrumb-toggle btn btn-monospaced btn-xs"
+      title="See full nested"
+      type="button"
+    >
+      <svg
+        class="lexicon-icon lexicon-icon-angle-double-right"
+        role="presentation"
+      >
+        <use
+          href="path/to/spritemap#angle-double-right"
+        />
+      </svg>
+    </button>
+    <ol
+      class="breadcrumb"
+    >
+      <li
+        class="breadcrumb-item"
+      >
+        <a
+          class="breadcrumb-link"
+          data-testid="testId4"
+          href="#4"
+        >
+          4
+        </a>
+      </li>
+      <li
+        class="breadcrumb-item"
+      >
+        <a
+          class="breadcrumb-link"
+          data-testid="testId5"
+          href="#5"
+        >
+          5
+        </a>
+      </li>
+    </ol>
+  </nav>
+</div>
+`;
+
+exports[`ClayBreadcrumb renders with properties passed by \`ellipsisProps\` 1`] = `
+<div>
+  <nav
+    aria-label="Breadcrumb"
+    class="breadcrumb-bar"
+  >
+    <button
+      aria-expanded="false"
+      aria-label="See full nested"
+      class="breadcrumb-toggle btn btn-monospaced btn-xs"
+      title="See full nested"
+      type="button"
+    >
+      <svg
+        class="lexicon-icon lexicon-icon-angle-double-right"
+        role="presentation"
+      >
+        <use
+          href="path/to/spritemap#angle-double-right"
+        />
+      </svg>
+    </button>
+    <ol
+      class="breadcrumb"
+    >
+      <li
+        class="breadcrumb-item"
+      >
+        <a
+          class="breadcrumb-link"
+          data-testid="testId4"
+          href="#4"
+        >
+          4
+        </a>
+      </li>
+      <li
+        class="breadcrumb-item"
+      >
+        <a
+          class="breadcrumb-link"
+          data-testid="testId5"
+          href="#5"
+        >
+          5
+        </a>
+      </li>
+    </ol>
+  </nav>
+</div>
+`;
+
+exports[`ClayBreadcrumb throws a warning when not passing \`active\` to any \`items\` 1`] = `
+<div>
+  <nav
+    aria-label="Breadcrumb"
+    class="breadcrumb-bar"
+  >
+    <ol
+      class="breadcrumb"
+    >
+      <li
+        class="breadcrumb-item"
+      >
+        <a
+          class="breadcrumb-link"
+          data-testid="testId1"
+          href="#1"
+        >
+          1
+        </a>
+      </li>
+      <li
+        class="breadcrumb-item"
+      >
+        <a
+          class="breadcrumb-link"
+          data-testid="testId2"
+          href="#2"
+        >
+          2
+        </a>
+      </li>
+    </ol>
+  </nav>
+</div>
+`;

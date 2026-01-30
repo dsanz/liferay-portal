@@ -332,9 +332,9 @@ public abstract class BaseContentStructureResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(contentStructureId);
+		Long resourceId = getPermissionCheckerResourceId(contentStructureId);
 		String resourceName = getPermissionCheckerResourceName(
 			contentStructureId);
-		Long resourceId = getPermissionCheckerResourceId(contentStructureId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -812,9 +812,9 @@ public abstract class BaseContentStructureResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(contentStructureId);
+		Long resourceId = getPermissionCheckerResourceId(contentStructureId);
 		String resourceName = getPermissionCheckerResourceName(
 			contentStructureId);
-		Long resourceId = getPermissionCheckerResourceId(contentStructureId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -1230,6 +1230,9 @@ public abstract class BaseContentStructureResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

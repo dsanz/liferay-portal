@@ -132,6 +132,47 @@ public class Assignee implements Serializable {
 	private Supplier<String> _nameSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
+	public String getPortrait() {
+		if (_portraitSupplier != null) {
+			portrait = _portraitSupplier.get();
+
+			_portraitSupplier = null;
+		}
+
+		return portrait;
+	}
+
+	public void setPortrait(String portrait) {
+		this.portrait = portrait;
+
+		_portraitSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setPortrait(
+		UnsafeSupplier<String, Exception> portraitUnsafeSupplier) {
+
+		_portraitSupplier = () -> {
+			try {
+				return portraitUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
+	protected String portrait;
+
+	@JsonIgnore
+	private Supplier<String> _portraitSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
 	@JsonGetter("type")
 	@Valid
 	public Type getType() {
@@ -242,6 +283,22 @@ public class Assignee implements Serializable {
 			sb.append("\"");
 		}
 
+		String portrait = getPortrait();
+
+		if (portrait != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"portrait\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(portrait));
+
+			sb.append("\"");
+		}
+
 		Type type = getType();
 
 		if (type != null) {
@@ -252,9 +309,7 @@ public class Assignee implements Serializable {
 			sb.append("\"type\": ");
 
 			sb.append("\"");
-
 			sb.append(type);
-
 			sb.append("\"");
 		}
 

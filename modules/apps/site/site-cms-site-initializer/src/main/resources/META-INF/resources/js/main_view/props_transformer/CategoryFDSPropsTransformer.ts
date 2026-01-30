@@ -3,18 +3,29 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {openModal} from 'frontend-js-components-web';
-
 import {openGenericFDSDeleteConfirmationModal} from '../../common/utils/genericOpenModalUtil';
+import {openCMSModal} from '../../common/utils/openCMSModal';
 import MoveCategoryModalContent from '../categorization/categories/components/MoveCategoryModalContent';
 
 export default function CategoryFDSPropsTransformer({
+	itemsActions = [],
 	...otherProps
 }: {
+	itemsActions?: any[];
 	otherProps: any;
 }) {
 	return {
 		...otherProps,
+		itemsActions: itemsActions.map((action) => {
+			if (action?.data?.id === 'delete') {
+				return {
+					...action,
+					className: 'text-danger',
+				};
+			}
+
+			return action;
+		}),
 		onActionDropdownItemClick({
 			action,
 			itemData,
@@ -44,7 +55,7 @@ export default function CategoryFDSPropsTransformer({
 				);
 			}
 			if (action.data.id === 'move') {
-				openModal({
+				openCMSModal({
 					contentComponent: ({
 						closeModal,
 					}: {

@@ -29,9 +29,9 @@ import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -40,6 +40,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import org.junit.After;
@@ -172,7 +173,6 @@ public class DDMFieldLocalServiceTest {
 		DDMFormFieldValue ddmFormFieldValue = new DDMFormFieldValue();
 
 		ddmFormFieldValue.setName("field1");
-		ddmFormFieldValue.setInstanceId(StringUtil.randomString(8));
 
 		Value value = new LocalizedValue(LocaleUtil.ENGLISH);
 
@@ -293,6 +293,81 @@ public class DDMFieldLocalServiceTest {
 	}
 
 	@Test
+	public void testPartiallyTranslatedForm() throws Exception {
+		DDMForm ddmForm = DDMFormTestUtil.createDDMForm("field1", "field2");
+
+		DDMStructure ddmStructure = _ddmStructureTestHelper.addStructure(
+			ddmForm, StorageType.DEFAULT.toString());
+
+		DDMFormValues ddmFormValues = new DDMFormValues(ddmForm);
+
+		ddmFormValues.setAvailableLocales(
+			Set.of(LocaleUtil.ENGLISH, LocaleUtil.HUNGARY, LocaleUtil.SPAIN));
+		ddmFormValues.setDefaultLocale(LocaleUtil.ENGLISH);
+
+		ddmFormValues.setDDMFormFieldValues(
+			List.of(
+				_createDDMFormFieldValue(
+					"field1", LocaleUtil.ENGLISH, LocaleUtil.HUNGARY,
+					LocaleUtil.SPAIN),
+				_createDDMFormFieldValue(
+					"field2", LocaleUtil.ENGLISH, LocaleUtil.HUNGARY)));
+
+		_ddmFieldLocalService.updateDDMFormValues(
+			ddmStructure.getStructureId(), _STORAGE_ID, ddmFormValues);
+
+		DDMFormValues deserializedDDMFormValues =
+			_ddmFieldLocalService.getDDMFormValues(
+				ddmForm, _STORAGE_ID,
+				LocaleUtil.toLanguageId(LocaleUtil.ENGLISH));
+
+		_assertDDMFormFieldValue(
+			deserializedDDMFormValues.getDDMFormFieldValue("field1", false),
+			List.of(LocaleUtil.ENGLISH),
+			List.of(LocaleUtil.HUNGARY, LocaleUtil.SPAIN));
+		_assertDDMFormFieldValue(
+			deserializedDDMFormValues.getDDMFormFieldValue("field2", false),
+			List.of(LocaleUtil.ENGLISH),
+			List.of(LocaleUtil.HUNGARY, LocaleUtil.SPAIN));
+
+		deserializedDDMFormValues = _ddmFieldLocalService.getDDMFormValues(
+			ddmForm, _STORAGE_ID, LocaleUtil.toLanguageId(LocaleUtil.FRANCE));
+
+		_assertDDMFormFieldValue(
+			deserializedDDMFormValues.getDDMFormFieldValue("field1", false),
+			List.of(LocaleUtil.ENGLISH),
+			List.of(LocaleUtil.FRANCE, LocaleUtil.HUNGARY, LocaleUtil.SPAIN));
+		_assertDDMFormFieldValue(
+			deserializedDDMFormValues.getDDMFormFieldValue("field2", false),
+			List.of(LocaleUtil.ENGLISH),
+			List.of(LocaleUtil.FRANCE, LocaleUtil.HUNGARY, LocaleUtil.SPAIN));
+
+		deserializedDDMFormValues = _ddmFieldLocalService.getDDMFormValues(
+			ddmForm, _STORAGE_ID, LocaleUtil.toLanguageId(LocaleUtil.HUNGARY));
+
+		_assertDDMFormFieldValue(
+			deserializedDDMFormValues.getDDMFormFieldValue("field1", false),
+			List.of(LocaleUtil.ENGLISH, LocaleUtil.HUNGARY),
+			List.of(LocaleUtil.SPAIN));
+		_assertDDMFormFieldValue(
+			deserializedDDMFormValues.getDDMFormFieldValue("field2", false),
+			List.of(LocaleUtil.ENGLISH, LocaleUtil.HUNGARY),
+			List.of(LocaleUtil.SPAIN));
+
+		deserializedDDMFormValues = _ddmFieldLocalService.getDDMFormValues(
+			ddmForm, _STORAGE_ID, LocaleUtil.toLanguageId(LocaleUtil.SPAIN));
+
+		_assertDDMFormFieldValue(
+			deserializedDDMFormValues.getDDMFormFieldValue("field1", false),
+			List.of(LocaleUtil.ENGLISH, LocaleUtil.SPAIN),
+			List.of(LocaleUtil.HUNGARY));
+		_assertDDMFormFieldValue(
+			deserializedDDMFormValues.getDDMFormFieldValue("field2", false),
+			List.of(LocaleUtil.ENGLISH),
+			List.of(LocaleUtil.HUNGARY, LocaleUtil.SPAIN));
+	}
+
+	@Test
 	public void testSimpleForm() throws Exception {
 		DDMForm ddmForm = DDMFormTestUtil.createDDMForm("field1");
 
@@ -386,6 +461,40 @@ public class DDMFieldLocalServiceTest {
 	}
 
 	@Test
+	public void testUpdateDDMFormValuesWithNullValue() throws Exception {
+		String fieldName = RandomTestUtil.randomString();
+
+		DDMForm ddmForm = DDMFormTestUtil.createDDMForm(fieldName);
+
+		DDMStructure ddmStructure = _ddmStructureTestHelper.addStructure(
+			ddmForm, StorageType.DEFAULT.toString());
+
+		DDMFormValues ddmFormValues = new DDMFormValues(ddmForm);
+
+		ddmFormValues.setDefaultLocale(LocaleUtil.ENGLISH);
+		ddmFormValues.setAvailableLocales(
+			Collections.singleton(LocaleUtil.ENGLISH));
+		ddmFormValues.setDDMFormFieldValues(
+			Arrays.asList(
+				_createDDMFormFieldValue(LocaleUtil.ENGLISH, fieldName, null)));
+
+		_ddmFieldLocalService.updateDDMFormValues(
+			ddmStructure.getStructureId(), _STORAGE_ID, ddmFormValues);
+
+		DDMFormValues deserializedDDMFormValues =
+			_ddmFieldLocalService.getDDMFormValues(ddmForm, _STORAGE_ID);
+
+		DDMFormFieldValue ddmFormFieldValue =
+			deserializedDDMFormValues.getDDMFormFieldValue(fieldName, false);
+
+		LocalizedValue localizedValue =
+			(LocalizedValue)ddmFormFieldValue.getValue();
+
+		Assert.assertEquals(
+			StringPool.BLANK, localizedValue.getString(LocaleUtil.ENGLISH));
+	}
+
+	@Test
 	public void testUpdatedForm() throws Exception {
 		DDMForm ddmForm = DDMFormTestUtil.createDDMForm(
 			"field1", "field2", "field3");
@@ -462,6 +571,24 @@ public class DDMFieldLocalServiceTest {
 		Assert.assertEquals(ddmFormValues, deserializedDDMFormValues);
 	}
 
+	private void _assertDDMFormFieldValue(
+		DDMFormFieldValue ddmFormFieldValue, List<Locale> locales1,
+		List<Locale> locales2) {
+
+		Value value = ddmFormFieldValue.getValue();
+
+		Map<Locale, String> values = value.getValues();
+
+		for (Locale locale : locales1) {
+			Assert.assertEquals(
+				LocaleUtil.toLanguageId(locale) + " value", values.get(locale));
+		}
+
+		for (Locale locale : locales2) {
+			Assert.assertNull(values.get(locale));
+		}
+	}
+
 	private DDMFormField _createDDMFormField(
 		Locale locale, DDMForm ddmForm, String name, String type,
 		String dataType, String fieldNamespace,
@@ -500,11 +627,28 @@ public class DDMFieldLocalServiceTest {
 		DDMFormFieldValue ddmFormFieldValue = new DDMFormFieldValue();
 
 		ddmFormFieldValue.setName(name);
-		ddmFormFieldValue.setInstanceId(StringUtil.randomString(8));
 
 		Value value = new LocalizedValue(locale);
 
 		value.addString(locale, s);
+
+		ddmFormFieldValue.setValue(value);
+
+		return ddmFormFieldValue;
+	}
+
+	private DDMFormFieldValue _createDDMFormFieldValue(
+		String fieldName, Locale... locales) {
+
+		DDMFormFieldValue ddmFormFieldValue = new DDMFormFieldValue();
+
+		ddmFormFieldValue.setName(fieldName);
+
+		Value value = new LocalizedValue(locales[0]);
+
+		for (Locale locale : locales) {
+			value.addString(locale, LocaleUtil.toLanguageId(locale) + " value");
+		}
 
 		ddmFormFieldValue.setValue(value);
 

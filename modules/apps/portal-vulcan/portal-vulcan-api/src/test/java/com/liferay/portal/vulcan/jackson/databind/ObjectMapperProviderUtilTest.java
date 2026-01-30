@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 
@@ -37,36 +38,41 @@ public class ObjectMapperProviderUtilTest {
 
 	@Test
 	public void test() throws Exception {
-		ObjectMapper objectMapper = ObjectMapperProviderUtil.getObjectMapper();
+		JsonNode jsonNode = _objectMapper.readTree(
+			_objectWriter.writeValueAsString(new TestSubclass()));
 
-		ObjectWriter objectWriter = objectMapper.writer();
+		Assert.assertEquals(_objectMapper.createObjectNode(), jsonNode);
 
-		Assert.assertEquals(
-			"{\n  \"type\" : \"test\"\n}",
-			objectWriter.writeValueAsString(new TestSubclass()));
-		Assert.assertEquals(
-			"{\n  \"type\" : \"ObjectMapperProviderUtilTest$1\"\n}",
-			objectWriter.writeValueAsString(
+		jsonNode = _objectMapper.readTree(
+			_objectWriter.writeValueAsString(
 				new TestSubclass() {
 					{
 					}
 				}));
-		Assert.assertEquals(
-			"{\n  \"type\" : \"ObjectMapperProviderUtilTest$2\",\n  \"type\" " +
-				": \"test\"\n}",
-			objectWriter.writeValueAsString(
+
+		Assert.assertEquals(_objectMapper.createObjectNode(), jsonNode);
+
+		jsonNode = _objectMapper.readTree(
+			_objectWriter.writeValueAsString(
 				new TestSubclass() {
 					{
 						type = "test";
 					}
 				}));
+
+		Assert.assertEquals(
+			_objectMapper.createObjectNode(
+			).put(
+				"type", "test"
+			),
+			jsonNode);
 	}
 
 	@JsonSubTypes(
 		{@JsonSubTypes.Type(name = "test", value = TestSubclass.class)}
 	)
 	@JsonTypeInfo(
-		include = JsonTypeInfo.As.PROPERTY, property = "type",
+		include = JsonTypeInfo.As.EXISTING_PROPERTY, property = "type",
 		use = JsonTypeInfo.Id.NAME, visible = true
 	)
 	@XmlRootElement(name = "TestClass")
@@ -85,5 +91,9 @@ public class ObjectMapperProviderUtilTest {
 
 	public static class TestSubclass extends TestClass {
 	}
+
+	private final ObjectMapper _objectMapper =
+		ObjectMapperProviderUtil.getObjectMapper();
+	private final ObjectWriter _objectWriter = _objectMapper.writer();
 
 }

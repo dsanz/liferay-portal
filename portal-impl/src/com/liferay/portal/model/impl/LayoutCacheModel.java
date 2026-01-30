@@ -67,7 +67,7 @@ public class LayoutCacheModel
 
 	@Override
 	public String toString() {
-		StringBundler sb = new StringBundler(89);
+		StringBundler sb = new StringBundler(93);
 
 		sb.append("{mvccVersion=");
 		sb.append(mvccVersion);
@@ -129,20 +129,24 @@ public class LayoutCacheModel
 		sb.append(themeId);
 		sb.append(", colorSchemeId=");
 		sb.append(colorSchemeId);
-		sb.append(", styleBookEntryId=");
-		sb.append(styleBookEntryId);
+		sb.append(", styleBookEntryERC=");
+		sb.append(styleBookEntryERC);
 		sb.append(", css=");
 		sb.append(css);
 		sb.append(", priority=");
 		sb.append(priority);
-		sb.append(", faviconFileEntryId=");
-		sb.append(faviconFileEntryId);
-		sb.append(", masterLayoutPlid=");
-		sb.append(masterLayoutPlid);
-		sb.append(", layoutPrototypeUuid=");
-		sb.append(layoutPrototypeUuid);
-		sb.append(", layoutPrototypeLinkEnabled=");
-		sb.append(layoutPrototypeLinkEnabled);
+		sb.append(", faviconFileEntryERC=");
+		sb.append(faviconFileEntryERC);
+		sb.append(", faviconFileEntryScopeERC=");
+		sb.append(faviconFileEntryScopeERC);
+		sb.append(", masterLayoutPageTemplateEntryERC=");
+		sb.append(masterLayoutPageTemplateEntryERC);
+		sb.append(", portletLayoutPageTemplateEntryERC=");
+		sb.append(portletLayoutPageTemplateEntryERC);
+		sb.append(", portletLayoutPageTemplateEntryScopeERC=");
+		sb.append(portletLayoutPageTemplateEntryScopeERC);
+		sb.append(", portletLayoutPageTemplateEntryLinkEnabled=");
+		sb.append(portletLayoutPageTemplateEntryLinkEnabled);
 		sb.append(", layoutSetPrototypeLayoutERC=");
 		sb.append(layoutSetPrototypeLayoutERC);
 		sb.append(", publishDate=");
@@ -291,7 +295,12 @@ public class LayoutCacheModel
 			layoutImpl.setColorSchemeId(colorSchemeId);
 		}
 
-		layoutImpl.setStyleBookEntryId(styleBookEntryId);
+		if (styleBookEntryERC == null) {
+			layoutImpl.setStyleBookEntryERC("");
+		}
+		else {
+			layoutImpl.setStyleBookEntryERC(styleBookEntryERC);
+		}
 
 		if (css == null) {
 			layoutImpl.setCss("");
@@ -301,17 +310,47 @@ public class LayoutCacheModel
 		}
 
 		layoutImpl.setPriority(priority);
-		layoutImpl.setFaviconFileEntryId(faviconFileEntryId);
-		layoutImpl.setMasterLayoutPlid(masterLayoutPlid);
 
-		if (layoutPrototypeUuid == null) {
-			layoutImpl.setLayoutPrototypeUuid("");
+		if (faviconFileEntryERC == null) {
+			layoutImpl.setFaviconFileEntryERC("");
 		}
 		else {
-			layoutImpl.setLayoutPrototypeUuid(layoutPrototypeUuid);
+			layoutImpl.setFaviconFileEntryERC(faviconFileEntryERC);
 		}
 
-		layoutImpl.setLayoutPrototypeLinkEnabled(layoutPrototypeLinkEnabled);
+		if (faviconFileEntryScopeERC == null) {
+			layoutImpl.setFaviconFileEntryScopeERC("");
+		}
+		else {
+			layoutImpl.setFaviconFileEntryScopeERC(faviconFileEntryScopeERC);
+		}
+
+		if (masterLayoutPageTemplateEntryERC == null) {
+			layoutImpl.setMasterLayoutPageTemplateEntryERC("");
+		}
+		else {
+			layoutImpl.setMasterLayoutPageTemplateEntryERC(
+				masterLayoutPageTemplateEntryERC);
+		}
+
+		if (portletLayoutPageTemplateEntryERC == null) {
+			layoutImpl.setPortletLayoutPageTemplateEntryERC("");
+		}
+		else {
+			layoutImpl.setPortletLayoutPageTemplateEntryERC(
+				portletLayoutPageTemplateEntryERC);
+		}
+
+		if (portletLayoutPageTemplateEntryScopeERC == null) {
+			layoutImpl.setPortletLayoutPageTemplateEntryScopeERC("");
+		}
+		else {
+			layoutImpl.setPortletLayoutPageTemplateEntryScopeERC(
+				portletLayoutPageTemplateEntryScopeERC);
+		}
+
+		layoutImpl.setPortletLayoutPageTemplateEntryLinkEnabled(
+			portletLayoutPageTemplateEntryLinkEnabled);
 
 		if (layoutSetPrototypeLayoutERC == null) {
 			layoutImpl.setLayoutSetPrototypeLayoutERC("");
@@ -405,18 +444,17 @@ public class LayoutCacheModel
 		iconImageId = objectInput.readLong();
 		themeId = objectInput.readUTF();
 		colorSchemeId = objectInput.readUTF();
-
-		styleBookEntryId = objectInput.readLong();
+		styleBookEntryERC = objectInput.readUTF();
 		css = (String)objectInput.readObject();
 
 		priority = objectInput.readInt();
+		faviconFileEntryERC = objectInput.readUTF();
+		faviconFileEntryScopeERC = objectInput.readUTF();
+		masterLayoutPageTemplateEntryERC = objectInput.readUTF();
+		portletLayoutPageTemplateEntryERC = objectInput.readUTF();
+		portletLayoutPageTemplateEntryScopeERC = objectInput.readUTF();
 
-		faviconFileEntryId = objectInput.readLong();
-
-		masterLayoutPlid = objectInput.readLong();
-		layoutPrototypeUuid = objectInput.readUTF();
-
-		layoutPrototypeLinkEnabled = objectInput.readBoolean();
+		portletLayoutPageTemplateEntryLinkEnabled = objectInput.readBoolean();
 		layoutSetPrototypeLayoutERC = objectInput.readUTF();
 		publishDate = objectInput.readLong();
 		lastPublishDate = objectInput.readLong();
@@ -554,7 +592,12 @@ public class LayoutCacheModel
 			objectOutput.writeUTF(colorSchemeId);
 		}
 
-		objectOutput.writeLong(styleBookEntryId);
+		if (styleBookEntryERC == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(styleBookEntryERC);
+		}
 
 		if (css == null) {
 			objectOutput.writeObject("");
@@ -565,18 +608,42 @@ public class LayoutCacheModel
 
 		objectOutput.writeInt(priority);
 
-		objectOutput.writeLong(faviconFileEntryId);
-
-		objectOutput.writeLong(masterLayoutPlid);
-
-		if (layoutPrototypeUuid == null) {
+		if (faviconFileEntryERC == null) {
 			objectOutput.writeUTF("");
 		}
 		else {
-			objectOutput.writeUTF(layoutPrototypeUuid);
+			objectOutput.writeUTF(faviconFileEntryERC);
 		}
 
-		objectOutput.writeBoolean(layoutPrototypeLinkEnabled);
+		if (faviconFileEntryScopeERC == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(faviconFileEntryScopeERC);
+		}
+
+		if (masterLayoutPageTemplateEntryERC == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(masterLayoutPageTemplateEntryERC);
+		}
+
+		if (portletLayoutPageTemplateEntryERC == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(portletLayoutPageTemplateEntryERC);
+		}
+
+		if (portletLayoutPageTemplateEntryScopeERC == null) {
+			objectOutput.writeUTF("");
+		}
+		else {
+			objectOutput.writeUTF(portletLayoutPageTemplateEntryScopeERC);
+		}
+
+		objectOutput.writeBoolean(portletLayoutPageTemplateEntryLinkEnabled);
 
 		if (layoutSetPrototypeLayoutERC == null) {
 			objectOutput.writeUTF("");
@@ -632,13 +699,15 @@ public class LayoutCacheModel
 	public long iconImageId;
 	public String themeId;
 	public String colorSchemeId;
-	public long styleBookEntryId;
+	public String styleBookEntryERC;
 	public String css;
 	public int priority;
-	public long faviconFileEntryId;
-	public long masterLayoutPlid;
-	public String layoutPrototypeUuid;
-	public boolean layoutPrototypeLinkEnabled;
+	public String faviconFileEntryERC;
+	public String faviconFileEntryScopeERC;
+	public String masterLayoutPageTemplateEntryERC;
+	public String portletLayoutPageTemplateEntryERC;
+	public String portletLayoutPageTemplateEntryScopeERC;
+	public boolean portletLayoutPageTemplateEntryLinkEnabled;
 	public String layoutSetPrototypeLayoutERC;
 	public long publishDate;
 	public long lastPublishDate;

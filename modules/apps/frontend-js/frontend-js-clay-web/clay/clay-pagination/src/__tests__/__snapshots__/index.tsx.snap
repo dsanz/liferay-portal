@@ -1,0 +1,281 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ClayPagination renders 1`] = `
+<div>
+  <nav
+    aria-label="Pagination"
+  >
+    <ul
+      class="pagination pagination-root pagination-lg"
+    >
+      <li
+        class="page-item"
+      >
+        <a
+          aria-label="Go to the previous page, 11"
+          class="page-link"
+          data-testid="prevArrow"
+          role="button"
+          tabindex="0"
+        >
+          <svg
+            class="lexicon-icon lexicon-icon-angle-left"
+            role="presentation"
+          >
+            <use
+              href="path/to/spritemap#angle-left"
+            />
+          </svg>
+        </a>
+      </li>
+      <li
+        class="page-item"
+      >
+        <a
+          aria-label="Go to page, 1"
+          class="page-link"
+          tabindex="0"
+        >
+          1
+        </a>
+      </li>
+      <li
+        class="page-item"
+      >
+        <div
+          class="dropdown"
+        >
+          <button
+            aria-haspopup="true"
+            aria-label="Show pages 2 through 9"
+            class="dropdown-toggle page-link btn btn-unstyled"
+            title="Show pages 2 through 9"
+            type="button"
+          >
+            ...
+          </button>
+        </div>
+      </li>
+      <li
+        class="page-item"
+      >
+        <a
+          aria-label="Go to page, 10"
+          class="page-link"
+          tabindex="0"
+        >
+          10
+        </a>
+      </li>
+      <li
+        class="page-item"
+      >
+        <a
+          aria-label="Go to page, 11"
+          class="page-link"
+          tabindex="0"
+        >
+          11
+        </a>
+      </li>
+      <li
+        class="page-item active"
+      >
+        <a
+          aria-label="Go to page, 12"
+          class="page-link"
+          tabindex="0"
+        >
+          12
+        </a>
+      </li>
+      <li
+        class="page-item"
+      >
+        <a
+          aria-label="Go to page, 13"
+          class="page-link"
+          tabindex="0"
+        >
+          13
+        </a>
+      </li>
+      <li
+        class="page-item"
+      >
+        <a
+          aria-label="Go to page, 14"
+          class="page-link"
+          tabindex="0"
+        >
+          14
+        </a>
+      </li>
+      <li
+        class="page-item"
+      >
+        <div
+          class="dropdown"
+        >
+          <button
+            aria-haspopup="true"
+            aria-label="Show pages 15 through 24"
+            class="dropdown-toggle page-link btn btn-unstyled"
+            title="Show pages 15 through 24"
+            type="button"
+          >
+            ...
+          </button>
+        </div>
+      </li>
+      <li
+        class="page-item"
+      >
+        <a
+          aria-label="Go to page, 25"
+          class="page-link"
+          tabindex="0"
+        >
+          25
+        </a>
+      </li>
+      <li
+        class="page-item"
+      >
+        <a
+          aria-label="Go to the next page, 13"
+          class="page-link"
+          data-testid="nextArrow"
+          role="button"
+          tabindex="0"
+        >
+          <svg
+            class="lexicon-icon lexicon-icon-angle-right"
+            role="presentation"
+          >
+            <use
+              href="path/to/spritemap#angle-right"
+            />
+          </svg>
+        </a>
+      </li>
+    </ul>
+  </nav>
+</div>
+`;
+
+exports[`ClayPagination renders with only one page 1`] = `
+<div>
+  <nav
+    aria-label="Pagination"
+  >
+    <ul
+      class="pagination pagination-root"
+    >
+      <li
+        class="page-item disabled"
+      >
+        <div
+          class="page-link"
+          data-testid="prevArrow"
+        >
+          <svg
+            class="lexicon-icon lexicon-icon-angle-left"
+            role="presentation"
+          >
+            <use
+              href="path/to/spritemap#angle-left"
+            />
+          </svg>
+        </div>
+      </li>
+      <li
+        class="page-item active"
+      >
+        <a
+          aria-label="Go to page, 1"
+          class="page-link"
+          tabindex="0"
+        >
+          1
+        </a>
+      </li>
+      <li
+        class="page-item disabled"
+      >
+        <div
+          class="page-link"
+          data-testid="nextArrow"
+        >
+          <svg
+            class="lexicon-icon lexicon-icon-angle-right"
+            role="presentation"
+          >
+            <use
+              href="path/to/spritemap#angle-right"
+            />
+          </svg>
+        </div>
+      </li>
+    </ul>
+  </nav>
+</div>
+`;
+
+exports[`ClayPagination totalPages with 0 will render the pagination with only one page 1`] = `
+<div>
+  <nav
+    aria-label="Pagination"
+  >
+    <ul
+      class="pagination pagination-root"
+    >
+      <li
+        class="page-item disabled"
+      >
+        <div
+          class="page-link"
+          data-testid="prevArrow"
+        >
+          <svg
+            class="lexicon-icon lexicon-icon-angle-left"
+            role="presentation"
+          >
+            <use
+              href="path/to/spritemap#angle-left"
+            />
+          </svg>
+        </div>
+      </li>
+      <li
+        class="page-item active"
+      >
+        <a
+          aria-label="Go to page, 1"
+          class="page-link"
+          tabindex="0"
+        >
+          1
+        </a>
+      </li>
+      <li
+        class="page-item disabled"
+      >
+        <div
+          class="page-link"
+          data-testid="nextArrow"
+        >
+          <svg
+            class="lexicon-icon lexicon-icon-angle-right"
+            role="presentation"
+          >
+            <use
+              href="path/to/spritemap#angle-right"
+            />
+          </svg>
+        </div>
+      </li>
+    </ul>
+  </nav>
+</div>
+`;

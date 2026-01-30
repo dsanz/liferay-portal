@@ -43,6 +43,10 @@ public class CookiesBannerConfigurationDisplayContext
 
 	public Map<String, Object> getContext() {
 		return HashMapBuilder.<String, Object>put(
+			"consentRenewalPeriod", getConsentRenewalPeriod()
+		).put(
+			"modifiedDate", getModifiedDate()
+		).put(
 			"optionalConsentCookieTypeNames",
 			getConsentCookieTypeNamesJSONArray(getOptionalConsentCookieTypes())
 		).put(

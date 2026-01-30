@@ -5,8 +5,10 @@
 
 package com.liferay.headless.admin.site.internal.dto.v1_0.converter;
 
+import com.liferay.headless.admin.site.dto.v1_0.ItemExternalReference;
 import com.liferay.headless.admin.site.dto.v1_0.PageElement;
 import com.liferay.headless.admin.site.dto.v1_0.PageExperience;
+import com.liferay.headless.admin.site.internal.dto.v1_0.util.ItemScopeUtil;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRel;
 import com.liferay.layout.util.structure.LayoutStructure;
 import com.liferay.layout.util.structure.LayoutStructureItem;
@@ -66,31 +68,46 @@ public class PageExperienceDTOConverter
 				setPageSpecificationExternalReferenceCode(
 					layout::getExternalReferenceCode);
 				setPriority(segmentsExperience::getPriority);
-				setSegmentExternalReferenceCode(
+				setSegmentItemExternalReference(
 					() -> {
+						if (segmentsExperience.getSegmentsEntryId() == 0) {
+							return null;
+						}
+
 						SegmentsEntry segmentsEntry =
 							_segmentsEntryLocalService.fetchSegmentsEntry(
 								segmentsExperience.getSegmentsEntryId());
 
 						if (segmentsEntry == null) {
-							return null;
+							throw new UnsupportedOperationException();
 						}
 
-						return segmentsEntry.getSegmentsEntryKey();
+						return new ItemExternalReference() {
+							{
+								setClassName(SegmentsEntry.class::getName);
+								setExternalReferenceCode(
+									segmentsEntry::getExternalReferenceCode);
+								setScope(
+									() -> ItemScopeUtil.getItemScope(
+										segmentsEntry.getGroupId(),
+										layout.getGroupId()));
+							}
+						};
 					});
+				setUuid(segmentsExperience::getUuid);
 			}
 		};
 	}
 
 	private DTOConverterContext _getDTOConverterContext(
-		LayoutStructure layoutStructure, long scopeGroupId) {
+		long companyId, LayoutStructure layoutStructure, long scopeGroupId) {
 
 		DTOConverterContext dtoConverterContext =
 			new DefaultDTOConverterContext(null, null, null, null, null);
 
 		dtoConverterContext.setAttribute(
 			LayoutStructure.class.getName(), layoutStructure);
-
+		dtoConverterContext.setAttribute("companyId", companyId);
 		dtoConverterContext.setAttribute("scopeGroupId", scopeGroupId);
 
 		return dtoConverterContext;
@@ -109,6 +126,7 @@ public class PageExperienceDTOConverter
 			rootLayoutStructureItem.getChildrenItemIds(),
 			childrenItemId -> _pageElementDTOConverter.toDTO(
 				_getDTOConverterContext(
+					layoutPageTemplateStructureRel.getCompanyId(),
 					layoutStructure,
 					layoutPageTemplateStructureRel.getGroupId()),
 				layoutStructure.getLayoutStructureItem(childrenItemId)),

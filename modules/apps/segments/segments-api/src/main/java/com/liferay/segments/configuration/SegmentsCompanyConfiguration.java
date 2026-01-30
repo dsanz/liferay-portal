@@ -13,8 +13,7 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
  * @author Cristina González
  */
 @ExtendedObjectClassDefinition(
-	category = "segments", generateUI = false,
-	scope = ExtendedObjectClassDefinition.Scope.COMPANY
+	category = "segments", scope = ExtendedObjectClassDefinition.Scope.COMPANY
 )
 @Meta.OCD(
 	id = "com.liferay.segments.configuration.SegmentsCompanyConfiguration",
@@ -24,15 +23,15 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 public interface SegmentsCompanyConfiguration {
 
 	@Meta.AD(
-		deflt = "true", description = "segmentation-enabled-description",
-		name = "segmentation-enabled-name", required = false
-	)
-	public boolean segmentationEnabled();
-
-	@Meta.AD(
 		deflt = "false", description = "role-segmentation-enabled-description",
 		name = "role-segmentation-enabled-name", required = false
 	)
 	public boolean roleSegmentationEnabled();
+
+	@Meta.AD(
+		deflt = "true", description = "segmentation-enabled-description",
+		name = "segmentation-enabled-name", required = false
+	)
+	public boolean segmentationEnabled();
 
 }

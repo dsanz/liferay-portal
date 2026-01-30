@@ -44,6 +44,7 @@ import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -70,6 +71,17 @@ public class ViewFilesSectionDisplayContextTest
 		new AggregateTestRule(
 			new LiferayIntegrationTestRule(),
 			PermissionCheckerMethodTestRule.INSTANCE);
+
+	@Override
+	public HashMap<String, Object> getBaseAdditionalProps()
+		throws PortalException {
+
+		return new HashMapBuilder<>().putAll(
+			super.getBaseAdditionalProps()
+		).put(
+			"galleryViewEnabled", true
+		).build();
+	}
 
 	@Test
 	public void testGetCreationMenuWithAddEntryPermission() throws Exception {
@@ -127,13 +139,13 @@ public class ViewFilesSectionDisplayContextTest
 		throws PortalException {
 
 		return LinkedHashMapBuilder.put(
-			"single-file", getRedirect("L_BASIC_DOCUMENT")
+			"single-file", getRedirect("L_CMS_BASIC_DOCUMENT")
 		).put(
 			"multiple-files", StringPool.BLANK
 		).put(
 			"folder", StringPool.BLANK
 		).put(
-			"external-video-shortcut", getRedirect("L_EXTERNAL_VIDEO")
+			"external-video", getRedirect("L_CMS_EXTERNAL_VIDEO")
 		).build();
 	}
 

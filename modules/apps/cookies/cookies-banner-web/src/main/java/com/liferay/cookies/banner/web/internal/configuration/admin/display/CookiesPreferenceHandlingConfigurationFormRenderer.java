@@ -28,6 +28,7 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+import java.util.Date;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
@@ -50,10 +51,21 @@ public class CookiesPreferenceHandlingConfigurationFormRenderer
 		HttpServletRequest httpServletRequest) {
 
 		return HashMapBuilder.<String, Object>put(
+			"consentRenewalPeriod",
+			ParamUtil.getInteger(httpServletRequest, "consentRenewalPeriod")
+		).put(
 			"enabled", ParamUtil.getBoolean(httpServletRequest, "enabled")
 		).put(
 			"explicitConsentMode",
 			ParamUtil.getBoolean(httpServletRequest, "explicitConsentMode")
+		).put(
+			"modifiedDate",
+			() -> {
+				Date now = new Date();
+
+				return ParamUtil.getLong(
+					httpServletRequest, "modifiedDate", now.getTime());
+			}
 		).build();
 	}
 

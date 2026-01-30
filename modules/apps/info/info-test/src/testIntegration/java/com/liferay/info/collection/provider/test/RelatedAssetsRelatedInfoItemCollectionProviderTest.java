@@ -50,6 +50,7 @@ import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.layout.util.LayoutServiceContextHelper;
 import com.liferay.layout.util.structure.CollectionStyledLayoutStructureItem;
 import com.liferay.layout.util.structure.LayoutStructure;
+import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -397,10 +398,10 @@ public class RelatedAssetsRelatedInfoItemCollectionProviderTest {
 
 		ContentLayoutTestUtil.addFragmentEntryLinkToLayout(
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
-				null, TestPropsValues.getUserId(), _group.getGroupId(), 0, 0,
-				segmentsExperienceId, layout.getPlid(), _fragmentEntry.getCss(),
-				_fragmentEntry.getHtml(), _fragmentEntry.getJs(),
-				_fragmentEntry.getConfiguration(),
+				null, TestPropsValues.getUserId(), _group.getGroupId(), null,
+				null, null, segmentsExperienceId, layout.getPlid(),
+				_fragmentEntry.getCss(), _fragmentEntry.getHtml(),
+				_fragmentEntry.getJs(), _fragmentEntry.getConfiguration(),
 				JSONUtil.put(
 					FragmentEntryProcessorConstants.
 						KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR,
@@ -430,10 +431,10 @@ public class RelatedAssetsRelatedInfoItemCollectionProviderTest {
 			layout, _layoutStructureProvider, null, parentItemId, 0,
 			segmentsExperienceId,
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
-				null, TestPropsValues.getUserId(), _group.getGroupId(), 0, 0,
-				segmentsExperienceId, layout.getPlid(), _fragmentEntry.getCss(),
-				_fragmentEntry.getHtml(), _fragmentEntry.getJs(),
-				_fragmentEntry.getConfiguration(),
+				null, TestPropsValues.getUserId(), _group.getGroupId(), null,
+				null, null, segmentsExperienceId, layout.getPlid(),
+				_fragmentEntry.getCss(), _fragmentEntry.getHtml(),
+				_fragmentEntry.getJs(), _fragmentEntry.getConfiguration(),
 				JSONUtil.put(
 					FragmentEntryProcessorConstants.
 						KEY_EDITABLE_FRAGMENT_ENTRY_PROCESSOR,
@@ -456,16 +457,26 @@ public class RelatedAssetsRelatedInfoItemCollectionProviderTest {
 			long segmentsExperienceId)
 		throws Exception {
 
-		String html = ContentLayoutTestUtil.getRenderLayoutHTML(
-			attributes, layout, _layoutServiceContextHelper,
-			_layoutStructureProvider, segmentsExperienceId);
+		String html = StringUtil.removeChars(
+			ContentLayoutTestUtil.getRenderLayoutHTML(
+				attributes, layout, _layoutServiceContextHelper,
+				_layoutStructureProvider, segmentsExperienceId),
+			CharPool.NEW_LINE, CharPool.SPACE, CharPool.TAB);
 
 		Assert.assertEquals(
-			html, count, StringUtil.count(html, _blogsEntry.getTitle()));
+			html, count,
+			StringUtil.count(
+				html, StringPool.GREATER_THAN + _blogsEntry.getTitle() + "</"));
 		Assert.assertEquals(
-			html, count, StringUtil.count(html, _dlFileEntry.getTitle()));
+			html, count,
+			StringUtil.count(
+				html,
+				StringPool.GREATER_THAN + _dlFileEntry.getTitle() + "</"));
 		Assert.assertEquals(
-			html, count, StringUtil.count(html, _journalArticle.getTitle()));
+			html, count,
+			StringUtil.count(
+				html,
+				StringPool.GREATER_THAN + _journalArticle.getTitle() + "</"));
 
 		return html;
 	}
@@ -564,8 +575,8 @@ public class RelatedAssetsRelatedInfoItemCollectionProviderTest {
 			draftLayout, _layoutStructureProvider, null, null, 0,
 			segmentsExperienceId,
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
-				null, TestPropsValues.getUserId(), draftLayout.getGroupId(), 0,
-				0, segmentsExperienceId, draftLayout.getPlid(),
+				null, TestPropsValues.getUserId(), draftLayout.getGroupId(),
+				null, null, null, segmentsExperienceId, draftLayout.getPlid(),
 				StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
 				JSONFactoryUtil.toString(
 					fragmentRenderer.getConfigurationJSONObject(

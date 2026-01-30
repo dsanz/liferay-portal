@@ -5,6 +5,7 @@
 
 package com.liferay.commerce.internal.object.system;
 
+import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.model.CommerceOrderItem;
 import com.liferay.commerce.model.CommerceOrderItemTable;
 import com.liferay.commerce.service.CommerceOrderItemLocalService;
@@ -26,6 +27,8 @@ import com.liferay.portal.kernel.model.BaseModel;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Validator;
@@ -49,11 +52,12 @@ public class CommerceOrderItemSystemObjectDefinitionManager
 	extends BaseSystemObjectDefinitionManager {
 
 	@Override
-	public long addBaseModel(User user, Map<String, Object> values)
+	public long addBaseModel(
+			boolean checkPermissions, User user, Map<String, Object> values)
 		throws Exception {
 
 		OrderItemResource orderItemResource = _buildOrderItemResource(
-			false, user);
+			checkPermissions, user);
 
 		OrderItem orderItem = orderItemResource.postOrderIdOrderItem(
 			GetterUtil.getLong(values.get("orderId")), _toOrderItem(values));
@@ -216,6 +220,20 @@ public class CommerceOrderItemSystemObjectDefinitionManager
 	}
 
 	@Override
+	public boolean hasModelResourcePermission(
+			long objectDefinitionId, PermissionChecker permissionChecker,
+			long primaryKey, String actionId)
+		throws PortalException {
+
+		CommerceOrderItem commerceOrderItem =
+			_commerceOrderItemLocalService.getCommerceOrderItem(primaryKey);
+
+		return _commerceOrderModelResourcePermission.contains(
+			permissionChecker, commerceOrderItem.getCommerceOrderId(),
+			actionId);
+	}
+
+	@Override
 	public void updateBaseModel(
 			long primaryKey, User user, Map<String, Object> values)
 		throws Exception {
@@ -269,6 +287,12 @@ public class CommerceOrderItemSystemObjectDefinitionManager
 
 	@Reference
 	private CommerceOrderItemLocalService _commerceOrderItemLocalService;
+
+	@Reference(
+		target = "(model.class.name=com.liferay.commerce.model.CommerceOrder)"
+	)
+	private ModelResourcePermission<CommerceOrder>
+		_commerceOrderModelResourcePermission;
 
 	@Reference
 	private OrderItemResource.Factory _orderItemResourceFactory;

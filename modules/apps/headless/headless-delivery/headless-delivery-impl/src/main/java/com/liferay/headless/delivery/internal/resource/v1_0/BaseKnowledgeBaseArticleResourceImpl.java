@@ -496,9 +496,9 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(knowledgeBaseArticleId);
-		String resourceName = getPermissionCheckerResourceName(
-			knowledgeBaseArticleId);
 		Long resourceId = getPermissionCheckerResourceId(
+			knowledgeBaseArticleId);
+		String resourceName = getPermissionCheckerResourceName(
 			knowledgeBaseArticleId);
 
 		PermissionServiceUtil.checkPermission(
@@ -1567,9 +1567,9 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(knowledgeBaseArticleId);
-		String resourceName = getPermissionCheckerResourceName(
-			knowledgeBaseArticleId);
 		Long resourceId = getPermissionCheckerResourceId(
+			knowledgeBaseArticleId);
+		String resourceName = getPermissionCheckerResourceName(
 			knowledgeBaseArticleId);
 
 		PermissionServiceUtil.checkPermission(
@@ -2038,9 +2038,38 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 
 		UnsafeFunction<KnowledgeBaseArticle, KnowledgeBaseArticle, Exception>
 			knowledgeBaseArticleUnsafeFunction = knowledgeBaseArticle -> {
-				deleteKnowledgeBaseArticle(knowledgeBaseArticle.getId());
+				if (knowledgeBaseArticle.getId() != null) {
+					try {
+						deleteKnowledgeBaseArticle(
+							knowledgeBaseArticle.getId());
 
-				return knowledgeBaseArticle;
+						return knowledgeBaseArticle;
+					}
+					catch (Exception exception) {
+						if (knowledgeBaseArticle.getExternalReferenceCode() !=
+								null) {
+
+							if (parameters.containsKey("siteId")) {
+								deleteSiteKnowledgeBaseArticleByExternalReferenceCode(
+									(Long)parameters.get("siteId"),
+									knowledgeBaseArticle.
+										getExternalReferenceCode());
+
+								return knowledgeBaseArticle;
+							}
+						}
+					}
+				}
+				else if (parameters.containsKey("siteId")) {
+					deleteSiteKnowledgeBaseArticleByExternalReferenceCode(
+						(Long)parameters.get("siteId"),
+						knowledgeBaseArticle.getExternalReferenceCode());
+
+					return knowledgeBaseArticle;
+				}
+
+				throw new UnsupportedOperationException(
+					"Unable to delete by external reference code or ID");
 			};
 
 		if (contextBatchUnsafeBiConsumer != null) {
@@ -2365,6 +2394,9 @@ public abstract class BaseKnowledgeBaseArticleResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

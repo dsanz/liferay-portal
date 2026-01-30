@@ -58,6 +58,8 @@ public interface FrontendResource {
 	 */
 	public boolean isImmutable();
 
+	public boolean isPrivate();
+
 	/**
 	 * Whether to use no-cache (instead of must-revalidate).
 	 *

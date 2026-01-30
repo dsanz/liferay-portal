@@ -8,17 +8,20 @@ package com.liferay.batch.engine.internal;
 import com.liferay.batch.engine.BatchEngineExportTaskExecutor;
 import com.liferay.batch.engine.BatchEngineTaskContentType;
 import com.liferay.batch.engine.BatchEngineTaskExecuteStatus;
+import com.liferay.batch.engine.BatchEngineTaskItemDelegate;
 import com.liferay.batch.engine.BatchEngineTaskItemDelegateRegistry;
 import com.liferay.batch.engine.ItemClassRegistry;
+import com.liferay.batch.engine.action.ExportTaskPostAction;
 import com.liferay.batch.engine.configuration.BatchEngineTaskCompanyConfiguration;
 import com.liferay.batch.engine.csv.ColumnDescriptorProvider;
-import com.liferay.batch.engine.internal.item.BatchEngineTaskItemDelegateExecutor;
-import com.liferay.batch.engine.internal.item.BatchEngineTaskItemDelegateExecutorFactory;
 import com.liferay.batch.engine.internal.writer.BatchEngineExportTaskItemWriter;
 import com.liferay.batch.engine.internal.writer.BatchEngineExportTaskItemWriterBuilder;
 import com.liferay.batch.engine.model.BatchEngineExportTask;
 import com.liferay.batch.engine.pagination.Page;
+import com.liferay.batch.engine.pagination.Pagination;
 import com.liferay.batch.engine.service.BatchEngineExportTaskLocalService;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.petra.io.unsync.UnsyncByteArrayInputStream;
 import com.liferay.petra.io.unsync.UnsyncByteArrayOutputStream;
 import com.liferay.petra.lang.SafeCloseable;
@@ -29,15 +32,23 @@ import com.liferay.portal.kernel.dao.jdbc.OutputBlob;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
+import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.odata.filter.ExpressionConvert;
+import com.liferay.portal.odata.filter.FilterParser;
 import com.liferay.portal.odata.filter.FilterParserProvider;
+import com.liferay.portal.odata.sort.SortField;
+import com.liferay.portal.odata.sort.SortParser;
 import com.liferay.portal.odata.sort.SortParserProvider;
 import com.liferay.portal.vulcan.fields.NestedFieldsContext;
 import com.liferay.portal.vulcan.fields.NestedFieldsContextThreadLocal;
@@ -49,8 +60,10 @@ import java.io.OutputStream;
 import java.io.Serializable;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -58,6 +71,7 @@ import java.util.zip.ZipOutputStream;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -177,10 +191,13 @@ public class BatchEngineExportTaskExecutorImpl
 	protected void activate(
 		BundleContext bundleContext, Map<String, Object> properties) {
 
-		_batchEngineTaskItemDelegateExecutorFactory =
-			new BatchEngineTaskItemDelegateExecutorFactory(
-				_batchEngineTaskItemDelegateRegistry, _expressionConvert,
-				_filterParserProvider, _sortParserProvider);
+		_exportTaskPostActions = ServiceTrackerListFactory.open(
+			bundleContext, ExportTaskPostAction.class);
+	}
+
+	@Deactivate
+	protected void deactivate() {
+		_exportTaskPostActions.close();
 	}
 
 	private InputStream _exportItems(
@@ -200,6 +217,19 @@ public class BatchEngineExportTaskExecutorImpl
 					batchEngineExportTask, parameters, settings,
 					unsyncByteArrayOutputStream)) {
 
+			BatchEngineTaskItemDelegate<?> batchEngineTaskItemDelegate =
+				_batchEngineTaskItemDelegateRegistry.
+					getBatchEngineTaskItemDelegate(
+						batchEngineExportTask.getCompanyId(),
+						batchEngineExportTask.getClassName(),
+						batchEngineExportTask.getTaskItemDelegateName());
+
+			if (batchEngineTaskItemDelegate == null) {
+				throw new IllegalStateException(
+					"No batch engine delegate available for class name " +
+						batchEngineExportTask.getClassName());
+			}
+
 			oldNestedFieldsContext =
 				NestedFieldsContextThreadLocal.getNestedFieldsContext();
 
@@ -209,7 +239,8 @@ public class BatchEngineExportTaskExecutorImpl
 						GetterUtil.getInteger(
 							parameters.get("batchNestedFieldsDepth"))),
 					NestedFieldsContextUtil.toList(
-						MapUtil.getString(parameters, "batchNestedFields"))));
+						MapUtil.getString(parameters, "batchNestedFields")),
+					batchEngineTaskItemDelegate.getVersion()));
 
 			int maxItems = settings.getMaxItems();
 
@@ -217,21 +248,27 @@ public class BatchEngineExportTaskExecutorImpl
 				maxItems,
 				_getExportBatchSize(batchEngineExportTask.getCompanyId()));
 
-			BatchEngineTaskItemDelegateExecutor
-				batchEngineTaskItemDelegateExecutor =
-					_batchEngineTaskItemDelegateExecutorFactory.create(
-						batchEngineExportTask.getTaskItemDelegateName(),
-						batchEngineExportTask.getClassName(),
-						_companyLocalService.getCompany(
-							batchEngineExportTask.getCompanyId()),
-						parameters,
-						_userLocalService.getUser(
-							batchEngineExportTask.getUserId()));
-
 			batchEngineExportTask.setProcessedItemsCount(0);
 
-			Page<?> page = batchEngineTaskItemDelegateExecutor.getItems(
-				1, exportBatchSize);
+			User user = _userLocalService.getUser(
+				batchEngineExportTask.getUserId());
+
+			BatchEngineTaskExecutorUtil.setContextFields(
+				batchEngineExportTask.getCompanyId(),
+				batchEngineTaskItemDelegate, parameters, user);
+
+			Filter filter = _getFilter(
+				batchEngineTaskItemDelegate, parameters, user);
+
+			Map<String, Serializable> filteredParameters =
+				_getFilteredParameters(parameters);
+
+			Sort[] sorts = _getSorts(
+				batchEngineTaskItemDelegate, parameters, user);
+
+			Page<?> page = batchEngineTaskItemDelegate.read(
+				filter, Pagination.of(1, exportBatchSize), sorts,
+				filteredParameters, (String)parameters.get("search"));
 
 			batchEngineExportTask.setTotalItemsCount(
 				Math.toIntExact(page.getTotalCount()));
@@ -239,6 +276,19 @@ public class BatchEngineExportTaskExecutorImpl
 			Collection<?> items = page.getItems();
 
 			while (!items.isEmpty()) {
+				BatchEngineExportTask finalBatchEngineExportTask =
+					batchEngineExportTask;
+
+				for (ExportTaskPostAction exportTaskPostAction :
+						_exportTaskPostActions) {
+
+					for (Object item : items) {
+						exportTaskPostAction.run(
+							finalBatchEngineExportTask,
+							batchEngineTaskItemDelegate, item);
+					}
+				}
+
 				batchEngineExportTaskItemWriter.write(items);
 
 				batchEngineExportTask.setProcessedItemsCount(
@@ -262,8 +312,11 @@ public class BatchEngineExportTaskExecutorImpl
 					break;
 				}
 
-				page = batchEngineTaskItemDelegateExecutor.getItems(
-					(int)page.getPage() + 1, exportBatchSize);
+				page = batchEngineTaskItemDelegate.read(
+					filter,
+					Pagination.of((int)page.getPage() + 1, exportBatchSize),
+					sorts, filteredParameters,
+					(String)parameters.get("search"));
 
 				items = page.getItems();
 			}
@@ -356,6 +409,48 @@ public class BatchEngineExportTaskExecutorImpl
 		return batchEngineTaskCompanyConfiguration.exportBatchSize();
 	}
 
+	private Filter _getFilter(
+			BatchEngineTaskItemDelegate<?> batchEngineTaskItemDelegate,
+			Map<String, Serializable> parameters, User user)
+		throws Exception {
+
+		String filterString = (String)parameters.get("filter");
+
+		if (Validator.isNull(filterString)) {
+			return null;
+		}
+
+		EntityModel entityModel = batchEngineTaskItemDelegate.getEntityModel(
+			_toMultivaluedMap(parameters));
+
+		if (entityModel == null) {
+			return null;
+		}
+
+		FilterParser filterParser = _filterParserProvider.provide(entityModel);
+
+		com.liferay.portal.odata.filter.Filter oDataFilter =
+			new com.liferay.portal.odata.filter.Filter(
+				filterParser.parse(filterString));
+
+		return _expressionConvert.convert(
+			oDataFilter.getExpression(),
+			LocaleUtil.fromLanguageId(user.getLanguageId()), entityModel);
+	}
+
+	private Map<String, Serializable> _getFilteredParameters(
+		Map<String, Serializable> parameters) {
+
+		Map<String, Serializable> filteredParameters = new HashMap<>(
+			parameters);
+
+		filteredParameters.remove("filter");
+		filteredParameters.remove("search");
+		filteredParameters.remove("sort");
+
+		return filteredParameters;
+	}
+
 	private Map<String, Serializable> _getParameters(
 		BatchEngineExportTask batchEngineExportTask) {
 
@@ -367,6 +462,50 @@ public class BatchEngineExportTaskExecutorImpl
 		}
 
 		return parameters;
+	}
+
+	private Sort[] _getSorts(
+			BatchEngineTaskItemDelegate<?> batchEngineTaskItemDelegate,
+			Map<String, Serializable> parameters, User user)
+		throws Exception {
+
+		String sortString = (String)parameters.get("sort");
+
+		if (Validator.isNull(sortString)) {
+			return null;
+		}
+
+		EntityModel entityModel = batchEngineTaskItemDelegate.getEntityModel(
+			_toMultivaluedMap(parameters));
+
+		if (entityModel == null) {
+			return null;
+		}
+
+		SortParser sortParser = _sortParserProvider.provide(entityModel);
+
+		if (sortParser == null) {
+			return null;
+		}
+
+		com.liferay.portal.odata.sort.Sort oDataSort =
+			new com.liferay.portal.odata.sort.Sort(
+				sortParser.parse(sortString));
+
+		List<SortField> sortFields = oDataSort.getSortFields();
+
+		Sort[] sorts = new Sort[sortFields.size()];
+
+		for (int i = 0; i < sortFields.size(); i++) {
+			SortField sortField = sortFields.get(i);
+
+			sorts[i] = new Sort(
+				sortField.getSortableFieldName(
+					LocaleUtil.fromLanguageId(user.getLanguageId())),
+				!sortField.isAscending());
+		}
+
+		return sorts;
 	}
 
 	private ZipOutputStream _getZipOutputStream(
@@ -383,6 +522,18 @@ public class BatchEngineExportTaskExecutorImpl
 		zipOutputStream.putNextEntry(zipEntry);
 
 		return zipOutputStream;
+	}
+
+	private Map<String, List<String>> _toMultivaluedMap(
+		Map<String, Serializable> parameterMap) {
+
+		Map<String, List<String>> multivaluedMap = new HashMap<>();
+
+		parameterMap.forEach(
+			(key, value) -> multivaluedMap.put(
+				key, Collections.singletonList(String.valueOf(value))));
+
+		return multivaluedMap;
 	}
 
 	private void _updateBatchEngineExportTask(
@@ -414,9 +565,6 @@ public class BatchEngineExportTaskExecutorImpl
 	private BatchEngineExportTaskLocalService
 		_batchEngineExportTaskLocalService;
 
-	private BatchEngineTaskItemDelegateExecutorFactory
-		_batchEngineTaskItemDelegateExecutorFactory;
-
 	@Reference
 	private BatchEngineTaskItemDelegateRegistry
 		_batchEngineTaskItemDelegateRegistry;
@@ -429,6 +577,8 @@ public class BatchEngineExportTaskExecutorImpl
 
 	@Reference
 	private ConfigurationProvider _configurationProvider;
+
+	private ServiceTrackerList<ExportTaskPostAction> _exportTaskPostActions;
 
 	@Reference(
 		target = "(result.class.name=com.liferay.portal.kernel.search.filter.Filter)"

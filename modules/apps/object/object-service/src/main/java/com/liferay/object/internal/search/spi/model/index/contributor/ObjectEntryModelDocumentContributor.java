@@ -6,22 +6,26 @@
 package com.liferay.object.internal.search.spi.model.index.contributor;
 
 import com.liferay.account.model.AccountEntryOrganizationRel;
+import com.liferay.account.model.AccountEntryOrganizationRelTable;
 import com.liferay.account.service.AccountEntryOrganizationRelLocalService;
+import com.liferay.document.library.kernel.model.DLFileEntry;
+import com.liferay.document.library.kernel.model.DLFileEntryTable;
+import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
+import com.liferay.document.library.kernel.service.DLFileEntryLocalServiceUtil;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
 import com.liferay.object.constants.ObjectFieldConstants;
-import com.liferay.object.entry.util.ObjectEntryValuesUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectEntryFolder;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectFolder;
+import com.liferay.object.model.bag.ObjectFieldBag;
 import com.liferay.object.rest.dto.v1_0.ListEntry;
-import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryFolderLocalService;
-import com.liferay.object.service.ObjectEntryLocalService;
-import com.liferay.object.service.ObjectFieldLocalService;
-import com.liferay.object.service.ObjectFolderLocalService;
-import com.liferay.petra.function.transform.TransformUtil;
+import com.liferay.petra.sql.dsl.Column;
+import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
+import com.liferay.petra.sql.dsl.base.BaseTable;
+import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -31,12 +35,14 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.search.FieldArray;
+import com.liferay.portal.kernel.search.ReindexCacheThreadLocal;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Base64;
 import com.liferay.portal.kernel.util.BigDecimalUtil;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HtmlParserUtil;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -47,10 +53,15 @@ import java.io.Serializable;
 
 import java.math.BigDecimal;
 
+import java.sql.Timestamp;
+import java.sql.Types;
+
 import java.text.Format;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,22 +77,14 @@ public class ObjectEntryModelDocumentContributor
 	public ObjectEntryModelDocumentContributor(
 		AccountEntryOrganizationRelLocalService
 			accountEntryOrganizationRelLocalService,
-		String className,
-		ObjectDefinitionLocalService objectDefinitionLocalService,
+		DLFileEntryLocalService dlFileEntryLocalService,
 		ObjectEntryFolderLocalService objectEntryFolderLocalService,
-		ObjectEntryLocalService objectEntryLocalService,
-		ObjectFieldLocalService objectFieldLocalService,
-		ObjectFolderLocalService objectFolderLocalService,
 		TextEmbeddingDocumentContributor textEmbeddingDocumentContributor) {
 
 		_accountEntryOrganizationRelLocalService =
 			accountEntryOrganizationRelLocalService;
-		_className = className;
-		_objectDefinitionLocalService = objectDefinitionLocalService;
+		_dlFileEntryLocalService = dlFileEntryLocalService;
 		_objectEntryFolderLocalService = objectEntryFolderLocalService;
-		_objectEntryLocalService = objectEntryLocalService;
-		_objectFieldLocalService = objectFieldLocalService;
-		_objectFolderLocalService = objectFolderLocalService;
 		_textEmbeddingDocumentContributor = textEmbeddingDocumentContributor;
 	}
 
@@ -137,7 +140,7 @@ public class ObjectEntryModelDocumentContributor
 		Object fieldValue, String locale,
 		ObjectContentHelper objectContentHelper,
 		ObjectDefinition objectDefinition, ObjectEntry objectEntry,
-		ObjectField objectField, Map<String, Serializable> values) {
+		ObjectField objectField) {
 
 		if (!objectField.isIndexed()) {
 			return;
@@ -157,13 +160,17 @@ public class ObjectEntryModelDocumentContributor
 
 		if (StringUtil.equals(
 				objectField.getBusinessType(),
-				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT) ||
-			StringUtil.equals(
-				objectField.getBusinessType(),
-				ObjectFieldConstants.BUSINESS_TYPE_RICH_TEXT)) {
+				ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT)) {
 
-			fieldValue = ObjectEntryValuesUtil.getValueString(
-				objectField, values);
+			fieldValue = _getFileName(
+				GetterUtil.getLong(fieldValue), objectDefinition);
+		}
+		else if (StringUtil.equals(
+					objectField.getBusinessType(),
+					ObjectFieldConstants.BUSINESS_TYPE_RICH_TEXT)) {
+
+			fieldValue = HtmlParserUtil.extractText(
+				GetterUtil.getString(fieldValue));
 		}
 		else if (StringUtil.equals(
 					objectField.getBusinessType(),
@@ -200,11 +207,7 @@ public class ObjectEntryModelDocumentContributor
 
 			document.addKeyword(
 				"accountEntryRestrictedOrganizationIds",
-				TransformUtil.transformToArray(
-					_accountEntryOrganizationRelLocalService.
-						getAccountEntryOrganizationRels(accountEntryId),
-					AccountEntryOrganizationRel::getOrganizationId,
-					Long.class));
+				_getOrganizationIds(accountEntryId));
 		}
 
 		String valueString = String.valueOf(fieldValue);
@@ -321,68 +324,74 @@ public class ObjectEntryModelDocumentContributor
 		document.addKeyword(
 			"objectDefinitionId", objectEntry.getObjectDefinitionId());
 
-		ObjectDefinition objectDefinition =
-			_objectDefinitionLocalService.fetchObjectDefinition(
-				objectEntry.getObjectDefinitionId());
+		ObjectDefinition objectDefinition = objectEntry.getObjectDefinition();
 
 		document.addKeyword(
 			"objectDefinitionName", objectDefinition.getShortName());
 
-		Map<String, Serializable> values = objectEntry.getValues();
+		ObjectFieldBag objectFieldBag = objectDefinition.getObjectFieldBag();
 
-		List<ObjectField> objectFields =
-			_objectFieldLocalService.getObjectFields(
-				objectEntry.getObjectDefinitionId(), false);
+		List<ObjectField> objectFields = null;
 
-		ObjectContentHelper objectContentHelper = new ObjectContentHelper(
-			objectDefinition.isEnableLocalization(), objectEntry, objectFields,
-			_textEmbeddingDocumentContributor);
-
-		for (ObjectField objectField : objectFields) {
-			if (objectField.isLocalized()) {
-				Map<String, Object> localizedValues =
-					(Map<String, Object>)values.get(
-						objectField.getI18nObjectFieldName());
-
-				if (MapUtil.isEmpty(localizedValues)) {
-					continue;
-				}
-
-				for (Map.Entry<String, Object> localeMap :
-						localizedValues.entrySet()) {
-
-					_contribute(
-						document, fieldArray, objectField.getName(),
-						localizedValues.get(localeMap.getKey()),
-						LocaleUtil.fromLanguageId(
-							localeMap.getKey(), true, false
-						).toString(),
-						objectContentHelper, objectDefinition, objectEntry,
-						objectField, values);
-				}
-			}
-			else {
-				_contribute(
-					document, fieldArray, objectField.getName(),
-					values.get(objectField.getName()), null,
-					objectContentHelper, objectDefinition, objectEntry,
-					objectField, values);
-			}
+		if (objectDefinition.isModifiableAndSystem()) {
+			objectFields = ListUtil.filter(
+				objectFieldBag.getIndexedObjectFields(),
+				objectField -> !objectField.isMetadata());
+		}
+		else {
+			objectFields = objectFieldBag.getNonsystemIndexedObjectFields();
 		}
 
-		objectContentHelper.trim();
+		ObjectContentHelper objectContentHelper = null;
+		Map<String, Serializable> values = null;
 
-		document.add(
-			new Field("objectEntryContent", objectContentHelper.getContent()));
+		if (!objectFields.isEmpty()) {
+			values = objectEntry.getIndexedValues();
 
-		objectContentHelper.getLocalizedContentMap();
+			objectContentHelper = new ObjectContentHelper(
+				objectEntry, objectFields, _textEmbeddingDocumentContributor);
+
+			for (ObjectField objectField : objectFields) {
+				if (objectField.isLocalized()) {
+					Map<String, Object> localizedValues =
+						(Map<String, Object>)values.get(
+							objectField.getI18nObjectFieldName());
+
+					if (MapUtil.isEmpty(localizedValues)) {
+						continue;
+					}
+
+					for (Map.Entry<String, Object> entry :
+							localizedValues.entrySet()) {
+
+						_contribute(
+							document, fieldArray, objectField.getName(),
+							entry.getValue(), entry.getKey(),
+							objectContentHelper, objectDefinition, objectEntry,
+							objectField);
+					}
+				}
+				else {
+					_contribute(
+						document, fieldArray, objectField.getName(),
+						values.get(objectField.getName()), null,
+						objectContentHelper, objectDefinition, objectEntry,
+						objectField);
+				}
+			}
+
+			objectContentHelper.trim();
+
+			document.add(
+				new Field(
+					"objectEntryContent", objectContentHelper.getContent()));
+		}
 
 		document.addKeyword("objectEntryId", objectEntry.getObjectEntryId());
 		document.add(
 			new Field("objectEntryTitle", objectEntry.getTitleValue()));
 
-		ObjectFolder objectFolder = _objectFolderLocalService.getObjectFolder(
-			objectDefinition.getObjectFolderId());
+		ObjectFolder objectFolder = objectDefinition.getObjectFolder();
 
 		document.addKeyword(
 			"objectFolderExternalReferenceCode",
@@ -393,13 +402,53 @@ public class ObjectEntryModelDocumentContributor
 
 			_contributeObjectEntryFolder(
 				document, objectEntry.getObjectEntryFolderId());
+
+			if (values == null) {
+				values = objectEntry.getIndexedValues();
+			}
+
+			long fileEntryId = GetterUtil.getLong(values.get("file"));
+
+			if (fileEntryId != 0) {
+				_contributeFile(document, fileEntryId);
+			}
+		}
+
+		if (FeatureFlagManagerUtil.isEnabled(
+				objectEntry.getCompanyId(), "LPD-58677")) {
+
+			if (values == null) {
+				values = objectEntry.getIndexedValues();
+			}
+
+			document.addDate("cmpDueDate", (Timestamp)values.get("dueDate"));
+			document.addKeyword(
+				"cmpProjectManagerUserId",
+				MapUtil.getLong(values, "r_userToCMPProjectManager_userId"));
+			document.addKeyword(
+				"cmpProjectSponsorUserId",
+				MapUtil.getLong(values, "r_userToCMPProjectSponsor_userId"));
+			document.addKeyword("cmpState", MapUtil.getString(values, "state"));
+			document.addKeyword(
+				"cmpTaskCMPProjectId",
+				MapUtil.getLong(
+					values, "r_cmpProjectToCMPTasks_c_cmpProjectId"));
 		}
 
 		if (FeatureFlagManagerUtil.isEnabled(
 				objectEntry.getCompanyId(), "LPS-122920")) {
 
 			_contributeTextEmbeddings(
-				document, objectContentHelper, objectDefinition, objectEntry);
+				document, objectContentHelper, objectEntry);
+		}
+	}
+
+	private void _contributeFile(Document document, long fileEntryId) {
+		DLFileEntry fileEntry = DLFileEntryLocalServiceUtil.fetchDLFileEntry(
+			fileEntryId);
+
+		if (fileEntry != null) {
+			document.addKeyword("extension", fileEntry.getExtension());
 		}
 	}
 
@@ -440,12 +489,9 @@ public class ObjectEntryModelDocumentContributor
 
 	private void _contributeTextEmbeddings(
 		Document document, ObjectContentHelper objectContentHelper,
-		ObjectDefinition objectDefinition, ObjectEntry objectEntry) {
+		ObjectEntry objectEntry) {
 
-		if (!objectDefinition.isEnableLocalization()) {
-			_textEmbeddingDocumentContributor.contribute(
-				document, objectEntry, objectContentHelper.getContent());
-
+		if (objectContentHelper == null) {
 			return;
 		}
 
@@ -479,6 +525,117 @@ public class ObjectEntryModelDocumentContributor
 
 	private String _getDateString(Object value) {
 		return _format.format(value);
+	}
+
+	private String _getFileName(
+		long dlFileEntryId, ObjectDefinition objectDefinition) {
+
+		if (dlFileEntryId == 0) {
+			return StringPool.BLANK;
+		}
+
+		Map<Long, String> fileNames =
+			ReindexCacheThreadLocal.getScopeReindexCache(
+				ObjectEntryModelDocumentContributor.class.getName() +
+					"#_getFileName",
+				String.valueOf(objectDefinition.getObjectDefinitionId()),
+				() -> -1, () -> -1,
+				count -> {
+					Map<Long, String> localFileNames = new HashMap<>();
+
+					ObjectFieldBag objectFieldBag =
+						objectDefinition.getObjectFieldBag();
+
+					for (ObjectField objectField :
+							ListUtil.filter(
+								objectFieldBag.getIndexedObjectFields(),
+								objectField -> objectField.compareBusinessType(
+									ObjectFieldConstants.
+										BUSINESS_TYPE_ATTACHMENT))) {
+
+						ObjectFieldTable objectFieldTable =
+							new ObjectFieldTable(objectField);
+
+						for (Object[] values :
+								_dlFileEntryLocalService.
+									<List<Object[]>>dslQuery(
+										objectFieldTable.buildDSLQuery(),
+										false)) {
+
+							localFileNames.put(
+								(Long)values[0], (String)values[1]);
+						}
+					}
+
+					return localFileNames;
+				});
+
+		if (fileNames == null) {
+			DLFileEntry dlFileEntry =
+				DLFileEntryLocalServiceUtil.fetchDLFileEntry(dlFileEntryId);
+
+			if (dlFileEntry != null) {
+				return dlFileEntry.getFileName();
+			}
+
+			return StringPool.BLANK;
+		}
+
+		return fileNames.getOrDefault(dlFileEntryId, StringPool.BLANK);
+	}
+
+	private long[] _getOrganizationIds(Long accountEntryId) {
+		Map<Long, long[]> organizationIdsMap =
+			ReindexCacheThreadLocal.getGlobalReindexCache(
+				() -> -1,
+				ObjectEntryModelDocumentContributor.class.getName() +
+					"#_getOrganizationIds",
+				count -> {
+					Map<Long, List<Long>> organizationIdListMap =
+						new HashMap<>();
+
+					for (Object[] values :
+							_accountEntryOrganizationRelLocalService.
+								<List<Object[]>>dslQuery(
+									DSLQueryFactoryUtil.select(
+										AccountEntryOrganizationRelTable.
+											INSTANCE.accountEntryId,
+										AccountEntryOrganizationRelTable.
+											INSTANCE.organizationId
+									).from(
+										AccountEntryOrganizationRelTable.
+											INSTANCE
+									),
+									false)) {
+
+						List<Long> organizationIds =
+							organizationIdListMap.computeIfAbsent(
+								(Long)values[0], key -> new ArrayList<>());
+
+						organizationIds.add((Long)values[1]);
+					}
+
+					Map<Long, long[]> localOrganizationIdsMap = new HashMap<>();
+
+					for (Map.Entry<Long, List<Long>> entry :
+							organizationIdListMap.entrySet()) {
+
+						localOrganizationIdsMap.put(
+							entry.getKey(),
+							ArrayUtil.toLongArray(entry.getValue()));
+					}
+
+					return localOrganizationIdsMap;
+				});
+
+		if (organizationIdsMap == null) {
+			return ListUtil.toLongArray(
+				_accountEntryOrganizationRelLocalService.
+					getAccountEntryOrganizationRels(accountEntryId),
+				AccountEntryOrganizationRel::getOrganizationId);
+		}
+
+		return organizationIdsMap.get(accountEntryId);
 	}
 
 	private ObjectEntryFolder _getRootObjectEntryFolder(
@@ -533,12 +690,8 @@ public class ObjectEntryModelDocumentContributor
 
 	private final AccountEntryOrganizationRelLocalService
 		_accountEntryOrganizationRelLocalService;
-	private final String _className;
-	private final ObjectDefinitionLocalService _objectDefinitionLocalService;
+	private final DLFileEntryLocalService _dlFileEntryLocalService;
 	private final ObjectEntryFolderLocalService _objectEntryFolderLocalService;
-	private final ObjectEntryLocalService _objectEntryLocalService;
-	private final ObjectFieldLocalService _objectFieldLocalService;
-	private final ObjectFolderLocalService _objectFolderLocalService;
 	private final TextEmbeddingDocumentContributor
 		_textEmbeddingDocumentContributor;
 
@@ -605,14 +758,12 @@ public class ObjectEntryModelDocumentContributor
 		}
 
 		private ObjectContentHelper(
-			boolean localizationEnabled, ObjectEntry objectEntry,
-			List<ObjectField> objectFields,
+			ObjectEntry objectEntry, List<ObjectField> objectFields,
 			TextEmbeddingDocumentContributor textEmbeddingDocumentContributor) {
 
 			_contentSB = new StringBundler(objectFields.size());
 
-			if (!localizationEnabled ||
-				!FeatureFlagManagerUtil.isEnabled(
+			if (!FeatureFlagManagerUtil.isEnabled(
 					objectEntry.getCompanyId(), "LPS-122920")) {
 
 				return;
@@ -630,6 +781,31 @@ public class ObjectEntryModelDocumentContributor
 		private final StringBundler _contentSB;
 		private final Map<String, StringBundler> _localizedContentSBMap =
 			new TreeMap<>();
+
+	}
+
+	private static class ObjectFieldTable extends BaseTable<ObjectFieldTable> {
+
+		public DSLQuery buildDSLQuery() {
+			return DSLQueryFactoryUtil.select(
+				DLFileEntryTable.INSTANCE.fileEntryId,
+				DLFileEntryTable.INSTANCE.fileName
+			).from(
+				DLFileEntryTable.INSTANCE
+			).innerJoinON(
+				this, DLFileEntryTable.INSTANCE.fileEntryId.eq(_column)
+			);
+		}
+
+		private ObjectFieldTable(ObjectField objectField) {
+			super(objectField.getDBTableName(), () -> null);
+
+			_column = createColumn(
+				objectField.getDBColumnName(), Long.class, Types.BIGINT,
+				Column.FLAG_DEFAULT);
+		}
+
+		private final Column<ObjectFieldTable, Long> _column;
 
 	}
 

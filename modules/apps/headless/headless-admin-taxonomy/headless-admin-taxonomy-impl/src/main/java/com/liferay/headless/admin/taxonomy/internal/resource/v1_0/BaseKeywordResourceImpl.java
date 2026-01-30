@@ -1579,9 +1579,49 @@ public abstract class BaseKeywordResourceImpl
 
 		UnsafeFunction<Keyword, Keyword, Exception> keywordUnsafeFunction =
 			keyword -> {
-				deleteKeyword(keyword.getId());
+				if (keyword.getId() != null) {
+					try {
+						deleteKeyword(keyword.getId());
 
-				return keyword;
+						return keyword;
+					}
+					catch (Exception exception) {
+						if (keyword.getExternalReferenceCode() != null) {
+							if (parameters.containsKey("assetLibraryId")) {
+								deleteAssetLibraryKeywordByExternalReferenceCode(
+									(Long)parameters.get("assetLibraryId"),
+									keyword.getExternalReferenceCode());
+
+								return keyword;
+							}
+
+							if (parameters.containsKey("siteId")) {
+								deleteSiteKeywordByExternalReferenceCode(
+									(Long)parameters.get("siteId"),
+									keyword.getExternalReferenceCode());
+
+								return keyword;
+							}
+						}
+					}
+				}
+				else if (parameters.containsKey("assetLibraryId")) {
+					deleteAssetLibraryKeywordByExternalReferenceCode(
+						(Long)parameters.get("assetLibraryId"),
+						keyword.getExternalReferenceCode());
+
+					return keyword;
+				}
+				else if (parameters.containsKey("siteId")) {
+					deleteSiteKeywordByExternalReferenceCode(
+						(Long)parameters.get("siteId"),
+						keyword.getExternalReferenceCode());
+
+					return keyword;
+				}
+
+				throw new UnsupportedOperationException(
+					"Unable to delete by external reference code or ID");
 			};
 
 		if (contextBatchUnsafeBiConsumer != null) {
@@ -1874,6 +1914,9 @@ public abstract class BaseKeywordResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

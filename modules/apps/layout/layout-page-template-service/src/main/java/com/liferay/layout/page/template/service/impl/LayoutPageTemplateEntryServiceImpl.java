@@ -136,6 +136,10 @@ public class LayoutPageTemplateEntryServiceImpl
 			getPermissionChecker(), groupId,
 			LayoutPageTemplateActionKeys.ADD_LAYOUT_PAGE_TEMPLATE_ENTRY);
 
+		_layoutPageTemplateEntryModelResourcePermission.check(
+			getPermissionChecker(), sourceLayoutPageTemplateEntryId,
+			ActionKeys.VIEW);
+
 		return layoutPageTemplateEntryLocalService.copyLayoutPageTemplateEntry(
 			getUserId(), groupId, layoutPageTemplateCollectionId,
 			sourceLayoutPageTemplateEntryId, copyPermissions, serviceContext);
@@ -309,6 +313,23 @@ public class LayoutPageTemplateEntryServiceImpl
 			layoutPageTemplateEntryLocalService.
 				fetchLayoutPageTemplateEntryByExternalReferenceCode(
 					externalReferenceCode, groupId);
+
+		if (layoutPageTemplateEntry != null) {
+			_layoutPageTemplateEntryModelResourcePermission.check(
+				getPermissionChecker(), layoutPageTemplateEntry,
+				ActionKeys.VIEW);
+		}
+
+		return layoutPageTemplateEntry;
+	}
+
+	@Override
+	public LayoutPageTemplateEntry fetchLayoutPageTemplateEntryByPlid(long plid)
+		throws PortalException {
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			layoutPageTemplateEntryLocalService.
+				fetchLayoutPageTemplateEntryByPlid(plid);
 
 		if (layoutPageTemplateEntry != null) {
 			_layoutPageTemplateEntryModelResourcePermission.check(
@@ -977,7 +998,8 @@ public class LayoutPageTemplateEntryServiceImpl
 
 		return layoutPageTemplateEntryLocalService.
 			updateLayoutPageTemplateEntry(
-				layoutPageTemplateEntryId, classNameId, classTypeId);
+				getUserId(), layoutPageTemplateEntryId, classNameId,
+				classTypeId);
 	}
 
 	@Override

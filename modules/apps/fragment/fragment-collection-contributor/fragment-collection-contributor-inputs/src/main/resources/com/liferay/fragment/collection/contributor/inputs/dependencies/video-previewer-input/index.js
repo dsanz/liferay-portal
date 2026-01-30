@@ -1,6 +1,9 @@
 const currentLength = document.getElementById(
 	`${fragmentElementId}-current-length`
 );
+const error = document.getElementById(
+	`${fragmentElementId}-video-previewer-error`
+);
 const errorMessage = document.getElementById(
 	`${fragmentElementId}-video-previewer-error-message`
 );
@@ -9,12 +12,6 @@ const inputElement = document.getElementById(
 	`${fragmentElementId}-video-previewer-input`
 );
 const lengthInfo = document.getElementById(`${fragmentElementId}-length-info`);
-const lengthWarning = document.getElementById(
-	`${fragmentElementId}-length-warning`
-);
-const lengthWarningText = document.getElementById(
-	`${fragmentElementId}-length-warning-text`
-);
 const videoPreview = document.getElementById(
 	`${fragmentElementId}-video-preview`
 );
@@ -30,10 +27,11 @@ function main() {
 	else {
 		import('@liferay/fragment-impl/api').then(
 			({
+				focusInput,
 				handleInputLengthError,
-				hideLengthError,
 				registerLocalizedInput,
 				registerUnlocalizedInput,
+				showInputError,
 				updateDLVideo,
 			}) => {
 				let previousUrl = null;
@@ -67,32 +65,34 @@ function main() {
 					updateVideoPreview(event.target.value);
 				});
 
+				const hasError = formGroup.classList.contains('has-error');
+
+				if (hasError) {
+					focusInput(inputElement);
+				}
+
 				currentLength.innerText = inputElement.value.length;
 
 				if (
-					!errorMessage &&
+					!hasError &&
 					inputElement.value.length > input.attributes.maxLength
 				) {
-					hideLengthError({
-						configuration,
+					showInputError({
+						errorType: 'length',
 						formGroup,
-						lengthInfo,
-						lengthWarning,
-						lengthWarningText,
+						lengthInfoContainer: lengthInfo,
 					});
 				}
 
 				const onKeyup = (event) =>
 					handleInputLengthError({
-						configuration,
 						currentLength,
-						errorMessage,
+						errorContainer: error,
+						errorMessageContainer: errorMessage,
 						event,
 						formGroup,
 						input,
-						lengthInfo,
-						lengthWarning,
-						lengthWarningText,
+						lengthInfoContainer: lengthInfo,
 					});
 
 				inputElement.addEventListener('keyup', onKeyup);

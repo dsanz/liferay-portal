@@ -5,12 +5,7 @@
 
 package com.liferay.portal.search.internal.spi.model.index.contributor;
 
-import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.BaseModel;
-import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.WorkflowedModel;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.DocumentContributor;
@@ -38,36 +33,23 @@ public class WorkflowedModelDocumentContributor
 		WorkflowedModel workflowedModel = (WorkflowedModel)baseModel;
 
 		document.addKeyword(Field.STATUS, workflowedModel.getStatus());
-		document.addKeyword(
-			"statusByUserExternalReferenceCode",
-			_getUserExternalReferenceCode(workflowedModel.getStatusByUserId()));
-		document.addKeyword(
-			"statusByUserId", workflowedModel.getStatusByUserId());
+
+		long userId = workflowedModel.getStatusByUserId();
+
+		document.addKeyword("statusByUserId", userId);
+
+		if (userId != 0) {
+			String[] userData = UserDataUtil.getUserData(
+				baseModel.getClass(), userLocalService, userId);
+
+			if (userData != null) {
+				document.addKeyword(
+					"statusByUserExternalReferenceCode", userData[0]);
+			}
+		}
 	}
 
 	@Reference
 	protected UserLocalService userLocalService;
-
-	private String _getUserExternalReferenceCode(long userId) {
-		String userExternalReferenceCode = StringPool.BLANK;
-
-		try {
-			User user = userLocalService.getUser(userId);
-
-			userExternalReferenceCode = user.getExternalReferenceCode();
-		}
-		catch (PortalException portalException) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					"Unable to get user " + userId + " while indexing document",
-					portalException);
-			}
-		}
-
-		return userExternalReferenceCode;
-	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		WorkflowedModelDocumentContributor.class);
 
 }

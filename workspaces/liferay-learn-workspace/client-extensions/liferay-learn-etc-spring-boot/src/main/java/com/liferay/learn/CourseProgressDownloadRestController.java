@@ -13,9 +13,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -52,9 +49,8 @@ public class CourseProgressDownloadRestController extends BaseRestController {
 	@ResponseBody
 	public ResponseEntity<StreamingResponseBody> get(
 			@AuthenticationPrincipal Jwt jwt,
-			@RequestParam(required = false, value = "endDate") String endDate,
-			@RequestParam(required = false, value = "startDate") String
-				startDate)
+			@RequestParam("endDate") String endDate,
+			@RequestParam("startDate") String startDate)
 		throws IOException {
 
 		return ResponseEntity.ok(
@@ -80,35 +76,6 @@ public class CourseProgressDownloadRestController extends BaseRestController {
 			"liferay-learn-etc-spring-boot-oahs");
 	}
 
-	private boolean _isBetween(
-		String dateString, String endDateString, String startDateString) {
-
-		if ((dateString == null) ||
-			((startDateString == null) && (endDateString == null))) {
-
-			return true;
-		}
-
-		LocalDate localDate = LocalDate.parse(
-			dateString, DateTimeFormatter.ISO_DATE_TIME);
-
-		if (startDateString != null) {
-			LocalDate startLocalDate = LocalDate.parse(startDateString);
-
-			if (localDate.isBefore(startLocalDate)) {
-				return false;
-			}
-		}
-
-		if (endDateString != null) {
-			LocalDate endLocalDate = LocalDate.parse(endDateString);
-
-			return !localDate.isAfter(endLocalDate);
-		}
-
-		return true;
-	}
-
 	private void _loadCourseQuizzes() {
 		_courseQuizzes = new HashMap<>();
 
@@ -119,14 +86,16 @@ public class CourseProgressDownloadRestController extends BaseRestController {
 				get(
 					_getAuthorization(),
 					UriComponentsBuilder.fromUriString(
-						"/o/c/quizes/"
+						"/o/c/p2s3quizes/"
 					).queryParam(
 						"fields",
-						"id,r_quiz_c_module,r_quiz_c_module.r_module_c_courseId"
+						"id,r_p2s3ModuleToP2S3Quizzes_c_p2s3Module," +
+							"r_p2s3ModuleToP2S3Quizzes_c_p2s3Module." +
+								"r_p2s3CourseToP2S3Modules_c_p2s3CourseId"
 					).queryParam(
 						"filter", "isKnowledgeCheck eq false"
 					).queryParam(
-						"nestedFields", "module"
+						"nestedFields", "p2s3CourseToP2S3Modules"
 					).queryParam(
 						"page", i
 					).queryParam(
@@ -142,14 +111,15 @@ public class CourseProgressDownloadRestController extends BaseRestController {
 				JSONObject quizJSONObject = jsonArray.getJSONObject(j);
 
 				JSONObject moduleJSONObject = quizJSONObject.optJSONObject(
-					"r_quiz_c_module", null);
+					"r_p2s3ModuleToP2S3Quizzes_c_p2s3Module", null);
 
 				if (moduleJSONObject == null) {
 					continue;
 				}
 
 				_courseQuizzes.put(
-					moduleJSONObject.getLong("r_module_c_courseId"),
+					moduleJSONObject.getLong(
+						"r_p2s3CourseToP2S3Modules_c_p2s3CourseId"),
 					quizJSONObject.getLong("id"));
 			}
 		}
@@ -176,15 +146,20 @@ public class CourseProgressDownloadRestController extends BaseRestController {
 					get(
 						_getAuthorization(),
 						UriComponentsBuilder.fromUriString(
-							"/o/c/enrollments/"
+							"/o/c/p2s3enrollments/"
 						).queryParam(
-							"nestedFields", "course,user"
+							"filter",
+							"active eq true and dateModified lt {endDate} " +
+								"and dateModified gt {startDate}"
+						).queryParam(
+							"nestedFields", "p2s3CourseToP2S3Enrollments,user"
 						).queryParam(
 							"page", i
 						).queryParam(
 							"pageSize", 500
 						).build(
-						).toUri()));
+							endDate, startDate
+						)));
 
 				lastPage = jsonObject.optInt("lastPage", 1);
 
@@ -196,21 +171,14 @@ public class CourseProgressDownloadRestController extends BaseRestController {
 
 					JSONObject courseJSONObject =
 						enrollmentJSONObject.optJSONObject(
-							"r_courseEnrollment_c_course");
+							"r_p2s3CourseToP2S3Enrollments_c_p2s3Course");
 					JSONObject userJSONObject =
 						enrollmentJSONObject.optJSONObject(
-							"r_userenrollments_user");
+							"r_lUserToP2S3Enrollments_userId");
 
 					if ((courseJSONObject == null) ||
 						(userJSONObject == null)) {
 
-						continue;
-					}
-
-					String modifiedDate = enrollmentJSONObject.optString(
-						"dateModified", null);
-
-					if (!_isBetween(modifiedDate, endDate, startDate)) {
 						continue;
 					}
 

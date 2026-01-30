@@ -1,10 +1,13 @@
 {
 	"dependencies": {
-		"@clayui/button": "3.144.1",
-		"@clayui/core": "3.149.0",
-		"@clayui/icon": "3.144.1",
-		"@clayui/link": "3.144.1",
+		"@clayui/button": "*",
+		"@clayui/core": "*",
+		"@clayui/form": "*",
+		"@clayui/icon": "*",
+		"@clayui/layout": "*",
+		"@clayui/link": "*",
 		"@liferay/frontend-data-set-web": "*",
+		"@liferay/frontend-js-state-web": "*",
 		"classnames": "2.3.1",
 		"frontend-js-components-web": "*",
 		"frontend-js-web": "*",

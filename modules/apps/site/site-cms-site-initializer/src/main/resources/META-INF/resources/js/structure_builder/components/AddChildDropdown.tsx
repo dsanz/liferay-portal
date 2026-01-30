@@ -3,13 +3,14 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
+import {ClayButtonWithIcon} from '@clayui/button';
 import {ClayDropDownWithItems} from '@clayui/drop-down';
-import React, {useState} from 'react';
+import React from 'react';
 
+import {useCache} from '../contexts/CacheContext';
 import {useSelector, useStateDispatch} from '../contexts/StateContext';
-import selectStructureUuid from '../selectors/selectStructureUuid';
-import {ReferencedStructure} from '../types/Structure';
+import selectStructure from '../selectors/selectStructure';
+import {RepeatableGroup} from '../types/Structure';
 import {
 	FIELD_TYPES,
 	FIELD_TYPE_ICON,
@@ -17,7 +18,7 @@ import {
 	Field,
 	getDefaultField,
 } from '../utils/field';
-import ReferencedStructureModal from './ReferencedStructureModal';
+import openReferencedStructureModal from '../utils/openReferencedStructureModal';
 
 type Item = {
 	className?: string;
@@ -27,38 +28,28 @@ type Item = {
 };
 
 export default function AddChildDropdown({
-	triggerType = 'text',
+	className,
+	displayType = 'secondary',
+	parentUuid,
 }: {
-	triggerType?: 'text' | 'icon';
+	className?: string;
+	displayType?: 'secondary' | 'unstyled';
+	parentUuid?: RepeatableGroup['uuid'];
 }) {
 	const dispatch = useStateDispatch();
-	const structureUuid = useSelector(selectStructureUuid);
+	const structure = useSelector(selectStructure);
 
-	const [showStructuresModal, setShowStructuresModal] = useState(false);
+	const {data: objectDefinitions, status} = useCache('object-definitions');
 
 	const addField = (type: Field['type']) =>
 		dispatch({
-			field: getDefaultField({parent: structureUuid, type}),
+			field: getDefaultField({parent: structure.uuid, type}),
+			parentUuid,
 			type: 'add-field',
-		});
-
-	const addReferencedStructures = (
-		referencedStructures: ReferencedStructure[]
-	) =>
-		dispatch({
-			referencedStructures,
-			type: 'add-referenced-structures',
 		});
 
 	return (
 		<>
-			{showStructuresModal ? (
-				<ReferencedStructureModal
-					onAdd={addReferencedStructures}
-					onCloseModal={() => setShowStructuresModal(false)}
-				/>
-			) : null}
-
 			<ClayDropDownWithItems
 				items={[
 					...FIELD_TYPES.map(
@@ -74,26 +65,27 @@ export default function AddChildDropdown({
 						label: Liferay.Language.get(
 							'referenced-content-structure'
 						),
-						onClick: () => setShowStructuresModal(true),
+						onClick: () =>
+							openReferencedStructureModal({
+								dispatch,
+								objectDefinitions,
+								status,
+								structure,
+							}),
 						symbolLeft: 'edit-layout',
 					},
 				]}
 				menuElementAttrs={{className: 'dropdown-menu-cms'}}
 				menuHeight="auto"
 				trigger={
-					triggerType === 'text' ? (
-						<ClayButton displayType="secondary" size="sm">
-							{Liferay.Language.get('add-field')}
-						</ClayButton>
-					) : (
-						<ClayButtonWithIcon
-							aria-label={Liferay.Language.get('add-field')}
-							displayType="secondary"
-							size="sm"
-							symbol="plus"
-							title={Liferay.Language.get('add-field')}
-						/>
-					)
+					<ClayButtonWithIcon
+						aria-label={Liferay.Language.get('add-field')}
+						className={className}
+						displayType={displayType}
+						size="sm"
+						symbol="plus"
+						title={Liferay.Language.get('add-field')}
+					/>
 				}
 			/>
 		</>

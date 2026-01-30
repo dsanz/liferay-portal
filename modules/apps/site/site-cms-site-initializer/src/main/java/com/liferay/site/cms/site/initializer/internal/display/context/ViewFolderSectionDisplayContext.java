@@ -31,7 +31,9 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.site.cms.site.initializer.internal.constants.CMSSiteInitializerFDSNames;
 import com.liferay.site.cms.site.initializer.internal.util.ActionUtil;
+import com.liferay.translation.exporter.TranslationInfoItemFieldValuesExporterRegistry;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -54,21 +56,31 @@ public class ViewFolderSectionDisplayContext extends BaseSectionDisplayContext {
 		ObjectEntryFolderLocalService objectEntryFolderLocalService,
 		ModelResourcePermission<ObjectEntryFolder>
 			objectEntryFolderModelResourcePermission,
-		Portal portal) {
+		Portal portal,
+		TranslationInfoItemFieldValuesExporterRegistry
+			translationInfoItemFieldValuesExporterRegistry) {
 
 		super(
 			depotEntryLocalService, dlConfiguration, groupLocalService,
 			httpServletRequest, language, objectDefinitionService,
 			objectDefinitionSettingLocalService,
-			objectEntryFolderModelResourcePermission, portal);
+			objectEntryFolderModelResourcePermission, portal,
+			translationInfoItemFieldValuesExporterRegistry);
 
+		_httpServletRequest = httpServletRequest;
 		_objectEntryFolderLocalService = objectEntryFolderLocalService;
 	}
 
 	@Override
 	public Map<String, Object> getAdditionalProps() {
+		Boolean contentsFolder = Objects.equals(
+			getRootObjectEntryFolderExternalReferenceCode(),
+			ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS);
+
 		return new HashMapBuilder<>().putAll(
 			super.getAdditionalProps()
+		).put(
+			"galleryViewEnabled", !contentsFolder
 		).put(
 			"rootObjectEntryFolderExternalReferenceCode",
 			getRootObjectEntryFolderExternalReferenceCode()
@@ -141,8 +153,50 @@ public class ViewFolderSectionDisplayContext extends BaseSectionDisplayContext {
 				"#", "password-policies", "default-permissions",
 				LanguageUtil.get(httpServletRequest, "default-permissions"),
 				null, null, null));
+		fdsBulkActionDropdownItems.add(
+			new FDSActionDropdownItem(
+				null, "pencil", "edit-categories",
+				LanguageUtil.get(httpServletRequest, "edit-categories"), "post",
+				"edit-categories", null));
+		fdsBulkActionDropdownItems.add(
+			new FDSActionDropdownItem(
+				null, "pencil", "edit-tags",
+				LanguageUtil.get(httpServletRequest, "edit-tags"), "post",
+				"edit-tags", null));
+		fdsBulkActionDropdownItems.add(
+			new FDSActionDropdownItem(
+				StringPool.BLANK, "password-policies",
+				"edit-default-permissions-by-role",
+				LanguageUtil.get(
+					httpServletRequest, "edit-default-permissions-by-role"),
+				null, null, null));
+		fdsBulkActionDropdownItems.add(
+			new FDSActionDropdownItem(
+				StringPool.BLANK, "password-policies",
+				"edit-permissions-by-role",
+				LanguageUtil.get(
+					httpServletRequest, "edit-permissions-by-role"),
+				null, null, null));
+		fdsBulkActionDropdownItems.add(
+			new FDSActionDropdownItem(
+				StringPool.BLANK, "password-policies",
+				"reset-to-default-permissions",
+				LanguageUtil.get(
+					httpServletRequest, "reset-to-default-permissions"),
+				null, null, null));
 
 		return fdsBulkActionDropdownItems;
+	}
+
+	public String getCMSSiteInitializerFDSName() {
+		if (Objects.equals(
+				getRootObjectEntryFolderExternalReferenceCode(),
+				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS)) {
+
+			return CMSSiteInitializerFDSNames.VIEW_CONTENTS_FOLDER;
+		}
+
+		return CMSSiteInitializerFDSNames.VIEW_FILES_FOLDER;
 	}
 
 	@Override
@@ -264,6 +318,20 @@ public class ViewFolderSectionDisplayContext extends BaseSectionDisplayContext {
 		return new String[] {_objectFolderExternalReferenceCode};
 	}
 
+	public String getPropsTransformerModule() {
+		String rootObjectEntryFolderExternalReferenceCode =
+			getRootObjectEntryFolderExternalReferenceCode();
+
+		if (rootObjectEntryFolderExternalReferenceCode.equals(
+				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES)) {
+
+			return "{AssetsFilesDropFDSPropsTransformer} from " +
+				"site-cms-site-initializer";
+		}
+
+		return "{AssetsFDSPropsTransformer} from site-cms-site-initializer";
+	}
+
 	@Override
 	public String getRootObjectEntryFolderExternalReferenceCode() {
 		if (_rootObjectEntryFolderExternalReferenceCode != null) {
@@ -303,6 +371,7 @@ public class ViewFolderSectionDisplayContext extends BaseSectionDisplayContext {
 		return null;
 	}
 
+	private final HttpServletRequest _httpServletRequest;
 	private final ObjectEntryFolderLocalService _objectEntryFolderLocalService;
 	private String _objectFolderExternalReferenceCode;
 	private String _rootObjectEntryFolderExternalReferenceCode;

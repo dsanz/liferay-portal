@@ -613,12 +613,17 @@ public class EditUserMVCActionCommand
 
 		if (Validator.isNotNull(parameterValue)) {
 			ListType listType = _listTypeLocalService.addListType(
-				companyId, parameterValue, type);
+				companyId, StringUtil.toLowerCase(parameterValue), type);
 
 			return listType.getListTypeId();
 		}
 
 		User currentUser = _portal.getUser(portletRequest);
+
+		if (currentUser == null) {
+			return 0;
+		}
+
 		User selectedUser = _portal.getSelectedUser(portletRequest);
 
 		if (type.equals(ListTypeConstants.CONTACT_PREFIX)) {

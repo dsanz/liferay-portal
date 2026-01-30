@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.LayoutService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -84,35 +85,29 @@ public class ConvertEmptyLayoutMVCActionCommand
 
 			long selPlid = ParamUtil.getLong(actionRequest, "selPlid");
 
-			Layout layout = _layoutLocalService.fetchLayout(selPlid);
+			Layout layout = _layoutService.getLayout(selPlid);
 
 			long layoutPageTemplateEntryId = ParamUtil.getLong(
 				actionRequest, "layoutPageTemplateEntryId");
-			long masterLayoutPlid = ParamUtil.getLong(
-				actionRequest, "masterLayoutPlid",
-				LayoutConstants.DEFAULT_PLID);
 
-			Layout layoutPageTemplateEntryLayout = null;
+			String masterLayoutPageTemplateEntryERC = null;
+			long masterLayoutPlid = 0;
 
 			if (layoutPageTemplateEntryId > 0) {
-				LayoutPageTemplateEntry layoutPageTemplateEntry =
+				LayoutPageTemplateEntry masterLayoutPageTemplateEntry =
 					_layoutPageTemplateEntryLocalService.
 						fetchLayoutPageTemplateEntry(layoutPageTemplateEntryId);
 
-				if (layoutPageTemplateEntry.getLayoutPrototypeId() == 0) {
+				if (masterLayoutPageTemplateEntry.getLayoutPrototypeId() == 0) {
 					type = LayoutConstants.TYPE_CONTENT;
 				}
 				else {
 					type = LayoutConstants.TYPE_PORTLET;
 				}
 
-				layoutPageTemplateEntryLayout = _layoutLocalService.fetchLayout(
-					layoutPageTemplateEntry.getPlid());
-
-				if (layoutPageTemplateEntryLayout != null) {
-					masterLayoutPlid =
-						layoutPageTemplateEntryLayout.getMasterLayoutPlid();
-				}
+				masterLayoutPageTemplateEntryERC =
+					masterLayoutPageTemplateEntry.getExternalReferenceCode();
+				masterLayoutPlid = masterLayoutPageTemplateEntry.getPlid();
 			}
 
 			Layout draftLayout = layout.fetchDraftLayout();
@@ -131,19 +126,20 @@ public class ConvertEmptyLayoutMVCActionCommand
 				(ThemeDisplay)actionRequest.getAttribute(WebKeys.THEME_DISPLAY);
 
 			if (!Objects.equals(type, LayoutConstants.TYPE_CONTENT)) {
-				layout = _layoutLocalService.updateLayout(
+				layout = _layoutService.updateLayout(
 					layout.getGroupId(), layout.isPrivateLayout(),
 					layout.getLayoutId(), layout.getParentLayoutId(), nameMap,
 					layout.getTitleMap(), layout.getDescriptionMap(),
 					layout.getKeywordsMap(), layout.getRobotsMap(), type, false,
 					layout.getFriendlyURLMap(), layout.isIconImage(), null,
-					layout.getStyleBookEntryId(),
-					layout.getFaviconFileEntryId(), masterLayoutPlid,
-					serviceContext);
+					layout.getStyleBookEntryERC(),
+					layout.getFaviconFileEntryERC(),
+					layout.getFaviconFileEntryScopeERC(),
+					masterLayoutPageTemplateEntryERC, serviceContext);
 
-				if (layoutPageTemplateEntryLayout != null) {
-					_layoutLocalService.copyLayoutContent(
-						layoutPageTemplateEntryLayout, layout);
+				if (masterLayoutPlid > 0) {
+					_layoutService.copyLayoutContent(
+						_layoutService.getLayout(masterLayoutPlid), layout);
 				}
 
 				redirect = PortletURLBuilder.createRenderURL(
@@ -164,20 +160,20 @@ public class ConvertEmptyLayoutMVCActionCommand
 			}
 			else {
 				if (draftLayout == null) {
-					draftLayout = _layoutLocalService.addLayout(
-						null, layout.getUserId(), layout.getGroupId(),
-						layout.isPrivateLayout(), layout.getParentLayoutId(),
+					draftLayout = _layoutService.addLayout(
+						null, layout.getGroupId(), layout.isPrivateLayout(),
+						layout.getParentLayoutId(),
 						_classNameLocalService.getClassNameId(Layout.class),
 						layout.getPlid(), nameMap, layout.getTitleMap(),
 						layout.getDescriptionMap(), layout.getKeywordsMap(),
 						layout.getRobotsMap(), type, layout.getTypeSettings(),
-						true, true, Collections.emptyMap(), masterLayoutPlid,
-						serviceContext);
+						true, true, Collections.emptyMap(),
+						masterLayoutPageTemplateEntryERC, serviceContext);
 				}
 
-				if (layoutPageTemplateEntryLayout != null) {
-					_layoutLocalService.copyLayoutContent(
-						layoutPageTemplateEntryLayout, draftLayout);
+				if (masterLayoutPlid > 0) {
+					_layoutService.copyLayoutContent(
+						_layoutService.getLayout(masterLayoutPlid), layout);
 				}
 				else {
 					String externalReferenceCode = GetterUtil.getString(
@@ -199,15 +195,16 @@ public class ConvertEmptyLayoutMVCActionCommand
 							_generateContentLayoutStructure(), serviceContext);
 				}
 
-				layout = _layoutLocalService.updateLayout(
+				layout = _layoutService.updateLayout(
 					layout.getGroupId(), layout.isPrivateLayout(),
 					layout.getLayoutId(), layout.getParentLayoutId(), nameMap,
 					layout.getTitleMap(), layout.getDescriptionMap(),
 					layout.getKeywordsMap(), layout.getRobotsMap(), type, false,
 					layout.getFriendlyURLMap(), layout.isIconImage(), null,
-					layout.getStyleBookEntryId(),
-					layout.getFaviconFileEntryId(), masterLayoutPlid,
-					serviceContext);
+					layout.getStyleBookEntryERC(),
+					layout.getFaviconFileEntryERC(),
+					layout.getFaviconFileEntryScopeERC(),
+					masterLayoutPageTemplateEntryERC, serviceContext);
 
 				_layoutLocalService.updateStatus(
 					layout.getUserId(), layout.getPlid(),
@@ -281,6 +278,9 @@ public class ConvertEmptyLayoutMVCActionCommand
 	@Reference
 	private LayoutPageTemplateStructureLocalService
 		_layoutPageTemplateStructureLocalService;
+
+	@Reference
+	private LayoutService _layoutService;
 
 	@Reference
 	private Portal _portal;

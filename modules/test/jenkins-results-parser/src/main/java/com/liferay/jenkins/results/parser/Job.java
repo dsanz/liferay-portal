@@ -5,6 +5,7 @@
 
 package com.liferay.jenkins.results.parser;
 
+import com.liferay.jenkins.results.parser.history.JobHistory;
 import com.liferay.jenkins.results.parser.test.clazz.group.AxisTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.BatchTestClassGroup;
 import com.liferay.jenkins.results.parser.test.clazz.group.SegmentTestClassGroup;
@@ -26,6 +27,10 @@ public interface Job {
 	public Set<String> getAnalyticsCloudBatchNames();
 
 	public Set<String> getAnalyticsCloudSegmentNames();
+
+	public Set<String> getAppServerTypes();
+
+	public Set<String> getAppServerTypesExcludingTomcat();
 
 	public int getAxisCount();
 
@@ -62,10 +67,6 @@ public interface Job {
 	public Set<String> getDistRequiredSegmentNames();
 
 	public DistType getDistType();
-
-	public Set<String> getDistTypes();
-
-	public Set<String> getDistTypesExcludingTomcat();
 
 	public Set<JenkinsCohort> getJenkinsCohorts();
 

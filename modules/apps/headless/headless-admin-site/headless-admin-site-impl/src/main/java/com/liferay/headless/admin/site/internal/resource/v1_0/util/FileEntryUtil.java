@@ -5,10 +5,28 @@
 
 package com.liferay.headless.admin.site.internal.resource.v1_0.util;
 
-import com.liferay.headless.admin.site.dto.v1_0.ItemExternalReference;
+import com.liferay.document.library.kernel.model.DLFolderConstants;
+import com.liferay.document.library.kernel.service.DLAppLocalServiceUtil;
+import com.liferay.headless.admin.site.dto.v1_0.ThumbnailURLReference;
+import com.liferay.layout.admin.constants.LayoutAdminPortletKeys;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.model.Repository;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.util.FileUtil;
+import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.HttpUtil;
+import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.Validator;
+
+import java.io.File;
+import java.io.InputStream;
+
+import java.net.HttpURLConnection;
+
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * @author Lourdes Fernández Besada
@@ -16,12 +34,13 @@ import com.liferay.portal.kernel.util.Validator;
 public class FileEntryUtil {
 
 	public static long getPreviewFileEntryId(
-			long groupId, ItemExternalReference itemExternalReference)
+			long groupId, String resourceName, ServiceContext serviceContext,
+			ThumbnailURLReference thumbnailURLReference)
 		throws Exception {
 
-		if ((itemExternalReference == null) ||
+		if ((thumbnailURLReference == null) ||
 			Validator.isNull(
-				itemExternalReference.getExternalReferenceCode())) {
+				thumbnailURLReference.getExternalReferenceCode())) {
 
 			return 0;
 		}
@@ -29,13 +48,76 @@ public class FileEntryUtil {
 		FileEntry fileEntry =
 			PortletFileRepositoryUtil.
 				fetchPortletFileEntryByExternalReferenceCode(
-					itemExternalReference.getExternalReferenceCode(), groupId);
+					thumbnailURLReference.getExternalReferenceCode(), groupId);
 
 		if (fileEntry == null) {
-			throw new UnsupportedOperationException();
+			fileEntry = _getFileEntry(
+				groupId, resourceName, serviceContext, thumbnailURLReference,
+				serviceContext.getUserId());
 		}
 
 		return fileEntry.getFileEntryId();
+	}
+
+	private static FileEntry _getFileEntry(
+			long groupId, String resourceName, ServiceContext serviceContext,
+			ThumbnailURLReference thumbnailURLReference, long userId)
+		throws Exception {
+
+		Http.Options options = new Http.Options();
+
+		options.setLocation(thumbnailURLReference.getUrl());
+
+		File file = null;
+
+		try (InputStream inputStream = HttpUtil.URLtoInputStream(options)) {
+			Http.Response response = options.getResponse();
+
+			if (response.getResponseCode() != HttpURLConnection.HTTP_OK) {
+				throw new IllegalArgumentException(
+					"Unable to download file from " +
+						thumbnailURLReference.getUrl());
+			}
+
+			file = FileUtil.createTempFile(inputStream);
+
+			String mimeType = MimeTypesUtil.getContentType(file);
+
+			Set<String> extensions = MimeTypesUtil.getExtensions(mimeType);
+
+			String extension = StringPool.BLANK;
+
+			if (!extensions.isEmpty()) {
+				Iterator<String> iterator = extensions.iterator();
+
+				extension = iterator.next();
+			}
+
+			serviceContext.setAddGroupPermissions(true);
+			serviceContext.setAddGuestPermissions(true);
+			serviceContext.setIndexingEnabled(false);
+
+			Repository repository =
+				PortletFileRepositoryUtil.addPortletRepository(
+					groupId, LayoutAdminPortletKeys.GROUP_PAGES,
+					serviceContext);
+
+			String fileName =
+				thumbnailURLReference.getExternalReferenceCode() + "_preview" +
+					extension;
+
+			return DLAppLocalServiceUtil.addFileEntry(
+				thumbnailURLReference.getExternalReferenceCode(), userId,
+				repository.getRepositoryId(),
+				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
+				resourceName + "_" + fileName, mimeType, fileName, null, null,
+				null, file, null, null, null, serviceContext);
+		}
+		finally {
+			if (file != null) {
+				FileUtil.delete(file);
+			}
+		}
 	}
 
 }

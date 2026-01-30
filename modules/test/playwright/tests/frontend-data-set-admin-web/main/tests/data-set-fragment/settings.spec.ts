@@ -10,7 +10,6 @@ import {isolatedLayoutTest} from '../../../../../fixtures/isolatedLayoutTest';
 import {loginTest} from '../../../../../fixtures/loginTest';
 import getRandomString from '../../../../../utils/getRandomString';
 import {dataSetManagerApiHelpersTest} from '../../fixtures/dataSetManagerApiHelpersTest';
-import {API_ENDPOINT_PATH} from '../../utils/constants';
 import {dataSetFragmentPageTest} from './fixtures/dataSetFragmentPageTest';
 
 let settingsDataSetERC: string;
@@ -33,7 +32,7 @@ test.beforeEach(async ({dataSetManagerApiHelpers}) => {
 	await dataSetManagerApiHelpers.createDataSet({
 		erc: settingsDataSetERC,
 		label: dataSetLabel,
-		restApplication: `${API_ENDPOINT_PATH}/cards-sections`,
+		restEndpoint: `/by-external-reference-code/${settingsDataSetERC}/dataSetToDataSetCardsSections`,
 		restSchema: 'DataSetCardsSection',
 	});
 });
@@ -208,13 +207,14 @@ test.describe('Data Set Default Visualization Mode in fragment', () => {
 		});
 
 		await test.step('Reload page and check the default visualization mode', async () => {
-			await page.reload();
+			await dataSetFragmentPage.goToPage({layout});
 
 			await assertCardsVisualizationMode({dataSetFragmentPage});
 
 			await dataSetFragmentPage.activeViewSelector.waitFor({
 				state: 'visible',
 			});
+
 			await dataSetFragmentPage.activeViewSelector.click();
 
 			await page

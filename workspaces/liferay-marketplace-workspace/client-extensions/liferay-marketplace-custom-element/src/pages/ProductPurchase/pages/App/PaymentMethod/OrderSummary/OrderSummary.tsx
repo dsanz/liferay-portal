@@ -58,8 +58,8 @@ const PaymentMethods = {
 				symbol="document-text"
 			/>
 		),
-		subtitle: 'Online payments with PayPal',
-		title: i18n.translate('pay-with-invoice'),
+		subtitle: 'Online payments with Bank Transfer',
+		title: i18n.translate('pay-with-bank-transfer'),
 	},
 };
 
@@ -69,7 +69,6 @@ const OrderSummary = () => {
 	const {
 		actions: {previousStep},
 		handlePurchase,
-		isSingleAccount,
 		marketplaceDeliveryProduct,
 		product,
 		productPurchaseCart,
@@ -129,7 +128,6 @@ const OrderSummary = () => {
 			className="product-purchase-summary select-payment-step"
 			footerProps={{
 				backButtonProps: {
-					disabled: isSingleAccount && isFreeApp,
 					onClick: previousStep,
 				},
 				continueButtonProps: {

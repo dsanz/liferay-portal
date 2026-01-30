@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.search.IndexStatusManagerThreadLocal;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutRevisionLocalService;
+import com.liferay.portal.kernel.service.LayoutService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
@@ -143,7 +144,7 @@ public class PublishLayoutMVCActionCommand
 			IndexStatusManagerThreadLocal.setIndexReadOnly(true);
 
 			try {
-				_layoutLocalService.copyLayoutContent(draftLayout, layout);
+				_layoutService.copyLayoutContent(draftLayout, layout);
 			}
 			finally {
 				IndexStatusManagerThreadLocal.setIndexReadOnly(indexReadOnly);
@@ -162,11 +163,16 @@ public class PublishLayoutMVCActionCommand
 			typeSettingsUnicodeProperties.remove(
 				LayoutTypeSettingsConstants.KEY_DESIGN_CONFIGURATION_MODIFIED);
 
-			String layoutPrototypeUuid = layout.getLayoutPrototypeUuid();
+			String portletLayoutPageTemplateEntryERC =
+				layout.getPortletLayoutPageTemplateEntryERC();
 
-			if (Validator.isNotNull(layoutPrototypeUuid)) {
+			if (Validator.isNotNull(portletLayoutPageTemplateEntryERC)) {
 				typeSettingsUnicodeProperties.setProperty(
-					"layoutPrototypeUuid", layoutPrototypeUuid);
+					"portletLayoutPageTemplateEntryERC",
+					portletLayoutPageTemplateEntryERC);
+				typeSettingsUnicodeProperties.setProperty(
+					"portletLayoutPageTemplateEntryScopeERC",
+					layout.getPortletLayoutPageTemplateEntryScopeERC());
 			}
 
 			typeSettingsUnicodeProperties.put(
@@ -235,7 +241,8 @@ public class PublishLayoutMVCActionCommand
 				updatedTypeSettingsUnicodeProperties);
 
 			layout.setType(draftLayout.getType());
-			layout.setLayoutPrototypeUuid(null);
+			layout.setPortletLayoutPageTemplateEntryERC(null);
+			layout.setPortletLayoutPageTemplateEntryScopeERC(null);
 			layout.setStatus(WorkflowConstants.STATUS_APPROVED);
 
 			layout = _layoutLocalService.updateLayout(layout);
@@ -271,6 +278,9 @@ public class PublishLayoutMVCActionCommand
 
 	@Reference
 	private LayoutRevisionLocalService _layoutRevisionLocalService;
+
+	@Reference
+	private LayoutService _layoutService;
 
 	@Reference
 	private Portal _portal;

@@ -23,10 +23,13 @@ import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.service.CommerceOrderService;
 import com.liferay.commerce.util.CommerceCheckoutStep;
 import com.liferay.commerce.util.CommerceCheckoutStepRegistry;
+import com.liferay.expando.kernel.service.ExpandoColumnLocalService;
+import com.liferay.expando.kernel.service.ExpandoTableLocalService;
 import com.liferay.headless.commerce.core.util.ExpandoUtil;
 import com.liferay.headless.commerce.delivery.order.dto.v1_0.PlacedOrder;
 import com.liferay.headless.commerce.delivery.order.internal.odata.entity.v1_0.PlacedOrderEntityModel;
 import com.liferay.headless.commerce.delivery.order.resource.v1_0.PlacedOrderResource;
+import com.liferay.headless.common.spi.odata.entity.EntityFieldsUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -200,7 +203,11 @@ public class PlacedOrderResourceImpl extends BasePlacedOrderResourceImpl {
 
 	@Override
 	public EntityModel getEntityModel(MultivaluedMap multivaluedMap) {
-		return _entityModel;
+		return new PlacedOrderEntityModel(
+			EntityFieldsUtil.getEntityFields(
+				_portal.getClassNameId(CommerceOrder.class.getName()),
+				contextCompany.getCompanyId(), _expandoColumnLocalService,
+				_expandoTableLocalService));
 	}
 
 	@Override
@@ -475,9 +482,6 @@ public class PlacedOrderResourceImpl extends BasePlacedOrderResourceImpl {
 		}
 	}
 
-	private static final EntityModel _entityModel =
-		new PlacedOrderEntityModel();
-
 	@Reference
 	private AccountEntryService _accountEntryService;
 
@@ -510,6 +514,12 @@ public class PlacedOrderResourceImpl extends BasePlacedOrderResourceImpl {
 
 	@Reference
 	private Encryptor _encryptor;
+
+	@Reference
+	private ExpandoColumnLocalService _expandoColumnLocalService;
+
+	@Reference
+	private ExpandoTableLocalService _expandoTableLocalService;
 
 	@Reference(
 		target = "(component.name=com.liferay.headless.commerce.delivery.order.internal.dto.v1_0.converter.PlacedOrderDTOConverter)"

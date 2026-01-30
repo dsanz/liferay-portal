@@ -8,20 +8,21 @@ import {ClaySelect} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {Link, useNavigate} from 'react-router-dom';
-import i18n from '~/utils/I18n';
 import {Button} from '~/components';
 import {Radio} from '~/components';
 import Layout from '~/components/FormLayout';
 import {useAppPropertiesContext} from '~/contexts/AppPropertiesContext';
+import {useAppContext} from '~/features/project/context';
 import useProvisioningLicenseKeys from '~/hooks/useProvisioningLicenseKeys';
 import {patchOrderItemByExternalReferenceCode} from '~/services/liferay/graphql/queries';
 import {
 	getNewGenerateKeyFormValues,
 	putSubscriptionInKey,
 } from '~/services/liferay/rest/raysource/LicenseKeys';
+import i18n from '~/utils/I18n';
 import {FORMAT_DATE_TYPES} from '~/utils/constants';
 import getDateCustomFormat from '~/utils/getDateCustomFormat';
-import {useAppContext} from '~/features/project/context';
+
 import {has100YearsDifference} from '../../ActivationKeysTable/utils';
 import GenerateNewKeySkeleton from '../GenerateNewKeySkeleton';
 import {getLicenseKeyEndDatesByLicenseType} from '../utils/licenseKeyEndDate';
@@ -119,14 +120,41 @@ const SelectSubscription = ({
 		};
 	}, [handleProduct]);
 
-	const productVersions = useMemo(() => {
-		if (generateFormValues?.versions) {
-			return generateFormValues.versions.sort((a, b) =>
-				a.label >= b.label ? 1 : -1
-			);
+	const parseVersion = (label = '') => {
+		const quarterly = label.match(/^(\d{4})\.Q(\d)$/);
+
+		if (quarterly) {
+			return {
+				isQuarterly: true,
+				value: Number(quarterly[1]) * 10 + Number(quarterly[2]),
+			};
 		}
 
-		return [];
+		const version = label.match(/^(\d+(\.\d+)?)/);
+
+		return {isQuarterly: false, value: version ? Number(version[1]) : -1};
+	};
+
+	const productVersions = useMemo(() => {
+		const versions = generateFormValues?.versions;
+		if (!versions) {
+			return [];
+		}
+
+		return [...versions]
+			.filter((value) =>
+				/^\d{4}\.Q\d$|^\d+(\.\d+)?(\s|[A-Z]|$)/.test(value.label || '')
+			)
+			.sort((a, b) => {
+				const sortQuarterlyA = parseVersion(a.label);
+				const sortQuarterlyB = parseVersion(b.label);
+
+				if (sortQuarterlyA.isQuarterly !== sortQuarterlyB.isQuarterly) {
+					return sortQuarterlyA.isQuarterly ? -1 : 1;
+				}
+
+				return sortQuarterlyB.value - sortQuarterlyA.value;
+			});
 	}, [generateFormValues?.versions]);
 
 	useEffect(() => {
@@ -205,7 +233,11 @@ const SelectSubscription = ({
 		),
 	];
 
-	setLicenseEntryTypeName(productNames[0]);
+	useEffect(() => {
+		if (productNames?.length) {
+			setLicenseEntryTypeName(productNames[0]);
+		}
+	}, [productNames]);
 
 	const productName = [...new Set(productNames)].join(', ');
 
@@ -402,6 +434,8 @@ const SelectSubscription = ({
 											name: 'provisionedCount',
 										},
 									],
+									externalReferenceCode:
+										selectedSubscription?.productPurchaseKey,
 								},
 							},
 						});

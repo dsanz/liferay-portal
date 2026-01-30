@@ -6,7 +6,7 @@
 import {render, screen} from '@testing-library/react';
 import React from 'react';
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 
 import Filter from '../../../../src/main/resources/META-INF/resources/js/components/render_times/Filter';
@@ -34,7 +34,7 @@ describe('Filter', () => {
 		renderComponent();
 
 		['cached', 'fragment', 'from-master'].forEach((value) => {
-			expect(screen.getByText(value).parentElement).toHaveAttribute(
+			expect(screen.getByText(value)).toHaveAttribute(
 				'aria-selected',
 				'true'
 			);

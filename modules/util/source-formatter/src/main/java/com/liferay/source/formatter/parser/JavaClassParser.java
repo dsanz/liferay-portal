@@ -71,19 +71,18 @@ public class JavaClassParser {
 
 		List<JavaClass> anonymousClasses = new ArrayList<>();
 
-		List<DetailAST> leteralNewDetailASTList =
-			DetailASTUtil.getAllChildTokens(
-				siblingDetailAST, true, TokenTypes.LITERAL_NEW);
+		List<DetailAST> leteralNewDetailASTs = DetailASTUtil.getAllChildTokens(
+			siblingDetailAST, true, TokenTypes.LITERAL_NEW);
 
 		JavaClass parentJavaClass = null;
 
-		if (!leteralNewDetailASTList.isEmpty() &&
+		if (!leteralNewDetailASTs.isEmpty() &&
 			(siblingDetailAST.getType() == TokenTypes.CLASS_DEF)) {
 
 			parentJavaClass = parseJavaClass(content, detailAST, fileContents);
 		}
 
-		for (DetailAST leteralNewDetailAST : leteralNewDetailASTList) {
+		for (DetailAST leteralNewDetailAST : leteralNewDetailASTs) {
 			DetailAST objBlockDetailAST = leteralNewDetailAST.findFirstToken(
 				TokenTypes.OBJBLOCK);
 
@@ -424,7 +423,8 @@ public class JavaClassParser {
 		}
 
 		if (detailAST.getType() == TokenTypes.STATIC_INIT) {
-			return new JavaStaticBlock(javaTermContent, detailAST.getLineNo());
+			return new JavaStaticBlock(
+				javaTermContent, _getStartLineNumber(detailAST));
 		}
 
 		String name = _getName(detailAST.findFirstToken(TokenTypes.IDENT));
@@ -432,19 +432,19 @@ public class JavaClassParser {
 		if (detailAST.getType() == TokenTypes.CTOR_DEF) {
 			return new JavaConstructor(
 				accessModifier, javaTermContent, isAbstract, isFinal, isStatic,
-				detailAST.getLineNo(), name);
+				_getStartLineNumber(detailAST), name);
 		}
 
 		if (detailAST.getType() == TokenTypes.METHOD_DEF) {
 			return new JavaMethod(
 				accessModifier, javaTermContent, isAbstract, isFinal, isStatic,
-				detailAST.getLineNo(), name);
+				_getStartLineNumber(detailAST), name);
 		}
 
 		if (detailAST.getType() == TokenTypes.VARIABLE_DEF) {
 			return new JavaVariable(
 				accessModifier, javaTermContent, isAbstract, isFinal, isStatic,
-				detailAST.getLineNo(), name);
+				_getStartLineNumber(detailAST), name);
 		}
 
 		return null;
@@ -537,10 +537,10 @@ public class JavaClassParser {
 	private static int _getStartLineNumber(DetailAST detailAST) {
 		int startLineNumber = detailAST.getLineNo();
 
-		List<DetailAST> childDetailASTList = DetailASTUtil.getAllChildTokens(
+		List<DetailAST> childDetailASTs = DetailASTUtil.getAllChildTokens(
 			detailAST, true, DetailASTUtil.ALL_TYPES);
 
-		for (DetailAST childDetailAST : childDetailASTList) {
+		for (DetailAST childDetailAST : childDetailASTs) {
 			if ((childDetailAST.getColumnNo() == detailAST.getColumnNo()) &&
 				(childDetailAST.getLineNo() < startLineNumber)) {
 
@@ -604,14 +604,14 @@ public class JavaClassParser {
 			isFinal, isInterface, isStatic, isStrictfp, classLineNumber,
 			className, nonsealed, packageName, sealed);
 
-		List<DetailAST> childDetailASTList = DetailASTUtil.getAllChildTokens(
+		List<DetailAST> childDetailASTs = DetailASTUtil.getAllChildTokens(
 			objBlockDetailAST, false, TokenTypes.ANNOTATION_DEF,
 			TokenTypes.CLASS_DEF, TokenTypes.CTOR_DEF, TokenTypes.ENUM_DEF,
 			TokenTypes.INTERFACE_DEF, TokenTypes.METHOD_DEF,
 			TokenTypes.RECORD_DEF, TokenTypes.STATIC_INIT,
 			TokenTypes.VARIABLE_DEF);
 
-		for (DetailAST childDetailAST : childDetailASTList) {
+		for (DetailAST childDetailAST : childDetailASTs) {
 			String javaTermContent = _getJavaTermContent(
 				fileContents, childDetailAST);
 

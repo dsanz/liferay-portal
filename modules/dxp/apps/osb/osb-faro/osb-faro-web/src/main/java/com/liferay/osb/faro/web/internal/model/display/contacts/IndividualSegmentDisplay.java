@@ -6,6 +6,7 @@
 package com.liferay.osb.faro.web.internal.model.display.contacts;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import com.liferay.osb.faro.engine.client.model.Asset;
@@ -50,7 +51,7 @@ public class IndividualSegmentDisplay implements FaroEntityDisplay {
 		_channelId = individualSegment.getChannelId();
 		_dateCreated = individualSegment.getDateCreated();
 		_dateModified = individualSegment.getDateModified();
-		_filter = individualSegment.getFilter();
+		_filterString = individualSegment.getFilterString();
 		_id = individualSegment.getId();
 		_includeAnonymousUsers = individualSegment.isIncludeAnonymousUsers();
 
@@ -122,6 +123,8 @@ public class IndividualSegmentDisplay implements FaroEntityDisplay {
 		_individualCount = individualSegment.getIndividualCount();
 		_knownIndividualCount = individualSegment.getKnownIndividualCount();
 		_lastActivityDate = individualSegment.getLastActivityDate();
+		_lastMembershipUpdateDate =
+			individualSegment.getLastMembershipUpdateDate();
 		_name = individualSegment.getName();
 		_segmentType = individualSegment.getSegmentType();
 		_state = individualSegment.getState();
@@ -213,7 +216,10 @@ public class IndividualSegmentDisplay implements FaroEntityDisplay {
 	private String _channelId;
 	private Date _dateCreated;
 	private Date _dateModified;
-	private String _filter;
+
+	@JsonProperty("filter")
+	private String _filterString;
+
 	private String _id;
 	private boolean _includeAnonymousUsers;
 	private Date _individualAddedDate;
@@ -224,6 +230,7 @@ public class IndividualSegmentDisplay implements FaroEntityDisplay {
 
 	private long _knownIndividualCount;
 	private Date _lastActivityDate;
+	private Date _lastMembershipUpdateDate;
 	private String _name;
 	private final Map<String, Object> _referencedObjects = new HashMap<>();
 	private String _segmentType;

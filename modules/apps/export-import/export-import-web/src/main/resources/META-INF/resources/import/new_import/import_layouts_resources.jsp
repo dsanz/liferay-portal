@@ -233,30 +233,45 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 
 												String portletTitle = PortalUtil.getPortletTitle(portlet, application, locale);
 
-												long importModelCount = portletDataHandler.getExportModelCount(manifestSummary);
+												if (StringUtil.equals(ObjectPortletKeys.OBJECT_DEFINITIONS, portlet.getPortletId())) {
+													portletTitle = LanguageUtil.get(request, "model.resource.com.liferay.object");
+												}
 
+												long importModelCount = portletDataHandler.getExportModelCount(manifestSummary);
 												long modelDeletionCount = manifestSummary.getModelDeletionCount(portletDataHandler.getDeletionSystemEventStagedModelTypes());
+												String tag = portletDataHandler.getTag(locale);
 											%>
 
-												<c:if test="<%= (importModelCount != 0) || (modelDeletionCount != 0) %>">
+												<c:if test="<%= (importModelCount > 0) || (modelDeletionCount > 0) %>">
 													<li class="tree-item">
 														<liferay-util:buffer
 															var="badgeHTML"
 														>
+															<c:if test="<%= Validator.isNotNull(tag) %>">
+																<clay:label
+																	displayType="primary"
+																	label="<%= tag %>"
+																/>
+															</c:if>
+
 															<span class="badge badge-info"><%= (importModelCount > 0) ? importModelCount : StringPool.BLANK %></span>
 															<span class="badge badge-warning deletions"><%= (modelDeletionCount > 0) ? (modelDeletionCount + StringPool.SPACE + LanguageUtil.get(request, "deletions")) : StringPool.BLANK %></span>
 														</liferay-util:buffer>
 
 														<%
+														String description = portletDataHandler.getDescription(locale);
 														String rootControlId = PortletDataHandlerKeys.PORTLET_DATA + StringPool.UNDERLINE + portlet.getRootPortletId();
 														%>
 
-														<aui:input checked="<%= true %>" label="<%= portletTitle + badgeHTML %>" name="<%= rootControlId %>" type="checkbox" />
+														<div class="input-checkbox">
+															<aui:input checked="<%= true %>" label="<%= portletTitle + badgeHTML %>" name="<%= rootControlId %>" type="checkbox" />
 
-														<%
-														PortletDataHandlerControl[] importControls = portletDataHandler.getImportControls();
-														PortletDataHandlerControl[] importMetadataControls = portletDataHandler.getImportMetadataControls();
-														%>
+															<c:if test="<%= Validator.isNotNull(description) %>">
+																<div class="selected-labels">
+																	<%= HtmlUtil.escape(description) %>
+																</div>
+															</c:if>
+														</div>
 
 														<ul class="hide" id="<portlet:namespace />showChangeContent_<%= portlet.getRootPortletId() %>">
 															<li>
@@ -284,50 +299,53 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 															</li>
 														</ul>
 
-														<c:if test="<%= ArrayUtil.isNotEmpty(importControls) || ArrayUtil.isNotEmpty(importMetadataControls) %>">
+														<%
+														PortletDataHandlerControl[] importMetadataPortletDataHandlerControls = portletDataHandler.getImportMetadataPortletDataHandlerControls();
+														PortletDataHandlerControl[] importPortletDataHandlerControls = portletDataHandler.getImportPortletDataHandlerControls();
+														%>
+
+														<c:if test="<%= ArrayUtil.isNotEmpty(importMetadataPortletDataHandlerControls) || (ArrayUtil.isNotEmpty(importPortletDataHandlerControls) && !portletDataHandler.isEmptyControlsAllowed()) %>">
 															<div class="hide" id="<portlet:namespace />content_<%= portlet.getRootPortletId() %>">
 																<ul class="lfr-tree list-unstyled">
 																	<li class="tree-item">
 																		<aui:fieldset cssClass="portlet-type-data-section" id="<%= portletTitle %>">
-																			<c:if test="<%= importControls != null %>">
+																			<c:if test="<%= importPortletDataHandlerControls != null %>">
 
 																				<%
 																				request.setAttribute("render_controls.jsp-action", Constants.IMPORT);
 																				request.setAttribute("render_controls.jsp-childControl", false);
-																				request.setAttribute("render_controls.jsp-controls", importControls);
+																				request.setAttribute("render_controls.jsp-controls", importPortletDataHandlerControls);
 																				request.setAttribute("render_controls.jsp-manifestSummary", manifestSummary);
 																				request.setAttribute("render_controls.jsp-portletDisabled", !portletDataHandler.isPublishToLiveByDefault());
 																				request.setAttribute("render_controls.jsp-portletId", portlet.getPortletId());
 																				request.setAttribute("render_controls.jsp-rootControlId", rootControlId);
 																				%>
 
-																				<aui:field-wrapper label='<%= ArrayUtil.isNotEmpty(importMetadataControls) ? "content" : StringPool.BLANK %>'>
+																				<aui:field-wrapper label='<%= ArrayUtil.isNotEmpty(importMetadataPortletDataHandlerControls) ? "content" : StringPool.BLANK %>'>
 																					<ul class="lfr-tree list-unstyled">
 																						<liferay-util:include page="/render_controls.jsp" servletContext="<%= application %>" />
 																					</ul>
 																				</aui:field-wrapper>
 																			</c:if>
 
-																			<c:if test="<%= importMetadataControls != null %>">
+																			<c:if test="<%= importMetadataPortletDataHandlerControls != null %>">
 
 																				<%
-																				for (PortletDataHandlerControl metadataControl : importMetadataControls) {
-																					if (!displayedControls.contains(metadataControl.getControlName())) {
-																						displayedControls.add(metadataControl.getControlName());
+																				for (PortletDataHandlerControl portletDataHandlerControl : importMetadataPortletDataHandlerControls) {
+																					if (!displayedControls.contains(portletDataHandlerControl.getName())) {
+																						displayedControls.add(portletDataHandlerControl.getName());
 																					}
 																					else {
 																						continue;
 																					}
 
-																					PortletDataHandlerBoolean control = (PortletDataHandlerBoolean)metadataControl;
-
-																					PortletDataHandlerControl[] childrenControls = control.getChildren();
+																					PortletDataHandlerBoolean portletDataHandlerBoolean = (PortletDataHandlerBoolean)portletDataHandlerControl;
 																				%>
 
-																					<c:if test="<%= ArrayUtil.isNotEmpty(childrenControls) %>">
+																					<c:if test="<%= ArrayUtil.isNotEmpty(portletDataHandlerBoolean.getChildrenPortletDataHandlerControls()) %>">
 
 																						<%
-																						request.setAttribute("render_controls.jsp-controls", childrenControls);
+																						request.setAttribute("render_controls.jsp-controls", portletDataHandlerBoolean.getChildrenPortletDataHandlerControls());
 																						%>
 
 																						<aui:field-wrapper label="content-metadata">
@@ -363,7 +381,7 @@ ManifestSummary manifestSummary = ExportImportHelperUtil.getManifestSummary(user
 
 										</ul>
 
-										<c:if test="<%= !stagingGroupHelper.isCompanyGroup(group) %>">
+										<c:if test='<%= FeatureFlagManagerUtil.isEnabled(company.getCompanyId(), "LPD-43996") || !stagingGroupHelper.isCompanyGroup(group) %>'>
 											<aui:fieldset cssClass="content-options" label="for-each-of-the-selected-content-types,-import-their">
 												<span class="selected-labels" id="<portlet:namespace />selectedContentOptions"></span>
 

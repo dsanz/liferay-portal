@@ -23,7 +23,6 @@ page import="com.liferay.portal.kernel.model.User" %><%@
 page import="com.liferay.portal.kernel.util.HashMapBuilder" %><%@
 page import="com.liferay.portal.kernel.util.HtmlUtil" %><%@
 page import="com.liferay.portal.kernel.util.ParamUtil" %><%@
-page import="com.liferay.portal.kernel.util.PortalUtil" %><%@
 page import="com.liferay.portal.kernel.util.Validator" %><%@
 page import="com.liferay.segments.exception.NoSuchEntryException" %><%@
 page import="com.liferay.segments.exception.RequiredSegmentsEntryException" %><%@
@@ -36,7 +35,6 @@ page import="com.liferay.segments.web.internal.display.context.PreviewSegmentsEn
 page import="com.liferay.segments.web.internal.display.context.SegmentsCompanyConfigurationDisplayContext" %><%@
 page import="com.liferay.segments.web.internal.display.context.SegmentsDisplayContext" %><%@
 page import="com.liferay.segments.web.internal.display.context.SegmentsManagementToolbarDisplayContext" %><%@
-page import="com.liferay.segments.web.internal.util.SegmentsCompanyConfigurationActionDropdownItemsProvider" %><%@
 page import="com.liferay.segments.web.internal.util.SegmentsEntryActionDropdownItemsProvider" %><%@
 page import="com.liferay.segments.web.internal.util.SegmentsSourceDetailsProviderUtil" %>
 

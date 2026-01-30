@@ -48,20 +48,26 @@ public class BuildHistoryReport {
 		buildHistoryReport.addFilesFromResource(
 			"dependencies/metrics/aggregate-report", "/index.html");
 
-		long startTime = _getStartTime(startDateString);
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(_getWeeklyServerDurationJavaScriptVariable());
 
 		long duration = TimeUnit.DAYS.toMillis(durationDays);
+		long startTime = _getStartTime(startDateString);
 
 		Collection<BuildHistory> buildHistories =
 			BuildHistoryProcessor.newAggregateJobHistories(duration, startTime);
 
-		buildHistoryReport.addFile(
-			"js/table-data.js",
-			_getTableDataJSFileContent(
+		sb.append(
+			_getTableDataJavaScriptVariable(
 				buildHistories, "Job Category", 1, "[Total]"));
+
+		buildHistoryReport.addFile(sb.toString(), "js/table-data.js");
+
 		buildHistoryReport.addFile(
-			"js/timeline-data.js",
-			_getTimelineDataJSFileContent(buildHistories, duration, startTime));
+			_getTimelineDataJavaScriptVariable(
+				buildHistories, duration, startTime),
+			"js/timeline-data.js");
 
 		return buildHistoryReport;
 	}
@@ -201,7 +207,7 @@ public class BuildHistoryReport {
 		sb.append(tableJSONArray);
 		sb.append(";");
 
-		buildHistoryReport.addFile("js/table-data.js", sb.toString());
+		buildHistoryReport.addFile(sb.toString(), "js/table-data.js");
 
 		return buildHistoryReport;
 	}
@@ -248,12 +254,12 @@ public class BuildHistoryReport {
 
 		StringBuilder sb = new StringBuilder();
 
-		sb.append(
-			_getTableDataJSFileContent(
-				utilizationBuildHistories, "Category", 7, "All",
-				"categoryTableData", null));
+		sb.append(_getWeeklyServerDurationJavaScriptVariable());
 
-		sb.append("\n");
+		sb.append(
+			_getTableDataJavaScriptVariable(
+				utilizationBuildHistories, "Category", 7, "All", null,
+				"categoryTableData"));
 
 		Collection<BuildHistory> utilizationTestTypeBuildHistories =
 			BuildHistoryProcessor.newUtilizationTestTypeBuildHistories(
@@ -261,19 +267,20 @@ public class BuildHistoryReport {
 				_getStartTime(startDateString));
 
 		sb.append(
-			_getTableDataJSFileContent(
+			_getTableDataJavaScriptVariable(
 				utilizationTestTypeBuildHistories, "Test Batch Type", 7, "All",
-				"testTypeTableData",
 				Arrays.asList(
+					BuildHistory.TableMetric.AVERAGE_DOWNSTREAM_BUILD_DURATION.
+						toString(),
 					BuildHistory.TableMetric.INVOKED_BUILDS.toString(),
-					BuildHistory.TableMetric.TOTAL_SERVER_DURATION.
-						toString())));
+					BuildHistory.TableMetric.TOTAL_SERVER_DURATION.toString()),
+				"testTypeTableData"));
 
 		sb.append("\n");
 
 		sb.append("\nvar reportName = \"Utilization Report\";");
 
-		buildHistoryReport.addFile("js/table-data.js", sb.toString());
+		buildHistoryReport.addFile(sb.toString(), "js/table-data.js");
 
 		return buildHistoryReport;
 	}
@@ -282,7 +289,7 @@ public class BuildHistoryReport {
 		_outputDir = outputDir;
 	}
 
-	public void addFile(String fileName, String fileContent) {
+	public void addFile(String fileContent, String fileName) {
 		_fileMap.put(new File(_outputDir, fileName), fileContent);
 	}
 
@@ -292,9 +299,9 @@ public class BuildHistoryReport {
 		for (String fileName : fileNames) {
 			try {
 				addFile(
-					fileName,
 					JenkinsResultsParserUtil.getResourceFileContent(
-						resourceDirPath + fileName));
+						resourceDirPath + fileName),
+					fileName);
 			}
 			catch (IOException ioException) {
 				System.out.println(
@@ -331,19 +338,19 @@ public class BuildHistoryReport {
 			_getLocalDateTime(startDateString));
 	}
 
-	private static String _getTableDataJSFileContent(
+	private static String _getTableDataJavaScriptVariable(
 		Collection<BuildHistory> buildHistories, String groupIdentifierName,
 		int intervalDays, String mergedBuildHistoryName) {
 
-		return _getTableDataJSFileContent(
+		return _getTableDataJavaScriptVariable(
 			buildHistories, groupIdentifierName, intervalDays,
-			mergedBuildHistoryName, "tableData", null);
+			mergedBuildHistoryName, null, "tableData");
 	}
 
-	private static String _getTableDataJSFileContent(
+	private static String _getTableDataJavaScriptVariable(
 		Collection<BuildHistory> buildHistories, String groupIdentifierName,
-		int intervalDays, String mergedBuildHistoryName, String tableName,
-		List<String> metricNames) {
+		int intervalDays, String mergedBuildHistoryName,
+		List<String> metricNames, String tableName) {
 
 		JSONArray jsonArray = new JSONArray();
 
@@ -376,10 +383,10 @@ public class BuildHistoryReport {
 			jsonArray.putAll(tableJSONArray);
 		}
 
-		return "var " + tableName + " = " + jsonArray.toString();
+		return "var " + tableName + " = " + jsonArray.toString() + ";\n";
 	}
 
-	private static String _getTimelineDataJSFileContent(
+	private static String _getTimelineDataJavaScriptVariable(
 		Collection<BuildHistory> buildHistories, long duration,
 		long startTime) {
 
@@ -413,6 +420,28 @@ public class BuildHistoryReport {
 		}
 	}
 
+	private static String _getWeeklyServerDurationJavaScriptVariable() {
+		StringBuilder sb = new StringBuilder();
+
+		try {
+			long maxNodeCount = Long.parseLong(
+				JenkinsResultsParserUtil.getBuildProperty(
+					"report.ci.max.node.count"));
+
+			if (maxNodeCount != 0) {
+				sb.append("var maxWeeklyServerDurationMillis = ");
+				sb.append(maxNodeCount * 7 * 24 * 60 * 60 * 1000);
+				sb.append(";\n");
+			}
+		}
+		catch (IOException ioException) {
+			System.out.println(
+				"Unable to get build property \"report.ci.max.node.count\"");
+		}
+
+		return sb.toString();
+	}
+
 	private static BuildHistoryReport _newTestSuiteReport(
 		long durationDays, Pattern jobNamePattern, File outputDir,
 		String reportName, String startDateString) {
@@ -432,7 +461,7 @@ public class BuildHistoryReport {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append(
-			_getTableDataJSFileContent(
+			_getTableDataJavaScriptVariable(
 				buildHistories, "Test Suite Name", 1, "[Total]"));
 
 		sb.append("\nvar reportName = \"");
@@ -441,7 +470,7 @@ public class BuildHistoryReport {
 
 		sb.append("\";");
 
-		buildHistoryReport.addFile("js/table-data.js", sb.toString());
+		buildHistoryReport.addFile(sb.toString(), "js/table-data.js");
 
 		return buildHistoryReport;
 	}

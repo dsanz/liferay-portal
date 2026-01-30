@@ -68,16 +68,17 @@ public class CookiesBannerDisplayContext
 	}
 
 	public Map<String, Object> getContext(Locale locale) {
-		LocalizedValuesMap titleLocalizedValuesMap =
-			cookiesConsentConfiguration.title();
-
 		return HashMapBuilder.<String, Object>put(
 			"configurationNamespace",
 			CookiesBannerPortletKeys.COOKIES_BANNER_CONFIGURATION
 		).put(
 			"configurationURL", getConfigurationURL()
 		).put(
+			"consentRenewalPeriod", getConsentRenewalPeriod()
+		).put(
 			"includeDeclineAllButton", isIncludeDeclineAllButton()
+		).put(
+			"modifiedDate", getModifiedDate()
 		).put(
 			"optionalConsentCookieTypeNames",
 			getConsentCookieTypeNamesJSONArray(getOptionalConsentCookieTypes())
@@ -85,7 +86,13 @@ public class CookiesBannerDisplayContext
 			"requiredConsentCookieTypeNames",
 			getConsentCookieTypeNamesJSONArray(getRequiredConsentCookieTypes())
 		).put(
-			"title", titleLocalizedValuesMap.get(locale)
+			"title",
+			() -> {
+				LocalizedValuesMap titleLocalizedValuesMap =
+					cookiesConsentConfiguration.title();
+
+				return titleLocalizedValuesMap.get(locale);
+			}
 		).build();
 	}
 

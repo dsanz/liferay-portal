@@ -322,7 +322,7 @@ public class PageExperience implements Serializable {
 	private Supplier<String> _pageSpecificationExternalReferenceCodeSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "the experience's priority. It must be a unique value within the page specification. The default experience will always be assigned priority 0. A priority higher than 0 will result in an experience being active and a priority lower than 0 will result in an experience being inactive."
+		description = "The experience's priority. It must be a unique value within the page specification. The default experience will always be assigned priority 0. A priority higher than 0 will result in an experience being active and a priority lower than 0 will result in an experience being inactive."
 	)
 	public Integer getPriority() {
 		if (_prioritySupplier != null) {
@@ -358,7 +358,7 @@ public class PageExperience implements Serializable {
 	}
 
 	@GraphQLField(
-		description = "the experience's priority. It must be a unique value within the page specification. The default experience will always be assigned priority 0. A priority higher than 0 will result in an experience being active and a priority lower than 0 will result in an experience being inactive."
+		description = "The experience's priority. It must be a unique value within the page specification. The default experience will always be assigned priority 0. A priority higher than 0 will result in an experience being active and a priority lower than 0 will result in an experience being inactive."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Integer priority;
@@ -367,35 +367,36 @@ public class PageExperience implements Serializable {
 	private Supplier<Integer> _prioritySupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "The segment's external reference code."
+		description = "The segment's item external reference."
 	)
-	public String getSegmentExternalReferenceCode() {
-		if (_segmentExternalReferenceCodeSupplier != null) {
-			segmentExternalReferenceCode =
-				_segmentExternalReferenceCodeSupplier.get();
+	@Valid
+	public ItemExternalReference getSegmentItemExternalReference() {
+		if (_segmentItemExternalReferenceSupplier != null) {
+			segmentItemExternalReference =
+				_segmentItemExternalReferenceSupplier.get();
 
-			_segmentExternalReferenceCodeSupplier = null;
+			_segmentItemExternalReferenceSupplier = null;
 		}
 
-		return segmentExternalReferenceCode;
+		return segmentItemExternalReference;
 	}
 
-	public void setSegmentExternalReferenceCode(
-		String segmentExternalReferenceCode) {
+	public void setSegmentItemExternalReference(
+		ItemExternalReference segmentItemExternalReference) {
 
-		this.segmentExternalReferenceCode = segmentExternalReferenceCode;
+		this.segmentItemExternalReference = segmentItemExternalReference;
 
-		_segmentExternalReferenceCodeSupplier = null;
+		_segmentItemExternalReferenceSupplier = null;
 	}
 
 	@JsonIgnore
-	public void setSegmentExternalReferenceCode(
-		UnsafeSupplier<String, Exception>
-			segmentExternalReferenceCodeUnsafeSupplier) {
+	public void setSegmentItemExternalReference(
+		UnsafeSupplier<ItemExternalReference, Exception>
+			segmentItemExternalReferenceUnsafeSupplier) {
 
-		_segmentExternalReferenceCodeSupplier = () -> {
+		_segmentItemExternalReferenceSupplier = () -> {
 			try {
-				return segmentExternalReferenceCodeUnsafeSupplier.get();
+				return segmentItemExternalReferenceUnsafeSupplier.get();
 			}
 			catch (RuntimeException runtimeException) {
 				throw runtimeException;
@@ -406,12 +407,56 @@ public class PageExperience implements Serializable {
 		};
 	}
 
-	@GraphQLField(description = "The segment's external reference code.")
+	@GraphQLField(description = "The segment's item external reference.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	protected String segmentExternalReferenceCode;
+	protected ItemExternalReference segmentItemExternalReference;
 
 	@JsonIgnore
-	private Supplier<String> _segmentExternalReferenceCodeSupplier;
+	private Supplier<ItemExternalReference>
+		_segmentItemExternalReferenceSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "A valid external identifier to reference this page experience."
+	)
+	public String getUuid() {
+		if (_uuidSupplier != null) {
+			uuid = _uuidSupplier.get();
+
+			_uuidSupplier = null;
+		}
+
+		return uuid;
+	}
+
+	public void setUuid(String uuid) {
+		this.uuid = uuid;
+
+		_uuidSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setUuid(UnsafeSupplier<String, Exception> uuidUnsafeSupplier) {
+		_uuidSupplier = () -> {
+			try {
+				return uuidUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(
+		description = "A valid external identifier to reference this page experience."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String uuid;
+
+	@JsonIgnore
+	private Supplier<String> _uuidSupplier;
 
 	@Override
 	public boolean equals(Object object) {
@@ -557,18 +602,31 @@ public class PageExperience implements Serializable {
 			sb.append(priority);
 		}
 
-		String segmentExternalReferenceCode = getSegmentExternalReferenceCode();
+		ItemExternalReference segmentItemExternalReference =
+			getSegmentItemExternalReference();
 
-		if (segmentExternalReferenceCode != null) {
+		if (segmentItemExternalReference != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
 			}
 
-			sb.append("\"segmentExternalReferenceCode\": ");
+			sb.append("\"segmentItemExternalReference\": ");
+
+			sb.append(String.valueOf(segmentItemExternalReference));
+		}
+
+		String uuid = getUuid();
+
+		if (uuid != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"uuid\": ");
 
 			sb.append("\"");
 
-			sb.append(_escape(segmentExternalReferenceCode));
+			sb.append(_escape(uuid));
 
 			sb.append("\"");
 		}

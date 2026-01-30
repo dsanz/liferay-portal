@@ -1,19 +1,19 @@
 {
 	"dependencies": {
-		"@clayui/alert": "3.148.0",
-		"@clayui/badge": "3.144.1",
-		"@clayui/button": "3.144.1",
-		"@clayui/date-picker": "3.149.1",
-		"@clayui/drop-down": "3.149.0",
-		"@clayui/empty-state": "3.144.1",
-		"@clayui/form": "3.148.0",
-		"@clayui/icon": "3.144.1",
-		"@clayui/label": "3.144.1",
-		"@clayui/layout": "3.144.1",
-		"@clayui/link": "3.144.1",
-		"@clayui/loading-indicator": "3.144.1",
-		"@clayui/localized-input": "3.149.0",
-		"@clayui/panel": "3.148.0",
+		"@clayui/alert": "*",
+		"@clayui/badge": "*",
+		"@clayui/button": "*",
+		"@clayui/date-picker": "*",
+		"@clayui/drop-down": "*",
+		"@clayui/empty-state": "*",
+		"@clayui/form": "*",
+		"@clayui/icon": "*",
+		"@clayui/label": "*",
+		"@clayui/layout": "*",
+		"@clayui/link": "*",
+		"@clayui/loading-indicator": "*",
+		"@clayui/localized-input": "*",
+		"@clayui/panel": "*",
 		"@liferay/frontend-js-react-web": "*",
 		"@liferay/layout-js-components-web": "*",
 		"classnames": "2.3.1",
@@ -42,5 +42,5 @@
 		"test": "USE_REACT_16=true node-scripts test",
 		"test:watch": "USE_REACT_16=true node-scripts test --watch"
 	},
-	"version": "3.0.149"
+	"version": "3.0.153"
 }

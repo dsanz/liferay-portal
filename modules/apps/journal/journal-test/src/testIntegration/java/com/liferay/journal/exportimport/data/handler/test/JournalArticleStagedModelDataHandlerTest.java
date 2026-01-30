@@ -51,6 +51,7 @@ import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocal
 import com.liferay.layout.page.template.test.util.DisplayPageTemplateTestUtil;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.layout.util.structure.LayoutStructure;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -138,59 +139,63 @@ public class JournalArticleStagedModelDataHandlerTest
 			portletDataContext, journalArticle, layout,
 			PortletDataContext.REFERENCE_TYPE_DEPENDENCY);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				journalArticle);
 
-		StagedModel exportedStagedModel = readExportedStagedModel(
-			journalArticle);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			ExportImportThreadLocal.setPortletImportInProcess(true);
 
-		ExportImportThreadLocal.setPortletImportInProcess(true);
+			StagedModelDataHandler<Layout>
+				originalLayoutStagedModelDataHandler =
+					(StagedModelDataHandler<Layout>)
+						StagedModelDataHandlerRegistryUtil.
+							getStagedModelDataHandler(Layout.class.getName());
 
-		StagedModelDataHandler<Layout> originalLayoutStagedModelDataHandler =
-			(StagedModelDataHandler<Layout>)
-				StagedModelDataHandlerRegistryUtil.getStagedModelDataHandler(
-					Layout.class.getName());
+			TestLayoutStagedModelDataHandler testLayoutStagedModelDataHandler =
+				new TestLayoutStagedModelDataHandler(
+					originalLayoutStagedModelDataHandler);
 
-		TestLayoutStagedModelDataHandler testLayoutStagedModelDataHandler =
-			new TestLayoutStagedModelDataHandler(
-				originalLayoutStagedModelDataHandler);
+			Bundle bundle = FrameworkUtil.getBundle(getClass());
 
-		Bundle bundle = FrameworkUtil.getBundle(getClass());
+			BundleContext bundleContext = bundle.getBundleContext();
 
-		BundleContext bundleContext = bundle.getBundleContext();
+			ServiceRegistration<?> serviceRegistration =
+				bundleContext.registerService(
+					StagedModelDataHandler.class,
+					testLayoutStagedModelDataHandler,
+					MapUtil.singletonDictionary("service.ranking", 100));
 
-		ServiceRegistration<?> serviceRegistration =
-			bundleContext.registerService(
-				StagedModelDataHandler.class, testLayoutStagedModelDataHandler,
-				MapUtil.singletonDictionary("service.ranking", 100));
+			try {
+				StagedModelDataHandlerUtil.importStagedModel(
+					portletDataContext, exportedStagedModel);
+			}
+			finally {
+				ExportImportThreadLocal.setPortletImportInProcess(false);
 
-		try {
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, exportedStagedModel);
+				serviceRegistration.unregister();
+			}
+
+			JournalArticle importJournalArticle =
+				JournalArticleLocalServiceUtil.
+					fetchJournalArticleByUuidAndGroupId(
+						journalArticle.getUuid(), liveGroup.getGroupId());
+
+			Assert.assertNotNull(importJournalArticle);
+
+			Map<Long, Long> primaryKeys =
+				testLayoutStagedModelDataHandler.getPrimaryKeys();
+
+			Assert.assertNotNull(primaryKeys);
+
+			long importedResourcePrimKey = MapUtil.getLong(
+				primaryKeys, journalArticle.getResourcePrimKey());
+
+			Assert.assertEquals(
+				importJournalArticle.getResourcePrimKey(),
+				importedResourcePrimKey);
 		}
-		finally {
-			ExportImportThreadLocal.setPortletImportInProcess(false);
-
-			serviceRegistration.unregister();
-		}
-
-		JournalArticle importJournalArticle =
-			JournalArticleLocalServiceUtil.fetchJournalArticleByUuidAndGroupId(
-				journalArticle.getUuid(), liveGroup.getGroupId());
-
-		Assert.assertNotNull(importJournalArticle);
-
-		Map<Long, Long> primaryKeys =
-			testLayoutStagedModelDataHandler.getPrimaryKeys();
-
-		Assert.assertNotNull(primaryKeys);
-
-		long importedResourcePrimKey = MapUtil.getLong(
-			primaryKeys, journalArticle.getResourcePrimKey());
-
-		Assert.assertEquals(
-			importJournalArticle.getResourcePrimKey(), importedResourcePrimKey);
 	}
 
 	@Test
@@ -204,34 +209,35 @@ public class JournalArticleStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, journalArticle);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				journalArticle);
 
-		StagedModel exportedStagedModel = readExportedStagedModel(
-			journalArticle);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			boolean portletImportInProcess =
+				ExportImportThreadLocal.isPortletImportInProcess();
 
-		boolean portletImportInProcess =
-			ExportImportThreadLocal.isPortletImportInProcess();
+			try {
+				ExportImportThreadLocal.setPortletImportInProcess(true);
 
-		try {
-			ExportImportThreadLocal.setPortletImportInProcess(true);
+				StagedModelDataHandlerUtil.importStagedModel(
+					portletDataContext, exportedStagedModel);
+			}
+			finally {
+				ExportImportThreadLocal.setPortletImportInProcess(
+					portletImportInProcess);
+			}
 
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, exportedStagedModel);
+			JournalArticle importedJournalArticle =
+				JournalArticleLocalServiceUtil.
+					fetchJournalArticleByUuidAndGroupId(
+						journalArticle.getUuid(), liveGroup.getGroupId());
+
+			Assert.assertEquals(
+				journalArticle.getExternalReferenceCode(),
+				importedJournalArticle.getExternalReferenceCode());
 		}
-		finally {
-			ExportImportThreadLocal.setPortletImportInProcess(
-				portletImportInProcess);
-		}
-
-		JournalArticle importedJournalArticle =
-			JournalArticleLocalServiceUtil.fetchJournalArticleByUuidAndGroupId(
-				journalArticle.getUuid(), liveGroup.getGroupId());
-
-		Assert.assertEquals(
-			journalArticle.getExternalReferenceCode(),
-			importedJournalArticle.getExternalReferenceCode());
 
 		initExport();
 
@@ -241,33 +247,35 @@ public class JournalArticleStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, journalArticle);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				journalArticle);
 
-		exportedStagedModel = readExportedStagedModel(journalArticle);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			boolean portletImportInProcess =
+				ExportImportThreadLocal.isPortletImportInProcess();
 
-		portletImportInProcess =
-			ExportImportThreadLocal.isPortletImportInProcess();
+			try {
+				ExportImportThreadLocal.setPortletImportInProcess(true);
 
-		try {
-			ExportImportThreadLocal.setPortletImportInProcess(true);
+				StagedModelDataHandlerUtil.importStagedModel(
+					portletDataContext, exportedStagedModel);
+			}
+			finally {
+				ExportImportThreadLocal.setPortletImportInProcess(
+					portletImportInProcess);
+			}
 
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, exportedStagedModel);
+			JournalArticle importedJournalArticle =
+				JournalArticleLocalServiceUtil.
+					fetchJournalArticleByUuidAndGroupId(
+						journalArticle.getUuid(), liveGroup.getGroupId());
+
+			Assert.assertEquals(
+				journalArticle.getExternalReferenceCode(),
+				importedJournalArticle.getExternalReferenceCode());
 		}
-		finally {
-			ExportImportThreadLocal.setPortletImportInProcess(
-				portletImportInProcess);
-		}
-
-		importedJournalArticle =
-			JournalArticleLocalServiceUtil.fetchJournalArticleByUuidAndGroupId(
-				journalArticle.getUuid(), liveGroup.getGroupId());
-
-		Assert.assertEquals(
-			journalArticle.getExternalReferenceCode(),
-			importedJournalArticle.getExternalReferenceCode());
 	}
 
 	@Test
@@ -287,64 +295,69 @@ public class JournalArticleStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, journalArticle);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				journalArticle);
 
-		StagedModel exportedStagedModel = readExportedStagedModel(
-			journalArticle);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			try {
+				ExportImportThreadLocal.setPortletImportInProcess(true);
 
-		try {
-			ExportImportThreadLocal.setPortletImportInProcess(true);
+				StagedModelDataHandlerUtil.importStagedModel(
+					portletDataContext, exportedStagedModel);
+			}
+			finally {
+				ExportImportThreadLocal.setPortletImportInProcess(false);
+			}
 
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, exportedStagedModel);
+			JournalArticle importJournalArticle =
+				JournalArticleLocalServiceUtil.
+					fetchJournalArticleByUuidAndGroupId(
+						journalArticle.getUuid(), liveGroup.getGroupId());
+
+			importJournalArticle.setExternalReferenceCode(
+				RandomTestUtil.randomString());
+
+			importJournalArticle =
+				_journalArticleLocalService.updateJournalArticle(
+					importJournalArticle);
+
+			Assert.assertNotEquals(
+				journalArticle,
+				importJournalArticle.getExternalReferenceCode());
 		}
-		finally {
-			ExportImportThreadLocal.setPortletImportInProcess(false);
-		}
-
-		JournalArticle importJournalArticle =
-			JournalArticleLocalServiceUtil.fetchJournalArticleByUuidAndGroupId(
-				journalArticle.getUuid(), liveGroup.getGroupId());
-
-		importJournalArticle.setExternalReferenceCode(
-			RandomTestUtil.randomString());
-
-		importJournalArticle = _journalArticleLocalService.updateJournalArticle(
-			importJournalArticle);
-
-		Assert.assertNotEquals(
-			journalArticle, importJournalArticle.getExternalReferenceCode());
 
 		initExport();
 
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, journalArticle);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				journalArticle);
 
-		exportedStagedModel = readExportedStagedModel(journalArticle);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			try {
+				ExportImportThreadLocal.setPortletImportInProcess(true);
 
-		try {
-			ExportImportThreadLocal.setPortletImportInProcess(true);
+				StagedModelDataHandlerUtil.importStagedModel(
+					portletDataContext, exportedStagedModel);
+			}
+			finally {
+				ExportImportThreadLocal.setPortletImportInProcess(false);
+			}
 
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, exportedStagedModel);
+			JournalArticle importJournalArticle =
+				JournalArticleLocalServiceUtil.
+					fetchJournalArticleByUuidAndGroupId(
+						journalArticle.getUuid(), liveGroup.getGroupId());
+
+			Assert.assertEquals(
+				journalArticle.getExternalReferenceCode(),
+				importJournalArticle.getExternalReferenceCode());
 		}
-		finally {
-			ExportImportThreadLocal.setPortletImportInProcess(false);
-		}
-
-		importJournalArticle =
-			JournalArticleLocalServiceUtil.fetchJournalArticleByUuidAndGroupId(
-				journalArticle.getUuid(), liveGroup.getGroupId());
-
-		Assert.assertEquals(
-			journalArticle.getExternalReferenceCode(),
-			importJournalArticle.getExternalReferenceCode());
 	}
 
 	@Test
@@ -378,30 +391,32 @@ public class JournalArticleStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, journalArticle);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				journalArticle);
 
-		StagedModel exportedStagedModel = readExportedStagedModel(
-			journalArticle);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			ExportImportThreadLocal.setPortletImportInProcess(true);
 
-		ExportImportThreadLocal.setPortletImportInProcess(true);
+			try {
+				StagedModelDataHandlerUtil.importStagedModel(
+					portletDataContext, exportedStagedModel);
+			}
+			finally {
+				ExportImportThreadLocal.setPortletImportInProcess(false);
+			}
 
-		try {
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, exportedStagedModel);
+			importJournalArticle =
+				JournalArticleLocalServiceUtil.
+					fetchJournalArticleByUuidAndGroupId(
+						journalArticle.getUuid(), liveGroup.getGroupId());
+
+			Assert.assertNotNull(importJournalArticle);
+			Assert.assertEquals(
+				journalArticle.getVersion(), importJournalArticle.getVersion(),
+				0D);
 		}
-		finally {
-			ExportImportThreadLocal.setPortletImportInProcess(false);
-		}
-
-		importJournalArticle =
-			JournalArticleLocalServiceUtil.fetchJournalArticleByUuidAndGroupId(
-				journalArticle.getUuid(), liveGroup.getGroupId());
-
-		Assert.assertNotNull(importJournalArticle);
-		Assert.assertEquals(
-			journalArticle.getVersion(), importJournalArticle.getVersion(), 0D);
 	}
 
 	@Test
@@ -445,7 +460,8 @@ public class JournalArticleStagedModelDataHandlerTest
 		FragmentEntryLink fragmentEntryLink =
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
 				null, layoutPageTemplateStructure.getUserId(),
-				stagingGroup.getGroupId(), 0, 0, defaultSegmentsExperienceId,
+				stagingGroup.getGroupId(), null, null, null,
+				defaultSegmentsExperienceId,
 				layoutPageTemplateStructure.getPlid(), StringPool.BLANK,
 				StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
 				JSONUtil.put(
@@ -493,36 +509,37 @@ public class JournalArticleStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, journalArticle);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				journalArticle);
 
-		StagedModel exportedStagedModel = readExportedStagedModel(
-			journalArticle);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			boolean portletImportInProcess =
+				ExportImportThreadLocal.isPortletImportInProcess();
 
-		boolean portletImportInProcess =
-			ExportImportThreadLocal.isPortletImportInProcess();
+			try {
+				ExportImportThreadLocal.setPortletImportInProcess(true);
 
-		try {
-			ExportImportThreadLocal.setPortletImportInProcess(true);
+				StagedModelDataHandlerUtil.importStagedModel(
+					portletDataContext, exportedStagedModel);
+			}
+			finally {
+				ExportImportThreadLocal.setPortletImportInProcess(
+					portletImportInProcess);
+			}
 
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, exportedStagedModel);
+			JournalArticle importedJournalArticle =
+				JournalArticleLocalServiceUtil.
+					fetchJournalArticleByUuidAndGroupId(
+						journalArticle.getUuid(), liveGroup.getGroupId());
+
+			Assert.assertNotNull(
+				_assetDisplayPageEntryLocalService.fetchAssetDisplayPageEntry(
+					liveGroup.getGroupId(),
+					_portal.getClassNameId(JournalArticle.class.getName()),
+					importedJournalArticle.getResourcePrimKey()));
 		}
-		finally {
-			ExportImportThreadLocal.setPortletImportInProcess(
-				portletImportInProcess);
-		}
-
-		JournalArticle importedJournalArticle =
-			JournalArticleLocalServiceUtil.fetchJournalArticleByUuidAndGroupId(
-				journalArticle.getUuid(), liveGroup.getGroupId());
-
-		Assert.assertNotNull(
-			_assetDisplayPageEntryLocalService.fetchAssetDisplayPageEntry(
-				liveGroup.getGroupId(),
-				_portal.getClassNameId(JournalArticle.class.getName()),
-				importedJournalArticle.getResourcePrimKey()));
 	}
 
 	@Test
@@ -584,7 +601,8 @@ public class JournalArticleStagedModelDataHandlerTest
 		FragmentEntryLink fragmentEntryLink =
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
 				null, layoutPageTemplateStructure.getUserId(),
-				stagingGroup.getGroupId(), 0, 0, defaultSegmentsExperienceId,
+				stagingGroup.getGroupId(), null, null, null,
+				defaultSegmentsExperienceId,
 				layoutPageTemplateStructure.getPlid(), StringPool.BLANK,
 				StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
 				JSONUtil.put(
@@ -632,60 +650,64 @@ public class JournalArticleStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, journalArticle);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				journalArticle);
 
-		StagedModel exportedStagedModel = readExportedStagedModel(
-			journalArticle);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			boolean portletImportInProcess =
+				ExportImportThreadLocal.isPortletImportInProcess();
 
-		boolean portletImportInProcess =
-			ExportImportThreadLocal.isPortletImportInProcess();
+			try {
+				ExportImportThreadLocal.setPortletImportInProcess(true);
 
-		try {
-			ExportImportThreadLocal.setPortletImportInProcess(true);
+				StagedModelDataHandlerUtil.importStagedModel(
+					portletDataContext, exportedStagedModel);
+			}
+			finally {
+				ExportImportThreadLocal.setPortletImportInProcess(
+					portletImportInProcess);
+			}
 
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, exportedStagedModel);
+			JournalArticle importedJournalArticle =
+				JournalArticleLocalServiceUtil.
+					fetchJournalArticleByUuidAndGroupId(
+						journalArticle.getUuid(), liveGroup.getGroupId());
+
+			Assert.assertNotNull(importedJournalArticle);
+
+			LayoutPageTemplateEntry importedLayoutPageTemplateEntry =
+				_layoutPageTemplateEntryLocalService.
+					fetchLayoutPageTemplateEntry(
+						liveGroup.getGroupId(),
+						layoutPageTemplateEntry.
+							getLayoutPageTemplateEntryKey());
+
+			Assert.assertNotNull(importedLayoutPageTemplateEntry);
+
+			LayoutPageTemplateStructure importedLayoutPageTemplateStructure =
+				_layoutPageTemplateStructureLocalService.
+					fetchLayoutPageTemplateStructure(
+						liveGroup.getGroupId(),
+						importedLayoutPageTemplateEntry.getPlid());
+
+			Assert.assertNotNull(importedLayoutPageTemplateStructure);
+
+			PortletPreferences importedPortletPreferences =
+				_portletPreferencesLocalService.getPreferences(
+					stagingGroup.getCompanyId(),
+					PortletKeys.PREFS_OWNER_ID_DEFAULT,
+					PortletKeys.PREFS_OWNER_TYPE_LAYOUT,
+					importedLayoutPageTemplateEntry.getPlid(),
+					JournalContentPortletKeys.JOURNAL_CONTENT);
+
+			Assert.assertNotNull(importedPortletPreferences);
+			Assert.assertEquals(
+				importedJournalArticle.getExternalReferenceCode(),
+				importedPortletPreferences.getValue(
+					"articleExternalReferenceCode", null));
 		}
-		finally {
-			ExportImportThreadLocal.setPortletImportInProcess(
-				portletImportInProcess);
-		}
-
-		JournalArticle importedJournalArticle =
-			JournalArticleLocalServiceUtil.fetchJournalArticleByUuidAndGroupId(
-				journalArticle.getUuid(), liveGroup.getGroupId());
-
-		Assert.assertNotNull(importedJournalArticle);
-
-		LayoutPageTemplateEntry importedLayoutPageTemplateEntry =
-			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
-				liveGroup.getGroupId(),
-				layoutPageTemplateEntry.getLayoutPageTemplateEntryKey());
-
-		Assert.assertNotNull(importedLayoutPageTemplateEntry);
-
-		LayoutPageTemplateStructure importedLayoutPageTemplateStructure =
-			_layoutPageTemplateStructureLocalService.
-				fetchLayoutPageTemplateStructure(
-					liveGroup.getGroupId(),
-					importedLayoutPageTemplateEntry.getPlid());
-
-		Assert.assertNotNull(importedLayoutPageTemplateStructure);
-
-		PortletPreferences importedPortletPreferences =
-			_portletPreferencesLocalService.getPreferences(
-				stagingGroup.getCompanyId(), PortletKeys.PREFS_OWNER_ID_DEFAULT,
-				PortletKeys.PREFS_OWNER_TYPE_LAYOUT,
-				importedLayoutPageTemplateEntry.getPlid(),
-				JournalContentPortletKeys.JOURNAL_CONTENT);
-
-		Assert.assertNotNull(importedPortletPreferences);
-		Assert.assertEquals(
-			importedJournalArticle.getExternalReferenceCode(),
-			importedPortletPreferences.getValue(
-				"articleExternalReferenceCode", null));
 	}
 
 	@Override
@@ -714,16 +736,18 @@ public class JournalArticleStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, stagedModel);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				stagedModel);
 
-		StagedModel exportedStagedModel = readExportedStagedModel(stagedModel);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedStagedModel);
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedStagedModel);
-
-		validateCompanyDependenciesImport(dependentStagedModelsMap, liveGroup);
+			validateCompanyDependenciesImport(
+				dependentStagedModelsMap, liveGroup);
+		}
 	}
 
 	@Test
@@ -737,29 +761,32 @@ public class JournalArticleStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, journalArticle);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				journalArticle);
 
-		StagedModel exportedStagedModel = readExportedStagedModel(
-			journalArticle);
+			portletDataContext.setDataStrategy(
+				PortletDataHandlerKeys.DATA_STRATEGY_COPY_AS_NEW);
 
-		portletDataContext.setDataStrategy(
-			PortletDataHandlerKeys.DATA_STRATEGY_COPY_AS_NEW);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedStagedModel);
+		}
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedStagedModel);
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				journalArticle);
 
-		initImport();
+			portletDataContext.setDataStrategy(
+				PortletDataHandlerKeys.DATA_STRATEGY_COPY_AS_NEW);
 
-		portletDataContext.setDataStrategy(
-			PortletDataHandlerKeys.DATA_STRATEGY_COPY_AS_NEW);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedStagedModel);
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedStagedModel);
+			List<JournalArticle> articles =
+				_journalArticleLocalService.getArticles(liveGroup.getGroupId());
 
-		List<JournalArticle> articles = _journalArticleLocalService.getArticles(
-			liveGroup.getGroupId());
-
-		Assert.assertEquals(articles.toString(), 2, articles.size());
+			Assert.assertEquals(articles.toString(), 2, articles.size());
+		}
 	}
 
 	@Test
@@ -809,35 +836,37 @@ public class JournalArticleStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, journalArticle);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				journalArticle);
 
-		StagedModel exportedStagedModel = readExportedStagedModel(
-			journalArticle);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			boolean portletImportInProcess =
+				ExportImportThreadLocal.isPortletImportInProcess();
 
-		boolean portletImportInProcess =
-			ExportImportThreadLocal.isPortletImportInProcess();
+			try {
+				ExportImportThreadLocal.setPortletImportInProcess(true);
 
-		try {
-			ExportImportThreadLocal.setPortletImportInProcess(true);
+				StagedModelDataHandlerUtil.importStagedModel(
+					portletDataContext, exportedStagedModel);
+			}
+			finally {
+				ExportImportThreadLocal.setPortletImportInProcess(
+					portletImportInProcess);
+			}
 
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, exportedStagedModel);
+			JournalArticle importJournalArticle =
+				JournalArticleLocalServiceUtil.
+					fetchJournalArticleByUuidAndGroupId(
+						journalArticle.getUuid(), liveGroup.getGroupId());
+
+			Assert.assertNotNull(importJournalArticle);
+
+			Assert.assertEquals(
+				WorkflowConstants.STATUS_EXPIRED,
+				importJournalArticle.getStatus());
 		}
-		finally {
-			ExportImportThreadLocal.setPortletImportInProcess(
-				portletImportInProcess);
-		}
-
-		JournalArticle importJournalArticle =
-			JournalArticleLocalServiceUtil.fetchJournalArticleByUuidAndGroupId(
-				journalArticle.getUuid(), liveGroup.getGroupId());
-
-		Assert.assertNotNull(importJournalArticle);
-
-		Assert.assertEquals(
-			WorkflowConstants.STATUS_EXPIRED, importJournalArticle.getStatus());
 	}
 
 	@Test
@@ -874,40 +903,41 @@ public class JournalArticleStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, journalArticle);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				journalArticle);
 
-		StagedModel exportedStagedModel = readExportedStagedModel(
-			journalArticle);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			ExportImportThreadLocal.setPortletImportInProcess(true);
 
-		ExportImportThreadLocal.setPortletImportInProcess(true);
+			try {
+				StagedModelDataHandlerUtil.importStagedModel(
+					portletDataContext, exportedStagedModel);
+			}
+			finally {
+				ExportImportThreadLocal.setPortletImportInProcess(false);
+			}
 
-		try {
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, exportedStagedModel);
+			JournalArticle importedJournalArticle =
+				JournalArticleLocalServiceUtil.
+					fetchJournalArticleByUuidAndGroupId(
+						journalArticle.getUuid(), liveGroup.getGroupId());
+
+			Assert.assertNotNull(importedJournalArticle);
+
+			String content = journalArticle.getContent();
+
+			String liveGroupDLFileEntryFriendlyURL = StringBundler.concat(
+				"http://localhost:8080/documents/d", liveGroup.getFriendlyURL(),
+				StringPool.SLASH, mainFriendlyURLEntry.getUrlTitle());
+
+			Assert.assertEquals(
+				content.replaceAll(
+					stagingGroupDLFileEntryFriendlyURL,
+					liveGroupDLFileEntryFriendlyURL),
+				importedJournalArticle.getContent());
 		}
-		finally {
-			ExportImportThreadLocal.setPortletImportInProcess(false);
-		}
-
-		JournalArticle importedJournalArticle =
-			JournalArticleLocalServiceUtil.fetchJournalArticleByUuidAndGroupId(
-				journalArticle.getUuid(), liveGroup.getGroupId());
-
-		Assert.assertNotNull(importedJournalArticle);
-
-		String content = journalArticle.getContent();
-
-		String liveGroupDLFileEntryFriendlyURL = StringBundler.concat(
-			"http://localhost:8080/documents/d", liveGroup.getFriendlyURL(),
-			StringPool.SLASH, mainFriendlyURLEntry.getUrlTitle());
-
-		Assert.assertEquals(
-			content.replaceAll(
-				stagingGroupDLFileEntryFriendlyURL,
-				liveGroupDLFileEntryFriendlyURL),
-			importedJournalArticle.getContent());
 	}
 
 	@Test
@@ -944,33 +974,35 @@ public class JournalArticleStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, journalArticle);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				journalArticle);
 
-		StagedModel exportedStagedModel = readExportedStagedModel(
-			journalArticle);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			ExportImportThreadLocal.setPortletImportInProcess(true);
 
-		ExportImportThreadLocal.setPortletImportInProcess(true);
+			try {
+				StagedModelDataHandlerUtil.importStagedModel(
+					portletDataContext, exportedStagedModel);
+			}
+			finally {
+				ExportImportThreadLocal.setPortletImportInProcess(false);
+			}
 
-		try {
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, exportedStagedModel);
+			JournalArticle importJournalArticle =
+				JournalArticleLocalServiceUtil.
+					fetchJournalArticleByUuidAndGroupId(
+						journalArticle.getUuid(), liveGroup.getGroupId());
+
+			Assert.assertNotNull(importJournalArticle);
+			Assert.assertEquals(
+				journalArticle.getArticleId(),
+				importJournalArticle.getArticleId());
+			Assert.assertNotEquals(
+				journalArticle.getArticleResourceUuid(),
+				importJournalArticle.getArticleResourceUuid());
 		}
-		finally {
-			ExportImportThreadLocal.setPortletImportInProcess(false);
-		}
-
-		JournalArticle importJournalArticle =
-			JournalArticleLocalServiceUtil.fetchJournalArticleByUuidAndGroupId(
-				journalArticle.getUuid(), liveGroup.getGroupId());
-
-		Assert.assertNotNull(importJournalArticle);
-		Assert.assertEquals(
-			journalArticle.getArticleId(), importJournalArticle.getArticleId());
-		Assert.assertNotEquals(
-			journalArticle.getArticleResourceUuid(),
-			importJournalArticle.getArticleResourceUuid());
 	}
 
 	@Test
@@ -990,33 +1022,34 @@ public class JournalArticleStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, journalArticle);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				journalArticle);
 
-		StagedModel exportedStagedModel = readExportedStagedModel(
-			journalArticle);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			try {
+				ExportImportThreadLocal.setPortletImportInProcess(true);
 
-		try {
-			ExportImportThreadLocal.setPortletImportInProcess(true);
+				StagedModelDataHandlerUtil.importStagedModel(
+					portletDataContext, exportedStagedModel);
+			}
+			finally {
+				ExportImportThreadLocal.setPortletImportInProcess(false);
+			}
 
-			StagedModelDataHandlerUtil.importStagedModel(
-				portletDataContext, exportedStagedModel);
+			JournalArticle importJournalArticle =
+				JournalArticleLocalServiceUtil.
+					fetchJournalArticleByUuidAndGroupId(
+						journalArticle.getUuid(), liveGroup.getGroupId());
+
+			Assert.assertEquals(
+				journalArticle.getStatusByUserId(),
+				importJournalArticle.getStatusByUserId());
+			Assert.assertEquals(
+				journalArticle.getStatusByUserName(),
+				importJournalArticle.getStatusByUserName());
 		}
-		finally {
-			ExportImportThreadLocal.setPortletImportInProcess(false);
-		}
-
-		JournalArticle importJournalArticle =
-			JournalArticleLocalServiceUtil.fetchJournalArticleByUuidAndGroupId(
-				journalArticle.getUuid(), liveGroup.getGroupId());
-
-		Assert.assertEquals(
-			journalArticle.getStatusByUserId(),
-			importJournalArticle.getStatusByUserId());
-		Assert.assertEquals(
-			journalArticle.getStatusByUserName(),
-			importJournalArticle.getStatusByUserName());
 	}
 
 	public class TestLayoutStagedModelDataHandler

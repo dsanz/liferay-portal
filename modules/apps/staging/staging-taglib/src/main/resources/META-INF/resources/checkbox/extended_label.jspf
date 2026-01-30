@@ -11,6 +11,13 @@
 			<%= HtmlUtil.escape(label) %><%= separator %>
 		</strong>
 
+		<c:if test="<%= Validator.isNotNull(tag) %>">
+			<clay:label
+				displayType="primary"
+				label="<%= HtmlUtil.escape(tag) %>"
+			/>
+		</c:if>
+
 		<liferay-staging:popover
 			id="<%= popoverName %>"
 			text="<%= popoverText %>"
@@ -23,10 +30,6 @@
 
 		<c:if test="<%= deletions > 0 %>">
 			<span class="deletions staging-taglib-checkbox-deletions"><%= deletions + StringPool.SPACE + LanguageUtil.get(request, "deletions") %></span>
-		</c:if>
-
-		<c:if test="<%= Validator.isNotNull(description) %>">
-			<span class="staging-taglib-checkbox-description"><%= HtmlUtil.escape(description) %></span>
 		</c:if>
 
 		<c:if test="<%= Validator.isNotNull(warning) %>">

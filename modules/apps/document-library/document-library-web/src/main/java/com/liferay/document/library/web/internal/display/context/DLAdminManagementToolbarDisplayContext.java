@@ -400,6 +400,12 @@ public class DLAdminManagementToolbarDisplayContext
 
 	@Override
 	public Boolean getSupportsBulkActions() {
+		if (_dlAdminDisplayContext.isSearch() ||
+			_dlAdminDisplayContext.hasFilterParameters()) {
+
+			return false;
+		}
+
 		return true;
 	}
 
@@ -550,7 +556,7 @@ public class DLAdminManagementToolbarDisplayContext
 							"extension",
 							() -> ArrayUtil.remove(extensions, extension)));
 					labelItem.setCloseable(true);
-					labelItem.setLabel(_getLabel("extension", extension));
+					labelItem.setLabel(_getLabel("extension[file]", extension));
 				});
 		}
 	}

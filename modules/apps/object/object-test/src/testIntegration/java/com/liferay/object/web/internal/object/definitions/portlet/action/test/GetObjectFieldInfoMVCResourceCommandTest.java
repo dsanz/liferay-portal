@@ -7,41 +7,32 @@ package com.liferay.object.web.internal.object.definitions.portlet.action.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.object.constants.ObjectFieldConstants;
-import com.liferay.object.constants.ObjectPortletKeys;
+import com.liferay.object.constants.ObjectFieldSettingConstants;
 import com.liferay.object.constants.ObjectRelationshipConstants;
 import com.liferay.object.field.builder.FormulaObjectFieldBuilder;
+import com.liferay.object.field.builder.ObjectFieldBuilder;
 import com.liferay.object.field.setting.builder.ObjectFieldSettingBuilder;
 import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
-import com.liferay.object.service.ObjectFieldLocalService;
+import com.liferay.object.model.ObjectFieldSetting;
 import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.object.test.util.ObjectRelationshipTestUtil;
-import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.portlet.PortletConfigFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
-import com.liferay.portal.kernel.service.PortletLocalService;
-import com.liferay.portal.kernel.test.portlet.MockLiferayResourceRequest;
-import com.liferay.portal.kernel.test.portlet.MockLiferayResourceResponse;
-import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.test.rule.Inject;
-import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
-import java.io.ByteArrayOutputStream;
-
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
-import org.junit.ClassRule;
-import org.junit.Rule;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -52,14 +43,37 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
  * @author Carolina Barbosa
  */
 @RunWith(Arquillian.class)
-public class GetObjectFieldInfoMVCResourceCommandTest {
+public class GetObjectFieldInfoMVCResourceCommandTest
+	extends BaseMVCResourceCommandTestCase {
 
-	@ClassRule
-	@Rule
-	public static final AggregateTestRule aggregateTestRule =
-		new AggregateTestRule(
-			new LiferayIntegrationTestRule(),
-			PermissionCheckerMethodTestRule.INSTANCE);
+	@Test
+	public void testGetDefaultValueSidebarElementsObjectFieldInfo()
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			ObjectDefinitionTestUtil.addCustomObjectDefinition();
+
+		_assertDefaultValueSidebarElementsBooleanFunctions(objectDefinition);
+		_assertDefaultValueSidebarElementsDateFunctions(
+			ObjectFieldConstants.BUSINESS_TYPE_DATE, objectDefinition);
+		_assertDefaultValueSidebarElementsDateFunctions(
+			ObjectFieldConstants.BUSINESS_TYPE_DATE_TIME, objectDefinition);
+		_assertDefaultValueSidebarElementsEmptyFunctions(
+			ObjectFieldConstants.BUSINESS_TYPE_DECIMAL, objectDefinition);
+		_assertDefaultValueSidebarElementsEmptyFunctions(
+			ObjectFieldConstants.BUSINESS_TYPE_INTEGER, objectDefinition);
+		_assertDefaultValueSidebarElementsEmptyFunctions(
+			ObjectFieldConstants.BUSINESS_TYPE_LONG_INTEGER, objectDefinition);
+		_assertDefaultValueSidebarElementsEmptyFunctions(
+			ObjectFieldConstants.BUSINESS_TYPE_LONG_TEXT, objectDefinition);
+		_assertDefaultValueSidebarElementsEmptyFunctions(
+			ObjectFieldConstants.BUSINESS_TYPE_PRECISION_DECIMAL,
+			objectDefinition);
+		_assertDefaultValueSidebarElementsEmptyFunctions(
+			ObjectFieldConstants.BUSINESS_TYPE_RICH_TEXT, objectDefinition);
+		_assertDefaultValueSidebarElementsEmptyFunctions(
+			ObjectFieldConstants.BUSINESS_TYPE_TEXT, objectDefinition);
+	}
 
 	@Test
 	public void testGetFormulaObjectFieldInfo() throws Exception {
@@ -77,7 +91,7 @@ public class GetObjectFieldInfoMVCResourceCommandTest {
 		ObjectField objectField = ObjectFieldUtil.addCustomObjectField(
 			new FormulaObjectFieldBuilder(
 			).labelMap(
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString())
+				RandomTestUtil.randomLocaleStringMap()
 			).name(
 				"a" + RandomTestUtil.randomString()
 			).objectDefinitionId(
@@ -100,8 +114,10 @@ public class GetObjectFieldInfoMVCResourceCommandTest {
 				TestPropsValues.getUserId()
 			).build());
 
-		JSONObject jsonObject = _getObjectFieldInfoJSONObject(
-			objectField.getObjectFieldId());
+		JSONObject jsonObject = getJSONObject(
+			Collections.singletonMap(
+				"objectFieldId",
+				String.valueOf(objectField.getObjectFieldId())));
 
 		JSONAssert.assertEquals(
 			JSONUtil.putAll(
@@ -145,33 +161,156 @@ public class GetObjectFieldInfoMVCResourceCommandTest {
 			JSONCompareMode.LENIENT);
 	}
 
-	private JSONObject _getObjectFieldInfoJSONObject(long objectFieldId)
+	@Override
+	protected MVCResourceCommand getMVCResourceCommand() {
+		return _mvcResourceCommand;
+	}
+
+	private ObjectField _addCustomObjectField(
+			String businessType, ObjectDefinition objectDefinition)
 		throws Exception {
 
-		MockLiferayResourceRequest mockLiferayResourceRequest =
-			new MockLiferayResourceRequest();
+		List<ObjectFieldSetting> objectFieldSettings = new ArrayList<>();
 
-		mockLiferayResourceRequest.addParameter(
-			"objectFieldId", String.valueOf(objectFieldId));
-		mockLiferayResourceRequest.setAttribute(
-			JavaConstants.JAKARTA_PORTLET_CONFIG,
-			PortletConfigFactoryUtil.create(
-				_portletLocalService.getPortletById(
-					ObjectPortletKeys.OBJECT_DEFINITIONS),
-				null));
+		if (businessType.equals(ObjectFieldConstants.BUSINESS_TYPE_DATE_TIME)) {
+			objectFieldSettings.add(
+				new ObjectFieldSettingBuilder(
+				).name(
+					ObjectFieldSettingConstants.NAME_TIME_STORAGE
+				).value(
+					ObjectFieldSettingConstants.VALUE_USE_INPUT_AS_ENTERED
+				).build());
+		}
 
-		MockLiferayResourceResponse mockLiferayResourceResponse =
-			new MockLiferayResourceResponse();
+		return ObjectFieldUtil.addCustomObjectField(
+			new ObjectFieldBuilder(
+			).businessType(
+				businessType
+			).labelMap(
+				RandomTestUtil.randomLocaleStringMap()
+			).name(
+				"a" + RandomTestUtil.randomString()
+			).objectDefinitionId(
+				objectDefinition.getObjectDefinitionId()
+			).objectFieldSettings(
+				objectFieldSettings
+			).userId(
+				TestPropsValues.getUserId()
+			).build());
+	}
 
-		_mvcResourceCommand.serveResource(
-			mockLiferayResourceRequest, mockLiferayResourceResponse);
+	private void _assertDefaultValueSidebarElementsBooleanFunctions(
+			ObjectDefinition objectDefinition)
+		throws Exception {
 
-		ByteArrayOutputStream byteArrayOutputStream =
-			(ByteArrayOutputStream)
-				mockLiferayResourceResponse.getPortletOutputStream();
+		JSONObject jsonObject = _getJSONObject(
+			ObjectFieldConstants.BUSINESS_TYPE_BOOLEAN, objectDefinition);
 
-		return JSONFactoryUtil.createJSONObject(
-			byteArrayOutputStream.toString());
+		JSONAssert.assertEquals(
+			JSONUtil.putAll(
+				JSONUtil.put(
+					"items",
+					JSONUtil.putAll(
+						JSONUtil.put(
+							"content", "currentDate"
+						).put(
+							"label", "Current Date"
+						),
+						JSONUtil.put(
+							"content", "currentUserId"
+						).put(
+							"label", "Current User"
+						))
+				).put(
+					"label", "General Variables"
+				),
+				JSONUtil.put(
+					"items",
+					JSONUtil.putAll(
+						JSONUtil.put("label", "Compare Dates"),
+						JSONUtil.put("label", "Condition"),
+						JSONUtil.put("label", "Contains"),
+						JSONUtil.put("label", "Does Not Contain"),
+						JSONUtil.put("label", "Future Dates"),
+						JSONUtil.put("label", "Is a URL"),
+						JSONUtil.put("label", "Is an email"),
+						JSONUtil.put("label", "Is Decimal"),
+						JSONUtil.put("label", "Is Empty"),
+						JSONUtil.put("label", "Is Equal To"),
+						JSONUtil.put("label", "Is Greater Than"),
+						JSONUtil.put("label", "Is Greater Than Or Equal To"),
+						JSONUtil.put("label", "Is Integer"),
+						JSONUtil.put("label", "Is Less Than"),
+						JSONUtil.put("label", "Is Less Than Or Equal To"),
+						JSONUtil.put("label", "Is Not Equal To"),
+						JSONUtil.put("label", "Match"),
+						JSONUtil.put("label", "Past Dates"),
+						JSONUtil.put("label", "Range"))
+				).put(
+					"label", "Functions"
+				)
+			).toString(),
+			String.valueOf(
+				jsonObject.getJSONArray("defaultValueSidebarElements")),
+			JSONCompareMode.LENIENT);
+	}
+
+	private void _assertDefaultValueSidebarElementsDateFunctions(
+			String businessType, ObjectDefinition objectDefinition)
+		throws Exception {
+
+		JSONObject jsonObject = _getJSONObject(businessType, objectDefinition);
+
+		JSONAssert.assertEquals(
+			JSONUtil.putAll(
+				JSONUtil.put(
+					"items",
+					JSONUtil.putAll(
+						JSONUtil.put(
+							"content", "currentDate"
+						).put(
+							"label", "Current Date"
+						))
+				).put(
+					"label", "General Variables"
+				),
+				JSONUtil.put(
+					"items",
+					JSONUtil.putAll(
+						JSONUtil.put("label", "Add Days"),
+						JSONUtil.put("label", "Add Months"),
+						JSONUtil.put("label", "Add Years"),
+						JSONUtil.put("label", "Old Value"))
+				).put(
+					"label", "Functions"
+				)
+			).toString(),
+			String.valueOf(
+				jsonObject.getJSONArray("defaultValueSidebarElements")),
+			JSONCompareMode.LENIENT);
+	}
+
+	private void _assertDefaultValueSidebarElementsEmptyFunctions(
+			String businessType, ObjectDefinition objectDefinition)
+		throws Exception {
+
+		JSONObject jsonObject = _getJSONObject(businessType, objectDefinition);
+
+		Assert.assertNull(
+			jsonObject.getJSONArray("defaultValueSidebarElements"));
+	}
+
+	private JSONObject _getJSONObject(
+			String businessType, ObjectDefinition objectDefinition)
+		throws Exception {
+
+		ObjectField objectField = _addCustomObjectField(
+			businessType, objectDefinition);
+
+		return getJSONObject(
+			Collections.singletonMap(
+				"objectFieldId",
+				String.valueOf(objectField.getObjectFieldId())));
 	}
 
 	@Inject(
@@ -180,12 +319,6 @@ public class GetObjectFieldInfoMVCResourceCommandTest {
 	private MVCResourceCommand _mvcResourceCommand;
 
 	@Inject
-	private ObjectFieldLocalService _objectFieldLocalService;
-
-	@Inject
 	private ObjectRelationshipLocalService _objectRelationshipLocalService;
-
-	@Inject
-	private PortletLocalService _portletLocalService;
 
 }

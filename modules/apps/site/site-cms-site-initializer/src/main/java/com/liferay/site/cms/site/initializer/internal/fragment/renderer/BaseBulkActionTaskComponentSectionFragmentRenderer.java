@@ -8,6 +8,7 @@ package com.liferay.site.cms.site.initializer.internal.fragment.renderer;
 import com.liferay.info.constants.InfoDisplayWebKeys;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
@@ -40,11 +41,11 @@ public abstract class BaseBulkActionTaskComponentSectionFragmentRenderer
 			String executionStatus, HttpServletRequest httpServletRequest)
 		throws PortalException {
 
-		ObjectEntry bulkActionTaskObjectEntry =
+		ObjectEntry cmsBulkActionTaskObjectEntry =
 			(ObjectEntry)httpServletRequest.getAttribute(
 				InfoDisplayWebKeys.INFO_ITEM);
 
-		if (bulkActionTaskObjectEntry == null) {
+		if (cmsBulkActionTaskObjectEntry == null) {
 			return -1;
 		}
 
@@ -52,29 +53,30 @@ public abstract class BaseBulkActionTaskComponentSectionFragmentRenderer
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		ObjectDefinition bulkActionTaskObjectDefinition =
+		ObjectDefinition objectDefinition =
 			objectDefinitionLocalService.
 				getObjectDefinitionByExternalReferenceCode(
-					"L_BULK_ACTION_TASK", themeDisplay.getCompanyId());
+					"L_CMS_BULK_ACTION_TASK", themeDisplay.getCompanyId());
+
+		ObjectRelationship objectRelationship =
+			objectRelationshipLocalService.getObjectRelationship(
+				objectDefinition.getObjectDefinitionId(),
+				"cmsBATaskToCMSBATaskItems");
 
 		List<ObjectEntry> objectEntries = ListUtil.filter(
 			objectEntryLocalService.getOneToManyObjectEntries(
-				bulkActionTaskObjectEntry.getGroupId(),
-				objectRelationshipLocalService.getObjectRelationship(
-					bulkActionTaskObjectDefinition.getObjectDefinitionId(),
-					"bulkActionTaskToBulkActionTaskItems"
-				).getObjectRelationshipId(),
-				null, false, bulkActionTaskObjectEntry.getObjectEntryId(), true,
-				null, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null),
+				cmsBulkActionTaskObjectEntry.getGroupId(),
+				objectRelationship.getObjectRelationshipId(), null, false,
+				cmsBulkActionTaskObjectEntry.getObjectEntryId(), true, null,
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null),
 			objectEntry ->
 				Objects.equals(
 					GetterUtil.getLong(
 						objectEntry.getValues(
 						).get(
-							"r_bulkActionTaskToBulkActionTaskItems_c_" +
-								"bulkActionTaskId"
+							"r_cmsBATaskToCMSBATaskItems_c_cmsBulkActionTaskId"
 						)),
-					bulkActionTaskObjectEntry.getObjectEntryId()) &&
+					cmsBulkActionTaskObjectEntry.getObjectEntryId()) &&
 				Objects.equals(
 					GetterUtil.getString(
 						objectEntry.getValues(

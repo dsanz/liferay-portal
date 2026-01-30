@@ -1,5 +1,6 @@
 {
 	"dependencies": {
+		"@liferay/accessibility-settings-state-web": "*",
 		"dom-align": "1.12.2",
 		"frontend-js-web": "*"
 	},
@@ -11,5 +12,5 @@
 		"checkFormat": "node-scripts format --check",
 		"format": "node-scripts format"
 	},
-	"version": "1.0.7"
+	"version": "1.0.8"
 }

@@ -1,0 +1,59 @@
+.lfr-cmp__info-summary {
+	&-container {
+		border: 1px solid #e7e7ed;
+		border-radius: 10px;
+		margin-bottom: 1.5rem;
+		width: 100%;
+	}
+
+	&-header {
+		&-container {
+			align-items: center;
+			display: flex;
+			justify-content: space-between;
+			padding: 1rem 1.5rem;
+		}
+
+		&-content {
+			font-size: 1rem;
+			font-weight: 600;
+		}
+	}
+
+	&-content {
+		&-container {
+			border-top: 1px solid #e7e7ed;
+			display: flex;
+			flex-direction: column;
+			padding: 0.5rem 0;
+
+			&--hidden {
+				display: none;
+			}
+		}
+
+		&-item {
+			align-items: center;
+			display: grid;
+			font-size: 0.875rem;
+			grid-template-columns: 100px 1fr;
+			padding: 0.5rem 1.5rem;
+
+			.form-group {
+				height: 32px;
+				margin-bottom: 0;
+				max-width: 12.5rem;
+				width: 11vw;
+			}
+		}
+
+		&-label {
+			font-weight: 600;
+		}
+
+		&-value {
+			max-width: 12.5rem;
+			width: 11vw;
+		}
+	}
+}

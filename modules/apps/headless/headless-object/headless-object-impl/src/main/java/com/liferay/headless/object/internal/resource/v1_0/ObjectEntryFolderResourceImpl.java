@@ -9,13 +9,14 @@ import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalService;
 import com.liferay.expando.kernel.service.ExpandoTableLocalService;
+import com.liferay.exportimport.vulcan.batch.engine.ExportImportVulcanBatchEngineTaskItemDelegate;
 import com.liferay.headless.common.spi.odata.entity.EntityFieldsUtil;
 import com.liferay.headless.common.spi.service.context.ServiceContextBuilder;
 import com.liferay.headless.object.dto.v1_0.ObjectEntryFolder;
 import com.liferay.headless.object.internal.odata.entity.v1_0.ObjectEntryFolderEntityModel;
 import com.liferay.headless.object.resource.v1_0.ObjectEntryFolderResource;
-import com.liferay.object.constants.ObjectConstants;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
+import com.liferay.object.constants.ObjectPortletKeys;
 import com.liferay.object.exception.NoSuchObjectEntryFolderException;
 import com.liferay.object.service.ObjectEntryFolderLocalService;
 import com.liferay.object.service.ObjectEntryFolderService;
@@ -37,7 +38,6 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.odata.entity.EntityModel;
-import com.liferay.portal.search.expando.ExpandoBridgeIndexer;
 import com.liferay.portal.vulcan.aggregation.Aggregation;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
@@ -52,7 +52,10 @@ import com.liferay.sharing.configuration.SharingConfiguration;
 import com.liferay.sharing.configuration.SharingConfigurationFactory;
 import com.liferay.trash.TrashHelper;
 
+import jakarta.ws.rs.NotSupportedException;
 import jakarta.ws.rs.core.MultivaluedMap;
+
+import java.io.Serializable;
 
 import java.util.Map;
 import java.util.Objects;
@@ -66,16 +69,21 @@ import org.osgi.service.component.annotations.ServiceScope;
  */
 @Component(
 	properties = "OSGI-INF/liferay/rest/v1_0/object-entry-folder.properties",
+	property = "export.import.vulcan.batch.engine.task.item.delegate=true",
 	scope = ServiceScope.PROTOTYPE, service = ObjectEntryFolderResource.class
 )
 public class ObjectEntryFolderResourceImpl
-	extends BaseObjectEntryFolderResourceImpl {
+	extends BaseObjectEntryFolderResourceImpl
+	implements ExportImportVulcanBatchEngineTaskItemDelegate
+		<ObjectEntryFolder> {
 
 	@Override
 	public void deleteObjectEntryFolder(Long objectEntryFolderId)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
@@ -89,7 +97,9 @@ public class ObjectEntryFolderResourceImpl
 			String scopeKey, String externalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
@@ -106,8 +116,43 @@ public class ObjectEntryFolderResourceImpl
 			EntityFieldsUtil.getEntityFields(
 				_portal.getClassNameId(
 					com.liferay.object.model.ObjectEntryFolder.class.getName()),
-				contextCompany.getCompanyId(), _expandoBridgeIndexer,
-				_expandoColumnLocalService, _expandoTableLocalService));
+				contextCompany.getCompanyId(), _expandoColumnLocalService,
+				_expandoTableLocalService));
+	}
+
+	@Override
+	public ExportImportDescriptor getExportImportDescriptor() {
+		return new ExportImportDescriptor() {
+
+			@Override
+			public String getLabelLanguageKey() {
+				return "objectEntryFolders";
+			}
+
+			@Override
+			public String getModelClassName() {
+				return com.liferay.object.model.ObjectEntryFolder.class.
+					getName();
+			}
+
+			@Override
+			public String getPortletId() {
+				return ObjectPortletKeys.OBJECT_ENTRY_FOLDER;
+			}
+
+			@Override
+			public String getResourceClassName() {
+				return ObjectEntryFolderResourceImpl.class.getName();
+			}
+
+			@Override
+			public ExportImportVulcanBatchEngineTaskItemDelegate.Scope
+				getScope() {
+
+				return Scope.DEPOT;
+			}
+
+		};
 	}
 
 	@Override
@@ -116,7 +161,9 @@ public class ObjectEntryFolderResourceImpl
 				String scopeKey, String externalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
@@ -134,7 +181,9 @@ public class ObjectEntryFolderResourceImpl
 			Sort[] sorts)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
@@ -196,7 +245,9 @@ public class ObjectEntryFolderResourceImpl
 				ObjectEntryFolder objectEntryFolder)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
@@ -209,11 +260,115 @@ public class ObjectEntryFolderResourceImpl
 	}
 
 	@Override
+	public ObjectEntryFolder postObjectEntryFolderByParentObjectEntryFolderCopy(
+			Long objectEntryFolderId, Long parentObjectEntryFolderId)
+		throws Exception {
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
+			throw new UnsupportedOperationException();
+		}
+
+		com.liferay.object.model.ObjectEntryFolder
+			serviceBuilderObjectEntryFolder =
+				_objectEntryFolderService.getObjectEntryFolder(
+					parentObjectEntryFolderId);
+
+		return _toObjectEntryFolder(
+			_objectEntryFolderService.copyObjectEntryFolder(
+				objectEntryFolderId, parentObjectEntryFolderId, false,
+				ServiceContextBuilder.create(
+					serviceBuilderObjectEntryFolder.getGroupId(),
+					contextHttpServletRequest, null
+				).build()));
+	}
+
+	@Override
+	public ObjectEntryFolder
+			postObjectEntryFolderByParentObjectEntryFolderCopyReplace(
+				Long objectEntryFolderId, Long parentObjectEntryFolderId)
+		throws Exception {
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
+			throw new UnsupportedOperationException();
+		}
+
+		com.liferay.object.model.ObjectEntryFolder
+			serviceBuilderObjectEntryFolder =
+				_objectEntryFolderService.getObjectEntryFolder(
+					parentObjectEntryFolderId);
+
+		return _toObjectEntryFolder(
+			_objectEntryFolderService.copyObjectEntryFolder(
+				objectEntryFolderId, parentObjectEntryFolderId, true,
+				ServiceContextBuilder.create(
+					serviceBuilderObjectEntryFolder.getGroupId(),
+					contextHttpServletRequest, null
+				).build()));
+	}
+
+	@Override
+	public ObjectEntryFolder postObjectEntryFolderByParentObjectEntryFolderMove(
+			Long objectEntryFolderId, Long parentObjectEntryFolderId)
+		throws Exception {
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
+			throw new UnsupportedOperationException();
+		}
+
+		com.liferay.object.model.ObjectEntryFolder
+			serviceBuilderObjectEntryFolder =
+				_objectEntryFolderService.getObjectEntryFolder(
+					parentObjectEntryFolderId);
+
+		return _toObjectEntryFolder(
+			_objectEntryFolderService.moveObjectEntryFolder(
+				objectEntryFolderId, parentObjectEntryFolderId, false,
+				ServiceContextBuilder.create(
+					serviceBuilderObjectEntryFolder.getGroupId(),
+					contextHttpServletRequest, null
+				).build()));
+	}
+
+	@Override
+	public ObjectEntryFolder
+			postObjectEntryFolderByParentObjectEntryFolderMoveReplace(
+				Long objectEntryFolderId, Long parentObjectEntryFolderId)
+		throws Exception {
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
+			throw new UnsupportedOperationException();
+		}
+
+		com.liferay.object.model.ObjectEntryFolder
+			serviceBuilderObjectEntryFolder =
+				_objectEntryFolderService.getObjectEntryFolder(
+					parentObjectEntryFolderId);
+
+		return _toObjectEntryFolder(
+			_objectEntryFolderService.moveObjectEntryFolder(
+				objectEntryFolderId, parentObjectEntryFolderId, true,
+				ServiceContextBuilder.create(
+					serviceBuilderObjectEntryFolder.getGroupId(),
+					contextHttpServletRequest, null
+				).build()));
+	}
+
+	@Override
 	public ObjectEntryFolder postScopeScopeKeyObjectEntryFolder(
 			String scopeKey, ObjectEntryFolder objectEntryFolder)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
@@ -233,7 +388,9 @@ public class ObjectEntryFolderResourceImpl
 				String scopeKey, String externalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
@@ -259,7 +416,9 @@ public class ObjectEntryFolderResourceImpl
 				String scopeKey, String externalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
@@ -282,7 +441,9 @@ public class ObjectEntryFolderResourceImpl
 				String scopeKey, String externalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
@@ -306,7 +467,9 @@ public class ObjectEntryFolderResourceImpl
 				ObjectEntryFolder objectEntryFolder)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
@@ -346,10 +509,30 @@ public class ObjectEntryFolderResourceImpl
 	}
 
 	@Override
+	public Page<ObjectEntryFolder> read(
+			Filter filter, Pagination pagination, Sort[] sorts,
+			Map<String, Serializable> parameters, String search)
+		throws Exception {
+
+		if (parameters.containsKey("siteId")) {
+			return getScopeScopeKeyObjectEntryFoldersPage(
+				parameters.get(
+					"siteId"
+				).toString(),
+				false, search, null, filter, pagination, sorts);
+		}
+
+		throw new NotSupportedException(
+			"One of the following parameters must be specified: [siteId]");
+	}
+
+	@Override
 	protected ObjectEntryFolder doGetObjectEntryFolder(Long objectEntryFolderId)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
@@ -363,7 +546,9 @@ public class ObjectEntryFolderResourceImpl
 			Long objectEntryFolderId, ObjectEntryFolder objectEntryFolder)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
@@ -400,7 +585,7 @@ public class ObjectEntryFolderResourceImpl
 
 	@Override
 	protected String getPermissionCheckerPortletName(Object id) {
-		return ObjectConstants.RESOURCE_NAME;
+		return ObjectPortletKeys.OBJECT_ENTRY_FOLDER;
 	}
 
 	@Override
@@ -433,15 +618,9 @@ public class ObjectEntryFolderResourceImpl
 				serviceBuilderObjectEntryFolder)
 		throws Exception {
 
-		DepotEntry depotEntry = _depotEntryLocalService.fetchGroupDepotEntry(
-			serviceBuilderObjectEntryFolder.getGroupId());
-
-		if ((depotEntry != null) &&
-			_trashHelper.isTrashEnabled(
-				serviceBuilderObjectEntryFolder.getGroupId()) &&
-			(serviceBuilderObjectEntryFolder.getStatus() !=
-				WorkflowConstants.STATUS_IN_TRASH) &&
-			FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		if (serviceBuilderObjectEntryFolder.isTrashable(_trashHelper) &&
+			FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-17564")) {
 
 			_objectEntryFolderService.moveObjectEntryFolderToTrash(
 				serviceBuilderObjectEntryFolder,
@@ -551,6 +730,34 @@ public class ObjectEntryFolderResourceImpl
 			new DefaultDTOConverterContext(
 				contextAcceptLanguage.isAcceptAllLanguages(),
 				HashMapBuilder.put(
+					"copy",
+					() -> {
+						if (!FeatureFlagManagerUtil.isEnabled(
+								contextCompany.getCompanyId(), "LPD-17564")) {
+
+							return null;
+						}
+
+						return addAction(
+							ActionKeys.UPDATE, serviceBuilderObjectEntryFolder,
+							"postObjectEntryFolderByParentObjectEntryFolder" +
+								"Copy");
+					}
+				).put(
+					"copy-replace",
+					() -> {
+						if (!FeatureFlagManagerUtil.isEnabled(
+								contextCompany.getCompanyId(), "LPD-17564")) {
+
+							return null;
+						}
+
+						return addAction(
+							ActionKeys.UPDATE, serviceBuilderObjectEntryFolder,
+							"postObjectEntryFolderByParentObjectEntryFolder" +
+								"CopyReplace");
+					}
+				).put(
 					"delete",
 					addAction(
 						ActionKeys.DELETE, serviceBuilderObjectEntryFolder,
@@ -561,6 +768,58 @@ public class ObjectEntryFolderResourceImpl
 						ActionKeys.VIEW, serviceBuilderObjectEntryFolder,
 						"getObjectEntryFolder")
 				).put(
+					"get-by-scope",
+					() -> {
+						if (!FeatureFlagManagerUtil.isEnabled(
+								contextCompany.getCompanyId(), "LPD-17564")) {
+
+							return null;
+						}
+
+						return ActionUtil.addAction(
+							ActionKeys.VIEW,
+							ObjectEntryFolderResourceImpl.class,
+							serviceBuilderObjectEntryFolder.
+								getObjectEntryFolderId(),
+							"getScopeScopeKeyObjectEntryFoldersPage", null,
+							_objectEntryFolderModelResourcePermission,
+							HashMapBuilder.put(
+								"scopeKey",
+								String.valueOf(
+									serviceBuilderObjectEntryFolder.
+										getGroupId())
+							).build(),
+							contextUriInfo);
+					}
+				).put(
+					"move",
+					() -> {
+						if (!FeatureFlagManagerUtil.isEnabled(
+								contextCompany.getCompanyId(), "LPD-17564")) {
+
+							return null;
+						}
+
+						return addAction(
+							ActionKeys.UPDATE, serviceBuilderObjectEntryFolder,
+							"postObjectEntryFolderByParentObjectEntryFolder" +
+								"Move");
+					}
+				).put(
+					"move-replace",
+					() -> {
+						if (!FeatureFlagManagerUtil.isEnabled(
+								contextCompany.getCompanyId(), "LPD-17564")) {
+
+							return null;
+						}
+
+						return addAction(
+							ActionKeys.UPDATE, serviceBuilderObjectEntryFolder,
+							"postObjectEntryFolderByParentObjectEntryFolder" +
+								"MoveReplace");
+					}
+				).put(
 					"permissions",
 					addAction(
 						ActionKeys.PERMISSIONS, serviceBuilderObjectEntryFolder,
@@ -568,7 +827,8 @@ public class ObjectEntryFolderResourceImpl
 				).put(
 					"restore",
 					() -> {
-						if (!FeatureFlagManagerUtil.isEnabled("LPD-17564") ||
+						if (!FeatureFlagManagerUtil.isEnabled(
+								contextCompany.getCompanyId(), "LPD-17564") ||
 							(serviceBuilderObjectEntryFolder.getStatus() !=
 								WorkflowConstants.STATUS_IN_TRASH)) {
 
@@ -681,9 +941,6 @@ public class ObjectEntryFolderResourceImpl
 
 	@Reference
 	private DTOConverterRegistry _dtoConverterRegistry;
-
-	@Reference
-	private ExpandoBridgeIndexer _expandoBridgeIndexer;
 
 	@Reference
 	private ExpandoColumnLocalService _expandoColumnLocalService;

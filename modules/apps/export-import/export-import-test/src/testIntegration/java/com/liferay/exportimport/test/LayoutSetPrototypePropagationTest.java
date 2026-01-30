@@ -22,6 +22,9 @@ import com.liferay.journal.service.JournalArticleLocalServiceUtil;
 import com.liferay.journal.test.util.JournalTestUtil;
 import com.liferay.journal.util.JournalContent;
 import com.liferay.layout.constants.LayoutTypeSettingsConstants;
+import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
+import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
+import com.liferay.layout.page.template.test.util.LayoutPageTemplateTestUtil;
 import com.liferay.layout.set.prototype.helper.LayoutSetPrototypeHelper;
 import com.liferay.layout.test.util.ContentLayoutTestUtil;
 import com.liferay.layout.test.util.LayoutTestUtil;
@@ -293,7 +296,8 @@ public class LayoutSetPrototypePropagationTest
 		ContentLayoutTestUtil.addFragmentEntryLinkToLayout(
 			StringPool.BLANK, fragmentEntry.getCss(),
 			fragmentEntry.getConfiguration(),
-			fragmentEntry.getFragmentEntryId(), fragmentEntry.getHtml(),
+			fragmentEntry.getExternalReferenceCode(),
+			fragmentEntry.getScopeERC(), fragmentEntry.getHtml(),
 			fragmentEntry.getJs(), draftLayout1,
 			fragmentEntry.getFragmentEntryKey(), fragmentEntry.getType(), null,
 			0,
@@ -487,34 +491,41 @@ public class LayoutSetPrototypePropagationTest
 	@Test
 	@TestInfo("LPS-161955")
 	public void testLayoutPropagationWithMasterLayout() throws Exception {
-		Layout siteTemplateMasterLayout = LayoutTestUtil.addTypeContentLayout(
-			_layoutSetPrototypeGroup, true, false);
+		LayoutPageTemplateEntry masterLayoutPageTemplateEntry =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				_layoutSetPrototypeGroup.getGroupId(),
+				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT,
+				WorkflowConstants.STATUS_APPROVED);
 
 		LayoutTestUtil.addTypeContentLayout(
 			_layoutSetPrototypeGroup, true, false,
-			siteTemplateMasterLayout.getPlid());
+			masterLayoutPageTemplateEntry.getExternalReferenceCode());
 
 		propagateChanges(group);
 
 		LayoutTestUtil.addTypeContentLayout(
 			_layoutSetPrototypeGroup, true, false,
-			siteTemplateMasterLayout.getPlid());
+			masterLayoutPageTemplateEntry.getExternalReferenceCode());
 
 		propagateChanges(group);
 
 		Assert.assertEquals(
 			0,
 			LayoutLocalServiceUtil.getMasterLayoutsCount(
-				group.getGroupId(), siteTemplateMasterLayout.getPlid()));
+				group.getGroupId(),
+				masterLayoutPageTemplateEntry.getExternalReferenceCode()));
+
+		Layout masterLayout = LayoutLocalServiceUtil.getLayout(
+			masterLayoutPageTemplateEntry.getPlid());
 
 		Layout siteMasterLayout = LayoutLocalServiceUtil.getFriendlyURLLayout(
-			group.getGroupId(), false,
-			siteTemplateMasterLayout.getFriendlyURL());
+			group.getGroupId(), false, masterLayout.getFriendlyURL());
 
 		Assert.assertEquals(
 			4,
 			LayoutLocalServiceUtil.getMasterLayoutsCount(
-				group.getGroupId(), siteMasterLayout.getPlid()));
+				group.getGroupId(),
+				siteMasterLayout.getMasterLayoutPageTemplateEntryERC()));
 	}
 
 	@Test
@@ -611,44 +622,50 @@ public class LayoutSetPrototypePropagationTest
 			LayoutSetPrototypeLocalServiceUtil.updateLayoutSetPrototype(
 				_layoutSetPrototype);
 
-		Layout siteTemplateMasterLayout = LayoutTestUtil.addTypeContentLayout(
-			_layoutSetPrototypeGroup, true, false);
+		LayoutPageTemplateEntry masterLayoutPageTemplateEntry =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				_layoutSetPrototypeGroup.getGroupId(),
+				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT,
+				WorkflowConstants.STATUS_APPROVED);
 
 		Layout siteTemplateLayoutFromMasterLayout =
 			LayoutTestUtil.addTypeContentLayout(
 				_layoutSetPrototypeGroup, true, false,
-				siteTemplateMasterLayout.getPlid());
+				masterLayoutPageTemplateEntry.getExternalReferenceCode());
 
 		propagateChanges(group);
 
+		Layout masterLayout = LayoutLocalServiceUtil.getLayout(
+			masterLayoutPageTemplateEntry.getPlid());
+
+		Theme masterLayoutTheme = masterLayout.getTheme();
+
 		Layout siteMasterLayout = LayoutLocalServiceUtil.getFriendlyURLLayout(
-			group.getGroupId(), false,
-			siteTemplateMasterLayout.getFriendlyURL());
+			group.getGroupId(), false, masterLayout.getFriendlyURL());
+
+		Theme siteMasterLayoutTheme = siteMasterLayout.getTheme();
 
 		Assert.assertEquals(
-			siteMasterLayout.getTheme(
-			).getThemeId(),
-			siteTemplateMasterLayout.getTheme(
-			).getThemeId());
-		Assert.assertEquals(
-			siteMasterLayout.getTheme(
-			).getThemeId(),
-			_THEME_ID);
+			siteMasterLayoutTheme.getThemeId(), masterLayoutTheme.getThemeId());
+		Assert.assertEquals(siteMasterLayoutTheme.getThemeId(), _THEME_ID);
 
 		Layout siteLayoutFromMasterLayout =
 			LayoutLocalServiceUtil.getFriendlyURLLayout(
 				group.getGroupId(), false,
 				siteTemplateLayoutFromMasterLayout.getFriendlyURL());
 
+		Theme siteLayoutFromMasterLayoutTheme =
+			siteLayoutFromMasterLayout.getTheme();
+
+		Theme siteTemplateLayoutFromMasterLayoutTheme =
+			siteTemplateLayoutFromMasterLayout.getTheme();
+
 		Assert.assertEquals(
-			siteLayoutFromMasterLayout.getTheme(
-			).getThemeId(),
-			siteTemplateLayoutFromMasterLayout.getTheme(
-			).getThemeId());
+			siteLayoutFromMasterLayoutTheme.getThemeId(),
+			siteTemplateLayoutFromMasterLayoutTheme.getThemeId());
+
 		Assert.assertEquals(
-			siteLayoutFromMasterLayout.getTheme(
-			).getThemeId(),
-			_THEME_ID);
+			siteLayoutFromMasterLayoutTheme.getThemeId(), _THEME_ID);
 	}
 
 	@Test
@@ -903,6 +920,7 @@ public class LayoutSetPrototypePropagationTest
 			_layoutSetPrototypeGroup.getPrivateLayoutSet();
 
 		prototypePrivateLayoutSet.setThemeId(_THEME_ID);
+		prototypePrivateLayoutSet.setColorSchemeId(_COLOR_SCHEME_ID);
 
 		prototypePrivateLayoutSet = LayoutSetLocalServiceUtil.updateLayoutSet(
 			prototypePrivateLayoutSet);
@@ -911,6 +929,8 @@ public class LayoutSetPrototypePropagationTest
 			_layoutSetPrototypeGroup.getPublicLayoutSet();
 
 		prototypePublicLayoutSet.setThemeId(_THEME_ID);
+
+		prototypePrivateLayoutSet.setColorSchemeId(_COLOR_SCHEME_ID);
 
 		LayoutSetLocalServiceUtil.updateLayoutSet(prototypePublicLayoutSet);
 
@@ -931,6 +951,9 @@ public class LayoutSetPrototypePropagationTest
 		Assert.assertEquals(
 			prototypePrivateLayoutSet.getThemeId(),
 			propagatedLayoutSet.getThemeId());
+		Assert.assertEquals(
+			prototypePrivateLayoutSet.getColorSchemeId(),
+			propagatedLayoutSet.getColorSchemeId());
 	}
 
 	@FeatureFlag("LPD-38869")
@@ -1416,13 +1439,13 @@ public class LayoutSetPrototypePropagationTest
 		if ((layout != null) && (_layout != null)) {
 			layout = LayoutLocalServiceUtil.getLayout(layout.getPlid());
 
-			layout.setLayoutPrototypeLinkEnabled(linkEnabled);
+			layout.setPortletLayoutPageTemplateEntryLinkEnabled(linkEnabled);
 
 			LayoutLocalServiceUtil.updateLayout(layout);
 
 			_layout = LayoutLocalServiceUtil.getLayout(_layout.getPlid());
 
-			_layout.setLayoutPrototypeLinkEnabled(linkEnabled);
+			_layout.setPortletLayoutPageTemplateEntryLinkEnabled(linkEnabled);
 
 			LayoutLocalServiceUtil.updateLayout(_layout);
 		}
@@ -1579,6 +1602,9 @@ public class LayoutSetPrototypePropagationTest
 		Assert.assertEquals(
 			expectedValue, jxPortletPreferences.getValue(key, null));
 	}
+
+	private static final String _COLOR_SCHEME_ID =
+		RandomTestUtil.randomString();
 
 	private static final String _THEME_ID = "minium_WAR_miniumtheme";
 

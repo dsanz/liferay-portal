@@ -11,6 +11,9 @@ import classNames from 'classnames';
 import {dateUtils, sub} from 'frontend-js-web';
 import React, {useEffect} from 'react';
 
+const FUTURE_YEARS_RANGE = 25;
+const PAST_YEARS_RANGE = 50;
+
 export default function ScheduleOptions({
 	displayDate,
 	error,
@@ -20,6 +23,7 @@ export default function ScheduleOptions({
 	setError,
 	timeZone,
 }) {
+	const currentYear = new Date().getFullYear();
 	const {day, hour, minutes, month, year} = getDate(displayDate);
 
 	useEffect(() => {
@@ -86,15 +90,15 @@ export default function ScheduleOptions({
 						`${Liferay.Language.get('december')}`,
 					]}
 					onChange={setDisplayDate}
-					placeholder="YYYY-MM-DD HH:mm"
+					placeholder={Liferay.Language.get('yyyy-mm-dd-hh-mm')}
 					required
 					time
 					timezone={timeZone.name}
 					value={displayDate || ''}
 					weekdaysShort={dateUtils.getWeekdaysShort()}
 					years={{
-						end: 9999,
-						start: new Date().getFullYear(),
+						end: currentYear + FUTURE_YEARS_RANGE,
+						start: currentYear - PAST_YEARS_RANGE,
 					}}
 				/>
 

@@ -1,0 +1,723 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+# [3.156.0](https://github.com/liferay/clay/compare/v3.155.0...v3.156.0) (2025-12-15)
+
+### Bug Fixes
+
+- **@clayui/breadcrumb:** LPD-73358 Add missing clay-link dependency ([b7f6646](https://github.com/liferay/clay/commit/b7f664689be0cf2af8dc34d55482b039a8b6a133))
+- **@clayui/breadcrumb:** LPD-73358 Using onClick on an item should use the button tag ([8364915](https://github.com/liferay/clay/commit/83649156c595ed970700a599c0e8256e040ebcf0))
+
+### Reverts
+
+- Revert "chore(release): publish v3.156.0 packages" ([51b2c71](https://github.com/liferay/clay/commit/51b2c71adc59804525369a37b461f15fcaa593dc))
+
+## [3.155.1](https://github.com/liferay/clay/compare/v3.156.0...v3.155.1) (2025-12-12)
+
+### Bug Fixes
+
+- **@clayui/breadcrumb:** LPD-73358 Add missing clay-link dependency ([b7f6646](https://github.com/liferay/clay/commit/b7f664689be0cf2af8dc34d55482b039a8b6a133))
+- **@clayui/breadcrumb:** LPD-73358 Using onClick on an item should use the button tag ([8364915](https://github.com/liferay/clay/commit/83649156c595ed970700a599c0e8256e040ebcf0))
+
+### Reverts
+
+- Revert "chore(release): publish v3.156.0 packages" ([51b2c71](https://github.com/liferay/clay/commit/51b2c71adc59804525369a37b461f15fcaa593dc))
+
+## [3.144.1](https://github.com/liferay/clay/compare/v3.144.0...v3.144.1) (2025-08-29)
+
+### Bug Fixes
+
+- make sure peerDependencies for react aren't too greedy ([72c4612](https://github.com/liferay/clay/commit/72c4612944bcfe61c51c0d224ac145f76a819a62))
+
+## [3.143.2](https://github.com/liferay/clay/compare/v3.143.1...v3.143.2) (2025-08-22)
+
+### Bug Fixes
+
+- types should always be first ([b1fcc40](https://github.com/liferay/clay/commit/b1fcc40a68d9a6bd2d285820baea4b17d1045ab6))
+
+## [3.143.1](https://github.com/liferay/clay/compare/v3.143.0...v3.143.1) (2025-08-22)
+
+### Bug Fixes
+
+- include types in the npm exports configuration ([ad973f0](https://github.com/liferay/clay/commit/ad973f0faea57569480d802096a689889ac036c9))
+
+# [3.143.0](https://github.com/liferay/clay/compare/v3.141.1...v3.143.0) (2025-08-15)
+
+### Features
+
+- publish clay as both CJS and ESM ([32cb387](https://github.com/liferay/clay/commit/32cb3872e825d937d2807637efdee62ff7977d7c))
+
+# [3.142.0](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.3.6...@clayui/breadcrumb@3.142.0) (2025-08-01)
+
+# 3.141.0 (2025-07-15)
+
+# 3.136.0 (2025-05-03)
+
+# 3.132.0 (2025-03-24)
+
+### Bug Fixes
+
+- **@clayui/breadcrumb:** LPD-51678 Use breadcrumb-bar instead of utility classes ([c59d9fc](https://github.com/liferay/clay/commit/c59d9fc06a25143041d8ca6d97ee85fadd96f650))
+
+# 3.128.0 (2025-02-20)
+
+### Features
+
+- **@clayui/breadcrumb:** improves component typing to create API Breadcrumb ([0da37ce](https://github.com/liferay/clay/commit/0da37cee0656624b98c7f08dd1666dc06b237ca1))
+
+# 3.116.0 (2024-06-10)
+
+# 3.115.0 (2024-05-16)
+
+# 3.113.0 (2024-03-28)
+
+# 3.111.0 (2024-02-15)
+
+# 3.107.0 (2023-11-27)
+
+## 3.106.1 (2023-10-26)
+
+# 3.106.0 (2023-10-25)
+
+### Bug Fixes
+
+- remove 'src' dir from being packaged with npm ([9383e8d](https://github.com/liferay/clay/commit/9383e8d8abb25ca3396e7c6e4dfa53bbc72691c5))
+- use package's directory for baseDir when generating type ([0a5c710](https://github.com/liferay/clay/commit/0a5c710092f36243bc8d5487f70e831295715072))
+
+# 3.104.0 (2023-08-25)
+
+### Bug Fixes
+
+- **@clayui/breadcrumb:** the active item must not have the href ([4482a15](https://github.com/liferay/clay/commit/4482a15494fa4aef807bb4b023f18281e8cf54ed))
+- **@clayui/breadcrumb:** updates colors to active state with link and expand button ([0313029](https://github.com/liferay/clay/commit/0313029dfe39c7689315919d9c3f36fdea8b97f9))
+- **@clayui/breadcrumb:** use `breadcrumb-toggle` instead of `breadcrumb-item-expand` ([a94ba61](https://github.com/liferay/clay/commit/a94ba614e9742ea83767d93573fc75608871c95f))
+
+# 3.101.0 (2023-07-28)
+
+### Bug Fixes
+
+- **@clayui/breadcrumb:** fix focus visible in breadcrumb ([62b1a24](https://github.com/liferay/clay/commit/62b1a241b390f0e4bcea9aa97322f14dacb539db))
+
+# 3.100.0 (2023-07-13)
+
+# 3.92.0 (2023-04-06)
+
+### Features
+
+- **@clayui/breadcrumb:** changes the ellipse implementation to collapse ([5bbc5fc](https://github.com/liferay/clay/commit/5bbc5fc20572dce091e5dfb64836b83041014ab4))
+- **@clayui/breadcrumb:** improve breadcrumb accessibility ([f3c6131](https://github.com/liferay/clay/commit/f3c61311dd55c68e3aeb772d8dff0c77a1287362))
+
+# 3.91.0 (2023-03-24)
+
+# 3.90.0 (2023-03-15)
+
+# 3.89.0 (2023-03-01)
+
+# 3.88.0 (2023-02-14)
+
+# 3.87.0 (2023-02-08)
+
+## 3.86.1 (2023-02-02)
+
+# 3.86.0 (2023-01-31)
+
+# 3.85.0 (2023-01-23)
+
+# 3.84.0 (2022-12-23)
+
+## 3.83.1 (2022-12-20)
+
+# 3.83.0 (2022-12-20)
+
+# 3.82.0 (2022-12-07)
+
+### Bug Fixes
+
+- **@clayui/breadcrumb:** add `aria-label` and `title` to ellipsis ([7905087](https://github.com/liferay/clay/commit/7905087c927396c74f5a9230d9d5b29a6aeebb30))
+
+# 3.81.0 (2022-11-30)
+
+## 3.80.1 (2022-11-22)
+
+# 3.80.0 (2022-11-21)
+
+# 3.79.0 (2022-11-08)
+
+## 3.78.2 (2022-10-25)
+
+## 3.78.1 (2022-10-25)
+
+# 3.78.0 (2022-10-25)
+
+# 3.77.0 (2022-10-17)
+
+## 3.75.2 (2022-09-29)
+
+# 3.75.0 (2022-09-28)
+
+# 3.74.0 (2022-09-19)
+
+# 3.73.0 (2022-09-13)
+
+# 3.72.0 (2022-09-05)
+
+# 3.71.0 (2022-08-30)
+
+## 3.70.3 (2022-08-30)
+
+## 3.70.2 (2022-08-30)
+
+# 3.70.0 (2022-08-23)
+
+# 3.69.0 (2022-08-16)
+
+# 3.68.0 (2022-08-01)
+
+# 3.67.0 (2022-07-25)
+
+# 3.66.0 (2022-07-20)
+
+## 3.65.2 (2022-07-19)
+
+## 3.65.1 (2022-07-11)
+
+# 3.65.0 (2022-07-11)
+
+# 3.64.0 (2022-07-04)
+
+# 3.62.0 (2022-06-20)
+
+# 3.58.0 (2022-05-23)
+
+# 3.56.0 (2022-05-09)
+
+# 3.55.0 (2022-05-02)
+
+# 3.52.0 (2022-04-04)
+
+# 3.49.0 (2022-03-15)
+
+### Features
+
+- **@clayui/drop-down:** make it possible to render the menu lazily ([1e4e565](https://github.com/liferay/clay/commit/1e4e5655503645358245a200e72c8ca711f72956))
+
+# 3.48.0 (2022-03-07)
+
+### Features
+
+- **@clayui/drop-down:** Update tests ([ab564dd](https://github.com/liferay/clay/commit/ab564ddb95de1e01cb690cd458e5ac3aad634946))
+
+# 3.47.0 (2022-02-23)
+
+# 3.45.0 (2022-02-01)
+
+# 3.43.0 (2021-12-29)
+
+# 3.42.0 (2021-12-15)
+
+# 3.41.0 (2021-12-02)
+
+# 3.40.0 (2021-11-17)
+
+# 3.39.0 (2021-10-29)
+
+# 3.38.0 (2021-10-22)
+
+# 3.37.0 (2021-10-06)
+
+# 3.36.0 (2021-09-23)
+
+## 3.35.3 (2021-09-09)
+
+## 3.35.2 (2021-08-30)
+
+## 3.35.1 (2021-08-30)
+
+# 3.35.0 (2021-08-30)
+
+# 3.30.0 (2021-06-16)
+
+# 3.29.0 (2021-05-28)
+
+# 3.28.0 (2021-05-19)
+
+# 3.27.0 (2021-05-05)
+
+## 3.25.1 (2021-03-05)
+
+# 3.25.0 (2021-02-23)
+
+# [3.141.0](https://github.com/liferay/clay/compare/v3.140.0...v3.141.0) (2025-07-15)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.136.0](https://github.com/liferay/clay/compare/v3.135.0...v3.136.0) (2025-05-03)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.132.0](https://github.com/liferay/clay/compare/v3.131.0...v3.132.0) (2025-03-24)
+
+### Bug Fixes
+
+- **@clayui/breadcrumb:** LPD-51678 Use breadcrumb-bar instead of utility classes ([c59d9fc](https://github.com/liferay/clay/commit/c59d9fc06a25143041d8ca6d97ee85fadd96f650))
+
+# [3.128.0](https://github.com/liferay/clay/compare/v3.127.0...v3.128.0) (2025-02-20)
+
+### Features
+
+- **@clayui/breadcrumb:** improves component typing to create API Breadcrumb ([0da37ce](https://github.com/liferay/clay/commit/0da37cee0656624b98c7f08dd1666dc06b237ca1))
+
+# [3.116.0](https://github.com/liferay/clay/compare/v3.115.2...v3.116.0) (2024-06-10)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.115.0](https://github.com/liferay/clay/compare/v3.114.0...v3.115.0) (2024-05-16)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.113.0](https://github.com/liferay/clay/compare/v3.112.0...v3.113.0) (2024-03-28)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.111.0](https://github.com/liferay/clay/compare/v3.110.0...v3.111.0) (2024-02-15)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.107.0](https://github.com/liferay/clay/compare/v3.106.1...v3.107.0) (2023-11-27)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.106.1](https://github.com/liferay/clay/compare/v3.106.0...v3.106.1) (2023-10-26)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.106.0](https://github.com/liferay/clay/compare/v3.105.0...v3.106.0) (2023-10-25)
+
+### Bug Fixes
+
+- remove 'src' dir from being packaged with npm ([9383e8d](https://github.com/liferay/clay/commit/9383e8d8abb25ca3396e7c6e4dfa53bbc72691c5))
+- use package's directory for baseDir when generating type ([0a5c710](https://github.com/liferay/clay/commit/0a5c710092f36243bc8d5487f70e831295715072))
+
+# [3.104.0](https://github.com/liferay/clay/compare/v3.103.1...v3.104.0) (2023-08-25)
+
+### Bug Fixes
+
+- **@clayui/breadcrumb:** the active item must not have the href ([4482a15](https://github.com/liferay/clay/commit/4482a15494fa4aef807bb4b023f18281e8cf54ed))
+- **@clayui/breadcrumb:** updates colors to active state with link and expand button ([0313029](https://github.com/liferay/clay/commit/0313029dfe39c7689315919d9c3f36fdea8b97f9))
+- **@clayui/breadcrumb:** use `breadcrumb-toggle` instead of `breadcrumb-item-expand` ([a94ba61](https://github.com/liferay/clay/commit/a94ba614e9742ea83767d93573fc75608871c95f))
+
+# [3.101.0](https://github.com/liferay/clay/compare/v3.100.0...v3.101.0) (2023-07-28)
+
+### Bug Fixes
+
+- **@clayui/breadcrumb:** fix focus visible in breadcrumb ([62b1a24](https://github.com/liferay/clay/commit/62b1a241b390f0e4bcea9aa97322f14dacb539db))
+
+# [3.100.0](https://github.com/liferay/clay/compare/v3.99.4...v3.100.0) (2023-07-13)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.92.0](https://github.com/liferay/clay/compare/v3.91.0...v3.92.0) (2023-04-06)
+
+### Features
+
+- **@clayui/breadcrumb:** changes the ellipse implementation to collapse ([5bbc5fc](https://github.com/liferay/clay/commit/5bbc5fc20572dce091e5dfb64836b83041014ab4))
+- **@clayui/breadcrumb:** improve breadcrumb accessibility ([f3c6131](https://github.com/liferay/clay/commit/f3c61311dd55c68e3aeb772d8dff0c77a1287362))
+
+# [3.91.0](https://github.com/liferay/clay/compare/v3.90.0...v3.91.0) (2023-03-24)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.90.0](https://github.com/liferay/clay/compare/v3.89.0...v3.90.0) (2023-03-15)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.89.0](https://github.com/liferay/clay/compare/v3.88.0...v3.89.0) (2023-03-01)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.88.0](https://github.com/liferay/clay/compare/v3.87.2...v3.88.0) (2023-02-14)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.87.0](https://github.com/liferay/clay/compare/v3.86.1...v3.87.0) (2023-02-08)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.86.1](https://github.com/liferay/clay/compare/v3.86.0...v3.86.1) (2023-02-02)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.86.0](https://github.com/liferay/clay/compare/v3.85.0...v3.86.0) (2023-01-31)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.85.0](https://github.com/liferay/clay/compare/v3.84.0...v3.85.0) (2023-01-23)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.84.0](https://github.com/liferay/clay/compare/v3.83.1...v3.84.0) (2022-12-23)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.83.1](https://github.com/liferay/clay/compare/v3.83.0...v3.83.1) (2022-12-20)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.83.0](https://github.com/liferay/clay/compare/v3.82.0...v3.83.0) (2022-12-20)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.82.0](https://github.com/liferay/clay/compare/v3.81.0...v3.82.0) (2022-12-07)
+
+### Bug Fixes
+
+- **@clayui/breadcrumb:** add `aria-label` and `title` to ellipsis ([7905087](https://github.com/liferay/clay/commit/7905087c927396c74f5a9230d9d5b29a6aeebb30))
+
+# [3.81.0](https://github.com/liferay/clay/compare/v3.80.1...v3.81.0) (2022-11-30)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.80.1](https://github.com/liferay/clay/compare/v3.80.0...v3.80.1) (2022-11-22)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.80.0](https://github.com/liferay/clay/compare/v3.79.0...v3.80.0) (2022-11-21)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.79.0](https://github.com/liferay/clay/compare/v3.78.2...v3.79.0) (2022-11-08)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.78.2](https://github.com/liferay/clay/compare/v3.78.1...v3.78.2) (2022-10-25)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.78.1](https://github.com/liferay/clay/compare/v3.78.0...v3.78.1) (2022-10-25)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.78.0](https://github.com/liferay/clay/compare/v3.77.0...v3.78.0) (2022-10-25)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.77.0](https://github.com/liferay/clay/compare/v3.76.0...v3.77.0) (2022-10-17)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.75.2](https://github.com/liferay/clay/compare/v3.75.1...v3.75.2) (2022-09-29)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.75.0](https://github.com/liferay/clay/compare/v3.74.0...v3.75.0) (2022-09-28)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.74.0](https://github.com/liferay/clay/compare/v3.73.0...v3.74.0) (2022-09-19)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.73.0](https://github.com/liferay/clay/compare/v3.72.0...v3.73.0) (2022-09-13)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.72.0](https://github.com/liferay/clay/compare/v3.71.0...v3.72.0) (2022-09-05)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.71.0](https://github.com/liferay/clay/compare/v3.70.3...v3.71.0) (2022-08-30)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.70.3](https://github.com/liferay/clay/compare/v3.70.2...v3.70.3) (2022-08-30)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.70.2](https://github.com/liferay/clay/compare/v3.70.1...v3.70.2) (2022-08-30)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.70.0](https://github.com/liferay/clay/compare/v3.69.0...v3.70.0) (2022-08-23)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.69.0](https://github.com/liferay/clay/compare/v3.68.0...v3.69.0) (2022-08-16)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.68.0](https://github.com/liferay/clay/compare/v3.67.0...v3.68.0) (2022-08-01)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.67.0](https://github.com/liferay/clay/compare/v3.66.0...v3.67.0) (2022-07-25)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.66.0](https://github.com/liferay/clay/compare/v3.65.2...v3.66.0) (2022-07-20)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.65.2](https://github.com/liferay/clay/compare/v3.65.1...v3.65.2) (2022-07-19)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.65.1](https://github.com/liferay/clay/compare/v3.65.0...v3.65.1) (2022-07-11)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.65.0](https://github.com/liferay/clay/compare/v3.64.0...v3.65.0) (2022-07-11)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.64.0](https://github.com/liferay/clay/compare/v3.63.0...v3.64.0) (2022-07-04)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.62.0](https://github.com/liferay/clay/compare/v3.61.0...v3.62.0) (2022-06-20)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.58.0](https://github.com/liferay/clay/compare/v3.57.0...v3.58.0) (2022-05-23)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.56.0](https://github.com/liferay/clay/compare/v3.55.0...v3.56.0) (2022-05-09)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.55.0](https://github.com/liferay/clay/compare/v3.54.0...v3.55.0) (2022-05-02)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.52.0](https://github.com/liferay/clay/compare/v3.51.0...v3.52.0) (2022-04-04)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.49.0](https://github.com/liferay/clay/compare/v3.48.0...v3.49.0) (2022-03-15)
+
+### Features
+
+- **@clayui/drop-down:** make it possible to render the menu lazily ([1e4e565](https://github.com/liferay/clay/commit/1e4e5655503645358245a200e72c8ca711f72956))
+
+# [3.48.0](https://github.com/liferay/clay/compare/v3.47.0...v3.48.0) (2022-03-07)
+
+### Features
+
+- **@clayui/drop-down:** Update tests ([ab564dd](https://github.com/liferay/clay/commit/ab564ddb95de1e01cb690cd458e5ac3aad634946))
+
+# [3.47.0](https://github.com/liferay/clay/compare/v3.46.0...v3.47.0) (2022-02-23)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.45.0](https://github.com/liferay/clay/compare/v3.44.2...v3.45.0) (2022-02-01)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.43.0](https://github.com/liferay/clay/compare/v3.42.0...v3.43.0) (2021-12-29)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.42.0](https://github.com/liferay/clay/compare/v3.41.0...v3.42.0) (2021-12-15)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.41.0](https://github.com/liferay/clay/compare/v3.40.1...v3.41.0) (2021-12-02)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.40.0](https://github.com/liferay/clay/compare/v3.39.0...v3.40.0) (2021-11-17)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.39.0](https://github.com/liferay/clay/compare/v3.38.0...v3.39.0) (2021-10-29)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.38.0](https://github.com/liferay/clay/compare/v3.37.0...v3.38.0) (2021-10-22)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.37.0](https://github.com/liferay/clay/compare/v3.36.0...v3.37.0) (2021-10-06)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.36.0](https://github.com/liferay/clay/compare/v3.35.3...v3.36.0) (2021-09-23)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.35.3](https://github.com/liferay/clay/compare/v3.35.2...v3.35.3) (2021-09-09)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.35.2](https://github.com/liferay/clay/compare/v3.35.1...v3.35.2) (2021-08-30)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.35.1](https://github.com/liferay/clay/compare/v3.35.0...v3.35.1) (2021-08-30)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.35.0](https://github.com/liferay/clay/compare/v3.34.0...v3.35.0) (2021-08-30)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.32.0](https://github.com/liferay/clay/compare/v3.31.0...v3.32.0) (2021-07-28)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.30.0](https://github.com/liferay/clay/compare/v3.29.0...v3.30.0) (2021-06-16)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.29.0](https://github.com/liferay/clay/compare/v3.28.0...v3.29.0) (2021-05-28)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.28.0](https://github.com/liferay/clay/compare/v3.27.0...v3.28.0) (2021-05-19)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.27.0](https://github.com/liferay/clay/compare/v3.26.0...v3.27.0) (2021-05-05)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.25.1](https://github.com/liferay/clay/compare/v3.25.0...v3.25.1) (2021-03-05)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.25.0](https://github.com/liferay/clay/compare/v3.24.1...v3.25.0) (2021-02-23)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.3.6](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.3.5...@clayui/breadcrumb@3.3.6) (2021-02-11)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.3.5](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.3.4...@clayui/breadcrumb@3.3.5) (2021-01-27)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.3.4](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.3.3...@clayui/breadcrumb@3.3.4) (2021-01-13)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.3.3](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.3.2...@clayui/breadcrumb@3.3.3) (2020-12-29)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.3.2](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.3.0...@clayui/breadcrumb@3.3.2) (2020-12-16)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.3.1](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.3.0...@clayui/breadcrumb@3.3.1) (2020-12-02)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.3.0](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.2.8...@clayui/breadcrumb@3.3.0) (2020-10-01)
+
+### Features
+
+- **clayui.com:** Move API tables to new files and update document tabs, rename files to use singular naming instead of plural, change mainTabURL of pagination-bar to a proper one ([d812ee9](https://github.com/liferay/clay/commit/d812ee9))
+
+## [3.2.8](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.2.7...@clayui/breadcrumb@3.2.8) (2020-08-28)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.2.7](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.2.6...@clayui/breadcrumb@3.2.7) (2020-08-26)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.2.6](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.2.5...@clayui/breadcrumb@3.2.6) (2020-08-21)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.2.5](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.2.4...@clayui/breadcrumb@3.2.5) (2020-08-11)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.2.4](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.2.3...@clayui/breadcrumb@3.2.4) (2020-07-28)
+
+### Bug Fixes
+
+- update packages to appropriate dependencies ([0026168](https://github.com/liferay/clay/commit/0026168))
+
+## [3.2.3](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.2.2...@clayui/breadcrumb@3.2.3) (2020-07-14)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.2.2](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.2.1...@clayui/breadcrumb@3.2.2) (2020-07-07)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.2.1](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.2.0...@clayui/breadcrumb@3.2.1) (2020-06-18)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+# [3.2.0](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.1.3...@clayui/breadcrumb@3.2.0) (2020-05-21)
+
+### Features
+
+- **clayui.com:** Improve component docs by updating content - Badge, Breadcrumb, Dual List Box, Loading Indicator, Localized Input & Multi Step Nav ([c4ad126](https://github.com/liferay/clay/commit/c4ad126))
+
+## [3.1.3](https://github.com/liferay/clay/compare/@clayui/breadcrumb@3.1.2...@clayui/breadcrumb@3.1.3) (2020-04-24)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.1.2](https://github.com/liferay/clay/tree/master/packages/clay-breadcrumb/compare/@clayui/breadcrumb@3.1.1...@clayui/breadcrumb@3.1.2) (2020-03-26)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.1.1](https://github.com/liferay/clay/tree/master/packages/clay-breadcrumb/compare/@clayui/breadcrumb@3.1.0...@clayui/breadcrumb@3.1.1) (2020-03-12)
+
+### Bug Fixes
+
+- **@clayui/breadcrumb:** use ClayLink over anchor tag ([047c3be](https://github.com/liferay/clay/commit/047c3be))
+
+# 3.1.0 (2020-02-28)
+
+### Bug Fixes
+
+- **drop-down:** use dom-align instead of metal-position ([335ff38](https://github.com/liferay/clay/commit/335ff38))
+- add missing dependency declarations ([c591e2f](https://github.com/liferay/clay/commit/c591e2f))
+
+### Features
+
+- **breadcrumb:** move breadcrumb to its own package ([0994158](https://github.com/liferay/clay/commit/0994158))
+
+## [3.0.7](https://github.com/liferay/clay/tree/master/packages/clay-breadcrumb/compare/@clayui/breadcrumb@3.0.6...@clayui/breadcrumb@3.0.7) (2020-02-13)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.0.6](https://github.com/liferay/clay/tree/master/packages/clay-breadcrumb/compare/@clayui/breadcrumb@3.0.3...@clayui/breadcrumb@3.0.6) (2020-01-31)
+
+### Bug Fixes
+
+- **drop-down:** use dom-align instead of metal-position ([335ff38](https://github.com/liferay/clay/commit/335ff38))
+- add missing dependency declarations ([c591e2f](https://github.com/liferay/clay/commit/c591e2f))
+
+## [3.0.5](https://github.com/liferay/clay/tree/master/packages/clay-breadcrumb/compare/@clayui/breadcrumb@3.0.3...@clayui/breadcrumb@3.0.5) (2020-01-20)
+
+### Bug Fixes
+
+- add missing dependency declarations ([c591e2f](https://github.com/liferay/clay/commit/c591e2f))
+- **drop-down:** use dom-align instead of metal-position ([335ff38](https://github.com/liferay/clay/commit/335ff38))
+
+## [3.0.4](https://github.com/liferay/clay/tree/master/packages/clay-breadcrumb/compare/@clayui/breadcrumb@3.0.3...@clayui/breadcrumb@3.0.4) (2019-12-05)
+
+### Bug Fixes
+
+- **drop-down:** use dom-align instead of metal-position ([335ff38](https://github.com/liferay/clay/commit/335ff38))
+
+## [3.0.3](https://github.com/liferay/clay/tree/master/packages/clay-breadcrumb/compare/@clayui/breadcrumb@3.0.2...@clayui/breadcrumb@3.0.3) (2019-11-07)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.0.2](https://github.com/liferay/clay/tree/master/packages/clay-breadcrumb/compare/@clayui/breadcrumb@3.0.1...@clayui/breadcrumb@3.0.2) (2019-11-01)
+
+**Note:** Version bump only for package @clayui/breadcrumb
+
+## [3.0.1](https://github.com/liferay/clay/tree/master/packages/clay-breadcrumb/compare/@clayui/breadcrumb@3.0.0...@clayui/breadcrumb@3.0.1) (2019-10-28)
+
+**Note:** Version bump only for package @clayui/breadcrumb

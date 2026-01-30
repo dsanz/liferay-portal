@@ -121,6 +121,7 @@ public class ObjectEntryInfoItemObjectProvider
 
 		ObjectEntryManager objectEntryManager =
 			_objectEntryManagerRegistry.getObjectEntryManager(
+				_objectDefinition.getCompanyId(),
 				_objectDefinition.getStorageType());
 
 		try {
@@ -137,7 +138,7 @@ public class ObjectEntryInfoItemObjectProvider
 			if (objectEntry != null) {
 				ObjectEntry serviceBuilderObjectEntry =
 					ObjectEntryUtil.toObjectEntry(
-						_objectDefinition.getObjectDefinitionId(), objectEntry);
+						_objectDefinition, objectEntry);
 
 				objectEntries.put(
 					ercInfoItemIdentifier, serviceBuilderObjectEntry);

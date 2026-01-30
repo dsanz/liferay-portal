@@ -40,7 +40,6 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 
 import java.util.ArrayList;
@@ -120,7 +119,7 @@ public class DBPartitionUtilTest extends BaseDBPartitionTestCase {
 	@Test
 	@TestInfo("LPS-198239")
 	public void testAccessDefaultCompanyByCompanyThreadLocal()
-		throws SQLException {
+		throws Exception {
 
 		try (SafeCloseable safeCloseable =
 				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
@@ -668,14 +667,15 @@ public class DBPartitionUtilTest extends BaseDBPartitionTestCase {
 
 	private int _getJobsCount(String partitionName) throws Exception {
 		try (PreparedStatement preparedStatement = connection.prepareStatement(
-				StringBundler.concat(
-					"select count(1) from ", partitionName,
-					".QUARTZ_JOB_DETAILS where JOB_GROUP = '", _JOB_GROUP_NAME,
-					"'"));
-			ResultSet resultSet = preparedStatement.executeQuery()) {
+				"select count(1) from " + partitionName +
+					".QUARTZ_JOB_DETAILS where JOB_GROUP = ?")) {
 
-			if (resultSet.next()) {
-				return resultSet.getInt(1);
+			preparedStatement.setString(1, _JOB_GROUP_NAME);
+
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					return resultSet.getInt(1);
+				}
 			}
 		}
 
@@ -686,12 +686,16 @@ public class DBPartitionUtilTest extends BaseDBPartitionTestCase {
 		try (PreparedStatement preparedStatement = connection.prepareStatement(
 				StringBundler.concat(
 					"select count(1) from ", getPartitionName(companyId),
-					".QUARTZ_JOB_DETAILS where JOB_GROUP = '", _JOB_GROUP_NAME,
-					"' and JOB_NAME like '%@", companyId, "'"));
-			ResultSet resultSet = preparedStatement.executeQuery()) {
+					".QUARTZ_JOB_DETAILS where JOB_GROUP = ? and JOB_NAME ",
+					"like ?"))) {
 
-			if (resultSet.next()) {
-				return resultSet.getInt(1);
+			preparedStatement.setString(1, _JOB_GROUP_NAME);
+			preparedStatement.setString(2, "%@" + companyId);
+
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				if (resultSet.next()) {
+					return resultSet.getInt(1);
+				}
 			}
 		}
 

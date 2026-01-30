@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: (c) 2000 Liferay, Inc. https://liferay.com
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
@@ -28,6 +28,7 @@ export class ApplicationsMenuPage {
 	private readonly commerceOrdersMenuItem: Locator;
 	private readonly commerceOrderTypesMenuItem: Locator;
 	private readonly commercePanelButton: Locator;
+	private readonly commercePriceListsMenuItem: Locator;
 	private readonly commerceProductConfigurationListsMenuItem: Locator;
 	private readonly commerceReturnsMenuItem: Locator;
 	private readonly commerceShipmentsMenuItem: Locator;
@@ -41,6 +42,7 @@ export class ApplicationsMenuPage {
 	private readonly dataMigrationCenterMenuItem: Locator;
 	private readonly dataSetManagerMenuItem: Locator;
 	private readonly defaultPermissionsLink: Locator;
+	private readonly digitalSalesRoomsMenuItem: Locator;
 	readonly exportMenuItem: Locator;
 	private readonly gogoShellItem: Locator;
 	private readonly homePage: HomePage;
@@ -51,6 +53,7 @@ export class ApplicationsMenuPage {
 	private readonly metricsItem: Locator;
 	private readonly oAuth2Administration: Locator;
 	private readonly objectsMenuItem: Locator;
+	private readonly onDemandAdminItem: Locator;
 	private readonly page: Page;
 	private readonly passwordPoliciesAdminItem: Locator;
 	private readonly paymentsMenuItem: Locator;
@@ -69,6 +72,7 @@ export class ApplicationsMenuPage {
 	private readonly systemSettingsItem: Locator;
 	private readonly userGroupsItem: Locator;
 	private readonly usersAndOrganizationsItem: Locator;
+	readonly viewAllLink: Locator;
 	private readonly virtualInstancesItem: Locator;
 
 	constructor(page: Page) {
@@ -149,6 +153,10 @@ export class ApplicationsMenuPage {
 		this.commercePanelButton = page.getByRole('tab', {
 			name: 'Commerce',
 		});
+		this.commercePriceListsMenuItem = page.getByRole('menuitem', {
+			exact: true,
+			name: 'Price Lists',
+		});
 		this.commerceProductConfigurationListsMenuItem = page.getByRole(
 			'menuitem',
 			{
@@ -203,6 +211,10 @@ export class ApplicationsMenuPage {
 			exact: true,
 			name: 'Default Permissions',
 		});
+		this.digitalSalesRoomsMenuItem = page.getByRole('menuitem', {
+			exact: true,
+			name: 'Digital Sales Rooms',
+		});
 		this.exportMenuItem = page.getByRole('menuitem', {
 			exact: true,
 			name: 'Export',
@@ -239,6 +251,10 @@ export class ApplicationsMenuPage {
 		this.objectsMenuItem = page.getByRole('menuitem', {
 			exact: true,
 			name: 'Objects',
+		});
+		this.onDemandAdminItem = page.getByRole('menuitem', {
+			exact: true,
+			name: 'On-Demand Admin',
 		});
 		this.page = page;
 		this.passwordPoliciesAdminItem = page.getByRole('menuitem', {
@@ -309,6 +325,7 @@ export class ApplicationsMenuPage {
 			exact: true,
 			name: 'Users and Organizations',
 		});
+		this.viewAllLink = page.getByRole('button', {name: 'View All'});
 		this.virtualInstancesItem = page.getByRole('menuitem', {
 			exact: true,
 			name: 'Virtual Instances',
@@ -446,6 +463,11 @@ export class ApplicationsMenuPage {
 		await this.commercePanelButton.click();
 	}
 
+	async goToCommercePriceLists(checkTabVisibility = true) {
+		await this.goToCommercePanel(checkTabVisibility);
+		await this.commercePriceListsMenuItem.click();
+	}
+
 	async goToCommerceProductConfigurationLists(checkTabVisibility = true) {
 		await this.goToCommercePanel(checkTabVisibility);
 		await this.commerceProductConfigurationListsMenuItem.click();
@@ -521,6 +543,11 @@ export class ApplicationsMenuPage {
 		await this.defaultPermissionsLink.click();
 	}
 
+	async goToDigitalSalesRooms() {
+		await this.goToCommercePanel();
+		await this.digitalSalesRoomsMenuItem.click();
+	}
+
 	async goToExport() {
 		await this.goToApplicationsMenu();
 		await this.exportMenuItem.click();
@@ -584,6 +611,11 @@ export class ApplicationsMenuPage {
 	async goToObjects() {
 		await this.goToControlPanel();
 		await this.objectsMenuItem.click();
+	}
+
+	async goToOnDemandAdmin() {
+		await this.goToControlPanel();
+		await this.onDemandAdminItem.click();
 	}
 
 	async goToPasswordPolicies() {

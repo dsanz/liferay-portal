@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import Autocomplete from '@clayui/autocomplete';
 import ClayButton, {ClayButtonWithIcon} from '@clayui/button';
 import {ClayDropDownWithItems} from '@clayui/drop-down';
 import ClayModal from '@clayui/modal';
 import ClaySticker from '@clayui/sticker';
+import {ItemSelector} from '@liferay/frontend-js-item-selector-web';
 import {openToast} from 'frontend-js-components-web';
+import {sub} from 'frontend-js-web';
 import React, {useEffect, useId, useState} from 'react';
 
 import ConnectedSiteService from '../../common/services/ConnectedSiteService';
@@ -18,6 +19,13 @@ const showErrorMessage = (message: string) => {
 	openToast({
 		message,
 		type: 'danger',
+	});
+};
+
+const showSuccessMessage = (message: string) => {
+	openToast({
+		message,
+		type: 'success',
 	});
 };
 
@@ -47,6 +55,14 @@ const ConnectedSiteActions = ({
 		}
 
 		onSiteDisconnected?.(site);
+		showSuccessMessage(
+			sub(
+				Liferay.Language.get(
+					'site-x-was-successfully-disconnected-from-the-space'
+				),
+				`<strong>${Liferay.Util.escapeHTML(site.descriptiveName)}</strong>`
+			)
+		);
 	};
 
 	const changeSearchable = async () => {
@@ -103,25 +119,35 @@ const ConnectedSiteActions = ({
 };
 
 const SitesSelector = ({
+	connectedSites,
 	externalReferenceCode,
 	onSiteConnected,
 }: {
+	connectedSites: Site[];
 	externalReferenceCode: string;
 	onSiteConnected: (site: Site) => void;
 }) => {
-	const [value, setValue] = useState('');
-	const [sites, setSites] = useState<Site[]>([]);
-	const [siteSelected, setSiteSelected] = useState<Site>();
+	const [site, setSite] = useState<Site>();
+	const [disableConnectButton, setDisableConnectButton] =
+		useState<boolean>(true);
 
 	const connectSiteToSpace = async () => {
-		if (siteSelected) {
+		if (site) {
 			const {data, error} = await ConnectedSiteService.connectSiteToSpace(
 				externalReferenceCode,
-				siteSelected.externalReferenceCode
+				site.externalReferenceCode
 			);
 
 			if (data) {
 				onSiteConnected(data);
+				showSuccessMessage(
+					sub(
+						Liferay.Language.get(
+							'site-x-was-successfully-connected-to-the-space'
+						),
+						`<strong>${Liferay.Util.escapeHTML(site.descriptiveName)}</strong>`
+					)
+				);
 			}
 			else if (error) {
 				showErrorMessage(
@@ -129,20 +155,22 @@ const SitesSelector = ({
 						Liferay.Language.get('unable-to-connect-site-to-space')
 				);
 			}
+			setDisableConnectButton(true);
+			setSite(undefined);
 		}
 	};
 
-	useEffect(() => {
-		const fetchSites = async () => {
-			const {data} = await ConnectedSiteService.getAllSites();
-
-			if (data) {
-				setSites(data.items);
-			}
-		};
-
-		fetchSites();
-	}, []);
+	const controlConnectSiteButton = (
+		selectedSite: Site,
+		connectedSites: Site[]
+	) => {
+		const alreadyConnected = connectedSites.some(
+			(connectedSite) =>
+				connectedSite.externalReferenceCode ===
+				selectedSite.externalReferenceCode
+		);
+		setDisableConnectButton(alreadyConnected);
+	};
 
 	return (
 		<div className="p-4">
@@ -152,29 +180,40 @@ const SitesSelector = ({
 						{Liferay.Language.get('site')}
 					</label>
 
-					<Autocomplete
-						allowsCustomValue
+					<ItemSelector
+						apiURL={`${location.origin}/o/headless-site/v1.0/sites?active=true`}
 						id="siteSelector"
-						menuTrigger="focus"
-						onChange={setValue}
+						items={site ? [site] : []}
+						onItemsChange={(items: Site[]) => {
+							if (items.length) {
+								const item = items[0];
+								controlConnectSiteButton(item, connectedSites);
+								setSite(item);
+							}
+							else {
+								setSite(undefined);
+							}
+						}}
 						placeholder={Liferay.Language.get('select-a-site')}
-						value={value}
 					>
-						{sites.map((site) => (
-							<Autocomplete.Item
-								key={site.id}
-								onClick={() => {
-									setSiteSelected(site);
-								}}
+						{(item: Site) => (
+							<ItemSelector.Item
+								key={item.id}
+								textValue={Liferay.Util.escapeHTML(
+									item.descriptiveName
+								)}
 							>
-								{site.name}
-							</Autocomplete.Item>
-						))}
-					</Autocomplete>
+								{Liferay.Util.escapeHTML(item.descriptiveName)}
+							</ItemSelector.Item>
+						)}
+					</ItemSelector>
 				</div>
 
 				<div className="autofit-col">
-					<ClayButton onClick={connectSiteToSpace}>
+					<ClayButton
+						disabled={disableConnectButton}
+						onClick={connectSiteToSpace}
+					>
 						{Liferay.Language.get('connect')}
 					</ClayButton>
 				</div>
@@ -240,13 +279,16 @@ export default function SpaceConnectedSitesModal({
 
 	return (
 		<>
-			<ClayModal.Header>
+			<ClayModal.Header
+				closeButtonAriaLabel={Liferay.Language.get('close')}
+			>
 				{Liferay.Language.get('all-sites')}
 			</ClayModal.Header>
 
 			{hasConnectSitesPermission && (
 				<ClayModal.Item>
 					<SitesSelector
+						connectedSites={connectedSites}
 						externalReferenceCode={externalReferenceCode}
 						onSiteConnected={onSiteConnected}
 					/>
@@ -302,7 +344,7 @@ export default function SpaceConnectedSitesModal({
 												/>
 											</ClaySticker>
 
-											{site.name}
+											{site.descriptiveName}
 										</div>
 
 										{hasConnectSitesPermission && (

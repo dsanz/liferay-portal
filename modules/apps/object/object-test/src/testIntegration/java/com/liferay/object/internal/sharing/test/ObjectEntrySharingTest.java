@@ -173,7 +173,7 @@ public class ObjectEntrySharingTest extends BaseSharingTestCase<ObjectEntry> {
 	private ObjectDefinition _addObjectDefinition() throws Exception {
 		ObjectDefinition objectDefinition =
 			_objectDefinitionLocalService.addCustomObjectDefinition(
-				TestPropsValues.getUserId(), 0, null, true, true, false, false,
+				null, TestPropsValues.getUserId(), 0, null, true, true, false,
 				false, true, false, false, false, null,
 				LocalizedMapUtil.getLocalizedMap(StringUtil.randomString()),
 				"A" + StringUtil.randomString(), null, null,
@@ -186,7 +186,7 @@ public class ObjectEntrySharingTest extends BaseSharingTestCase<ObjectEntry> {
 						ObjectFieldConstants.BUSINESS_TYPE_TEXT,
 						ObjectFieldConstants.DB_TYPE_STRING,
 						RandomTestUtil.randomString(), "fieldName")),
-				Collections.emptyList());
+				Collections.emptyList(), new ServiceContext());
 
 		return _objectDefinitionLocalService.publishCustomObjectDefinition(
 			TestPropsValues.getUserId(),

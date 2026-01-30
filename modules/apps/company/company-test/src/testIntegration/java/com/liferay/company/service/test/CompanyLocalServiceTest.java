@@ -22,6 +22,7 @@ import com.liferay.dynamic.data.mapping.storage.StorageType;
 import com.liferay.exportimport.kernel.service.StagingLocalService;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.db.partition.db.DBPartitionDB;
 import com.liferay.portal.db.partition.util.DBPartitionUtil;
@@ -33,7 +34,6 @@ import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
-import com.liferay.portal.kernel.db.partition.DBPartition;
 import com.liferay.portal.kernel.exception.CompanyMxException;
 import com.liferay.portal.kernel.exception.CompanyNameException;
 import com.liferay.portal.kernel.exception.CompanyVirtualHostException;
@@ -109,6 +109,7 @@ import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
+import com.liferay.portal.model.impl.CompanyImpl;
 import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
@@ -220,6 +221,8 @@ public class CompanyLocalServiceTest {
 		if (_safeCloseable != null) {
 			_safeCloseable.close();
 		}
+
+		DataAccess.cleanUp(_connection);
 	}
 
 	@Before
@@ -291,7 +294,7 @@ public class CompanyLocalServiceTest {
 	public void testAddAndDeleteCompanyWithCompanyGroupStaging()
 		throws Exception {
 
-		Assume.assumeFalse(DBPartition.isPartitionEnabled());
+		Assume.assumeFalse(PropsValues.DATABASE_PARTITION_ENABLED);
 
 		Company company = _addCompany();
 		Group companyGroup = null;
@@ -321,7 +324,7 @@ public class CompanyLocalServiceTest {
 
 	@Test
 	public void testAddAndDeleteCompanyWithDLFileEntryTypes() throws Exception {
-		Assume.assumeFalse(DBPartition.isPartitionEnabled());
+		Assume.assumeFalse(PropsValues.DATABASE_PARTITION_ENABLED);
 
 		Company company = _addCompany();
 		DDMStructure ddmStructure = null;
@@ -391,7 +394,7 @@ public class CompanyLocalServiceTest {
 	public void testAddAndDeleteCompanyWithLayoutSetPrototype()
 		throws Throwable {
 
-		Assume.assumeFalse(DBPartition.isPartitionEnabled());
+		Assume.assumeFalse(PropsValues.DATABASE_PARTITION_ENABLED);
 
 		Company company = _addCompany();
 		LayoutSetPrototype layoutSetPrototype = null;
@@ -435,7 +438,7 @@ public class CompanyLocalServiceTest {
 	public void testAddAndDeleteCompanyWithLayoutSetPrototypeLinkedUserGroup()
 		throws Throwable {
 
-		Assume.assumeFalse(DBPartition.isPartitionEnabled());
+		Assume.assumeFalse(PropsValues.DATABASE_PARTITION_ENABLED);
 
 		Company company = _addCompany();
 		long layoutSetPrototypeId = 0;
@@ -485,7 +488,7 @@ public class CompanyLocalServiceTest {
 
 	@Test
 	public void testAddAndDeleteCompanyWithParentGroup() throws Exception {
-		Assume.assumeFalse(DBPartition.isPartitionEnabled());
+		Assume.assumeFalse(PropsValues.DATABASE_PARTITION_ENABLED);
 
 		Company company = _addCompany();
 		Group group = null;
@@ -590,7 +593,7 @@ public class CompanyLocalServiceTest {
 	public void testAddAndDeleteCompanyWithStagedOrganizationSite()
 		throws Exception {
 
-		Assume.assumeFalse(DBPartition.isPartitionEnabled());
+		Assume.assumeFalse(PropsValues.DATABASE_PARTITION_ENABLED);
 
 		Company company = _addCompany();
 		Organization companyOrganization = null;
@@ -626,7 +629,7 @@ public class CompanyLocalServiceTest {
 
 	@Test
 	public void testAddAndDeleteCompanyWithUserGroup() throws Exception {
-		Assume.assumeFalse(DBPartition.isPartitionEnabled());
+		Assume.assumeFalse(PropsValues.DATABASE_PARTITION_ENABLED);
 
 		Company company = _addCompany();
 		User user = null;
@@ -665,7 +668,7 @@ public class CompanyLocalServiceTest {
 	public void testAddAndDeleteCompanyWithUserGroupAndUserGroupRole()
 		throws Exception {
 
-		Assume.assumeFalse(DBPartition.isPartitionEnabled());
+		Assume.assumeFalse(PropsValues.DATABASE_PARTITION_ENABLED);
 
 		Company company = _addCompany();
 		Group group = null;
@@ -830,7 +833,7 @@ public class CompanyLocalServiceTest {
 	public void testDeleteCompanyDeletesUserGroupRoleBeforeRole()
 		throws Exception {
 
-		Assume.assumeFalse(DBPartition.isPartitionEnabled());
+		Assume.assumeFalse(PropsValues.DATABASE_PARTITION_ENABLED);
 
 		Assert.assertEquals(
 			UserGroupRole.class.getName(), _modelListeners.get(0));
@@ -989,6 +992,56 @@ public class CompanyLocalServiceTest {
 
 			Assert.assertEquals(
 				"Feature flag LPD-11342 is disabled", exception.getMessage());
+		}
+	}
+
+	@Test
+	public void testForEachCompanyIdWithInvalidCompanyId() {
+		long invalidCompanyId = RandomTestUtil.nextLong();
+
+		try (SafeCloseable safeCloseable = CompanyThreadLocal.lock(
+				PortalInstancePool.getDefaultCompanyId())) {
+
+			_companyLocalService.forEachCompanyId(
+				null, new long[] {invalidCompanyId});
+
+			Assert.fail();
+		}
+		catch (UnsupportedOperationException unsupportedOperationException) {
+			Assert.assertEquals(
+				StringBundler.concat(
+					"Unable to iterate over the following company IDs [",
+					invalidCompanyId, "] because company ID ",
+					PortalInstancePool.getDefaultCompanyId(), " is locked"),
+				unsupportedOperationException.getMessage());
+		}
+	}
+
+	@Test
+	public void testForEachCompanyWithInvalidCompany() {
+		long invalidCompanyId = RandomTestUtil.nextLong();
+
+		try (SafeCloseable safeCloseable = CompanyThreadLocal.lock(
+				PortalInstancePool.getDefaultCompanyId())) {
+
+			_companyLocalService.forEachCompany(
+				null,
+				Collections.singletonList(
+					new CompanyImpl() {
+						{
+							setCompanyId(invalidCompanyId);
+						}
+					}));
+
+			Assert.fail();
+		}
+		catch (UnsupportedOperationException unsupportedOperationException) {
+			Assert.assertEquals(
+				StringBundler.concat(
+					"Unable to iterate over the following company IDs [",
+					invalidCompanyId, "] because company ID ",
+					PortalInstancePool.getDefaultCompanyId(), " is locked"),
+				unsupportedOperationException.getMessage());
 		}
 	}
 
@@ -1496,15 +1549,15 @@ public class CompanyLocalServiceTest {
 	}
 
 	private int _getTablesCount(long companyId) throws Exception {
-		return _getTableNames(
-			"TABLE", companyId
-		).size();
+		List<String> tableNames = _getTableNames("TABLE", companyId);
+
+		return tableNames.size();
 	}
 
 	private int _getViewsCount(long companyId) throws Exception {
-		return _getTableNames(
-			"VIEW", companyId
-		).size();
+		List<String> tableNames = _getTableNames("VIEW", companyId);
+
+		return tableNames.size();
 	}
 
 	private void _resetCompanyLocales(long companyId) throws Exception {
@@ -1573,7 +1626,7 @@ public class CompanyLocalServiceTest {
 
 		try (SafeCloseable safeCloseable1 =
 				PropsValuesTestUtil.swapWithSafeCloseable(
-					"MAIL_MX_UPDATE", mailMxUpdate);
+					"COMPANY_MX_UPDATE", mailMxUpdate);
 			SafeCloseable safeCloseable2 =
 				CompanyThreadLocal.setCompanyIdWithSafeCloseable(
 					_company.getCompanyId())) {

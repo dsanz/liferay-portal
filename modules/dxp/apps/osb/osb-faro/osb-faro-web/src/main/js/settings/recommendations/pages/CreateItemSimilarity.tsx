@@ -1,4 +1,4 @@
-import BasePage from 'settings/components/BasePage';
+import BasePage from 'settings/components/base-page/BasePage';
 import React from 'react';
 import RecommendationStepCard from '../components/recommendation-step-card';
 import {getRecommendations} from 'shared/util/breadcrumbs';
@@ -25,7 +25,6 @@ const CreateItemSimilarity: React.FC<ICreateItemSimilarityProps> = ({
 					label: Liferay.Language.get('new-model')
 				}
 			]}
-			groupId={groupId}
 			pageDescription={Liferay.Language.get(
 				'item-similarity-model-uses-items-and-iteractions-for-training'
 			)}

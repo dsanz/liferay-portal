@@ -369,8 +369,8 @@ public abstract class BaseBlogPostingResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(blogPostingId);
-		String resourceName = getPermissionCheckerResourceName(blogPostingId);
 		Long resourceId = getPermissionCheckerResourceId(blogPostingId);
+		String resourceName = getPermissionCheckerResourceName(blogPostingId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -1090,8 +1090,8 @@ public abstract class BaseBlogPostingResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(blogPostingId);
-		String resourceName = getPermissionCheckerResourceName(blogPostingId);
 		Long resourceId = getPermissionCheckerResourceId(blogPostingId);
+		String resourceName = getPermissionCheckerResourceName(blogPostingId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -1450,9 +1450,34 @@ public abstract class BaseBlogPostingResourceImpl
 
 		UnsafeFunction<BlogPosting, BlogPosting, Exception>
 			blogPostingUnsafeFunction = blogPosting -> {
-				deleteBlogPosting(blogPosting.getId());
+				if (blogPosting.getId() != null) {
+					try {
+						deleteBlogPosting(blogPosting.getId());
 
-				return blogPosting;
+						return blogPosting;
+					}
+					catch (Exception exception) {
+						if (blogPosting.getExternalReferenceCode() != null) {
+							if (parameters.containsKey("siteId")) {
+								deleteSiteBlogPostingByExternalReferenceCode(
+									(Long)parameters.get("siteId"),
+									blogPosting.getExternalReferenceCode());
+
+								return blogPosting;
+							}
+						}
+					}
+				}
+				else if (parameters.containsKey("siteId")) {
+					deleteSiteBlogPostingByExternalReferenceCode(
+						(Long)parameters.get("siteId"),
+						blogPosting.getExternalReferenceCode());
+
+					return blogPosting;
+				}
+
+				throw new UnsupportedOperationException(
+					"Unable to delete by external reference code or ID");
 			};
 
 		if (contextBatchUnsafeBiConsumer != null) {
@@ -1746,6 +1771,9 @@ public abstract class BaseBlogPostingResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

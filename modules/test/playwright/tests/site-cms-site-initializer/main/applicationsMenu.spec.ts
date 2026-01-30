@@ -10,6 +10,10 @@ import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {HomePage} from '../../../pages/portal-web/HomePage';
 import getRandomString from '../../../utils/getRandomString';
+import performLogin, {
+	performLogout,
+	userData,
+} from '../../../utils/performLogin';
 import {cmsPagesTest} from './fixtures/cmsPagesTest';
 
 const test = mergeTests(
@@ -17,7 +21,6 @@ const test = mergeTests(
 	dataApiHelpersTest,
 	featureFlagsTest({
 		'LPD-17564': {enabled: true},
-		'LPS-179669': {enabled: true},
 	}),
 	loginTest()
 );
@@ -56,9 +59,41 @@ test(
 		await spaceLink.click();
 
 		await expect(
-			page.locator('nav a.breadcrumb-link', {
-				hasText: spaceName,
-			})
+			page.getByRole('heading', {name: spaceName})
 		).toBeVisible();
+	}
+);
+
+test(
+	'Cannot access the Control Menu as an admin or non admin user on the CMS site',
+	{tag: '@LPD-68992'},
+	async ({apiHelpers, page, spaceSummaryPage}) => {
+		const user = await apiHelpers.headlessAdminUser.postUserAccount();
+
+		userData[user.alternateName] = {
+			name: user.givenName,
+			password: 'test',
+			surname: user.familyName,
+		};
+
+		const spaceName = 'Default';
+
+		await spaceSummaryPage.goto(spaceName);
+
+		await expect(
+			page.getByLabel('Control Menu', {exact: true})
+		).not.toBeVisible();
+
+		await spaceSummaryPage.addUserOrUserGroup(user.name, 'users');
+
+		await performLogout(page);
+
+		await performLogin(page, user.alternateName);
+
+		await spaceSummaryPage.goto(spaceName);
+
+		await expect(
+			page.getByLabel('Control Menu', {exact: true})
+		).not.toBeVisible();
 	}
 );

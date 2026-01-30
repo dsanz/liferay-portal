@@ -5,6 +5,8 @@
 
 package com.liferay.portal.kernel.portlet;
 
+import com.liferay.portal.kernel.model.Portlet;
+
 import java.util.Map;
 
 /**
@@ -70,6 +72,8 @@ public interface FriendlyURLMapper {
 	 */
 	public Router getRouter();
 
+	public void init(Portlet portlet);
+
 	/**
 	 * Returns <code>true</code> if the friendly URLs for this mapper should
 	 * include the friendly URL separator.
@@ -132,55 +136,6 @@ public interface FriendlyURLMapper {
 		String friendlyURLPath, Map<String, String[]> parameterMap,
 		Map<String, Object> requestContext);
 
-	/**
-	 * Sets the friendly URL mapping for this portlet.
-	 *
-	 * <p>
-	 * This method is automatically called by {@link
-	 * com.liferay.portlet.PortletBagFactory} with the friendly URL mapping
-	 * defined in <code>liferay-portlet.xml</code>.
-	 * </p>
-	 *
-	 * @param mapping the friendly URL mapping for this portlet
-	 */
-	public void setMapping(String mapping);
-
-	/**
-	 * Sets the ID of this portlet.
-	 *
-	 * <p>
-	 * This method is automatically called by {@link
-	 * com.liferay.portlet.PortletBagFactory} with the portlet ID defined in
-	 * <code>liferay-portlet.xml</code>.
-	 * </p>
-	 *
-	 * @param portletId the ID of this portlet.
-	 */
-	public void setPortletId(String portletId);
-
-	/**
-	 * Sets whether this portlet is instanceable.
-	 *
-	 * @param portletInstanceable whether this portlet is instanceable
-	 */
-	public void setPortletInstanceable(boolean portletInstanceable);
-
-	/**
-	 * Sets the router for this friendly URL mapper.
-	 *
-	 * <p>
-	 * This method is automatically called by {@link
-	 * com.liferay.portlet.PortletBagFactory} with a router populated with the
-	 * routes defined in this portlet's <a
-	 * href="../definitions/liferay-friendly-url-routes_6_0_0.dtd.html"
-	 * >friendly-url-routes.xml</a> file. The location of this file is defined
-	 * in this portlet's <a
-	 * href="../definitions/liferay-portlet-app_6_0_0.dtd.html"
-	 * >liferay-portlet.xml</a> file.
-	 * </p>
-	 *
-	 * @param router the router for this friendly URL mapper
-	 */
-	public void setRouter(Router router);
+	public void setFriendlyURLRoutes(String friendlyURLRoutes);
 
 }

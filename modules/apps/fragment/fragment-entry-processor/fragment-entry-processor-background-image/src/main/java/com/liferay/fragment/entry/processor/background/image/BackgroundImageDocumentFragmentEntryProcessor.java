@@ -27,7 +27,11 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
+
+import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -108,8 +112,8 @@ public class BackgroundImageDocumentFragmentEntryProcessor
 					if (fileEntryId == 0) {
 						fileEntryId =
 							_fragmentEntryProcessorHelper.getFileEntryId(
-								valueJSONObject.getString("className"),
-								valueJSONObject.getLong("classPK"));
+								_getGroupId(fragmentEntryProcessorContext),
+								valueJSONObject);
 					}
 
 					value = _getImagePreviewURL(
@@ -124,9 +128,9 @@ public class BackgroundImageDocumentFragmentEntryProcessor
 
 				if (fileEntryId == 0) {
 					fileEntryId = _fragmentEntryProcessorHelper.getFileEntryId(
-						editableValueJSONObject.getLong("classNameId"),
-						editableValueJSONObject.getLong("classPK"),
 						editableValueJSONObject.getString("fieldId"),
+						_getGroupId(fragmentEntryProcessorContext),
+						editableValueJSONObject,
 						fragmentEntryProcessorContext.getLocale());
 				}
 
@@ -175,6 +179,31 @@ public class BackgroundImageDocumentFragmentEntryProcessor
 					_infoItemServiceRegistry);
 			}
 		}
+	}
+
+	private long _getGroupId(
+		FragmentEntryProcessorContext fragmentEntryProcessorContext) {
+
+		if (fragmentEntryProcessorContext.getScopeGroupId() > 0) {
+			return fragmentEntryProcessorContext.getScopeGroupId();
+		}
+
+		HttpServletRequest httpServletRequest =
+			fragmentEntryProcessorContext.getHttpServletRequest();
+
+		if (httpServletRequest == null) {
+			return 0;
+		}
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		if (themeDisplay == null) {
+			return 0;
+		}
+
+		return themeDisplay.getScopeGroupId();
 	}
 
 	private String _getImagePreviewURL(String defaultValue, long fileEntryId) {

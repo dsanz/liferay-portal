@@ -1,0 +1,734 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+import {Text, TextHighlight} from '@clayui/core';
+import {FetchPolicy, NetworkStatus, useResource} from '@clayui/data-provider';
+import DropDown from '@clayui/drop-down';
+import Layout from '@clayui/layout';
+import {FocusScope, useDebounce} from '@clayui/shared';
+import React, {useEffect, useRef, useState} from 'react';
+
+import ClayAutocomplete from '../src';
+
+function LoadingWithDebounce({
+	loading,
+	networkStatus,
+	render,
+}: {
+	loading: boolean;
+	networkStatus?: NetworkStatus;
+	render: any;
+}) {
+	const debouncedLoadingChange = useDebounce(loading, 500);
+	if (networkStatus === 1 || debouncedLoadingChange) {
+		return <DropDown.Item className="disabled">Loading...</DropDown.Item>;
+	}
+
+	return render;
+}
+
+export default {
+	title: 'Design System/Components/Autocomplete',
+};
+export function Default(args: any) {
+	return (
+		<div className="row">
+			<div className="col-md-5">
+				<div className="sheet">
+					<div className="form-group">
+						<label
+							htmlFor="clay-autocomplete-1"
+							id="clay-autocomplete-label-1"
+						>
+							Numbers (one-five)
+						</label>
+
+						<ClayAutocomplete
+							aria-labelledby="clay-autocomplete-label-1"
+							id="clay-autocomplete-1"
+							menuTrigger={args.menuTrigger}
+							messages={{
+								listCount: '{0} option available.',
+								listCountPlural: '{0} options available.',
+								loading: 'Loading...',
+								notFound: 'No results found',
+							}}
+							placeholder="Enter a number from One to Five"
+						>
+							{['one', 'two', 'three', 'four', 'five'].map(
+								(item) => (
+									<ClayAutocomplete.Item key={item}>
+										{item}
+									</ClayAutocomplete.Item>
+								)
+							)}
+						</ClayAutocomplete>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+Default.argTypes = {
+	menuTrigger: {
+		control: {type: 'select'},
+		options: ['focus', 'input'],
+	},
+};
+export function SelectedState() {
+	const fruits = ['Apples', 'Bananas', 'Cantaloupe', 'Mangos'];
+	const [value, setValue] = useState('');
+	const [selectedKeys, setSelectedKeys] = useState<Array<string>>([]);
+
+	const handleValueChange = (newValue: string) => {
+		setValue(newValue);
+
+		if (!newValue) {
+			return setSelectedKeys([]);
+		}
+
+		const matchedItem = fruits.find(
+			(item) => item.toLowerCase() === newValue.toLowerCase()
+		);
+
+		if (matchedItem && !selectedKeys.includes(matchedItem)) {
+			setSelectedKeys([matchedItem]);
+		}
+	};
+
+	return (
+		<div className="row">
+			<div className="col-md-5">
+				<div className="sheet">
+					<div className="form-group">
+						<label
+							htmlFor="clay-autocomplete-1"
+							id="clay-autocomplete-label-1"
+						>
+							Fruits
+						</label>
+
+						<ClayAutocomplete
+							aria-labelledby="clay-autocomplete-label-1"
+							defaultItems={fruits}
+							id="clay-autocomplete-1"
+							messages={{
+								loading: 'Loading...',
+								notFound: 'No results found',
+							}}
+							onChange={handleValueChange}
+							placeholder="Select a fruit from the list"
+							selectedKeys={selectedKeys}
+							value={value}
+						>
+							{(item) => (
+								<ClayAutocomplete.Item key={item}>
+									{item}
+								</ClayAutocomplete.Item>
+							)}
+						</ClayAutocomplete>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+export function Dynamic() {
+	return (
+		<div className="row">
+			<div className="col-md-5">
+				<div className="sheet">
+					<div className="form-group">
+						<label
+							htmlFor="clay-autocomplete-1"
+							id="clay-autocomplete-label-1"
+						>
+							States
+						</label>
+
+						<ClayAutocomplete
+							aria-labelledby="clay-autocomplete-label-1"
+							defaultItems={[
+								'Alabama',
+								'Alaska',
+								'Arizona',
+								'Arkansas',
+								'California',
+								'Colorado',
+								'Connecticut',
+								'Delaware',
+								'Florida',
+								'Georgia',
+								'Hawaii',
+								'Idaho',
+								'Illinois',
+								'Indiana',
+								'Iowa',
+								'Kansas',
+								'Kentucky',
+								'Louisiana',
+								'Maine',
+								'Maryland',
+								'Massachusetts',
+								'Michigan',
+								'Minnesota',
+								'Mississippi',
+								'Missouri',
+								'Montana',
+								'Nebraska',
+								'Nevada',
+								'New Hampshire',
+								'New Jersey',
+								'New Mexico',
+								'New York',
+								'North Carolina',
+								'North Dakota',
+								'Ohio',
+								'Oklahoma',
+								'Oregon',
+								'Pennsylvania',
+								'Rhode Island',
+								'South Carolina',
+								'South Dakota',
+								'Tennessee',
+								'Texas',
+								'Utah',
+								'Vermont',
+								'Virginia',
+								'Washington',
+								'West Virginia',
+								'Wisconsin',
+								'Wyoming',
+							]}
+							id="clay-autocomplete-1"
+							messages={{
+								listCount: '{0} option available.',
+								listCountPlural: '{0} options available.',
+								loading: 'Loading...',
+								notFound: 'No results found',
+							}}
+							placeholder="Enter a US state name"
+						>
+							{(item) => (
+								<ClayAutocomplete.Item key={item}>
+									{item}
+								</ClayAutocomplete.Item>
+							)}
+						</ClayAutocomplete>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+export function CustomItem() {
+	const [value, setValue] = useState('');
+
+	return (
+		<div className="row">
+			<div className="col-md-5">
+				<div className="sheet">
+					<div className="form-group">
+						<label
+							htmlFor="clay-autocomplete-2"
+							id="clay-autocomplete-label-2"
+						>
+							Numbers (one-five)
+						</label>
+
+						<ClayAutocomplete
+							aria-labelledby="clay-autocomplete-label-2"
+							defaultItems={[
+								'one',
+								'two',
+								'three',
+								'four',
+								'five',
+							]}
+							id="clay-autocomplete-2"
+							messages={{
+								listCount: '{0} option available.',
+								listCountPlural: '{0} options available.',
+								loading: 'Loading...',
+								notFound: 'No results found',
+							}}
+							onChange={setValue}
+							placeholder="Enter a number from One to Five"
+							value={value}
+						>
+							{(item) => (
+								<ClayAutocomplete.Item
+									key={item}
+									textValue={item}
+								>
+									<Layout.ContentRow>
+										<Layout.ContentCol expand>
+											<Text size={3}>
+												<TextHighlight match={value}>
+													{item}
+												</TextHighlight>
+											</Text>
+										</Layout.ContentCol>
+
+										<Layout.ContentCol>
+											<Text size={2}>Description</Text>
+										</Layout.ContentCol>
+									</Layout.ContentRow>
+								</ClayAutocomplete.Item>
+							)}
+						</ClayAutocomplete>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+type RickandMorty = {
+	id: number;
+	name: string;
+	[key: string]: any;
+};
+export function AsyncFilter() {
+	const [value, setValue] = useState('Magma-Q');
+
+	const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(
+		NetworkStatus.Unused
+	);
+	const {resource} = useResource({
+		fetchPolicy: FetchPolicy.CacheFirst,
+		link: 'https://rickandmortyapi.com/api/character/',
+		onNetworkStatusChange: setNetworkStatus,
+		variables: {name: value},
+	});
+
+	return (
+		<div className="row">
+			<div className="col-md-5">
+				<div className="sheet">
+					<div className="form-group">
+						<label
+							htmlFor="clay-autocomplete-1"
+							id="clay-autocomplete-label-1"
+						>
+							Name
+						</label>
+
+						<ClayAutocomplete
+							aria-labelledby="clay-autocomplete-label-1"
+							filterKey="name"
+							id="clay-autocomplete-1"
+							items={
+								(resource?.results as Array<RickandMorty>) ?? []
+							}
+							loadingState={networkStatus}
+							messages={{
+								listCount: '{0} option available.',
+								listCountPlural: '{0} options available.',
+								loading: 'Loading...',
+								notFound: 'No results found',
+							}}
+							onChange={setValue}
+							onItemsChange={() => {}}
+							placeholder="Enter a name"
+							value={value}
+						>
+							{(item) => (
+								<ClayAutocomplete.Item key={item.id}>
+									{item.name}
+								</ClayAutocomplete.Item>
+							)}
+						</ClayAutocomplete>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+
+type RickandMortyNested = RickandMorty & {
+	nested: {
+		name: string;
+	};
+};
+export function NestedData() {
+	const [value, setValue] = useState('Morty Smith');
+
+	const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(
+		NetworkStatus.Unused
+	);
+	const {resource} = useResource({
+		fetch: async (link: string) => {
+			const result = await fetch(link);
+
+			const json = await result.json();
+
+			const items = json.results.map((item: RickandMorty) => ({
+				...item,
+				nested: {
+					name: item.name,
+				},
+			}));
+
+			return {
+				cursor: json.next,
+				items,
+			};
+		},
+		fetchPolicy: FetchPolicy.CacheFirst,
+		link: 'https://rickandmortyapi.com/api/character/',
+		onNetworkStatusChange: setNetworkStatus,
+		variables: {name: value},
+	});
+
+	return (
+		<div className="row">
+			<div className="col-md-5">
+				<div className="sheet">
+					<div className="form-group">
+						<label
+							htmlFor="clay-autocomplete-1"
+							id="clay-autocomplete-label-1"
+						>
+							Name
+						</label>
+
+						<ClayAutocomplete
+							aria-labelledby="clay-autocomplete-label-1"
+							filterKey={(item: RickandMortyNested) =>
+								item?.nested.name
+							}
+							id="clay-autocomplete-1"
+							items={
+								(resource?.results as Array<RickandMortyNested>) ??
+								[]
+							}
+							loadingState={networkStatus}
+							messages={{
+								listCount: '{0} option available.',
+								listCountPlural: '{0} options available.',
+								loading: 'Loading...',
+								notFound: 'No results found',
+							}}
+							onChange={setValue}
+							onItemsChange={() => {}}
+							placeholder="Enter a name"
+							value={value}
+						>
+							{(item: RickandMortyNested) => (
+								<ClayAutocomplete.Item key={item.id}>
+									{item?.nested.name}
+								</ClayAutocomplete.Item>
+							)}
+						</ClayAutocomplete>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+export function Keyboard() {
+	const inputRef = useRef<HTMLInputElement | null>(null);
+	const [value, setValue] = useState('');
+	const [active, setActive] = useState(!!value);
+
+	const filteredItems = ['one', 'two', 'three', 'four', 'five'].filter(
+		(item) => item.match(value)
+	);
+
+	useEffect(() => {
+		setActive(!!value);
+	}, [value]);
+
+	return (
+		<div className="row">
+			<div className="col-md-5">
+				<div className="sheet">
+					<div className="form-group">
+						<label>Numbers (one-five)</label>
+
+						<FocusScope>
+							<ClayAutocomplete>
+								<ClayAutocomplete.Input
+									aria-label="Numbers: Enter a number from One to Five"
+									onChange={(event: any) =>
+										setValue(event.target.value)
+									}
+									ref={inputRef}
+									value={value}
+								/>
+
+								<ClayAutocomplete.DropDown
+									active={active}
+									onActiveChange={setActive}
+								>
+									<DropDown.ItemList>
+										{filteredItems.map((item) => (
+											<ClayAutocomplete.Item
+												key={item}
+												match={value}
+												onClick={() => setValue(item)}
+												value={item}
+											/>
+										))}
+									</DropDown.ItemList>
+								</ClayAutocomplete.DropDown>
+							</ClayAutocomplete>
+						</FocusScope>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+export function AsyncData() {
+	const [value, setValue] = useState('');
+	const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(
+		NetworkStatus.Unused
+	);
+	const {resource} = useResource({
+		fetchPolicy: FetchPolicy.CacheFirst,
+		link: 'https://rickandmortyapi.com/api/character/',
+		onNetworkStatusChange: setNetworkStatus,
+		variables: {name: value},
+	});
+
+	const initialLoading = networkStatus === 1;
+	const loading = networkStatus < 4;
+	const error = networkStatus === 5;
+
+	return (
+		<div className="row">
+			<div className="col-md-5">
+				<div className="sheet">
+					<div className="form-group">
+						<label>Name</label>
+
+						<ClayAutocomplete>
+							<ClayAutocomplete.Input
+								aria-label="Enter a name:"
+								onChange={(event: any) =>
+									setValue(event.target.value)
+								}
+								value={value}
+							/>
+
+							<ClayAutocomplete.DropDown
+								active={
+									(!!resource && !!value) || initialLoading
+								}
+							>
+								<DropDown.ItemList>
+									<LoadingWithDebounce
+										loading={loading}
+										networkStatus={networkStatus}
+										render={
+											<>
+												{(error ||
+													(resource &&
+														resource.error)) && (
+													<DropDown.Item className="disabled">
+														No Results Found
+													</DropDown.Item>
+												)}
+												{!error &&
+													resource &&
+													resource.results &&
+													resource.results.map(
+														(item: any) => (
+															<ClayAutocomplete.Item
+																key={item.id}
+																match={value}
+																onClick={() =>
+																	setValue(
+																		item.name
+																	)
+																}
+																value={
+																	item.name
+																}
+															/>
+														)
+													)}
+											</>
+										}
+									/>
+								</DropDown.ItemList>
+							</ClayAutocomplete.DropDown>
+
+							{loading && <ClayAutocomplete.LoadingIndicator />}
+						</ClayAutocomplete>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+export function CreationActionWithStaticRendering() {
+	const [value, setValue] = useState('');
+	const [items, setItems] = useState(['Small', 'Medium', 'Large']);
+
+	return (
+		<div className="row">
+			<div className="col-md-5">
+				<div className="sheet">
+					<div className="form-group">
+						<label
+							htmlFor="clay-autocomplete-1"
+							id="clay-autocomplete-label-1"
+						>
+							Tags
+						</label>
+
+						<ClayAutocomplete
+							aria-labelledby="clay-autocomplete-label-1"
+							id="clay-autocomplete-1"
+							onChange={setValue}
+							placeholder="Add a tag or create a new one"
+							primaryAction={{
+								label: 'Create New Tag',
+								onClick: () => {
+									setItems([...items, value]);
+									setValue('');
+								},
+							}}
+							value={value}
+						>
+							{items.map((item, i) => (
+								<ClayAutocomplete.Item key={item + i}>
+									{item}
+								</ClayAutocomplete.Item>
+							))}
+						</ClayAutocomplete>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+export function CreationActionWithDynamicRendering() {
+	const [value, setValue] = useState('');
+
+	return (
+		<div className="row">
+			<div className="col-md-5">
+				<div className="sheet">
+					<div className="form-group">
+						<label
+							htmlFor="clay-autocomplete-1"
+							id="clay-autocomplete-label-1"
+						>
+							Tags
+						</label>
+
+						<ClayAutocomplete
+							aria-labelledby="clay-autocomplete-label-1"
+							defaultItems={['Small', 'Medium', 'Large']}
+							onChange={setValue}
+							primaryAction={{
+								label: 'Create New Tag',
+								onClick: () => {
+									alert('create!');
+								},
+							}}
+							value={value}
+						>
+							{(item, i) => (
+								<ClayAutocomplete.Item key={item + i}>
+									{item}
+								</ClayAutocomplete.Item>
+							)}
+						</ClayAutocomplete>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}
+export function InfiniteScroll() {
+	const [networkStatus, setNetworkStatus] = useState<NetworkStatus>(
+		NetworkStatus.Unused
+	);
+
+	const [valueWithQuery, setValueWithQuery] = useState('');
+	const [valueWithoutQuery, setValueWithoutQuery] = useState('');
+
+	const {loadMore: loadMoreWithQuery, resource: itemsWithQuery} = useResource(
+		{
+			fetch: async (link: string) => {
+				const result = await fetch(link);
+				const json = await result.json();
+
+				return {
+					cursor: json.info.next,
+					items: json.results,
+				};
+			},
+			link: 'https://rickandmortyapi.com/api/character',
+			onNetworkStatusChange: setNetworkStatus,
+			variables: {name: valueWithQuery},
+		}
+	);
+
+	const {loadMore: loadMoreWithoutQuery, resource: itemsWithoutQuery} =
+		useResource({
+			fetch: async (link: string) => {
+				const result = await fetch(link);
+				const json = await result.json();
+
+				return {
+					cursor: json.info.next,
+					items: json.results,
+				};
+			},
+			link: 'https://rickandmortyapi.com/api/character',
+			onNetworkStatusChange: setNetworkStatus,
+		});
+
+	return (
+		<div className="row">
+			<div className="col-md-5">
+				<div className="sheet">
+					<div className="form-group">
+						<label>Name (with query)</label>
+
+						<ClayAutocomplete
+							loadingState={networkStatus}
+							onChange={setValueWithQuery}
+							onLoadMore={loadMoreWithQuery}
+							placeholder="Enter a name"
+							value={valueWithQuery}
+						>
+							{itemsWithQuery?.map((item: RickandMorty) => (
+								<ClayAutocomplete.Item key={item.id}>
+									{item.name}
+								</ClayAutocomplete.Item>
+							))}
+						</ClayAutocomplete>
+					</div>
+
+					<div className="form-group">
+						<label>Name (without query)</label>
+
+						<ClayAutocomplete
+							loadingState={networkStatus}
+							onChange={setValueWithoutQuery}
+							onLoadMore={loadMoreWithoutQuery}
+							placeholder="Enter a name"
+							value={valueWithoutQuery}
+						>
+							{itemsWithoutQuery?.map((item: RickandMorty) => (
+								<ClayAutocomplete.Item key={item.id}>
+									{item.name}
+								</ClayAutocomplete.Item>
+							))}
+						</ClayAutocomplete>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
+}

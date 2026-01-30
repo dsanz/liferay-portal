@@ -1,0 +1,126 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.site.cmp.site.initializer.internal.fragment.renderer.test;
+
+import com.liferay.fragment.renderer.FragmentRenderer;
+import com.liferay.fragment.renderer.FragmentRendererContext;
+import com.liferay.info.constants.InfoDisplayWebKeys;
+import com.liferay.info.item.InfoItemReference;
+import com.liferay.layout.display.page.LayoutDisplayPageProvider;
+import com.liferay.layout.display.page.LayoutDisplayPageProviderRegistry;
+import com.liferay.layout.display.page.constants.LayoutDisplayPageWebKeys;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.WebKeys;
+import com.liferay.portal.test.rule.Inject;
+import com.liferay.site.cmp.site.initializer.test.util.CMPTestUtil;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.Map;
+
+import org.junit.Before;
+
+import org.springframework.mock.web.MockHttpServletRequest;
+
+/**
+ * @author Carolina Barbosa
+ */
+public abstract class BaseComponentSectionFragmentRendererTestCase {
+
+	@Before
+	public void setUp() throws Exception {
+		CMPTestUtil.getOrAddGroup(
+			BaseComponentSectionFragmentRendererTestCase.class);
+
+		projectObjectDefinition =
+			objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_CMP_PROJECT", TestPropsValues.getCompanyId());
+
+		projectObjectEntry = CMPTestUtil.addProjectObjectEntry();
+
+		projectTitle = MapUtil.getString(
+			projectObjectEntry.getValues(), "title");
+
+		themeDisplay = new ThemeDisplay() {
+			{
+				setCompany(
+					_companyLocalService.fetchCompany(
+						TestPropsValues.getCompanyId()));
+				setLocale(LocaleUtil.US);
+				setScopeGroupId(TestPropsValues.getGroupId());
+				setSiteGroupId(TestPropsValues.getGroupId());
+				setUser(TestPropsValues.getUser());
+			}
+		};
+
+		httpServletRequest = getHttpServletRequest(
+			projectObjectDefinition, projectObjectEntry);
+	}
+
+	protected abstract FragmentRenderer getFragmentRenderer();
+
+	protected HttpServletRequest getHttpServletRequest(
+			ObjectDefinition objectDefinition, ObjectEntry objectEntry)
+		throws Exception {
+
+		HttpServletRequest httpServletRequest = new MockHttpServletRequest();
+
+		httpServletRequest.setAttribute(
+			InfoDisplayWebKeys.INFO_ITEM, objectEntry);
+
+		LayoutDisplayPageProvider<?> layoutDisplayPageProvider =
+			_layoutDisplayPageProviderRegistry.
+				getLayoutDisplayPageProviderByClassName(
+					objectDefinition.getClassName());
+
+		httpServletRequest.setAttribute(
+			LayoutDisplayPageWebKeys.LAYOUT_DISPLAY_PAGE_OBJECT_PROVIDER,
+			layoutDisplayPageProvider.getLayoutDisplayPageObjectProvider(
+				new InfoItemReference(
+					layoutDisplayPageProvider.getClassName(),
+					objectEntry.getObjectEntryId())));
+
+		httpServletRequest.setAttribute(WebKeys.THEME_DISPLAY, themeDisplay);
+
+		return httpServletRequest;
+	}
+
+	protected Map<String, Object> getProps() {
+		return ReflectionTestUtil.invoke(
+			getFragmentRenderer(), "getProps",
+			new Class<?>[] {
+				FragmentRendererContext.class, HttpServletRequest.class
+			},
+			null, httpServletRequest);
+	}
+
+	protected HttpServletRequest httpServletRequest;
+
+	@Inject
+	protected ObjectDefinitionLocalService objectDefinitionLocalService;
+
+	protected ObjectDefinition projectObjectDefinition;
+	protected ObjectEntry projectObjectEntry;
+	protected String projectTitle;
+	protected ThemeDisplay themeDisplay;
+
+	@Inject
+	private CompanyLocalService _companyLocalService;
+
+	@Inject
+	private LayoutDisplayPageProviderRegistry
+		_layoutDisplayPageProviderRegistry;
+
+}

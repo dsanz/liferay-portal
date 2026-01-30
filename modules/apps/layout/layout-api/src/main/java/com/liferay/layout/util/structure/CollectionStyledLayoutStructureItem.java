@@ -388,10 +388,39 @@ public class CollectionStyledLayoutStructureItem
 	public void setViewportConfiguration(
 		String viewportSizeId, JSONObject configurationJSONObject) {
 
+		JSONObject viewportConfigurationJSONObject =
+			_viewportConfigurationJSONObjects.getOrDefault(
+				viewportSizeId, JSONFactoryUtil.createJSONObject());
+
 		_viewportConfigurationJSONObjects.put(
 			viewportSizeId,
-			_viewportConfigurationJSONObjects.getOrDefault(
-				viewportSizeId, JSONFactoryUtil.createJSONObject()
+			viewportConfigurationJSONObject.put(
+				"align",
+				() -> {
+					if (!configurationJSONObject.has("align")) {
+						return null;
+					}
+
+					return configurationJSONObject.getString("align");
+				}
+			).put(
+				"flexWrap",
+				() -> {
+					if (!configurationJSONObject.has("flexWrap")) {
+						return null;
+					}
+
+					return configurationJSONObject.getString("flexWrap");
+				}
+			).put(
+				"justify",
+				() -> {
+					if (!configurationJSONObject.has("justify")) {
+						return null;
+					}
+
+					return configurationJSONObject.getString("justify");
+				}
 			).put(
 				"numberOfColumns",
 				() -> {
@@ -400,6 +429,15 @@ public class CollectionStyledLayoutStructureItem
 					}
 
 					return configurationJSONObject.getInt("numberOfColumns");
+				}
+			).put(
+				"styles",
+				() -> {
+					if (!configurationJSONObject.has("styles")) {
+						return null;
+					}
+
+					return configurationJSONObject.getJSONObject("styles");
 				}
 			));
 	}

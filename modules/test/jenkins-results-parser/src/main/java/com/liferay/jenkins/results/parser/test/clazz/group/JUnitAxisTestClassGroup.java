@@ -23,52 +23,22 @@ import org.json.JSONObject;
 public class JUnitAxisTestClassGroup extends AxisTestClassGroup {
 
 	@Override
-	public long getAverageTotalTestTaskDuration() {
-		if (_averageTotalTestTaskDuration != null) {
-			return _averageTotalTestTaskDuration;
-		}
-
-		_averageTotalTestTaskDuration = 0L;
-
-		Set<String> testTaskNames = new HashSet<>();
-
-		for (TestClass testClass : getTestClasses()) {
-			String testTaskName = testClass.getTestTaskName();
-
-			if (testTaskNames.contains(testTaskName)) {
-				continue;
-			}
-
-			testTaskNames.add(testTaskName);
-
-			_averageTotalTestTaskDuration +=
-				testClass.getAverageTestTaskDuration();
-		}
-
-		return _averageTotalTestTaskDuration;
-	}
-
-	@Override
 	public List<DownstreamBuildReport> getCachedDownstreamBuildReports() {
 		if (!isBuildCachingEnabled() || !isResultsCached()) {
 			return null;
 		}
 
-		List<DownstreamBuildReport> cachedDownstreamBuildReports =
-			new ArrayList<>();
+		Set<DownstreamBuildReport> cachedDownstreamBuildReports =
+			new HashSet<>();
 
 		for (JUnitTestClass jUnitTestClass : getJUnitTestClasses()) {
 			DownstreamBuildReport downstreamBuildReport =
 				jUnitTestClass.getCachedDownstreamBuildReport();
 
-			if (cachedDownstreamBuildReports.contains(downstreamBuildReport)) {
-				continue;
-			}
-
 			cachedDownstreamBuildReports.add(downstreamBuildReport);
 		}
 
-		return cachedDownstreamBuildReports;
+		return new ArrayList<>(cachedDownstreamBuildReports);
 	}
 
 	public List<JUnitTestClass> getJUnitTestClasses() {
@@ -116,7 +86,5 @@ public class JUnitAxisTestClassGroup extends AxisTestClassGroup {
 
 		super(jUnitBatchTestClassGroup);
 	}
-
-	private Long _averageTotalTestTaskDuration;
 
 }

@@ -5,6 +5,7 @@
 
 import {Locator, Page, expect} from '@playwright/test';
 
+import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import {waitForAlert} from '../../utils/waitForAlert';
 import {ApplicationsMenuPage} from '../product-navigation-applications-menu/ApplicationsMenuPage';
 
@@ -68,6 +69,18 @@ export class SystemSettingsPage {
 		const checkbox = this.page.getByLabel(label).first();
 		await expect(checkbox).toBeVisible();
 		checked ? await checkbox.check() : await checkbox.uncheck();
+	}
+
+	async clickOnAction(actionName: string) {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {name: actionName}),
+			trigger: this.page.getByRole('button', {name: 'Actions'}),
+		});
+	}
+
+	async resetToDefaultValues() {
+		await this.clickOnAction('Reset Default Values');
 	}
 
 	async saveAndWaitForAlert({

@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {FrameLocator, Locator, Page} from '@playwright/test';
+import {FrameLocator, Locator, Page, expect} from '@playwright/test';
 
+import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
+import {waitForAlert} from '../../utils/waitForAlert';
 import {ApplicationsMenuPage} from '../product-navigation-applications-menu/ApplicationsMenuPage';
 
 export class AppManagerPage {
@@ -75,5 +77,76 @@ export class AppManagerPage {
 
 	async goto() {
 		await this.applicationsMenuPage.goToAppManager();
+	}
+
+	async deactivateApp(appName: string) {
+		await this.goto();
+
+		await this.searchAppAndExpectToBeVisible(appName);
+
+		this.page.once('dialog', (dialog) => dialog.accept());
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.deactivateLink,
+			trigger: this.appRowOptionsMenu(appName),
+		});
+
+		await waitForAlert(this.page);
+
+		await this.searchAppAndExpectToBeVisible(appName, 'Resolved');
+	}
+
+	async activateApp(appName: string) {
+		await this.goto();
+
+		await this.searchAppAndExpectToBeVisible(appName);
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.activateLink,
+			trigger: this.appRowOptionsMenu(appName),
+		});
+
+		await waitForAlert(this.page);
+
+		await this.searchAppAndExpectToBeVisible(appName, 'Active');
+	}
+
+	async uninstallApp(appName: string) {
+		await this.goto();
+
+		await this.searchAppAndExpectToBeVisible(appName);
+
+		this.page.once('dialog', (dialog) => dialog.accept());
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.uninstallLink,
+			trigger: this.appRowOptionsMenu(appName),
+		});
+
+		await waitForAlert(this.page);
+	}
+
+	async searchAppAndExpectToBeVisible(
+		appName: string,
+		expectedStatus?: string
+	) {
+		await expect(async () => {
+			await this.searchInput.fill(appName);
+
+			await this.searchInput.press('Enter');
+
+			await expect(this.appLink(appName)).toBeVisible({
+				timeout: 2000,
+			});
+
+			if (expectedStatus) {
+				await expect(this.appRow(appName)).toContainText(
+					expectedStatus
+				);
+			}
+		}).toPass();
 	}
 }

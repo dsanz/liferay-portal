@@ -61,6 +61,7 @@ export class CheckoutPage extends CommerceDNDTablePage {
 	readonly saveButton: Locator;
 	readonly shippingAddressSelect: Locator;
 	readonly shippingCost: Locator;
+	readonly shippingMethod: Locator;
 	readonly subtypeErrorMessage: Locator;
 	readonly subtypeInput: Locator;
 	readonly subtypeMenuItem: (name: string) => Locator;
@@ -168,6 +169,7 @@ export class CheckoutPage extends CommerceDNDTablePage {
 		this.saveButton = page.getByLabel('Save');
 		this.shippingAddressSelect = page.getByText('Choose Shipping Address');
 		this.shippingCost = page.locator('.shipping-cost');
+		this.shippingMethod = page.locator('.shipping-method');
 		this.subtypeErrorMessage = page.getByText(
 			'previous selection is not valid anymore'
 		);
@@ -273,15 +275,11 @@ export class CheckoutPage extends CommerceDNDTablePage {
 		while (!currentStep.includes(stopAt)) {
 			await this.continueButton.click();
 
-			await expect(async () => {
-				const nextStep = await this.activeCheckoutStep.textContent({
-					timeout: 1000,
-				});
+			await this.page.waitForLoadState('networkidle');
 
-				expect(currentStep !== nextStep).toBeTruthy();
+			await expect(this.activeCheckoutStep).not.toHaveText(currentStep);
 
-				currentStep = nextStep;
-			}).toPass();
+			currentStep = await this.activeCheckoutStep.textContent();
 		}
 
 		return;

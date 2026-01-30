@@ -1,12 +1,12 @@
 {
 	"dependencies": {
-		"@clayui/button": "3.144.1",
-		"@clayui/core": "3.149.0",
-		"@clayui/drop-down": "3.149.0",
-		"@clayui/icon": "3.144.1",
-		"@clayui/label": "3.144.1",
-		"@clayui/link": "3.144.1",
-		"@clayui/loading-indicator": "3.144.1",
+		"@clayui/button": "*",
+		"@clayui/core": "*",
+		"@clayui/drop-down": "*",
+		"@clayui/icon": "*",
+		"@clayui/label": "*",
+		"@clayui/link": "*",
+		"@clayui/loading-indicator": "*",
 		"classnames": "2.3.1",
 		"frontend-js-components-web": "*",
 		"frontend-js-web": "*",
@@ -20,5 +20,5 @@
 		"checkFormat": "node-scripts format --check",
 		"format": "node-scripts format"
 	},
-	"version": "6.0.131"
+	"version": "6.0.135"
 }

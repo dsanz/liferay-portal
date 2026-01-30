@@ -276,8 +276,10 @@ html#{$cadmin-selector} {
 			padding: 15vh 12%;
 
 			&.page-editor__form-unmapped-state {
+				background: $cadmin-light-l1;
 				border: none;
 				box-shadow: inset 0 0 0 1px $cadmin-primary-l2;
+				padding: 40px 12%;
 			}
 
 			&__message,
@@ -352,6 +354,15 @@ html#{$cadmin-selector} {
 	}
 
 	.page-editor__editable {
+		&.ck-content,
+		.lfr-ck .ck.ck-content {
+			color: unset;
+			font-family: unset;
+			font-size: unset;
+			line-height: unset;
+			word-break: unset;
+		}
+
 		.lfr-ck {
 			outline: $cadmin-primary-d2 auto 1px;
 

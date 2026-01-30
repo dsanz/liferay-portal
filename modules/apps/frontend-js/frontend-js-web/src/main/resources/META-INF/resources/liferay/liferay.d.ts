@@ -255,6 +255,7 @@ declare module Liferay {
 
 	namespace ThemeDisplay {
 		export function getBCP47LanguageId(): string;
+		export function getCDNHost(): string;
 		export function getCompanyId(): string;
 		export function getDefaultLanguageId(): Language.Locale;
 		export function getLanguageId(): Language.Locale;
@@ -270,6 +271,7 @@ declare module Liferay {
 		export function getScopeGroupId(): number;
 		export function getSiteGroupId(): number;
 		export function getTimeZone(): string;
+		export function getUserEmailAddress(): string;
 		export function getUserId(): string;
 		export function isControlPanel(): boolean;
 		export function isImpersonated(): boolean;

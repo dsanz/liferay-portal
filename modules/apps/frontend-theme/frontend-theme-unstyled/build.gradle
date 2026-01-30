@@ -87,28 +87,6 @@ buildClay {
 				return line
 			}
 		}
-		else if (name in ["bootstrap.scss"]) {
-			filter {
-				String line ->
-
-				if (line == "// INSERT CUSTOM EXTENSIONS") {
-					line = '''\
-@import "variables";
-
-@import "../liferay_variables_custom";
-@import "../liferay_variables";
-@import "bourbon";
-@import "../clay_custom";
-@import "../liferay_custom";'''
-				}
-				else if (line == "// INSERT CUSTOM VARS") {
-					line = '''\
-@import "../clay_variables";'''
-				}
-
-				return line
-			}
-		}
 		else if (name in ["atlas-variables.scss", "base-variables.scss"]) {
 			filter {
 				String line ->
@@ -145,9 +123,9 @@ buildClay {
 		}
 	}
 
-	eachFile new StripPathSegmentsAction(4)
-	from npmInstall.nodeModulesDir
-	include "@clayui/css/src/scss/"
+	eachFile new StripPathSegmentsAction(2)
+	from "../../frontend-js/frontend-js-clay-web/clay/clay-css"
+	include "src/scss/"
 	includeEmptyDirs = false
 	into clayDestinationDir
 }
@@ -177,9 +155,9 @@ buildClayIcons {
 		delete clayIconsDestinationDir
 	}
 
-	eachFile new StripPathSegmentsAction(5)
-	from npmInstall.nodeModulesDir
-	include "@clayui/css/lib/images/icons/"
+	eachFile new StripPathSegmentsAction(3)
+	from "../../frontend-js/frontend-js-clay-web/clay/clay-css"
+	include "src/images/icons/"
 	includeEmptyDirs = false
 	into clayIconsDestinationDir
 }
@@ -193,9 +171,9 @@ buildLexiconIcons {
 		delete lexiconIconsDestinationDir
 	}
 
-	eachFile new StripPathSegmentsAction(5)
-	from npmInstall.nodeModulesDir
-	include "@clayui/css/lib/images/icons/"
+	eachFile new StripPathSegmentsAction(3)
+	from "../../frontend-js/frontend-js-clay-web/clay/clay-css"
+	include "src/images/icons/"
 	includeEmptyDirs = false
 	into lexiconIconsDestinationDir
 }

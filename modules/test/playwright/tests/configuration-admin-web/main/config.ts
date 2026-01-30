@@ -6,4 +6,7 @@
 export const config = {
 	name: 'configuration-admin-web.main',
 	testDir: 'tests/configuration-admin-web/main',
+	use: {
+		testIdAttribute: 'data-qa-id',
+	},
 };

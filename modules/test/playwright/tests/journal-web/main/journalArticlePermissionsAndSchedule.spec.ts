@@ -34,14 +34,17 @@ scheduleTest(
 			target: page.getByRole('menuitem', {
 				name: 'Publish With Permissions',
 			}),
-			trigger: page.getByRole('button', {
-				name: 'Select and Confirm Publish Settings',
-			}),
+			trigger: journalEditArticlePage.publishDropdown,
 		});
 
-		await page.getByRole('button', {exact: true, name: 'Publish'}).click();
+		await page
+			.getByLabel('Publish With Permissions')
+			.getByRole('button', {name: 'Publish'})
+			.click();
 
 		await waitForAlert(page, `Success:${title} was created successfully.`);
+
+		await journalPage.changeView('list');
 
 		await page.getByLabel(`Actions for ${title}`).waitFor();
 
@@ -62,6 +65,7 @@ scheduleTest(
 				name: 'Permissions',
 			}),
 			trigger: page.getByRole('button', {
+				exact: true,
 				name: 'Options',
 			}),
 		});

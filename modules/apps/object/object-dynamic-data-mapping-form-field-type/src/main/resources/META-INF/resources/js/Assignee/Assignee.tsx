@@ -1,48 +1,42 @@
 /**
- * SPDX-FileCopyrightText: (c) 2025 Liferay, Inc. https://liferay.com
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
 import Autocomplete from '@clayui/autocomplete';
 import {FetchPolicy, useResource} from '@clayui/data-provider';
+import {useConfig} from 'data-engine-js-components-web';
 import {ReactFieldBase as FieldBase} from 'dynamic-data-mapping-form-field-type/api';
-import React, {useState} from 'react';
-
-import Option from './Option';
+import React, {Ref, useMemo, useState} from 'react';
 
 import './Assignee.scss';
+import Option from './Option';
 
-const searchURL = new URL(`${window.location.origin}/o/search/v1.0/search`);
-
-const searchParams = {
-	emptySearch: 'true',
-	entryClassNames: [
-		'com.liferay.portal.kernel.model.User',
-		'com.liferay.portal.kernel.model.Role',
-	].join(','),
-	fields: [
-		'entryClassName',
-		'embedded.externalReferenceCode',
-		'embedded.image',
-		'embedded.name',
-	].join(','),
-	nestedFields: 'embedded',
-};
-
-searchURL.search = new URLSearchParams(searchParams).toString();
-
-interface AssigneeValue {
+export interface AssigneeValue {
 	externalReferenceCode: string;
+	image?: string;
 	name: string;
 	type: string;
 }
 
-interface Assignee {
-	label: string;
+export interface AssigneeTriggerProps
+	extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'ref'> {
+	className?: string;
+	ref: Ref<HTMLInputElement>;
+	selectedItem?: AssigneeValue | null | {};
+}
+
+interface AssigneeProps {
+	label?: string;
 	name: string;
-	onChange: (event: {target: {value: any}}) => void;
+	onChange?: (event: {target: {value: AssigneeValue | {}}}) => void;
 	readOnly?: boolean;
-	value?: AssigneeValue;
+	searchURL: string;
+	showLabel?: boolean;
+	triggerClassName?: string;
+	triggerComponent?: React.ComponentType<AssigneeTriggerProps>;
+	value?: AssigneeValue | null | {};
+	visible?: boolean;
 }
 
 export default function Assignee({
@@ -50,45 +44,95 @@ export default function Assignee({
 	name,
 	onChange,
 	readOnly,
-	value,
+	searchURL,
+	triggerClassName,
+	triggerComponent: AssigneeTrigger,
+	value: initialValue,
 	...otherProps
-}: Assignee) {
-	const [search, setSearch] = useState(value?.name ?? '');
-	const [networkStatus, setNetworkStatus] = useState(4);
+}: AssigneeProps) {
+	const {portletNamespace} = useConfig();
 
-	const {resource} = useResource({
+	const [networkStatus, setNetworkStatus] = useState(4);
+	const [search, setSearch] = useState(
+		initialValue && 'name' in initialValue ? initialValue.name : ''
+	);
+	const [value, setValue] = useState<AssigneeValue | null | {}>(
+		initialValue ?? null
+	);
+
+	const {
+		resource,
+	}: {
+		resource: {
+			items: {
+				externalReferenceCode: string;
+				image?: string;
+				name: string;
+				type: string;
+			}[];
+		};
+	} = useResource({
 		fetchOptions: {
 			credentials: 'include',
 			headers: new Headers({'x-csrf-token': Liferay.authToken}),
 			method: 'GET',
 		},
 		fetchPolicy: FetchPolicy.CacheFirst,
-		link: searchURL.href,
+		link: searchURL,
 		onNetworkStatusChange: setNetworkStatus,
-		variables: {search},
+		variables: {
+			[`${portletNamespace ?? ''}search`]: search,
+		},
 	});
+
+	const TriggerWrapper = useMemo(() => {
+		if (!AssigneeTrigger) {
+			return undefined;
+		}
+
+		return React.forwardRef(
+			(props: AssigneeTriggerProps, ref: Ref<HTMLInputElement>) => (
+				<AssigneeTrigger
+					{...props}
+					className={triggerClassName}
+					ref={ref}
+					selectedItem={value}
+				/>
+			)
+		);
+	}, [AssigneeTrigger, triggerClassName, value]);
 
 	return (
 		<FieldBase
 			accessible={false}
+			hideEditedFlag
 			label={label}
+			name={name}
 			readOnly={readOnly}
 			{...otherProps}
 		>
 			<Autocomplete
+				{...(TriggerWrapper && {
+					as: TriggerWrapper,
+				})}
 				aria-label={label}
-				defaultValue={value?.name ?? ''}
 				disabled={readOnly}
-				items={
-					resource
-						? resource.items.filter((item: any) => !!item.embedded)
-						: []
-				}
+				filterKey="name"
+				items={resource?.items ?? []}
 				loadingState={networkStatus}
 				menuTrigger="focus"
 				messages={{
 					loading: Liferay.Language.get('loading...'),
 					notFound: Liferay.Language.get('no-results-found'),
+				}}
+				onBlur={() => {
+					if (!search && value && 'name' in value) {
+						setValue({});
+
+						if (onChange) {
+							onChange({target: {value: {}}});
+						}
+					}
 				}}
 				onChange={(item: string) => {
 					setSearch(item);
@@ -97,37 +141,37 @@ export default function Assignee({
 				value={search}
 			>
 				{(item: {
-					embedded: {
-						externalReferenceCode: string;
-						image?: string;
-						name: string;
-					};
-					entryClassName: string;
-				}) => (
-					<Autocomplete.Item
-						key={item.embedded.name}
-						onClick={() => {
-							onChange({
-								target: {
-									value: {
-										externalReferenceCode:
-											item.embedded.externalReferenceCode,
-										name: item.embedded.name,
-										type: item.entryClassName
-											.split('.')
-											.pop(),
-									},
-								},
-							});
-						}}
-						textValue={item.embedded.name}
-					>
-						<Option
-							image={item.embedded.image}
-							name={item.embedded.name}
-						/>
-					</Autocomplete.Item>
-				)}
+					externalReferenceCode: string;
+					image?: string;
+					name: string;
+					type: string;
+				}) => {
+					return (
+						<Autocomplete.Item
+							key={item.name}
+							onClick={() => {
+								if (onChange) {
+									onChange({
+										target: {
+											value: {
+												externalReferenceCode:
+													item.externalReferenceCode,
+												name: item.name,
+												type: item.type,
+											},
+										},
+									});
+								}
+
+								setValue(item);
+								setSearch(item.name);
+							}}
+							textValue={item.name}
+						>
+							<Option image={item.image} name={item.name} />
+						</Autocomplete.Item>
+					);
+				}}
 			</Autocomplete>
 
 			<input name={name} type="hidden" value={JSON.stringify(value)} />

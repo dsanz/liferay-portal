@@ -5,18 +5,27 @@
 
 package com.liferay.object.field.filter.parser;
 
+import com.liferay.frontend.data.set.filter.SelectionFDSFilterItem;
 import com.liferay.object.field.frontend.data.set.filter.OneToManySelectionFDSFilter;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.model.ObjectViewFilterColumn;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.model.PersistedModel;
+import com.liferay.portal.kernel.service.PersistedModelLocalService;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.service.PersistedModelLocalServiceRegistryUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
+
+import java.util.List;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -25,6 +34,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
@@ -127,6 +137,110 @@ public class OneToManyObjectFieldFilterStrategyTest {
 			oneToManySelectionFDSFilter.getLabel());
 	}
 
+	@Test
+	public void testGetSelectionFDSFilterItems() throws Exception {
+		Mockito.when(
+			_objectDefinition.getClassName()
+		).thenReturn(
+			"com.liferay.portal.kernel.model.User"
+		);
+
+		long objectDefinitionId = RandomTestUtil.randomLong();
+
+		Mockito.when(
+			_objectDefinition.getObjectDefinitionId()
+		).thenReturn(
+			objectDefinitionId
+		);
+
+		Mockito.when(
+			_objectDefinition.isUnmodifiableSystemObject()
+		).thenReturn(
+			true
+		);
+
+		long primaryKey1 = RandomTestUtil.randomLong();
+		long primaryKey2 = RandomTestUtil.randomLong();
+
+		try (MockedStatic<PersistedModelLocalServiceRegistryUtil>
+				persistedModelLocalServiceRegistryUtilMockedStatic =
+					Mockito.mockStatic(
+						PersistedModelLocalServiceRegistryUtil.class)) {
+
+			Mockito.when(
+				_persistedModelLocalService.fetchPersistedModel(primaryKey1)
+			).thenReturn(
+				_persistedModel
+			);
+
+			Mockito.when(
+				_persistedModelLocalService.fetchPersistedModel(primaryKey2)
+			).thenReturn(
+				null
+			);
+
+			persistedModelLocalServiceRegistryUtilMockedStatic.when(
+				() ->
+					PersistedModelLocalServiceRegistryUtil.
+						getPersistedModelLocalService(
+							_objectDefinition.getClassName())
+			).thenReturn(
+				_persistedModelLocalService
+			);
+
+			String titleValue = RandomTestUtil.randomString();
+
+			Mockito.when(
+				_objectEntryLocalService.getTitleValue(
+					objectDefinitionId, primaryKey1)
+			).thenReturn(
+				titleValue
+			);
+
+			JSONArray jsonArray = JSONUtil.putAll(primaryKey1, primaryKey2);
+
+			OneToManyObjectFieldFilterStrategy
+				oneToManyObjectFieldFilterStrategy = Mockito.spy(
+					new OneToManyObjectFieldFilterStrategy(
+						0, LocaleUtil.US, _objectDefinition,
+						_objectDefinitionLocalService, _objectEntryLocalService,
+						_relationshipObjectField, _objectFieldLocalService,
+						_objectRelationshipLocalService,
+						_objectViewFilterColumn, null));
+
+			Mockito.doReturn(
+				jsonArray
+			).when(
+				oneToManyObjectFieldFilterStrategy
+			).getJSONArray();
+
+			List<SelectionFDSFilterItem> selectionFDSFilterItems =
+				oneToManyObjectFieldFilterStrategy.getSelectionFDSFilterItems();
+
+			Assert.assertEquals(
+				selectionFDSFilterItems.toString(), 1,
+				selectionFDSFilterItems.size());
+
+			SelectionFDSFilterItem selectionFDSFilterItem =
+				selectionFDSFilterItems.get(0);
+
+			Assert.assertEquals(titleValue, selectionFDSFilterItem.getLabel());
+			Assert.assertEquals(primaryKey1, selectionFDSFilterItem.getValue());
+
+			Mockito.verify(
+				_objectEntryLocalService
+			).getTitleValue(
+				objectDefinitionId, primaryKey1
+			);
+
+			Mockito.verify(
+				_objectEntryLocalService, Mockito.never()
+			).getTitleValue(
+				objectDefinitionId, primaryKey2
+			);
+		}
+	}
+
 	private static final String _RELATIONSHIP_OBJECT_FIELD_LABEL =
 		RandomTestUtil.randomString();
 
@@ -152,6 +266,9 @@ public class OneToManyObjectFieldFilterStrategyTest {
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
 
 	@Mock
+	private ObjectEntryLocalService _objectEntryLocalService;
+
+	@Mock
 	private ObjectFieldLocalService _objectFieldLocalService;
 
 	@Mock
@@ -162,6 +279,12 @@ public class OneToManyObjectFieldFilterStrategyTest {
 
 	@Mock
 	private ObjectViewFilterColumn _objectViewFilterColumn;
+
+	@Mock
+	private PersistedModel _persistedModel;
+
+	@Mock
+	private PersistedModelLocalService _persistedModelLocalService;
 
 	@Mock
 	private ObjectField _relationshipObjectField;

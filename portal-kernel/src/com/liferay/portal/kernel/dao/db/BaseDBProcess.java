@@ -14,7 +14,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.jdbc.AutoBatchPreparedStatementUtil;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
-import com.liferay.portal.kernel.db.partition.DBPartition;
 import com.liferay.portal.kernel.instance.PortalInstancePool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -292,7 +291,7 @@ public abstract class BaseDBProcess implements DBProcess {
 
 	protected void closeConnections() {
 		Map<Thread, Connection> connectionsMap = _connectionsMaps.get(
-			DBPartition.isPartitionEnabled() ?
+			PropsValues.DATABASE_PARTITION_ENABLED ?
 				CompanyThreadLocal.getCompanyId() : CompanyConstants.SYSTEM);
 
 		_closeConnections(connectionsMap);
@@ -300,7 +299,7 @@ public abstract class BaseDBProcess implements DBProcess {
 
 	protected void closeConnections(Thread thread) {
 		Map<Thread, Connection> connectionsMap = _connectionsMaps.get(
-			DBPartition.isPartitionEnabled() ?
+			PropsValues.DATABASE_PARTITION_ENABLED ?
 				CompanyThreadLocal.getCompanyId() : CompanyConstants.SYSTEM);
 
 		_closeConnections(connectionsMap, thread);
@@ -408,6 +407,28 @@ public abstract class BaseDBProcess implements DBProcess {
 		DB db = DBManagerUtil.getDB();
 
 		db.process(unsafeConsumer);
+	}
+
+	protected <K, V> void processConcurrently(
+			Map<K, V> map,
+			UnsafeConsumer<Map.Entry<K, V>, Exception> unsafeConsumer,
+			String exceptionMessage)
+		throws Exception {
+
+		Set<Map.Entry<K, V>> set = map.entrySet();
+
+		Iterator<Map.Entry<K, V>> iterator = set.iterator();
+
+		_processConcurrently(
+			null,
+			() -> {
+				if (!iterator.hasNext()) {
+					return null;
+				}
+
+				return iterator.next();
+			},
+			unsafeConsumer, null, exceptionMessage);
 	}
 
 	protected void processConcurrently(
@@ -824,7 +845,7 @@ public abstract class BaseDBProcess implements DBProcess {
 
 			Map<Thread, Connection> connectionsMap =
 				_connectionsMaps.computeIfAbsent(
-					DBPartition.isPartitionEnabled() ?
+					PropsValues.DATABASE_PARTITION_ENABLED ?
 						CompanyThreadLocal.getCompanyId() :
 							CompanyConstants.SYSTEM,
 					key -> new ConcurrentHashMap<>());

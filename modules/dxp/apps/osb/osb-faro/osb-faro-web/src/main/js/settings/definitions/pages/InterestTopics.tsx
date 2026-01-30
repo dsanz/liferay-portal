@@ -1,5 +1,5 @@
 import * as API from 'shared/api';
-import BasePage from 'settings/components/BasePage';
+import BasePage from 'settings/components/base-page/BasePage';
 import Card from 'shared/components/Card';
 import ClayButton from '@clayui/button';
 import ClayIcon from '@clayui/icon';
@@ -324,7 +324,6 @@ const InterestTopics: React.FC<IInterestTopicsProps> = ({
 					label: Liferay.Language.get('interest-topics')
 				}
 			]}
-			groupId={groupId}
 			key='interestTopicsPage'
 			pageDescription={renderPageDescription()}
 			pageTitle={Liferay.Language.get('interest-topics')}

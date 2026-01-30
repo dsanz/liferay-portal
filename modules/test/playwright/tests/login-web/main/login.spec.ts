@@ -7,9 +7,11 @@ import {expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
 import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
+import {isolatedSiteTest} from '../../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {rolesPagesTest} from '../../../fixtures/rolesPagesTest';
 import {liferayConfig} from '../../../liferay.config';
+import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
 import getRandomString from '../../../utils/getRandomString';
 import performLogin, {
 	performLogout,
@@ -23,6 +25,7 @@ export const test = mergeTests(
 	featureFlagsTest({
 		'LPS-178052': {enabled: true},
 	}),
+	isolatedSiteTest,
 	loginTest(),
 	rolesPagesTest
 );
@@ -125,23 +128,65 @@ test('LPD-55426 Test sign in button is disabled until page is fully loaded', asy
 	await page.goto(liferayConfig.environment.baseUrl + '/c/portal/login', {
 		waitUntil: 'commit',
 	});
-	await expect(page.getByRole('button', {name: 'Sign In'})).toHaveAttribute(
-		'disabled'
-	);
-	await page.waitForLoadState('domcontentloaded');
-	await expect(page.getByRole('button', {name: 'Sign In'})).toBeEnabled();
-
-	await page.goto(liferayConfig.environment.baseUrl, {
-		waitUntil: 'domcontentloaded',
-	});
-	await page.getByRole('button', {name: 'Sign In'}).click();
-	await expect(page.getByText('Forgot Password')).toBeVisible();
 	await expect(
 		page.getByRole('button', {name: 'Sign In'}).last()
 	).toHaveAttribute('disabled');
+	await page.waitForLoadState('domcontentloaded');
+	await expect(
+		page.getByRole('button', {name: 'Sign In'}).last()
+	).toBeEnabled();
+	await page.goto(liferayConfig.environment.baseUrl, {
+		waitUntil: 'domcontentloaded',
+	});
+	await clickAndExpectToBeVisible({
+		target: page.getByText('Forgot Password'),
+		trigger: page.getByRole('button', {
+			name: 'Sign In',
+		}),
+	});
 	await expect(
 		page.getByRole('button', {name: 'Sign In'}).last()
 	).toBeEnabled();
 
 	await cdpSession.detach();
 });
+
+test(
+	'Verify Sign In button works on first load when navigating to a page with a Sign In fragment',
+	{tag: '@LPD-69091'},
+	async ({apiHelpers, browser, site}) => {
+		const homeLayout = await apiHelpers.headlessDelivery.createSitePage({
+			siteId: site.id,
+			title: getRandomString(),
+		});
+
+		const loginLayoutTitle = getRandomString();
+
+		await apiHelpers.headlessDelivery.createSitePage({
+			pageDefinition: getPageDefinition([
+				getWidgetDefinition({
+					id: getRandomString(),
+					widgetName: 'com_liferay_login_web_portlet_LoginPortlet',
+				}),
+			]),
+			siteId: site.id,
+			title: loginLayoutTitle,
+		});
+
+		const newPage = await browser.newPage();
+
+		await newPage.goto(`/web/${site.name}/${homeLayout.friendlyUrlPath}`);
+
+		await newPage.getByRole('menuitem', {name: loginLayoutTitle}).click();
+
+		await newPage.getByRole('heading', {name: 'Sign In'}).waitFor();
+
+		const signInButtons = await newPage
+			.getByRole('button', {name: 'Sign In'})
+			.all();
+
+		for (const signInButton of signInButtons) {
+			await expect(signInButton).toBeEnabled();
+		}
+	}
+);

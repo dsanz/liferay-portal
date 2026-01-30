@@ -1,0 +1,244 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.oauth2.provider.dynamic.registration.test;
+
+import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.oauth2.provider.client.test.BaseClientTestCase;
+import com.liferay.oauth2.provider.client.test.BaseTestPreparatorBundleActivator;
+import com.liferay.oauth2.provider.constants.OAuth2ApplicationConstants;
+import com.liferay.oauth2.provider.model.OAuth2Application;
+import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalService;
+import com.liferay.portal.kernel.dao.orm.DynamicQuery;
+import com.liferay.portal.kernel.dao.orm.Property;
+import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.Inject;
+import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.client.Invocation;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.core.MultivaluedHashMap;
+import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
+
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.cxf.rs.security.oauth2.utils.OAuthConstants;
+
+import org.junit.Assert;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import org.osgi.framework.BundleActivator;
+
+/**
+ * @author Jorge García Jiménez
+ */
+@RunWith(Arquillian.class)
+public class DynamicRegistrationServiceTest extends BaseClientTestCase {
+
+	@ClassRule
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new LiferayIntegrationTestRule();
+
+	@FeatureFlag("LPD-63416")
+	@Test
+	public void test() throws Exception {
+		WebTarget tokenWebTarget = getTokenWebTarget();
+
+		Invocation.Builder tokenInvocationBuilder = tokenWebTarget.request();
+
+		String tokenString = parseTokenString(
+			tokenInvocationBuilder.post(
+				Entity.form(
+					_getFormData(
+						_oAuth2ApplicationLocalService.getOAuth2Application(
+							TestPropsValues.getCompanyId(),
+							"oauthDynamicRegisterTestApplication")))));
+
+		Assert.assertNotNull(tokenString);
+
+		WebTarget registerWebTarget = getRegisterWebTarget();
+
+		Invocation.Builder registerInvocationBuilder = authorize(
+			registerWebTarget.request(), tokenString);
+
+		Response response = registerInvocationBuilder.method(
+			"post",
+			Entity.json(
+				JSONUtil.put(
+					"client_name", RandomTestUtil.randomString()
+				).toString()));
+
+		Assert.assertEquals(401, response.getStatus());
+
+		OAuth2Application oAuth2Application =
+			_getDynamicRegistratorOAuth2Application();
+
+		Assert.assertNotNull(oAuth2Application);
+
+		tokenString = parseTokenString(
+			tokenInvocationBuilder.post(
+				Entity.form(_getFormData(oAuth2Application))));
+
+		Assert.assertNotNull(tokenString);
+
+		String clientName = RandomTestUtil.randomString();
+
+		JSONObject jsonObject = JSONUtil.put(
+			"client_name", clientName
+		).put(
+			"grant_types",
+			new String[] {OAuthConstants.CLIENT_CREDENTIALS_GRANT}
+		).put(
+			"logo_uri", RandomTestUtil.randomString()
+		).put(
+			"redirect_uris",
+			new String[] {
+				"https://client.example.org/callback",
+				"https://client.example.org/callback2"
+			}
+		).put(
+			"scope", "Liferay.Headless.Admin.Site.everything"
+		);
+
+		response = registerInvocationBuilder.method(
+			"post", Entity.json(jsonObject.toString()));
+
+		Assert.assertEquals(401, response.getStatus());
+
+		registerInvocationBuilder = authorize(
+			registerWebTarget.request(), tokenString);
+
+		response = registerInvocationBuilder.method(
+			"post", Entity.json(jsonObject.toString()));
+
+		Assert.assertEquals(201, response.getStatus());
+
+		JSONObject responseJSONObject = parseJSONObject(response);
+
+		Assert.assertEquals(
+			clientName, responseJSONObject.getString("client_name"));
+
+		String clientId = responseJSONObject.getString(
+			OAuthConstants.CLIENT_ID);
+
+		jsonObject.put(
+			"response_types",
+			Collections.singletonList(OAuthConstants.CODE_RESPONSE_TYPE));
+
+		response = registerInvocationBuilder.method(
+			"post", Entity.json(jsonObject.toString()));
+
+		Assert.assertEquals(400, response.getStatus());
+
+		String errorString = parseError(response);
+
+		Assert.assertEquals("invalid_client_metadata", errorString);
+
+		registerWebTarget = getRegisterWebTarget(clientId);
+
+		registerInvocationBuilder = authorize(
+			registerWebTarget.request(), tokenString);
+
+		response = registerInvocationBuilder.get();
+
+		Assert.assertEquals(200, response.getStatus());
+
+		responseJSONObject = parseJSONObject(response);
+
+		Assert.assertEquals(
+			clientName, responseJSONObject.getString("client_name"));
+	}
+
+	protected static WebTarget getRegisterWebTarget() {
+		WebTarget webTarget = getOAuth2WebTarget();
+
+		return webTarget.path("register");
+	}
+
+	protected static WebTarget getRegisterWebTarget(String target) {
+		WebTarget webTarget = getRegisterWebTarget();
+
+		return webTarget.path(target);
+	}
+
+	@Override
+	protected BundleActivator getBundleActivator() {
+		return new DynamicRegistrationServiceTestPreparatorBundleActivator();
+	}
+
+	private OAuth2Application _getDynamicRegistratorOAuth2Application()
+		throws Exception {
+
+		DynamicQuery dynamicQuery =
+			_oAuth2ApplicationLocalService.dynamicQuery();
+
+		Property companyIdProperty = PropertyFactoryUtil.forName("companyId");
+
+		dynamicQuery.add(companyIdProperty.eq(TestPropsValues.getCompanyId()));
+
+		Property nameProperty = PropertyFactoryUtil.forName("name");
+
+		dynamicQuery.add(
+			nameProperty.eq(
+				OAuth2ApplicationConstants.NAME_DYNAMIC_REGISTRATOR));
+
+		List<OAuth2Application> oAuth2Applications =
+			_oAuth2ApplicationLocalService.dynamicQuery(dynamicQuery);
+
+		if (oAuth2Applications.isEmpty()) {
+			return null;
+		}
+
+		return oAuth2Applications.get(0);
+	}
+
+	private MultivaluedMap<String, String> _getFormData(
+		OAuth2Application oAuth2Application) {
+
+		MultivaluedMap<String, String> formData = new MultivaluedHashMap<>();
+
+		formData.add(OAuthConstants.CLIENT_ID, oAuth2Application.getClientId());
+		formData.add(
+			OAuthConstants.CLIENT_SECRET, oAuth2Application.getClientSecret());
+		formData.add(
+			OAuthConstants.GRANT_TYPE, OAuthConstants.CLIENT_CREDENTIALS_GRANT);
+
+		return formData;
+	}
+
+	@Inject
+	private OAuth2ApplicationLocalService _oAuth2ApplicationLocalService;
+
+	private class DynamicRegistrationServiceTestPreparatorBundleActivator
+		extends BaseTestPreparatorBundleActivator {
+
+		@Override
+		protected void prepareTest() throws Exception {
+			long companyId = TestPropsValues.getCompanyId();
+
+			User user = UserTestUtil.getAdminUser(companyId);
+
+			createOAuth2Application(
+				companyId, user, "oauthDynamicRegisterTestApplication");
+		}
+
+	}
+
+}

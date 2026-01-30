@@ -21,7 +21,6 @@ const test = mergeTests(
 	cmsPagesTest,
 	featureFlagsTest({
 		'LPD-17564': {enabled: true},
-		'LPS-179669': {enabled: true},
 	}),
 	loginTest(),
 	pageEditorPagesTest,
@@ -64,10 +63,7 @@ test(
 
 		// Create another one and reference the first two
 
-		const externalReferenceCode4 = getRandomString();
-
-		await structureBuilderPage.createStructureFromData({
-			erc: externalReferenceCode4,
+		const id4 = await structureBuilderPage.createStructureFromData({
 			label: label4,
 			page: structureBuilderPage,
 		});
@@ -146,7 +142,7 @@ test(
 
 		// Check everything is persisted
 
-		await structureBuilderPage.editStructure(externalReferenceCode4);
+		await structureBuilderPage.editStructure(id4);
 
 		await expect(
 			page.locator('.treeview-link', {hasText: label1})
@@ -244,17 +240,19 @@ test(
 		await newStructureBuilderPage.addField('Long Text');
 
 		await expect(async () => {
-			await newStructureBuilderPage.publishButton.click({
-				timeout: 500,
+			const modalPublishButton = newPage.getByRole('button', {
+				name: 'Publish and Propagate',
 			});
 
-			await expect(
-				newPage.locator('.modal-title', {hasText: 'Publish'})
-			).toBeVisible({timeout: 3000});
+			if (!(await modalPublishButton.isVisible({timeout: 1000}))) {
+				await newStructureBuilderPage.publishButton.click({
+					timeout: 500,
+				});
+			}
 
-			await newPage
-				.getByText('Publish and Propagate')
-				.click({timeout: 500});
+			await modalPublishButton.waitFor({timeout: 3000});
+
+			await modalPublishButton.click({timeout: 500});
 
 			await waitForAlert(newPage, 'published', {timeout: 2000});
 		}).toPass();
@@ -302,7 +300,7 @@ test(
 
 		// Create four structures, one of them in draft
 
-		await structureBuilderPage.createStructureFromData({
+		const idA = await structureBuilderPage.createStructureFromData({
 			erc: labelA,
 			label: labelA,
 			page: structureBuilderPage,
@@ -314,13 +312,13 @@ test(
 			page: structureBuilderPage,
 		});
 
-		await structureBuilderPage.createStructureFromData({
+		const idC = await structureBuilderPage.createStructureFromData({
 			erc: labelC,
 			label: labelC,
 			page: structureBuilderPage,
 		});
 
-		await structureBuilderPage.createStructureFromData({
+		const idD = await structureBuilderPage.createStructureFromData({
 			erc: labelD,
 			label: labelD,
 			page: structureBuilderPage,
@@ -328,13 +326,13 @@ test(
 
 		// C will reference A and D will reference C
 
-		await structureBuilderPage.editStructure(labelC);
+		await structureBuilderPage.editStructure(idC);
 
 		await structureBuilderPage.addReferencedStructures([labelA]);
 
 		await structureBuilderPage.publishStructure();
 
-		await structureBuilderPage.editStructure(labelD);
+		await structureBuilderPage.editStructure(idD);
 
 		await structureBuilderPage.addReferencedStructures([labelC]);
 
@@ -342,7 +340,7 @@ test(
 
 		// Now edit A and check we can reference B, but not C or D
 
-		await structureBuilderPage.editStructure(labelA);
+		await structureBuilderPage.editStructure(idA);
 
 		await clickAndExpectToBeVisible({
 			target: page.getByRole('menuitem', {

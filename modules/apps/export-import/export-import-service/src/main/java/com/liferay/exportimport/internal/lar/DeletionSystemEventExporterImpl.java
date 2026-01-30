@@ -130,12 +130,12 @@ public class DeletionSystemEventExporterImpl
 			}
 
 			BatchEnginePortletDataHandler batchEnginePortletDataHandler =
-				BatchEnginePortletDataHandlerRegistryUtil.
-					getBatchEnginePortletDataHandler(
-						StringUtil.removeLast(
-							key,
-							BatchEnginePortletDataHandler.
-								BATCH_DELETE_CLASS_NAME_POSTFIX));
+				BatchEnginePortletDataHandlerRegistryUtil.getByClassName(
+					portletDataContext.getCompanyId(),
+					StringUtil.removeLast(
+						key,
+						BatchEnginePortletDataHandler.
+							BATCH_DELETE_CLASS_NAME_POSTFIX));
 
 			if (batchEnginePortletDataHandler != null) {
 				batchEnginePortletDataHandler.exportDeletionSystemEvents(
@@ -241,8 +241,8 @@ public class DeletionSystemEventExporterImpl
 		String className = PortalUtil.getClassName(
 			systemEvent.getClassNameId());
 
-		if (BatchEnginePortletDataHandlerRegistryUtil.
-				hasBatchEnginePortletDataHandler(className)) {
+		if (BatchEnginePortletDataHandlerRegistryUtil.hasByClassName(
+				className, portletDataContext.getCompanyId())) {
 
 			Map<String, String> newPrimaryKeysMap =
 				(Map<String, String>)portletDataContext.getNewPrimaryKeysMap(

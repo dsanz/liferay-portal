@@ -28,40 +28,13 @@ public interface PatcherConfiguration {
 	public String googleCloudHotfixBucket();
 
 	@Meta.AD(deflt = "", required = false)
-	public String helpCenterGetAccountApiEndpoint();
-
-	@Meta.AD(deflt = "", required = false)
-	public String helpCenterTicketAttachmentApiEndpoint();
-
-	@Meta.AD(deflt = "", required = false)
-	public String helpCenterTokenTicketDir();
-
-	@Meta.AD(deflt = "", required = false)
 	public String helpCenterURL();
-
-	@Meta.AD(deflt = "", required = false)
-	public String helpCenterFileRepoId();
-
-	@Meta.AD(deflt = "", required = false)
-	public String helpCenterFileRepoURL();
-
-	@Meta.AD(deflt = "", required = false)
-	public String helpCenterJsonwsURL();
-
-	@Meta.AD(deflt = "", required = false)
-	public String helpCenterApiPassword();
-
-	@Meta.AD(deflt = "", required = false)
-	public String helpCenterApiUserName();
 
 	@Meta.AD(deflt = "", required = false)
 	public String hotfixMountPath();
 
 	@Meta.AD(deflt = "", required = false)
 	public String infoModifyTicketsListURL();
-
-	@Meta.AD(deflt = "", required = false)
-	public String jenkinsToken();
 
 	@Meta.AD(deflt = "", required = false)
 	public String jenkinsAdminUserName();
@@ -76,10 +49,13 @@ public interface PatcherConfiguration {
 	public String jenkinsLoadBalancerBaseInvocationURL();
 
 	@Meta.AD(deflt = "", required = false)
-	public String jenkinsURL();
+	public boolean jenkinsLoadBalancerEnabled();
 
 	@Meta.AD(deflt = "", required = false)
-	public boolean jenkinsLoadBalancerEnabled();
+	public String jenkinsToken();
+
+	@Meta.AD(deflt = "", required = false)
+	public String jenkinsURL();
 
 	@Meta.AD(deflt = "", required = false)
 	public String jiraURL();
@@ -118,13 +94,13 @@ public interface PatcherConfiguration {
 	public String patcherPubsubSubscriptionId();
 
 	@Meta.AD(deflt = "", required = false)
+	public boolean patcherScanningEnabled();
+
+	@Meta.AD(deflt = "", required = false)
 	public String patcherSharedRequestAddFixPatcherType();
 
 	@Meta.AD(deflt = "", required = false)
 	public String patcherSharedRequestBuildPatchPatcherType();
-
-	@Meta.AD(deflt = "", required = false)
-	public boolean patcherScanningEnabled();
 
 	@Meta.AD(deflt = "", required = false)
 	public String patcherStatusBuildJenkinsPath();
@@ -143,6 +119,24 @@ public interface PatcherConfiguration {
 
 	@Meta.AD(deflt = "", required = false)
 	public boolean patcherTestsEnabled();
+
+	@Meta.AD(deflt = "", required = false)
+	public String supportLiferayAccountSearchAPIEndpoint();
+
+	@Meta.AD(deflt = "", required = false)
+	public String supportLiferayAPIClientId();
+
+	@Meta.AD(deflt = "", required = false)
+	public String supportLiferayAPIClientSecret();
+
+	@Meta.AD(deflt = "", required = false)
+	public String supportLiferayLFUURL();
+
+	@Meta.AD(deflt = "", required = false)
+	public String supportLiferayTicketAttachmentAPIEndpoint();
+
+	@Meta.AD(deflt = "", required = false)
+	public String supportLiferayURL();
 
 	@Meta.AD(deflt = "", required = false)
 	public String troubleshootingURL();

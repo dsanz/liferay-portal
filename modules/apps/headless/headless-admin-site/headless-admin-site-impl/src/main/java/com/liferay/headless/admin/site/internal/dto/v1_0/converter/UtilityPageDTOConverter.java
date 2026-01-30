@@ -19,6 +19,7 @@ import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
+import com.liferay.portal.vulcan.fields.NestedFieldsSupplier;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import java.util.Map;
@@ -79,10 +80,14 @@ public class UtilityPageDTOConverter
 				setMarkedAsDefault(
 					layoutUtilityPageEntry::isDefaultLayoutUtilityPageEntry);
 				setName(layoutUtilityPageEntry::getName);
-				setThumbnail(
-					() ->
-						ThumbnailUtil.getPortletFileEntryItemExternalReference(
-							layoutUtilityPageEntry.getPreviewFileEntryId()));
+				setThumbnailURLReference(
+					() -> NestedFieldsSupplier.supply(
+						"thumbnail",
+						fieldName ->
+							ThumbnailUtil.
+								getPortletFileEntryThumbnailURLReference(
+									layoutUtilityPageEntry.
+										getPreviewFileEntryId())));
 				setType(() -> _getType(layoutUtilityPageEntry.getType()));
 				setUtilityPageSettings(
 					() -> new UtilityPageSettings() {

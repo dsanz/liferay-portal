@@ -211,8 +211,14 @@ public class JenkinsConsoleTextLoader {
 				buildURL + "/logText/progressiveHtml?start=" + serverLogSize;
 
 			try {
-				URL urlObject = new URL(
-					JenkinsResultsParserUtil.getLocalURL(url));
+				if (JenkinsResultsParserUtil.isCINode()) {
+					url = JenkinsResultsParserUtil.getLocalURL(url);
+				}
+				else {
+					url = JenkinsResultsParserUtil.getRemoteURL(url);
+				}
+
+				URL urlObject = new URL(url);
 
 				HttpURLConnection httpURLConnection =
 					(HttpURLConnection)urlObject.openConnection();
@@ -271,10 +277,6 @@ public class JenkinsConsoleTextLoader {
 											" bytes.");
 
 									System.out.println(message);
-
-									NotificationUtil.sendEmail(
-										message, "jenkins", "Large console log",
-										"qa-slave-verify-fail@liferay.com");
 								}
 							}
 						}

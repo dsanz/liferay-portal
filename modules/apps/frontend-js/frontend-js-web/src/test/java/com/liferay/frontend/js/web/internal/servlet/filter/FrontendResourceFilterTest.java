@@ -33,19 +33,18 @@ public class FrontendResourceFilterTest {
 	public void testContent() throws Exception {
 		FrontendResourceFilter frontendResourceFilter =
 			new FrontendResourceFilter();
-
 		MockHttpServletResponse mockHttpServletResponse =
 			new MockHttpServletResponse();
 
 		frontendResourceFilter.send(
 			_mockFrontendResource(
-				FrontendJSWebTestUtil.randomHashedFileHash(),
-				RandomTestUtil.randomLong(), true, true),
+				FrontendJSWebTestUtil.randomHashedFileHash(), true,
+				RandomTestUtil.randomLong(), false, true),
 			new MockHttpServletRequest(), mockHttpServletResponse);
 
 		String contentType = mockHttpServletResponse.getHeader("Content-Type");
 
-		Assert.assertTrue(contentType.contains("text/javascript"));
+		Assert.assertTrue(contentType.contains(_CONTENT_TYPE));
 
 		Assert.assertEquals(
 			"import React from 'react';",
@@ -56,7 +55,6 @@ public class FrontendResourceFilterTest {
 	public void testETag() throws Exception {
 		FrontendResourceFilter frontendResourceFilter =
 			new FrontendResourceFilter();
-
 		MockHttpServletResponse mockHttpServletResponse =
 			new MockHttpServletResponse();
 
@@ -64,7 +62,7 @@ public class FrontendResourceFilterTest {
 
 		frontendResourceFilter.send(
 			_mockFrontendResource(
-				eTag, RandomTestUtil.randomLong(), true, true),
+				eTag, true, RandomTestUtil.randomLong(), false, true),
 			new MockHttpServletRequest(), mockHttpServletResponse);
 
 		Assert.assertEquals(eTag, mockHttpServletResponse.getHeader("ETag"));
@@ -74,14 +72,13 @@ public class FrontendResourceFilterTest {
 	public void testImmutable() throws Exception {
 		FrontendResourceFilter frontendResourceFilter =
 			new FrontendResourceFilter();
-
 		MockHttpServletResponse mockHttpServletResponse =
 			new MockHttpServletResponse();
 
 		frontendResourceFilter.send(
 			_mockFrontendResource(
-				FrontendJSWebTestUtil.randomHashedFileHash(),
-				RandomTestUtil.randomLong(), true, true),
+				FrontendJSWebTestUtil.randomHashedFileHash(), true,
+				RandomTestUtil.randomLong(), false, true),
 			new MockHttpServletRequest(), mockHttpServletResponse);
 
 		String cacheControl = mockHttpServletResponse.getHeader(
@@ -96,7 +93,6 @@ public class FrontendResourceFilterTest {
 	public void testMaxAge() throws Exception {
 		FrontendResourceFilter frontendResourceFilter =
 			new FrontendResourceFilter();
-
 		MockHttpServletResponse mockHttpServletResponse =
 			new MockHttpServletResponse();
 
@@ -104,8 +100,8 @@ public class FrontendResourceFilterTest {
 
 		frontendResourceFilter.send(
 			_mockFrontendResource(
-				FrontendJSWebTestUtil.randomHashedFileHash(), maxAge, false,
-				true),
+				FrontendJSWebTestUtil.randomHashedFileHash(), false, maxAge,
+				false, true),
 			new MockHttpServletRequest(), mockHttpServletResponse);
 
 		String cacheControl = mockHttpServletResponse.getHeader(
@@ -115,16 +111,34 @@ public class FrontendResourceFilterTest {
 	}
 
 	@Test
-	public void testSendNoCache() throws Exception {
+	public void testPrivate() throws Exception {
 		FrontendResourceFilter frontendResourceFilter =
 			new FrontendResourceFilter();
-
 		MockHttpServletResponse mockHttpServletResponse =
 			new MockHttpServletResponse();
 
 		frontendResourceFilter.send(
 			_mockFrontendResource(
-				FrontendJSWebTestUtil.randomHashedFileHash(),
+				FrontendJSWebTestUtil.randomHashedFileHash(), false,
+				RandomTestUtil.randomLong(), true, true),
+			new MockHttpServletRequest(), mockHttpServletResponse);
+
+		String cacheControl = mockHttpServletResponse.getHeader(
+			"Cache-Control");
+
+		Assert.assertTrue(cacheControl.contains("private"));
+	}
+
+	@Test
+	public void testSendNoCache() throws Exception {
+		FrontendResourceFilter frontendResourceFilter =
+			new FrontendResourceFilter();
+		MockHttpServletResponse mockHttpServletResponse =
+			new MockHttpServletResponse();
+
+		frontendResourceFilter.send(
+			_mockFrontendResource(
+				FrontendJSWebTestUtil.randomHashedFileHash(), false,
 				RandomTestUtil.randomLong(), false, false),
 			new MockHttpServletRequest(), mockHttpServletResponse);
 
@@ -137,7 +151,7 @@ public class FrontendResourceFilterTest {
 
 		frontendResourceFilter.send(
 			_mockFrontendResource(
-				FrontendJSWebTestUtil.randomHashedFileHash(),
+				FrontendJSWebTestUtil.randomHashedFileHash(), false,
 				RandomTestUtil.randomLong(), false, true),
 			new MockHttpServletRequest(), mockHttpServletResponse);
 
@@ -147,7 +161,8 @@ public class FrontendResourceFilterTest {
 	}
 
 	private FrontendResource _mockFrontendResource(
-		String eTag, long maxAge, boolean immutable, boolean sendNoCache) {
+		String eTag, boolean immutable, long maxAge, boolean isPrivate,
+		boolean sendNoCache) {
 
 		return new FrontendResource() {
 
@@ -178,6 +193,11 @@ public class FrontendResourceFilterTest {
 			}
 
 			@Override
+			public boolean isPrivate() {
+				return isPrivate;
+			}
+
+			@Override
 			public boolean isSendNoCache() {
 				return sendNoCache;
 			}
@@ -187,6 +207,6 @@ public class FrontendResourceFilterTest {
 
 	private static final String _CONTENT = "import React from 'react';";
 
-	private static final String _CONTENT_TYPE = "text/javascript";
+	private static final String _CONTENT_TYPE = "application/javascript";
 
 }

@@ -838,6 +838,40 @@ public abstract class BaseWorkflowInstanceResourceTestCase {
 	}
 
 	@Test
+	public void testPatchWorkflowInstance() throws Exception {
+		WorkflowInstance postWorkflowInstance =
+			testPatchWorkflowInstance_addWorkflowInstance();
+
+		WorkflowInstance randomPatchWorkflowInstance =
+			randomPatchWorkflowInstance();
+
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		WorkflowInstance patchWorkflowInstance =
+			workflowInstanceResource.patchWorkflowInstance(
+				postWorkflowInstance.getId(), randomPatchWorkflowInstance);
+
+		WorkflowInstance expectedPatchWorkflowInstance =
+			postWorkflowInstance.clone();
+
+		BeanTestUtil.copyProperties(
+			randomPatchWorkflowInstance, expectedPatchWorkflowInstance);
+
+		WorkflowInstance getWorkflowInstance =
+			workflowInstanceResource.getWorkflowInstance(
+				patchWorkflowInstance.getId());
+
+		assertEquals(expectedPatchWorkflowInstance, getWorkflowInstance);
+		assertValid(getWorkflowInstance);
+	}
+
+	protected WorkflowInstance testPatchWorkflowInstance_addWorkflowInstance()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
 	public void testPostWorkflowInstanceChangeTransition() throws Exception {
 		WorkflowInstance randomWorkflowInstance = randomWorkflowInstance();
 
@@ -1049,6 +1083,14 @@ public abstract class BaseWorkflowInstanceResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("context", additionalAssertFieldName)) {
+				if (workflowInstance.getContext() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("currentNodeNames", additionalAssertFieldName)) {
 				if (workflowInstance.getCurrentNodeNames() == null) {
 					valid = false;
@@ -1231,6 +1273,17 @@ public abstract class BaseWorkflowInstanceResourceTestCase {
 				if (!Objects.deepEquals(
 						workflowInstance1.getCompleted(),
 						workflowInstance2.getCompleted())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("context", additionalAssertFieldName)) {
+				if (!equals(
+						(Map)workflowInstance1.getContext(),
+						(Map)workflowInstance2.getContext())) {
 
 					return false;
 				}
@@ -1432,6 +1485,11 @@ public abstract class BaseWorkflowInstanceResourceTestCase {
 		}
 
 		if (entityFieldName.equals("completed")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("context")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}

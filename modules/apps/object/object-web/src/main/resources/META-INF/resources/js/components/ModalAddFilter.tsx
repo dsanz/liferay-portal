@@ -5,7 +5,6 @@
 
 import ClayButton from '@clayui/button';
 import ClayModal from '@clayui/modal';
-import {Observer} from '@clayui/modal/lib/types';
 import {
 	API,
 	DatePicker,
@@ -32,6 +31,8 @@ import {
 } from '../utils/filter';
 
 import './ModalAddFilter.scss';
+
+import type {Observer} from '@clayui/modal/src/types';
 
 interface ModalAddFilterProps {
 	aggregationFilter?: boolean;
@@ -497,7 +498,11 @@ export function ModalAddFilter({
 			disableAutoClose={disableAutoClose}
 			observer={observer}
 		>
-			<ClayModal.Header>{header}</ClayModal.Header>
+			<ClayModal.Header
+				closeButtonAriaLabel={Liferay.Language.get('close')}
+			>
+				{header}
+			</ClayModal.Header>
 
 			<ClayModal.Body>
 				{!editingFilter && (

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 
 // eslint-disable-next-line
 import {checkAccessibility} from '@liferay/layout-js-components-web/test/__lib__/index';
@@ -11,6 +11,7 @@ import {act, fireEvent, render, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import ApiHelper from '../../../../src/main/resources/META-INF/resources/js/common/services/ApiHelper';
+import {OBJECT_ENTRY_FOLDER_CLASS_NAME} from '../../../../src/main/resources/META-INF/resources/js/common/utils/constants';
 import ShareModalContent from '../../../../src/main/resources/META-INF/resources/js/main_view/modal/share_modal_content/ShareModalContent';
 
 jest.useFakeTimers();
@@ -37,6 +38,7 @@ const DEFAULT_PROPS = {
 		id: '1',
 		name: 'Test1 Test1',
 	},
+	entryClassName: '11111-className',
 	initialCollaborators: [
 		{
 			actionIds: 'VIEW',
@@ -187,5 +189,44 @@ describe('ShareModalContent', () => {
 		);
 
 		expect(mockCloseModal).toHaveBeenCalledTimes(1);
+	});
+
+	it('shows default permissions when entryClassName is not ObjectEntryFolder', () => {
+		const {getByLabelText, getByRole} = renderComponent();
+
+		fireEvent.click(getByLabelText('edit-permissions'));
+
+		expect(
+			getByRole('option', {name: 'view-and-download'})
+		).toBeInTheDocument();
+		expect(
+			getByRole('option', {name: 'view-download-and-comment'})
+		).toBeInTheDocument();
+		expect(
+			getByRole('option', {name: 'view-download-comment-and-update'})
+		).toBeInTheDocument();
+	});
+
+	it('shows objectEntryFolder-specific permissions when entryClassName is ObjectEntryFolder', () => {
+		const folderProps = {
+			...DEFAULT_PROPS,
+			entryClassName: OBJECT_ENTRY_FOLDER_CLASS_NAME,
+		};
+
+		const {getByLabelText, getByRole, queryByText} =
+			renderComponent(folderProps);
+
+		fireEvent.click(getByLabelText('edit-permissions'));
+
+		expect(
+			getByRole('option', {name: 'view-and-download'})
+		).toBeInTheDocument();
+		expect(
+			getByRole('option', {name: 'view-download-and-update'})
+		).toBeInTheDocument();
+
+		expect(
+			queryByText('view-download-and-comment')
+		).not.toBeInTheDocument();
 	});
 });

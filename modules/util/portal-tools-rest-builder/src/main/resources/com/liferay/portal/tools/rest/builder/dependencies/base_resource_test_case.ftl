@@ -31,38 +31,51 @@ import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
 <#if freeMarkerTool.isVersionCompatible(configYAML, 2)>
 	import com.liferay.petra.function.transform.TransformUtil;
-
 <#else>
 	import com.liferay.portal.vulcan.util.TransformUtil;
 </#if>
 
 <#assign
+	generateDepotEntry = false
 	generatePermissionsJavaMethodSignatures = []
 	javaDataType = freeMarkerTool.getJavaDataType(configYAML, openAPIYAML, schemaName)!""
 	javaMethodSignatures = freeMarkerTool.getResourceTestCaseJavaMethodSignatures(configYAML, openAPIYAML, schemaName)
 	properties = freeMarkerTool.getDTOProperties(configYAML, openAPIYAML, schema, allSchemas)
+	useDeleteAssetLibrary = false
+	useDeleteByExternalReferenceCode = false
+	useDeleteById = false
+	useDeleteSite = false
 
-	generateBatch = freeMarkerTool.generateBatch(configYAML, javaDataType, javaMethodSignatures, schemaName)
-	generateCRUD = freeMarkerTool.generateCRUD(configYAML, javaMethodSignatures, schemaName)
-	generateDepotEntry = freeMarkerTool.containsJavaMethodSignature(javaMethodSignatures, "AssetLibrary")
-	useDeleteAssetLibrary = freeMarkerTool.hasJavaMethodSignature(javaMethodSignatures, "deleteAssetLibrary" + schemaName) && properties?keys?seq_contains("externalReferenceCode")
-	useDeleteByExternalReferenceCode = (freeMarkerTool.hasJavaMethodSignature(javaMethodSignatures, "deleteByExternalReferenceCode") || freeMarkerTool.hasJavaMethodSignature(javaMethodSignatures, "delete" + schemaName + "ByExternalReferenceCode")) && properties?keys?seq_contains("externalReferenceCode")
-	useDeleteById = freeMarkerTool.hasJavaMethodSignature(javaMethodSignatures, "delete" + schemaName) && (properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id"))
-	useDeleteSite = freeMarkerTool.hasJavaMethodSignature(javaMethodSignatures, "deleteSite" + schemaName) && properties?keys?seq_contains("externalReferenceCode")
-
-	generateWaitForFinishMethod = freeMarkerTool.isVersionCompatible(configYAML, 8) && generateBatch && (useDeleteAssetLibrary || useDeleteByExternalReferenceCode || useDeleteById || useDeleteSite)
+	hasExternalReferenceCodeProperty = properties?keys?seq_contains("externalReferenceCode")
+	hasIdProperty = properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id")
 />
 
 <#list javaMethodSignatures as javaMethodSignature>
-	<#if freeMarkerTool.isGeneratePermissions(configYAML, javaMethodSignature, javaMethodSignatures, schema, schemaName) &&
-		 ((freeMarkerTool.getJavaMethodSignature(javaMethodSignatures, "get" + schemaName + "PermissionsPage")?? &&
-		   freeMarkerTool.getJavaMethodSignature(javaMethodSignatures, "put" + schemaName + "PermissionsPage")??) ||
-		  (freeMarkerTool.getParentPermissionsPageJavaMethodSignature("get", javaMethodSignatures, javaMethodSignature.parentSchemaName, schemaName)?? &&
-		   freeMarkerTool.getParentPermissionsPageJavaMethodSignature("put", javaMethodSignatures, javaMethodSignature.parentSchemaName, schemaName)??))>
+	<#assign
+		generateDepotEntry = generateDepotEntry || javaMethodSignature.methodName?contains("AssetLibrary")
+		generatePermissionsJavaMethodSignatures = generatePermissionsJavaMethodSignatures + (isPermissionsCompatibleMethod(configYAML, javaMethodSignature, javaMethodSignatures, schema, schemaName)?then([javaMethodSignature], []))
+		useDeleteByExternalReferenceCode = useDeleteByExternalReferenceCode || (freeMarkerTool.isExternalReferenceCodeMethod("delete", javaMethodSignature) && hasExternalReferenceCodeProperty && !javaMethodSignature.parentSchemaName?has_content)
+		useDeleteById = useDeleteById || (stringUtil.equals(javaMethodSignature.methodName, "delete" + schemaName) && (freeMarkerTool.hasPathParameter(javaMethodSignature, "id") || freeMarkerTool.hasPathParameter(javaMethodSignature, schemaVarName + "Id")) && hasIdProperty)
+	/>
 
-		<#assign generatePermissionsJavaMethodSignatures = generatePermissionsJavaMethodSignatures + [javaMethodSignature] />
+	<#if hasExternalReferenceCodeProperty && (stringUtil.equals(javaMethodSignature.methodName, "deleteAssetLibrary" + schemaName) || stringUtil.equals(javaMethodSignature.methodName, "deleteAssetLibrary" + schemaName + "ByExternalReferenceCode"))>
+		<#assign
+			deleteAssetLibraryBatchJavaMethodSignature = javaMethodSignature
+			useDeleteAssetLibrary = true
+		/>
+	<#elseif hasExternalReferenceCodeProperty && (stringUtil.equals(javaMethodSignature.methodName, "deleteSite" + schemaName) || stringUtil.equals(javaMethodSignature.methodName, "deleteSite" + schemaName + "ByExternalReferenceCode"))>
+		<#assign
+			deleteSiteBatchJavaMethodSignature = javaMethodSignature
+			useDeleteSite = true
+		/>
 	</#if>
 </#list>
+
+<#assign
+	generateBatch = freeMarkerTool.generateBatch(configYAML, javaDataType, javaMethodSignatures, schemaName)
+	generateCRUD = freeMarkerTool.generateCRUD(configYAML, javaMethodSignatures, schemaName)
+	generateWaitForFinishMethod = freeMarkerTool.isVersionCompatible(configYAML, 8) && generateBatch && (useDeleteAssetLibrary || useDeleteByExternalReferenceCode || useDeleteById || useDeleteSite)
+/>
 
 <#if generateDepotEntry>
 	<#if freeMarkerTool.isVersionCompatible(configYAML, 11)>
@@ -113,7 +126,6 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 
 <#if freeMarkerTool.isVersionCompatible(configYAML, 12)>
 	import com.liferay.portal.kernel.util.PropsValues;
-
 <#else>
 	import com.liferay.portal.util.PropsValues;
 </#if>
@@ -363,6 +375,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 
 	<#list javaMethodSignatures as javaMethodSignature>
 		<#assign
+			generatePermissions = generatePermissionsJavaMethodSignatures?seq_contains(javaMethodSignature)
 			parameters = freeMarkerTool.getResourceTestCaseParameters(configYAML, javaMethodSignature.javaMethodParameters, javaMethodSignature.operation, allSchemas, false)
 			parentSchemaName = javaMethodSignature.parentSchemaName!""
 		/>
@@ -454,7 +467,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 			}
 
 			protected ${schemaName} test${javaMethodSignature.methodName?cap_first}_add${schemaName}() throws Exception {
-				<#if (properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id")) && freeMarkerTool.hasJavaMethodSignature(javaMethodSignatures, "delete" + schemaName)>
+				<#if (hasExternalReferenceCodeProperty || hasIdProperty) && freeMarkerTool.hasJavaMethodSignature(javaMethodSignatures, "delete" + schemaName)>
 					return testDelete${schemaName}_add${schemaName}();
 				<#else>
 					throw new UnsupportedOperationException("This method needs to be implemented");
@@ -492,7 +505,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 
 			@Test
 			public void test${javaMethodSignature.methodName?cap_first}() throws Exception {
-				<#if properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id")>
+				<#if hasExternalReferenceCodeProperty || hasIdProperty>
 					@SuppressWarnings("PMD.UnusedLocalVariable")
 					${schemaName} ${schemaVarName} = test${javaMethodSignature.methodName?cap_first}_add${schemaName}();
 
@@ -690,7 +703,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 						</#list>
 					));
 
-					<#if generatePermissionsJavaMethodSignatures?seq_contains(javaMethodSignature)>
+					<#if generatePermissions>
 						for (${schemaName} ${schemaVarName} : page.getItems()) {
 							Assert.assertNull(${schemaVarName}.getPermissions());
 						}
@@ -717,7 +730,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 					<#if freeMarkerTool.hasJavaMethodSignature(javaMethodSignatures, "delete" + schemaName)>
 						<#assign deleteJavaMethodSignature = freeMarkerTool.getJavaMethodSignature(javaMethodSignatures, "delete" + schemaName) />
 
-						<#if properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id")>
+						<#if hasExternalReferenceCodeProperty || hasIdProperty>
 							${schemaVarName}Resource.delete${schemaName}(
 								<#list deleteJavaMethodSignature.javaMethodParameters as javaMethodParameter>
 									<#if freeMarkerTool.isPathParameter(javaMethodParameter, deleteJavaMethodSignature.operation) && freeMarkerTool.isExternalReferenceCodeParameter(javaMethodParameter, schemaName) && freeMarkerTool.isParameterNameSchemaRelated(javaMethodParameter.parameterName, deleteJavaMethodSignature.path, schemaName)>
@@ -1256,7 +1269,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 
 			@Test
 			public void test${javaMethodSignature.methodName?cap_first}() throws Exception {
-				<#if properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id")>
+				<#if hasExternalReferenceCodeProperty || hasIdProperty>
 					${schemaName} post${schemaName} = test${javaMethodSignature.methodName?cap_first}_add${schemaName}();
 
 					${schemaName} get${schemaName} = ${schemaVarName}Resource.${javaMethodSignature.methodName}(
@@ -1270,7 +1283,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 					assertEquals(post${schemaName}, get${schemaName});
 					assertValid(get${schemaName});
 
-					<#if generatePermissionsJavaMethodSignatures?seq_contains(javaMethodSignature)>
+					<#if generatePermissions>
 						Assert.assertNull(get${schemaName}.getPermissions());
 
 						get${schemaName} = permissions${schemaName}Resource.${javaMethodSignature.methodName}(
@@ -1288,7 +1301,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 				</#if>
 			}
 
-			<#if generateCRUD && stringUtil.equals(javaMethodSignature.methodName, "get" + schemaName) && (properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id"))>
+			<#if generateCRUD && stringUtil.equals(javaMethodSignature.methodName, "get" + schemaName) && hasIdProperty>
 				@Test
 				public void testVulcanCRUDItemDelegateGetItem() throws Exception {
 					${schemaName} post${schemaName} = test${javaMethodSignature.methodName?cap_first}_add${schemaName}();
@@ -1480,7 +1493,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 		<#elseif freeMarkerTool.hasHTTPMethod(javaMethodSignature, "patch") && freeMarkerTool.hasJavaMethodSignature(javaMethodSignatures, "get" + javaMethodSignature.methodName?remove_beginning("patch")) && javaMethodSignature.returnType?ends_with(schemaName)>
 			@Test
 			public void test${javaMethodSignature.methodName?cap_first}() throws Exception {
-				<#if !(properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id"))>
+				<#if !(hasExternalReferenceCodeProperty || hasIdProperty)>
 					Assert.assertTrue(false);
 				<#else>
 					${schemaName} post${schemaName} = test${javaMethodSignature.methodName?cap_first}_add${schemaName}();
@@ -1591,7 +1604,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 					assertValid(post${schemaName}, multipartFiles);
 				</#if>
 
-				<#if generatePermissionsJavaMethodSignatures?seq_contains(javaMethodSignature)>
+				<#if generatePermissions>
 					${schemaName} randomPermissions${schemaName}1 = randomPermissions${schemaName}();
 
 					${schemaName} postPermissions${schemaName}1 = test${javaMethodSignature.methodName?cap_first}_add${schemaName}(randomPermissions${schemaName}1);
@@ -1682,7 +1695,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 				</#if>
 			}
 
-			<#if generatePermissionsJavaMethodSignatures?seq_contains(javaMethodSignature)>
+			<#if generatePermissions>
 				protected ${schemaName} test${javaMethodSignature.methodName?cap_first}_addPermissions${schemaName}(${schemaName} ${schemaVarName}) throws Exception {
 					<#if (javaMethodSignature.pathJavaMethodParameters?size == 1)>
 						<#assign
@@ -1766,7 +1779,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 
 			@Test
 			public void test${javaMethodSignature.methodName?cap_first}() throws Exception {
-				<#if !(properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id"))>
+				<#if !(hasExternalReferenceCodeProperty || hasIdProperty)>
 					Assert.assertTrue(false);
 				<#else>
 					${schemaName} post${schemaName} = test${javaMethodSignature.methodName?cap_first}_add${schemaName}();
@@ -1791,17 +1804,17 @@ public abstract class Base${schemaName}ResourceTestCase {
 					assertEquals(random${schemaName}, put${schemaName});
 					assertValid(put${schemaName});
 
-					<#if generatePermissionsJavaMethodSignatures?seq_contains(javaMethodSignature)>
+					<#if generatePermissions>
 						Assert.assertNull(put${schemaName}.getPermissions());
 					</#if>
 
 					${schemaName} get${schemaName} =
-						<#assign getJavaMethodSignatureMethodName = javaMethodSignature.methodName?replace("put", "get", "f") />
+						<#assign getJavaMethodSignature = freeMarkerTool.getJavaMethodSignature(javaMethodSignatures, javaMethodSignature.methodName?replace("put", "get", "f"))!"" />
 
-						<#if freeMarkerTool.containsJavaMethodSignature(javaMethodSignatures, getJavaMethodSignatureMethodName)>
-							${schemaVarName}Resource.${getJavaMethodSignatureMethodName}(
+						<#if getJavaMethodSignature?has_content && getJavaMethodSignature.returnType?ends_with(schemaName)>
+							${schemaVarName}Resource.${getJavaMethodSignature.methodName}(
 								<@getRESTMethodParameters
-									javaMethodSignature = freeMarkerTool.getJavaMethodSignature(javaMethodSignatures, getJavaMethodSignatureMethodName)
+									javaMethodSignature = getJavaMethodSignature
 									setNullQueryParameters = true
 									testJavaMethodName = javaMethodSignature.methodName
 									varName = "put" + schemaName
@@ -1826,7 +1839,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 						assertValid(get${schemaName}, multipartFiles);
 					</#if>
 
-					<#if generatePermissionsJavaMethodSignatures?seq_contains(javaMethodSignature)>
+					<#if generatePermissions>
 						${schemaName} randomPermissions${schemaName} = randomPermissions${schemaName}();
 
 						put${schemaName} = ${schemaVarName}Resource.${javaMethodSignature.methodName}(
@@ -1872,12 +1885,12 @@ public abstract class Base${schemaName}ResourceTestCase {
 
 						get${schemaName} =
 
-						<#assign getJavaMethodSignatureMethodName = javaMethodSignature.methodName?replace("put", "get", "f") />
+						<#assign getJavaMethodSignature = freeMarkerTool.getJavaMethodSignature(javaMethodSignatures, javaMethodSignature.methodName?replace("put", "get", "f"))!"" />
 
-						<#if freeMarkerTool.containsJavaMethodSignature(javaMethodSignatures, getJavaMethodSignatureMethodName)>
-							${schemaVarName}Resource.${getJavaMethodSignatureMethodName}(
+						<#if getJavaMethodSignature?has_content && getJavaMethodSignature.returnType?ends_with(schemaName)>
+							${schemaVarName}Resource.${getJavaMethodSignature.methodName}(
 								<@getRESTMethodParameters
-									javaMethodSignature = freeMarkerTool.getJavaMethodSignature(javaMethodSignatures, getJavaMethodSignatureMethodName)
+									javaMethodSignature = freeMarkerTool.getJavaMethodSignature(javaMethodSignatures, getJavaMethodSignature.methodName)
 									setNullQueryParameters = true
 									testJavaMethodName = javaMethodSignature.methodName
 									varName = "put" + schemaName
@@ -1926,7 +1939,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 					return random${schemaName}();
 				}
 			</#if>
-		<#elseif (properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id")) && stringUtil.equals(javaMethodSignature.returnType, "void")>
+		<#elseif (hasExternalReferenceCodeProperty || hasIdProperty) && stringUtil.equals(javaMethodSignature.returnType, "void")>
 			<#assign getterJavaMethodParametersMap = {} />
 
 			@Test
@@ -2021,7 +2034,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 
 			@Test
 			public void testGraphQL${javaMethodSignature.methodName?cap_first}() throws Exception {
-				<#if javaMethodSignature.pathJavaMethodParameters?size == 0 || !(properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id"))>
+				<#if javaMethodSignature.pathJavaMethodParameters?size == 0 || !(hasExternalReferenceCodeProperty || hasIdProperty)>
 					Assert.assertTrue(false);
 				<#else>
 					<#assign generateTestGraphQLAddMethod = true />
@@ -2189,7 +2202,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 				<#assign postJavaMethodSignature = freeMarkerTool.getJavaMethodSignature(javaMethodSignatures, "postSite" + schemaName) />
 			</#if>
 
-			<#if postJavaMethodSignature?has_content && (properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id"))>
+			<#if postJavaMethodSignature?has_content && (hasExternalReferenceCodeProperty || hasIdProperty)>
 				<#if javaMethodSignature.methodName?contains("Permission")>
 					@Test
 					public void testGraphQL${javaMethodSignature.methodName?cap_first}() throws Exception {
@@ -2383,7 +2396,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 
 			@Test
 			public void testGraphQL${javaMethodSignature.methodName?cap_first}() throws Exception {
-				<#if javaMethodSignature.pathJavaMethodParameters?size != 0 && (properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id"))>
+				<#if javaMethodSignature.pathJavaMethodParameters?size != 0 && (hasExternalReferenceCodeProperty || hasIdProperty)>
 					<#assign generateTestGraphQLAddMethod = true />
 
 					${schemaName} ${schemaVarName} = testGraphQL${javaMethodSignature.methodName?cap_first}_add${schemaName}();
@@ -2472,7 +2485,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 
 			@Test
 			public void testGraphQL${javaMethodSignature.methodName?cap_first}NotFound() throws Exception {
-				<#if javaMethodSignature.javaMethodParameters?size != 0 && (properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id"))>
+				<#if javaMethodSignature.javaMethodParameters?size != 0 && (hasExternalReferenceCodeProperty || hasIdProperty)>
 					<#list javaMethodSignature.javaMethodParameters as javaMethodParameter>
 						<#if !stringUtil.equals(javaMethodParameter.parameterName, "assetLibraryExternalReferenceCode") && !stringUtil.equals(javaMethodParameter.parameterName, "assetLibraryId") && !stringUtil.equals(javaMethodParameter.parameterName, "siteExternalReferenceCode") && !stringUtil.equals(javaMethodParameter.parameterName, "siteId") && freeMarkerTool.isPathParameter(javaMethodParameter, javaMethodSignature.operation)>
 							${javaMethodParameter.parameterType} irrelevant${javaMethodParameter.parameterName?cap_first} =
@@ -2609,7 +2622,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 			<#if postJavaMethodSignature?has_content>
 				@Test
 				public void testGraphQL${javaMethodSignature.methodName?cap_first}() throws Exception {
-					<#if !(properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id"))>
+					<#if !(hasExternalReferenceCodeProperty || hasIdProperty)>
 						Assert.assertTrue(false);
 					<#else>
 						${schemaName} random${schemaName} = random${schemaName}();
@@ -2680,7 +2693,9 @@ public abstract class Base${schemaName}ResourceTestCase {
 				<#if useDeleteAssetLibrary>
 					${schemaName} ${schemaVarName}1 = testBatchEngineDeleteImportTask_addAssetLibrary${schemaName}();
 
-					testBatchEngineDeleteImportTask_delete${schemaName}(200, ${schemaVarName}1.getExternalReferenceCode(),<#if useDeleteById> null,</#if> "assetLibraryExternalReferenceCode", testDepotEntryGroup.getExternalReferenceCode());
+					<#assign isExternalReferenceCodeExclusiveMethod = freeMarkerTool.isExternalReferenceCodeExclusiveMethod("delete", deleteAssetLibraryBatchJavaMethodSignature) />
+
+					testBatchEngineDeleteImportTask_delete${schemaName}(200, ${schemaVarName}1.getExternalReferenceCode(),<#if useDeleteById> null,</#if> "${isExternalReferenceCodeExclusiveMethod?then("assetLibraryExternalReferenceCode", "assetLibraryId")}", ${isExternalReferenceCodeExclusiveMethod?then("testDepotEntryGroup.getExternalReferenceCode()", "String.valueOf(testDepotEntryGroup.getGroupId())")});
 
 					<#if getAssetLibraryJavaMethodSignature?has_content>
 						assertHttpResponseStatusCode(
@@ -2731,7 +2746,9 @@ public abstract class Base${schemaName}ResourceTestCase {
 				<#if useDeleteSite>
 					<#if !useDeleteAssetLibrary && !useDeleteByExternalReferenceCode && !useDeleteById>${schemaName}</#if> ${schemaVarName}1 = testBatchEngineDeleteImportTask_addSite${schemaName}();
 
-					testBatchEngineDeleteImportTask_delete${schemaName}(200, ${schemaVarName}1.getExternalReferenceCode(),<#if useDeleteById> null,</#if> "siteExternalReferenceCode", testGroup.getExternalReferenceCode());
+					<#assign isExternalReferenceCodeExclusiveMethod = freeMarkerTool.isExternalReferenceCodeExclusiveMethod("delete", deleteSiteBatchJavaMethodSignature) />
+
+					testBatchEngineDeleteImportTask_delete${schemaName}(200, ${schemaVarName}1.getExternalReferenceCode(),<#if useDeleteById> null,</#if> "${isExternalReferenceCodeExclusiveMethod?then("siteExternalReferenceCode", "siteId")}", ${isExternalReferenceCodeExclusiveMethod?then("testGroup.getExternalReferenceCode()", "String.valueOf(testGroup.getGroupId())")});
 
 					<#if getSiteJavaMethodSignature?has_content>
 						assertHttpResponseStatusCode(
@@ -2750,7 +2767,9 @@ public abstract class Base${schemaName}ResourceTestCase {
 						${schemaVarName}1 = testBatchEngineDeleteImportTask_addAssetLibrary${schemaName}();
 						${schemaName} ${schemaVarName}2 = testBatchEngineDeleteImportTask_addAssetLibrary${schemaName}();
 
-						testBatchEngineDeleteImportTask_delete${schemaName}(200, ${schemaVarName}2.getExternalReferenceCode(), ${schemaVarName}1.${getIdMethodName}(), "assetLibraryExternalReferenceCode", testDepotEntryGroup.getExternalReferenceCode());
+						<#assign isExternalReferenceCodeExclusiveMethod = freeMarkerTool.isExternalReferenceCodeExclusiveMethod("delete", deleteAssetLibraryBatchJavaMethodSignature) />
+
+						testBatchEngineDeleteImportTask_delete${schemaName}(200, ${schemaVarName}2.getExternalReferenceCode(), ${schemaVarName}1.${getIdMethodName}(), "${isExternalReferenceCodeExclusiveMethod?then("assetLibraryExternalReferenceCode", "assetLibraryId")}", ${isExternalReferenceCodeExclusiveMethod?then("testDepotEntryGroup.getExternalReferenceCode()", "String.valueOf(testDepotEntryGroup.getGroupId())")});
 
 						<#if getJavaMethodSignature?has_content>
 							assertHttpResponseStatusCode(
@@ -2771,7 +2790,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 									/>));
 						</#if>
 
-						testBatchEngineDeleteImportTask_delete${schemaName}(200, ${schemaVarName}2.getExternalReferenceCode(), ${schemaVarName}1.${getIdMethodName}(), "assetLibraryExternalReferenceCode", testDepotEntryGroup.getExternalReferenceCode());
+						testBatchEngineDeleteImportTask_delete${schemaName}(200, ${schemaVarName}2.getExternalReferenceCode(), ${schemaVarName}1.${getIdMethodName}(), "${isExternalReferenceCodeExclusiveMethod?then("assetLibraryExternalReferenceCode", "assetLibraryId")}", ${isExternalReferenceCodeExclusiveMethod?then("testDepotEntryGroup.getExternalReferenceCode()", "String.valueOf(testDepotEntryGroup.getGroupId())")});
 
 						<#if getJavaMethodSignature?has_content>
 							assertHttpResponseStatusCode(
@@ -2789,7 +2808,9 @@ public abstract class Base${schemaName}ResourceTestCase {
 						${schemaVarName}1 = testBatchEngineDeleteImportTask_addSite${schemaName}();
 						<#if !useDeleteAssetLibrary>${schemaName}</#if> ${schemaVarName}2 = testBatchEngineDeleteImportTask_addSite${schemaName}();
 
-						testBatchEngineDeleteImportTask_delete${schemaName}(200, ${schemaVarName}2.getExternalReferenceCode(), ${schemaVarName}1.${getIdMethodName}(), "siteExternalReferenceCode", testGroup.getExternalReferenceCode());
+						<#assign isExternalReferenceCodeExclusiveMethod = freeMarkerTool.isExternalReferenceCodeExclusiveMethod("delete", deleteSiteBatchJavaMethodSignature) />
+
+						testBatchEngineDeleteImportTask_delete${schemaName}(200, ${schemaVarName}2.getExternalReferenceCode(), ${schemaVarName}1.${getIdMethodName}(), "${isExternalReferenceCodeExclusiveMethod?then("siteExternalReferenceCode", "siteId")}", ${isExternalReferenceCodeExclusiveMethod?then("testGroup.getExternalReferenceCode()", "String.valueOf(testGroup.getGroupId())")});
 
 						<#if getJavaMethodSignature?has_content>
 							assertHttpResponseStatusCode(
@@ -2810,7 +2831,9 @@ public abstract class Base${schemaName}ResourceTestCase {
 									/>));
 						</#if>
 
-						testBatchEngineDeleteImportTask_delete${schemaName}(200, ${schemaVarName}2.getExternalReferenceCode(), ${schemaVarName}1.${getIdMethodName}(), "siteExternalReferenceCode", testGroup.getExternalReferenceCode());
+						<#assign isExternalReferenceCodeExclusiveMethod = freeMarkerTool.isExternalReferenceCodeExclusiveMethod("delete", deleteSiteBatchJavaMethodSignature) />
+
+						testBatchEngineDeleteImportTask_delete${schemaName}(200, ${schemaVarName}2.getExternalReferenceCode(), ${schemaVarName}1.${getIdMethodName}(), "${isExternalReferenceCodeExclusiveMethod?then("siteExternalReferenceCode", "siteId")}", ${isExternalReferenceCodeExclusiveMethod?then("testGroup.getExternalReferenceCode()", "String.valueOf(testGroup.getGroupId())")});
 
 						<#if getJavaMethodSignature?has_content>
 							assertHttpResponseStatusCode(
@@ -2827,7 +2850,9 @@ public abstract class Base${schemaName}ResourceTestCase {
 					<#if useDeleteAssetLibrary && useDeleteSite>
 						${schemaVarName}1 = testBatchEngineDeleteImportTask_addSite${schemaName}();
 
-						testBatchEngineDeleteImportTask_delete${schemaName}(400, ${schemaVarName}1.getExternalReferenceCode(), ${schemaVarName}1.${getIdMethodName}(), "assetLibraryExternalReferenceCode", testDepotEntryGroup.getExternalReferenceCode(), "siteExternalReferenceCode", testGroup.getExternalReferenceCode());
+						<#assign isExternalReferenceCodeExclusiveMethod = freeMarkerTool.isExternalReferenceCodeExclusiveMethod("delete", deleteAssetLibraryBatchJavaMethodSignature) && freeMarkerTool.isExternalReferenceCodeExclusiveMethod("delete", deleteSiteBatchJavaMethodSignature) />
+
+						testBatchEngineDeleteImportTask_delete${schemaName}(400, ${schemaVarName}1.getExternalReferenceCode(), ${schemaVarName}1.${getIdMethodName}(), "${isExternalReferenceCodeExclusiveMethod?then("assetLibraryExternalReferenceCode", "assetLibraryId")}", ${isExternalReferenceCodeExclusiveMethod?then("testDepotEntryGroup.getExternalReferenceCode()", "String.valueOf(testDepotEntryGroup.getGroupId())")}, "${isExternalReferenceCodeExclusiveMethod?then("siteExternalReferenceCode", "siteId")}", ${isExternalReferenceCodeExclusiveMethod?then("testGroup.getExternalReferenceCode()", "String.valueOf(testGroup.getGroupId())")});
 
 						<#if getJavaMethodSignature?has_content>
 							assertHttpResponseStatusCode(
@@ -2885,7 +2910,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 
 				<#if useDeleteByExternalReferenceCode || useDeleteById>
 					protected ${schemaName} testBatchEngineDeleteImportTask_add${schemaName}() throws Exception {
-						<#if (properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id")) && freeMarkerTool.hasJavaMethodSignature(javaMethodSignatures, "delete" + schemaName)>
+						<#if (hasExternalReferenceCodeProperty || hasIdProperty) && freeMarkerTool.hasJavaMethodSignature(javaMethodSignatures, "delete" + schemaName)>
 							return testDelete${schemaName}_add${schemaName}();
 						<#else>
 							throw new UnsupportedOperationException("This method needs to be implemented");
@@ -2895,8 +2920,8 @@ public abstract class Base${schemaName}ResourceTestCase {
 
 				<#if useDeleteAssetLibrary>
 					protected ${schemaName} testBatchEngineDeleteImportTask_addAssetLibrary${schemaName}() throws Exception {
-						<#if (properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id")) && freeMarkerTool.hasJavaMethodSignature(javaMethodSignatures, "deleteAssetLibrary" + schemaName)>
-							return testDeleteAssetLibrary${schemaName}_add${schemaName}();
+						<#if hasExternalReferenceCodeProperty || hasIdProperty>
+							return test${deleteAssetLibraryBatchJavaMethodSignature.methodName?cap_first}_add${schemaName}();
 						<#else>
 							throw new UnsupportedOperationException("This method needs to be implemented");
 						</#if>
@@ -2905,8 +2930,8 @@ public abstract class Base${schemaName}ResourceTestCase {
 
 				<#if useDeleteSite>
 					protected ${schemaName} testBatchEngineDeleteImportTask_addSite${schemaName}() throws Exception {
-						<#if (properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id")) && freeMarkerTool.hasJavaMethodSignature(javaMethodSignatures, "deleteSite" + schemaName)>
-							return testDeleteSite${schemaName}_add${schemaName}();
+						<#if hasExternalReferenceCodeProperty || hasIdProperty>
+							return test${deleteSiteBatchJavaMethodSignature.methodName?cap_first}_add${schemaName}();
 						<#else>
 							throw new UnsupportedOperationException("This method needs to be implemented");
 						</#if>
@@ -3311,13 +3336,13 @@ public abstract class Base${schemaName}ResourceTestCase {
 			}
 		</#if>
 
-		<#if properties?keys?seq_contains("externalReferenceCode") && freeMarkerTool.isSchemaPropertyRequired(openAPIYAML, schemaName, "externalReferenceCode")>
+		<#if hasExternalReferenceCodeProperty && freeMarkerTool.isSchemaPropertyRequired(openAPIYAML, schemaName, "externalReferenceCode")>
 			if (${schemaVarName}.getExternalReferenceCode() == null) {
 				valid = false;
 			}
 		</#if>
 
-		<#if properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id")>
+		<#if hasIdProperty>
 			if (${schemaVarName}.${getIdMethodName}() == null) {
 				valid = false;
 			}
@@ -3517,11 +3542,11 @@ public abstract class Base${schemaName}ResourceTestCase {
 	protected List<GraphQLField> getGraphQLFields() throws Exception {
 		List<GraphQLField> graphQLFields = new ArrayList<>();
 
-		<#if properties?keys?seq_contains("externalReferenceCode")>
+		<#if hasExternalReferenceCodeProperty>
 			graphQLFields.add(new GraphQLField("externalReferenceCode"));
 		</#if>
 
-		<#if properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id")>
+		<#if hasIdProperty>
 			graphQLFields.add(new GraphQLField("${idParameterName}"));
 		</#if>
 
@@ -4280,6 +4305,25 @@ public abstract class Base${schemaName}ResourceTestCase {
 
 }
 
+<#function isPermissionsCompatibleMethod
+	configYAML
+	javaMethodSignature
+	javaMethodSignatures
+	schema
+	schemaName
+>
+	<#if freeMarkerTool.isGeneratePermissions(configYAML, javaMethodSignature, javaMethodSignatures, schema, schemaName) &&
+		 ((freeMarkerTool.getJavaMethodSignature(javaMethodSignatures, "get" + schemaName + "PermissionsPage")?? &&
+		   freeMarkerTool.getJavaMethodSignature(javaMethodSignatures, "put" + schemaName + "PermissionsPage")??) ||
+		  (freeMarkerTool.getParentPermissionsPageJavaMethodSignature("get", javaMethodSignatures, javaMethodSignature.parentSchemaName, schemaName)?? &&
+		   freeMarkerTool.getParentPermissionsPageJavaMethodSignature("put", javaMethodSignatures, javaMethodSignature.parentSchemaName, schemaName)??))>
+
+		<#return true />
+	</#if>
+
+	<#return false />
+</#function>
+
 <#macro getDefaultParameter
 	javaMethodParameter
 >
@@ -4306,7 +4350,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 			put("page", 1);
 			put("pageSize", 10);
 		<#elseif freeMarkerTool.isPathParameter(javaMethodParameter, javaMethodSignature.operation)>
-			<#if freeMarkerTool.isExternalReferenceCodeParameter(javaMethodParameter, schemaName) && freeMarkerTool.isParameterNameSchemaRelated(javaMethodParameter.parameterName, javaMethodSignature.path, schemaName) && properties?keys?seq_contains("externalReferenceCode")>
+			<#if freeMarkerTool.isExternalReferenceCodeParameter(javaMethodParameter, schemaName) && freeMarkerTool.isParameterNameSchemaRelated(javaMethodParameter.parameterName, javaMethodSignature.path, schemaName) && hasExternalReferenceCodeProperty>
 				put("${javaMethodParameter.parameterName}",
 					<#if stringUtil.equals(properties["externalReferenceCode"], "String")>
 						<@getQuotedString unquotedString = "${varName}.getExternalReferenceCode()" />
@@ -4314,7 +4358,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 						${varName}.getExternalReferenceCode()
 					</#if>
 				);
-			<#elseif freeMarkerTool.isIdParameter(javaMethodParameter, schemaName) && freeMarkerTool.isParameterNameSchemaRelated(javaMethodParameter.parameterName, javaMethodSignature.path, schemaName) && (properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id"))>
+			<#elseif freeMarkerTool.isIdParameter(javaMethodParameter, schemaName) && freeMarkerTool.isParameterNameSchemaRelated(javaMethodParameter.parameterName, javaMethodSignature.path, schemaName) && hasIdProperty>
 				put("${javaMethodParameter.parameterName}",
 					<#if stringUtil.equals(properties[idParameterName], "String")>
 						<@getQuotedString unquotedString = "${varName}.${getIdMethodName}()" />
@@ -4371,7 +4415,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 				<#assign parameterNames = parameterNames + ["null"] />
 			</#if>
 		<#elseif freeMarkerTool.isPathParameter(javaMethodParameter, javaMethodSignature.operation) || freeMarkerTool.isQueryParameter(javaMethodParameter, javaMethodSignature.operation)>
-			<#if freeMarkerTool.isExternalReferenceCodeParameter(javaMethodParameter, schemaName) && freeMarkerTool.isParameterNameSchemaRelated(javaMethodParameter.parameterName, javaMethodSignature.path, schemaName) && properties?keys?seq_contains("externalReferenceCode")>
+			<#if freeMarkerTool.isExternalReferenceCodeParameter(javaMethodParameter, schemaName) && freeMarkerTool.isParameterNameSchemaRelated(javaMethodParameter.parameterName, javaMethodSignature.path, schemaName) && hasExternalReferenceCodeProperty>
 				<#if defaultParameter>
 					<#assign parameterName>
 						<@getDefaultParameter javaMethodParameter = javaMethodParameter />
@@ -4380,7 +4424,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 				<#else>
 					<#assign parameterNames = parameterNames + ["${varName}.getExternalReferenceCode()"] />
 				</#if>
-			<#elseif freeMarkerTool.isIdParameter(javaMethodParameter, schemaName) && freeMarkerTool.isParameterNameSchemaRelated(javaMethodParameter.parameterName, javaMethodSignature.path, schemaName) && (properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id"))>
+			<#elseif freeMarkerTool.isIdParameter(javaMethodParameter, schemaName) && freeMarkerTool.isParameterNameSchemaRelated(javaMethodParameter.parameterName, javaMethodSignature.path, schemaName) && hasIdProperty>
 				<#if defaultParameter>
 					<#assign parameterName>
 						<@getDefaultParameter javaMethodParameter = javaMethodParameter />
@@ -4503,7 +4547,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 				<#assign parameterNames = parameterNames + ["null"] />
 			</#if>
 		<#elseif freeMarkerTool.isPathParameter(javaMethodParameter, javaMethodSignature.operation) || freeMarkerTool.isQueryParameter(javaMethodParameter, javaMethodSignature.operation)>
-			<#if freeMarkerTool.isExternalReferenceCodeParameter(javaMethodParameter, schemaName) && freeMarkerTool.isParameterNameSchemaRelated(javaMethodParameter.parameterName, javaMethodSignature.path, schemaName) && properties?keys?seq_contains("externalReferenceCode")>
+			<#if freeMarkerTool.isExternalReferenceCodeParameter(javaMethodParameter, schemaName) && freeMarkerTool.isParameterNameSchemaRelated(javaMethodParameter.parameterName, javaMethodSignature.path, schemaName) && hasExternalReferenceCodeProperty>
 				<#if defaultParameter>
 					<#assign parameterName>
 						<@getDefaultParameter javaMethodParameter = javaMethodParameter />
@@ -4512,7 +4556,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 				<#else>
 					<#assign parameterNames = parameterNames + ["${varName}.getExternalReferenceCode()"] />
 				</#if>
-			<#elseif freeMarkerTool.isIdParameter(javaMethodParameter, schemaName) && freeMarkerTool.isParameterNameSchemaRelated(javaMethodParameter.parameterName, javaMethodSignature.path, schemaName) && (properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id"))>
+			<#elseif freeMarkerTool.isIdParameter(javaMethodParameter, schemaName) && freeMarkerTool.isParameterNameSchemaRelated(javaMethodParameter.parameterName, javaMethodSignature.path, schemaName) && hasIdProperty>
 				<#if defaultParameter>
 					<#assign parameterName>
 						<@getDefaultParameter javaMethodParameter = javaMethodParameter />
@@ -4540,7 +4584,7 @@ public abstract class Base${schemaName}ResourceTestCase {
 <#macro getRESTTestAdderMethod
 	javaMethodSignature
 >
-	<#if properties?keys?seq_contains("externalReferenceCode") || properties?keys?seq_contains("id") || properties?keys?seq_contains(schemaVarName + "Id")>
+	<#if hasExternalReferenceCodeProperty || hasIdProperty>
 		protected ${schemaName} test${javaMethodSignature.methodName?cap_first}_add${schemaName}() throws Exception {
 			<#assign postSchemaJavaMethodSignature = "" />
 

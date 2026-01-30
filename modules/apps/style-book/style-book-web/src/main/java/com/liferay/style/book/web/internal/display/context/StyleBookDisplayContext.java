@@ -9,7 +9,6 @@ import com.liferay.frontend.token.definition.FrontendTokenDefinition;
 import com.liferay.frontend.token.definition.FrontendTokenDefinitionRegistry;
 import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
@@ -120,19 +119,9 @@ public class StyleBookDisplayContext {
 			if (start == 0) {
 				end -= 1;
 
-				if (FeatureFlagManagerUtil.isEnabled(
-						themeDisplay.getCompanyId(), "LPD-30204")) {
-
-					styleBookEntries.addAll(
-						_getStyleFromThemeStyleBookEntries(
-							themeDisplay.getScopeGroupId()));
-				}
-				else {
-					styleBookEntries.add(
-						StyleBookUtil.getStyleFromThemeStyleBookEntry(
-							themeDisplay.getLayout(),
-							themeDisplay.getLocale()));
-				}
+				styleBookEntries.addAll(
+					_getStyleFromThemeStyleBookEntries(
+						themeDisplay.getScopeGroupId()));
 			}
 			else {
 				start -= 1;
@@ -144,7 +133,7 @@ public class StyleBookDisplayContext {
 					styleBookEntriesSearchContainer.getOrderByComparator()));
 
 			styleBookEntriesSearchContainer.setResultsAndTotal(
-				() -> styleBookEntries, styleBookEntriesCount + 1);
+				() -> styleBookEntries, styleBookEntriesCount);
 		}
 
 		if (StyleBookPermission.contains(

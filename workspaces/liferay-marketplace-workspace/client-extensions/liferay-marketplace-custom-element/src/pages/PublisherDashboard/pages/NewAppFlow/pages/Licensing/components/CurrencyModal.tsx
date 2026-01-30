@@ -122,6 +122,15 @@ const CurrencyModal = ({observer, onClose}: ReturnType<typeof useModal>) => {
 					as={CurrencyTrigger(selectedNewCurrency)}
 					id="currency-picker"
 					items={currenciesCode}
+					messages={{
+						itemDescribedby: i18n.translate(
+							'you-are-currently-on-a-text-element,-inside-of-a-list-box'
+						),
+						itemSelected: i18n.translate('x-selected'),
+						scrollToBottomAriaLabel:
+							i18n.translate('scroll-to-bottom'),
+						scrollToTopAriaLabel: i18n.translate('scroll-to-top'),
+					}}
 					onSelectionChange={(key: any) =>
 						setSelectedNewCurrency(key)
 					}

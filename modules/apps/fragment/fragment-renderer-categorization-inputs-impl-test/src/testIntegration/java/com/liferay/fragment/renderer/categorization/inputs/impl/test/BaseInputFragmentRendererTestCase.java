@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -144,9 +145,9 @@ public abstract class BaseInputFragmentRendererTestCase {
 			JSONFactoryUtil.toString(
 				fragmentRenderer.getConfigurationJSONObject(
 					new DefaultFragmentRendererContext(null))),
-			0, StringPool.BLANK, StringPool.BLANK, draftLayout, getRenderKey(),
-			fragmentRenderer.getType(), jsonObject.getString("addedItemId"), 0,
-			segmentsExperienceId);
+			null, null, StringPool.BLANK, StringPool.BLANK, draftLayout,
+			getRenderKey(), fragmentRenderer.getType(),
+			jsonObject.getString("addedItemId"), 0, segmentsExperienceId);
 	}
 
 	protected abstract ObjectEntry addObjectEntry() throws Exception;
@@ -219,7 +220,6 @@ public abstract class BaseInputFragmentRendererTestCase {
 			objectDefinition.isEnableFormContainer(),
 			objectDefinition.isEnableFriendlyURLCustomization(),
 			objectDefinition.isEnableIndexSearch(),
-			objectDefinition.isEnableLocalization(),
 			objectDefinition.isEnableObjectEntryDraft(),
 			objectDefinition.isEnableObjectEntryHistory(),
 			objectDefinition.isEnableObjectEntrySchedule(),
@@ -231,7 +231,8 @@ public abstract class BaseInputFragmentRendererTestCase {
 			objectDefinition.getPanelCategoryKey(),
 			objectDefinition.isPortlet(), objectDefinition.getPluralLabelMap(),
 			objectDefinition.getScope(), objectDefinition.getStatus(),
-			Collections.emptyList(), Collections.emptyList());
+			Collections.emptyList(), Collections.emptyList(),
+			Collections.emptyList(), new ServiceContext());
 
 		FragmentRenderer fragmentRenderer = getFragmentRenderer();
 

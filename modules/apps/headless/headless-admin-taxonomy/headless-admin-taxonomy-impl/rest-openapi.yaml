@@ -6,6 +6,7 @@ components:
                     description:
                         The asset library's site ID.
                     format: int64
+                    readOnly: true
                     type: integer
                 name:
                     description:
@@ -19,6 +20,10 @@ components:
                         The localized asset library's name.
                     readOnly: true
                     type: object
+                scopeKey:
+                    description:
+                        The asset library's scope key.
+                    type: string
             type: object
         AssetType:
             description:
@@ -457,7 +462,7 @@ components:
                 visibilityType:
                     description:
                         The vocabulary's visibility type.
-                    enum: [PUBLIC, INTERNAL]
+                    enum: [EMPTY, INTERNAL, PUBLIC]
                     type: string
             required:
                 -   name
@@ -465,7 +470,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.headless.admin.taxonomy.client', and version '4.0.43'."
+        'com.liferay.headless.admin.taxonomy.client', and version '4.0.45'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html

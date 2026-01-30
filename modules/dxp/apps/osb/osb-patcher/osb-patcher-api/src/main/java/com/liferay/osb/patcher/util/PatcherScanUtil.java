@@ -363,18 +363,19 @@ public class PatcherScanUtil {
 		if (patcherProductVersionName.equals("DXP 7.4") ||
 			patcherProductVersionName.equals("Quarterly Releases")) {
 
-			final int fixedIssuesLength = patcherProjectVersion.getFixedIssues(
-			).length();
+			String fixedIssues = patcherProjectVersion.getFixedIssues();
 
 			PatcherProductVersion quarterlyProduct =
 				PatcherProductVersionUtil.fetchPatcherProductVersion(
 					"Quarterly Releases");
-			PatcherProductVersion updateProduct =
-				PatcherProductVersionUtil.fetchPatcherProductVersion("DXP 7.4");
 
 			List<PatcherProjectVersion> quarterlyPatcherProjectVersions =
 				PatcherProjectVersionLocalServiceUtil.getPatcherProjectVersions(
 					quarterlyProduct.getPatcherProductVersionId());
+
+			PatcherProductVersion updateProduct =
+				PatcherProductVersionUtil.fetchPatcherProductVersion("DXP 7.4");
+
 			List<PatcherProjectVersion> updatePatcherProjectVersions =
 				PatcherProjectVersionLocalServiceUtil.getPatcherProjectVersions(
 					updateProduct.getPatcherProductVersionId());
@@ -390,12 +391,12 @@ public class PatcherScanUtil {
 						String fixedIssues1 = version1.getFixedIssues();
 
 						int length1 = Math.abs(
-							fixedIssues1.length() - fixedIssuesLength);
+							fixedIssues1.length() - fixedIssues.length());
 
 						String fixedIssues2 = version2.getFixedIssues();
 
 						int length2 = Math.abs(
-							fixedIssues2.length() - fixedIssuesLength);
+							fixedIssues2.length() - fixedIssues.length());
 
 						if (length1 == length2) {
 							return Long.compare(

@@ -7,33 +7,39 @@ import ClayBreadcrumb from '@clayui/breadcrumb';
 import {ClayButtonWithIcon} from '@clayui/button';
 import ClayDropDown, {ClayDropDownWithItems} from '@clayui/drop-down';
 import ClaySticker from '@clayui/sticker';
-import {openConfirmModal, openModal} from 'frontend-js-components-web';
+import {openToast} from 'frontend-js-components-web';
 import {navigate} from 'frontend-js-web';
 import React, {ComponentProps} from 'react';
 
+import DefaultPermissionModalContent from '../../main_view/default_permission/DefaultPermissionModalContent';
+import {DefaultPermissionModalContentProps} from '../../main_view/default_permission/DefaultPermissionTypes';
 import ApiHelper from '../services/ApiHelper';
-import {
-	displayErrorToast,
-	displayRequestSuccessToast,
-} from '../utils/toastUtil';
+import {LogoColor} from '../types/Space';
+import {openCMSModal} from '../utils/openCMSModal';
+import {displayErrorToast} from '../utils/toastUtil';
 import SpaceSticker from './SpaceSticker';
 
-interface ActionDropdownItemProps {
+export interface ActionDropdownItemProps {
 	confirmationMessage?: string;
+	confirmationTitle?: string;
+	defaultPermissionAdditionalProps?: DefaultPermissionModalContentProps;
 	href?: string;
 	redirect?: string;
 	size?: 'full-screen' | 'lg' | 'md' | 'sm';
-	target?: 'asyncDelete' | 'link' | 'modal';
+	successMessage?: string;
+	target?:
+		| 'asyncDelete'
+		| 'asyncPost'
+		| 'defaultPermissionsModal'
+		| 'link'
+		| 'modal';
 }
 
-interface Props
-	extends Pick<
-		React.ComponentProps<typeof ClaySticker>,
-		'displayType' | 'size'
-	> {
+interface Props extends Pick<React.ComponentProps<typeof ClaySticker>, 'size'> {
 	actionItems?: ComponentProps<typeof ClayDropDownWithItems>['items'] &
 		ActionDropdownItemProps;
 	breadcrumbItems: BreadcrumbItem[];
+	displayType?: LogoColor;
 	hideSpace?: boolean;
 }
 
@@ -46,26 +52,29 @@ export interface BreadcrumbItem {
 
 function ActionDropdownItem({
 	confirmationMessage,
+	confirmationTitle,
+	defaultPermissionAdditionalProps,
 	href = '',
 	label,
 	redirect,
 	size = 'full-screen',
+	successMessage,
 	target = 'link',
 	...props
 }: {label: string} & ActionDropdownItemProps) {
 	const handleTargetAction = async () => {
-		if (target === 'modal') {
-			openModal({
-				size,
-				title: label,
-				url: href,
-			});
-		}
-		else if (target === 'asyncDelete') {
+		if (target === 'asyncDelete') {
 			const {error} = await ApiHelper.delete(href);
 
 			if (!error) {
-				displayRequestSuccessToast();
+				openToast({
+					message:
+						successMessage ||
+						Liferay.Language.get(
+							'your-request-completed-successfully'
+						),
+					type: 'success',
+				});
 
 				if (redirect) {
 					navigate(redirect);
@@ -75,6 +84,52 @@ function ActionDropdownItem({
 				displayErrorToast(error);
 			}
 		}
+		else if (target === 'asyncPost') {
+			const {error} = await ApiHelper.post(href);
+
+			if (!error) {
+				openToast({
+					message:
+						successMessage ||
+						Liferay.Language.get(
+							'your-request-completed-successfully'
+						),
+					type: 'success',
+				});
+
+				if (redirect) {
+					navigate(redirect);
+				}
+			}
+			else {
+				displayErrorToast(error);
+			}
+		}
+		else if (
+			target === 'defaultPermissionsModal' &&
+			defaultPermissionAdditionalProps
+		) {
+			openCMSModal({
+				contentComponent: ({closeModal}: {closeModal: () => void}) =>
+					DefaultPermissionModalContent({
+						...defaultPermissionAdditionalProps,
+						closeModal,
+					}),
+				size: 'full-screen',
+			});
+		}
+		else if (target === 'modal') {
+			openCMSModal({
+				onClose: () => {
+					if (redirect) {
+						navigate(redirect);
+					}
+				},
+				size,
+				title: label,
+				url: href,
+			});
+		}
 		else {
 			navigate(href);
 		}
@@ -82,13 +137,31 @@ function ActionDropdownItem({
 
 	const handleClick = () => {
 		if (confirmationMessage) {
-			openConfirmModal({
-				message: confirmationMessage,
-				onConfirm: (isConfirmed) => {
-					if (isConfirmed) {
-						handleTargetAction();
-					}
-				},
+			openCMSModal({
+				bodyHTML: confirmationMessage,
+				buttons: [
+					{
+						autoFocus: true,
+						displayType: 'secondary',
+						label: Liferay.Language.get('cancel'),
+						type: 'cancel',
+					},
+					{
+						displayType: 'danger',
+						label: Liferay.Language.get('delete'),
+						onClick: ({
+							processClose,
+						}: {
+							processClose: () => void;
+						}) => {
+							processClose();
+							handleTargetAction();
+						},
+					},
+				],
+				role: 'alertdialog',
+				status: 'danger',
+				title: confirmationTitle || Liferay.Language.get('delete'),
 			});
 		}
 		else {
@@ -113,10 +186,9 @@ export default function Breadcrumb({
 	const isTitle = breadcrumbItems.length === 1;
 
 	return (
-		<div
+		<section
 			aria-label={Liferay.Language.get('breadcrumb')}
-			className="autofit-row autofit-row-center px-4"
-			style={{height: '72px'}}
+			className="autofit-row autofit-row-center cms-breadcrumb px-4"
 		>
 			{!hideSpace && (
 				<div className="autofit-col mr-3">
@@ -129,7 +201,7 @@ export default function Breadcrumb({
 				</div>
 			)}
 
-			<div className="autofit-col cms-breadcrumb">
+			<div className="autofit-col">
 				{isTitle ? (
 					<h2 className="font-weight-semi-bold mb-0 text-7 text-dark">
 						{breadcrumbItems[0]?.label}
@@ -153,6 +225,7 @@ export default function Breadcrumb({
 								aria-label={Liferay.Language.get(
 									'more-actions'
 								)}
+								className="component-action"
 								displayType="unstyled"
 								size="sm"
 								symbol="ellipsis-v"
@@ -167,6 +240,6 @@ export default function Breadcrumb({
 					</ClayDropDown>
 				</div>
 			)}
-		</div>
+		</section>
 	);
 }

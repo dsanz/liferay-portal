@@ -5,7 +5,7 @@
 
 import {ClayCardWithInfo} from '@clayui/card';
 import classNames from 'classnames';
-import {getObjectValueFromPath} from 'frontend-js-web';
+import {getObjectValueFromPath, sub} from 'frontend-js-web';
 import React, {forwardRef, useContext, useRef} from 'react';
 
 import FrontendDataSetContext, {
@@ -21,6 +21,7 @@ import getRandomId from '../../utils/getRandomId';
 import isLink from '../../utils/isLink';
 import {
 	DisplayType,
+	EItemActionsType,
 	ICardLabelSchema,
 	ICardSchema,
 	IItemsActions,
@@ -61,6 +62,9 @@ const Card = forwardRef<HTMLDivElement, any>(
 			toggleItemInlineEdit,
 		}: IFrontendDataSetContext = useContext(FrontendDataSetContext);
 
+		const {description, image, labels, link, sticker, symbol, title} =
+			schema;
+
 		const [viewsContext] = useContext(ViewsContext);
 
 		const activeView: IView = viewsContext.activeView;
@@ -89,11 +93,11 @@ const Card = forwardRef<HTMLDivElement, any>(
 			displayType: DisplayType;
 			value: string;
 		}> => {
-			if (!schema.labels) {
+			if (!labels) {
 				return [];
 			}
 
-			return schema.labels.flatMap((label: ICardLabelSchema) => {
+			return labels.flatMap((label: ICardLabelSchema) => {
 				const {displayTypeKey, displayTypeValues} = label;
 				let {displayType} = label;
 
@@ -125,7 +129,10 @@ const Card = forwardRef<HTMLDivElement, any>(
 			const processedActions: any[] = [];
 
 			actions.forEach((action, index) => {
-				if (action.type === 'group') {
+				if (
+					action.type === EItemActionsType.GROUP ||
+					action.type === EItemActionsType.CONTEXTUAL
+				) {
 					const {items: nestedItems, ...otherProps} = action;
 
 					if (nestedItems?.length) {
@@ -136,6 +143,7 @@ const Card = forwardRef<HTMLDivElement, any>(
 						processedActions.push({
 							...otherProps,
 							items: getDropdownActions(nestedItems),
+							symbolLeft: action.icon,
 						});
 					}
 				}
@@ -172,15 +180,21 @@ const Card = forwardRef<HTMLDivElement, any>(
 			return processedActions;
 		};
 
+		const accessibleName = title || description || '';
+
 		const props = {
 			actions: formattedActions && getDropdownActions(formattedActions),
-			description: getLocalizedValue(item, schema.description)?.value,
-			href: (schema.link && item[schema.link]) || null,
-			imgProps:
-				schema.image &&
-				imagePropsTransformer(
-					getLocalizedValue(item, schema.image)?.value
+			checkboxProps: {
+				'aria-label': sub(
+					Liferay.Language.get('select-x'),
+					getLocalizedValue(item, accessibleName)?.value
 				),
+			},
+			description: getLocalizedValue(item, description)?.value,
+			href: (link && item[link]) || null,
+			imgProps:
+				image &&
+				imagePropsTransformer(getLocalizedValue(item, image)?.value),
 			labels: getLabels(item),
 			onClick: (event: React.MouseEvent) => {
 				const target = event.nativeEvent.target as Element;
@@ -196,7 +210,7 @@ const Card = forwardRef<HTMLDivElement, any>(
 				// triggered twice when the user clicks on anything other
 				// than the checkbox/radio in a selectable card
 
-				if (target.tagName !== 'INPUT') {
+				if (target.tagName !== 'INPUT' && target.tagName !== 'A') {
 					event.preventDefault();
 
 					onItemSelectionChange?.(item, true);
@@ -207,6 +221,12 @@ const Card = forwardRef<HTMLDivElement, any>(
 						onItemSelectionChange?.(item);
 					}
 				: undefined,
+			radioProps: {
+				'aria-label': sub(
+					Liferay.Language.get('select-x'),
+					getLocalizedValue(item, accessibleName)?.value
+				),
+			},
 			selectableType: selectionType === 'single' ? 'radio' : 'checkbox',
 			selected:
 				selectable &&
@@ -219,9 +239,9 @@ const Card = forwardRef<HTMLDivElement, any>(
 								path: selectedItemsKey,
 							})
 				),
-			stickerProps: (schema.sticker && item[schema.sticker]) || null,
-			symbol: schema.symbol && item[schema.symbol],
-			title: getLocalizedValue(item, schema.title)?.value || '',
+			stickerProps: (sticker && item[sticker]) || null,
+			symbol: symbol && item[symbol],
+			title: getLocalizedValue(item, title)?.value || '',
 		};
 
 		return (

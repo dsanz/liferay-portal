@@ -62,6 +62,7 @@ test.describe('Can Publish Marketplace Apps', () => {
 		test(`can publish "${product.name}"`, async ({
 			apiHelpers,
 			marketplace,
+			marketplaceHelper,
 			page,
 			publisherAppPage,
 			publisherDashboardPage,
@@ -74,7 +75,7 @@ test.describe('Can Publish Marketplace Apps', () => {
 
 			await publisherDashboardPage.goto(marketplace.friendlyUrlPath);
 
-			await publisherDashboardPage.selectAccount(accountName);
+			await marketplaceHelper.selectAccount(accountName);
 
 			await publisherDashboardPage.gotoNewAppPage();
 
@@ -87,6 +88,11 @@ test.describe('Can Publish Marketplace Apps', () => {
 			await publisherAppPage.continue();
 			await publisherAppPage.fillProfile();
 			await publisherAppPage.fillBuild();
+			await publisherAppPage.fillStoreFront();
+			await publisherAppPage.fillVersion();
+			await publisherAppPage.fillPricing();
+			await publisherAppPage.fillSupport();
+			await publisherAppPage.reviewAndSubmit();
 
 			const createdProduct =
 				await apiHelpers.headlessCommerceAdminCatalog.getProducts(
@@ -99,21 +105,19 @@ test.describe('Can Publish Marketplace Apps', () => {
 
 			_productId = productId;
 
-			const productVirtualSettings =
-				await apiHelpers.headlessCommerceAdminCatalog.getProductVirtualSettings(
-					productId
-				);
+			await page.waitForResponse(
+				(response) =>
+					response.request().method() === 'POST' &&
+					response.url().includes('/o/c/publisherassetattachments')
+			);
 
-			await expect(
-				productVirtualSettings.productVirtualSettingsFileEntries[0]
-					.version === product.dxpVersions[0]
-			).toBeTruthy();
+			const response = await apiHelpers.get(
+				`/o/c/publisherassetses?sort=dateCreated:desc&pageSize=1`
+			);
 
-			await publisherAppPage.fillStoreFront();
-			await publisherAppPage.fillVersion();
-			await publisherAppPage.fillPricing();
-			await publisherAppPage.fillSupport();
-			await publisherAppPage.reviewAndSubmit();
+			const hasVersion =
+				response.items[0]?.version === `${product.dxpVersions[0]}`;
+			expect(hasVersion).toBeTruthy();
 
 			await expect(page.getByText(product.name)).toBeTruthy();
 		});

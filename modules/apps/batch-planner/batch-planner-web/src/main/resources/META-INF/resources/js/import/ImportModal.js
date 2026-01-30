@@ -64,7 +64,9 @@ const ImportModal = ({closeModal, formDataQuerySelector, formImportURL}) => {
 
 	return (
 		<ClayModal observer={observer} size="md" status={modalStatus}>
-			<ClayModal.Header>
+			<ClayModal.Header
+				closeButtonAriaLabel={Liferay.Language.get('close')}
+			>
 				{Liferay.Language.get('import-file')}
 			</ClayModal.Header>
 
@@ -76,7 +78,18 @@ const ImportModal = ({closeModal, formDataQuerySelector, formImportURL}) => {
 						<ClayLabel displayType={labelType}>{label}</ClayLabel>
 					</ClayForm.FeedbackGroup>
 
-					<ClayProgressBar value={percentage} warn={!!errorMessage} />
+					<ClayProgressBar
+						messages={{
+							ariaLabelAttention: Liferay.Language.get(
+								'attention-value-is-at-x'
+							),
+							ariaLabelComplete: Liferay.Language.get('complete'),
+							ariaLabelInProgress:
+								Liferay.Language.get('progress-x'),
+						}}
+						value={percentage}
+						warn={!!errorMessage}
+					/>
 				</ClayForm.Group>
 			</ClayModal.Body>
 

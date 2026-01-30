@@ -138,14 +138,15 @@ public class SpaceStickerDisplayContextTest extends BaseDisplayContextTestCase {
 		_groupLocalService.updateGroup(
 			depotGroup.getGroupId(), unicodeProperties.toString());
 
-		return _assetLibraryResource.getAssetLibrary(depotEntry.getGroupId());
+		return _assetLibraryResource.getAssetLibrary(
+			depotGroup.getExternalReferenceCode());
 	}
 
 	private FragmentEntryLink _addFragmentEntryLink(long groupId)
 		throws Exception {
 
 		return _fragmentEntryLinkLocalService.addFragmentEntryLink(
-			null, TestPropsValues.getUserId(), groupId, 0, 0,
+			null, TestPropsValues.getUserId(), groupId, null, null, null,
 			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
 				_layout.getPlid()),
 			_layout.getPlid(), StringPool.BLANK, StringPool.BLANK,
@@ -161,27 +162,27 @@ public class SpaceStickerDisplayContextTest extends BaseDisplayContextTestCase {
 		throws Exception {
 
 		return _objectDefinitionLocalService.addCustomObjectDefinition(
-			TestPropsValues.getUserId(), 0, null, false, true, false, true,
-			false, false, false, false, false, null,
+			null, TestPropsValues.getUserId(), 0, null, false, true, false,
+			true, false, false, false, false, null,
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			ObjectDefinitionTestUtil.getRandomName(), null, null,
 			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 			true, ObjectDefinitionConstants.SCOPE_DEPOT,
 			ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
 			Collections.emptyList(), Arrays.asList(objectField),
-			Collections.emptyList());
+			Collections.emptyList(), new ServiceContext());
 	}
 
 	private HttpServletRequest _getMockHttpServletRequest(long id)
 		throws Exception {
 
-		HttpServletRequest mockHttpServletRequest = getMockHttpServletRequest();
+		HttpServletRequest httpServletRequest = getMockHttpServletRequest();
 
-		mockHttpServletRequest.setAttribute(
+		httpServletRequest.setAttribute(
 			InfoDisplayWebKeys.INFO_ITEM,
 			_depotEntryLocalService.getDepotEntry(id));
 
-		return mockHttpServletRequest;
+		return httpServletRequest;
 	}
 
 	private Object _getSpaceStickerDisplayContext(

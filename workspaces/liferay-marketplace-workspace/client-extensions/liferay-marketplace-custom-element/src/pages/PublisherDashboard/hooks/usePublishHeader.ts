@@ -5,6 +5,8 @@
 
 import {useLayoutEffect} from 'react';
 
+import {breadcrumbStore} from '../../../components/Breadcrumb/BreadcrumbStore';
+
 const usePublishHeader = () => {
 	useLayoutEffect(() => {
 		const marketplaceHeader = document.querySelector('.marketplace-header');
@@ -13,7 +15,6 @@ const usePublishHeader = () => {
 		);
 
 		if (marketplaceHeader) {
-			marketplaceHeader.classList.remove('d-flex');
 			marketplaceHeader.classList.add('d-none');
 		}
 
@@ -23,9 +24,12 @@ const usePublishHeader = () => {
 			);
 		}
 
+		breadcrumbStore.send({type: 'setVisibility', visible: false});
+
 		return () => {
+			breadcrumbStore.send({type: 'setVisibility', visible: true});
+
 			marketplaceHeader?.classList?.remove('d-none');
-			marketplaceHeader?.classList?.add('d-flex');
 			marketplacePublisherContainer?.classList?.remove(
 				'marketplace-publisher-header'
 			);

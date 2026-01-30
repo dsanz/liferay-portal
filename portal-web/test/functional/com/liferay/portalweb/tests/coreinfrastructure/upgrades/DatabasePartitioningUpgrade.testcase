@@ -17,7 +17,7 @@ definition {
 	@priority = 5
 	test CanAutoUpgradeLargePartitionedDatabase7413 {
 		property custom.properties = "upgrade.report.enabled=true${line.separator}virtual.hosts.valid.hosts=localhost,127.0.0.1,www.able.com";
-		property custom.startup.timeout = "540";
+		property custom.startup.timeout = "2700";
 		property data.archive.type = "data-archive-portal-partition-large";
 		property database.auto.upgrade.enabled = "true";
 		property minimum.slave.ram = "24";
@@ -40,6 +40,7 @@ definition {
 	@priority = 5
 	test CanAutoUpgradeLargePartitionedDatabase7413Benchmark {
 		property custom.properties = "upgrade.report.enabled=true";
+		property custom.startup.timeout = "2700";
 		property data.archive.type = "data-archive-portal-partition-large";
 		property database.auto.upgrade.enabled = "true";
 		property minimum.slave.ram = "24";
@@ -67,7 +68,7 @@ definition {
 
 	@priority = 5
 	test CanAutoUpgradePartitionedDatabase7413U33WithExhaustedPool {
-		property custom.properties = "jdbc.default.maximumPoolSize=10${line.separator}jdbc.default.minimumIdle=5${line.separator}virtual.hosts.valid.hosts=localhost,127.0.0.1,www.able.com,www.baker.com";
+		property custom.properties = "jdbc.default.maximumPoolSize=20${line.separator}jdbc.default.minimumIdle=5${line.separator}virtual.hosts.valid.hosts=localhost,127.0.0.1,www.able.com,www.baker.com";
 		property data.archive.type = "data-archive-portal-partition";
 		property database.auto.upgrade.enabled = "true";
 		property portal.version = "7.4.13.u33";
@@ -89,7 +90,7 @@ definition {
 	@priority = 5
 	test CanUpgradeLargePartitionedDatabase7413 {
 		property custom.properties = "virtual.hosts.valid.hosts=localhost,127.0.0.1,www.able.com";
-		property custom.startup.timeout = "600";
+		property custom.startup.timeout = "2700";
 		property data.archive.type = "data-archive-portal-partition-large";
 		property minimum.slave.ram = "24";
 		property portal.release = "false";
@@ -110,6 +111,7 @@ definition {
 	@priority = 5
 	test CanUpgradeLargePartitionedDatabase7413Benchmark {
 		property custom.properties = "virtual.hosts.valid.hosts=localhost,127.0.0.1,www.able.com";
+		property custom.startup.timeout = "2700";
 		property data.archive.type = "data-archive-portal-partition-large";
 		property minimum.slave.ram = "24";
 		property portal.release = "false";

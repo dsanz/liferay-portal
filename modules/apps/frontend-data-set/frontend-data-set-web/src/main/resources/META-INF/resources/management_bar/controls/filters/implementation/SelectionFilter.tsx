@@ -11,7 +11,6 @@ import ClayLabel from '@clayui/label';
 import ClayLoadingIndicator from '@clayui/loading-indicator';
 import {useIsMounted} from '@liferay/frontend-js-react-web';
 import {debounce, fetch} from 'frontend-js-web';
-import PropTypes from 'prop-types';
 import React, {
 	ChangeEvent,
 	useCallback,
@@ -25,7 +24,12 @@ import getValueFromItem from '../../../../utils/getValueFromItem';
 // @ts-ignore
 
 import {isValuesArrayChanged} from '../../../../utils/index';
-import {FilterImplementation, FilterImplementationArgs} from '../Filter';
+import {
+	FilterImplementation,
+	FilterImplementationArgs,
+	IOdataStringArgs,
+	ISelectedItemsLabelArgs,
+} from '../Filter';
 import {EEntityFieldType} from '../utils/types';
 
 export interface SelectionFilterImplementationArgs
@@ -93,8 +97,8 @@ function fetchData(
 
 function getSelectedItemsLabel({
 	selectedData,
-}: SelectionFilterImplementationArgs): string {
-	const {exclude, selectedItems} = selectedData;
+}: ISelectedItemsLabelArgs): string {
+	const {exclude, selectedItems} = selectedData as unknown as SelectedData;
 
 	return (
 		(exclude ? `(${Liferay.Language.get('exclude')}) ` : '') +
@@ -105,17 +109,19 @@ function getSelectedItemsLabel({
 function getOdataString({
 	entityFieldType,
 	id,
+	multiple,
 	selectedData,
-}: SelectionFilterImplementationArgs): string {
-	const {exclude, selectedItems} = selectedData;
+}: IOdataStringArgs): string {
+	const {exclude, selectedItems} = selectedData as unknown as SelectedData;
 
 	if (!selectedItems?.length) {
 		return '';
 	}
 
 	const quotedSelectedItems = selectedItems.map((item) =>
-		typeof item.value === 'string' ||
-		entityFieldType === EEntityFieldType.STRING
+		entityFieldType === EEntityFieldType.STRING ||
+		(typeof item.value === 'string' &&
+			entityFieldType !== EEntityFieldType.INTEGER)
 			? `'${item.value}'`
 			: item.value
 	);
@@ -125,7 +131,7 @@ function getOdataString({
 			.map((value) => `(x ${exclude ? 'ne' : 'eq'} ${value})`)
 			.join(exclude ? ' and ' : ' or ')})`;
 	}
-	else if (selectedItems.length === 1) {
+	else if (selectedItems.length === 1 && !multiple) {
 		return `${id} ${exclude ? 'ne' : 'eq'} ${quotedSelectedItems[0]}`;
 	}
 	else {
@@ -187,6 +193,7 @@ function SelectionFilter({
 	const loaderVisible = !localItems.length && items?.length < total;
 
 	useEffect(() => {
+		setExclude(!!selectedData?.exclude);
 		setSelectedItems(selectedData?.selectedItems || []);
 	}, [selectedData]);
 
@@ -213,9 +220,11 @@ function SelectionFilter({
 					const selectionItems = response.items.map((item: any) => {
 						return {
 							label: itemLabel
-								? getValueFromItem(item, itemLabel)
+								? getValueFromItem(item, itemLabel.split('.'))
 								: item.label,
-							value: itemKey ? item[itemKey] : item.value,
+							value: itemKey
+								? getValueFromItem(item, itemKey.split('.'))
+								: item.value,
 						};
 					});
 
@@ -517,38 +526,6 @@ function SelectionFilter({
 		</>
 	);
 }
-
-SelectionFilter.propTypes = {
-	apiURL: PropTypes.string,
-	autocompleteEnabled: PropTypes.bool,
-	id: PropTypes.string.isRequired,
-	inputPlaceholder: PropTypes.string,
-	itemKey: PropTypes.string,
-	itemLabel: PropTypes.oneOfType([PropTypes.string, PropTypes.array]),
-	items: PropTypes.arrayOf(
-		PropTypes.shape({
-			label: PropTypes.string,
-			value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-		})
-	),
-	multiple: PropTypes.bool,
-	selectedData: PropTypes.shape({
-		exclude: PropTypes.bool,
-		selectedItems: PropTypes.arrayOf(
-			PropTypes.shape({
-				label: PropTypes.oneOfType([
-					PropTypes.string,
-					PropTypes.number,
-				]),
-				value: PropTypes.oneOfType([
-					PropTypes.string,
-					PropTypes.number,
-				]),
-			})
-		),
-	}),
-	setFilter: PropTypes.func.isRequired,
-};
 
 const filterImplementation: FilterImplementation<SelectionFilterImplementationArgs> =
 	{

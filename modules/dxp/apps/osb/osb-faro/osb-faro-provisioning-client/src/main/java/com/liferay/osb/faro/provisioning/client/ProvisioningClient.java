@@ -17,6 +17,9 @@ public interface ProvisioningClient {
 	public void addCorpProjectUsers(String corpProjectUuid, String[] userUuids)
 		throws Exception;
 
+	public void addProductConsumption(String corpProjectUuid, long groupId)
+		throws Exception;
+
 	public void addUserCorpProjectRoles(
 			String corpProjectUuid, String[] userUuids, String roleName)
 		throws Exception;
@@ -31,6 +34,8 @@ public interface ProvisioningClient {
 
 	public OSBAccountEntry getOSBAccountEntry(String corpProjectUuid)
 		throws Exception;
+
+	public boolean isProductConsumed(String corpProjectUuid) throws Exception;
 
 	public void unsetCorpProjectUsers(
 			String corpProjectUuid, String[] userUuids)

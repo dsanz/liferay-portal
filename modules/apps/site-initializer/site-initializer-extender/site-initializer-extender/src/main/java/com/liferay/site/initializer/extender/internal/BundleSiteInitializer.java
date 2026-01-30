@@ -28,6 +28,7 @@ import com.liferay.asset.list.model.AssetListEntry;
 import com.liferay.asset.list.service.AssetListEntryLocalService;
 import com.liferay.asset.list.util.comparator.ClassNameModelResourceComparator;
 import com.liferay.asset.util.AssetRendererFactoryWrapper;
+import com.liferay.batch.engine.unit.BatchEngineUnitThreadLocal;
 import com.liferay.blogs.model.BlogsEntry;
 import com.liferay.client.extension.constants.ClientExtensionEntryConstants;
 import com.liferay.client.extension.service.ClientExtensionEntryLocalService;
@@ -260,6 +261,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
 import org.osgi.framework.wiring.BundleWiring;
 
 /**
@@ -1017,21 +1019,23 @@ public class BundleSiteInitializer implements SiteInitializer {
 				Keyword existingKeyword = null;
 
 				if (groupId != 0) {
-					existingKeyword =
+					Page<Keyword> page =
 						keywordResource.getAssetLibraryKeywordsPage(
 							groupId, null, null,
 							keywordResource.toFilter(
 								"name eq '" + keyword.getName() + "'"),
-							null, null
-						).fetchFirstItem();
+							null, null);
+
+					existingKeyword = page.fetchFirstItem();
 				}
 				else {
-					existingKeyword = keywordResource.getSiteKeywordsPage(
+					Page<Keyword> page = keywordResource.getSiteKeywordsPage(
 						groupId, null, null,
 						keywordResource.toFilter(
 							"name eq '" + keyword.getName() + "'"),
-						null, null
-					).fetchFirstItem();
+						null, null);
+
+					existingKeyword = page.fetchFirstItem();
 
 					groupId = serviceContext.getScopeGroupId();
 				}
@@ -1264,29 +1268,39 @@ public class BundleSiteInitializer implements SiteInitializer {
 			ObjectDefinition existingObjectDefinition =
 				objectDefinitionsPage.fetchFirstItem();
 
-			if (existingObjectDefinition == null) {
-				if (GetterUtil.getBoolean(
-						objectDefinition.getAccountEntryRestricted())) {
+			try {
+				BundleContext bundleContext = _siteBundle.getBundleContext();
 
-					accountEntryRestrictedObjectDefinitions.put(
-						objectDefinition.getName(), objectDefinition);
+				BatchEngineUnitThreadLocal.setFileName(
+					String.valueOf(bundleContext.getBundle()));
+
+				if (existingObjectDefinition == null) {
+					if (GetterUtil.getBoolean(
+							objectDefinition.getAccountEntryRestricted())) {
+
+						accountEntryRestrictedObjectDefinitions.put(
+							objectDefinition.getName(), objectDefinition);
+					}
+
+					objectDefinition =
+						objectDefinitionResource.postObjectDefinition(
+							objectDefinition);
+
+					objectDefinitionIds.add(objectDefinition.getId());
+				}
+				else {
+					objectDefinition =
+						objectDefinitionResource.patchObjectDefinition(
+							existingObjectDefinition.getId(), objectDefinition);
 				}
 
-				objectDefinition =
-					objectDefinitionResource.postObjectDefinition(
-						objectDefinition);
-
-				objectDefinitionIds.add(objectDefinition.getId());
+				_replaceObjectDefinitionValues(
+					objectDefinition.getClassName(), objectDefinition.getName(),
+					objectDefinition.getId(), stringUtilReplaceValues);
 			}
-			else {
-				objectDefinition =
-					objectDefinitionResource.patchObjectDefinition(
-						existingObjectDefinition.getId(), objectDefinition);
+			finally {
+				BatchEngineUnitThreadLocal.setFileName(StringPool.BLANK);
 			}
-
-			_replaceObjectDefinitionValues(
-				objectDefinition.getClassName(), objectDefinition.getName(),
-				objectDefinition.getId(), stringUtilReplaceValues);
 		}
 	}
 
@@ -1369,11 +1383,13 @@ public class BundleSiteInitializer implements SiteInitializer {
 					_objectDefinitionLocalService.fetchObjectDefinition(
 						serviceContext.getCompanyId(), "C_" + entry.getKey());
 
+			ObjectDefinition objectDefinition = entry.getValue();
+
 			com.liferay.object.model.ObjectField serviceBuilderObjectField =
 				_objectFieldLocalService.fetchObjectField(
 					serviceBuilderObjectDefinition.getObjectDefinitionId(),
-					entry.getValue(
-					).getAccountEntryRestrictedObjectFieldName());
+					objectDefinition.
+						getAccountEntryRestrictedObjectFieldName());
 
 			if (serviceBuilderObjectDefinition.isDefaultStorageType()) {
 				_objectDefinitionLocalService.enableAccountEntryRestricted(
@@ -2237,26 +2253,13 @@ public class BundleSiteInitializer implements SiteInitializer {
 					fileEntry, fileEntry.getFileVersion(), null,
 					StringPool.BLANK, false, false));
 
-			long fileEntryTypeId = 0;
-
-			if (fileEntry.getModel() instanceof DLFileEntry) {
-				DLFileEntry dlFileEntry = (DLFileEntry)fileEntry.getModel();
-
-				DLFileEntryType dlFileEntryType =
-					dlFileEntry.getDLFileEntryType();
-
-				fileEntryTypeId = dlFileEntryType.getFileEntryTypeId();
-			}
-
-			String fileEntryTypeIdString = String.valueOf(fileEntryTypeId);
-
 			siteNavigationMenuItemSettingsBuilder.put(
 				key,
 				new SiteNavigationMenuItemSetting() {
 					{
 						className = FileEntry.class.getName();
-						classPK = String.valueOf(fileEntry.getFileEntryId());
-						classTypeId = fileEntryTypeIdString;
+						externalReferenceCode =
+							fileEntry.getExternalReferenceCode();
 						title = fileEntry.getTitle();
 						type = ResourceActionsUtil.getModelResource(
 							serviceContext.getLocale(),
@@ -2479,10 +2482,8 @@ public class BundleSiteInitializer implements SiteInitializer {
 				new SiteNavigationMenuItemSetting() {
 					{
 						className = JournalArticle.class.getName();
-						classPK = String.valueOf(
-							finalJournalArticle.getResourcePrimKey());
-						classTypeId = String.valueOf(
-							ddmStructure.getStructureId());
+						externalReferenceCode =
+							finalJournalArticle.getExternalReferenceCode();
 						title = finalJournalArticle.getTitle(
 							serviceContext.getLocale());
 						type = ResourceActionsUtil.getModelResource(
@@ -2680,7 +2681,7 @@ public class BundleSiteInitializer implements SiteInitializer {
 		}
 
 		if (layout != null) {
-			_layoutLocalService.updateLayout(
+			layout = _layoutLocalService.updateLayout(
 				serviceContext.getScopeGroupId(), layout.isPrivateLayout(),
 				layout.getLayoutId(), parentLayoutId, nameMap,
 				SiteInitializerUtil.toMap(
@@ -2693,12 +2694,13 @@ public class BundleSiteInitializer implements SiteInitializer {
 					pageJSONObject.getString("robots_i18n")),
 				type, pageJSONObject.getBoolean("hidden"),
 				layout.getFriendlyURLMap(), layout.getIconImage(), null,
-				layout.getStyleBookEntryId(),
-				pageJSONObject.getLong("faviconFileEntryId"),
-				layout.getMasterLayoutPlid(), serviceContext);
-			_layoutLocalService.updateLayout(
-				serviceContext.getScopeGroupId(), layout.isPrivateLayout(),
-				layout.getLayoutId(), unicodeProperties.toString());
+				layout.getStyleBookEntryERC(),
+				pageJSONObject.getString("faviconFileEntryERC"),
+				pageJSONObject.getString("faviconFileEntryScopeERC"),
+				layout.getMasterLayoutPageTemplateEntryERC(), serviceContext);
+
+			_layoutLocalService.updateTypeSettings(
+				layout, unicodeProperties.toString());
 		}
 		else {
 			layout = _layoutLocalService.addLayout(
@@ -3324,8 +3326,9 @@ public class BundleSiteInitializer implements SiteInitializer {
 						{
 							className =
 								serviceBuilderObjectEntry.getModelClassName();
-							classPK = String.valueOf(
-								serviceBuilderObjectEntry.getObjectEntryId());
+							externalReferenceCode =
+								serviceBuilderObjectEntry.
+									getExternalReferenceCode();
 							title = StringBundler.concat(
 								objectDefinition.getName(), StringPool.SPACE,
 								serviceBuilderObjectEntry.getObjectEntryId());
@@ -3999,15 +4002,8 @@ public class BundleSiteInitializer implements SiteInitializer {
 				).put(
 					"className", siteNavigationMenuItemSetting.className
 				).put(
-					"classNameId",
-					String.valueOf(
-						_portal.getClassNameId(
-							siteNavigationMenuItemSetting.className))
-				).put(
-					"classPK",
-					String.valueOf(siteNavigationMenuItemSetting.classPK)
-				).put(
-					"classTypeId", siteNavigationMenuItemSetting.classTypeId
+					"externalReferenceCode",
+					siteNavigationMenuItemSetting.externalReferenceCode
 				).put(
 					"title", siteNavigationMenuItemSetting.title
 				).put(
@@ -4559,7 +4555,7 @@ public class BundleSiteInitializer implements SiteInitializer {
 
 		if (accessToControlMenuRoleNamesJSONArray == null) {
 			_menuAccessConfigurationManager.updateMenuAccessConfiguration(
-				serviceContext.getScopeGroupId(), new String[0],
+				serviceContext.getScopeGroupId(), null,
 				jsonObject.getBoolean("showControlMenuByRole"));
 
 			return;
@@ -4719,7 +4715,8 @@ public class BundleSiteInitializer implements SiteInitializer {
 				new SiteNavigationMenuItemSetting() {
 					{
 						className = AssetCategory.class.getName();
-						classPK = finalTaxonomyCategory.getId();
+						externalReferenceCode =
+							finalTaxonomyCategory.getExternalReferenceCode();
 						title = finalTaxonomyCategory.getName();
 					}
 				});
@@ -5894,7 +5891,7 @@ public class BundleSiteInitializer implements SiteInitializer {
 					key, themeSettingsJSONObject.getString(key));
 			}
 
-			draftLayout = _layoutLocalService.updateLayout(
+			draftLayout = _layoutLocalService.updateTypeSettings(
 				draftLayout.getGroupId(), draftLayout.isPrivateLayout(),
 				draftLayout.getLayoutId(), unicodeProperties.toString());
 
@@ -5922,10 +5919,11 @@ public class BundleSiteInitializer implements SiteInitializer {
 						masterPageJSONObject.getString("key"));
 
 			if (layoutPageTemplateEntry != null) {
-				draftLayout = _layoutLocalService.updateMasterLayoutPlid(
-					draftLayout.getGroupId(), draftLayout.isPrivateLayout(),
-					draftLayout.getLayoutId(),
-					layoutPageTemplateEntry.getPlid());
+				draftLayout =
+					_layoutLocalService.updateMasterLayoutPageTemplateEntryERC(
+						draftLayout.getGroupId(), draftLayout.isPrivateLayout(),
+						draftLayout.getLayoutId(),
+						layoutPageTemplateEntry.getExternalReferenceCode());
 			}
 		}
 
@@ -6174,8 +6172,7 @@ public class BundleSiteInitializer implements SiteInitializer {
 	private class SiteNavigationMenuItemSetting {
 
 		public String className;
-		public String classPK;
-		public String classTypeId = StringPool.BLANK;
+		public String externalReferenceCode;
 		public String title;
 		public String type = StringPool.BLANK;
 

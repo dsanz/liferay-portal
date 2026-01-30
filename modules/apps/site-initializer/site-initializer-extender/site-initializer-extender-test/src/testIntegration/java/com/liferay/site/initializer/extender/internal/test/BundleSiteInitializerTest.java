@@ -3722,11 +3722,10 @@ public class BundleSiteInitializerTest {
 			"Test Segments Entry 1",
 			segmentsEntry1.getName(LocaleUtil.getSiteDefault()));
 		Assert.assertTrue(segmentsEntry1.isActive());
-		Assert.assertFalse(
-			segmentsEntry1.getCriteria(
-			).contains(
-				"[$ROLE_ID:Test Role 1$]"
-			));
+
+		String criteria = segmentsEntry1.getCriteria();
+
+		Assert.assertFalse(criteria.contains("[$ROLE_ID:Test Role 1$]"));
 
 		SegmentsEntry segmentsEntry2 =
 			_segmentsEntryLocalService.fetchSegmentsEntry(
@@ -3737,11 +3736,10 @@ public class BundleSiteInitializerTest {
 			"Test Segments Entry 2",
 			segmentsEntry2.getName(LocaleUtil.getSiteDefault()));
 		Assert.assertFalse(segmentsEntry2.isActive());
-		Assert.assertFalse(
-			segmentsEntry2.getCriteria(
-			).contains(
-				"[$ROLE_ID:Test Role 2$]"
-			));
+
+		criteria = segmentsEntry2.getCriteria();
+
+		Assert.assertFalse(criteria.contains("[$ROLE_ID:Test Role 2$]"));
 
 		Layout layout = _layoutLocalService.fetchLayoutByFriendlyURL(
 			_group.getGroupId(), false, "/test-public-layout");
@@ -3840,7 +3838,7 @@ public class BundleSiteInitializerTest {
 			0,
 			_menuAccessConfigurationManager.getAccessToControlMenuRoleIds(
 				_group.getGroupId()).length);
-		Assert.assertFalse(
+		Assert.assertTrue(
 			_menuAccessConfigurationManager.isShowControlMenuByRole(
 				_group.getGroupId()));
 	}
@@ -3904,17 +3902,29 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(
 			AssetCategory.class.getName(), siteNavigationMenuItem4.getType());
 
+		typeSettings = siteNavigationMenuItem4.getTypeSettings();
+
+		Assert.assertTrue(typeSettings.contains("externalReferenceCode"));
+
 		SiteNavigationMenuItem siteNavigationMenuItem5 =
 			siteNavigationMenuItems.get(4);
 
 		Assert.assertEquals(
 			JournalArticle.class.getName(), siteNavigationMenuItem5.getType());
 
+		typeSettings = siteNavigationMenuItem5.getTypeSettings();
+
+		Assert.assertTrue(typeSettings.contains("externalReferenceCode"));
+
 		SiteNavigationMenuItem siteNavigationMenuItem6 =
 			siteNavigationMenuItems.get(5);
 
 		Assert.assertEquals(
 			FileEntry.class.getName(), siteNavigationMenuItem6.getType());
+
+		typeSettings = siteNavigationMenuItem6.getTypeSettings();
+
+		Assert.assertTrue(typeSettings.contains("externalReferenceCode"));
 
 		SiteNavigationMenuItem siteNavigationMenuItem7 =
 			siteNavigationMenuItems.get(6);
@@ -3925,6 +3935,10 @@ public class BundleSiteInitializerTest {
 			type.startsWith(
 				ObjectDefinitionConstants.
 					CLASS_NAME_PREFIX_CUSTOM_OBJECT_DEFINITION));
+
+		typeSettings = siteNavigationMenuItem7.getTypeSettings();
+
+		Assert.assertTrue(typeSettings.contains("externalReferenceCode"));
 	}
 
 	private void _assertSiteNavigationMenu2() {
@@ -3986,17 +4000,29 @@ public class BundleSiteInitializerTest {
 		Assert.assertEquals(
 			AssetCategory.class.getName(), siteNavigationMenuItem4.getType());
 
+		typeSettings = siteNavigationMenuItem4.getTypeSettings();
+
+		Assert.assertTrue(typeSettings.contains("externalReferenceCode"));
+
 		SiteNavigationMenuItem siteNavigationMenuItem5 =
 			siteNavigationMenuItems.get(4);
 
 		Assert.assertEquals(
 			JournalArticle.class.getName(), siteNavigationMenuItem5.getType());
 
+		typeSettings = siteNavigationMenuItem5.getTypeSettings();
+
+		Assert.assertTrue(typeSettings.contains("externalReferenceCode"));
+
 		SiteNavigationMenuItem siteNavigationMenuItem6 =
 			siteNavigationMenuItems.get(5);
 
 		Assert.assertEquals(
 			FileEntry.class.getName(), siteNavigationMenuItem6.getType());
+
+		typeSettings = siteNavigationMenuItem6.getTypeSettings();
+
+		Assert.assertTrue(typeSettings.contains("externalReferenceCode"));
 
 		SiteNavigationMenuItem siteNavigationMenuItem7 =
 			siteNavigationMenuItems.get(6);
@@ -4007,6 +4033,10 @@ public class BundleSiteInitializerTest {
 			type.startsWith(
 				ObjectDefinitionConstants.
 					CLASS_NAME_PREFIX_CUSTOM_OBJECT_DEFINITION));
+
+		typeSettings = siteNavigationMenuItem7.getTypeSettings();
+
+		Assert.assertTrue(typeSettings.contains("externalReferenceCode"));
 
 		SiteNavigationMenuItem siteNavigationMenuItem8 =
 			siteNavigationMenuItems.get(7);

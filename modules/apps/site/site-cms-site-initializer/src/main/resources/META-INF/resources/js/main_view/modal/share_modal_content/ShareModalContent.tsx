@@ -44,6 +44,7 @@ export interface Collaborator {
 function CollaboratorListItem({
 	actionIds,
 	dateExpired,
+	entryClassName,
 	error,
 	onChangeUser,
 	onRemoveUser,
@@ -54,6 +55,7 @@ function CollaboratorListItem({
 }: {
 	actionIds: string;
 	dateExpired?: string;
+	entryClassName: string;
 	error?: string;
 	onChangeUser: (user: UserAccount | UserGroup, property: object) => void;
 	onRemoveUser: (user: UserAccount | UserGroup) => void;
@@ -108,6 +110,7 @@ function CollaboratorListItem({
 					<div>
 						<PermissionSelector
 							actionIds={actionIds}
+							entryClassName={entryClassName}
 							onChange={handleChangeUserProperties}
 						/>
 					</div>
@@ -205,6 +208,7 @@ export default function ShareModalContent({
 	closeModal,
 	collaboratorURL = '',
 	creator,
+	entryClassName = '',
 	initialCollaborators = [],
 	itemId,
 	title = '',
@@ -218,6 +222,7 @@ export default function ShareModalContent({
 		image?: string;
 		name: string;
 	};
+	entryClassName?: string;
 	initialCollaborators: Collaborator[];
 	itemId: number;
 	title: string;
@@ -347,7 +352,9 @@ export default function ShareModalContent({
 
 	return (
 		<div className="share-modal-content">
-			<ClayModal.Header>
+			<ClayModal.Header
+				closeButtonAriaLabel={Liferay.Language.get('close')}
+			>
 				{sub(Liferay.Language.get('share-x'), `"${title}"`)}
 			</ClayModal.Header>
 
@@ -370,7 +377,7 @@ export default function ShareModalContent({
 									'enter-name-email-or-groups'
 								)}
 								sourceItems={
-									autocompleteValue && !!users?.items?.length
+									users?.items?.length
 										? users.items?.map((item: any) => {
 												if (
 													item.entryClassName?.includes(
@@ -486,6 +493,7 @@ export default function ShareModalContent({
 							<ul className="c-mb-0 list-group">
 								{collaborators.map((item) => (
 									<CollaboratorListItem
+										entryClassName={entryClassName}
 										key={`listItem-${item.type}-${item.user.id}`}
 										onChangeUser={handleChangeUser}
 										onRemoveUser={handleRemoveUser}

@@ -35,14 +35,14 @@ export default function EditTagsModalContent({
 	tagName: string;
 }) {
 	const [nameInputError, setNameInputError] = useState<string>('');
-	const [selectedSpaces, setSelectedSpaces] = useState<number[]>(
-		assetLibraries.map((item: {id: number}) => item.id)
+	const [selectedSpaces, setSelectedSpaces] = useState<string[]>(
+		assetLibraries.map((item: {scopeKey: string}) => item.scopeKey)
 	);
 	const [spaceChange, setSpaceChange] = useState(false);
 	const [spaceInputError, setSpaceInputError] = useState('');
 
-	const assetLibraryIds = selectedSpaces.map((number) => ({
-		id: number,
+	const assetLibraryIds = selectedSpaces.map((string) => ({
+		scopeKey: string,
 	}));
 
 	const updateTag = (values: any) => {
@@ -149,52 +149,55 @@ export default function EditTagsModalContent({
 
 	return (
 		<form onSubmit={handleSubmit}>
-			<ClayModal.Header>
-				{sub(Liferay.Language.get('edit-x'), '"' + tagName + '"')}
-			</ClayModal.Header>
+			<div className="categorization-modal">
+				<ClayModal.Header
+					closeButtonAriaLabel={Liferay.Language.get('close')}
+				>
+					{sub(Liferay.Language.get('edit-x'), '"' + tagName + '"')}
+				</ClayModal.Header>
 
-			<ClayModal.Body>
-				<FieldText
-					errorMessage={handleNameInputErrorMessage()}
-					label={Liferay.Language.get('name')}
-					name="tagName"
-					onBlur={handleBlur}
-					onChange={(event) => {
-						setNameInputError('');
-						handleChange(event);
-					}}
-					required
-					value={values.tagName}
+				<ClayModal.Body>
+					<FieldText
+						errorMessage={handleNameInputErrorMessage()}
+						label={Liferay.Language.get('name')}
+						name="tagName"
+						onBlur={handleBlur}
+						onChange={(event) => {
+							setNameInputError('');
+							handleChange(event);
+						}}
+						required
+						value={values.tagName}
+					/>
+
+					<CategorizationSpaces
+						assetLibraries={assetLibraries}
+						checkboxText="tag"
+						setSelectedSpaces={setSelectedSpaces}
+						setSpaceChange={setSpaceChange}
+						setSpaceInputError={setSpaceInputError}
+						spaceInputError={spaceInputError}
+					/>
+				</ClayModal.Body>
+
+				<ClayModal.Footer
+					last={
+						<ClayButton.Group spaced>
+							<ClayButton
+								displayType="secondary"
+								onClick={closeModal}
+								type="button"
+							>
+								{Liferay.Language.get('cancel')}
+							</ClayButton>
+
+							<ClayButton displayType="primary" type="submit">
+								{Liferay.Language.get('save')}
+							</ClayButton>
+						</ClayButton.Group>
+					}
 				/>
-
-				<CategorizationSpaces
-					assetLibraries={assetLibraries}
-					checkboxText="tag"
-					selectedSpaces={selectedSpaces}
-					setSelectedSpaces={setSelectedSpaces}
-					setSpaceChange={setSpaceChange}
-					setSpaceInputError={setSpaceInputError}
-					spaceInputError={spaceInputError}
-				/>
-			</ClayModal.Body>
-
-			<ClayModal.Footer
-				last={
-					<ClayButton.Group spaced>
-						<ClayButton
-							displayType="secondary"
-							onClick={closeModal}
-							type="button"
-						>
-							{Liferay.Language.get('cancel')}
-						</ClayButton>
-
-						<ClayButton displayType="primary" type="submit">
-							{Liferay.Language.get('save')}
-						</ClayButton>
-					</ClayButton.Group>
-				}
-			/>
+			</div>
 		</form>
 	);
 }

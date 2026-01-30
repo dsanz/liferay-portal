@@ -117,12 +117,12 @@
 @import 'liferay_data_source';
 @import 'list';
 @import 'list_card';
-@import 'list_group';
 @import 'loading';
 @import 'loading_modal';
 @import 'locations_card';
 @import 'manually_retrain_model_modal';
 @import 'matching_pages_modal';
+@import 'membership_metrics';
 @import 'metadata_tag';
 @import 'metric_bar';
 @import 'metric_tab';
@@ -217,6 +217,7 @@
 @import 'vertical_timeline';
 @import 'vertical_timeline_deprecated';
 @import 'with_sidebar';
+@import 'wizard_page';
 @import 'workspace_list';
 @import 'workspace_not_found';
 @import 'workspaces_base_page';

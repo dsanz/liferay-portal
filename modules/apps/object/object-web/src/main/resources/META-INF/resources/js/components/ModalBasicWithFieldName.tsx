@@ -7,7 +7,6 @@ import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
 import ClayForm from '@clayui/form';
 import ClayModal from '@clayui/modal';
-import {Observer} from '@clayui/modal/lib/types';
 import {
 	API,
 	FormError,
@@ -18,6 +17,8 @@ import {
 import React, {useState} from 'react';
 
 import {defaultLanguageId} from '../utils/constants';
+
+import type {Observer} from '@clayui/modal/src/types';
 
 interface IProps extends React.HTMLAttributes<HTMLElement> {
 	apiURL: string;
@@ -79,7 +80,11 @@ export function ModalBasicWithFieldName({
 		<>
 			<ClayModal observer={observer}>
 				<ClayForm onSubmit={handleSubmit}>
-					<ClayModal.Header>{label}</ClayModal.Header>
+					<ClayModal.Header
+						closeButtonAriaLabel={Liferay.Language.get('close')}
+					>
+						{label}
+					</ClayModal.Header>
 
 					<ClayModal.Body>
 						{error && (

@@ -11,12 +11,14 @@ import com.liferay.osb.koroneiki.phloem.rest.client.dto.v1_0.Account;
 import com.liferay.osb.koroneiki.phloem.rest.client.dto.v1_0.Contact;
 import com.liferay.osb.koroneiki.phloem.rest.client.dto.v1_0.ContactRole;
 import com.liferay.osb.koroneiki.phloem.rest.client.dto.v1_0.Product;
+import com.liferay.osb.koroneiki.phloem.rest.client.dto.v1_0.ProductConsumption;
 import com.liferay.osb.koroneiki.phloem.rest.client.http.HttpInvoker;
 import com.liferay.osb.koroneiki.phloem.rest.client.pagination.Page;
 import com.liferay.osb.koroneiki.phloem.rest.client.pagination.Pagination;
 import com.liferay.osb.koroneiki.phloem.rest.client.resource.v1_0.AccountResource;
 import com.liferay.osb.koroneiki.phloem.rest.client.resource.v1_0.ContactResource;
 import com.liferay.osb.koroneiki.phloem.rest.client.resource.v1_0.ContactRoleResource;
+import com.liferay.osb.koroneiki.phloem.rest.client.resource.v1_0.ProductConsumptionResource;
 import com.liferay.osb.koroneiki.phloem.rest.client.resource.v1_0.ProductResource;
 import com.liferay.osb.koroneiki.phloem.rest.client.serdes.v1_0.AccountSerDes;
 import com.liferay.osb.koroneiki.phloem.rest.client.serdes.v1_0.ContactRoleSerDes;
@@ -85,10 +87,11 @@ public class KoroneikiHttpUtil {
 		throws Exception {
 
 		HttpInvoker.HttpResponse httpResponse =
-			_contactRoleResource.getContactRoleHttpResponse(
-				HttpComponentsUtil.encodePath(type.toString()),
-				HttpComponentsUtil.encodePath(
-					KoroneikiConstants.translateContactRoleName(name)));
+			_contactRoleResource.
+				getContactRoleByTypeContactRoleTypeByNameContactRoleNameHttpResponse(
+					HttpComponentsUtil.encodePath(type.toString()),
+					HttpComponentsUtil.encodePath(
+						KoroneikiConstants.translateContactRoleName(name)));
 
 		if (httpResponse.getStatusCode() == HttpServletResponse.SC_OK) {
 			return ContactRoleSerDes.toDTO(httpResponse.getContent());
@@ -143,10 +146,10 @@ public class KoroneikiHttpUtil {
 		return Collections.emptyList();
 	}
 
-	public static int getAccountsCount(String filter) throws Exception {
+	public static int getAccountsCount(String filterString) throws Exception {
 		HttpInvoker.HttpResponse httpResponse =
 			_accountResource.getAccountsPageHttpResponse(
-				null, filter, null, null);
+				null, filterString, null, null);
 
 		if (httpResponse.getStatusCode() == HttpServletResponse.SC_OK) {
 			JSONObject jsonObject = JSONFactoryUtil.createJSONObject(
@@ -158,17 +161,55 @@ public class KoroneikiHttpUtil {
 		return 0;
 	}
 
+	public static List<ProductConsumption> getProductConsumptions(
+			String accountKey, int page, int pageSize)
+		throws Exception {
+
+		Page<ProductConsumption> productConsumptionsPage =
+			_productConsumptionResource.
+				getAccountAccountKeyProductConsumptionsPage(
+					accountKey, Pagination.of(page, pageSize));
+
+		if ((productConsumptionsPage != null) &&
+			(productConsumptionsPage.getItems() != null)) {
+
+			return new ArrayList<>(productConsumptionsPage.getItems());
+		}
+
+		return Collections.emptyList();
+	}
+
 	public static Contact postContact(Contact contact) throws Exception {
 		return _contactResource.postContact(
 			StringPool.BLANK, StringPool.BLANK, contact);
 	}
 
+	public static void postProductConsumption(
+			String accountKey, ProductConsumption productConsumption)
+		throws Exception {
+
+		HttpInvoker.HttpResponse httpResponse =
+			_productConsumptionResource.
+				postAccountAccountKeyProductConsumptionHttpResponse(
+					StringPool.BLANK, StringPool.BLANK, accountKey,
+					productConsumption);
+
+		if ((httpResponse.getStatusCode() !=
+				HttpServletResponse.SC_NO_CONTENT) &&
+			(httpResponse.getStatusCode() != HttpServletResponse.SC_OK)) {
+
+			throw new Exception(
+				httpResponse.getContent() + StringPool.NEW_LINE +
+					httpResponse.getMessage());
+		}
+	}
+
 	public static List<Account> searchAccounts(
-			String filter, int page, int size)
+			String filterString, int page, int size)
 		throws Exception {
 
 		Page<Account> accountsPage = _accountResource.getAccountsPage(
-			null, filter, Pagination.of(page, size), null);
+			null, filterString, Pagination.of(page, size), null);
 
 		if ((accountsPage != null) && (accountsPage.getItems() != null)) {
 			return new ArrayList<>(accountsPage.getItems());
@@ -202,6 +243,7 @@ public class KoroneikiHttpUtil {
 	private static final AccountResource _accountResource;
 	private static final ContactResource _contactResource;
 	private static final ContactRoleResource _contactRoleResource;
+	private static final ProductConsumptionResource _productConsumptionResource;
 	private static final ProductResource _productResource;
 
 	static {
@@ -236,6 +278,17 @@ public class KoroneikiHttpUtil {
 		).header(
 			_OSB_API_TOKEN_KEY, FaroPropsValues.OSB_API_TOKEN
 		).build();
+
+		ProductConsumptionResource.Builder productConsumptionResourceBuilder =
+			ProductConsumptionResource.builder();
+
+		_productConsumptionResource =
+			productConsumptionResourceBuilder.endpoint(
+				FaroPropsValues.OSB_API_URL, FaroPropsValues.OSB_API_PORT,
+				FaroPropsValues.OSB_API_PROTOCOL
+			).header(
+				_OSB_API_TOKEN_KEY, FaroPropsValues.OSB_API_TOKEN
+			).build();
 
 		ProductResource.Builder productResourceBuilder =
 			ProductResource.builder();

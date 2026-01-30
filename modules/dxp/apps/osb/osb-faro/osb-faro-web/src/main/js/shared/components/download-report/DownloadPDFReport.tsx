@@ -23,6 +23,7 @@ export enum ReportContainer {
 	ActiveIndividualsCard = 'container.report.activeIndividualsCard',
 	AssetAppearsOnCard = 'container.report.assetAppearsOnCard',
 	AudienceCard = 'container.report.audienceCard',
+	AverageSegmentMembershipDurationCard = 'container.report.averageSegmentMembershipDuration',
 	CohortAnalysisCard = 'container.report.cohortAnalysisCard',
 	CurrentTotalsCard = 'container.report.currentTotalsCard',
 	DistributionBreakdownCard = 'container.report.distributionBreakdownCard',
@@ -31,10 +32,12 @@ export enum ReportContainer {
 	EnrichedProfilesCard = 'container.report.enrichedProfilesCard',
 	EventAnalysisPage = 'container.report.eventAnalysisPage',
 	InterestsCard = 'container.report.interestsCard',
+	MembershipMetricsCard = 'container.report.membershipMetricsCard',
 	SearchTermsCard = 'container.report.searchTermsCard',
 	SegmentCompositionCard = 'container.report.segmentCompositionCard',
 	SegmentCriteriaCard = 'container.report.segmentCriteriaCard',
 	SegmentMembershipCard = 'container.report.segmentMembershipCard',
+	SegmentMembershipTrendCard = 'container.report.segmentMembershipTrendCard',
 	SessionsByLocationCard = 'container.report.sessionsByLocationCard',
 	SessionTechnologyCard = 'container.report.sessionTechnologyCard',
 	SiteActivityCard = 'container.report.siteActivityCard',
@@ -64,6 +67,10 @@ export const CONTAINERS: {[key in ReportContainer]: TReportContainer} = {
 	},
 	[ReportContainer.AudienceCard]: {
 		label: Liferay.Language.get('audience'),
+		layout: 1
+	},
+	[ReportContainer.AverageSegmentMembershipDurationCard]: {
+		label: Liferay.Language.get('average-segment-membership-duration'),
 		layout: 1
 	},
 	[ReportContainer.CohortAnalysisCard]: {
@@ -98,6 +105,10 @@ export const CONTAINERS: {[key in ReportContainer]: TReportContainer} = {
 		label: Liferay.Language.get('interests'),
 		layout: 3
 	},
+	[ReportContainer.MembershipMetricsCard]: {
+		label: Liferay.Language.get('metrics-overview'),
+		layout: 1
+	},
 	[ReportContainer.SearchTermsCard]: {
 		label: Liferay.Language.get('search-terms'),
 		layout: 3
@@ -108,10 +119,14 @@ export const CONTAINERS: {[key in ReportContainer]: TReportContainer} = {
 	},
 	[ReportContainer.SegmentCriteriaCard]: {
 		label: Liferay.Language.get('segment-criteria'),
-		layout: 2
+		layout: 1
 	},
 	[ReportContainer.SegmentMembershipCard]: {
 		label: Liferay.Language.get('segment-membership'),
+		layout: 1
+	},
+	[ReportContainer.SegmentMembershipTrendCard]: {
+		label: Liferay.Language.get('segment-membership-trend'),
 		layout: 1
 	},
 	[ReportContainer.SessionsByLocationCard]: {
@@ -175,8 +190,10 @@ export type TransformedContainer = TReportContainer & {
 };
 
 export interface IDownloadReport {
+	children?: any;
 	dateRangeDescription?: string;
 	disabled: boolean;
+	label?: string;
 	infoMessage?: string;
 	showDateRange?: boolean;
 	subtitle: string;
@@ -230,8 +247,10 @@ const getContainers = async (
 };
 
 const DownloadPDFReport: React.FC<IDownloadReport> = ({
+	children,
 	dateRangeDescription,
 	disabled,
+	label,
 	infoMessage = Liferay.Language.get(
 		'the-dashboard-will-be-downloaded-exactly-as-it-is-displayed-on-your-screen.-please-verify-if-the-desired-tabs-and-filters-are-selected-before-proceeding'
 	),
@@ -260,11 +279,19 @@ const DownloadPDFReport: React.FC<IDownloadReport> = ({
 
 	return (
 		<div className='download-report'>
-			<DownloadReportButton
-				disabled={disabled}
-				loading={loading}
-				onClick={() => onOpenChange(true)}
-			/>
+			{children ? (
+				React.cloneElement(children, {
+					disabled,
+					loading,
+					onClick: () => onOpenChange(true)
+				})
+			) : (
+				<DownloadReportButton
+					disabled={disabled}
+					loading={loading}
+					onClick={() => onOpenChange(true)}
+				/>
+			)}
 
 			{open && (
 				<DownloadReportModal
@@ -290,7 +317,7 @@ const DownloadPDFReport: React.FC<IDownloadReport> = ({
 
 						/**
 						 * It is necessary to have timeout of 1000ms to wait chart
-						 * animation be loaded before generate the report
+						 * animation be loaded before generating a PDF report
 						 */
 
 						setTimeout(async () => {
@@ -320,6 +347,15 @@ const DownloadPDFReport: React.FC<IDownloadReport> = ({
 								value: 'Analytics Cloud',
 								weight: Weight.Normal
 							});
+
+							if (label) {
+								doc.addTextWithRect({
+									color: SECONDARY_COLOR,
+									size: Size.ExtraSmall,
+									value: label?.toUpperCase(),
+									weight: Weight.Normal
+								});
+							}
 
 							doc.addText({
 								color: TITLE_COLOR,

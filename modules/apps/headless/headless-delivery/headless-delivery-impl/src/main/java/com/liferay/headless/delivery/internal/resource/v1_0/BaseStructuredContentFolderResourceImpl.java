@@ -810,9 +810,9 @@ public abstract class BaseStructuredContentFolderResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(structuredContentFolderId);
-		String resourceName = getPermissionCheckerResourceName(
-			structuredContentFolderId);
 		Long resourceId = getPermissionCheckerResourceId(
+			structuredContentFolderId);
+		String resourceName = getPermissionCheckerResourceName(
 			structuredContentFolderId);
 
 		PermissionServiceUtil.checkPermission(
@@ -1833,9 +1833,9 @@ public abstract class BaseStructuredContentFolderResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(structuredContentFolderId);
-		String resourceName = getPermissionCheckerResourceName(
-			structuredContentFolderId);
 		Long resourceId = getPermissionCheckerResourceId(
+			structuredContentFolderId);
+		String resourceName = getPermissionCheckerResourceName(
 			structuredContentFolderId);
 
 		PermissionServiceUtil.checkPermission(
@@ -2125,10 +2125,59 @@ public abstract class BaseStructuredContentFolderResourceImpl
 			<StructuredContentFolder, StructuredContentFolder, Exception>
 				structuredContentFolderUnsafeFunction =
 					structuredContentFolder -> {
-						deleteStructuredContentFolder(
-							structuredContentFolder.getId());
+						if (structuredContentFolder.getId() != null) {
+							try {
+								deleteStructuredContentFolder(
+									structuredContentFolder.getId());
 
-						return structuredContentFolder;
+								return structuredContentFolder;
+							}
+							catch (Exception exception) {
+								if (structuredContentFolder.
+										getExternalReferenceCode() != null) {
+
+									if (parameters.containsKey(
+											"assetLibraryId")) {
+
+										deleteAssetLibraryStructuredContentFolderByExternalReferenceCode(
+											(Long)parameters.get(
+												"assetLibraryId"),
+											structuredContentFolder.
+												getExternalReferenceCode());
+
+										return structuredContentFolder;
+									}
+
+									if (parameters.containsKey("siteId")) {
+										deleteSiteStructuredContentFolderByExternalReferenceCode(
+											(Long)parameters.get("siteId"),
+											structuredContentFolder.
+												getExternalReferenceCode());
+
+										return structuredContentFolder;
+									}
+								}
+							}
+						}
+						else if (parameters.containsKey("assetLibraryId")) {
+							deleteAssetLibraryStructuredContentFolderByExternalReferenceCode(
+								(Long)parameters.get("assetLibraryId"),
+								structuredContentFolder.
+									getExternalReferenceCode());
+
+							return structuredContentFolder;
+						}
+						else if (parameters.containsKey("siteId")) {
+							deleteSiteStructuredContentFolderByExternalReferenceCode(
+								(Long)parameters.get("siteId"),
+								structuredContentFolder.
+									getExternalReferenceCode());
+
+							return structuredContentFolder;
+						}
+
+						throw new UnsupportedOperationException(
+							"Unable to delete by external reference code or ID");
 					};
 
 		if (contextBatchUnsafeBiConsumer != null) {
@@ -2450,6 +2499,9 @@ public abstract class BaseStructuredContentFolderResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

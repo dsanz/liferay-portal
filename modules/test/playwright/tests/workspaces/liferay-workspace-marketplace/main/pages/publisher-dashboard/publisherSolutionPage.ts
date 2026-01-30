@@ -53,7 +53,7 @@ export class PublisherSolutionPage {
 			name: 'please complete this form.',
 		});
 		this.blocksTitle = page.getByPlaceholder('Enter title');
-		this.categories = page.getByPlaceholder('Select categories');
+		this.categories = page.getByLabel('Categories');
 		this.chooseBlockSelect = page.getByRole('option', {
 			name: 'Continue',
 		});
@@ -63,12 +63,11 @@ export class PublisherSolutionPage {
 			name: 'Continue',
 		});
 		this.createTemplate = page.getByText('Create template', {exact: true});
-		this.customizeSolutionDetails = page.getByText(
-			'Customize storefront solutions details',
-			{exact: true}
-		);
+		this.customizeSolutionDetails = page.getByRole('heading', {
+			name: 'Customize Storefront Solution',
+		});
 		this.customizeSolutionHeader = page.getByText(
-			'Customize solution header',
+			'Define the solution profile',
 			{exact: true}
 		);
 		this.defineSolution = page.getByText('Define the solution profile', {
@@ -105,7 +104,7 @@ export class PublisherSolutionPage {
 		this.submitSolutionButton = page.getByRole('button', {
 			name: 'Submit Solution',
 		});
-		this.tags = page.getByPlaceholder('Select tags');
+		this.tags = page.getByLabel('Tags');
 		this.underReviewStatus = page
 			.getByRole('cell', {name: 'Under Review'})
 			.last();
@@ -163,6 +162,8 @@ export class PublisherSolutionPage {
 	}
 
 	async fillCustomizeSolutionHeader(header) {
+		await this.page.waitForLoadState('networkidle');
+
 		await this.headerTitle.fill(header.title);
 		await this.richTextEditor.fill(header.description);
 
@@ -228,26 +229,8 @@ export class PublisherSolutionPage {
 	}
 
 	async goToNewSolution() {
+		expect(this.newSolutionButton).toBeEnabled();
 		await this.newSolutionButton.click();
-		await this.createTemplate.waitFor({state: 'visible'});
-	}
-
-	async selectAccount(accountName: string) {
-		const accountOption = this.page.getByRole('menuitem', {
-			name: accountName,
-		});
-
-		await clickAndExpectToBeVisible({
-			target: accountOption,
-			trigger: this.accountSearchDropdown,
-		});
-
-		await accountOption.click();
-
-		// Necessary to wait few seconds because the page forces a full reload
-		// using window.reload()
-
-		await this.page.waitForTimeout(2000);
 	}
 
 	async reviewAndSubmit() {

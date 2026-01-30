@@ -51,11 +51,14 @@ export class HomePage {
 
 	async goto() {
 		await this.page.goto(PORTLET_URLS.cmsHome);
-		await this.page.getByRole('heading', {name: 'Home'}).waitFor();
+		await this.page.getByRole('menuitem', {name: 'Home'}).waitFor();
 	}
 
 	async assignToMe(name: string) {
-		const workflowTaskRow = this.page.getByRole('row', {name});
+		const workflowTaskRow = this.page
+			.getByRole('row')
+			.filter({hasText: /sent you/i})
+			.filter({hasText: name});
 
 		await workflowTaskRow.getByRole('button').click();
 
@@ -70,7 +73,10 @@ export class HomePage {
 	}
 
 	async assignTo(name: string) {
-		const workflowTaskRow = this.page.getByRole('row', {name});
+		const workflowTaskRow = this.page
+			.getByRole('row')
+			.filter({hasText: /sent you/i})
+			.filter({hasText: name});
 
 		await workflowTaskRow.getByRole('button').click();
 
@@ -85,7 +91,10 @@ export class HomePage {
 	}
 
 	async approveWorkflowTask(name: string) {
-		const workflowTaskRow = this.page.getByRole('row', {name});
+		const workflowTaskRow = this.page
+			.getByRole('row')
+			.filter({hasText: /sent you/i})
+			.filter({hasText: name});
 
 		await workflowTaskRow.getByRole('button').click();
 
@@ -100,7 +109,10 @@ export class HomePage {
 	}
 
 	async rejectWorkflowTask(name: string) {
-		const workflowTaskRow = this.page.getByRole('row', {name});
+		const workflowTaskRow = this.page
+			.getByRole('row')
+			.filter({hasText: /sent you/i})
+			.filter({hasText: name});
 
 		await workflowTaskRow.getByRole('button').click();
 
@@ -115,7 +127,7 @@ export class HomePage {
 	}
 
 	async selectSpace(name: string) {
-		const selectButton: Locator = this.page.getByText('Select a Space');
+		const selectButton: Locator = this.page.getByLabel('SpaceMandatory');
 
 		await selectButton.waitFor({state: 'visible'});
 
@@ -139,7 +151,10 @@ export class HomePage {
 	}
 
 	async updateDueDate(date: string, name: string) {
-		const workflowTaskRow = this.page.getByRole('row', {name});
+		const workflowTaskRow = this.page
+			.getByRole('row')
+			.filter({hasText: /sent you/i})
+			.filter({hasText: name});
 
 		await workflowTaskRow.getByRole('button').click();
 

@@ -70,6 +70,27 @@ public class ContentPageSettingsSerDes {
 			sb.append("]");
 		}
 
+		if (contentPageSettings.getOpenGraphSettings() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"openGraphSettings\": ");
+
+			sb.append(
+				String.valueOf(contentPageSettings.getOpenGraphSettings()));
+		}
+
+		if (contentPageSettings.getSeoSettings() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"seoSettings\": ");
+
+			sb.append(String.valueOf(contentPageSettings.getSeoSettings()));
+		}
+
 		if (contentPageSettings.getHiddenFromNavigation() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -91,17 +112,6 @@ public class ContentPageSettingsSerDes {
 				String.valueOf(contentPageSettings.getNavigationSettings()));
 		}
 
-		if (contentPageSettings.getOpenGraphSettings() != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"openGraphSettings\": ");
-
-			sb.append(
-				String.valueOf(contentPageSettings.getOpenGraphSettings()));
-		}
-
 		if (contentPageSettings.getPriority() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -112,30 +122,6 @@ public class ContentPageSettingsSerDes {
 			sb.append(contentPageSettings.getPriority());
 		}
 
-		if (contentPageSettings.getQueryString() != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"queryString\": ");
-
-			sb.append("\"");
-
-			sb.append(_escape(contentPageSettings.getQueryString()));
-
-			sb.append("\"");
-		}
-
-		if (contentPageSettings.getSeoSettings() != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"seoSettings\": ");
-
-			sb.append(String.valueOf(contentPageSettings.getSeoSettings()));
-		}
-
 		if (contentPageSettings.getType() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -144,9 +130,7 @@ public class ContentPageSettingsSerDes {
 			sb.append("\"type\": ");
 
 			sb.append("\"");
-
 			sb.append(contentPageSettings.getType());
-
 			sb.append("\"");
 		}
 
@@ -180,6 +164,24 @@ public class ContentPageSettingsSerDes {
 				String.valueOf(contentPageSettings.getCustomMetaTags()));
 		}
 
+		if (contentPageSettings.getOpenGraphSettings() == null) {
+			map.put("openGraphSettings", null);
+		}
+		else {
+			map.put(
+				"openGraphSettings",
+				String.valueOf(contentPageSettings.getOpenGraphSettings()));
+		}
+
+		if (contentPageSettings.getSeoSettings() == null) {
+			map.put("seoSettings", null);
+		}
+		else {
+			map.put(
+				"seoSettings",
+				String.valueOf(contentPageSettings.getSeoSettings()));
+		}
+
 		if (contentPageSettings.getHiddenFromNavigation() == null) {
 			map.put("hiddenFromNavigation", null);
 		}
@@ -198,39 +200,12 @@ public class ContentPageSettingsSerDes {
 				String.valueOf(contentPageSettings.getNavigationSettings()));
 		}
 
-		if (contentPageSettings.getOpenGraphSettings() == null) {
-			map.put("openGraphSettings", null);
-		}
-		else {
-			map.put(
-				"openGraphSettings",
-				String.valueOf(contentPageSettings.getOpenGraphSettings()));
-		}
-
 		if (contentPageSettings.getPriority() == null) {
 			map.put("priority", null);
 		}
 		else {
 			map.put(
 				"priority", String.valueOf(contentPageSettings.getPriority()));
-		}
-
-		if (contentPageSettings.getQueryString() == null) {
-			map.put("queryString", null);
-		}
-		else {
-			map.put(
-				"queryString",
-				String.valueOf(contentPageSettings.getQueryString()));
-		}
-
-		if (contentPageSettings.getSeoSettings() == null) {
-			map.put("seoSettings", null);
-		}
-		else {
-			map.put(
-				"seoSettings",
-				String.valueOf(contentPageSettings.getSeoSettings()));
 		}
 
 		if (contentPageSettings.getType() == null) {
@@ -261,6 +236,12 @@ public class ContentPageSettingsSerDes {
 			if (Objects.equals(jsonParserFieldName, "customMetaTags")) {
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "openGraphSettings")) {
+				return false;
+			}
+			else if (Objects.equals(jsonParserFieldName, "seoSettings")) {
+				return false;
+			}
 			else if (Objects.equals(
 						jsonParserFieldName, "hiddenFromNavigation")) {
 
@@ -271,16 +252,7 @@ public class ContentPageSettingsSerDes {
 
 				return false;
 			}
-			else if (Objects.equals(jsonParserFieldName, "openGraphSettings")) {
-				return false;
-			}
 			else if (Objects.equals(jsonParserFieldName, "priority")) {
-				return false;
-			}
-			else if (Objects.equals(jsonParserFieldName, "queryString")) {
-				return false;
-			}
-			else if (Objects.equals(jsonParserFieldName, "seoSettings")) {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "type")) {
@@ -311,6 +283,19 @@ public class ContentPageSettingsSerDes {
 					contentPageSettings.setCustomMetaTags(customMetaTagsArray);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "openGraphSettings")) {
+				if (jsonParserFieldValue != null) {
+					contentPageSettings.setOpenGraphSettings(
+						OpenGraphSettingsSerDes.toDTO(
+							(String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "seoSettings")) {
+				if (jsonParserFieldValue != null) {
+					contentPageSettings.setSeoSettings(
+						SEOSettingsSerDes.toDTO((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(
 						jsonParserFieldName, "hiddenFromNavigation")) {
 
@@ -324,14 +309,7 @@ public class ContentPageSettingsSerDes {
 
 				if (jsonParserFieldValue != null) {
 					contentPageSettings.setNavigationSettings(
-						NavigationSettingsSerDes.toDTO(
-							(String)jsonParserFieldValue));
-				}
-			}
-			else if (Objects.equals(jsonParserFieldName, "openGraphSettings")) {
-				if (jsonParserFieldValue != null) {
-					contentPageSettings.setOpenGraphSettings(
-						OpenGraphSettingsSerDes.toDTO(
+						SitePageNavigationSettingsSerDes.toDTO(
 							(String)jsonParserFieldValue));
 				}
 			}
@@ -339,18 +317,6 @@ public class ContentPageSettingsSerDes {
 				if (jsonParserFieldValue != null) {
 					contentPageSettings.setPriority(
 						Integer.valueOf((String)jsonParserFieldValue));
-				}
-			}
-			else if (Objects.equals(jsonParserFieldName, "queryString")) {
-				if (jsonParserFieldValue != null) {
-					contentPageSettings.setQueryString(
-						(String)jsonParserFieldValue);
-				}
-			}
-			else if (Objects.equals(jsonParserFieldName, "seoSettings")) {
-				if (jsonParserFieldValue != null) {
-					contentPageSettings.setSeoSettings(
-						SEOSettingsSerDes.toDTO((String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "type")) {

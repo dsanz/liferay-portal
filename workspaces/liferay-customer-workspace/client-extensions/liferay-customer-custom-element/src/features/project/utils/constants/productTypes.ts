@@ -5,11 +5,13 @@
 
 export const PRODUCT_TYPES = {
 	analyticsCloud: 'Analytics Cloud',
+	cloudNative: 'Cloud Native',
 	commerce: 'Commerce',
 	commerceCloud: 'Commerce for Cloud',
 	dxp: 'DXP',
 	dxpCloud: 'Liferay PaaS',
 	enterpriseSearch: 'Enterprise Search',
+	liferayCloud: 'Liferay Cloud',
 	liferayExperienceCloud: 'Liferay SaaS',
 	other: 'Other',
 	partnership: 'Partnership',

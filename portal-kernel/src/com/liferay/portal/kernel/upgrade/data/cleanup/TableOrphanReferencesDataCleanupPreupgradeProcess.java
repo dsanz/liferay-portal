@@ -9,6 +9,7 @@ import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.upgrade.data.cleanup.util.OrphanReferencesDataCleanupUtil;
+import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.StringBundler;
 
 import java.util.List;
@@ -20,15 +21,29 @@ public class TableOrphanReferencesDataCleanupPreupgradeProcess
 	extends DataCleanupPreupgradeProcess {
 
 	public TableOrphanReferencesDataCleanupPreupgradeProcess(
+		String customJoinClause, boolean readOnly,
 		String sourceAdditionalWhereClause, String sourceColumnName,
 		String sourceTableName, String targetColumnName,
 		String targetTableName) {
 
+		_customJoinClause = customJoinClause;
+		_readOnly = readOnly;
 		_sourceAdditionalWhereClause = sourceAdditionalWhereClause;
 		_sourceColumnName = sourceColumnName;
 		_sourceTableName = sourceTableName;
 		_targetColumnName = targetColumnName;
 		_targetTableName = targetTableName;
+	}
+
+	public TableOrphanReferencesDataCleanupPreupgradeProcess(
+		String customJoinClause, String sourceAdditionalWhereClause,
+		String sourceColumnName, String sourceTableName,
+		String targetColumnName, String targetTableName) {
+
+		this(
+			customJoinClause, false, sourceAdditionalWhereClause,
+			sourceColumnName, sourceTableName, targetColumnName,
+			targetTableName);
 	}
 
 	@Override
@@ -68,7 +83,11 @@ public class TableOrphanReferencesDataCleanupPreupgradeProcess
 
 		String targetTableName = dbInspector.normalizeName(_targetTableName);
 
-		if (!dbInspector.hasTable(targetTableName)) {
+		if (!dbInspector.hasTable(targetTableName) &&
+			!(PropsValues.DATABASE_PARTITION_ENABLED &&
+			  dbInspector.isControlTable(targetTableName) &&
+			  dbInspector.hasView(targetTableName))) {
+
 			if (_log.isDebugEnabled()) {
 				_log.debug("Table " + targetTableName + " does not exist");
 			}
@@ -90,13 +109,16 @@ public class TableOrphanReferencesDataCleanupPreupgradeProcess
 		}
 
 		OrphanReferencesDataCleanupUtil.cleanUpTable(
-			connection, _sourceAdditionalWhereClause, sourceColumnName,
-			sourceTableName, new String[] {targetColumnName}, targetTableName);
+			connection, new String[] {_customJoinClause}, _readOnly,
+			_sourceAdditionalWhereClause, sourceColumnName, sourceTableName,
+			new String[] {targetColumnName}, targetTableName);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		TableOrphanReferencesDataCleanupPreupgradeProcess.class);
 
+	private final String _customJoinClause;
+	private final boolean _readOnly;
 	private final String _sourceAdditionalWhereClause;
 	private final String _sourceColumnName;
 	private final String _sourceTableName;

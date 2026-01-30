@@ -5,22 +5,22 @@
 
 import {ClayButtonWithIcon} from '@clayui/button';
 import {ClayDropDownWithItems} from '@clayui/drop-down';
-import ClayEmptyState from '@clayui/empty-state';
 import {SearchForm} from '@liferay/layout-js-components-web';
 import {ManagementToolbar} from 'frontend-js-components-web';
 import {sub} from 'frontend-js-web';
 import React, {useState} from 'react';
 
-import {getImage} from '../../common/utils/getImage';
 import {useSelector, useStateDispatch} from '../contexts/StateContext';
+import selectPublishedChildren from '../selectors/selectPublishedChildren';
 import selectSelection from '../selectors/selectSelection';
-import selectStructureChildren from '../selectors/selectStructureChildren';
+import selectStructure from '../selectors/selectStructure';
+import {deleteSelection} from '../utils/deleteSelection';
 import AddChildDropdown from './AddChildDropdown';
 import StructureTree from './StructureTree';
 
 export default function () {
 	return (
-		<div className="border structure-builder__sidebar">
+		<div className="border rounded-lg structure-builder__sidebar">
 			<h3 className="font-weight-semi-bold pt-4 px-4 text-4">
 				{Liferay.Language.get('content-structure-fields')}
 			</h3>
@@ -31,13 +31,7 @@ export default function () {
 }
 
 function Content() {
-	const children = useSelector(selectStructureChildren);
-
 	const [search, setSearch] = useState('');
-
-	if (!children.size) {
-		return <EmptyState />;
-	}
 
 	return (
 		<>
@@ -48,23 +42,6 @@ function Content() {
 	);
 }
 
-function EmptyState() {
-	return (
-		<ClayEmptyState
-			className="mt-6 px-4 structure-builder__empty-state"
-			description={Liferay.Language.get(
-				'add-new-fields-to-start-building-your-content-structure'
-			)}
-			imgSrc={getImage('structure_fields_empty_state.svg')}
-			imgSrcReducedMotion={getImage('structure_fields_empty_state.svg')}
-			small
-			title={Liferay.Language.get('no-fields-yet')}
-		>
-			<AddChildDropdown />
-		</ClayEmptyState>
-	);
-}
-
 function Toolbar({
 	setSearch,
 }: {
@@ -72,6 +49,8 @@ function Toolbar({
 }) {
 	const dispatch = useStateDispatch();
 	const selection = useSelector(selectSelection);
+	const structure = useSelector(selectStructure);
+	const publishedChildren = useSelector(selectPublishedChildren);
 
 	if (selection.length <= 1) {
 		return (
@@ -84,7 +63,7 @@ function Toolbar({
 					variant="white"
 				/>
 
-				<AddChildDropdown triggerType="icon" />
+				<AddChildDropdown />
 			</div>
 		);
 	}
@@ -100,14 +79,21 @@ function Toolbar({
 			<ClayDropDownWithItems
 				items={[
 					{
-						label: Liferay.Language.get('delete'),
-						onClick: () => dispatch({type: 'delete-selection'}),
-						symbolLeft: 'trash',
-					},
-					{
 						label: Liferay.Language.get('create-repeatable-group'),
 						onClick: () => dispatch({type: 'add-repeatable-group'}),
 						symbolLeft: 'repeat',
+					},
+					{type: 'divider'},
+					{
+						label: Liferay.Language.get('delete'),
+						onClick: () =>
+							deleteSelection({
+								dispatch,
+								publishedChildren,
+								selection,
+								structure,
+							}),
+						symbolLeft: 'trash',
 					},
 				]}
 				trigger={

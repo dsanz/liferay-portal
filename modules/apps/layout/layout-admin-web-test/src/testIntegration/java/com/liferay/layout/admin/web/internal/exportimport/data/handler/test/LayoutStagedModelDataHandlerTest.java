@@ -27,7 +27,6 @@ import com.liferay.client.extension.service.ClientExtensionEntryRelLocalService;
 import com.liferay.document.library.kernel.model.DLFileEntry;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
-import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestUtil;
@@ -42,7 +41,6 @@ import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleManagerUti
 import com.liferay.exportimport.kernel.lifecycle.constants.ExportImportLifecycleConstants;
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.exportimport.kernel.service.ExportImportConfigurationLocalServiceUtil;
-import com.liferay.exportimport.kernel.service.ExportImportLocalService;
 import com.liferay.exportimport.kernel.service.ExportImportServiceUtil;
 import com.liferay.exportimport.kernel.service.StagingLocalService;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
@@ -91,13 +89,13 @@ import com.liferay.layout.utility.page.kernel.constants.LayoutUtilityPageEntryCo
 import com.liferay.layout.utility.page.model.LayoutUtilityPageEntry;
 import com.liferay.layout.utility.page.service.LayoutUtilityPageEntryLocalService;
 import com.liferay.petra.function.UnsafeSupplier;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.background.task.model.BackgroundTask;
 import com.liferay.portal.background.task.service.BackgroundTaskLocalService;
 import com.liferay.portal.kernel.backgroundtask.constants.BackgroundTaskConstants;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -148,6 +146,7 @@ import com.liferay.portal.test.log.LogEntry;
 import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.portlet.display.template.PortletDisplayTemplate;
 import com.liferay.segments.constants.SegmentsEntryConstants;
 import com.liferay.segments.model.SegmentsExperience;
@@ -175,6 +174,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
@@ -196,7 +196,26 @@ public class LayoutStagedModelDataHandlerTest
 	@ClassRule
 	@Rule
 	public static final AggregateTestRule aggregateTestRule =
-		new LiferayIntegrationTestRule();
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(),
+			PermissionCheckerMethodTestRule.INSTANCE);
+
+	@After
+	public void tearDown() throws Exception {
+		stagingGroup = _groupLocalService.fetchGroup(stagingGroup.getGroupId());
+
+		if (stagingGroup != null) {
+			_groupLocalService.deleteGroup(stagingGroup.getGroupId());
+		}
+
+		liveGroup = _groupLocalService.fetchGroup(liveGroup.getGroupId());
+
+		if (liveGroup != null) {
+			_groupLocalService.deleteGroup(liveGroup.getGroupId());
+		}
+
+		ServiceContextThreadLocal.popServiceContext();
+	}
 
 	@Test
 	public void testClientExtensionEntries() throws Exception {
@@ -246,13 +265,14 @@ public class LayoutStagedModelDataHandlerTest
 			StagedModelDataHandlerUtil.exportStagedModel(
 				portletDataContext, layout);
 
-			initImport();
+			try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+				Company company = _companyLocalService.getCompany(
+					liveGroup.getCompanyId());
 
-			Company company = _companyLocalService.getCompany(
-				liveGroup.getCompanyId());
-
-			validatePortletAttributes(
-				layout.getUuid(), portletId, company.getGroupId(), "company");
+				validatePortletAttributes(
+					layout.getUuid(), portletId, company.getGroupId(),
+					"company");
+			}
 		}
 		finally {
 			serviceRegistration.unregister();
@@ -281,13 +301,14 @@ public class LayoutStagedModelDataHandlerTest
 			StagedModelDataHandlerUtil.exportStagedModel(
 				portletDataContext, layout);
 
-			initImport();
+			try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+				Company company = _companyLocalService.getCompany(
+					liveGroup.getCompanyId());
 
-			Company company = _companyLocalService.getCompany(
-				liveGroup.getCompanyId());
-
-			validatePortletAttributes(
-				layout.getUuid(), portletId, company.getGroupId(), "company");
+				validatePortletAttributes(
+					layout.getUuid(), portletId, company.getGroupId(),
+					"company");
+			}
 		}
 		finally {
 			serviceRegistration.unregister();
@@ -295,8 +316,10 @@ public class LayoutStagedModelDataHandlerTest
 	}
 
 	@Test
-	@TestInfo("LPD-46179")
-	public void testDeleteLayoutWithLayoutPageTemplateEntry() throws Exception {
+	@TestInfo({"LPD-46179", "LPD-67554"})
+	public void testDeleteLayoutWithLayoutPageTemplateEntryAndUtilityPageTemplateEntry()
+		throws Exception {
+
 		Group group = GroupTestUtil.addGroup();
 
 		_stagingLocalService.enableLocalStaging(
@@ -306,7 +329,12 @@ public class LayoutStagedModelDataHandlerTest
 
 		Group stagingGroup = group.getStagingGroup();
 
-		LayoutPageTemplateEntry layoutPageTemplateEntry =
+		LayoutPageTemplateEntry basicLayoutPageTemplateEntry =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				group.getGroupId(), LayoutPageTemplateEntryTypeConstants.BASIC,
+				WorkflowConstants.STATUS_APPROVED);
+
+		LayoutPageTemplateEntry displayPageLayoutPageTemplateEntry =
 			DisplayPageTemplateTestUtil.addDisplayPageTemplate(
 				stagingGroup.getGroupId(),
 				_portal.getClassNameId(AssetCategory.class.getName()), 0, true,
@@ -317,23 +345,42 @@ public class LayoutStagedModelDataHandlerTest
 				null, TestPropsValues.getUserId(), stagingGroup.getGroupId(), 0,
 				0, false, RandomTestUtil.randomString(),
 				LayoutUtilityPageEntryConstants.TYPE_SC_INTERNAL_SERVER_ERROR,
-				0,
+				null,
 				ServiceContextTestUtil.getServiceContext(
 					stagingGroup.getGroupId(), TestPropsValues.getUserId()));
 
+		LayoutPageTemplateEntry masterLayoutPageTemplateEntry =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				group.getGroupId(),
+				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT,
+				WorkflowConstants.STATUS_APPROVED);
+
 		_publishLayouts(group, stagingGroup);
 
-		LayoutPageTemplateEntry liveLayoutPageTemplateEntry =
+		LayoutPageTemplateEntry liveBasicLayoutPageTemplateEntry =
 			_layoutPageTemplateEntryLocalService.
 				getLayoutPageTemplateEntryByUuidAndGroupId(
-					layoutPageTemplateEntry.getUuid(), group.getGroupId());
+					basicLayoutPageTemplateEntry.getUuid(), group.getGroupId());
 
 		Assert.assertEquals(
-			layoutPageTemplateEntry.getName(),
-			liveLayoutPageTemplateEntry.getName());
+			basicLayoutPageTemplateEntry.getName(),
+			liveBasicLayoutPageTemplateEntry.getName());
 
 		_layoutPageTemplateEntryLocalService.deleteLayoutPageTemplateEntry(
-			layoutPageTemplateEntry);
+			basicLayoutPageTemplateEntry);
+
+		LayoutPageTemplateEntry liveDisplayPageLayoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.
+				getLayoutPageTemplateEntryByUuidAndGroupId(
+					displayPageLayoutPageTemplateEntry.getUuid(),
+					group.getGroupId());
+
+		Assert.assertEquals(
+			displayPageLayoutPageTemplateEntry.getName(),
+			liveDisplayPageLayoutPageTemplateEntry.getName());
+
+		_layoutPageTemplateEntryLocalService.deleteLayoutPageTemplateEntry(
+			displayPageLayoutPageTemplateEntry);
 
 		LayoutUtilityPageEntry liveLayoutUtilityPageEntry =
 			_layoutUtilityPageEntryLocalService.
@@ -347,14 +394,36 @@ public class LayoutStagedModelDataHandlerTest
 		_layoutUtilityPageEntryLocalService.deleteLayoutUtilityPageEntry(
 			layoutUtilityPageEntry);
 
+		LayoutPageTemplateEntry liveMasterLayoutPageTemplateEntry =
+			_layoutPageTemplateEntryLocalService.
+				getLayoutPageTemplateEntryByUuidAndGroupId(
+					masterLayoutPageTemplateEntry.getUuid(),
+					group.getGroupId());
+
+		Assert.assertEquals(
+			masterLayoutPageTemplateEntry.getName(),
+			liveMasterLayoutPageTemplateEntry.getName());
+
+		_layoutPageTemplateEntryLocalService.deleteLayoutPageTemplateEntry(
+			masterLayoutPageTemplateEntry);
+
 		_publishLayouts(group, stagingGroup);
 
 		Assert.assertNull(
 			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
-				liveLayoutPageTemplateEntry.getLayoutPageTemplateEntryId()));
+				liveBasicLayoutPageTemplateEntry.
+					getLayoutPageTemplateEntryId()));
+		Assert.assertNull(
+			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
+				liveDisplayPageLayoutPageTemplateEntry.
+					getLayoutPageTemplateEntryId()));
 		Assert.assertNull(
 			_layoutUtilityPageEntryLocalService.fetchLayoutUtilityPageEntry(
 				liveLayoutUtilityPageEntry.getLayoutUtilityPageEntryId()));
+		Assert.assertNull(
+			_layoutPageTemplateEntryLocalService.fetchLayoutPageTemplateEntry(
+				liveMasterLayoutPageTemplateEntry.
+					getLayoutPageTemplateEntryId()));
 	}
 
 	@Test
@@ -366,7 +435,34 @@ public class LayoutStagedModelDataHandlerTest
 
 		Layout liveDraftLayout = liveLayout.fetchDraftLayout();
 
+		UnicodeProperties typeSettingsUnicodeProperties =
+			liveGroup.getTypeSettingsProperties();
+
+		typeSettingsUnicodeProperties.setProperty(
+			"staged", Boolean.TRUE.toString());
+
+		_groupLocalService.updateGroup(
+			liveGroup.getGroupId(), typeSettingsUnicodeProperties.toString());
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				stagingGroup.getGroupId(), TestPropsValues.getUserId());
+
+		_stagingLocalService.disableStaging(liveGroup, serviceContext);
+
 		ContentLayoutTestUtil.publishLayout(liveDraftLayout, liveLayout);
+
+		_stagingLocalService.enableLocalStaging(
+			TestPropsValues.getUserId(), liveGroup, false, false,
+			serviceContext);
+
+		String friendlyURL = StringPool.SLASH + RandomTestUtil.randomString();
+
+		liveLayout = _layoutLocalService.updateFriendlyURL(
+			TestPropsValues.getUserId(), liveLayout.getPlid(), friendlyURL,
+			liveLayout.getDefaultLanguageId());
+
+		stagingGroup = liveGroup.getStagingGroup();
 
 		initExport();
 
@@ -384,8 +480,8 @@ public class LayoutStagedModelDataHandlerTest
 		ContentLayoutTestUtil.publishLayout(stagingDraftLayout, stagingLayout);
 
 		stagingLayout = _layoutLocalService.updateFriendlyURL(
-			TestPropsValues.getUserId(), stagingLayout.getPlid(),
-			liveLayout.getFriendlyURL(), stagingLayout.getDefaultLanguageId());
+			TestPropsValues.getUserId(), stagingLayout.getPlid(), friendlyURL,
+			stagingLayout.getDefaultLanguageId());
 
 		Assert.assertEquals(
 			stagingLayout.getFriendlyURL(), liveLayout.getFriendlyURL());
@@ -395,62 +491,62 @@ public class LayoutStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, stagingLayout);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, readExportedStagedModel(stagingLayout));
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, readExportedStagedModel(stagingLayout));
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			Assert.assertNull(
+				_layoutLocalService.fetchLayout(
+					stagingDraftLayout.getUuid(), liveGroup.getGroupId(),
+					stagingDraftLayout.isPrivateLayout()));
+			Assert.assertNull(
+				_layoutLocalService.fetchLayout(
+					stagingLayout.getUuid(), liveGroup.getGroupId(),
+					stagingLayout.isPrivateLayout()));
 
-		Assert.assertNull(
-			_layoutLocalService.fetchLayout(
-				stagingDraftLayout.getUuid(), liveGroup.getGroupId(),
-				stagingDraftLayout.isPrivateLayout()));
-		Assert.assertNull(
-			_layoutLocalService.fetchLayout(
-				stagingLayout.getUuid(), liveGroup.getGroupId(),
-				stagingLayout.isPrivateLayout()));
+			liveLayout = _layoutLocalService.getLayout(liveLayout.getPlid());
 
-		liveLayout = _layoutLocalService.getLayout(liveLayout.getPlid());
+			Assert.assertEquals(
+				stagingLayout.getFriendlyURL(), liveLayout.getFriendlyURL());
+			Assert.assertEquals(stagingLayout.getName(), liveLayout.getName());
 
-		Assert.assertEquals(
-			stagingLayout.getFriendlyURL(), liveLayout.getFriendlyURL());
-		Assert.assertEquals(stagingLayout.getName(), liveLayout.getName());
+			Layout importedLiveDraftLayout = null;
 
-		Layout importedLiveDraftLayout = null;
+			try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+					"com.liferay.portal.service.impl.LayoutLocalServiceImpl",
+					LoggerTestUtil.ERROR)) {
 
-		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
-				"com.liferay.portal.service.impl.LayoutLocalServiceImpl",
-				LoggerTestUtil.ERROR)) {
+				importedLiveDraftLayout = liveLayout.fetchDraftLayout();
 
-			importedLiveDraftLayout = liveLayout.fetchDraftLayout();
+				List<LogEntry> logEntries = logCapture.getLogEntries();
 
-			List<LogEntry> logEntries = logCapture.getLogEntries();
+				Assert.assertTrue(logEntries.toString(), logEntries.isEmpty());
+			}
 
-			Assert.assertTrue(logEntries.toString(), logEntries.isEmpty());
+			Assert.assertEquals(
+				stagingDraftLayout.getFriendlyURL(),
+				importedLiveDraftLayout.getFriendlyURL());
+			Assert.assertEquals(
+				liveDraftLayout.getPlid(), importedLiveDraftLayout.getPlid());
+			Assert.assertEquals(
+				liveDraftLayout.getUuid(), importedLiveDraftLayout.getUuid());
 		}
-
-		Assert.assertEquals(
-			stagingDraftLayout.getFriendlyURL(),
-			importedLiveDraftLayout.getFriendlyURL());
-		Assert.assertEquals(
-			liveDraftLayout.getPlid(), importedLiveDraftLayout.getPlid());
-		Assert.assertEquals(
-			liveDraftLayout.getUuid(), importedLiveDraftLayout.getUuid());
 	}
 
 	@Test
@@ -535,37 +631,38 @@ public class LayoutStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, stagingLayout);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, readExportedStagedModel(stagingLayout));
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, readExportedStagedModel(stagingLayout));
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			Layout importedLayout = _layoutLocalService.fetchLayout(
+				stagingLayout.getUuid(), liveGroup.getGroupId(),
+				stagingLayout.isPrivateLayout());
 
-		Layout importedLayout = _layoutLocalService.fetchLayout(
-			stagingLayout.getUuid(), liveGroup.getGroupId(),
-			stagingLayout.isPrivateLayout());
-
-		Assert.assertEquals(
-			stagingLayout.getFriendlyURL() + "1",
-			importedLayout.getFriendlyURL());
-		Assert.assertNotEquals(
-			liveLayout.getFriendlyURL(), importedLayout.getFriendlyURL());
-		Assert.assertEquals(stagingLayout.getName(), importedLayout.getName());
+			Assert.assertEquals(
+				stagingLayout.getFriendlyURL() + "1",
+				importedLayout.getFriendlyURL());
+			Assert.assertNotEquals(
+				liveLayout.getFriendlyURL(), importedLayout.getFriendlyURL());
+			Assert.assertEquals(
+				stagingLayout.getName(), importedLayout.getName());
+		}
 	}
 
 	@Test
@@ -615,7 +712,7 @@ public class LayoutStagedModelDataHandlerTest
 		Assert.assertNotNull(
 			_fragmentEntryLinkLocalService.getFragmentEntryLink(
 				stagingGroup.getGroupId(),
-				draftLayoutFragmentEntryLink.getFragmentEntryLinkId(),
+				draftLayoutFragmentEntryLink.getExternalReferenceCode(),
 				layout.getPlid()));
 
 		_updateDraftLayout(
@@ -658,7 +755,16 @@ public class LayoutStagedModelDataHandlerTest
 							importedFileEntry.getFileVersion(), null,
 							StringPool.BLANK)),
 					"\" data-fileentryid=\"",
-					importedFileEntry.getFileEntryId(), "\"></a>")));
+					importedFileEntry.getFileEntryId(), "\"")));
+
+		UnicodeProperties typeSettingsUnicodeProperties =
+			liveGroup.getTypeSettingsProperties();
+
+		typeSettingsUnicodeProperties.setProperty(
+			"staged", Boolean.TRUE.toString());
+
+		_groupLocalService.updateGroup(
+			liveGroup.getGroupId(), typeSettingsUnicodeProperties.toString());
 
 		_stagingLocalService.disableStaging(liveGroup, serviceContext);
 
@@ -692,7 +798,7 @@ public class LayoutStagedModelDataHandlerTest
 							importedFileEntry.getFileVersion(), null,
 							StringPool.BLANK)),
 					"\" data-fileentryid=\"",
-					importedFileEntry.getFileEntryId(), "\"></a>")));
+					importedFileEntry.getFileEntryId(), "\"")));
 		Assert.assertTrue(
 			html,
 			html.contains(
@@ -725,29 +831,30 @@ public class LayoutStagedModelDataHandlerTest
 				WorkflowConstants.STATUS_APPROVED);
 
 		Layout layout = LayoutTestUtil.addTypeContentLayout(
-			stagingGroup, false, false, layoutPageTemplateEntry.getPlid());
+			stagingGroup, false, false,
+			layoutPageTemplateEntry.getExternalReferenceCode());
 
 		initExport();
 
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, layout);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			Assert.assertFalse(portletDataContext.isPrivateLayout());
 
-		Assert.assertFalse(portletDataContext.isPrivateLayout());
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, readExportedStagedModel(layout));
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, readExportedStagedModel(layout));
-
-		Assert.assertFalse(portletDataContext.isPrivateLayout());
+			Assert.assertFalse(portletDataContext.isPrivateLayout());
+		}
 	}
 
 	@Test
@@ -862,55 +969,58 @@ public class LayoutStagedModelDataHandlerTest
 
 		Layout layout = LayoutTestUtil.addTypeContentLayout(stagingGroup);
 
-		layout = _layoutLocalService.updateMasterLayoutPlid(
+		layout = _layoutLocalService.updateMasterLayoutPageTemplateEntryERC(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
-			masterLayoutPageTemplateEntry.getPlid());
+			masterLayoutPageTemplateEntry.getExternalReferenceCode());
 
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, layout);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			Layout exportedLayout = (Layout)readExportedStagedModel(layout);
 
-		Layout exportedLayout = (Layout)readExportedStagedModel(layout);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedLayout);
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedLayout);
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			LayoutPageTemplateEntry importedMasterLayoutPageTemplateEntry =
+				_layoutPageTemplateEntryLocalService.
+					getLayoutPageTemplateEntryByUuidAndGroupId(
+						masterLayoutPageTemplateEntry.getUuid(),
+						liveGroup.getGroupId());
 
-		LayoutPageTemplateEntry importedMasterLayoutPageTemplateEntry =
-			_layoutPageTemplateEntryLocalService.
-				getLayoutPageTemplateEntryByUuidAndGroupId(
-					masterLayoutPageTemplateEntry.getUuid(),
-					liveGroup.getGroupId());
+			Assert.assertNotEquals(
+				masterLayoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+				importedMasterLayoutPageTemplateEntry.
+					getLayoutPageTemplateEntryId());
+			Assert.assertNotEquals(
+				masterLayoutPageTemplateEntry.getPlid(),
+				importedMasterLayoutPageTemplateEntry.getPlid());
 
-		Assert.assertNotEquals(
-			masterLayoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
-			importedMasterLayoutPageTemplateEntry.
-				getLayoutPageTemplateEntryId());
-		Assert.assertNotEquals(
-			masterLayoutPageTemplateEntry.getPlid(),
-			importedMasterLayoutPageTemplateEntry.getPlid());
+			Layout importedLayout =
+				_layoutLocalService.getLayoutByUuidAndGroupId(
+					layout.getUuid(), liveGroup.getGroupId(),
+					layout.isPrivateLayout());
 
-		Layout importedLayout = _layoutLocalService.getLayoutByUuidAndGroupId(
-			layout.getUuid(), liveGroup.getGroupId(), layout.isPrivateLayout());
-
-		Assert.assertNotEquals(
-			layout.getMasterLayoutPlid(), importedLayout.getMasterLayoutPlid());
+			Assert.assertNotEquals(
+				layout.getMasterLayoutPlid(),
+				importedLayout.getMasterLayoutPlid());
+		}
 	}
 
 	@Test
@@ -989,7 +1099,8 @@ public class LayoutStagedModelDataHandlerTest
 						))
 				).toString(),
 				fragmentEntry.getCss(), fragmentEntry.getConfiguration(),
-				fragmentEntry.getFragmentEntryId(), fragmentEntry.getHtml(),
+				fragmentEntry.getExternalReferenceCode(),
+				fragmentEntry.getScopeERC(), fragmentEntry.getHtml(),
 				fragmentEntry.getJs(), stagingLayout1,
 				fragmentEntry.getFragmentEntryKey(), fragmentEntry.getType(),
 				null, 0,
@@ -1098,10 +1209,6 @@ public class LayoutStagedModelDataHandlerTest
 
 		Layout stagingMasterLayout = _layoutLocalService.fetchLayout(
 			masterLayout.getUuid(), stagingGroup.getGroupId(), true);
-
-		stagingLayout = _layoutLocalService.updateMasterLayoutPlid(
-			stagingGroup.getGroupId(), false, stagingLayout.getLayoutId(),
-			stagingMasterLayout.getPlid());
 
 		stagingMasterLayout.setLayoutId(layout.getLayoutId());
 
@@ -1242,52 +1349,57 @@ public class LayoutStagedModelDataHandlerTest
 
 		StyleBookEntry styleBookEntry =
 			_styleBookEntryLocalService.addStyleBookEntry(
-				null, TestPropsValues.getUserId(), stagingGroup.getGroupId(),
+				null, TestPropsValues.getUserId(), liveGroup.getGroupId(),
 				false, StringPool.BLANK, RandomTestUtil.randomString(),
 				StringPool.BLANK, RandomTestUtil.randomString(),
 				ServiceContextTestUtil.getServiceContext(
-					stagingGroup.getGroupId()));
+					liveGroup.getGroupId()));
 
 		Layout layout = LayoutTestUtil.addTypeContentLayout(stagingGroup);
 
-		layout = _layoutLocalService.updateStyleBookEntryId(
+		layout = _layoutLocalService.updateStyleBookEntryERC(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
-			styleBookEntry.getStyleBookEntryId());
+			styleBookEntry.getExternalReferenceCode());
 
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, layout);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			Layout exportedLayout = (Layout)readExportedStagedModel(layout);
 
-		Layout exportedLayout = (Layout)readExportedStagedModel(layout);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedLayout);
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedLayout);
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			Layout importedLayout =
+				_layoutLocalService.getLayoutByUuidAndGroupId(
+					layout.getUuid(), liveGroup.getGroupId(),
+					layout.isPrivateLayout());
 
-		Layout importedLayout = _layoutLocalService.getLayoutByUuidAndGroupId(
-			layout.getUuid(), liveGroup.getGroupId(), layout.isPrivateLayout());
-
-		Assert.assertNotEquals(
-			layout.getStyleBookEntryId(), importedLayout.getStyleBookEntryId());
-		Assert.assertNotNull(
-			_styleBookEntryLocalService.fetchStyleBookEntry(
-				importedLayout.getStyleBookEntryId()));
+			Assert.assertEquals(
+				layout.getStyleBookEntryERC(),
+				importedLayout.getStyleBookEntryERC());
+			Assert.assertNotNull(
+				_styleBookEntryLocalService.
+					fetchStyleBookEntryByExternalReferenceCode(
+						importedLayout.getStyleBookEntryERC(),
+						importedLayout.getGroupId()));
+		}
 	}
 
 	@Test
@@ -1324,51 +1436,51 @@ public class LayoutStagedModelDataHandlerTest
 
 		validateExport(portletDataContext, layout, dependentStagedModelsMap);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			Layout exportedLayout = (Layout)readExportedStagedModel(layout);
 
-		Layout exportedLayout = (Layout)readExportedStagedModel(layout);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedLayout);
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedLayout);
+			Layout exportedLinkedLayout = (Layout)readExportedStagedModel(
+				linkedLayout);
 
-		Layout exportedLinkedLayout = (Layout)readExportedStagedModel(
-			linkedLayout);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedLinkedLayout);
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedLinkedLayout);
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			_layoutLocalService.getLayoutByUuidAndGroupId(
+				linkedLayout.getUuid(), liveGroup.getGroupId(), false);
 
-		_layoutLocalService.getLayoutByUuidAndGroupId(
-			linkedLayout.getUuid(), liveGroup.getGroupId(), false);
+			LayoutFriendlyURL linkedLayoutFriendlyURL =
+				linkedLayoutFriendlyURLs.get(0);
 
-		LayoutFriendlyURL linkedLayoutFriendlyURL =
-			linkedLayoutFriendlyURLs.get(0);
+			_layoutFriendlyURLLocalService.getLayoutFriendlyURLByUuidAndGroupId(
+				linkedLayoutFriendlyURL.getUuid(), liveGroup.getGroupId());
 
-		_layoutFriendlyURLLocalService.getLayoutFriendlyURLByUuidAndGroupId(
-			linkedLayoutFriendlyURL.getUuid(), liveGroup.getGroupId());
+			_layoutLocalService.getLayoutByUuidAndGroupId(
+				layout.getUuid(), liveGroup.getGroupId(), false);
 
-		_layoutLocalService.getLayoutByUuidAndGroupId(
-			layout.getUuid(), liveGroup.getGroupId(), false);
+			LayoutFriendlyURL layoutFriendlyURL = layoutFriendlyURLs.get(0);
 
-		LayoutFriendlyURL layoutFriendlyURL = layoutFriendlyURLs.get(0);
-
-		_layoutFriendlyURLLocalService.getLayoutFriendlyURLByUuidAndGroupId(
-			layoutFriendlyURL.getUuid(), liveGroup.getGroupId());
+			_layoutFriendlyURLLocalService.getLayoutFriendlyURLByUuidAndGroupId(
+				layoutFriendlyURL.getUuid(), liveGroup.getGroupId());
+		}
 	}
 
 	@Test
@@ -1405,53 +1517,55 @@ public class LayoutStagedModelDataHandlerTest
 
 		validateExport(portletDataContext, layout, dependentStagedModelsMap);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			FileEntry exportedFileEntry = (FileEntry)readExportedStagedModel(
+				fileEntry);
+			Layout exportedLayout = (Layout)readExportedStagedModel(layout);
 
-		FileEntry exportedFileEntry = (FileEntry)readExportedStagedModel(
-			fileEntry);
-		Layout exportedLayout = (Layout)readExportedStagedModel(layout);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedFileEntry);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedLayout);
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedFileEntry);
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedLayout);
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			FileEntry importedFileEntry =
+				_dlAppLocalService.getFileEntryByUuidAndGroupId(
+					fileEntry.getUuid(), liveGroup.getGroupId());
 
-		FileEntry importedFileEntry =
-			_dlAppLocalService.getFileEntryByUuidAndGroupId(
-				fileEntry.getUuid(), liveGroup.getGroupId());
+			String livePreviewURL = _dlURLHelper.getPreviewURL(
+				importedFileEntry, importedFileEntry.getFileVersion(), null,
+				StringPool.BLANK);
 
-		String livePreviewURL = _dlURLHelper.getPreviewURL(
-			importedFileEntry, importedFileEntry.getFileVersion(), null,
-			StringPool.BLANK);
+			Layout importedLayout =
+				_layoutLocalService.getLayoutByUuidAndGroupId(
+					layout.getUuid(), liveGroup.getGroupId(),
+					layout.isPrivateLayout());
 
-		Layout importedLayout = _layoutLocalService.getLayoutByUuidAndGroupId(
-			layout.getUuid(), liveGroup.getGroupId(), layout.isPrivateLayout());
+			UnicodeProperties typeSettingsUnicodeProperties =
+				importedLayout.getTypeSettingsProperties();
 
-		UnicodeProperties typeSettingsUnicodeProperties =
-			importedLayout.getTypeSettingsProperties();
+			String liveLinkedURL = GetterUtil.getString(
+				typeSettingsUnicodeProperties.getProperty("url"));
 
-		String liveLinkedURL = GetterUtil.getString(
-			typeSettingsUnicodeProperties.getProperty("url"));
-
-		Assert.assertEquals(
-			HttpComponentsUtil.removeParameter(livePreviewURL, "t"),
-			HttpComponentsUtil.removeParameter(liveLinkedURL, "t"));
+			Assert.assertEquals(
+				HttpComponentsUtil.removeParameter(livePreviewURL, "t"),
+				HttpComponentsUtil.removeParameter(liveLinkedURL, "t"));
+		}
 	}
 
 	@Override
@@ -1786,7 +1900,8 @@ public class LayoutStagedModelDataHandlerTest
 					editableJSONObject
 				).toString(),
 				fragmentEntry.getCss(), fragmentEntry.getConfiguration(),
-				fragmentEntry.getFragmentEntryId(), fragmentEntry.getHtml(),
+				fragmentEntry.getExternalReferenceCode(),
+				fragmentEntry.getScopeERC(), fragmentEntry.getHtml(),
 				fragmentEntry.getJs(), layout.fetchDraftLayout(),
 				fragmentEntry.getFragmentEntryKey(), fragmentEntry.getType(),
 				null, 0,
@@ -1814,7 +1929,8 @@ public class LayoutStagedModelDataHandlerTest
 				editableFragmentEntryProcessorJSONObject
 			).toString(),
 			fragmentEntry.getCss(), fragmentEntry.getConfiguration(),
-			fragmentEntry.getFragmentEntryId(), fragmentEntry.getHtml(),
+			fragmentEntry.getExternalReferenceCode(),
+			fragmentEntry.getScopeERC(), fragmentEntry.getHtml(),
 			fragmentEntry.getJs(), layout, fragmentEntry.getFragmentEntryKey(),
 			fragmentEntry.getType(), null, 0, segmentsExperienceId);
 	}
@@ -1975,7 +2091,7 @@ public class LayoutStagedModelDataHandlerTest
 		FragmentEntryLink publishedLayoutFragmentEntryLink =
 			_fragmentEntryLinkLocalService.getFragmentEntryLink(
 				stagingGroup.getGroupId(),
-				draftLayoutFragmentEntryLink.getFragmentEntryLinkId(),
+				draftLayoutFragmentEntryLink.getExternalReferenceCode(),
 				layout.getPlid());
 
 		Assert.assertNotNull(publishedLayoutFragmentEntryLink);
@@ -2263,9 +2379,6 @@ public class LayoutStagedModelDataHandlerTest
 				buildParameterMap();
 
 		parameterMap.put(
-			PortletDataHandlerKeys.DELETIONS,
-			new String[] {Boolean.TRUE.toString()});
-		parameterMap.put(
 			PortletDataHandlerKeys.PORTLET_DATA,
 			new String[] {Boolean.TRUE.toString()});
 		parameterMap.put(
@@ -2347,87 +2460,91 @@ public class LayoutStagedModelDataHandlerTest
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, layout);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			Layout exportedLayout = (Layout)readExportedStagedModel(layout);
 
-		Layout exportedLayout = (Layout)readExportedStagedModel(layout);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedLayout);
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedLayout);
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			Layout importedLayout =
+				_layoutLocalService.getLayoutByUuidAndGroupId(
+					layout.getUuid(), liveGroup.getGroupId(),
+					layout.isPrivateLayout());
 
-		Layout importedLayout = _layoutLocalService.getLayoutByUuidAndGroupId(
-			layout.getUuid(), liveGroup.getGroupId(), layout.isPrivateLayout());
+			Assert.assertEquals(
+				1,
+				_clientExtensionEntryRelLocalService.
+					getClientExtensionEntryRelsCount(
+						_portal.getClassNameId(Layout.class),
+						importedLayout.getPlid(), type));
 
-		Assert.assertEquals(
-			1,
-			_clientExtensionEntryRelLocalService.
-				getClientExtensionEntryRelsCount(
-					_portal.getClassNameId(Layout.class),
-					importedLayout.getPlid(), type));
+			_clientExtensionEntryRelLocalService.deleteClientExtensionEntryRels(
+				_portal.getClassNameId(Layout.class), layout.getPlid(), type);
 
-		_clientExtensionEntryRelLocalService.deleteClientExtensionEntryRels(
-			_portal.getClassNameId(Layout.class), layout.getPlid(), type);
-
-		_clientExtensionEntryRelLocalService.addClientExtensionEntryRel(
-			TestPropsValues.getUserId(), stagingGroup.getGroupId(),
-			_portal.getClassNameId(Layout.class), layout.getPlid(),
-			clientExtensionEntry.getExternalReferenceCode(), type,
-			StringPool.BLANK,
-			ServiceContextTestUtil.getServiceContext(
-				stagingGroup.getGroupId()));
+			_clientExtensionEntryRelLocalService.addClientExtensionEntryRel(
+				TestPropsValues.getUserId(), stagingGroup.getGroupId(),
+				_portal.getClassNameId(Layout.class), layout.getPlid(),
+				clientExtensionEntry.getExternalReferenceCode(), type,
+				StringPool.BLANK,
+				ServiceContextTestUtil.getServiceContext(
+					stagingGroup.getGroupId()));
+		}
 
 		initExport();
 
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, layout);
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_STARTED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			Layout exportedLayout = (Layout)readExportedStagedModel(layout);
 
-		exportedLayout = (Layout)readExportedStagedModel(layout);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedLayout);
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedLayout);
+			ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
+				ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
+				ExportImportLifecycleConstants.
+					PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
+				portletDataContext.getExportImportProcessId(),
+				PortletDataContextFactoryUtil.clonePortletDataContext(
+					portletDataContext));
 
-		ExportImportLifecycleManagerUtil.fireExportImportLifecycleEvent(
-			ExportImportLifecycleConstants.EVENT_LAYOUT_IMPORT_SUCCEEDED,
-			ExportImportLifecycleConstants.
-				PROCESS_FLAG_LAYOUT_IMPORT_IN_PROCESS,
-			portletDataContext.getExportImportProcessId(),
-			PortletDataContextFactoryUtil.clonePortletDataContext(
-				portletDataContext));
+			Layout importedLayout =
+				_layoutLocalService.getLayoutByUuidAndGroupId(
+					layout.getUuid(), liveGroup.getGroupId(),
+					layout.isPrivateLayout());
 
-		importedLayout = _layoutLocalService.getLayoutByUuidAndGroupId(
-			layout.getUuid(), liveGroup.getGroupId(), layout.isPrivateLayout());
-
-		Assert.assertEquals(
-			1,
-			_clientExtensionEntryRelLocalService.
-				getClientExtensionEntryRelsCount(
-					_portal.getClassNameId(Layout.class),
-					importedLayout.getPlid(), type));
+			Assert.assertEquals(
+				1,
+				_clientExtensionEntryRelLocalService.
+					getClientExtensionEntryRelsCount(
+						_portal.getClassNameId(Layout.class),
+						importedLayout.getPlid(), type));
+		}
 	}
 
 	private void _updateDraftLayout(
@@ -2487,7 +2604,8 @@ public class LayoutStagedModelDataHandlerTest
 							"mapperType", "link"
 						)
 					))
-			).toString());
+			).toString(),
+			true);
 	}
 
 	private void _updateJournalArticle(
@@ -2582,16 +2700,10 @@ public class LayoutStagedModelDataHandlerTest
 	private DLAppLocalService _dlAppLocalService;
 
 	@Inject
-	private DLAppService _dlAppService;
-
-	@Inject
 	private DLFileEntryLocalService _dlFileEntryLocalService;
 
 	@Inject
 	private DLURLHelper _dlURLHelper;
-
-	@Inject
-	private ExportImportLocalService _exportImportLocalService;
 
 	@Inject
 	private FragmentCollectionContributorRegistry
@@ -2620,9 +2732,6 @@ public class LayoutStagedModelDataHandlerTest
 
 	@Inject
 	private JournalArticleLocalService _journalArticleLocalService;
-
-	@Inject
-	private JSONFactory _jsonFactory;
 
 	@Inject
 	private LayoutFriendlyURLLocalService _layoutFriendlyURLLocalService;

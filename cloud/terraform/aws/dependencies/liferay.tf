@@ -1,12 +1,13 @@
 locals {
 	bucket_active=local.is_active_data_blue ? module.s3_bucket_blue : module.s3_bucket_green
 	bucket_inactive=local.is_active_data_blue ? module.s3_bucket_green : module.s3_bucket_blue
+	bucket_overlay=module.s3_bucket_liferay_overlay
 	data_inactive=local.is_active_data_blue ? "green" : "blue"
 	db_active=local.is_active_data_blue ? module.postgres_blue[0] : module.postgres_green[0]
 	is_active_data_blue=var.data_active=="blue"
 	is_active_data_green=var.data_active=="green"
 	oidc_provider=replace(data.aws_eks_cluster.cluster.identity[0].oidc[0].issuer, "https://", "")
-	oidc_provider_arn="arn:aws:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${local.oidc_provider}"
+	oidc_provider_arn="arn:${var.arn_partition}:iam::${data.aws_caller_identity.current.account_id}:oidc-provider/${local.oidc_provider}"
 	vpc_config=data.aws_eks_cluster.cluster.vpc_config[0]
 }
 module "postgres_blue" {
@@ -49,9 +50,66 @@ module "s3_bucket_green" {
 	}
 	source="../modules/s3-bucket"
 }
+module "s3_bucket_liferay_overlay" {
+	block_public_acls=true
+	block_public_policy=true
+	bucket_prefix="${var.deployment_name}-overlay-"
+	control_object_ownership=true
+	force_destroy=true
+	ignore_public_acls=true
+	object_ownership="BucketOwnerPreferred"
+	restrict_public_buckets=true
+	server_side_encryption_configuration={
+		rule={
+			apply_server_side_encryption_by_default={
+				sse_algorithm="aws:kms"
+			}
+			bucket_key_enabled=true
+		}
+	}
+	source="terraform-aws-modules/s3-bucket/aws"
+	version="~> 4.1.1"
+	versioning={
+		enabled=true
+	}
+}
 resource "aws_db_subnet_group" "rds" {
 	name="${var.deployment_name}-rds-sub-grp"
 	subnet_ids=var.private_subnet_ids
+}
+resource "aws_iam_access_key" "ci_uploader" {
+	user=aws_iam_user.ci_uploader.name
+}
+resource "aws_iam_policy" "ci_upload_only" {
+	name="${var.deployment_name}-ci_upload_only"
+	policy=jsonencode(
+		{
+			Statement=[
+				{
+					Action="s3:ListBucket",
+					Effect="Allow",
+					Resource=module.s3_bucket_liferay_overlay.s3_bucket_arn
+					Sid="AllowListBucket",
+				},
+				{
+					Action="s3:PutObject",
+					Effect="Allow",
+					Resource="${module.s3_bucket_liferay_overlay.s3_bucket_arn}/*"
+					Sid="AllowPutObject",
+				},
+				{
+					Action=[
+						"s3:DeleteObject",
+						"s3:DeleteObjectVersion"
+					],
+					Effect="Deny",
+					Resource="${module.s3_bucket_liferay_overlay.s3_bucket_arn}/*"
+					Sid="DenyDelete",
+				}
+			]
+			Version = "2012-10-17",
+		}
+	)
 }
 resource "aws_iam_policy" "s3" {
 	name="${var.deployment_name}-s3-policy"
@@ -78,30 +136,16 @@ resource "aws_iam_policy" "s3" {
 			Version="2012-10-17"
 		})
 }
-resource "aws_iam_role" "liferay" {
-	assume_role_policy=jsonencode(
-		{
-			Statement=[
-				{
-					Action="sts:AssumeRoleWithWebIdentity"
-					Condition={
-						StringEquals={
-							"${local.oidc_provider}:sub" : "system:serviceaccount:${var.deployment_namespace}:liferay-default"
-						}
-					}
-					Effect="Allow"
-					Principal={
-						Federated=local.oidc_provider_arn
-					}
-				}
-			]
-			Version="2012-10-17"
-		})
-	name="${var.deployment_name}-irsa"
-}
 resource "aws_iam_role_policy_attachment" "s3" {
 	policy_arn=aws_iam_policy.s3.arn
-	role=aws_iam_role.liferay.name
+	role=var.liferay_sa_role_name
+}
+resource "aws_iam_user" "ci_uploader" {
+	name="${var.deployment_name}-ci_uploader"
+}
+resource "aws_iam_user_policy_attachment" "ci_uploader_attachment" {
+	policy_arn=aws_iam_policy.ci_upload_only.arn
+	user=aws_iam_user.ci_uploader.name
 }
 resource "aws_opensearch_domain" "os" {
 	access_policies=<<POLICY
@@ -113,7 +157,7 @@ resource "aws_opensearch_domain" "os" {
 			"Principal": {
 				"AWS": "*"
 			},
-			"Resource": "arn:aws:es:${var.region}:${data.aws_caller_identity.current.account_id}:domain/${var.deployment_name}-os-d/*"
+			"Resource": "arn:${var.arn_partition}:es:${var.region}:${data.aws_caller_identity.current.account_id}:domain/${var.deployment_name}-os-d/*"
 		}
 	],
 	"Version": "2012-10-17"
@@ -213,4 +257,34 @@ resource "kubernetes_secret" "managed_service_details" {
 		namespace=kubernetes_namespace.liferay.metadata[0].name
 	}
 	type="Opaque"
+}
+resource "kubernetes_storage_class" "liferay_overlay_storage" {
+	allow_volume_expansion=false
+	depends_on=[
+		module.s3_bucket_liferay_overlay
+	]
+	metadata {
+		name=module.s3_bucket_liferay_overlay.s3_bucket_id
+	}
+	parameters={
+		"bucketName"=module.s3_bucket_liferay_overlay.s3_bucket_id
+	}
+	storage_provisioner="s3.csi.aws.com"
+	volume_binding_mode="WaitForFirstConsumer"
+}
+resource "null_resource" "opensearch_service_role" {
+	provisioner "local-exec" {
+		command=<<-EOT
+			aws \
+				iam \
+				create-service-linked-role \
+				--aws-service-name opensearchservice.amazonaws.com \
+				--region "${var.region}" \
+				|| true
+		EOT
+	}
+
+	triggers={
+		service_name="opensearchservice.amazonaws.com"
+	}
 }

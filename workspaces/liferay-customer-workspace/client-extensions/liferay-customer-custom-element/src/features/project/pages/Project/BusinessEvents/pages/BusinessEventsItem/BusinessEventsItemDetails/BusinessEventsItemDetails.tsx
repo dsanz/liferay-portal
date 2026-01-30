@@ -25,15 +25,18 @@ import getKebabCase from '~/utils/getKebabCase';
 import AssociatedTicketsContainer from '../../../components/AssociatedTicketsContainer';
 import ManageEventModal from '../../../components/ManageEventModal';
 import useAccountsTickets from '../../../hooks/useAccountsTickets';
+import usecanViewTickets from '../../../hooks/useCanViewTickets';
 import useGetBusinessEvent from '../../../hooks/useGetBusinessEvent';
 import useHasAllEventsPermissions from '../../../hooks/useHasAllEventsPermissions';
 
 const BusinessEventsItemDetails = () => {
 	const {accountKey, id} = useParams<{accountKey: string; id: string}>();
 
-	const {businessEvent, fetchBusinessEvent, loading} = useGetBusinessEvent(
-		id || ''
-	);
+	const {
+		businessEvent,
+		fetchBusinessEvent,
+		loading: loadingBusinessEvents,
+	} = useGetBusinessEvent(id || '');
 
 	const {client} = useAppPropertiesContext();
 
@@ -43,8 +46,17 @@ const BusinessEventsItemDetails = () => {
 	const {loading: loadingTickets, tickets} = useAccountsTickets(
 		businessEvent,
 		accountKey,
-		loading
+		loadingBusinessEvents ||
+			!businessEvent?.associatedTickets ||
+			businessEvent?.associatedTickets === '[]'
 	);
+
+	const {
+		canViewTickets: canViewTickets,
+		loading: loadingJiraAccountChecking,
+	} = usecanViewTickets(accountKey || '');
+
+	const loading = loadingBusinessEvents || loadingJiraAccountChecking;
 
 	const location = useLocation();
 	const navigate = useNavigate();
@@ -101,6 +113,14 @@ const BusinessEventsItemDetails = () => {
 			type: 'success',
 		});
 	}, [fetchBusinessEvent]);
+
+	const handleCloseModal = (isOpen: boolean) => {
+		if (!isOpen) {
+			navigate(`/${accountKey}/business-events/${id}`);
+		}
+
+		onOpenChange(isOpen);
+	};
 
 	useEffect(() => {
 		if (businessEvent && tickets) {
@@ -319,7 +339,7 @@ const BusinessEventsItemDetails = () => {
 					)}
 
 					{!loadingTickets ? (
-						!tickets ? (
+						!canViewTickets ? (
 							<p
 								dangerouslySetInnerHTML={{
 									__html: i18n.sub(
@@ -359,7 +379,7 @@ const BusinessEventsItemDetails = () => {
 					accountExternalReferenceCode={accountKey || ''}
 					businessEvent={businessEvent}
 					client={client}
-					closeFunction={onOpenChange}
+					closeFunction={handleCloseModal}
 					modalType={modalType}
 					observer={observer}
 					onCancel={handleOnCancel}

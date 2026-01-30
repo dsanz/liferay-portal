@@ -5,15 +5,33 @@
 
 package com.liferay.object.internal.search.spi.model.index.contributor;
 
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectDefinitionTable;
 import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.model.ObjectField;
+import com.liferay.object.model.ObjectFieldTable;
+import com.liferay.object.model.ObjectFolder;
+import com.liferay.object.model.ObjectFolderTable;
+import com.liferay.object.model.bag.ObjectFieldBag;
+import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
+import com.liferay.object.service.ObjectFieldLocalService;
+import com.liferay.object.service.ObjectFolderLocalService;
+import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
+import com.liferay.portal.kernel.search.ReindexCacheThreadLocal;
 import com.liferay.portal.search.batch.BatchIndexingActionable;
 import com.liferay.portal.search.batch.DynamicQueryBatchIndexingActionableFactory;
 import com.liferay.portal.search.spi.model.index.contributor.ModelIndexerWriterContributor;
 import com.liferay.portal.search.spi.model.index.contributor.helper.IndexerWriterMode;
 import com.liferay.portal.search.spi.model.index.contributor.helper.ModelIndexerWriterDocumentHelper;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Marco Leo
@@ -25,13 +43,21 @@ public class ObjectEntryModelIndexerWriterContributor
 	public ObjectEntryModelIndexerWriterContributor(
 		DynamicQueryBatchIndexingActionableFactory
 			dynamicQueryBatchIndexingActionableFactory,
-		long objectDefinitionId,
-		ObjectEntryLocalService objectEntryLocalService) {
+		ObjectDefinition objectDefinition,
+		ObjectDefinitionLocalService objectDefinitionLocalService,
+		ObjectEntryLocalService objectEntryLocalService,
+		ObjectFieldLocalService objectFieldLocalService,
+		ObjectFolderLocalService objectFolderLocalService) {
 
 		_dynamicQueryBatchIndexingActionableFactory =
 			dynamicQueryBatchIndexingActionableFactory;
-		_objectDefinitionId = objectDefinitionId;
+		_objectDefinitionLocalService = objectDefinitionLocalService;
 		_objectEntryLocalService = objectEntryLocalService;
+		_objectFieldLocalService = objectFieldLocalService;
+		_objectFolderLocalService = objectFolderLocalService;
+
+		_companyId = objectDefinition.getCompanyId();
+		_objectDefinitionId = objectDefinition.getObjectDefinitionId();
 	}
 
 	@Override
@@ -47,9 +73,20 @@ public class ObjectEntryModelIndexerWriterContributor
 				dynamicQuery.add(
 					objectDefinitionIdProperty.eq(_objectDefinitionId));
 			});
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionLocalService.fetchObjectDefinition(
+				_objectDefinitionId);
+
+		_initObjectDefinition(objectDefinition);
+
 		batchIndexingActionable.setPerformActionMethod(
-			(ObjectEntry objectEntry) -> batchIndexingActionable.addDocuments(
-				modelIndexerWriterDocumentHelper.getDocument(objectEntry)));
+			(ObjectEntry objectEntry) -> {
+				objectEntry.setObjectDefinition(objectDefinition);
+
+				batchIndexingActionable.addDocuments(
+					modelIndexerWriterDocumentHelper.getDocument(objectEntry));
+			});
 	}
 
 	@Override
@@ -69,9 +106,99 @@ public class ObjectEntryModelIndexerWriterContributor
 		return IndexerWriterMode.UPDATE;
 	}
 
+	@Override
+	public boolean shouldRun(long companyId) {
+		if (_companyId == companyId) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private void _initObjectDefinition(ObjectDefinition objectDefinition) {
+		Map<Long, ObjectFolder> objectFolders =
+			ReindexCacheThreadLocal.getGlobalReindexCache(
+				() -> -1,
+				ObjectEntryModelIndexerWriterContributor.class.getName() +
+					"#ObjectFolder",
+				count -> {
+					Map<Long, ObjectFolder> localObjectFolders =
+						new HashMap<>();
+
+					for (ObjectFolder objectFolder :
+							_objectFolderLocalService.
+								<List<ObjectFolder>>dslQuery(
+									DSLQueryFactoryUtil.select(
+										ObjectFolderTable.INSTANCE
+									).from(
+										ObjectFolderTable.INSTANCE
+									).innerJoinON(
+										ObjectDefinitionTable.INSTANCE,
+										ObjectFolderTable.INSTANCE.
+											objectFolderId.eq(
+												ObjectDefinitionTable.INSTANCE.
+													objectFolderId)
+									),
+									false)) {
+
+						localObjectFolders.put(
+							objectFolder.getObjectFolderId(), objectFolder);
+					}
+
+					return localObjectFolders;
+				});
+
+		if (objectFolders != null) {
+			objectDefinition.setObjectFolder(
+				objectFolders.get(objectDefinition.getObjectFolderId()));
+		}
+
+		Map<Long, List<ObjectField>> objectFieldsMap =
+			ReindexCacheThreadLocal.getGlobalReindexCache(
+				() -> -1,
+				ObjectEntryModelIndexerWriterContributor.class.getName() +
+					"#ObjectFields",
+				count -> {
+					Map<Long, List<ObjectField>> localObjectFieldsMap =
+						new HashMap<>();
+
+					for (ObjectField objectField :
+							_objectFieldLocalService.
+								<List<ObjectField>>dslQuery(
+									DSLQueryFactoryUtil.select(
+										ObjectFieldTable.INSTANCE
+									).from(
+										ObjectFieldTable.INSTANCE
+									),
+									false)) {
+
+						List<ObjectField> objectFields =
+							localObjectFieldsMap.computeIfAbsent(
+								objectField.getObjectDefinitionId(),
+								key -> new ArrayList<>());
+
+						objectFields.add(objectField);
+					}
+
+					return localObjectFieldsMap;
+				});
+
+		if (objectFieldsMap != null) {
+			objectDefinition.setObjectFieldBag(
+				new ObjectFieldBag(
+					objectFieldsMap.getOrDefault(
+						objectDefinition.getObjectDefinitionId(),
+						Collections.emptyList())));
+		}
+	}
+
+	private final long _companyId;
 	private final DynamicQueryBatchIndexingActionableFactory
 		_dynamicQueryBatchIndexingActionableFactory;
 	private final Long _objectDefinitionId;
+	private final ObjectDefinitionLocalService _objectDefinitionLocalService;
 	private final ObjectEntryLocalService _objectEntryLocalService;
+	private final ObjectFieldLocalService _objectFieldLocalService;
+	private final ObjectFolderLocalService _objectFolderLocalService;
 
 }

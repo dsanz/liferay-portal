@@ -5,9 +5,10 @@
 
 import ClayButton from '@clayui/button';
 import ClayModal from '@clayui/modal';
-import {Observer} from '@clayui/modal/lib/types';
 import {createRenderURL} from 'frontend-js-web';
 import React from 'react';
+
+import type {Observer} from '@clayui/modal/src/types';
 
 type ConnectionWithMarketplaceNeededModalProps = {
 	message?: string;
@@ -34,7 +35,9 @@ export function ConnectionWithMarketplaceNeededModal(
 
 	return (
 		<ClayModal center observer={props.observer} status="info">
-			<ClayModal.Header>
+			<ClayModal.Header
+				closeButtonAriaLabel={Liferay.Language.get('close')}
+			>
 				{Liferay.Language.get('connection-with-marketplace-needed')}
 			</ClayModal.Header>
 

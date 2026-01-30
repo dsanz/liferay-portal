@@ -7,13 +7,17 @@ import '../../../css/structure_builder/StructureBuilder.scss';
 
 import React, {useEffect} from 'react';
 
+import {
+	ObjectDefinition,
+	ObjectDefinitions,
+} from '../../common/types/ObjectDefinition';
 import {Config, initializeConfig} from '../config';
 import CacheContextProvider from '../contexts/CacheContext';
 import StateContextProvider, {useSelector} from '../contexts/StateContext';
-import selectStructureERC from '../selectors/selectStructureERC';
+import selectStructureId from '../selectors/selectStructureId';
 import selectStructureStatus from '../selectors/selectStructureStatus';
-import {ObjectDefinition, ObjectDefinitions} from '../types/ObjectDefinition';
 import buildState from '../utils/buildState';
+import ShortcutManager from './ShortcutManager';
 import Sidebar from './Sidebar';
 import StructureBuilderToolbar from './StructureBuilderToolbar';
 import Settings from './settings/Settings';
@@ -40,6 +44,8 @@ export default function StructureBuilder({
 				<div className="d-flex flex-column structure-builder__wrapper">
 					<HistoryManager />
 
+					<ShortcutManager />
+
 					<StructureBuilderToolbar />
 
 					<div className="d-flex flex-grow-1 p-4">
@@ -54,11 +60,11 @@ export default function StructureBuilder({
 }
 
 function HistoryManager() {
-	const erc = useSelector(selectStructureERC);
+	const id = useSelector(selectStructureId);
 	const status = useSelector(selectStructureStatus);
 
 	useEffect(() => {
-		if (status !== 'published') {
+		if (status !== 'published' || !id) {
 			return;
 		}
 
@@ -68,10 +74,10 @@ function HistoryManager() {
 			url.searchParams.delete('objectFolderExternalReferenceCode');
 		}
 
-		url.searchParams.set('objectDefinitionExternalReferenceCode', erc);
+		url.searchParams.set('objectDefinitionId', String(id));
 
 		history.replaceState(null, document.head.title, url.href);
-	}, [erc, status]);
+	}, [id, status]);
 
 	return null;
 }

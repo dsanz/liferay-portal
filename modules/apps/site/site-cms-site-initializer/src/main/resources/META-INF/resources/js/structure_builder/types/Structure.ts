@@ -8,7 +8,7 @@ import {Workflow} from '../../common/types/Workflow';
 import {Field} from '../utils/field';
 import {Uuid} from './Uuid';
 
-type Status = 'new' | 'draft' | 'published';
+type Status = 'new' | 'draft' | 'published' | 'publishing' | 'saving';
 
 type Spaces = 'all' | string[];
 
@@ -44,10 +44,12 @@ export type StructureChild = Field | ReferencedStructure | RepeatableGroup;
 export type Structure = {
 	children: Map<Uuid, StructureChild>;
 	erc: string;
+	id?: number;
 	label: Liferay.Language.LocalizedValue<string>;
 	name: string;
 	spaces: Spaces;
 	status: Status;
+	system: boolean;
 	type?: 'L_CMS_CONTENT_STRUCTURES' | 'L_CMS_FILE_TYPES';
 	uuid: Uuid;
 	workflows: Workflows;

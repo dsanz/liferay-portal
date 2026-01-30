@@ -11,7 +11,13 @@ import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
-import com.liferay.info.item.ClassPKInfoItemIdentifier;
+import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationSettingsMapFactoryUtil;
+import com.liferay.exportimport.kernel.configuration.constants.ExportImportConfigurationConstants;
+import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
+import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
+import com.liferay.exportimport.kernel.service.ExportImportConfigurationLocalService;
+import com.liferay.exportimport.kernel.service.ExportImportLocalService;
+import com.liferay.info.item.ERCInfoItemIdentifier;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.layout.page.template.test.util.DisplayPageTemplateTestUtil;
 import com.liferay.petra.string.StringPool;
@@ -23,16 +29,20 @@ import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.FeatureFlagTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -40,9 +50,12 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+import com.liferay.site.navigation.admin.constants.SiteNavigationAdminPortletKeys;
 import com.liferay.site.navigation.constants.SiteNavigationConstants;
 import com.liferay.site.navigation.menu.item.layout.constants.SiteNavigationMenuItemTypeConstants;
 import com.liferay.site.navigation.model.SiteNavigationMenu;
@@ -52,10 +65,13 @@ import com.liferay.site.navigation.service.SiteNavigationMenuLocalService;
 import com.liferay.site.navigation.type.SiteNavigationMenuItemType;
 import com.liferay.site.navigation.type.SiteNavigationMenuItemTypeRegistry;
 
+import java.io.File;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -85,9 +101,202 @@ public class AssetVocabularySiteNavigationMenuItemTypeTest {
 		_serviceContext = ServiceContextTestUtil.getServiceContext(
 			_group.getGroupId(), TestPropsValues.getUserId());
 
+		ServiceContextThreadLocal.pushServiceContext(_serviceContext);
+
 		_assetVocabulary = _assetVocabularyLocalService.addVocabulary(
 			TestPropsValues.getUserId(), _group.getGroupId(),
 			RandomTestUtil.randomString(), _serviceContext);
+	}
+
+	@After
+	public void tearDown() {
+		ServiceContextThreadLocal.popServiceContext();
+	}
+
+	@Test
+	public void testGetAssetVocabularyFromSiteNavigationMenuItemAcrossSites()
+		throws Exception {
+
+		AssetVocabulary assetVocabulary1 =
+			_assetVocabularyLocalService.addVocabulary(
+				TestPropsValues.getUserId(), _group.getGroupId(),
+				RandomTestUtil.randomString(), _serviceContext);
+
+		Group group = GroupTestUtil.addGroup();
+
+		SiteNavigationMenu siteNavigationMenu =
+			_siteNavigationMenuLocalService.addSiteNavigationMenu(
+				null, TestPropsValues.getUserId(), group.getGroupId(),
+				RandomTestUtil.randomString(),
+				SiteNavigationConstants.TYPE_DEFAULT, true, _serviceContext);
+
+		SiteNavigationMenuItem siteNavigationMenuItem =
+			_siteNavigationMenuItemLocalService.addSiteNavigationMenuItem(
+				null, TestPropsValues.getUserId(), group.getGroupId(),
+				siteNavigationMenu.getSiteNavigationMenuId(), 0,
+				SiteNavigationMenuItemTypeConstants.ASSET_VOCABULARY,
+				UnicodePropertiesBuilder.create(
+					true
+				).put(
+					"externalReferenceCode",
+					assetVocabulary1.getExternalReferenceCode()
+				).put(
+					"scopeExternalReferenceCode",
+					_group.getExternalReferenceCode()
+				).put(
+					"title", assetVocabulary1.getTitle()
+				).put(
+					"type", "asset-vocabulary"
+				).buildString(),
+				_serviceContext);
+
+		UnicodeProperties typeSettingsUnicodeProperties =
+			UnicodePropertiesBuilder.fastLoad(
+				siteNavigationMenuItem.getTypeSettings()
+			).build();
+
+		String scopeExternalReferenceCode = typeSettingsUnicodeProperties.get(
+			"scopeExternalReferenceCode");
+
+		ERCInfoItemIdentifier ercInfoItemIdentifier = new ERCInfoItemIdentifier(
+			typeSettingsUnicodeProperties.get("externalReferenceCode"),
+			scopeExternalReferenceCode);
+
+		group = _groupLocalService.fetchGroupByExternalReferenceCode(
+			ercInfoItemIdentifier.getScopeExternalReferenceCode(),
+			siteNavigationMenu.getCompanyId());
+
+		AssetVocabulary assetVocabulary2 =
+			_assetVocabularyLocalService.
+				fetchAssetVocabularyByExternalReferenceCode(
+					ercInfoItemIdentifier.getExternalReferenceCode(),
+					group.getGroupId());
+
+		Assert.assertEquals(assetVocabulary1, assetVocabulary2);
+	}
+
+	@FeatureFlags(
+		featureFlags = {
+			@FeatureFlag("LPD-35443"), @FeatureFlag("LPD-35914"),
+			@FeatureFlag("LPD-66179")
+		}
+	)
+	@Test
+	public void testGetAssetVocabularySiteNavigationMenuItemFromExportImport()
+		throws Exception {
+
+		FeatureFlagTestUtil.invokeFeatureFlagListeners(
+			TestPropsValues.getCompanyId(), true, "LPD-35914");
+
+		Locale locale = _portal.getSiteDefaultLocale(_group.getGroupId());
+
+		String name = RandomTestUtil.randomString();
+
+		SiteNavigationMenuItem siteNavigationMenuItem =
+			_addSiteNavigationMenuItem(
+				_assetVocabulary, locale,
+				JSONUtil.put(
+					LocaleUtil.toLanguageId(locale), name
+				).toString(),
+				false);
+
+		SiteNavigationMenu siteNavigationMenu =
+			_siteNavigationMenuLocalService.fetchSiteNavigationMenu(
+				siteNavigationMenuItem.getSiteNavigationMenuId());
+
+		File larFile = _exportImportLocalService.exportLayoutsAsFile(
+			_exportImportConfigurationLocalService.
+				addDraftExportImportConfiguration(
+					TestPropsValues.getUserId(),
+					ExportImportConfigurationConstants.TYPE_EXPORT_LAYOUT,
+					ExportImportConfigurationSettingsMapFactoryUtil.
+						buildExportLayoutSettingsMap(
+							TestPropsValues.getUser(), _group.getGroupId(),
+							false, new long[0],
+							HashMapBuilder.put(
+								PortletDataHandlerKeys.PORTLET_DATA,
+								new String[] {Boolean.TRUE.toString()}
+							).put(
+								PortletDataHandlerKeys.PORTLET_DATA + "_" +
+									SiteNavigationAdminPortletKeys.
+										SITE_NAVIGATION_ADMIN,
+								new String[] {Boolean.TRUE.toString()}
+							).build())));
+
+		_siteNavigationMenuLocalService.deleteSiteNavigationMenu(
+			siteNavigationMenu);
+
+		_assetVocabularyLocalService.deleteAssetVocabulary(_assetVocabulary);
+
+		ExportImportConfiguration exportImportConfiguration =
+			_exportImportConfigurationLocalService.
+				addDraftExportImportConfiguration(
+					TestPropsValues.getUserId(),
+					ExportImportConfigurationConstants.TYPE_IMPORT_LAYOUT,
+					ExportImportConfigurationSettingsMapFactoryUtil.
+						buildImportLayoutSettingsMap(
+							TestPropsValues.getUser(), _group.getGroupId(),
+							false, new long[0],
+							HashMapBuilder.put(
+								PortletDataHandlerKeys.PORTLET_DATA,
+								new String[] {Boolean.TRUE.toString()}
+							).put(
+								PortletDataHandlerKeys.PORTLET_DATA + "_" +
+									SiteNavigationAdminPortletKeys.
+										SITE_NAVIGATION_ADMIN,
+								new String[] {Boolean.TRUE.toString()}
+							).build()));
+
+		_exportImportLocalService.importLayouts(
+			exportImportConfiguration, larFile);
+
+		siteNavigationMenu =
+			_siteNavigationMenuLocalService.
+				fetchSiteNavigationMenuByExternalReferenceCode(
+					siteNavigationMenu.getExternalReferenceCode(),
+					_group.getGroupId());
+
+		List<SiteNavigationMenuItem> siteNavigationMenuItems =
+			_siteNavigationMenuItemLocalService.getSiteNavigationMenuItems(
+				siteNavigationMenu.getSiteNavigationMenuId());
+
+		siteNavigationMenuItem = siteNavigationMenuItems.get(0);
+
+		UnicodeProperties typeSettingsUnicodeProperties =
+			UnicodePropertiesBuilder.fastLoad(
+				siteNavigationMenuItem.getTypeSettings()
+			).build();
+
+		Assert.assertNotNull(
+			typeSettingsUnicodeProperties.get("localizedNames"));
+
+		String updatedName = RandomTestUtil.randomString();
+
+		typeSettingsUnicodeProperties.setProperty(
+			"localizedNames",
+			JSONUtil.put(
+				LocaleUtil.toLanguageId(locale), updatedName
+			).toString());
+
+		siteNavigationMenuItem =
+			_siteNavigationMenuItemLocalService.updateSiteNavigationMenuItem(
+				TestPropsValues.getUserId(),
+				siteNavigationMenuItem.getSiteNavigationMenuItemId(),
+				typeSettingsUnicodeProperties.toString(),
+				ServiceContextTestUtil.getServiceContext(
+					_group.getGroupId(), TestPropsValues.getUserId()));
+
+		SiteNavigationMenuItemType siteNavigationMenuItemType =
+			_siteNavigationMenuItemTypeRegistry.getSiteNavigationMenuItemType(
+				SiteNavigationMenuItemTypeConstants.ASSET_VOCABULARY);
+
+		Assert.assertEquals(
+			updatedName,
+			siteNavigationMenuItemType.getTitle(
+				siteNavigationMenuItem, locale));
+
+		FeatureFlagTestUtil.invokeFeatureFlagListeners(
+			TestPropsValues.getCompanyId(), false, "LPD-35914");
 	}
 
 	@Test
@@ -243,8 +452,9 @@ public class AssetVocabularySiteNavigationMenuItemTypeTest {
 			_assetDisplayPageFriendlyURLProvider.getFriendlyURL(
 				new InfoItemReference(
 					AssetCategory.class.getName(),
-					new ClassPKInfoItemIdentifier(
-						assetCategory.getCategoryId())),
+					new ERCInfoItemIdentifier(
+						assetCategory.getExternalReferenceCode(),
+						_group.getExternalReferenceCode())),
 				themeDisplay),
 			siteNavigationMenuItemType.getRegularURL(
 				mockHttpServletRequest, assetCategorySiteNavigationMenuItem));
@@ -703,9 +913,8 @@ public class AssetVocabularySiteNavigationMenuItemTypeTest {
 				Field.DEFAULT_LANGUAGE_ID,
 				LocaleUtil.toLanguageId(defaultLocale)
 			).put(
-				"classPK", String.valueOf(assetVocabulary.getVocabularyId())
-			).put(
-				"groupId", String.valueOf(assetVocabulary.getGroupId())
+				"externalReferenceCode",
+				assetVocabulary.getExternalReferenceCode()
 			).put(
 				"localizedNames", localizedNames
 			).put(
@@ -718,8 +927,6 @@ public class AssetVocabularySiteNavigationMenuItemTypeTest {
 			).put(
 				"useCustomName",
 				String.valueOf(!Objects.equals(localizedNames, "{}"))
-			).put(
-				"uuid", assetVocabulary.getUuid()
 			).buildString(),
 			_serviceContext);
 	}
@@ -810,12 +1017,20 @@ public class AssetVocabularySiteNavigationMenuItemTypeTest {
 		Assert.assertEquals(
 			"asset-category", typeSettingsUnicodeProperties.get("type"));
 		Assert.assertEquals(
-			assetCategory.getCategoryId(),
-			GetterUtil.getLong(typeSettingsUnicodeProperties.get("classPK")));
+			assetCategory.getExternalReferenceCode(),
+			GetterUtil.getString(
+				typeSettingsUnicodeProperties.get("externalReferenceCode")));
+
+		AssetVocabulary assetVocabulary =
+			_assetVocabularyLocalService.getAssetVocabulary(
+				assetCategory.getVocabularyId());
+
 		Assert.assertEquals(
-			_assetVocabulary.getVocabularyId(),
-			GetterUtil.getLong(
-				typeSettingsUnicodeProperties.get("assetVocabularyId")));
+			assetVocabulary.getExternalReferenceCode(),
+			GetterUtil.getString(
+				typeSettingsUnicodeProperties.get(
+					"assetVocabularyExternalReferenceCode")));
+
 		Assert.assertEquals(
 			assetCategory.getTitle(locale),
 			typeSettingsUnicodeProperties.get("title"));
@@ -836,8 +1051,9 @@ public class AssetVocabularySiteNavigationMenuItemTypeTest {
 	}
 
 	private SiteNavigationMenuItem _getSiteNavigationMenuItemByCategoryId(
-		AssetCategory assetCategory, Locale locale,
-		List<SiteNavigationMenuItem> siteNavigationMenuItems) {
+			AssetCategory assetCategory, Locale locale,
+			List<SiteNavigationMenuItem> siteNavigationMenuItems)
+		throws Exception {
 
 		SiteNavigationMenuItem assetCategorySiteNavigationMenuItem = null;
 
@@ -853,17 +1069,24 @@ public class AssetVocabularySiteNavigationMenuItemTypeTest {
 					typeSettingsUnicodeProperties.get("type"),
 					"asset-category") ||
 				!Objects.equals(
-					assetCategory.getCategoryId(),
-					GetterUtil.getLong(
-						typeSettingsUnicodeProperties.get("classPK")))) {
+					assetCategory.getExternalReferenceCode(),
+					GetterUtil.getString(
+						typeSettingsUnicodeProperties.get(
+							"externalReferenceCode")))) {
 
 				continue;
 			}
 
+			AssetVocabulary assetVocabulary =
+				_assetVocabularyLocalService.getAssetVocabulary(
+					assetCategory.getVocabularyId());
+
 			Assert.assertEquals(
-				assetCategory.getVocabularyId(),
-				GetterUtil.getLong(
-					typeSettingsUnicodeProperties.get("assetVocabularyId")));
+				assetVocabulary.getExternalReferenceCode(),
+				GetterUtil.getString(
+					typeSettingsUnicodeProperties.get(
+						"assetVocabularyExternalReferenceCode")));
+
 			Assert.assertEquals(
 				assetCategory.getTitle(locale),
 				typeSettingsUnicodeProperties.get("title"));
@@ -898,6 +1121,7 @@ public class AssetVocabularySiteNavigationMenuItemTypeTest {
 	private AssetDisplayPageFriendlyURLProvider
 		_assetDisplayPageFriendlyURLProvider;
 
+	@DeleteAfterTestRun
 	private AssetVocabulary _assetVocabulary;
 
 	@Inject
@@ -906,8 +1130,18 @@ public class AssetVocabularySiteNavigationMenuItemTypeTest {
 	@Inject
 	private CompanyLocalService _companyLocalService;
 
+	@Inject
+	private ExportImportConfigurationLocalService
+		_exportImportConfigurationLocalService;
+
+	@Inject
+	private ExportImportLocalService _exportImportLocalService;
+
 	@DeleteAfterTestRun
 	private Group _group;
+
+	@Inject
+	private GroupLocalService _groupLocalService;
 
 	@Inject
 	private Portal _portal;

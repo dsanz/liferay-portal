@@ -3,10 +3,14 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import JsonURL from '@jsonurl/jsonurl';
+
 import {EConfigInURLBehavior, IConfigInURL} from './types';
 
+export const FDS_CONFIG_PARAM_NAME = '_fdsConfig';
+
 function getConfigParamName(id: string): string {
-	return `${id}_fdsConfig`;
+	return `${id}${FDS_CONFIG_PARAM_NAME}`;
 }
 
 export function readConfigFromURL(id: string): Partial<IConfigInURL> | null {
@@ -25,7 +29,10 @@ export function readConfigFromURL(id: string): Partial<IConfigInURL> | null {
 	let config = {};
 
 	try {
-		config = JSON.parse(configParam);
+		config = JsonURL.parse(configParam, {
+			AQF: true,
+			noEmptyComposite: true,
+		});
 	}
 	catch (error) {
 		return null;
@@ -37,11 +44,11 @@ export function readConfigFromURL(id: string): Partial<IConfigInURL> | null {
 export function writeConfigInURL(
 	id: string,
 	config: Partial<IConfigInURL>,
-	settings: EConfigInURLBehavior
+	configInURLBehavior: EConfigInURLBehavior
 ) {
 	if (
 		!config ||
-		settings === EConfigInURLBehavior.OFF ||
+		configInURLBehavior === EConfigInURLBehavior.OFF ||
 		!Liferay.FeatureFlags['LPD-22473']
 	) {
 		return;
@@ -49,6 +56,7 @@ export function writeConfigInURL(
 
 	const currentConfig = readConfigFromURL(id);
 
+	let currentConfigChanged: boolean = false;
 	Object.keys(config).forEach((key: string) => {
 		const configKey: keyof IConfigInURL = key as keyof IConfigInURL;
 
@@ -57,11 +65,12 @@ export function writeConfigInURL(
 
 			if (currentConfig && currentConfig[configKey]) {
 				delete currentConfig[configKey];
+				currentConfigChanged = true;
 			}
 		}
 	});
 
-	if (contains(config, currentConfig)) {
+	if (contains(config, currentConfig) && !currentConfigChanged) {
 		return;
 	}
 
@@ -69,13 +78,16 @@ export function writeConfigInURL(
 
 	params.set(
 		getConfigParamName(id),
-		JSON.stringify(sortObjectKeys({...(currentConfig || {}), ...config}))
+		JsonURL.stringify(
+			sortObjectKeys({...(currentConfig || {}), ...config}),
+			{AQF: true, noEmptyComposite: true}
+		) || ''
 	);
 
-	const path = `${window.location.pathname}?${params.toString()}`;
+	const path = `${window.location.pathname}?${decodeURLParams(params)}`;
 
 	const replaceState =
-		settings === EConfigInURLBehavior.REPLACE || !currentConfig;
+		configInURLBehavior === EConfigInURLBehavior.REPLACE || !currentConfig;
 
 	if (Liferay.SPA && Liferay.SPA.app) {
 		Liferay.SPA.app.browserPathBeforeNavigate = path;
@@ -120,6 +132,15 @@ export function contains(
 	}
 
 	return deepContains(a, b);
+}
+
+function decodeURLParams(params: URLSearchParams) {
+	return params
+		.toString()
+		.replace(/%28/g, '(')
+		.replace(/%29/g, ')')
+		.replace(/%2C/g, ',')
+		.replace(/%3A/g, ':');
 }
 
 function deepContains(subset: any, superset: any) {

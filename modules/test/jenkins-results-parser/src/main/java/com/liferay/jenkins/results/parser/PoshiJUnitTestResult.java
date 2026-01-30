@@ -5,6 +5,7 @@
 
 package com.liferay.jenkins.results.parser;
 
+import com.liferay.jenkins.results.parser.history.TestClassHistory;
 import com.liferay.jenkins.results.parser.test.clazz.FunctionalTestClass;
 import com.liferay.jenkins.results.parser.test.clazz.TestClass;
 import com.liferay.jenkins.results.parser.test.clazz.group.AxisTestClassGroup;
@@ -73,19 +74,15 @@ public class PoshiJUnitTestResult extends JUnitTestResult {
 			Dom4JUtil.getNewAnchorElement(
 				getConsoleOutputURL(), "Console Output"));
 
-		TestHistory testHistory = getTestHistory();
+		TestClassHistory testClassHistory = getTestClassHistory();
 
-		if (testHistory != null) {
-			downstreamBuildListItemElement.addText(" - ");
-
-			downstreamBuildListItemElement.add(
-				Dom4JUtil.getNewAnchorElement(
-					testHistory.getTestrayCaseResultURL(),
-					JenkinsResultsParserUtil.combine(
-						"Failed ",
-						String.valueOf(testHistory.getFailureCount()),
-						" of last ",
-						String.valueOf(testHistory.getTestCount()))));
+		if (testClassHistory != null) {
+			downstreamBuildListItemElement.addText(
+				JenkinsResultsParserUtil.combine(
+					" - Failed ",
+					String.valueOf(testClassHistory.getFailureCount()),
+					" of last ",
+					String.valueOf(testClassHistory.getTestCount())));
 		}
 
 		String errorDetails = getErrorDetails();

@@ -10,10 +10,10 @@ import {useState} from 'react';
 import i18n from '~/utils/I18n';
 import {Badge, Button} from '~/components';
 import {useAppPropertiesContext} from '~/contexts/AppPropertiesContext';
+import {patchAccountSubscriptionGroups} from '~/services/liferay/graphql/account-subscription-groups/queries/patchAccountSubscriptionGroups';
 import {
 	getDXPCloudEnvironment,
-	updateAccountSubscriptionGroups,
-	updateDXPCloudEnvironment,
+	patchDXPCloudEnvironment,
 } from '~/services/liferay/graphql/queries';
 import {isLowercaseAndNumbers} from '~/utils/validations.form';
 import {useAppContext} from '~/features/project/context';
@@ -52,7 +52,10 @@ const ModalDXPCActivationStatus = ({
 
 	const updateSubscriptionGroupsStatus = async () => {
 		const dxpCloudSubscriptionGroup = subscriptionGroups.find(
-			(subscription) => subscription.name === PRODUCT_TYPES.dxpCloud
+			(subscriptionGroup) =>
+				subscriptionGroup.name === PRODUCT_TYPES.liferayCloud &&
+				subscriptionGroup.activationProductName.split(',')
+					.includes(PRODUCT_TYPES.dxpCloud)
 		);
 
 		await client.mutate({
@@ -60,7 +63,7 @@ const ModalDXPCActivationStatus = ({
 				displaySuccess: false,
 				type: 'liferay-rest',
 			},
-			mutation: updateAccountSubscriptionGroups,
+			mutation: patchAccountSubscriptionGroups,
 			variables: {
 				accountSubscriptionGroup: {
 					accountKey: project.accountKey,
@@ -113,7 +116,7 @@ const ModalDXPCActivationStatus = ({
 					displaySuccess: false,
 					type: 'liferay-rest',
 				},
-				mutation: updateDXPCloudEnvironment,
+				mutation: patchDXPCloudEnvironment,
 				variables: {
 					DXPCloudEnvironment: {
 						projectId: projectIdValue,

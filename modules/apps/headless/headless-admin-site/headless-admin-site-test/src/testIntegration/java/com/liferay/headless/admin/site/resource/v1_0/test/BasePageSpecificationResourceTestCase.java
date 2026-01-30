@@ -14,6 +14,8 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
 import com.liferay.headless.admin.site.client.dto.v1_0.ContentPageSpecification;
+import com.liferay.headless.admin.site.client.dto.v1_0.LinkToURLPageSpecification;
+import com.liferay.headless.admin.site.client.dto.v1_0.PageSetPageSpecification;
 import com.liferay.headless.admin.site.client.dto.v1_0.PageSpecification;
 import com.liferay.headless.admin.site.client.dto.v1_0.WidgetPageSpecification;
 import com.liferay.headless.admin.site.client.http.HttpInvoker;
@@ -183,8 +185,6 @@ public abstract class BasePageSpecificationResourceTestCase {
 		PageSpecification pageSpecification = randomPageSpecification();
 
 		pageSpecification.setExternalReferenceCode(regex);
-		pageSpecification.setSiteTemplatePageSpecificationExternalReferenceCode(
-			regex);
 
 		String json = PageSpecificationSerDes.toJSON(pageSpecification);
 
@@ -194,10 +194,6 @@ public abstract class BasePageSpecificationResourceTestCase {
 
 		Assert.assertEquals(
 			regex, pageSpecification.getExternalReferenceCode());
-		Assert.assertEquals(
-			regex,
-			pageSpecification.
-				getSiteTemplatePageSpecificationExternalReferenceCode());
 	}
 
 	@Test
@@ -935,9 +931,9 @@ public abstract class BasePageSpecificationResourceTestCase {
 				{
 					externalReferenceCode = StringUtil.toLowerCase(
 						RandomTestUtil.randomString());
-					siteTemplatePageSpecificationExternalReferenceCode =
-						StringUtil.toLowerCase(RandomTestUtil.randomString());
 					draftContentPageSpecificationExternalReferenceCode =
+						StringUtil.toLowerCase(RandomTestUtil.randomString());
+					siteTemplatePageSpecificationExternalReferenceCode =
 						StringUtil.toLowerCase(RandomTestUtil.randomString());
 
 					type = Type.create("ContentPageSpecification");
@@ -948,6 +944,36 @@ public abstract class BasePageSpecificationResourceTestCase {
 			contentPageSpecification,
 			testPostSitePageSpecificationPublish_addPageSpecification(
 				contentPageSpecification));
+
+		LinkToURLPageSpecification linkToURLPageSpecification =
+			new LinkToURLPageSpecification() {
+				{
+					externalReferenceCode = StringUtil.toLowerCase(
+						RandomTestUtil.randomString());
+
+					type = Type.create("LinkToURLPageSpecification");
+				}
+			};
+
+		assertEquals(
+			linkToURLPageSpecification,
+			testPostSitePageSpecificationPublish_addPageSpecification(
+				linkToURLPageSpecification));
+
+		PageSetPageSpecification pageSetPageSpecification =
+			new PageSetPageSpecification() {
+				{
+					externalReferenceCode = StringUtil.toLowerCase(
+						RandomTestUtil.randomString());
+
+					type = Type.create("PageSetPageSpecification");
+				}
+			};
+
+		assertEquals(
+			pageSetPageSpecification,
+			testPostSitePageSpecificationPublish_addPageSpecification(
+				pageSetPageSpecification));
 
 		WidgetPageSpecification widgetPageSpecification =
 			new WidgetPageSpecification() {
@@ -1178,28 +1204,6 @@ public abstract class BasePageSpecificationResourceTestCase {
 				continue;
 			}
 
-			if (Objects.equals("settings", additionalAssertFieldName)) {
-				if (pageSpecification.getSettings() == null) {
-					valid = false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals(
-					"siteTemplatePageSpecificationExternalReferenceCode",
-					additionalAssertFieldName)) {
-
-				if (pageSpecification.
-						getSiteTemplatePageSpecificationExternalReferenceCode() ==
-							null) {
-
-					valid = false;
-				}
-
-				continue;
-			}
-
 			if (Objects.equals("status", additionalAssertFieldName)) {
 				if (pageSpecification.getStatus() == null) {
 					valid = false;
@@ -1241,6 +1245,70 @@ public abstract class BasePageSpecificationResourceTestCase {
 
 				if (((ContentPageSpecification)pageSpecification).
 						getPageExperiences() == null) {
+
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("settings", additionalAssertFieldName)) {
+				if (!(pageSpecification instanceof ContentPageSpecification)) {
+					continue;
+				}
+
+				if (((ContentPageSpecification)pageSpecification).
+						getSettings() == null) {
+
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"siteTemplatePageSpecificationExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (!(pageSpecification instanceof ContentPageSpecification)) {
+					continue;
+				}
+
+				if (((ContentPageSpecification)pageSpecification).
+						getSiteTemplatePageSpecificationExternalReferenceCode() ==
+							null) {
+
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("settings", additionalAssertFieldName)) {
+				if (!(pageSpecification instanceof WidgetPageSpecification)) {
+					continue;
+				}
+
+				if (((WidgetPageSpecification)pageSpecification).
+						getSettings() == null) {
+
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"siteTemplatePageSpecificationExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (!(pageSpecification instanceof WidgetPageSpecification)) {
+					continue;
+				}
+
+				if (((WidgetPageSpecification)pageSpecification).
+						getSiteTemplatePageSpecificationExternalReferenceCode() ==
+							null) {
 
 					valid = false;
 				}
@@ -1411,33 +1479,6 @@ public abstract class BasePageSpecificationResourceTestCase {
 				continue;
 			}
 
-			if (Objects.equals("settings", additionalAssertFieldName)) {
-				if (!Objects.deepEquals(
-						pageSpecification1.getSettings(),
-						pageSpecification2.getSettings())) {
-
-					return false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals(
-					"siteTemplatePageSpecificationExternalReferenceCode",
-					additionalAssertFieldName)) {
-
-				if (!Objects.deepEquals(
-						pageSpecification1.
-							getSiteTemplatePageSpecificationExternalReferenceCode(),
-						pageSpecification2.
-							getSiteTemplatePageSpecificationExternalReferenceCode())) {
-
-					return false;
-				}
-
-				continue;
-			}
-
 			if (Objects.equals("status", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						pageSpecification1.getStatus(),
@@ -1494,6 +1535,88 @@ public abstract class BasePageSpecificationResourceTestCase {
 							getPageExperiences(),
 						((ContentPageSpecification)pageSpecification2).
 							getPageExperiences())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("settings", additionalAssertFieldName)) {
+				if (!(pageSpecification1 instanceof ContentPageSpecification) ||
+					!(pageSpecification2 instanceof ContentPageSpecification)) {
+
+					continue;
+				}
+
+				if (!Objects.deepEquals(
+						((ContentPageSpecification)pageSpecification1).
+							getSettings(),
+						((ContentPageSpecification)pageSpecification2).
+							getSettings())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"siteTemplatePageSpecificationExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (!(pageSpecification1 instanceof ContentPageSpecification) ||
+					!(pageSpecification2 instanceof ContentPageSpecification)) {
+
+					continue;
+				}
+
+				if (!Objects.deepEquals(
+						((ContentPageSpecification)pageSpecification1).
+							getSiteTemplatePageSpecificationExternalReferenceCode(),
+						((ContentPageSpecification)pageSpecification2).
+							getSiteTemplatePageSpecificationExternalReferenceCode())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("settings", additionalAssertFieldName)) {
+				if (!(pageSpecification1 instanceof WidgetPageSpecification) ||
+					!(pageSpecification2 instanceof WidgetPageSpecification)) {
+
+					continue;
+				}
+
+				if (!Objects.deepEquals(
+						((WidgetPageSpecification)pageSpecification1).
+							getSettings(),
+						((WidgetPageSpecification)pageSpecification2).
+							getSettings())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"siteTemplatePageSpecificationExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (!(pageSpecification1 instanceof WidgetPageSpecification) ||
+					!(pageSpecification2 instanceof WidgetPageSpecification)) {
+
+					continue;
+				}
+
+				if (!Objects.deepEquals(
+						((WidgetPageSpecification)pageSpecification1).
+							getSiteTemplatePageSpecificationExternalReferenceCode(),
+						((WidgetPageSpecification)pageSpecification2).
+							getSiteTemplatePageSpecificationExternalReferenceCode())) {
 
 					return false;
 				}
@@ -1681,61 +1804,6 @@ public abstract class BasePageSpecificationResourceTestCase {
 			return sb.toString();
 		}
 
-		if (entityFieldName.equals("settings")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
-		}
-
-		if (entityFieldName.equals(
-				"siteTemplatePageSpecificationExternalReferenceCode")) {
-
-			Object object =
-				pageSpecification.
-					getSiteTemplatePageSpecificationExternalReferenceCode();
-
-			String value = String.valueOf(object);
-
-			if (operator.equals("contains")) {
-				sb = new StringBundler();
-
-				sb.append("contains(");
-				sb.append(entityFieldName);
-				sb.append(",'");
-
-				if ((object != null) && (value.length() > 2)) {
-					sb.append(value.substring(1, value.length() - 1));
-				}
-				else {
-					sb.append(value);
-				}
-
-				sb.append("')");
-			}
-			else if (operator.equals("startswith")) {
-				sb = new StringBundler();
-
-				sb.append("startswith(");
-				sb.append(entityFieldName);
-				sb.append(",'");
-
-				if ((object != null) && (value.length() > 1)) {
-					sb.append(value.substring(0, value.length() - 1));
-				}
-				else {
-					sb.append(value);
-				}
-
-				sb.append("')");
-			}
-			else {
-				sb.append("'");
-				sb.append(value);
-				sb.append("'");
-			}
-
-			return sb.toString();
-		}
-
 		if (entityFieldName.equals("status")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -1796,16 +1864,41 @@ public abstract class BasePageSpecificationResourceTestCase {
 
 				pageSpecification.setExternalReferenceCode(
 					StringUtil.toLowerCase(RandomTestUtil.randomString()));
-				pageSpecification.
-					setSiteTemplatePageSpecificationExternalReferenceCode(
-						StringUtil.toLowerCase(RandomTestUtil.randomString()));
 
 				pageSpecification.
 					setDraftContentPageSpecificationExternalReferenceCode(
 						StringUtil.toLowerCase(RandomTestUtil.randomString()));
+				pageSpecification.
+					setSiteTemplatePageSpecificationExternalReferenceCode(
+						StringUtil.toLowerCase(RandomTestUtil.randomString()));
 
 				pageSpecification.setType(
 					PageSpecification.Type.create("ContentPageSpecification"));
+
+				return pageSpecification;
+			},
+			() -> {
+				LinkToURLPageSpecification pageSpecification =
+					new LinkToURLPageSpecification();
+
+				pageSpecification.setExternalReferenceCode(
+					StringUtil.toLowerCase(RandomTestUtil.randomString()));
+
+				pageSpecification.setType(
+					PageSpecification.Type.create(
+						"LinkToURLPageSpecification"));
+
+				return pageSpecification;
+			},
+			() -> {
+				PageSetPageSpecification pageSpecification =
+					new PageSetPageSpecification();
+
+				pageSpecification.setExternalReferenceCode(
+					StringUtil.toLowerCase(RandomTestUtil.randomString()));
+
+				pageSpecification.setType(
+					PageSpecification.Type.create("PageSetPageSpecification"));
 
 				return pageSpecification;
 			},
@@ -1815,6 +1908,7 @@ public abstract class BasePageSpecificationResourceTestCase {
 
 				pageSpecification.setExternalReferenceCode(
 					StringUtil.toLowerCase(RandomTestUtil.randomString()));
+
 				pageSpecification.
 					setSiteTemplatePageSpecificationExternalReferenceCode(
 						StringUtil.toLowerCase(RandomTestUtil.randomString()));

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -49,7 +49,11 @@ describe('SaveButtons', () => {
 		);
 
 		global.Liferay.componentReady = jest.fn().mockResolvedValue({
-			reactComponentRef: {current: {validate: () => true}},
+			reactComponentRef: {
+				current: {
+					getFields: () => [{valid: true}],
+				},
+			},
 		});
 
 		global.Liferay.Form = {
@@ -86,31 +90,19 @@ describe('SaveButtons', () => {
 		).toBeInTheDocument();
 	});
 
-	it('Do not open modal for all buttons when there is an articleId', () => {
+	it('Do not see permissions modal in dropdown options when there is an articleId', () => {
 		renderComponent({
 			...DEFAULT_PROPS,
 			articleId: '2611',
 			saveButtonLabel: 'save',
 		});
 
-		userEvent.click(screen.getByText('save'));
+		userEvent.click(screen.getByTitle('publish-options'));
 
 		expect(
-			screen.queryByText(
-				'confirm-the-web-content-visibility-before-saving-as-draft'
-			)
-		).not.toBeInTheDocument();
-
-		userEvent.click(
-			screen.getByText('publish', {
+			screen.queryByText('publish-with-permissions', {
 				selector: '.dropdown-item',
 			})
-		);
-
-		expect(
-			screen.queryByText(
-				'confirm-the-web-content-visibility-before-publishing'
-			)
 		).not.toBeInTheDocument();
 
 		userEvent.click(
@@ -126,7 +118,7 @@ describe('SaveButtons', () => {
 		).not.toBeInTheDocument();
 	});
 
-	it('opens modal for all buttons when there is not an articleId', async () => {
+	it('View permissions modal in dropdown options when there is not an articleId', async () => {
 		renderComponent({
 			...DEFAULT_PROPS,
 			articleId: null,
@@ -141,7 +133,13 @@ describe('SaveButtons', () => {
 			)
 		).toBeInTheDocument();
 
-		userEvent.click(screen.getByLabelText('Close'));
+		userEvent.click(screen.getByTitle('publish-options'));
+
+		expect(
+			screen.getByText('publish-with-permissions', {
+				selector: '.dropdown-item',
+			})
+		).toBeInTheDocument();
 
 		userEvent.click(
 			screen.getByText('publish-with-permissions', {
@@ -155,7 +153,7 @@ describe('SaveButtons', () => {
 			)
 		).toBeInTheDocument();
 
-		userEvent.click(screen.getByLabelText('Close'));
+		userEvent.click(screen.getByLabelText('close'));
 
 		await waitFor(() => {
 			expect(
@@ -224,6 +222,30 @@ describe('SaveButtons', () => {
 		expect(
 			screen.queryByText('please-enter-a-valid-date')
 		).not.toBeInTheDocument();
+	});
+
+	it('select past years from date picker when scheduling', async () => {
+		jest.useFakeTimers().setSystemTime(new Date('2023-01-01'));
+
+		renderComponent({
+			...DEFAULT_PROPS,
+			articleId: null,
+		});
+
+		userEvent.click(await screen.findByText('schedule-publication'));
+
+		jest.runOnlyPendingTimers();
+
+		userEvent.click(
+			await screen.findByRole('button', {name: 'select-date'})
+		);
+
+		userEvent.click(await screen.findByLabelText('select-a-year'));
+
+		const yearToCheck = 2023 - 5;
+		expect(screen.getByText(yearToCheck)).toBeInTheDocument();
+
+		jest.useRealTimers();
 	});
 
 	it('does not proceed if required fields validation fails', async () => {

@@ -3,10 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {
-	DEFAULT_FETCH_HEADERS,
-	EConfigInURLBehavior,
-} from '@liferay/frontend-data-set-web';
+import {DEFAULT_FETCH_HEADERS} from '@liferay/frontend-data-set-web';
 import classNames from 'classnames';
 import {openModal} from 'frontend-js-components-web';
 import {fetch} from 'frontend-js-web';
@@ -14,6 +11,7 @@ import {fetch} from 'frontend-js-web';
 import CustomAuthorTableCell from './CustomAuthorTableCell';
 import SampleInfoPanel from './SampleInfoPanel';
 import dummyUploader from './dummyUploader';
+import {advancedFDSAtom} from './utils/atoms';
 
 import type {
 	ICardSchema,
@@ -23,8 +21,27 @@ import type {
 	IView,
 } from '@liferay/frontend-data-set-web';
 
+function applyStyles(itemsActions: Array<IItemsActions>): Array<IItemsActions> {
+	return itemsActions.map((action: IItemsActions) => {
+		const newItems = action.items ? applyStyles(action.items) : undefined;
+		const itemsChanged = newItems !== action.items;
+
+		const needsStyling = action?.data?.id === 'sampleDeleteMessage';
+
+		if (!itemsChanged && !needsStyling) {
+			return action;
+		}
+
+		return {
+			...action,
+			...(itemsChanged && {items: newItems}),
+			...(needsStyling && {className: 'text-danger'}),
+		};
+	});
+}
+
 export default function propsTransformer({
-	additionalProps: {enableItemsActionsGroups, greeting},
+	additionalProps: {greeting},
 	itemsActions,
 	selectedItemsKey,
 	...otherProps
@@ -91,7 +108,9 @@ export default function propsTransformer({
 		return props;
 	};
 
-	const tableView = views.find((view) => view.name === 'customizedTable')!;
+	const tableView = views.find((view) =>
+		view.name?.toLowerCase().includes('table')
+	)!;
 
 	tableView.setItemComponentProps = ({
 		item,
@@ -110,74 +129,22 @@ export default function propsTransformer({
 		return props;
 	};
 
-	const itemActionsWithStyling = itemsActions.map((action: IItemsActions) => {
-		const key = action?.data?.id as string;
-
-		if (!key || key !== 'sampleDeleteMessage') {
-			return action;
-		}
-
-		return {
-			...action,
-			className: 'text-danger',
-		};
-	});
+	const filtersGroups = [
+		{filters: ['date', 'color'], label: 'Group 1'},
+		{filters: ['clientExtension', 'invalid', 'size'], label: 'Group 2'},
+		{filters: ['status', 'title'], label: 'Group 3'},
+	];
 
 	return {
 		...otherProps,
-		configInURLSettings: EConfigInURLBehavior.PUSH,
+		atom: advancedFDSAtom,
 		customRenderers: {
 			tableCell: [customAuthorTableCellRenderer],
 		},
 		fileDropSettings,
+		filtersGroups,
 		infoPanelComponent: SampleInfoPanel,
-		itemsActions: enableItemsActionsGroups
-			? [
-					{
-						items: itemActionsWithStyling,
-						separator: true,
-						type: 'group',
-					},
-					{
-						items: [
-							{
-								data: {
-									id: 'emptyGroupTest',
-									permissionKey: 'nonexistentPermissionKey',
-								},
-								icon: 'hidden',
-								label: 'Empty Group Test',
-							},
-						],
-						separator: true,
-						type: 'group',
-					},
-					{
-						items: [
-							{
-								data: {
-									id: 'groupItem',
-								},
-								icon: 'separator',
-								label: 'Group Item',
-								onClick: () => {
-									alert('You clicked on an item in a group');
-								},
-							},
-							{
-								data: {
-									id: 'groupPermissionTest',
-									permissionKey: 'nonexistentPermissionKey',
-								},
-								icon: 'hidden',
-								label: 'Group Permission Test',
-							},
-						],
-						separator: true,
-						type: 'group',
-					},
-				]
-			: itemActionsWithStyling,
+		itemsActions: applyStyles(itemsActions),
 		onActionDropdownItemClick({
 			action,
 			itemData,

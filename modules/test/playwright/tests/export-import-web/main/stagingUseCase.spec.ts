@@ -3,6 +3,10 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {
+	TaxonomyCategoryAPI,
+	TaxonomyVocabularyAPI,
+} from '@liferay/headless-admin-taxonomy-client-js';
 import {expect, mergeTests} from '@playwright/test';
 import {createReadStream, readdirSync} from 'fs';
 import path from 'path';
@@ -21,6 +25,7 @@ import {uiElementsPageTest} from '../../../fixtures/uiElementsTest';
 import {webContentDisplayPageTest} from '../../../fixtures/webContentDisplayPageTest';
 import {workflowPagesTest} from '../../../fixtures/workflowPagesTest';
 import getRandomString from '../../../utils/getRandomString';
+import {normalizeRestPath} from '../../../utils/normalizeRestPath';
 import {reloadUntilVisible} from '../../../utils/reloadUntilVisible';
 import {enableLocalStaging} from '../../../utils/staging';
 import getBasicWebContentStructureId from '../../../utils/structured-content/getBasicWebContentStructureId';
@@ -29,11 +34,13 @@ import {exportImportConfig} from './export_import.config';
 import {exportPageTest} from './fixtures/exportPageTest';
 import {stagingConfigurationPageTest} from './fixtures/stagingConfigurationPageTest';
 import {stagingPageTest} from './fixtures/stagingPageTest';
+import {StageableEntities} from './utils/stagingConstants';
 import {unzipAndCheckFolder} from './utils/stagingUtil';
 
-export const test = mergeTests(
+const test = mergeTests(
 	dataApiHelpersTest,
 	featureFlagsTest({
+		'LPD-35443': {enabled: true},
 		'LPD-35914': {enabled: true},
 	}),
 	loginTest(),
@@ -51,6 +58,161 @@ export const test = mergeTests(
 	webContentDisplayPageTest,
 	workflowPagesTest,
 	uiElementsPageTest
+);
+
+const testWithBatchStagingFF = mergeTests(
+	dataApiHelpersTest,
+	featureFlagsTest({
+		'LPD-35443': {enabled: true},
+		'LPD-35914': {enabled: true},
+		'LPD-41367': {enabled: true},
+	}),
+	loginTest(),
+	stagingConfigurationPageTest,
+	stagingPageTest
+);
+
+testWithBatchStagingFF(
+	'Object entries can not be staged through batch',
+	{tag: ['@LPD-70661', '@LPD-72343']},
+	async ({apiHelpers, stagingPage}) => {
+		const objectDefinition =
+			await apiHelpers.objectAdmin.postRandomObjectDefinition({
+				scope: 'site',
+				status: {code: 0},
+			});
+
+		apiHelpers.data.push({
+			id: objectDefinition.id,
+			type: 'objectDefinition',
+		});
+
+		const site = await apiHelpers.headlessSite.createSite({
+			name: getRandomString(),
+		});
+
+		apiHelpers.data.push({
+			id: site.id,
+			type: 'site',
+		});
+
+		await apiHelpers.objectEntry.postObjectEntry(
+			{externalReferenceCode: getRandomString(), name: getRandomString()},
+			`${normalizeRestPath(objectDefinition.restContextPath)}/scopes/${site.name}`
+		);
+
+		await stagingPage.goto(site.name);
+		await stagingPage.localStagingButton.click();
+
+		await expect(
+			stagingPage.stagedPortletCheckbox(
+				objectDefinition.pluralLabel.en_US
+			)
+		).toHaveCount(0);
+	}
+);
+
+testWithBatchStagingFF(
+	'Taxonomy Categories can be staged through batch',
+	{tag: ['@LPD-76007']},
+	async ({apiHelpers, stagingPage}) => {
+		const site = await apiHelpers.headlessSite.createSite({
+			name: getRandomString(),
+		});
+
+		apiHelpers.data.push({
+			id: site.id,
+			type: 'site',
+		});
+
+		const taxonomyVocabularyAPIClient = await apiHelpers.buildRestClient(
+			TaxonomyVocabularyAPI
+		);
+
+		const {body: taxonomyVocabulary} =
+			await taxonomyVocabularyAPIClient.postSiteTaxonomyVocabulary(
+				Number(site.id),
+				{
+					externalReferenceCode: getRandomString(),
+					name: getRandomString(),
+				}
+			);
+
+		const taxonomyCategoryAPIClient =
+			await apiHelpers.buildRestClient(TaxonomyCategoryAPI);
+
+		const {body: taxonomyCategory1} =
+			await taxonomyCategoryAPIClient.postSiteTaxonomyCategory(
+				Number(site.id),
+				{
+					externalReferenceCode: getRandomString(),
+					name: getRandomString(),
+					taxonomyVocabularyId: taxonomyVocabulary.id,
+				}
+			);
+
+		const {body: taxonomyCategory2} =
+			await taxonomyCategoryAPIClient.postSiteTaxonomyCategory(
+				Number(site.id),
+				{
+					externalReferenceCode: getRandomString(),
+					name: getRandomString(),
+					taxonomyVocabularyId: taxonomyVocabulary.id,
+				}
+			);
+
+		await stagingPage.goto(site.name);
+		await stagingPage.enableLocalStaging([StageableEntities.CATEGORIES]);
+
+		const stagingSite = await apiHelpers.headlessSite.getSite(
+			`${site.key}-staging`
+		);
+
+		expect(
+			(
+				await taxonomyCategoryAPIClient.getSiteTaxonomyCategoryByExternalReferenceCode(
+					Number(stagingSite.id),
+					taxonomyCategory1.externalReferenceCode
+				)
+			).body
+		).toMatchObject({
+			externalReferenceCode: taxonomyCategory1.externalReferenceCode,
+			name: taxonomyCategory1.name,
+			parentTaxonomyVocabulary: {
+				externalReferenceCode: taxonomyVocabulary.externalReferenceCode,
+			},
+			siteId: stagingSite.id,
+		});
+
+		expect(
+			(
+				await taxonomyCategoryAPIClient.getSiteTaxonomyCategoryByExternalReferenceCode(
+					Number(stagingSite.id),
+					taxonomyCategory2.externalReferenceCode
+				)
+			).body
+		).toMatchObject({
+			externalReferenceCode: taxonomyCategory2.externalReferenceCode,
+			name: taxonomyCategory2.name,
+			parentTaxonomyVocabulary: {
+				externalReferenceCode: taxonomyVocabulary.externalReferenceCode,
+			},
+			siteId: stagingSite.id,
+		});
+
+		expect(
+			(
+				await taxonomyVocabularyAPIClient.getSiteTaxonomyVocabularyByExternalReferenceCode(
+					Number(stagingSite.id),
+					taxonomyVocabulary.externalReferenceCode
+				)
+			).body
+		).toMatchObject({
+			externalReferenceCode: taxonomyVocabulary.externalReferenceCode,
+			name: taxonomyVocabulary.name,
+			siteId: stagingSite.id,
+		});
+	}
 );
 
 test('Staging only approved content goes to live', async ({
@@ -145,6 +307,10 @@ test('Staging only approved content goes to live', async ({
 	await workflowTasksPage.approve(webContent1.title);
 
 	await pageEditorPage.goto(layout1, stagingSite.friendlyUrlPath);
+	await reloadUntilVisible({
+		myLocator: page.getByText(webcontentContent1, {exact: true}),
+		page,
+	});
 	await expect(
 		page.getByText(webcontentContent1, {exact: true})
 	).toBeVisible();
@@ -385,7 +551,9 @@ test(
 		);
 
 		await stagingPage.goto(site.name + '-staging');
-		await stagingPage.publish(['Web Content 1 Items Web']);
+		await stagingPage.publish({
+			includeIfModified: ['Web Content 1 Items Web'],
+		});
 
 		const tomcatDir = exportImportConfig.environment.tomcatDir;
 

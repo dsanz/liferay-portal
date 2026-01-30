@@ -1,0 +1,116 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ClayLocalizedInput renders 1`] = `
+<div>
+  <label
+    for="locale1"
+  >
+    Check for translations
+  </label>
+  <div
+    class="input-group"
+  >
+    <div
+      class="input-group-item"
+    >
+      <input
+        class="form-control"
+        id="locale1"
+        placeholder="Text to translate..."
+        type="text"
+        value="Apple"
+      />
+    </div>
+    <div
+      class="input-group-item input-group-item-shrink"
+    >
+      <button
+        aria-activedescendant=""
+        aria-expanded="false"
+        aria-haspopup="listbox"
+        aria-label="Open Localizations"
+        class="form-control form-control-select form-control-select-secondary form-control-shrink hidden-label"
+        role="combobox"
+        tabindex="0"
+        title="en-US"
+        type="button"
+      >
+        <span
+          class="inline-item-before"
+        >
+          <svg
+            class="lexicon-icon lexicon-icon-en-us"
+            role="presentation"
+          >
+            <use
+              href="/path/to/svg#en-us"
+            />
+          </svg>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`ClayLocalizedInput renders with prepend content and result formatter 1`] = `
+<div>
+  <label
+    for="locale1"
+  >
+    Check for translations
+  </label>
+  <div
+    class="input-group"
+  >
+    <div
+      class="input-group-item input-group-item-shrink input-group-prepend"
+    >
+      <div
+        class="input-group-text"
+      >
+        /home/
+      </div>
+    </div>
+    <div
+      class="input-group-item input-group-append"
+    >
+      <input
+        class="form-control"
+        id="locale1"
+        placeholder="Text to translate..."
+        type="text"
+        value="Apple"
+      />
+    </div>
+    <div
+      class="input-group-item input-group-item-shrink"
+    >
+      <button
+        aria-activedescendant=""
+        aria-expanded="false"
+        aria-haspopup="listbox"
+        aria-label="Open Localizations"
+        class="form-control form-control-select form-control-select-secondary form-control-shrink hidden-label"
+        role="combobox"
+        tabindex="0"
+        title="en-US"
+        type="button"
+      >
+        <span
+          class="inline-item-before"
+        >
+          <svg
+            class="lexicon-icon lexicon-icon-en-us"
+            role="presentation"
+          >
+            <use
+              href="/path/to/svg#en-us"
+            />
+          </svg>
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+`;

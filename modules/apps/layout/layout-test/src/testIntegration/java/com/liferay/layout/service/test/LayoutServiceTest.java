@@ -14,6 +14,7 @@ import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
@@ -24,7 +25,9 @@ import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.test.context.ContextUserReplace;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
@@ -52,6 +55,8 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import org.springframework.mock.web.MockHttpServletRequest;
 
 /**
  * @author Akos Thurzo
@@ -91,6 +96,38 @@ public class LayoutServiceTest {
 	@Test
 	public void testAddPublicLayout() throws Exception {
 		_assertAddLayout(false);
+	}
+
+	@Test(expected = PrincipalException.class)
+	public void testCopyLayoutWithoutPermissions() throws Exception {
+		Layout layout = LayoutTestUtil.addTypeContentLayout(_group);
+
+		User user = UserTestUtil.addUser();
+
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		_roleLocalService.addUserRole(user.getUserId(), role.getRoleId());
+
+		RoleTestUtil.addResourcePermission(
+			role, Group.class.getName(), ResourceConstants.SCOPE_GROUP,
+			String.valueOf(_group.getGroupId()), ActionKeys.ADD_LAYOUT);
+
+		_removeResourcePermission(layout);
+
+		try (ContextUserReplace contextUserReplace = new ContextUserReplace(
+				user)) {
+
+			ServiceContext serviceContext =
+				ServiceContextTestUtil.getServiceContext(
+					_group, TestPropsValues.getUserId());
+
+			serviceContext.setRequest(new MockHttpServletRequest());
+
+			_layoutService.copyLayout(
+				_group.getGroupId(), layout.isPrivateLayout(),
+				RandomTestUtil.randomLocaleStringMap(), false, false, false,
+				layout.getPlid(), serviceContext);
+		}
 	}
 
 	@Test
@@ -286,7 +323,7 @@ public class LayoutServiceTest {
 			typeSettingsUnicodeProperties.setProperty(
 				"layout-template-id", layoutTemplateId);
 
-			layout = _layoutService.updateLayout(
+			layout = _layoutService.updateTypeSettings(
 				layout.getGroupId(), layout.isPrivateLayout(),
 				layout.getLayoutId(), typeSettingsUnicodeProperties.toString());
 
@@ -330,7 +367,7 @@ public class LayoutServiceTest {
 		layoutTypePortlet.resetModes();
 		layoutTypePortlet.resetStates();
 
-		_layoutService.updateLayout(
+		_layoutService.updateTypeSettings(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
 			layout.getTypeSettings());
 
@@ -356,7 +393,7 @@ public class LayoutServiceTest {
 				_friendlyURLNormalizer.normalizeWithEncoding(
 					StringPool.SLASH + name)
 			).build(),
-			0,
+			null,
 			ServiceContextTestUtil.getServiceContext(
 				_group, TestPropsValues.getUserId()));
 	}

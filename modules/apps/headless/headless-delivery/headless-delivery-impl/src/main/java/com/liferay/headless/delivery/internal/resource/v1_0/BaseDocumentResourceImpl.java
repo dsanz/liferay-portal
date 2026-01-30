@@ -749,8 +749,8 @@ public abstract class BaseDocumentResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(documentId);
-		String resourceName = getPermissionCheckerResourceName(documentId);
 		Long resourceId = getPermissionCheckerResourceId(documentId);
+		String resourceName = getPermissionCheckerResourceName(documentId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -1957,8 +1957,8 @@ public abstract class BaseDocumentResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(documentId);
-		String resourceName = getPermissionCheckerResourceName(documentId);
 		Long resourceId = getPermissionCheckerResourceId(documentId);
+		String resourceName = getPermissionCheckerResourceName(documentId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -2293,9 +2293,49 @@ public abstract class BaseDocumentResourceImpl
 
 		UnsafeFunction<Document, Document, Exception> documentUnsafeFunction =
 			document -> {
-				deleteDocument(document.getId());
+				if (document.getId() != null) {
+					try {
+						deleteDocument(document.getId());
 
-				return document;
+						return document;
+					}
+					catch (Exception exception) {
+						if (document.getExternalReferenceCode() != null) {
+							if (parameters.containsKey("assetLibraryId")) {
+								deleteAssetLibraryDocumentByExternalReferenceCode(
+									(Long)parameters.get("assetLibraryId"),
+									document.getExternalReferenceCode());
+
+								return document;
+							}
+
+							if (parameters.containsKey("siteId")) {
+								deleteSiteDocumentByExternalReferenceCode(
+									(Long)parameters.get("siteId"),
+									document.getExternalReferenceCode());
+
+								return document;
+							}
+						}
+					}
+				}
+				else if (parameters.containsKey("assetLibraryId")) {
+					deleteAssetLibraryDocumentByExternalReferenceCode(
+						(Long)parameters.get("assetLibraryId"),
+						document.getExternalReferenceCode());
+
+					return document;
+				}
+				else if (parameters.containsKey("siteId")) {
+					deleteSiteDocumentByExternalReferenceCode(
+						(Long)parameters.get("siteId"),
+						document.getExternalReferenceCode());
+
+					return document;
+				}
+
+				throw new UnsupportedOperationException(
+					"Unable to delete by external reference code or ID");
 			};
 
 		if (contextBatchUnsafeBiConsumer != null) {
@@ -2618,6 +2658,9 @@ public abstract class BaseDocumentResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

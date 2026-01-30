@@ -10,6 +10,9 @@ import com.liferay.asset.kernel.service.AssetTagGroupRelLocalService;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.asset.kernel.service.AssetTagService;
 import com.liferay.asset.tags.constants.AssetTagsAdminPortletKeys;
+import com.liferay.depot.constants.DepotConstants;
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.service.DepotEntryService;
 import com.liferay.exportimport.vulcan.batch.engine.ExportImportVulcanBatchEngineTaskItemDelegate;
 import com.liferay.headless.admin.taxonomy.dto.v1_0.Keyword;
 import com.liferay.headless.admin.taxonomy.internal.odata.entity.v1_0.KeywordEntityModel;
@@ -32,7 +35,6 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -156,7 +158,12 @@ public class KeywordResourceImpl
 		return new ExportImportDescriptor() {
 
 			@Override
-			public String getItemClassName() {
+			public String getLabelLanguageKey() {
+				return "tags";
+			}
+
+			@Override
+			public String getModelClassName() {
 				return AssetTag.class.getName();
 			}
 
@@ -166,8 +173,18 @@ public class KeywordResourceImpl
 			}
 
 			@Override
+			public String getResourceClassName() {
+				return KeywordResourceImpl.class.getName();
+			}
+
+			@Override
 			public Scope getScope() {
 				return Scope.SITE;
+			}
+
+			@Override
+			public boolean isStagingSupported() {
+				return true;
 			}
 
 		};
@@ -269,22 +286,8 @@ public class KeywordResourceImpl
 	public Keyword postSiteKeyword(Long siteId, Keyword keyword)
 		throws Exception {
 
-		AssetTag assetTag = _assetTagService.addTag(
-			keyword.getExternalReferenceCode(), siteId, keyword.getName(),
-			new ServiceContext());
-
-		Group group = _groupLocalService.getGroup(siteId);
-
-		if (FeatureFlagManagerUtil.isEnabled("LPD-17564") && group.isCMS() &&
-			ArrayUtil.isNotEmpty(keyword.getAssetLibraries())) {
-
-			_assetTagGroupRelLocalService.setAssetTagGroupRels(
-				assetTag.getTagId(),
-				TaxonomyGroupUtil.getAssetLibraryGroupIds(
-					keyword.getAssetLibraries()));
-		}
-
-		return _toKeyword(assetTag);
+		return _postSiteKeyword(
+			keyword.getExternalReferenceCode(), keyword, siteId);
 	}
 
 	@Override
@@ -303,10 +306,7 @@ public class KeywordResourceImpl
 					keyword.getName(), null));
 		}
 
-		return _toKeyword(
-			_assetTagService.addTag(
-				externalReferenceCode, assetLibraryId, keyword.getName(),
-				new ServiceContext()));
+		return _postSiteKeyword(externalReferenceCode, keyword, assetLibraryId);
 	}
 
 	@Override
@@ -317,13 +317,13 @@ public class KeywordResourceImpl
 			keyword.getExternalReferenceCode(), keywordId, keyword.getName(),
 			null);
 
-		if (FeatureFlagManagerUtil.isEnabled("LPD-17564") &&
-			ArrayUtil.isNotEmpty(keyword.getAssetLibraries())) {
+		if (FeatureFlagManagerUtil.isEnabled(
+				assetTag.getCompanyId(), "LPD-17564")) {
 
 			_assetTagGroupRelLocalService.setAssetTagGroupRels(
 				assetTag.getTagId(),
 				TaxonomyGroupUtil.getAssetLibraryGroupIds(
-					keyword.getAssetLibraries()));
+					keyword.getAssetLibraries(), assetTag.getCompanyId()));
 		}
 
 		return _toKeyword(assetTag);
@@ -333,15 +333,17 @@ public class KeywordResourceImpl
 	public void putKeywordMerge(Long toKeywordId, Long[] fromKeywordIds)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+		AssetTag assetTag = _assetTagService.getTag(toKeywordId);
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				assetTag.getCompanyId(), "LPD-17564")) {
+
 			throw new UnsupportedOperationException();
 		}
 
 		for (long fromKeywordId : fromKeywordIds) {
 			_assetTagService.mergeTags(fromKeywordId, toKeywordId);
 		}
-
-		AssetTag assetTag = _assetTagService.getTag(toKeywordId);
 
 		_assetTagGroupRelLocalService.setAssetTagGroupRels(
 			assetTag.getTagId(),
@@ -377,10 +379,7 @@ public class KeywordResourceImpl
 					keyword.getName(), null));
 		}
 
-		return _toKeyword(
-			_assetTagService.addTag(
-				externalReferenceCode, siteId, keyword.getName(),
-				new ServiceContext()));
+		return _postSiteKeyword(externalReferenceCode, keyword, siteId);
 	}
 
 	@Override
@@ -417,7 +416,25 @@ public class KeywordResourceImpl
 				searchContext.addVulcanAggregation(aggregation);
 				searchContext.setAttribute(Field.NAME, search);
 				searchContext.setCompanyId(contextCompany.getCompanyId());
-				searchContext.setGroupIds(new long[] {groupId});
+
+				DepotEntry depotEntry = _depotEntryService.fetchGroupDepotEntry(
+					groupId);
+
+				if ((depotEntry != null) &&
+					(depotEntry.getType() == DepotConstants.TYPE_SPACE)) {
+
+					searchContext.setAttribute(
+						"groupIds",
+						new long[] {
+							groupId, GroupConstants.ANY_PARENT_GROUP_ID
+						});
+				}
+				else {
+					searchContext.setGroupIds(
+						new long[] {
+							groupId, GroupConstants.ANY_PARENT_GROUP_ID
+						});
+				}
 			},
 			sorts,
 			document -> _toKeyword(
@@ -465,6 +482,29 @@ public class KeywordResourceImpl
 		}
 
 		return _assetTagLocalService.dynamicQueryCount(dynamicQuery);
+	}
+
+	private Keyword _postSiteKeyword(
+			String externalReferenceCode, Keyword keyword, Long siteId)
+		throws Exception {
+
+		AssetTag assetTag = _assetTagService.addTag(
+			externalReferenceCode, siteId, keyword.getName(),
+			new ServiceContext());
+
+		Group group = _groupLocalService.getGroup(siteId);
+
+		if (FeatureFlagManagerUtil.isEnabled(
+				group.getCompanyId(), "LPD-17564") &&
+			group.isCMS()) {
+
+			_assetTagGroupRelLocalService.setAssetTagGroupRels(
+				assetTag.getTagId(),
+				TaxonomyGroupUtil.getAssetLibraryGroupIds(
+					keyword.getAssetLibraries(), group.getCompanyId()));
+		}
+
+		return _toKeyword(assetTag);
 	}
 
 	private AssetTag _toAssetTag(Object[] assetTags) {
@@ -544,6 +584,9 @@ public class KeywordResourceImpl
 
 	@Reference
 	private AssetTagService _assetTagService;
+
+	@Reference
+	private DepotEntryService _depotEntryService;
 
 	@Reference
 	private DTOConverterRegistry _dtoConverterRegistry;

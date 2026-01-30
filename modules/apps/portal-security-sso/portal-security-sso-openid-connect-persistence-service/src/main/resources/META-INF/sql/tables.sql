@@ -9,5 +9,17 @@ create table OpenIdConnectSession (
 	authServerWellKnownURI VARCHAR(256) null,
 	clientId VARCHAR(256) null,
 	idToken TEXT null,
-	refreshToken VARCHAR(2000) null
+	issuer VARCHAR(75) null,
+	refreshToken VARCHAR(2000) null,
+	sessionId VARCHAR(75) null
+);
+
+create table OpenIdConnectUser (
+	mvccVersion LONG default 0 not null,
+	openIdConnectUserId LONG not null primary key,
+	companyId LONG,
+	userId LONG,
+	createDate DATE null,
+	issuer VARCHAR(75) null,
+	subject VARCHAR(75) null
 );

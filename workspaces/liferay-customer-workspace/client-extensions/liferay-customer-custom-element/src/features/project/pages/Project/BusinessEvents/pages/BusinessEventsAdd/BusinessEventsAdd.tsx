@@ -24,6 +24,7 @@ import Layout from '../../../../../../../components/FormLayout';
 import AssociatedTicketsContainer from '../../components/AssociatedTicketsContainer';
 import useAccountsSyncBusinessEvents from '../../hooks/useAccountsSyncBusinessEvents';
 import useAccountsTickets from '../../hooks/useAccountsTickets';
+import useCanViewTickets from '../../hooks/useCanViewTickets';
 import useGetBusinessEventTypesList from '../../hooks/useGetBusinessEventTypesList';
 import useGetLiferayVersions from '../../hooks/useGetLiferayVersions';
 import useGetUTCTimeZonesList from '../../hooks/useGetUTCTimeZonesList';
@@ -53,7 +54,7 @@ const BusinessEventsAddPage: React.FC<IProps> = ({
 	touched,
 	values,
 }) => {
-	const {client, featureFlags} = useAppPropertiesContext();
+	const {client} = useAppPropertiesContext();
 
 	const [{project, subscriptionGroups}] = useAppContext();
 
@@ -92,8 +93,14 @@ const BusinessEventsAddPage: React.FC<IProps> = ({
 
 	const {loading: loadingTickets, tickets} = useAccountsTickets(
 		undefined,
-		project?.accountKey || ''
+		project?.accountKey || '',
+		hasImpactingEvents === 'no'
 	);
+
+	const {
+		canViewTickets: canViewTickets,
+		loading: loadingJiraAccountChecking,
+	} = useCanViewTickets(project?.accountKey || '');
 
 	const {loading: loadingUTCTimeZonesList, utcTimeZonesList} =
 		useGetUTCTimeZonesList();
@@ -220,16 +227,14 @@ const BusinessEventsAddPage: React.FC<IProps> = ({
 
 	const loading =
 		loadingBusinessEventTypesList ||
+		loadingJiraAccountChecking ||
 		loadingLiferayVersions ||
-		loadingTickets ||
 		loadingUTCTimeZonesList;
 
 	useEffect(() => {
 		if (hasImpactingEvents === 'yes') {
-			const selectedTicketsMap = selectedTickets.map((ticket) =>
-				featureFlags.includes('LRSD-8280')
-					? `"${ticket.ticketId}"`
-					: ticket.ticketId
+			const selectedTicketsMap = selectedTickets.map(
+				(ticket) => `"${ticket.ticketId}"`
 			);
 
 			setFieldValue(
@@ -240,7 +245,7 @@ const BusinessEventsAddPage: React.FC<IProps> = ({
 		else {
 			setFieldValue('businessEvent.associatedTickets', '[]');
 		}
-	}, [featureFlags, hasImpactingEvents, selectedTickets, setFieldValue]);
+	}, [hasImpactingEvents, selectedTickets, setFieldValue]);
 
 	useEffect(() => {
 		setFieldValue(
@@ -365,21 +370,14 @@ const BusinessEventsAddPage: React.FC<IProps> = ({
 
 	useEffect(() => {
 		setTicketOptions([
-			...(tickets
-				?.filter((ticket) => {
-					return featureFlags.includes('LRSD-8280')
-						? true
-						: ticket.status !== 'closed' &&
-								ticket.status !== 'solved';
-				})
-				.map((ticket) => {
-					return {...ticket, selected: false};
-				}) || []),
+			...(tickets?.map((ticket) => {
+				return {...ticket, selected: false};
+			}) || []),
 		]);
-	}, [featureFlags, tickets]);
+	}, [tickets]);
 
 	return !loading ? (
-		tickets ? (
+		canViewTickets ? (
 			hasAllEventsPermissions ? (
 				<Layout
 					footerProps={{
@@ -608,7 +606,9 @@ const BusinessEventsAddPage: React.FC<IProps> = ({
 
 								{hasImpactingEvents === 'yes' && (
 									<div className="mx-3 pb-3">
-										{ticketOptions.length ? (
+										{loadingTickets ? (
+											<ClayLoadingIndicator size="sm" />
+										) : ticketOptions.length ? (
 											<>
 												<label>
 													{i18n.translate(

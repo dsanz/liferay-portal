@@ -19,6 +19,7 @@ export class ViewObjectDefinitionsPage {
 	readonly defaultObjectFolder: Locator;
 	readonly deleteObjectDefinitionOption: Locator;
 	readonly deleteObjectFolderButton: Locator;
+	readonly exportObjectDefinitionOption: Locator;
 	readonly frontendDataSetEntries: Locator;
 	readonly objectFolderActions: Locator;
 	readonly objectFolderCardHeader: Locator;
@@ -49,6 +50,9 @@ export class ViewObjectDefinitionsPage {
 		});
 		this.deleteObjectFolderButton = page.getByRole('button', {
 			name: 'Delete',
+		});
+		this.exportObjectDefinitionOption = page.getByRole('menuitem', {
+			name: 'Export Object Definition',
 		});
 		this.frontendDataSetEntries = page.locator('div.table-list-title a');
 		this.objectFolders = page
@@ -81,7 +85,16 @@ export class ViewObjectDefinitionsPage {
 		await this.page.getByRole('button', {name: 'Save'}).click();
 	}
 
-	async clickEditObjectDefinitionLink(objectDefinitionLabel: string) {
+	async clickEditObjectDefinitionLink(
+		objectDefinitionLabel: string,
+		placeholder?: string
+	) {
+		await this.page
+			.getByPlaceholder(placeholder ?? 'Search')
+			.fill(objectDefinitionLabel.replace(/ /g, ''));
+
+		await this.page.keyboard.press('Enter');
+
 		await this.page
 			.getByRole('link', {exact: true, name: objectDefinitionLabel})
 			.click();
@@ -133,10 +146,13 @@ export class ViewObjectDefinitionsPage {
 		);
 	}
 
-	async openObjectFolder(objectFolderLabel: string) {
+	async openObjectFolder(
+		objectFolderLabel: string,
+		options: {timeout?: number} = {}
+	) {
 		await this.page
 			.getByRole('listitem')
 			.filter({hasText: objectFolderLabel})
-			.click();
+			.click({timeout: options?.timeout});
 	}
 }

@@ -6,50 +6,96 @@
 import {ClayInput} from '@clayui/form';
 import React, {ComponentProps, useEffect, useState} from 'react';
 
-import {IAssetObjectEntry} from '../../../common/types/AssetType';
-import ObjectEntryService, {
-	EntryCategorizationDTO,
-} from '../services/ObjectEntryService';
+import CategoryService from '../../../common/services/CategoryService';
+import {
+	IAssetObjectEntry,
+	ITaxonomyCategoryBrief,
+} from '../../../common/types/AssetType';
+import ObjectEntryService from '../services/ObjectEntryService';
 import AssetCategories from './AssetCategories';
 import AssetTags from './AssetTags';
+
+type Categorization = Pick<
+	IAssetObjectEntry,
+	'keywords' | 'taxonomyCategoryBriefs' | 'systemProperties'
+>;
 
 export type CategorizationInputSize = ComponentProps<
 	typeof ClayInput
 >['sizing'];
 
 export default function AssetCategorization({
+	assetLibraryId,
+	categorization,
 	cmsGroupId,
 	getObjectEntryURL,
+	hasUpdatePermission,
 	inputSize,
 	onUpdateCategorization,
-	updateObjectEntryURL,
 }: {
+	assetLibraryId: number | string;
+	categorization: Categorization;
 	cmsGroupId: number | string;
 	getObjectEntryURL: string;
+	hasUpdatePermission: boolean;
 	inputSize?: CategorizationInputSize;
 	onUpdateCategorization?: (data: IAssetObjectEntry) => void;
-	updateObjectEntryURL: string;
+	updateObjectEntryURL?: string;
 }) {
-	const [objectEntry, setObjectEntry] = useState<IAssetObjectEntry | null>(
-		null
+	const [objectEntry, setObjectEntry] = useState<IAssetObjectEntry>(
+		categorization as IAssetObjectEntry
 	);
 
 	const updateObjectEntry = async ({
 		keywords,
 		taxonomyCategoryIds,
-	}: EntryCategorizationDTO): Promise<void> => {
-		const {data, error} = await ObjectEntryService.patchObjectEntry(
-			{
-				keywords: keywords || objectEntry?.keywords!,
-				...(taxonomyCategoryIds ? {taxonomyCategoryIds} : {}),
-			},
-			updateObjectEntryURL
-		);
+	}: Partial<IAssetObjectEntry>): Promise<void> => {
+		const error: string | null = null;
+		let newObjectEntry = {
+			...objectEntry,
+			keywords: keywords || objectEntry.keywords,
+		};
 
-		if (data) {
-			setObjectEntry(data);
+		if (taxonomyCategoryIds) {
+			if (
+				objectEntry.taxonomyCategoryBriefs.length >
+				taxonomyCategoryIds.length
+			) {
+				newObjectEntry = {
+					...newObjectEntry,
+					taxonomyCategoryBriefs:
+						objectEntry.taxonomyCategoryBriefs.filter(
+							({taxonomyCategoryId: id}) =>
+								taxonomyCategoryIds.includes(id)
+						),
+				};
+			}
+			else {
+				const addedCategoryId: number =
+					taxonomyCategoryIds[taxonomyCategoryIds.length - 1];
 
-			onUpdateCategorization?.(data);
+				const {data: newCategory} =
+					await CategoryService.getCategoryById(addedCategoryId);
+
+				if (newCategory) {
+					newObjectEntry = {
+						...newObjectEntry,
+						taxonomyCategoryBriefs: [
+							...objectEntry.taxonomyCategoryBriefs,
+							{
+								embeddedTaxonomyCategory: newCategory,
+								taxonomyCategoryId: Number(newCategory.id),
+							},
+						] as ITaxonomyCategoryBrief[],
+					};
+				}
+			}
+		}
+
+		onUpdateCategorization?.(newObjectEntry);
+
+		if (newObjectEntry) {
+			setObjectEntry(newObjectEntry);
 		}
 		else if (error) {
 			if (keywords?.length) {
@@ -67,9 +113,29 @@ export default function AssetCategorization({
 				await ObjectEntryService.getObjectEntry(getObjectEntryURL);
 
 			if (data) {
-				setObjectEntry(data);
+				let newObjectEntry = data;
 
-				onUpdateCategorization?.(data);
+				setObjectEntry((objectEntry) => {
+					if (objectEntry) {
+						const {keywords, taxonomyCategoryBriefs} = objectEntry;
+
+						newObjectEntry = {
+							...data,
+							keywords: getUnique([
+								...data.keywords,
+								...keywords,
+							]) as string[],
+							taxonomyCategoryBriefs: getUnique([
+								...data.taxonomyCategoryBriefs,
+								...taxonomyCategoryBriefs,
+							]) as ITaxonomyCategoryBrief[],
+						};
+					}
+
+					return newObjectEntry;
+				});
+
+				onUpdateCategorization?.(newObjectEntry);
 			}
 			else if (error) {
 				console.error(error);
@@ -85,17 +151,41 @@ export default function AssetCategorization({
 		<>
 			<AssetCategories
 				cmsGroupId={cmsGroupId}
+				hasUpdatePermission={hasUpdatePermission}
 				inputSize={inputSize}
 				objectEntry={objectEntry}
 				updateObjectEntry={updateObjectEntry}
 			/>
 
 			<AssetTags
+				assetLibraryId={assetLibraryId}
 				cmsGroupId={cmsGroupId}
+				hasUpdatePermission={hasUpdatePermission}
 				inputSize={inputSize}
+				key={objectEntry.keywords?.join(',') || 'tags'}
 				objectEntry={objectEntry}
 				updateObjectEntry={updateObjectEntry}
 			/>
 		</>
 	);
+}
+
+function getUnique(
+	categorization:
+		| IAssetObjectEntry['keywords']
+		| IAssetObjectEntry['taxonomyCategoryBriefs']
+) {
+	if (typeof categorization[0] === 'string') {
+		return [...new Set(categorization as string[])];
+	}
+	else {
+		return [
+			...new Map(
+
+				// @ts-ignore
+
+				categorization.map((item) => [item.taxonomyCategoryId, item])
+			).values(),
+		];
+	}
 }

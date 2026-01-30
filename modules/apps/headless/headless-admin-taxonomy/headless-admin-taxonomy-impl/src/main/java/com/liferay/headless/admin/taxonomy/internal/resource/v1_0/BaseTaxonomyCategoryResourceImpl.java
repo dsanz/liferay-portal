@@ -824,9 +824,9 @@ public abstract class BaseTaxonomyCategoryResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(taxonomyCategoryId);
+		Long resourceId = getPermissionCheckerResourceId(taxonomyCategoryId);
 		String resourceName = getPermissionCheckerResourceName(
 			taxonomyCategoryId);
-		Long resourceId = getPermissionCheckerResourceId(taxonomyCategoryId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -2176,9 +2176,9 @@ public abstract class BaseTaxonomyCategoryResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(taxonomyCategoryId);
+		Long resourceId = getPermissionCheckerResourceId(taxonomyCategoryId);
 		String resourceName = getPermissionCheckerResourceName(
 			taxonomyCategoryId);
-		Long resourceId = getPermissionCheckerResourceId(taxonomyCategoryId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -2494,9 +2494,53 @@ public abstract class BaseTaxonomyCategoryResourceImpl
 
 		UnsafeFunction<TaxonomyCategory, TaxonomyCategory, Exception>
 			taxonomyCategoryUnsafeFunction = taxonomyCategory -> {
-				deleteTaxonomyCategory(taxonomyCategory.getId());
+				if (taxonomyCategory.getId() != null) {
+					try {
+						deleteTaxonomyCategory(taxonomyCategory.getId());
 
-				return taxonomyCategory;
+						return taxonomyCategory;
+					}
+					catch (Exception exception) {
+						if (taxonomyCategory.getExternalReferenceCode() !=
+								null) {
+
+							if (parameters.containsKey("assetLibraryId")) {
+								deleteAssetLibraryTaxonomyCategoryByExternalReferenceCode(
+									(Long)parameters.get("assetLibraryId"),
+									taxonomyCategory.
+										getExternalReferenceCode());
+
+								return taxonomyCategory;
+							}
+
+							if (parameters.containsKey("siteId")) {
+								deleteSiteTaxonomyCategoryByExternalReferenceCode(
+									(Long)parameters.get("siteId"),
+									taxonomyCategory.
+										getExternalReferenceCode());
+
+								return taxonomyCategory;
+							}
+						}
+					}
+				}
+				else if (parameters.containsKey("assetLibraryId")) {
+					deleteAssetLibraryTaxonomyCategoryByExternalReferenceCode(
+						(Long)parameters.get("assetLibraryId"),
+						taxonomyCategory.getExternalReferenceCode());
+
+					return taxonomyCategory;
+				}
+				else if (parameters.containsKey("siteId")) {
+					deleteSiteTaxonomyCategoryByExternalReferenceCode(
+						(Long)parameters.get("siteId"),
+						taxonomyCategory.getExternalReferenceCode());
+
+					return taxonomyCategory;
+				}
+
+				throw new UnsupportedOperationException(
+					"Unable to delete by external reference code or ID");
 			};
 
 		if (contextBatchUnsafeBiConsumer != null) {
@@ -2814,6 +2858,9 @@ public abstract class BaseTaxonomyCategoryResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

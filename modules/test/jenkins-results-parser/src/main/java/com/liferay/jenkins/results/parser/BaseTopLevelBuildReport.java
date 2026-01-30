@@ -14,7 +14,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +36,12 @@ public abstract class BaseTopLevelBuildReport
 		DownstreamBuildReport downstreamBuildReport) {
 
 		if (downstreamBuildReport == null) {
+			return;
+		}
+
+		if (downstreamBuildReport.isBuildCached()) {
+			_cachedDownstreamBuildReports.add(downstreamBuildReport);
+
 			return;
 		}
 
@@ -76,28 +81,6 @@ public abstract class BaseTopLevelBuildReport
 		jsonArray.put(String.valueOf(testrayAttachmentURL));
 
 		buildReportJSONObject.put("testrayAttachmentURLs", jsonArray);
-	}
-
-	@Override
-	public Map<String, String> getBuildParameters() {
-		Map<String, String> buildParameters = new HashMap<>();
-
-		JSONObject buildReportJSONObject = getBuildReportJSONObject();
-
-		if ((buildReportJSONObject == null) ||
-			!buildReportJSONObject.has("buildParameters")) {
-
-			return buildParameters;
-		}
-
-		JSONObject buildParametersJSONObject =
-			buildReportJSONObject.getJSONObject("buildParameters");
-
-		for (String key : buildParametersJSONObject.keySet()) {
-			buildParameters.put(key, buildParametersJSONObject.getString(key));
-		}
-
-		return buildParameters;
 	}
 
 	@Override
@@ -194,10 +177,20 @@ public abstract class BaseTopLevelBuildReport
 	@Override
 	public DownstreamBuildReport getDownstreamBuildReport(String axisName) {
 		for (DownstreamBuildReport downstreamBuildReport :
-				getDownstreamBuildReports()) {
+				_downstreamBuildReports) {
 
 			if (Objects.equals(downstreamBuildReport.getAxisName(), axisName)) {
 				return downstreamBuildReport;
+			}
+		}
+
+		for (DownstreamBuildReport cachedDownstreamBuildReport :
+				_cachedDownstreamBuildReports) {
+
+			if (Objects.equals(
+					cachedDownstreamBuildReport.getAxisName(), axisName)) {
+
+				return cachedDownstreamBuildReport;
 			}
 		}
 
@@ -206,7 +199,12 @@ public abstract class BaseTopLevelBuildReport
 
 	@Override
 	public List<DownstreamBuildReport> getDownstreamBuildReports() {
-		return new ArrayList<>(_downstreamBuildReports);
+		List<DownstreamBuildReport> downstreamBuildReports = new ArrayList<>();
+
+		downstreamBuildReports.addAll(_cachedDownstreamBuildReports);
+		downstreamBuildReports.addAll(_downstreamBuildReports);
+
+		return downstreamBuildReports;
 	}
 
 	@Override
@@ -335,6 +333,28 @@ public abstract class BaseTopLevelBuildReport
 	}
 
 	@Override
+	public long getTotalActualDuration() {
+		JSONObject buildReportJSONObject = getBuildReportJSONObject();
+
+		if (buildReportJSONObject == null) {
+			return 0L;
+		}
+
+		return buildReportJSONObject.optLong("totalActualDuration");
+	}
+
+	@Override
+	public long getTotalCachedDuration() {
+		JSONObject buildReportJSONObject = getBuildReportJSONObject();
+
+		if (buildReportJSONObject == null) {
+			return 0L;
+		}
+
+		return buildReportJSONObject.optLong("totalCachedDuration");
+	}
+
+	@Override
 	public long getTotalDuration() {
 		JSONObject buildReportJSONObject = getBuildReportJSONObject();
 
@@ -409,6 +429,8 @@ public abstract class BaseTopLevelBuildReport
 			"(\\.liferay\\.com)?/job/(?<jobName>[^/]+))" +
 				"(/AXIS_VARIABLE=(?<axisVariable>\\d+))?/(?<buildNumber>\\d+)");
 
+	private final Set<DownstreamBuildReport> _cachedDownstreamBuildReports =
+		new HashSet<>();
 	private ControllerBuildReport _controllerBuildReport;
 	private final Set<DownstreamBuildReport> _downstreamBuildReports =
 		new HashSet<>();

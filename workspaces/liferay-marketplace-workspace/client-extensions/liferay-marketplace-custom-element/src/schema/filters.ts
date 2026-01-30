@@ -15,7 +15,7 @@ import {
 } from '../enums/Order';
 import {ProductType, ProductWorkflowStatusCode} from '../enums/Product';
 import i18n from '../i18n';
-import {PublisherPayoutStatus} from '../pages/FinanceDashboard/pages/Payments/Payments';
+import {PublisherPayoutStatus} from '../pages/FinanceDashboard/pages/Payments';
 import {LIFERAY_VERSION_PICKLIST} from '../pages/PublisherDashboard/pages/NewAppFlow/constants';
 
 type AutoCompleteProps = {
@@ -256,7 +256,7 @@ const filterSchema = {
 					},
 					{
 						label: i18n.translate('cloud-app'),
-						value: OrderTypes.CLOUDAPP,
+						value: OrderTypes.CLOUD_APP,
 					},
 					{
 						label: i18n.translate('composite-app'),
@@ -264,7 +264,7 @@ const filterSchema = {
 					},
 					{
 						label: i18n.translate('dxp-app'),
-						value: OrderTypes.DXPAPP,
+						value: OrderTypes.DXP_APP,
 					},
 					{
 						label: i18n.translate('low-code-configuration'),

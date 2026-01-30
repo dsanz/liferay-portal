@@ -67,6 +67,18 @@ public class FreeMarkerTool {
 		return _freeMarkerTool;
 	}
 
+	public static String getPropertyType(
+		ConfigYAML configYAML, OpenAPIYAML openAPIYAML, Schema propertySchema,
+		String propertySchemaName) {
+
+		Map<String, String> javaDataTypeMap =
+			OpenAPIParserUtil.getJavaDataTypeMap(configYAML, openAPIYAML);
+
+		return DTOOpenAPIParser.getPropertyType(
+			configYAML, javaDataTypeMap, openAPIYAML, propertySchema,
+			propertySchemaName);
+	}
+
 	public boolean containsJavaMethodSignature(
 		List<JavaMethodSignature> javaMethodSignatures, String text) {
 
@@ -1150,6 +1162,17 @@ public class FreeMarkerTool {
 
 		return DTOOpenAPIParser.isSchemaProperty(
 			configYAML, propertyName, schema, schemas);
+	}
+
+	public boolean isExternalReferenceCodeExclusiveMethod(
+		String httpMethod, JavaMethodSignature javaMethodSignature) {
+
+		return StringUtil.equals(
+			StringBundler.concat(
+				httpMethod,
+				GetterUtil.getString(javaMethodSignature.getParentSchemaName()),
+				GetterUtil.getString(javaMethodSignature.getSchemaName())),
+			javaMethodSignature.getMethodName());
 	}
 
 	public boolean isExternalReferenceCodeMethod(

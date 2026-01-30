@@ -14,13 +14,6 @@ import {deleteItems} from './utils/deleteItems';
 
 const baseTest = mergeTests(formsPagesTest, loginTest());
 
-const ckeditor5Test = mergeTests(
-	baseTest,
-	featureFlagsTest({
-		'LPD-11235': {enabled: true},
-	})
-);
-
 const xssBypassTest = mergeTests(
 	baseTest,
 	featureFlagsTest({
@@ -35,7 +28,7 @@ const xssDisabledTest = mergeTests(
 	})
 );
 
-[ckeditor5Test, xssBypassTest, xssDisabledTest].forEach((testSuite) => {
+[xssBypassTest, xssDisabledTest].forEach((testSuite) => {
 	testSuite.afterEach(async ({formsPage}) => {
 		await formsPage.goTo();
 
@@ -65,25 +58,6 @@ baseTest(
 		await expect(
 			formFieldsPage.richTextFrame.locator('body')
 		).toHaveAttribute('contenteditable', 'false');
-	}
-);
-
-ckeditor5Test(
-	'Added "Rich Text" field includes preview of editor',
-	{
-		tag: ['@LPD-11235'],
-	},
-	async ({formBuilderPage, formBuilderSidePanelPage}) => {
-		await formBuilderPage.goToNew();
-
-		await expect(formBuilderPage.newFormHeading).toBeVisible();
-
-		await formBuilderSidePanelPage.addFieldByDoubleClick('Rich Text');
-
-		const editable = formBuilderSidePanelPage.page.getByRole('textbox', {
-			name: 'Rich Text Editor',
-		});
-		await expect(editable).toBeVisible();
 	}
 );
 

@@ -1,21 +1,20 @@
 {
 	"dependencies": {
-		"@clayui/alert": "3.148.0",
-		"@clayui/autocomplete": "3.149.0",
-		"@clayui/button": "3.144.1",
-		"@clayui/data-provider": "3.148.0",
-		"@clayui/drop-down": "3.149.0",
-		"@clayui/form": "3.148.0",
-		"@clayui/icon": "3.144.1",
-		"@clayui/layout": "3.144.1",
-		"@clayui/link": "3.144.1",
-		"@clayui/loading-indicator": "3.144.1",
-		"@clayui/modal": "3.148.0",
-		"@clayui/tabs": "3.149.2",
-		"@clayui/toolbar": "3.148.0",
+		"@clayui/alert": "*",
+		"@clayui/autocomplete": "*",
+		"@clayui/button": "*",
+		"@clayui/data-provider": "*",
+		"@clayui/drop-down": "*",
+		"@clayui/form": "*",
+		"@clayui/icon": "*",
+		"@clayui/layout": "*",
+		"@clayui/link": "*",
+		"@clayui/loading-indicator": "*",
+		"@clayui/modal": "*",
+		"@clayui/tabs": "*",
+		"@clayui/toolbar": "*",
 		"@liferay/object-js-components-web": "*",
 		"dagre": "0.8.2",
-		"frontend-editor-ckeditor-web": "*",
 		"frontend-js-components-web": "*",
 		"frontend-js-web": "*",
 		"moment": "2.29.4",
@@ -45,5 +44,5 @@
 		"format": "node-scripts format",
 		"test": "node-scripts test"
 	},
-	"version": "5.0.159"
+	"version": "5.0.163"
 }

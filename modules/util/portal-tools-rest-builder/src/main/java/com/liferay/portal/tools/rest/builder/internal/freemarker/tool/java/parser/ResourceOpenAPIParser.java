@@ -406,7 +406,16 @@ public class ResourceOpenAPIParser {
 
 		for (JavaMethodSignature javaMethodSignature : javaMethodSignatures) {
 			String methodName = javaMethodSignature.getMethodName();
+
 			String schemaName = javaMethodSignature.getSchemaName();
+
+			if (hasPathParameter(
+					javaMethodSignature,
+					OpenAPIParserUtil.getSchemaVarName(schemaName) +
+						"ExternalReferenceCode")) {
+
+				continue;
+			}
 
 			if (methodName.equals("patch" + schemaName)) {
 				updateStrategies.add("PARTIAL_UPDATE");
@@ -626,7 +635,9 @@ public class ResourceOpenAPIParser {
 	}
 
 	private static String _addParameter(Parameter parameter) {
-		if (parameter == null) {
+		if ((parameter == null) ||
+			Objects.equals(parameter.getIn(), "context")) {
+
 			return "";
 		}
 
@@ -773,6 +784,11 @@ public class ResourceOpenAPIParser {
 
 			String batchPath = StringUtil.removeSubstrings(
 				path, "/{" + schemaVarName + "Id}", "/{id}");
+
+			if (ConfigUtil.isVersionCompatible(configYAML, 13)) {
+				batchPath = StringUtil.removeSubstring(
+					batchPath, "/{" + schemaVarName + "ExternalReferenceCode}");
+			}
 
 			return batchPath + "/batch";
 		}
@@ -1243,6 +1259,12 @@ public class ResourceOpenAPIParser {
 			return "@" + configYAML.getJavaEEPackage() + ".ws.rs.core.Context";
 		}
 
+		if (Objects.equals(parameterType, "jakarta.ws.rs.sse.SseEventSink") &&
+			parameterNames.contains("sseEventSink")) {
+
+			return "@" + configYAML.getJavaEEPackage() + ".ws.rs.core.Context";
+		}
+
 		for (Parameter parameter : operation.getParameters()) {
 			String parameterName = CamelCaseUtil.toCamelCase(
 				parameter.getName());
@@ -1604,6 +1626,7 @@ public class ResourceOpenAPIParser {
 			StringUtil.equals(name, "pagination") ||
 			StringUtil.equals(name, "restrictFields") ||
 			StringUtil.equals(name, schemaVarName) ||
+			StringUtil.equals(name, schemaVarName + "ExternalReferenceCode") ||
 			StringUtil.equals(name, schemaVarName + "Id")) {
 
 			return false;

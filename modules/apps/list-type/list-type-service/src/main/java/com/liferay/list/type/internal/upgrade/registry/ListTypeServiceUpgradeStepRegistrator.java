@@ -33,10 +33,8 @@ public class ListTypeServiceUpgradeStepRegistrator
 			new BaseExternalReferenceCodeUpgradeProcess() {
 
 				@Override
-				protected String[][] getTableAndPrimaryKeyColumnNames() {
-					return new String[][] {
-						{"ListTypeDefinition", "listTypeDefinitionId"}
-					};
+				protected String[] getTableNames() {
+					return new String[] {"ListTypeDefinition"};
 				}
 
 			});
@@ -46,10 +44,8 @@ public class ListTypeServiceUpgradeStepRegistrator
 			new BaseExternalReferenceCodeUpgradeProcess() {
 
 				@Override
-				protected String[][] getTableAndPrimaryKeyColumnNames() {
-					return new String[][] {
-						{"ListTypeEntry", "listTypeEntryId"}
-					};
+				protected String[] getTableNames() {
+					return new String[] {"ListTypeEntry"};
 				}
 
 			});
@@ -76,8 +72,11 @@ public class ListTypeServiceUpgradeStepRegistrator
 					"' or type_ = '", ListTypeConstants.CONTACT_SUFFIX, "')")));
 
 		registry.register(
-			"1.3.1", "1.3.2",
-			new ListTypeDefinitionStaleUserIdUpgradeProcess(_userLocalService),
+			"1.3.1", "1.3.1.step-1",
+			new ListTypeDefinitionStaleUserIdUpgradeProcess(_userLocalService));
+
+		registry.register(
+			"1.3.1.step-1", "1.3.2",
 			new ListTypeEntryStaleUserIdUpgradeProcess(_userLocalService));
 
 		registry.register("1.3.2", "1.4.0", new ListTypeEntryUpgradeProcess());
@@ -87,6 +86,13 @@ public class ListTypeServiceUpgradeStepRegistrator
 			UpgradeProcessFactory.addColumns("ListTypeEntry", "status INTEGER"),
 			UpgradeProcessFactory.runSQL(
 				"update ListTypeEntry set status = 0"));
+
+		registry.register(
+			"1.5.0", "1.6.0",
+			UpgradeProcessFactory.addColumns(
+				"ListTypeDefinition", "status INTEGER"),
+			UpgradeProcessFactory.runSQL(
+				"update ListTypeDefinition set status = 0"));
 	}
 
 	@Reference

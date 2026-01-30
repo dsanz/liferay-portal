@@ -5,8 +5,15 @@
 
 /* eslint-env jest */
 
+import '@testing-library/jest-dom';
+
 afterEach(() => {
-	global.fetch.mockRestore();
+	global.fetch?.mockRestore?.();
+});
+
+beforeAll(() => {
+	global.TextEncoder = require('util').TextEncoder;
+	global.TextDecoder = require('util').TextDecoder;
 });
 
 beforeEach(() => {

@@ -23,6 +23,10 @@ public class ObjectEntryManagerUtil {
 		ObjectEntry existingObjectEntry, long objectDefinitionId,
 		ObjectEntry objectEntry) {
 
+		if (objectEntry.getComments() != null) {
+			existingObjectEntry.setComments(objectEntry::getComments);
+		}
+
 		if (objectEntry.getDateCreated() != null) {
 			existingObjectEntry.setDateCreated(objectEntry::getDateCreated);
 		}
@@ -116,6 +120,11 @@ public class ObjectEntryManagerUtil {
 
 		if (objectEntry.getStatus() != null) {
 			existingObjectEntry.setStatus(objectEntry::getStatus);
+		}
+
+		if (objectEntry.getTaxonomyCategoryBriefs() != null) {
+			existingObjectEntry.setTaxonomyCategoryBriefs(
+				objectEntry::getTaxonomyCategoryBriefs);
 		}
 
 		if (objectEntry.getTaxonomyCategoryIds() != null) {

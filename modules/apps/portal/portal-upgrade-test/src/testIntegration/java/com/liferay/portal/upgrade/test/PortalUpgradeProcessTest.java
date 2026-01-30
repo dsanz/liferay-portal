@@ -88,15 +88,18 @@ public class PortalUpgradeProcessTest {
 
 			try (PreparedStatement preparedStatement =
 					connection.prepareStatement(
-						StringBundler.concat(
-							"select versionDisplayName from Release_ where ",
-							"servletContextName = '",
-							ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME,
-							"' and versionDisplayName = '",
-							ReleaseInfo.getVersionDisplayName(), "'"));
-				ResultSet resultSet = preparedStatement.executeQuery()) {
+						"select versionDisplayName from Release_ where " +
+							"servletContextName = ? and versionDisplayName = " +
+								"?")) {
 
-				Assert.assertTrue(resultSet.next());
+				preparedStatement.setString(
+					1, ReleaseConstants.DEFAULT_SERVLET_CONTEXT_NAME);
+				preparedStatement.setString(
+					2, ReleaseInfo.getVersionDisplayName());
+
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					Assert.assertTrue(resultSet.next());
+				}
 			}
 		}
 		finally {
@@ -437,22 +440,22 @@ public class PortalUpgradeProcessTest {
 	private static class InnerPortalUpgradeProcess
 		extends PortalUpgradeProcess {
 
-		public void close() throws SQLException {
+		public void close() throws Exception {
 			connection.close();
 		}
 
 		public void updateSchemaVersion(Version newSchemaVersion)
-			throws SQLException {
+			throws Exception {
 
 			PortalUpgradeProcess.updateSchemaVersion(
 				connection, newSchemaVersion);
 		}
 
-		public void updateVersionDisplayName() throws SQLException {
+		public void updateVersionDisplayName() throws Exception {
 			PortalUpgradeProcess.updateVersionDisplayName(connection);
 		}
 
-		private InnerPortalUpgradeProcess() throws SQLException {
+		private InnerPortalUpgradeProcess() throws Exception {
 			connection = DataAccess.getConnection();
 		}
 

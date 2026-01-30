@@ -38,9 +38,7 @@ import java.util.function.Supplier;
  * @generated
  */
 @Generated("")
-@GraphQLName(
-	description = "the container page element's layout.", value = "Layout"
-)
+@GraphQLName("Layout")
 @JsonFilter("Liferay.Vulcan")
 @XmlRootElement(name = "Layout")
 public class Layout implements Serializable {
@@ -268,7 +266,9 @@ public class Layout implements Serializable {
 	@JsonIgnore
 	private Supplier<Justify> _justifySupplier;
 
-	@io.swagger.v3.oas.annotations.media.Schema
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "The width's type (fixed or fluid)."
+	)
 	@JsonGetter("widthType")
 	@Valid
 	public WidthType getWidthType() {
@@ -315,7 +315,7 @@ public class Layout implements Serializable {
 		};
 	}
 
-	@GraphQLField
+	@GraphQLField(description = "The width's type (fixed or fluid).")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected WidthType widthType;
 
@@ -359,9 +359,7 @@ public class Layout implements Serializable {
 			sb.append("\"align\": ");
 
 			sb.append("\"");
-
 			sb.append(align);
-
 			sb.append("\"");
 		}
 
@@ -375,9 +373,7 @@ public class Layout implements Serializable {
 			sb.append("\"contentDisplay\": ");
 
 			sb.append("\"");
-
 			sb.append(contentDisplay);
-
 			sb.append("\"");
 		}
 
@@ -391,9 +387,7 @@ public class Layout implements Serializable {
 			sb.append("\"flexWrap\": ");
 
 			sb.append("\"");
-
 			sb.append(flexWrap);
-
 			sb.append("\"");
 		}
 
@@ -407,9 +401,7 @@ public class Layout implements Serializable {
 			sb.append("\"justify\": ");
 
 			sb.append("\"");
-
 			sb.append(justify);
-
 			sb.append("\"");
 		}
 
@@ -423,9 +415,7 @@ public class Layout implements Serializable {
 			sb.append("\"widthType\": ");
 
 			sb.append("\"");
-
 			sb.append(widthType);
-
 			sb.append("\"");
 		}
 

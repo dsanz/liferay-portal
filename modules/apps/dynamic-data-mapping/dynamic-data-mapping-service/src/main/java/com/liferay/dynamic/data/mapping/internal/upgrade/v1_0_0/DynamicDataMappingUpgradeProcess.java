@@ -116,7 +116,6 @@ import java.sql.Timestamp;
 
 import java.text.DateFormat;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -389,17 +388,17 @@ public class DynamicDataMappingUpgradeProcess extends UpgradeProcess {
 	private List<String> _getDDMDateFieldNames(DDMForm ddmForm)
 		throws Exception {
 
-		List<String> ddmDateFieldNames = new ArrayList<>();
+		return TransformUtil.transform(
+			ddmForm.getDDMFormFields(),
+			ddmFormField -> {
+				String dataType = ddmFormField.getType();
 
-		for (DDMFormField ddmFormField : ddmForm.getDDMFormFields()) {
-			String dataType = ddmFormField.getType();
+				if (!dataType.equals("ddm-date")) {
+					return null;
+				}
 
-			if (dataType.equals("ddm-date")) {
-				ddmDateFieldNames.add(ddmFormField.getName());
-			}
-		}
-
-		return ddmDateFieldNames;
+				return ddmFormField.getName();
+			});
 	}
 
 	private DDMForm _getDDMForm(long structureId) throws Exception {
@@ -1812,15 +1811,15 @@ public class DynamicDataMappingUpgradeProcess extends UpgradeProcess {
 				return null;
 			}
 
-			DDMFormFieldValue ddmFormFieldValue = new DDMFormFieldValue() {
+			DDMFormFieldValue ddmFormFieldValue = new DDMFormFieldValue(
+				getDDMFieldInstanceId(
+					rootElement, fieldName, ddmFieldsCounter.get(fieldName))) {
+
 				{
 					setName(fieldName);
 					setValue(value);
 				}
 			};
-
-			setDDMFormFieldValueInstanceId(
-				ddmFormFieldValue, rootElement, ddmFieldsCounter);
 
 			setNestedDDMFormFieldValues(
 				ddmFormFieldValue, ddmFormField, rootElement, ddmFieldsCounter);
@@ -1948,30 +1947,30 @@ public class DynamicDataMappingUpgradeProcess extends UpgradeProcess {
 			Element fieldsDisplayElement = getDynamicElementElementByName(
 				rootElement, "_fieldsDisplay");
 
-			List<String> ddmFieldsDisplayValues = new ArrayList<>();
-
-			if (fieldsDisplayElement != null) {
-				Element fieldsDisplayDynamicContent =
-					fieldsDisplayElement.element("dynamic-content");
-
-				if (fieldsDisplayDynamicContent != null) {
-					String fieldsDisplayText =
-						fieldsDisplayDynamicContent.getText();
-
-					for (String fieldDisplayValue :
-							StringUtil.split(fieldsDisplayText)) {
-
-						if (extractFieldName) {
-							fieldDisplayValue = StringUtil.extractFirst(
-								fieldDisplayValue, DDMImpl.INSTANCE_SEPARATOR);
-						}
-
-						ddmFieldsDisplayValues.add(fieldDisplayValue);
-					}
-				}
+			if (fieldsDisplayElement == null) {
+				return new String[0];
 			}
 
-			return ddmFieldsDisplayValues.toArray(new String[0]);
+			Element fieldsDisplayDynamicContent = fieldsDisplayElement.element(
+				"dynamic-content");
+
+			if (fieldsDisplayDynamicContent == null) {
+				return new String[0];
+			}
+
+			String fieldsDisplayText = fieldsDisplayDynamicContent.getText();
+
+			return TransformUtil.transform(
+				StringUtil.split(fieldsDisplayText),
+				fieldDisplayValue -> {
+					if (!extractFieldName) {
+						return fieldDisplayValue;
+					}
+
+					return StringUtil.extractFirst(
+						fieldDisplayValue, DDMImpl.INSTANCE_SEPARATOR);
+				},
+				String.class);
 		}
 
 		protected DDMFormFieldValue getDDMFormFieldValue(
@@ -2119,17 +2118,6 @@ public class DynamicDataMappingUpgradeProcess extends UpgradeProcess {
 			}
 
 			return value;
-		}
-
-		protected void setDDMFormFieldValueInstanceId(
-			DDMFormFieldValue ddmFormFieldValue, Element rootElement,
-			DDMFieldsCounter ddmFieldsCounter) {
-
-			String name = ddmFormFieldValue.getName();
-
-			ddmFormFieldValue.setInstanceId(
-				getDDMFieldInstanceId(
-					rootElement, name, ddmFieldsCounter.get(name)));
 		}
 
 		protected void setDDMFormValuesAvailableLocales(

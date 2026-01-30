@@ -353,9 +353,9 @@ public abstract class BaseDataDefinitionResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(dataDefinitionId);
+		Long resourceId = getPermissionCheckerResourceId(dataDefinitionId);
 		String resourceName = getPermissionCheckerResourceName(
 			dataDefinitionId);
-		Long resourceId = getPermissionCheckerResourceId(dataDefinitionId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -861,9 +861,9 @@ public abstract class BaseDataDefinitionResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(dataDefinitionId);
+		Long resourceId = getPermissionCheckerResourceId(dataDefinitionId);
 		String resourceName = getPermissionCheckerResourceName(
 			dataDefinitionId);
-		Long resourceId = getPermissionCheckerResourceId(dataDefinitionId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -1284,6 +1284,9 @@ public abstract class BaseDataDefinitionResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

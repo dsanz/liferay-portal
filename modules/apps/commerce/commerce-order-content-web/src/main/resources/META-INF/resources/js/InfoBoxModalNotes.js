@@ -14,6 +14,7 @@ const InfoBoxModalNotes = ({
 	handleDelete,
 	handleSubmit,
 	handleToggle,
+	hasManageOrderRestrictedNotesPermission,
 	id,
 	isRestricted,
 	isValid,
@@ -37,7 +38,11 @@ const InfoBoxModalNotes = ({
 					spritemap={spritemap}
 				>
 					<ClayForm onSubmit={handleSubmit}>
-						<ClayModal.Header>{label}</ClayModal.Header>
+						<ClayModal.Header
+							closeButtonAriaLabel={Liferay.Language.get('close')}
+						>
+							{label}
+						</ClayModal.Header>
 
 						<ClayModal.Body>
 							<ClayForm.Group>
@@ -45,6 +50,9 @@ const InfoBoxModalNotes = ({
 									handleDelete={handleDelete}
 									handleSubmit={handleSubmit}
 									handleToggle={handleToggle}
+									hasManageOrderRestrictedNotesPermission={
+										hasManageOrderRestrictedNotesPermission
+									}
 									isRestricted={isRestricted}
 									notes={notes}
 									setInputValue={setInputValue}

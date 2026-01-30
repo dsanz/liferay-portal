@@ -1,0 +1,792 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Table basic rendering render dynamic content 1`] = `
+<div>
+  <div
+    class="table-responsive"
+  >
+    <table
+      class="table table-autofit show-quick-actions-on-hover table-hover table-list table-head-bordered table-striped table-valign-middle"
+      style="table-layout: fixed;"
+    >
+      <thead>
+        <tr>
+          <th
+            class="table-head-title"
+            data-id="string,name"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Name
+          </th>
+          <th
+            class="table-head-title"
+            data-id="string,type"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Type
+          </th>
+          <th
+            class="table-head-title"
+            data-id="string,visibility"
+            style="width: 72px;"
+            tabindex="-1"
+          >
+            <span
+              class="sr-only"
+            >
+              Manage Columns Visibility
+            </span>
+            <div
+              class="dropdown"
+            >
+              <button
+                aria-haspopup="true"
+                aria-label="Manage Columns Visibility"
+                class="dropdown-toggle btn btn-monospaced btn-outline-borderless btn-outline-secondary"
+                title="Manage Columns Visibility"
+                type="button"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-caret-bottom"
+                  role="presentation"
+                >
+                  <use
+                    href="#caret-bottom"
+                  />
+                </svg>
+              </button>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          class=""
+          data-id="number,1"
+          tabindex="-1"
+        >
+          <td
+            aria-colindex="1"
+            class=""
+            data-id="string,name"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Foo
+          </td>
+          <td
+            aria-colindex="2"
+            class=""
+            data-id="string,type"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Foo
+          </td>
+          <td
+            aria-colindex="3"
+            class=""
+            data-id="string,1:visibility"
+            style="width: auto;"
+            tabindex="-1"
+          />
+        </tr>
+        <tr
+          class=""
+          data-id="number,2"
+          tabindex="-1"
+        >
+          <td
+            aria-colindex="1"
+            class=""
+            data-id="string,name"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Bar
+          </td>
+          <td
+            aria-colindex="2"
+            class=""
+            data-id="string,type"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Bar
+          </td>
+          <td
+            aria-colindex="3"
+            class=""
+            data-id="string,2:visibility"
+            style="width: auto;"
+            tabindex="-1"
+          />
+        </tr>
+        <tr
+          class=""
+          data-id="number,3"
+          tabindex="-1"
+        >
+          <td
+            aria-colindex="1"
+            class=""
+            data-id="string,name"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Baz
+          </td>
+          <td
+            aria-colindex="2"
+            class=""
+            data-id="string,type"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Baz
+          </td>
+          <td
+            aria-colindex="3"
+            class=""
+            data-id="string,3:visibility"
+            style="width: auto;"
+            tabindex="-1"
+          />
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+`;
+
+exports[`Table basic rendering render static content 1`] = `
+<div>
+  <div
+    class="table-responsive"
+  >
+    <table
+      class="table table-autofit show-quick-actions-on-hover table-hover table-list table-head-bordered table-striped table-valign-middle"
+      style="table-layout: fixed;"
+    >
+      <thead>
+        <tr>
+          <th
+            class="table-head-title"
+            data-id="string,name"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Name
+          </th>
+          <th
+            class="table-head-title"
+            data-id="string,type"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Type
+          </th>
+          <th
+            class="table-head-title"
+            data-id="string,visibility"
+            style="width: 72px;"
+            tabindex="-1"
+          >
+            <span
+              class="sr-only"
+            >
+              Manage Columns Visibility
+            </span>
+            <div
+              class="dropdown"
+            >
+              <button
+                aria-haspopup="true"
+                aria-label="Manage Columns Visibility"
+                class="dropdown-toggle btn btn-monospaced btn-outline-borderless btn-outline-secondary"
+                title="Manage Columns Visibility"
+                type="button"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-caret-bottom"
+                  role="presentation"
+                >
+                  <use
+                    href="#caret-bottom"
+                  />
+                </svg>
+              </button>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          class=""
+          data-id="string,undefined"
+          tabindex="-1"
+        >
+          <td
+            aria-colindex="1"
+            class=""
+            data-id="string,$.0"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Foo
+          </td>
+          <td
+            aria-colindex="2"
+            class=""
+            data-id="string,$.1"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Foo
+          </td>
+          <td
+            aria-colindex="3"
+            class=""
+            data-id="string,undefined:visibility"
+            style="width: auto;"
+            tabindex="-1"
+          />
+        </tr>
+        <tr
+          class=""
+          data-id="string,undefined"
+          tabindex="-1"
+        >
+          <td
+            aria-colindex="1"
+            class=""
+            data-id="string,$.0"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Bar
+          </td>
+          <td
+            aria-colindex="2"
+            class=""
+            data-id="string,$.1"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Bar
+          </td>
+          <td
+            aria-colindex="3"
+            class=""
+            data-id="string,undefined:visibility"
+            style="width: auto;"
+            tabindex="-1"
+          />
+        </tr>
+        <tr
+          class=""
+          data-id="string,undefined"
+          tabindex="-1"
+        >
+          <td
+            aria-colindex="1"
+            class=""
+            data-id="string,$.0"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Baz
+          </td>
+          <td
+            aria-colindex="2"
+            class=""
+            data-id="string,$.1"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Baz
+          </td>
+          <td
+            aria-colindex="3"
+            class=""
+            data-id="string,undefined:visibility"
+            style="width: auto;"
+            tabindex="-1"
+          />
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+`;
+
+exports[`Table basic rendering render with sort column 1`] = `
+<div>
+  <div
+    class="table-responsive"
+  >
+    <table
+      class="table table-autofit show-quick-actions-on-hover table-hover table-list table-head-bordered table-striped table-valign-middle"
+      style="table-layout: fixed;"
+    >
+      <thead>
+        <tr>
+          <th
+            aria-colindex="1"
+            aria-describedby="clay-id-17"
+            aria-sort="none"
+            class="table-head-title"
+            data-id="string,name"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            <div
+              class="autofit-row"
+            >
+              <div
+                class="autofit-col autofit-col-expand"
+              >
+                <span
+                  class="text-truncate-inline"
+                >
+                  <span
+                    class="text-truncate"
+                  >
+                    Name
+                  </span>
+                </span>
+              </div>
+              <div
+                class="autofit-col"
+              >
+                <button
+                  class="component-action"
+                  title="sortable column"
+                  type="button"
+                >
+                  <svg
+                    class="lexicon-icon lexicon-icon-order-arrow"
+                    role="presentation"
+                  >
+                    <use
+                      href="#order-arrow"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </th>
+          <th
+            aria-colindex="2"
+            aria-describedby="clay-id-17"
+            aria-sort="none"
+            class="table-head-title"
+            data-id="string,type"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            <div
+              class="autofit-row"
+            >
+              <div
+                class="autofit-col autofit-col-expand"
+              >
+                <span
+                  class="text-truncate-inline"
+                >
+                  <span
+                    class="text-truncate"
+                  >
+                    Type
+                  </span>
+                </span>
+              </div>
+              <div
+                class="autofit-col"
+              >
+                <button
+                  class="component-action"
+                  title="sortable column"
+                  type="button"
+                >
+                  <svg
+                    class="lexicon-icon lexicon-icon-order-arrow"
+                    role="presentation"
+                  >
+                    <use
+                      href="#order-arrow"
+                    />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </th>
+          <th
+            class="table-head-title"
+            data-id="string,visibility"
+            style="width: 72px;"
+            tabindex="-1"
+          >
+            <span
+              class="sr-only"
+            >
+              Manage Columns Visibility
+            </span>
+            <div
+              class="dropdown"
+            >
+              <button
+                aria-haspopup="true"
+                aria-label="Manage Columns Visibility"
+                class="dropdown-toggle btn btn-monospaced btn-outline-borderless btn-outline-secondary"
+                title="Manage Columns Visibility"
+                type="button"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-caret-bottom"
+                  role="presentation"
+                >
+                  <use
+                    href="#caret-bottom"
+                  />
+                </svg>
+              </button>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          class=""
+          data-id="string,undefined"
+          tabindex="-1"
+        >
+          <td
+            aria-colindex="1"
+            class=""
+            data-id="string,$.0"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Foo
+          </td>
+          <td
+            aria-colindex="2"
+            class=""
+            data-id="string,$.1"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Foo
+          </td>
+          <td
+            aria-colindex="3"
+            class=""
+            data-id="string,undefined:visibility"
+            style="width: auto;"
+            tabindex="-1"
+          />
+        </tr>
+        <tr
+          class=""
+          data-id="string,undefined"
+          tabindex="-1"
+        >
+          <td
+            aria-colindex="1"
+            class=""
+            data-id="string,$.0"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Bar
+          </td>
+          <td
+            aria-colindex="2"
+            class=""
+            data-id="string,$.1"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Bar
+          </td>
+          <td
+            aria-colindex="3"
+            class=""
+            data-id="string,undefined:visibility"
+            style="width: auto;"
+            tabindex="-1"
+          />
+        </tr>
+        <tr
+          class=""
+          data-id="string,undefined"
+          tabindex="-1"
+        >
+          <td
+            aria-colindex="1"
+            class=""
+            data-id="string,$.0"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Baz
+          </td>
+          <td
+            aria-colindex="2"
+            class=""
+            data-id="string,$.1"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Baz
+          </td>
+          <td
+            aria-colindex="3"
+            class=""
+            data-id="string,undefined:visibility"
+            style="width: auto;"
+            tabindex="-1"
+          />
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+`;
+
+exports[`Table basic rendering render with treegrid 1`] = `
+<div>
+  <div
+    class="table-responsive"
+  >
+    <table
+      aria-label="File Explorer"
+      class="table table-autofit show-quick-actions-on-hover table-hover table-list table-head-bordered table-striped table-valign-middle table-nested-rows"
+      role="treegrid"
+      style="table-layout: fixed;"
+    >
+      <thead>
+        <tr>
+          <th
+            class="table-head-title"
+            data-id="string,name"
+            role="gridcell"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Name
+          </th>
+          <th
+            class="table-head-title"
+            data-id="string,type"
+            role="gridcell"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Type
+          </th>
+          <th
+            class="table-head-title"
+            data-id="string,visibility"
+            role="gridcell"
+            style="width: 72px;"
+            tabindex="-1"
+          >
+            <span
+              class="sr-only"
+            >
+              Manage Columns Visibility
+            </span>
+            <div
+              class="dropdown"
+            >
+              <button
+                aria-haspopup="true"
+                aria-label="Manage Columns Visibility"
+                class="dropdown-toggle btn btn-monospaced btn-outline-borderless btn-outline-secondary"
+                title="Manage Columns Visibility"
+                type="button"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-caret-bottom"
+                  role="presentation"
+                >
+                  <use
+                    href="#caret-bottom"
+                  />
+                </svg>
+              </button>
+            </div>
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr
+          aria-level="1"
+          aria-posinset="1"
+          aria-setsize="3"
+          class=""
+          data-id="number,1"
+          role="row"
+          tabindex="0"
+        >
+          <td
+            aria-colindex="1"
+            class=""
+            data-id="string,1:name"
+            role="gridcell"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            <div
+              class="autofit-row"
+              style="padding-left: 28px;"
+            >
+              <div
+                class="autofit-col autofit-col-expand"
+              >
+                Folder A
+              </div>
+            </div>
+          </td>
+          <td
+            aria-colindex="2"
+            class=""
+            data-id="string,1:type"
+            role="gridcell"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Folder
+          </td>
+          <td
+            aria-colindex="3"
+            class=""
+            data-id="string,1:visibility"
+            role="gridcell"
+            style="width: auto;"
+            tabindex="-1"
+          />
+        </tr>
+        <tr
+          aria-expanded="false"
+          aria-level="1"
+          aria-posinset="2"
+          aria-setsize="3"
+          class=""
+          data-id="number,2"
+          role="row"
+          tabindex="-1"
+        >
+          <td
+            aria-colindex="1"
+            class=""
+            data-id="string,2:name"
+            role="gridcell"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            <div
+              class="autofit-row"
+              style="padding-left: -4px;"
+            >
+              <div
+                class="autofit-col-toggle autofit-col"
+              >
+                <button
+                  class="btn btn-monospaced btn-outline-borderless btn-outline-secondary btn-xs"
+                  tabindex="-1"
+                  title="expandable"
+                  type="button"
+                >
+                  <svg
+                    class="lexicon-icon lexicon-icon-angle-right"
+                    role="presentation"
+                  >
+                    <use
+                      href="#angle-right"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <div
+                class="autofit-col autofit-col-expand"
+              >
+                Folder B
+              </div>
+            </div>
+          </td>
+          <td
+            aria-colindex="2"
+            class=""
+            data-id="string,2:type"
+            role="gridcell"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Folder
+          </td>
+          <td
+            aria-colindex="3"
+            class=""
+            data-id="string,2:visibility"
+            role="gridcell"
+            style="width: auto;"
+            tabindex="-1"
+          />
+        </tr>
+        <tr
+          aria-level="1"
+          aria-posinset="3"
+          aria-setsize="3"
+          class=""
+          data-id="number,10"
+          role="row"
+          tabindex="-1"
+        >
+          <td
+            aria-colindex="1"
+            class=""
+            data-id="string,10:name"
+            role="gridcell"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            <div
+              class="autofit-row"
+              style="padding-left: 28px;"
+            >
+              <div
+                class="autofit-col autofit-col-expand"
+              >
+                Folder C
+              </div>
+            </div>
+          </td>
+          <td
+            aria-colindex="2"
+            class=""
+            data-id="string,10:type"
+            role="gridcell"
+            style="width: auto;"
+            tabindex="-1"
+          >
+            Folder
+          </td>
+          <td
+            aria-colindex="3"
+            class=""
+            data-id="string,10:visibility"
+            role="gridcell"
+            style="width: auto;"
+            tabindex="-1"
+          />
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+`;

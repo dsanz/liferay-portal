@@ -1,7 +1,7 @@
 {
 	"dependencies": {
-		"@clayui/core": "3.149.0",
-		"@clayui/icon": "3.144.1",
+		"@clayui/core": "*",
+		"@clayui/icon": "*",
 		"frontend-js-web": "*",
 		"prop-types": "15.7.2",
 		"react": "18.2.0",
@@ -14,5 +14,5 @@
 		"checkFormat": "node-scripts format --check",
 		"format": "node-scripts format"
 	},
-	"version": "8.0.9"
+	"version": "8.0.13"
 }

@@ -19,6 +19,8 @@ import com.liferay.jenkins.results.parser.test.clazz.TestClass;
 import com.liferay.jenkins.results.parser.test.clazz.TestClassBalancedListSplitter;
 import com.liferay.jenkins.results.parser.test.clazz.TestClassFactory;
 import com.liferay.jenkins.results.parser.test.clazz.TestClassMethod;
+import com.liferay.jenkins.results.parser.test.clazz.TestTaskBalancedListSplitter;
+import com.liferay.jenkins.results.parser.test.task.TestTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -224,6 +226,10 @@ public class JUnitBatchTestClassGroup extends BatchTestClassGroup {
 		}
 
 		return null;
+	}
+
+	public List<TestTask> getTestTasks() {
+		return new ArrayList<>();
 	}
 
 	public void writeTestCSVReportFile() throws Exception {
@@ -639,21 +645,49 @@ public class JUnitBatchTestClassGroup extends BatchTestClassGroup {
 					0, TestClassGroupFactory.newAxisTestClassGroup(this));
 			}
 			else {
-				List<TestClass> batchTestClasses = new ArrayList<>(testClasses);
+				GroupingStrategy groupingStrategy = getGroupingStrategy();
 
-				TestClassBalancedListSplitter testClassBalancedListSplitter =
-					new TestClassBalancedListSplitter(targetAxisDuration);
+				if ((this instanceof ModulesJUnitBatchTestClassGroup) &&
+					((groupingStrategy ==
+						GroupingStrategy.TEST_TASK_AVERAGE_DURATION) ||
+					 (groupingStrategy ==
+						 GroupingStrategy.TEST_TASK_AVERAGE_TOTAL_DURATION) ||
+					 (groupingStrategy ==
+						 GroupingStrategy.TEST_TASK_LONGEST_DURATION))) {
 
-				List<List<TestClass>> testClassLists =
-					testClassBalancedListSplitter.split(batchTestClasses);
+					TestTaskBalancedListSplitter testTaskBalancedListSplitter =
+						new TestTaskBalancedListSplitter(targetAxisDuration);
 
-				for (List<TestClass> testClassList : testClassLists) {
-					AxisTestClassGroup axisTestClassGroup =
-						TestClassGroupFactory.newAxisTestClassGroup(this);
+					List<List<TestTask>> testTasksLists =
+						testTaskBalancedListSplitter.split(getTestTasks());
 
-					axisTestClassGroup.addTestClasses(testClassList);
+					for (List<TestTask> testTasks : testTasksLists) {
+						if (_isIsolatedOversizedTestTask(testTasks)) {
+							_splitOversizedTestTask(testTasks.get(0));
+						}
+						else {
+							_createAxisTestClassGroup(testTasks);
+						}
+					}
+				}
+				else {
+					TestClassBalancedListSplitter
+						testClassBalancedListSplitter =
+							new TestClassBalancedListSplitter(
+								targetAxisDuration);
 
-					axisTestClassGroups.add(axisTestClassGroup);
+					List<List<TestClass>> testClassLists =
+						testClassBalancedListSplitter.split(
+							new ArrayList<>(testClasses));
+
+					for (List<TestClass> testClassList : testClassLists) {
+						AxisTestClassGroup axisTestClassGroup =
+							TestClassGroupFactory.newAxisTestClassGroup(this);
+
+						axisTestClassGroup.addTestClasses(testClassList);
+
+						axisTestClassGroups.add(axisTestClassGroup);
+					}
 				}
 			}
 		}
@@ -832,6 +866,26 @@ public class JUnitBatchTestClassGroup extends BatchTestClassGroup {
 				JenkinsResultsParserUtil.toDurationString(duration)));
 	}
 
+	private void _createAxisTestClassGroup(List<TestTask> testTasks) {
+		AxisTestClassGroup axisTestClassGroup =
+			TestClassGroupFactory.newAxisTestClassGroup(this);
+
+		for (TestTask testTask : testTasks) {
+			axisTestClassGroup.addTestClasses(testTask.getTestClasses());
+		}
+
+		if (axisTestClassGroup instanceof ModulesJUnitAxisTestClassGroup) {
+			ModulesJUnitAxisTestClassGroup modulesJUnitAxisTestClassGroup =
+				(ModulesJUnitAxisTestClassGroup)axisTestClassGroup;
+
+			for (TestTask testTask : testTasks) {
+				modulesJUnitAxisTestClassGroup.addTestTask(testTask);
+			}
+		}
+
+		axisTestClassGroups.add(axisTestClassGroup);
+	}
+
 	private File _getWorkingDirectory() {
 		PortalGitWorkingDirectory portalGitWorkingDirectory =
 			getPortalGitWorkingDirectory();
@@ -847,6 +901,23 @@ public class JUnitBatchTestClassGroup extends BatchTestClassGroup {
 		}
 
 		return workingDirectory;
+	}
+
+	private boolean _isIsolatedOversizedTestTask(List<TestTask> testTasks) {
+		if (testTasks.size() > 1) {
+			return false;
+		}
+
+		TestTask testTask = testTasks.get(0);
+
+		long totalTaskDuration =
+			testTask.getWeight() + testTask.getOverheadWeight();
+
+		if (totalTaskDuration <= getTargetAxisDuration()) {
+			return false;
+		}
+
+		return true;
 	}
 
 	private void _loadJavaFiles(File workingDirectory) {
@@ -983,6 +1054,39 @@ public class JUnitBatchTestClassGroup extends BatchTestClassGroup {
 		}
 
 		_includeAutoBalanceTests = false;
+	}
+
+	private void _splitOversizedTestTask(TestTask testTask) {
+		testTask.setSplit(true);
+
+		long targetAxisDuration = getTargetAxisDuration();
+
+		TestClassBalancedListSplitter testClassBalancedListSplitter =
+			new TestClassBalancedListSplitter(targetAxisDuration);
+
+		List<List<TestClass>> testClassesList = new ArrayList<>(
+			testClassBalancedListSplitter.split(testTask.getTestClasses()));
+
+		for (List<TestClass> testClasses : testClassesList) {
+			AxisTestClassGroup axisTestClassGroup =
+				TestClassGroupFactory.newAxisTestClassGroup(this);
+
+			axisTestClassGroup.addTestClasses(testClasses);
+
+			if (axisTestClassGroup instanceof ModulesJUnitAxisTestClassGroup) {
+				ModulesJUnitAxisTestClassGroup modulesJUnitAxisTestClassGroup =
+					(ModulesJUnitAxisTestClassGroup)axisTestClassGroup;
+
+				modulesJUnitAxisTestClassGroup.addTestTask(testTask);
+			}
+
+			axisTestClassGroups.add(axisTestClassGroup);
+		}
+
+		System.out.println(
+			JenkinsResultsParserUtil.combine(
+				"Split ", testTask.getName(), " into ",
+				String.valueOf(testClassesList.size()), " groups."));
 	}
 
 	private static final String[] _IGNORABLE_DIRS = {

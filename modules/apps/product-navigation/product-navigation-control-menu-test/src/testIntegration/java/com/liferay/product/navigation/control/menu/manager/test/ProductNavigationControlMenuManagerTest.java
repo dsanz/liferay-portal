@@ -14,7 +14,9 @@ import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
@@ -74,7 +76,7 @@ public class ProductNavigationControlMenuManagerTest {
 		throws Exception {
 
 		_menuAccessConfigurationManager.updateMenuAccessConfiguration(
-			_group.getGroupId(), new String[0], true);
+			_group.getGroupId(), null, true);
 
 		Assert.assertTrue(
 			_productNavigationControlMenuManager.isShowControlMenu(
@@ -136,13 +138,28 @@ public class ProductNavigationControlMenuManagerTest {
 	public void testIsShowControlMenuWithNormalUserWithRoleAccessInContentLayout()
 		throws Exception {
 
-		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_SITE);
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		ResourcePermissionServiceUtil.addResourcePermission(
+			_group.getGroupId(), TestPropsValues.getCompanyId(),
+			"com.liferay.portal.kernel.model.Group", 1,
+			String.valueOf(TestPropsValues.getCompanyId()), role.getRoleId(),
+			"VIEW_SITE_ADMINISTRATION");
+		ResourcePermissionServiceUtil.addResourcePermission(
+			_group.getGroupId(), TestPropsValues.getCompanyId(),
+			"com_liferay_style_book_web_internal_portlet_StyleBookPortlet", 1,
+			String.valueOf(TestPropsValues.getCompanyId()), role.getRoleId(),
+			"ACCESS_IN_CONTROL_PANEL");
 
 		_menuAccessConfigurationManager.updateMenuAccessConfiguration(
 			_group.getGroupId(),
 			new String[] {String.valueOf(role.getRoleId())}, true);
 
 		User user = UserTestUtil.addUser();
+
+		Assert.assertFalse(
+			_productNavigationControlMenuManager.isShowControlMenu(
+				_getHttpServletRequest(Collections.emptyMap(), user)));
 
 		_roleLocalService.addUserRole(user.getUserId(), role);
 
@@ -152,36 +169,21 @@ public class ProductNavigationControlMenuManagerTest {
 	}
 
 	@Test
-	public void testIsShowControlMenuWithRandomUserInAdminLayout()
-		throws Exception {
-
-		_menuAccessConfigurationManager.updateMenuAccessConfiguration(
-			_group.getGroupId(), new String[0], true);
-
-		Assert.assertTrue(
-			_productNavigationControlMenuManager.isShowControlMenu(
-				_getHttpServletRequest(
-					Collections.emptyMap(), TestPropsValues.getUser())));
-	}
-
-	@Test
-	public void testIsShowControlMenuWithSiteAdministratorInContentLayout()
-		throws Exception {
-
-		_menuAccessConfigurationManager.updateMenuAccessConfiguration(
-			_group.getGroupId(), new String[0], true);
-
-		Assert.assertTrue(
-			_productNavigationControlMenuManager.isShowControlMenu(
-				_getHttpServletRequest(
-					Collections.emptyMap(), TestPropsValues.getUser())));
-	}
-
-	@Test
 	public void testIsShowControlMenuWithUserWithUserGroupWithRoleAccessInContentLayout()
 		throws Exception {
 
 		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		ResourcePermissionServiceUtil.addResourcePermission(
+			_group.getGroupId(), TestPropsValues.getCompanyId(),
+			"com.liferay.portal.kernel.model.Group", 1,
+			String.valueOf(TestPropsValues.getCompanyId()), role.getRoleId(),
+			"VIEW_SITE_ADMINISTRATION");
+		ResourcePermissionServiceUtil.addResourcePermission(
+			_group.getGroupId(), TestPropsValues.getCompanyId(),
+			"com_liferay_style_book_web_internal_portlet_StyleBookPortlet", 1,
+			String.valueOf(TestPropsValues.getCompanyId()), role.getRoleId(),
+			"ACCESS_IN_CONTROL_PANEL");
 
 		UserGroup userGroup = UserGroupTestUtil.addUserGroup();
 
@@ -211,9 +213,15 @@ public class ProductNavigationControlMenuManagerTest {
 
 		ThemeDisplay themeDisplay = new ThemeDisplay();
 
+		themeDisplay.setCompany(
+			_companyLocalService.fetchCompany(TestPropsValues.getCompanyId()));
 		themeDisplay.setLayout(_layout);
+		themeDisplay.setPermissionChecker(
+			PermissionCheckerFactoryUtil.create(user));
+		themeDisplay.setRealUser(TestPropsValues.getUser());
 		themeDisplay.setRequest(mockHttpServletRequest);
 		themeDisplay.setScopeGroupId(_group.getGroupId());
+		themeDisplay.setSignedIn(true);
 		themeDisplay.setUser(user);
 
 		mockHttpServletRequest.setAttribute(

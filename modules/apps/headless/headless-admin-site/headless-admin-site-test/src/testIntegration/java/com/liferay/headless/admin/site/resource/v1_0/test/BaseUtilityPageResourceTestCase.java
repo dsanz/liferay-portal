@@ -1158,8 +1158,10 @@ public abstract class BaseUtilityPageResourceTestCase {
 				continue;
 			}
 
-			if (Objects.equals("thumbnail", additionalAssertFieldName)) {
-				if (utilityPage.getThumbnail() == null) {
+			if (Objects.equals(
+					"thumbnailURLReference", additionalAssertFieldName)) {
+
+				if (utilityPage.getThumbnailURLReference() == null) {
 					valid = false;
 				}
 
@@ -1267,6 +1269,28 @@ public abstract class BaseUtilityPageResourceTestCase {
 
 			if (Objects.equals("pageExperiences", additionalAssertFieldName)) {
 				if (contentPageSpecification.getPageExperiences() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("settings", additionalAssertFieldName)) {
+				if (contentPageSpecification.getSettings() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"siteTemplatePageSpecificationExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (contentPageSpecification.
+						getSiteTemplatePageSpecificationExternalReferenceCode() ==
+							null) {
+
 					valid = false;
 				}
 
@@ -1482,10 +1506,12 @@ public abstract class BaseUtilityPageResourceTestCase {
 				continue;
 			}
 
-			if (Objects.equals("thumbnail", additionalAssertFieldName)) {
+			if (Objects.equals(
+					"thumbnailURLReference", additionalAssertFieldName)) {
+
 				if (!Objects.deepEquals(
-						utilityPage1.getThumbnail(),
-						utilityPage2.getThumbnail())) {
+						utilityPage1.getThumbnailURLReference(),
+						utilityPage2.getThumbnailURLReference())) {
 
 					return false;
 				}
@@ -1591,6 +1617,33 @@ public abstract class BaseUtilityPageResourceTestCase {
 				if (!Objects.deepEquals(
 						contentPageSpecification1.getPageExperiences(),
 						contentPageSpecification2.getPageExperiences())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("settings", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						contentPageSpecification1.getSettings(),
+						contentPageSpecification2.getSettings())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"siteTemplatePageSpecificationExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						contentPageSpecification1.
+							getSiteTemplatePageSpecificationExternalReferenceCode(),
+						contentPageSpecification2.
+							getSiteTemplatePageSpecificationExternalReferenceCode())) {
 
 					return false;
 				}
@@ -1888,7 +1941,7 @@ public abstract class BaseUtilityPageResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
-		if (entityFieldName.equals("thumbnail")) {
+		if (entityFieldName.equals("thumbnailURLReference")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
@@ -2041,6 +2094,8 @@ public abstract class BaseUtilityPageResourceTestCase {
 		return new ContentPageSpecification() {
 			{
 				draftContentPageSpecificationExternalReferenceCode =
+					RandomTestUtil.randomString();
+				siteTemplatePageSpecificationExternalReferenceCode =
 					RandomTestUtil.randomString();
 			}
 		};

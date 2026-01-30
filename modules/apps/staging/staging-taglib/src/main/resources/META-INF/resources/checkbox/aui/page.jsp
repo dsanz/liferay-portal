@@ -15,4 +15,10 @@
 			<%@ include file="/checkbox/extended_label.jspf" %>
 		</label>
 	</div>
+
+	<c:if test="<%= Validator.isNotNull(description) %>">
+		<div class="selected-labels">
+			<%= HtmlUtil.escape(description) %>
+		</div>
+	</c:if>
 </div>

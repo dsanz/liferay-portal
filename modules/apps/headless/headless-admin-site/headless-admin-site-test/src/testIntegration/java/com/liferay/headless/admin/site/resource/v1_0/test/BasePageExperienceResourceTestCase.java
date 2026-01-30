@@ -181,7 +181,7 @@ public abstract class BasePageExperienceResourceTestCase {
 		pageExperience.setExternalReferenceCode(regex);
 		pageExperience.setKey(regex);
 		pageExperience.setPageSpecificationExternalReferenceCode(regex);
-		pageExperience.setSegmentExternalReferenceCode(regex);
+		pageExperience.setUuid(regex);
 
 		String json = PageExperienceSerDes.toJSON(pageExperience);
 
@@ -193,8 +193,7 @@ public abstract class BasePageExperienceResourceTestCase {
 		Assert.assertEquals(regex, pageExperience.getKey());
 		Assert.assertEquals(
 			regex, pageExperience.getPageSpecificationExternalReferenceCode());
-		Assert.assertEquals(
-			regex, pageExperience.getSegmentExternalReferenceCode());
+		Assert.assertEquals(regex, pageExperience.getUuid());
 	}
 
 	@Test
@@ -679,10 +678,18 @@ public abstract class BasePageExperienceResourceTestCase {
 			}
 
 			if (Objects.equals(
-					"segmentExternalReferenceCode",
+					"segmentItemExternalReference",
 					additionalAssertFieldName)) {
 
-				if (pageExperience.getSegmentExternalReferenceCode() == null) {
+				if (pageExperience.getSegmentItemExternalReference() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("uuid", additionalAssertFieldName)) {
+				if (pageExperience.getUuid() == null) {
 					valid = false;
 				}
 
@@ -894,12 +901,22 @@ public abstract class BasePageExperienceResourceTestCase {
 			}
 
 			if (Objects.equals(
-					"segmentExternalReferenceCode",
+					"segmentItemExternalReference",
 					additionalAssertFieldName)) {
 
 				if (!Objects.deepEquals(
-						pageExperience1.getSegmentExternalReferenceCode(),
-						pageExperience2.getSegmentExternalReferenceCode())) {
+						pageExperience1.getSegmentItemExternalReference(),
+						pageExperience2.getSegmentItemExternalReference())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("uuid", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						pageExperience1.getUuid(), pageExperience2.getUuid())) {
 
 					return false;
 				}
@@ -1175,8 +1192,13 @@ public abstract class BasePageExperienceResourceTestCase {
 			return sb.toString();
 		}
 
-		if (entityFieldName.equals("segmentExternalReferenceCode")) {
-			Object object = pageExperience.getSegmentExternalReferenceCode();
+		if (entityFieldName.equals("segmentItemExternalReference")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("uuid")) {
+			Object object = pageExperience.getUuid();
 
 			String value = String.valueOf(object);
 
@@ -1272,8 +1294,7 @@ public abstract class BasePageExperienceResourceTestCase {
 				pageSpecificationExternalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
 				priority = RandomTestUtil.randomInt();
-				segmentExternalReferenceCode = StringUtil.toLowerCase(
-					RandomTestUtil.randomString());
+				uuid = StringUtil.toLowerCase(RandomTestUtil.randomString());
 			}
 		};
 	}

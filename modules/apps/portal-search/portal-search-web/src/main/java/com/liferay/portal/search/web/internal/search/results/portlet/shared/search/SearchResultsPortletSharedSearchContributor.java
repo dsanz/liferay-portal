@@ -8,6 +8,7 @@ package com.liferay.portal.search.web.internal.search.results.portlet.shared.sea
 import com.liferay.portal.kernel.dao.search.SearchPaginationUtil;
 import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.search.constants.SearchContextAttributes;
 import com.liferay.portal.search.searcher.SearchRequestBuilder;
 import com.liferay.portal.search.searcher.SearchRequestBuilderFactory;
 import com.liferay.portal.search.web.constants.SearchResultsPortletKeys;
@@ -56,6 +57,11 @@ public class SearchResultsPortletSharedSearchContributor
 
 			searchRequestBuilder.highlightFields(fieldsToDisplay);
 		}
+
+		searchRequestBuilder.withSearchContext(
+			searchContext -> searchContext.setAttribute(
+				SearchContextAttributes.ATTRIBUTE_KEY_EXECUTE_SEARCH,
+				Boolean.TRUE));
 	}
 
 	@Reference

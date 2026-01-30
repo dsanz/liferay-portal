@@ -1,0 +1,229 @@
+---
+title: 'Sticker'
+description: 'Stickers are a visual way to quickly identify content in a different way than badges and labels.'
+lexiconDefinition: 'https://liferay.design/lexicon/core-components/stickers/'
+packageNpm: '@clayui/sticker'
+packageUse: "import Sticker from '@clayui/sticker';"
+packageTypes: ['clay-sticker/src/Sticker.tsx']
+---
+
+## Display Type
+
+Stickers can be any color. Set sticker's color using [`displayType`](#api-displayType) property.
+
+```jsx preview
+import {Provider} from '@clayui/core';
+import Sticker from '@clayui/sticker';
+import Icon from '@clayui/icon';
+import React from 'react';
+
+import '@clayui/css/lib/css/atlas.css';
+
+export default function App() {
+	return (
+		<Provider spritemap="/public/icons.svg">
+			<div className="bg-light p-4">
+				<>
+					<Sticker className="mr-1" displayType="unstyled">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<Sticker className="mr-1" displayType="primary">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<Sticker className="mr-1" displayType="secondary">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<Sticker className="mr-1" displayType="info">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<Sticker className="mr-1" displayType="success">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<Sticker className="mr-1" displayType="warning">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<Sticker className="mr-1" displayType="danger">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<Sticker className="mr-1" displayType="light">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<Sticker className="mr-1" displayType="dark">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<Sticker displayType="warning" size="sm">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<div className="mt-3">
+						<Sticker className="mr-1" displayType="outline-0">
+							S
+						</Sticker>
+						<Sticker className="mr-1" displayType="outline-1">
+							M
+						</Sticker>
+						<Sticker className="mr-1" displayType="outline-2">
+							C
+						</Sticker>
+						<Sticker className="mr-1" displayType="outline-3">
+							M
+						</Sticker>
+						<Sticker className="mr-1" displayType="outline-4">
+							S
+						</Sticker>
+						<Sticker className="mr-1" displayType="outline-5">
+							S
+						</Sticker>
+						<Sticker className="mr-1" displayType="outline-6">
+							E
+						</Sticker>
+						<Sticker className="mr-1" displayType="outline-7">
+							Q
+						</Sticker>
+						<Sticker className="mr-1" displayType="outline-8">
+							D
+						</Sticker>
+						<Sticker displayType="outline-9">P</Sticker>
+					</div>
+				</>
+			</div>
+		</Provider>
+	);
+}
+```
+
+## User Icon
+
+A specific type of Sticker used to display user icons. Use the attribute `shape="user-icon"` just like in the example below:
+
+```jsx preview
+import {Provider} from '@clayui/core';
+import Sticker from '@clayui/sticker';
+import React from 'react';
+
+import '@clayui/css/lib/css/atlas.css';
+
+export default function App() {
+	return (
+		<Provider spritemap="/public/icons.svg">
+			<div className="bg-light p-4">
+				<>
+					<Sticker className="mr-1" shape="user-icon" size="xl">
+						<Sticker.Image
+							alt="placeholder"
+							src="https://clayui.com/images/long_user_image.png"
+						/>
+					</Sticker>
+
+					<Sticker shape="user-icon" size="xl">
+						BS
+					</Sticker>
+				</>
+			</div>
+		</Provider>
+	);
+}
+```
+
+## Size
+
+Also, you can use the following sizes on your Sticker just setting up [`size`](#api-size):
+
+```jsx preview
+import {Provider} from '@clayui/core';
+import Sticker from '@clayui/sticker';
+import Icon from '@clayui/icon';
+import React from 'react';
+
+import '@clayui/css/lib/css/atlas.css';
+
+export default function App() {
+	return (
+		<Provider spritemap="/public/icons.svg">
+			<div className="bg-light p-4">
+				<>
+					<Sticker className="mr-1" displayType="primary" size="xs">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<Sticker className="mr-1" displayType="danger" size="sm">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<Sticker className="mr-1" displayType="dark" size="md">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<Sticker className="mr-1" displayType="info" size="lg">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<Sticker className="mr-1" displayType="secondary" size="xl">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<Sticker className="mr-1" displayType="success" size="xxl">
+						<Icon symbol="user" />
+					</Sticker>
+
+					<div className="mt-3">
+						<Sticker
+							className="mr-1"
+							displayType="outline-0"
+							size="xs"
+						>
+							S
+						</Sticker>
+						<Sticker
+							className="mr-1"
+							displayType="outline-1"
+							size="sm"
+						>
+							M
+						</Sticker>
+						<Sticker className="mr-1" displayType="outline-2">
+							C
+						</Sticker>
+						<Sticker
+							className="mr-1"
+							displayType="outline-3"
+							size="lg"
+						>
+							M
+						</Sticker>
+						<Sticker
+							className="mr-1"
+							displayType="outline-4"
+							size="xl"
+						>
+							S
+						</Sticker>
+						<Sticker
+							className="mr-1"
+							displayType="outline-5"
+							size="xxl"
+						>
+							S
+						</Sticker>
+					</div>
+				</>
+			</div>
+		</Provider>
+	);
+}
+```
+
+## Positioning
+
+You can set a desired alignment of sticker according to a parent element, just setting up the [`position`](#api-position) property. If you want to set the position of the sticker on the outside corners, use [`outside`](#api-outside) property in conjunction with [`position`](#api-position) property.
+
+Overlay content over stickers by nesting `sticker-overlay` elements as children of Sticker. Check our example on [Storybook](https://storybook.clayui.com/?path=/story/design-system-components-sticker--overlay)

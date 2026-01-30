@@ -1,6 +1,7 @@
 @component-name = "portal-headless"
 definition {
 
+	property browser.chrome.version = "139.0";
 	property custom.properties = "feature.flag.LPS-178642=true";
 	property portal.acceptance = "quarantine";
 	property portal.release = "true";
@@ -210,51 +211,6 @@ definition {
 				locator1 = "OpenAPI#RESPONSE_BODY",
 				method = "getTestendpointPage",
 				value1 = "\"items\": [     {       \"universityName\": \"Oxford\",       \"studentName\": [         \"Pearl\"       ]     }   ]");
-		}
-	}
-
-	@priority = 4
-	test CanRelateSchemaWithManyEndpoints {
-		task ("Given API Application with two endpoints created") {
-			EndpointAPI.createAPIEndpoint(
-				apiApplicationERC = "My-app",
-				name = "testendpoint1",
-				path = "/testendpoint1");
-		}
-
-		task ("And Given one API Schema in API Application") {
-			SchemaAPI.createAPISchema(
-				apiApplicationERC = "My-app",
-				mainObjectDefinitionERC = "L_API_APPLICATION",
-				name = "testSchema");
-		}
-
-		task ("And Given modifying endpoint1 with API Schema") {
-			APIBuilderUI.addAndPublishEndpointConfiguration(
-				entity = "Endpoints",
-				name = "testendpoint",
-				schemaName = "testSchema",
-				title = "My-app");
-		}
-
-		task ("When modifying endpoint2 wit the same API Schema") {
-			APIBuilderUI.addAndPublishEndpointConfiguration(
-				entity = "Endpoints",
-				name = "testendpoint1",
-				schemaName = "testSchema",
-				title = "My-app");
-		}
-
-		task ("Then both endpoints work with the same schema") {
-			var response = EndpointAPI.getAPIEndpoints();
-
-			var actualValue = JSONPathUtil.getProperty(
-				property = "$.items..r_responseAPISchemaToAPIEndpoints_l_apiSchemaERC",
-				response = ${response});
-
-			TestUtils.assertEquals(
-				actual = ${actualValue},
-				expected = "testSchema,testSchema");
 		}
 	}
 

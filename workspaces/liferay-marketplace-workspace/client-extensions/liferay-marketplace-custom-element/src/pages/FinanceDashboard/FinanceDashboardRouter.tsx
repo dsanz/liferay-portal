@@ -3,31 +3,35 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {HashRouter, Route, Routes} from 'react-router-dom';
+import {Route, Routes} from 'react-router-dom';
 
 import withProviders from '../../hoc/withProviders';
 import FinanceDashboardOutlet from './FinanceDashboardOutlet';
-import OrderDetails from './pages/Orders/OrderDetails/OrderDetails';
-import Orders from './pages/Orders/Orders';
-import PaymentDetails from './pages/Payments/PaymentDetails/PaymentDetails';
-import Payments from './pages/Payments/Payments';
+import Orders from './pages/Orders';
+import OrderDetails from './pages/Orders/OrderDetails';
+import Payments from './pages/Payments';
+import PaymentDetails from './pages/Payments/PaymentDetails';
 
 import './index.scss';
 
-const SSADashboardRouter = () => (
-	<HashRouter>
-		<Routes>
-			<Route element={<FinanceDashboardOutlet />}>
-				<Route element={<Orders />} index />
+const FinanceDashboardRouter = () => (
+	<Routes>
+		<Route element={<FinanceDashboardOutlet />}>
+			<Route element={<Orders />} index />
 
-				<Route element={<OrderDetails />} path="order/:orderId" />
+			<Route element={<OrderDetails />} path="order/:orderId" />
 
-				<Route element={<Payments />} path="payments" />
+			<Route element={<Payments />} path="payments" />
 
-				<Route element={<PaymentDetails />} path="payments/:entryId" />
-			</Route>
-		</Routes>
-	</HashRouter>
+			<Route element={<PaymentDetails />} path="payments/:entryId" />
+		</Route>
+	</Routes>
 );
 
-export default withProviders(SSADashboardRouter);
+export default withProviders(FinanceDashboardRouter, {
+	breadcrumbProps: {
+		hiddenPaths: ['finance-dashboard#/order'],
+	},
+	withBreadcrumbs: true,
+	withHashRouter: true,
+});

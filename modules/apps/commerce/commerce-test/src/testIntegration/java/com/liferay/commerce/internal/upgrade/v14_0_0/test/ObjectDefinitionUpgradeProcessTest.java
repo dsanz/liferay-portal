@@ -215,7 +215,7 @@ public class ObjectDefinitionUpgradeProcessTest {
 		_user = UserTestUtil.getAdminUser(_company.getCompanyId());
 
 		_objectDefinition2 = ObjectDefinitionTestUtil.publishObjectDefinition(
-			true, ObjectDefinitionTestUtil.getRandomName(),
+			ObjectDefinitionTestUtil.getRandomName(),
 			Collections.singletonList(
 				new TextObjectFieldBuilder(
 				).labelMap(
@@ -253,7 +253,7 @@ public class ObjectDefinitionUpgradeProcessTest {
 		String externalReferenceCode = RandomTestUtil.randomString();
 
 		_originalSystemObjectDefinitionManager.addBaseModel(
-			_user,
+			false, _user,
 			HashMapBuilder.<String, Object>put(
 				"catalogId",
 				() -> {

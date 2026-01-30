@@ -1361,9 +1361,7 @@ public class TaxonomyVocabulary implements Serializable {
 			sb.append("\"viewableBy\": ");
 
 			sb.append("\"");
-
 			sb.append(viewableBy);
-
 			sb.append("\"");
 		}
 
@@ -1377,9 +1375,7 @@ public class TaxonomyVocabulary implements Serializable {
 			sb.append("\"visibilityType\": ");
 
 			sb.append("\"");
-
 			sb.append(visibilityType);
-
 			sb.append("\"");
 		}
 
@@ -1436,7 +1432,7 @@ public class TaxonomyVocabulary implements Serializable {
 	@GraphQLName("VisibilityType")
 	public static enum VisibilityType {
 
-		PUBLIC("PUBLIC"), INTERNAL("INTERNAL");
+		EMPTY("EMPTY"), INTERNAL("INTERNAL"), PUBLIC("PUBLIC");
 
 		@JsonCreator
 		public static VisibilityType create(String value) {

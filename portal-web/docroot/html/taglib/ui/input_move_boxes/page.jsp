@@ -79,7 +79,7 @@ Map<String, Object> data = new HashMap<String, Object>();
 
 <aui:script type="module">
 	import React from '<%= FrontendESMUtil.buildExportsURL(themeDisplay, "frontend-js-react-web", "react") %>';
-	import {ClayDualListBox} from '<%= FrontendESMUtil.buildExportsURL(themeDisplay, "frontend-taglib-clay", "@clayui/form") %>';
+	import {ClayDualListBox} from '<%= FrontendESMUtil.buildExportsURL(themeDisplay, "frontend-js-clay-web", "@clayui/form") %>';
 	import {render} from '<%= FrontendESMUtil.buildURL(themeDisplay, "frontend-js-react-web") %>';
 
 	function main({initialItems}) {

@@ -8,6 +8,7 @@ package com.liferay.headless.admin.site.resource.v1_0.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.headless.admin.site.client.dto.v1_0.ContentPageSpecification;
 import com.liferay.headless.admin.site.client.dto.v1_0.FavIcon;
+import com.liferay.headless.admin.site.client.dto.v1_0.ItemExternalReference;
 import com.liferay.headless.admin.site.client.dto.v1_0.PageElement;
 import com.liferay.headless.admin.site.client.dto.v1_0.PageElementDefinition;
 import com.liferay.headless.admin.site.client.dto.v1_0.PageExperience;
@@ -45,6 +46,7 @@ import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+import com.liferay.segments.model.SegmentsEntry;
 import com.liferay.segments.service.SegmentsExperienceService;
 import com.liferay.style.book.model.StyleBookEntry;
 import com.liferay.style.book.service.StyleBookEntryLocalService;
@@ -395,8 +397,8 @@ public class PageSpecificationResourceTest
 
 			if (Objects.equals(additionalAssertFieldName, "settings")) {
 				SettingsTestUtil.assertSettings(
-					pageSpecification1.getSettings(),
-					pageSpecification2.getSettings());
+					SettingsTestUtil.getSettings(pageSpecification1),
+					SettingsTestUtil.getSettings(pageSpecification2));
 
 				continue;
 			}
@@ -471,7 +473,8 @@ public class PageSpecificationResourceTest
 			RandomTestUtil.randomLocaleStringMap(), Collections.emptyMap(),
 			Collections.emptyMap(), Collections.emptyMap(),
 			Collections.emptyMap(), type, _getTypeSettings(), false, false,
-			Collections.emptyMap(), _getMasterLayoutPlid(serviceContext),
+			Collections.emptyMap(),
+			_getMasterLayoutPageTemplateEntryERC(serviceContext),
 			serviceContext);
 	}
 
@@ -649,7 +652,8 @@ public class PageSpecificationResourceTest
 					layout.getExternalReferenceCode());
 
 		PageExperiencesTestUtil.modifyPageExperiences(
-			contentPageSpecification.getPageExperiences());
+			contentPageSpecification.getPageExperiences(),
+			testGroup.getGroupId());
 
 		_modifySettings(
 			contentPageSpecification, serviceContext, layout.isTypeUtility());
@@ -691,18 +695,19 @@ public class PageSpecificationResourceTest
 		return contentPageSpecification;
 	}
 
-	private long _getMasterLayoutPlid(ServiceContext serviceContext)
+	private String _getMasterLayoutPageTemplateEntryERC(
+			ServiceContext serviceContext)
 		throws Exception {
 
 		if (RandomTestUtil.randomBoolean()) {
-			return 0;
+			return null;
 		}
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			LayoutPageTemplateEntryTestUtil.getMasterLayoutPageTemplateEntry(
 				serviceContext, WorkflowConstants.STATUS_APPROVED);
 
-		return layoutPageTemplateEntry.getPlid();
+		return layoutPageTemplateEntry.getExternalReferenceCode();
 	}
 
 	private PageElement _getPageElement(
@@ -740,16 +745,16 @@ public class PageSpecificationResourceTest
 		return null;
 	}
 
-	private long _getStyleBookEntryId(ServiceContext serviceContext)
+	private String _getStyleBookEntryERC(ServiceContext serviceContext)
 		throws Exception {
 
 		if (RandomTestUtil.randomBoolean()) {
-			return 0;
+			return null;
 		}
 
 		StyleBookEntry styleBookEntry = _addStyleBookEntry(serviceContext);
 
-		return styleBookEntry.getStyleBookEntryId();
+		return styleBookEntry.getExternalReferenceCode();
 	}
 
 	private String _getTypeSettings() throws Exception {
@@ -781,24 +786,41 @@ public class PageSpecificationResourceTest
 		if (!typeUtility) {
 			SettingsTestUtil.modifySettings(
 				FavIcon.FavIconType.CLIENT_EXTENSION, serviceContext,
-				pageSpecification.getSettings());
+				SettingsTestUtil.getSettings(pageSpecification));
 
 			return;
 		}
 
-		pageSpecification.setSettings(
-			() -> new Settings() {
-				{
-					setMasterPageItemExternalReference(
-						() ->
-							SettingsTestUtil.getMasterPageItemExternalReference(
-								serviceContext));
-					setStyleBookItemExternalReference(
-						() ->
-							SettingsTestUtil.getStyleBookItemExternalReference(
-								serviceContext));
-				}
-			});
+		if (!(pageSpecification instanceof ContentPageSpecification) &&
+			!(pageSpecification instanceof WidgetPageSpecification)) {
+
+			return;
+		}
+
+		Settings settings = new Settings() {
+			{
+				setMasterPageItemExternalReference(
+					() -> SettingsTestUtil.getMasterPageItemExternalReference(
+						false, serviceContext));
+				setStyleBookItemExternalReference(
+					() -> SettingsTestUtil.getStyleBookItemExternalReference(
+						serviceContext));
+			}
+		};
+
+		if (pageSpecification instanceof ContentPageSpecification) {
+			ContentPageSpecification contentPageSpecification =
+				(ContentPageSpecification)pageSpecification;
+
+			contentPageSpecification.setSettings(() -> settings);
+
+			return;
+		}
+
+		WidgetPageSpecification widgetPageSpecification =
+			(WidgetPageSpecification)pageSpecification;
+
+		widgetPageSpecification.setSettings(() -> settings);
 	}
 
 	private void _testDeleteSitePageSpecification(
@@ -850,7 +872,7 @@ public class PageSpecificationResourceTest
 			pageSpecification.getExternalReferenceCode());
 
 		SettingsTestUtil.assertPageSpecificationSetting(
-			layout, pageSpecification.getSettings());
+			layout, SettingsTestUtil.getSettings(pageSpecification));
 
 		if (layout.isDraftLayout()) {
 			if (layout.isApproved()) {
@@ -1010,7 +1032,8 @@ public class PageSpecificationResourceTest
 					draftLayout.getExternalReferenceCode());
 
 		PageExperiencesTestUtil.modifyPageExperiences(
-			contentPageSpecification.getPageExperiences());
+			contentPageSpecification.getPageExperiences(),
+			testGroup.getGroupId());
 
 		contentPageSpecification.setStatus(PageSpecification.Status.DRAFT);
 
@@ -1032,10 +1055,27 @@ public class PageSpecificationResourceTest
 				draftLayout.getExternalReferenceCode(),
 				new ContentPageSpecification() {
 					{
+						PageExperience pageExperience =
+							PageExperiencesTestUtil.getPageExperience();
+
+						pageExperience.setSegmentItemExternalReference(
+							() -> {
+								ItemExternalReference itemExternalReference =
+									new ItemExternalReference();
+
+								itemExternalReference.setClassName(
+									SegmentsEntry.class.getName());
+								itemExternalReference.setExternalReferenceCode(
+									RandomTestUtil.randomString());
+
+								return itemExternalReference;
+							});
+
 						setPageExperiences(
 							() -> ArrayUtil.append(
 								contentPageSpecification.getPageExperiences(),
-								new PageExperience()));
+								pageExperience));
+
 						setType(() -> Type.CONTENT_PAGE_SPECIFICATION);
 					}
 				}));
@@ -1151,8 +1191,9 @@ public class PageSpecificationResourceTest
 			layout.getTitleMap(), layout.getDescriptionMap(),
 			layout.getKeywordsMap(), layout.getRobotsMap(), layout.getType(),
 			layout.isHidden(), layout.getFriendlyURLMap(),
-			layout.getIconImage(), null, _getStyleBookEntryId(serviceContext),
-			0, layout.getMasterLayoutPlid(), serviceContext);
+			layout.getIconImage(), null, _getStyleBookEntryERC(serviceContext),
+			null, null, layout.getMasterLayoutPageTemplateEntryERC(),
+			serviceContext);
 	}
 
 	@Inject

@@ -8,8 +8,8 @@ import {expect, mergeTests} from '@playwright/test';
 import {apiHelpersTest} from '../../../fixtures/apiHelpersTest';
 import {changeTrackingPagesTest} from '../../../fixtures/changeTrackingPagesTest';
 import {documentLibraryPagesTest} from '../../../fixtures/documentLibraryPages.fixtures';
-import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../../fixtures/isolatedSiteTest';
+import {workflowPagesTest} from '../../../fixtures/workflowPagesTest';
 import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
 import {getRandomInt} from '../../../utils/getRandomInt';
 import getRandomString from '../../../utils/getRandomString';
@@ -19,19 +19,20 @@ import {
 	userData,
 } from '../../../utils/performLogin';
 import {waitForAlert} from '../../../utils/waitForAlert';
+import {blogsPagesTest} from '../../blogs-web/main/fixtures/blogsPagesTest';
 import {journalPagesTest} from '../../journal-web/main/fixtures/journalPagesTest';
 
 export const test = mergeTests(
+	apiHelpersTest,
+	blogsPagesTest,
+	changeTrackingPagesTest,
 	documentLibraryPagesTest,
 	isolatedSiteTest,
 	journalPagesTest,
-	apiHelpersTest,
-	featureFlagsTest({
-		'LPD-20556': {enabled: true},
-	}),
-	changeTrackingPagesTest
+	workflowPagesTest
 );
 
+const blogTitle = getRandomString();
 const folderTitle1 = getRandomString();
 const folderTitle2 = getRandomString();
 const title1 = getRandomString();
@@ -39,6 +40,8 @@ const title2 = getRandomString();
 
 test.beforeEach(
 	async ({
+		blogsEditBlogEntryPage,
+		blogsPage,
 		changeTrackingPage,
 		ctCollection,
 		documentLibraryEditFilePage,
@@ -47,6 +50,18 @@ test.beforeEach(
 		page,
 		site,
 	}) => {
+		await changeTrackingPage.workOnProduction();
+
+		await blogsPage.goto();
+
+		await blogsPage.goToCreateBlogEntry();
+
+		await blogsEditBlogEntryPage.editBlogEntry({
+			content: 'Blog content.',
+			submitToWorkflow: false,
+			title: blogTitle,
+		});
+
 		await documentLibraryPage.goto(site.friendlyUrlPath);
 		await documentLibraryPage.goToCreateNewFile();
 
@@ -62,6 +77,26 @@ test.beforeEach(
 		await page.getByRole('button', {name: 'Save'}).click();
 
 		await changeTrackingPage.workOnPublication(ctCollection);
+
+		await blogsPage.goto();
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('menuitem', {
+				exact: true,
+				name: 'Edit',
+			}),
+			trigger: page
+				.locator('.card')
+				.filter({hasText: blogTitle})
+				.getByLabel('More actions'),
+		});
+
+		await blogsEditBlogEntryPage.editBlogEntry({
+			content: getRandomString(),
+			submitToWorkflow: false,
+			title: getRandomString(),
+		});
 
 		await documentLibraryPage.goto(site.friendlyUrlPath);
 		await documentLibraryPage.goToEditFileEntry(title1);
@@ -259,9 +294,13 @@ test('LPD-25853 Move Change is added in the timeline dropdown actions', async ({
 
 	await moveButton.click();
 
-	await page.getByText('Move Changes').waitFor();
+	const moveChangesHeader = page
+		.getByTestId('headerTitle')
+		.filter({hasText: 'Move Changes'});
 
-	await expect(page.getByText('Move Changes')).toBeVisible();
+	await moveChangesHeader.waitFor();
+
+	await expect(moveChangesHeader).toBeVisible();
 });
 
 test('LPD-25853 Timeline actions are not visible to user without permissions', async ({
@@ -534,6 +573,7 @@ test('LPD-39412 Assert publication timeline history is enabled for templates', a
 
 	const timelineActionsButton = page.locator('.publication-timeline button');
 
+	await timelineActionsButton.waitFor();
 	await expect(timelineActionsButton).toBeVisible();
 
 	await journalEditTemplatePage.goto(site.friendlyUrlPath);
@@ -544,4 +584,89 @@ test('LPD-39412 Assert publication timeline history is enabled for templates', a
 	await timelineButton.click();
 
 	await expect(timelineActionsButton).toBeVisible();
+});
+
+test('LPD-73283 Conflict warning is visible when content is edited in other incomplete publication', async ({
+	apiHelpers,
+	blogsEditBlogEntryPage,
+	blogsPage,
+	changeTrackingPage,
+	page,
+	workflowPage,
+}) => {
+	const incompleteCTCollection =
+		await apiHelpers.headlessChangeTracking.createCTCollection(
+			getRandomString()
+		);
+
+	try {
+		await changeTrackingPage.workOnPublication(incompleteCTCollection);
+
+		await workflowPage.goto();
+		await workflowPage.changeWorkflow('Blogs Entry', 'Single Approver');
+
+		await blogsPage.goto();
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('menuitem', {
+				exact: true,
+				name: 'Edit',
+			}),
+			trigger: page
+				.locator('.card')
+				.filter({hasText: blogTitle})
+				.getByLabel('More actions'),
+		});
+
+		const newBlogTitle = getRandomString();
+
+		await blogsEditBlogEntryPage.editBlogEntry({
+			content: getRandomString(),
+			submitToWorkflow: true,
+			title: newBlogTitle,
+		});
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('menuitem', {
+				exact: true,
+				name: 'Edit',
+			}),
+			trigger: page
+				.locator('.card')
+				.filter({hasText: newBlogTitle})
+				.getByLabel('More actions'),
+		});
+
+		const timelineButton = page.locator(
+			'.change-tracking-timeline-button svg'
+		);
+		await timelineButton.waitFor();
+
+		await expect(timelineButton).toHaveCSS('color', 'rgb(255, 182, 141)');
+
+		await timelineButton.click();
+
+		const conflictWarning = page.locator(
+			'.publication-timeline .alert-warning'
+		);
+		await conflictWarning.waitFor();
+
+		await expect(conflictWarning).toBeVisible();
+
+		const conflictIcon = page.locator(
+			'.publication-timeline .change-tracking-conflict-icon-warning'
+		);
+		await conflictIcon.first().waitFor();
+
+		await expect(conflictIcon).toHaveCount(2);
+	}
+	finally {
+		if (incompleteCTCollection?.body?.id) {
+			await apiHelpers.headlessChangeTracking.deleteCTCollection(
+				incompleteCTCollection.body.id
+			);
+		}
+	}
 });

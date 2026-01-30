@@ -416,9 +416,7 @@ public class ObjectLayoutBox implements Serializable {
 			sb.append("\"type\": ");
 
 			sb.append("\"");
-
 			sb.append(type);
-
 			sb.append("\"");
 		}
 
@@ -437,7 +435,7 @@ public class ObjectLayoutBox implements Serializable {
 	@GraphQLName("Type")
 	public static enum Type {
 
-		CATEGORIZATION("categorization"), REGULAR("regular");
+		CATEGORIZATION("categorization"), REGULAR("regular"), SEO("seo");
 
 		@JsonCreator
 		public static Type create(String value) {

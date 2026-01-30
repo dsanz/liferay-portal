@@ -430,9 +430,9 @@ public abstract class BaseMessageBoardThreadResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(messageBoardThreadId);
+		Long resourceId = getPermissionCheckerResourceId(messageBoardThreadId);
 		String resourceName = getPermissionCheckerResourceName(
 			messageBoardThreadId);
-		Long resourceId = getPermissionCheckerResourceId(messageBoardThreadId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -1412,9 +1412,9 @@ public abstract class BaseMessageBoardThreadResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(messageBoardThreadId);
+		Long resourceId = getPermissionCheckerResourceId(messageBoardThreadId);
 		String resourceName = getPermissionCheckerResourceName(
 			messageBoardThreadId);
-		Long resourceId = getPermissionCheckerResourceId(messageBoardThreadId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -2008,6 +2008,9 @@ public abstract class BaseMessageBoardThreadResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

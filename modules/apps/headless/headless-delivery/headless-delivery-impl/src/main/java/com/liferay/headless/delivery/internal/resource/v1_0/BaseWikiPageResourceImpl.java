@@ -427,8 +427,8 @@ public abstract class BaseWikiPageResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(wikiPageId);
-		String resourceName = getPermissionCheckerResourceName(wikiPageId);
 		Long resourceId = getPermissionCheckerResourceId(wikiPageId);
+		String resourceName = getPermissionCheckerResourceName(wikiPageId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -856,8 +856,8 @@ public abstract class BaseWikiPageResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(wikiPageId);
-		String resourceName = getPermissionCheckerResourceName(wikiPageId);
 		Long resourceId = getPermissionCheckerResourceId(wikiPageId);
+		String resourceName = getPermissionCheckerResourceName(wikiPageId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -1047,9 +1047,34 @@ public abstract class BaseWikiPageResourceImpl
 
 		UnsafeFunction<WikiPage, WikiPage, Exception> wikiPageUnsafeFunction =
 			wikiPage -> {
-				deleteWikiPage(wikiPage.getId());
+				if (wikiPage.getId() != null) {
+					try {
+						deleteWikiPage(wikiPage.getId());
 
-				return wikiPage;
+						return wikiPage;
+					}
+					catch (Exception exception) {
+						if (wikiPage.getExternalReferenceCode() != null) {
+							if (parameters.containsKey("siteId")) {
+								deleteSiteWikiPageByExternalReferenceCode(
+									(Long)parameters.get("siteId"),
+									wikiPage.getExternalReferenceCode());
+
+								return wikiPage;
+							}
+						}
+					}
+				}
+				else if (parameters.containsKey("siteId")) {
+					deleteSiteWikiPageByExternalReferenceCode(
+						(Long)parameters.get("siteId"),
+						wikiPage.getExternalReferenceCode());
+
+					return wikiPage;
+				}
+
+				throw new UnsupportedOperationException(
+					"Unable to delete by external reference code or ID");
 			};
 
 		if (contextBatchUnsafeBiConsumer != null) {
@@ -1346,6 +1371,9 @@ public abstract class BaseWikiPageResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

@@ -3,12 +3,14 @@
 		"@liferay/eslint-plugin": "1.9.1",
 		"@liferay/prettier-plugin": "1.1.5",
 		"@liferay/stylelint-plugin": "1.1.0",
+		"@testing-library/react": "16.3.0",
 		"@types/ckeditor4": "4.16.2",
 		"@types/codemirror": "^5.60.5",
 		"@types/react": "18.2.19",
 		"@types/react-dom": "^18.2.12",
 		"@types/react-router-dom": "^5.3.3",
 		"@types/react-transition-group": "^4.4.6",
+		"@types/tinycolor2": "1.4.3",
 		"@types/uuid": "10.0.0",
 		"@types/warning": "^3.0.0",
 		"acorn": "7.1.1",
@@ -24,20 +26,22 @@
 	"private": true,
 	"resolutions": {
 		"@types/html-minifier-terser": "5.1.0",
+		"prettier": "3.2.5",
 		"typescript": "4.7.4",
 		"ua-parser-js": "^0.7.30"
 	},
 	"scripts": {
 		"checkFormat": "node-scripts check:ci",
-		"format": "node-scripts format",
-		"formatCurrentBranch": "node-scripts format --current-branch",
-		"formatLocalChanges": "node-scripts format --local-changes",
+		"format": "node-scripts format:ci --all",
+		"formatCurrentBranch": "node-scripts format:ci --current-branch",
+		"formatLocalChanges": "node-scripts format:ci --local-changes",
 		"test:all": "node-scripts test"
 	},
 	"workspaces": {
 		"packages": [
 			"apps/*/*",
 			"apps/*/*/*",
+			"apps/frontend-js/frontend-js-clay-web/clay/clay-*",
 			"dxp/apps/*/*",
 			"dxp/apps/osb/osb-patcher/*",
 			"util/portal-tools-rest-builder-test-client-js",

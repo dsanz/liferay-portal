@@ -26,6 +26,7 @@ import com.liferay.exportimport.kernel.lar.StagedModelDataHandlerUtil;
 import com.liferay.exportimport.kernel.lar.UserIdStrategy;
 import com.liferay.message.boards.model.MBMessage;
 import com.liferay.message.boards.service.MBMessageLocalServiceUtil;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.portal.kernel.comment.CommentManagerUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Company;
@@ -61,6 +62,7 @@ import com.liferay.ratings.kernel.model.RatingsEntry;
 import com.liferay.ratings.kernel.service.RatingsEntryLocalServiceUtil;
 import com.liferay.ratings.test.util.RatingsTestUtil;
 
+import java.io.File;
 import java.io.Serializable;
 
 import java.util.ArrayList;
@@ -230,27 +232,30 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 
 		// Import
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			deleteStagedModel(
+				stagedModel, dependentStagedModelsMap, stagingGroup);
 
-		deleteStagedModel(stagedModel, dependentStagedModelsMap, stagingGroup);
+			// Reread the staged model for import from ZIP for true testing
 
-		// Reread the staged model for import from ZIP for true testing
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				stagedModel);
 
-		StagedModel exportedStagedModel = readExportedStagedModel(stagedModel);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedStagedModel);
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedStagedModel);
+			StagedModel importedStagedModel = getStagedModel(
+				exportedStagedModel.getUuid(), liveGroup);
 
-		StagedModel importedStagedModel = getStagedModel(
-			exportedStagedModel.getUuid(), liveGroup);
+			validateImportedStagedModel(
+				exportedStagedModel, importedStagedModel);
 
-		validateImportedStagedModel(exportedStagedModel, importedStagedModel);
-
-		Assert.assertNotEquals(
-			exportedStagedModel.getPrimaryKeyObj(),
-			importedStagedModel.getPrimaryKeyObj());
+			Assert.assertNotEquals(
+				exportedStagedModel.getPrimaryKeyObj(),
+				importedStagedModel.getPrimaryKeyObj());
+		}
 	}
 
 	@Test
@@ -285,24 +290,25 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 
 		// Import
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				stagedModel);
 
-		StagedModel exportedStagedModel = readExportedStagedModel(stagedModel);
+			Assert.assertNotNull(exportedStagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedStagedModel);
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedStagedModel);
+			// Import again for more robustness (i.e. filter name issues)
 
-		// Import again for more robustness (i.e. filter name issues)
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedStagedModel);
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedStagedModel);
+			StagedModel importedModel = getStagedModel(
+				exportedStagedModel.getUuid(), liveGroup);
 
-		StagedModel importedModel = getStagedModel(
-			exportedStagedModel.getUuid(), liveGroup);
-
-		Assert.assertNotNull(importedModel);
+			Assert.assertNotNull(importedModel);
+		}
 	}
 
 	public void testLastPublishDate() throws Exception {
@@ -400,20 +406,22 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 
 		// Import
 
-		initImport();
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
 
-		// Reread the staged model for import from ZIP for true testing
+			// Reread the staged model for import from ZIP for true testing
 
-		StagedModel exportedStagedModel = readExportedStagedModel(stagedModel);
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				stagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			Assert.assertNotNull(exportedStagedModel);
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedStagedModel);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedStagedModel);
 
-		validateImport(
-			stagedModel, stagedModelAssets, dependentStagedModelsMap,
-			liveGroup);
+			validateImport(
+				stagedModel, stagedModelAssets, dependentStagedModelsMap,
+				liveGroup);
+		}
 	}
 
 	@Test
@@ -612,19 +620,9 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 	protected void exportImportStagedModel(StagedModel stagedModel)
 		throws Exception {
 
-		initExport();
+		exportStagedModel(stagedModel);
 
-		StagedModelDataHandlerUtil.exportStagedModel(
-			portletDataContext, stagedModel);
-
-		initImport();
-
-		StagedModel exportedStagedModel = readExportedStagedModel(stagedModel);
-
-		Assert.assertNotNull(exportedStagedModel);
-
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedStagedModel);
+		importStagedModel(stagedModel);
 	}
 
 	protected void exportImportStagedModelFromLiveToStaging(
@@ -636,14 +634,24 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 		StagedModelDataHandlerUtil.exportStagedModel(
 			portletDataContext, stagedModel);
 
-		initImport(liveGroup, stagingGroup);
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable(
+				liveGroup, stagingGroup)) {
 
-		StagedModel exportedStagedModel = readExportedStagedModel(stagedModel);
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				stagedModel);
 
-		Assert.assertNotNull(exportedStagedModel);
+			Assert.assertNotNull(exportedStagedModel);
 
-		StagedModelDataHandlerUtil.importStagedModel(
-			portletDataContext, exportedStagedModel);
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedStagedModel);
+		}
+	}
+
+	protected void exportStagedModel(StagedModel stagedModel) throws Exception {
+		initExport();
+
+		StagedModelDataHandlerUtil.exportStagedModel(
+			portletDataContext, stagedModel);
 	}
 
 	protected AssetEntry fetchAssetEntry(StagedModel stagedModel, Group group)
@@ -691,6 +699,18 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 		return new Date(System.currentTimeMillis() - Time.HOUR);
 	}
 
+	protected void importStagedModel(StagedModel stagedModel) throws Exception {
+		try (SafeCloseable safeCloseable = initImportWithSafeCloseable()) {
+			StagedModel exportedStagedModel = readExportedStagedModel(
+				stagedModel);
+
+			Assert.assertNotNull(exportedStagedModel);
+
+			StagedModelDataHandlerUtil.importStagedModel(
+				portletDataContext, exportedStagedModel);
+		}
+	}
+
 	protected void initExport() throws Exception {
 		initExport(stagingGroup);
 	}
@@ -716,30 +736,17 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 			missingReferencesElement);
 	}
 
-	protected void initImport() throws Exception {
-		initImport(stagingGroup, liveGroup);
+	protected SafeCloseable initImportWithSafeCloseable() throws Exception {
+		return initImportWithSafeCloseable(stagingGroup, liveGroup);
 	}
 
-	protected void initImport(Group exportGroup, Group importGroup)
+	protected SafeCloseable initImportWithSafeCloseable(
+			Group exportGroup, Group importGroup)
 		throws Exception {
 
 		userIdStrategy = new TestUserIdStrategy();
 
-		zipReader = _zipReaderFactory.getZipReader(zipWriter.getFile());
-
-		String xml = zipReader.getEntryAsString("/manifest.xml");
-
-		if (xml == null) {
-			Document document = SAXReaderUtil.createDocument();
-
-			Element rootElement = document.addElement("root");
-
-			rootElement.addElement("header");
-
-			zipWriter.addEntry("/manifest.xml", document.asXML());
-
-			zipReader = _zipReaderFactory.getZipReader(zipWriter.getFile());
-		}
+		ZipReader zipReader = _getZipReader();
 
 		portletDataContext =
 			PortletDataContextFactoryUtil.createImportPortletDataContext(
@@ -769,6 +776,8 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 
 		portletDataContext.setSourceCompanyId(exportGroup.getCompanyId());
 		portletDataContext.setSourceGroupId(exportGroup.getGroupId());
+
+		return zipReader::close;
 	}
 
 	protected boolean isAssetPrioritySupported() {
@@ -1128,7 +1137,6 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 	protected Element rootElement;
 	protected Group stagingGroup;
 	protected UserIdStrategy userIdStrategy;
-	protected ZipReader zipReader;
 	protected ZipWriter zipWriter;
 
 	protected class StagedModelAssets implements Serializable {
@@ -1208,6 +1216,28 @@ public abstract class BaseStagedModelDataHandlerTestCase {
 
 		private final long _userId;
 
+	}
+
+	private ZipReader _getZipReader() throws Exception {
+		File zipFile = zipWriter.getFile();
+
+		ZipReader zipReader = _zipReaderFactory.getZipReader(zipFile);
+
+		if (zipReader.getEntryAsString("/manifest.xml") != null) {
+			return zipReader;
+		}
+
+		zipReader.close();
+
+		Document document = SAXReaderUtil.createDocument();
+
+		Element rootElement = document.addElement("root");
+
+		rootElement.addElement("header");
+
+		zipWriter.addEntry("/manifest.xml", document.asXML());
+
+		return _zipReaderFactory.getZipReader(zipFile);
 	}
 
 	@Inject

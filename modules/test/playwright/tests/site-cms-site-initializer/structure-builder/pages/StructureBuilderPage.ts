@@ -39,13 +39,13 @@ export class StructureBuilderPage {
 	readonly dataApiHelpers: DataApiHelpers;
 
 	private readonly clearAllSpacesButton: Locator;
-	private readonly customizeExperienceButton: Locator;
+	private readonly customizeEditorButton: Locator;
 	private readonly labelInput: Locator;
 	private readonly nameInput: Locator;
-	private readonly spaceCheckbox: Locator;
 
 	readonly publishButton: Locator;
 	readonly saveButton: Locator;
+	readonly spaceCheckbox: Locator;
 	readonly spaceSelector: Locator;
 
 	constructor(page: Page, dataApiHelpers: DataApiHelpers) {
@@ -54,24 +54,24 @@ export class StructureBuilderPage {
 		this.dataApiHelpers = dataApiHelpers;
 
 		this.clearAllSpacesButton = this.page.getByLabel('Clear All');
-		this.customizeExperienceButton = this.page.getByRole('button', {
-			name: 'Customize Experience',
+		this.customizeEditorButton = this.page.getByRole('button', {
+			name: 'Customize Editor',
 		});
 		this.labelInput = this.page.getByLabel('Content Structure Label');
 		this.nameInput = this.page.getByLabel('Content Structure Name');
 		this.publishButton = this.page.getByRole('button', {name: 'Publish'});
 		this.saveButton = this.page.getByRole('button', {name: 'Save'});
-		this.spaceCheckbox = this.page.getByRole('checkbox', {
-			name: 'Make this content structure available in all spaces',
-		});
+		this.spaceCheckbox = this.page.getByLabel(
+			'Make this content structure'
+		);
 		this.spaceSelector = this.page.getByLabel('Spaces', {exact: true});
 	}
 
-	private async goto(props: {erc: string} | {type: StructureType}) {
+	private async goto(props: {id: number} | {type: StructureType}) {
 		let url = PORTLET_URLS.cmsStructureBuilder;
 
-		if ('erc' in props) {
-			url = url + `?objectDefinitionExternalReferenceCode=${props.erc}`;
+		if ('id' in props) {
+			url = url + `?objectDefinitionId=${props.id}`;
 		}
 		else if ('type' in props) {
 			const folderERC =
@@ -92,18 +92,24 @@ export class StructureBuilderPage {
 		}).toPass();
 	}
 
-	async addField(type: FieldType) {
-		const hasFields = !(await this.page
-			.getByText('No Fields Yet')
-			.isVisible());
+	getTreeItem(field: Field) {
+		return this.page
+			.locator('.treeview-link', {hasText: field.label})
+			.nth(field.nth || 0);
+	}
 
+	async addField(type: FieldType, parent?: Field) {
 		let trigger: Locator;
 
-		if (hasFields) {
-			trigger = this.page.getByTitle('Add Field');
+		if (parent) {
+			await this.selectFields([parent]);
+
+			const treeItem = this.getTreeItem(parent);
+
+			trigger = treeItem.getByTitle('Add Field');
 		}
 		else {
-			trigger = this.page.getByText('Add Field');
+			trigger = this.page.getByTitle('Add Field').first();
 		}
 
 		await clickAndExpectToBeVisible({
@@ -229,10 +235,12 @@ export class StructureBuilderPage {
 			await this.page.getByLabel('Localizable').click();
 		}
 
-		const mandatoryToggle = this.page.getByLabel('Mandatory');
+		const mandatoryToggle = this.page.getByRole('checkbox', {
+			name: 'Mandatory',
+		});
 
 		if (mandatory !== undefined && !(await mandatoryToggle.isChecked())) {
-			await this.page.getByLabel('Mandatory').click();
+			await mandatoryToggle.click();
 		}
 
 		if (requestFile !== undefined) {
@@ -326,12 +334,14 @@ export class StructureBuilderPage {
 	}
 
 	async createStructureFromData({
+		autoDelete = true,
 		erc = getRandomString(),
 		label,
 		name = `StructureName${getRandomInt()}`,
 		page,
 		publish = true,
 	}: {
+		autoDelete?: boolean;
 		erc?: string;
 		label: string;
 		name?: string;
@@ -348,17 +358,19 @@ export class StructureBuilderPage {
 			name,
 		});
 
-		await page.saveStructure();
+		const id = await page.saveStructure({autoDelete});
 
 		if (publish) {
 			await page.publishStructure();
 		}
+
+		return id;
 	}
 
-	async customizeExperience() {
+	async customizeEditor() {
 		await expect(async () => {
-			if (await this.customizeExperienceButton.isVisible()) {
-				await this.customizeExperienceButton.click({timeout: 2000});
+			if (await this.customizeEditorButton.isVisible()) {
+				await this.customizeEditorButton.click({timeout: 2000});
 			}
 
 			await expect(
@@ -367,22 +379,21 @@ export class StructureBuilderPage {
 				timeout: 3500,
 			});
 
-			await this.waitForExperienceCustomizerModal();
+			await this.waitForEditorCustomizerModal();
 		}).toPass();
 	}
 
-	async deleteFields(fields: Field[]) {
+	async deleteFields(
+		fields: Field[],
+		{confirm}: {confirm?: boolean} = {confirm: true}
+	) {
 
 		// Deleting one field
 
 		if (fields.length === 1) {
 			const [field] = fields;
 
-			const treeItems = this.page.getByRole('treeitem', {
-				name: field.label,
-			});
-
-			const treeItem = treeItems.nth(field.nth || 0);
+			const treeItem = this.getTreeItem(field);
 
 			await treeItem.waitFor({state: 'visible'});
 
@@ -406,13 +417,35 @@ export class StructureBuilderPage {
 				trigger: this.page.getByLabel('Selection Options'),
 			});
 		}
+
+		// Wait some time in case deletion modal is shown
+
+		await this.page.waitForTimeout(2500);
+
+		const modal = this.page.locator('.modal-content', {
+			hasText: 'Delete Fields',
+		});
+
+		if ((await modal.isVisible()) && confirm) {
+			await clickAndExpectToBeHidden({
+				target: modal,
+				trigger: modal.getByText('Delete', {exact: true}),
+			});
+		}
 	}
 
-	async editStructure(erc: string) {
-		await this.goto({erc});
+	async editStructure(id: number) {
+		await this.goto({id});
 	}
 
 	async enableForAllSpaces() {
+		if (
+			(await this.spaceCheckbox.isChecked()) &&
+			this.spaceSelector.isDisabled()
+		) {
+			return;
+		}
+
 		await expect(async () => {
 			await this.page
 				.getByText('Content Structure Fields')
@@ -425,10 +458,7 @@ export class StructureBuilderPage {
 	}
 
 	async expandField(field: Field) {
-		const treeItem = this.page
-			.locator('.treeview-item')
-			.getByLabel(field.label, {exact: true})
-			.nth(field.nth || 0);
+		const treeItem = this.getTreeItem(field);
 
 		await expect(async () => {
 			await treeItem.locator('.component-expander').click({timeout: 500});
@@ -448,7 +478,7 @@ export class StructureBuilderPage {
 			await this.publishButton.click();
 
 			await waitForAlert(this.page, 'published successfully', {
-				timeout: 5000,
+				timeout: 10000,
 			});
 		};
 
@@ -457,7 +487,7 @@ export class StructureBuilderPage {
 				(response) =>
 					response.url().includes('object-definitions') &&
 					response.status() === 200,
-				{timeout: 5000}
+				{timeout: 10000}
 			),
 			await publish(),
 		]);
@@ -465,7 +495,9 @@ export class StructureBuilderPage {
 		return await response.json();
 	}
 
-	async saveStructure() {
+	async saveStructure(
+		{autoDelete}: {autoDelete?: boolean} = {autoDelete: true}
+	) {
 		const save = async () => {
 			await this.saveButton.click();
 
@@ -486,19 +518,19 @@ export class StructureBuilderPage {
 
 		// Add ids to ApiHelpers data so structures are cleaned after each test
 
-		this.dataApiHelpers.data.push({
-			id,
-			type: 'objectDefinition',
-		});
+		if (autoDelete) {
+			this.dataApiHelpers.data.push({
+				id,
+				type: 'objectDefinition',
+			});
+		}
+
+		return id;
 	}
 
 	async selectFields(fields: Field[]) {
 		for (const [i, field] of fields.entries()) {
-			const treeItem = this.page
-				.getByRole('treeitem', {
-					name: field.label,
-				})
-				.nth(field.nth || 0);
+			const treeItem = this.getTreeItem(field);
 
 			await expect(async () => {
 				await treeItem.click({
@@ -540,6 +572,22 @@ export class StructureBuilderPage {
 		}
 	}
 
+	async selectStructure() {
+		const treeItem = this.page.locator('.treeview-link').first();
+
+		await expect(async () => {
+			await treeItem.click({
+				timeout: 500,
+			});
+
+			await expect(treeItem).toHaveClass(/active/, {timeout: 500});
+
+			await expect(
+				this.page.getByLabel('Content Structure Name')
+			).toBeVisible();
+		}).toPass();
+	}
+
 	async setWorkflows(workflows: {space: string; workflow: string}[]) {
 		for (const {space, workflow} of workflows) {
 			if (!space) {
@@ -553,6 +601,18 @@ export class StructureBuilderPage {
 				await row.getByLabel('Select Workflow').selectOption(workflow);
 			}
 		}
+	}
+
+	async switchLanguage(languageId: string) {
+		const trigger = this.page.getByLabel('Open Localizations');
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.locator('.dropdown-item', {hasText: languageId}),
+			trigger,
+		});
+
+		await expect(trigger).toHaveAttribute('title', languageId);
 	}
 
 	async switchTab(name: 'General' | 'Search' | 'Workflow') {
@@ -571,7 +631,7 @@ export class StructureBuilderPage {
 		});
 	}
 
-	async waitForExperienceCustomizerModal() {
+	async waitForEditorCustomizerModal() {
 		await this.page.waitForTimeout(4000);
 
 		const gotItButton = this.page.getByText('Got It');

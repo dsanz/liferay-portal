@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
-import {Observer} from '@clayui/modal/lib/types';
+import '@testing-library/jest-dom';
 import {fireEvent, render} from '@testing-library/react';
 import React from 'react';
 
 import {ConnectionWithMarketplaceNeededModal} from '../../../../src/main/resources/META-INF/resources/js/views/Modal/ConnectionWithMarketplaceNeededModal';
+
+import type {Observer} from '@clayui/modal/src/types';
 
 globalThis.Liferay = {
 	Language: {

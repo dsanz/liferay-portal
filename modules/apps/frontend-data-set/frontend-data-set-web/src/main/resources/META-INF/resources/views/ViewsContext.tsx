@@ -6,16 +6,24 @@
 import {createContext} from 'react';
 
 export interface IViewsContext {
-	activeCustomViewId: null | string;
+	activeSnapshotERC: null | string;
 	activeView: any;
-	customViews: any;
-	customViewsEnabled: boolean;
-	filters: Array<any>;
+	defaultSnapshot?: any;
+	filtersGroups: Array<any>;
 	modifiedFields: any;
 	paginationDelta: any;
+	snapshotUpdated: boolean;
+	snapshots: Array<ISnapshot>;
+	snapshotsEnabled: boolean;
 	sorts: Array<any>;
 	views: Array<any>;
 	visibleFieldNames: any;
+}
+
+export interface ISnapshot {
+	configuration?: any;
+	erc: string;
+	label: string;
 }
 
 export type TViewsContextDispatch = ({
@@ -28,13 +36,14 @@ export type TViewsContextDispatch = ({
 
 const ViewsContext = createContext<[IViewsContext, any]>([
 	{
-		activeCustomViewId: null,
+		activeSnapshotERC: null,
 		activeView: null,
-		customViews: {},
-		customViewsEnabled: false,
-		filters: [],
+		filtersGroups: [],
 		modifiedFields: {},
 		paginationDelta: null,
+		snapshotUpdated: false,
+		snapshots: [],
+		snapshotsEnabled: false,
 		sorts: [],
 		views: [],
 		visibleFieldNames: {},

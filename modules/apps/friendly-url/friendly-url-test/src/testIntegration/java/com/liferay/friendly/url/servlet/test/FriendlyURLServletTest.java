@@ -15,6 +15,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.encryptor.Encryptor;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
+import com.liferay.portal.kernel.io.BigEndianCodec;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
@@ -29,6 +30,7 @@ import com.liferay.portal.kernel.model.UserGroup;
 import com.liferay.portal.kernel.model.VirtualLayoutConstants;
 import com.liferay.portal.kernel.model.impl.VirtualLayout;
 import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.security.ChecksumUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
@@ -435,29 +437,16 @@ public class FriendlyURLServletTest {
 	public void testGetRedirectOnLinkToURLLayoutWithDoAsUserId()
 		throws Throwable {
 
-		_doAsUser = UserTestUtil.addUser();
-		_user = UserTestUtil.addUser();
-
 		Layout linkToURLLayout = LayoutTestUtil.addTypeLinkToURLLayout(
 			_group.getGroupId(), _layout.getFriendlyURL());
 
 		MockHttpServletRequest mockHttpServletRequest =
 			new MockHttpServletRequest();
 
-		mockHttpServletRequest.setAttribute(
-			WebKeys.USER_ID, _doAsUser.getUserId());
-
-		HttpSession httpSession = mockHttpServletRequest.getSession();
-
-		httpSession.setAttribute(WebKeys.USER_ID, _user.getUserId());
-
 		String path = getPath(_group, linkToURLLayout);
 
-		Company company = _companyLocalService.getCompany(
-			_doAsUser.getCompanyId());
-
-		String encryptedDoAsUserId = _encryptor.encrypt(
-			company.getKeyObj(), String.valueOf(_doAsUser.getUserId()));
+		String encryptedDoAsUserId = _getEncryptedDoAsUserId(
+			mockHttpServletRequest);
 
 		Object expectedRedirect = _redirectConstructor1.newInstance(
 			HttpComponentsUtil.setParameter(
@@ -533,6 +522,40 @@ public class FriendlyURLServletTest {
 		testGetRedirect(
 			mockHttpServletRequest, getPath(userGroup, _layout),
 			_redirectConstructor1.newInstance(getURL(_layout)));
+	}
+
+	@Test
+	public void testGetRedirectWithRedirectEntryAndDoAsUserId()
+		throws Throwable {
+
+		Layout layout = LayoutTestUtil.addTypePortletLayout(_group);
+
+		String sourceURL = RandomTestUtil.randomString();
+
+		_redirectEntryLocalService.addRedirectEntry(
+			_group.getGroupId(), layout.getName(LocaleUtil.US), null, false,
+			sourceURL, ServiceContextTestUtil.getServiceContext());
+
+		MockHttpServletRequest mockHttpServletRequest =
+			new MockHttpServletRequest();
+
+		mockHttpServletRequest.setPathInfo(CharPool.SLASH + sourceURL);
+
+		String encryptedDoAsUserId = _getEncryptedDoAsUserId(
+			mockHttpServletRequest);
+
+		mockHttpServletRequest.setParameter("doAsUserId", encryptedDoAsUserId);
+
+		Object expectedRedirect = _redirectConstructor2.newInstance(
+			HttpComponentsUtil.setParameter(
+				layout.getName(LocaleUtil.US), "doAsUserId",
+				encryptedDoAsUserId),
+			true, false);
+
+		testGetRedirect(
+			mockHttpServletRequest,
+			_group.getFriendlyURL() + CharPool.SLASH + sourceURL,
+			expectedRedirect);
 	}
 
 	@Test
@@ -831,8 +854,10 @@ public class FriendlyURLServletTest {
 				LocaleUtil.getSiteDefault(),
 				StringPool.SLASH + RandomTestUtil.randomString()
 			).build(),
-			layout.isIconImage(), null, layout.getStyleBookEntryId(),
-			layout.getFaviconFileEntryId(), layout.getMasterLayoutPlid(),
+			layout.isIconImage(), null, layout.getStyleBookEntryERC(),
+			layout.getFaviconFileEntryERC(),
+			layout.getFaviconFileEntryScopeERC(),
+			layout.getMasterLayoutPageTemplateEntryERC(),
 			ServiceContextTestUtil.getServiceContext());
 
 		mockHttpServletRequest.setAttribute(
@@ -956,6 +981,33 @@ public class FriendlyURLServletTest {
 		testGetRedirect(
 			httpServletRequest, new MockHttpServletResponse(), path,
 			expectedRedirect);
+	}
+
+	private String _getEncryptedDoAsUserId(
+			MockHttpServletRequest mockHttpServletRequest)
+		throws Exception {
+
+		_doAsUser = UserTestUtil.addUser();
+		_user = UserTestUtil.addUser();
+
+		mockHttpServletRequest.setAttribute(
+			WebKeys.USER_ID, _doAsUser.getUserId());
+
+		HttpSession httpSession = mockHttpServletRequest.getSession();
+
+		httpSession.setAttribute(WebKeys.USER_ID, _user.getUserId());
+
+		Company company = _companyLocalService.getCompany(
+			_doAsUser.getCompanyId());
+
+		byte[] doAsUserIdBytes = new byte[Long.BYTES];
+
+		BigEndianCodec.putLong(doAsUserIdBytes, 0, _doAsUser.getUserId());
+
+		return StringUtil.bytesToHexString(
+			ChecksumUtil.appendChecksum(
+				_encryptor.encryptUnencoded(
+					company.getKeyObj(), doAsUserIdBytes)));
 	}
 
 	private String _getLocalizedPath(

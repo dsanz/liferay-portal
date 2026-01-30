@@ -1,0 +1,243 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ClayList renders 1`] = `
+<ul
+  className="list-group show-quick-actions-on-hover"
+>
+  <li
+    className="list-group-header"
+  >
+    <p
+      className="list-group-header-title"
+    >
+      This is a header
+    </p>
+  </li>
+  <li
+    className="list-group-item list-group-item-flex"
+    onBlur={[Function]}
+    onFocus={[Function]}
+  >
+    <div
+      className="autofit-col"
+    >
+      Item 1
+    </div>
+    <div
+      className="autofit-col"
+    >
+      ItemField
+    </div>
+    <div
+      className="autofit-col autofit-col-expand"
+    >
+      <p
+        className="list-group-title"
+      >
+        Item Title and expanded
+      </p>
+      <p
+        className="list-group-text"
+      >
+        Item Text
+      </p>
+    </div>
+    <div
+      className="autofit-col"
+    >
+      ItemField
+    </div>
+  </li>
+  <li
+    className="list-group-item list-group-item-flex"
+    onBlur={[Function]}
+    onFocus={[Function]}
+  >
+    <div
+      className="autofit-col"
+    >
+      Item 2
+    </div>
+    <div
+      className="autofit-col autofit-col-expand"
+    >
+      Hover this item for action menu
+    </div>
+    <div
+      className="autofit-col"
+    >
+      <div
+        className="quick-action-menu"
+      >
+        <button
+          className="component-action quick-action-item"
+          onClick={[Function]}
+          role="button"
+        >
+          <svg
+            className="lexicon-icon lexicon-icon-trash"
+            role="presentation"
+          >
+            <use
+              href="/foo/bar#trash"
+            />
+          </svg>
+        </button>
+        <button
+          className="component-action quick-action-item"
+          onClick={[Function]}
+          role="button"
+        >
+          <svg
+            className="lexicon-icon lexicon-icon-cog"
+            role="presentation"
+          >
+            <use
+              href="/foo/bar#cog"
+            />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </li>
+  <li
+    className="list-group-header"
+  >
+    <p
+      className="list-group-header-title"
+    >
+      This is another header
+    </p>
+  </li>
+  <li
+    className="list-group-item list-group-item-flex"
+    onBlur={[Function]}
+    onFocus={[Function]}
+  >
+    <div
+      className="autofit-col"
+    >
+      Item 3
+    </div>
+    <div
+      className="autofit-col"
+    >
+      ItemField
+    </div>
+  </li>
+</ul>
+`;
+
+exports[`ClayListWithItems renders with headers 1`] = `
+<div>
+  <div
+    class=""
+  >
+    <ul
+      class="list-group show-quick-actions-on-hover"
+    >
+      <li
+        class="list-group-header"
+      >
+        <p
+          class="list-group-header-title"
+        >
+          List of Files
+        </p>
+      </li>
+      <li
+        class="list-group-item list-group-item-flex"
+      >
+        <div
+          class="autofit-col"
+        >
+          <span
+            class="sticker sticker-secondary"
+          >
+            <span
+              class="sticker-overlay"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-folder"
+                role="presentation"
+              >
+                <use
+                  href="/foo/bar#folder"
+                />
+              </svg>
+            </span>
+          </span>
+        </div>
+        <div
+          class="autofit-col autofit-col-expand"
+        >
+          <div
+            class="list-group-title"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Account Example One
+            </a>
+          </div>
+          <p
+            class="list-group-text"
+          >
+            id is 1
+          </p>
+        </div>
+        <div
+          class="autofit-col"
+        />
+      </li>
+      <li
+        class="list-group-item list-group-item-flex"
+      >
+        <div
+          class="autofit-col"
+        >
+          <span
+            class="sticker sticker-secondary"
+          >
+            <span
+              class="sticker-overlay"
+            >
+              <svg
+                class="lexicon-icon lexicon-icon-folder"
+                role="presentation"
+              >
+                <use
+                  href="/foo/bar#folder"
+                />
+              </svg>
+            </span>
+          </span>
+        </div>
+        <div
+          class="autofit-col autofit-col-expand"
+        >
+          <div
+            class="list-group-title"
+          >
+            <a
+              class=""
+              href="#"
+            >
+              Account Example One
+            </a>
+          </div>
+          <p
+            class="list-group-text"
+          >
+            id is 2
+          </p>
+        </div>
+        <div
+          class="autofit-col"
+        />
+      </li>
+    </ul>
+  </div>
+</div>
+`;

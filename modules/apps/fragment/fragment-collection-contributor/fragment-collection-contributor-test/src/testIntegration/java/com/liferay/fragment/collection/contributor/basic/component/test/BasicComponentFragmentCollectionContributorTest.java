@@ -85,8 +85,9 @@ public class BasicComponentFragmentCollectionContributorTest {
 		Document document = Jsoup.parseBodyFragment(
 			_fragmentEntryProcessorRegistry.processFragmentEntryLinkHTML(
 				_fragmentEntryLinkService.addFragmentEntryLink(
-					null, _group.getGroupId(), 0,
-					fragmentEntry.getFragmentEntryId(), 0, layout.getPlid(),
+					null, _group.getGroupId(), null,
+					fragmentEntry.getExternalReferenceCode(),
+					fragmentEntry.getScopeERC(), 0, layout.getPlid(),
 					fragmentEntry.getCss(), fragmentEntry.getHtml(),
 					fragmentEntry.getJs(), fragmentEntry.getConfiguration(),
 					StringPool.BLANK, StringPool.BLANK, 0, null,
@@ -118,8 +119,9 @@ public class BasicComponentFragmentCollectionContributorTest {
 		Document document = Jsoup.parseBodyFragment(
 			_fragmentEntryProcessorRegistry.processFragmentEntryLinkHTML(
 				_fragmentEntryLinkService.addFragmentEntryLink(
-					null, _group.getGroupId(), 0,
-					fragmentEntry.getFragmentEntryId(), 0, layout.getPlid(),
+					null, _group.getGroupId(), null,
+					fragmentEntry.getExternalReferenceCode(),
+					fragmentEntry.getScopeERC(), 0, layout.getPlid(),
 					fragmentEntry.getCss(), fragmentEntry.getHtml(),
 					fragmentEntry.getJs(), fragmentEntry.getConfiguration(),
 					StringPool.BLANK, StringPool.BLANK, 0, null,
@@ -144,9 +146,9 @@ public class BasicComponentFragmentCollectionContributorTest {
 		throws Exception {
 
 		return new DefaultFragmentEntryProcessorContext(
-			_getHttpServletRequest(layout, locale),
-			new MockHttpServletResponse(), FragmentEntryLinkConstants.EDIT,
-			locale);
+			layout.getCompanyId(), _getHttpServletRequest(layout, locale),
+			new MockHttpServletResponse(), locale,
+			FragmentEntryLinkConstants.EDIT, layout.getGroupId());
 	}
 
 	private HttpServletRequest _getHttpServletRequest(

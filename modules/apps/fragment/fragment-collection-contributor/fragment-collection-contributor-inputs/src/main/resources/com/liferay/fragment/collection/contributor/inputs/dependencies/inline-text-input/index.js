@@ -1,6 +1,9 @@
 const currentLength = document.getElementById(
 	`${fragmentElementId}-current-length`
 );
+const error = document.getElementById(
+	`${fragmentElementId}-inline-text-input-error`
+);
 const errorMessage = document.getElementById(
 	`${fragmentElementId}-inline-text-input-error-message`
 );
@@ -9,11 +12,8 @@ const inputElement = document.getElementById(
 	`${fragmentElementId}-inline-text-input`
 );
 const lengthInfo = document.getElementById(`${fragmentElementId}-length-info`);
-const lengthWarning = document.getElementById(
-	`${fragmentElementId}-length-warning`
-);
-const lengthWarningText = document.getElementById(
-	`${fragmentElementId}-length-warning-text`
+const localizedText = document.getElementById(
+	`${fragmentElementId}-localized-text`
 );
 
 function main() {
@@ -23,37 +23,55 @@ function main() {
 	else {
 		import('@liferay/fragment-impl/api').then(
 			({
+				focusInput,
 				handleInputLengthError,
-				hideLengthError,
 				registerLocalizedInput,
 				registerUnlocalizedInput,
+				showInputError,
 			}) => {
+				if (input.required) {
+					inputElement.addEventListener('invalid', (event) => {
+						event.preventDefault();
+
+						focusInput(inputElement);
+
+						showInputError({
+							errorContainer: error,
+							errorMessageContainer: errorMessage,
+							errorType: 'required',
+							formGroup,
+						});
+					});
+				}
+
+				const hasError = formGroup.classList.contains('has-error');
+
+				if (hasError) {
+					focusInput(inputElement);
+				}
+
 				currentLength.innerText = inputElement.value.length;
 
 				if (
-					!errorMessage &&
+					!hasError &&
 					inputElement.value.length > input.attributes.maxLength
 				) {
-					hideLengthError({
-						configuration,
+					showInputError({
+						errorType: 'length',
 						formGroup,
-						lengthInfo,
-						lengthWarning,
-						lengthWarningText,
+						lengthInfoContainer: lengthInfo,
 					});
 				}
 
 				const onKeyup = (event) =>
 					handleInputLengthError({
-						configuration,
 						currentLength,
-						errorMessage,
+						errorContainer: error,
+						errorMessageContainer: errorMessage,
 						event,
 						formGroup,
 						input,
-						lengthInfo,
-						lengthWarning,
-						lengthWarningText,
+						lengthInfoContainer: lengthInfo,
 					});
 
 				inputElement.addEventListener('keyup', onKeyup);
@@ -61,17 +79,22 @@ function main() {
 				const defaultLanguageId = themeDisplay.getDefaultLanguageId();
 
 				if (input.localizable) {
-					const {onChange} = registerLocalizedInput({
+					const {onBlur, onChange} = registerLocalizedInput({
 						defaultLanguageId,
 						initialValues: input.valueI18n,
 						inputElement,
 						inputName: input.name,
 						localizationInputsContainer: inputElement.parentNode,
+						localizedTextContainer: localizedText,
 						namespace: fragmentElementId,
 					});
 
 					inputElement.addEventListener('change', (event) => {
 						onChange(event.target.value);
+					});
+
+					inputElement.addEventListener('blur', (event) => {
+						onBlur(event.target.value);
 					});
 				}
 				else {
@@ -83,6 +106,9 @@ function main() {
 						),
 						unlocalizedFieldsState:
 							input.attributes.unlocalizedFieldsState,
+						unlocalizedLabelTextContainer: document.getElementById(
+							`${fragmentElementId}-unlocalized-label-text`
+						),
 						unlocalizedMessageContainer: document.getElementById(
 							`${fragmentElementId}-unlocalized-info`
 						),

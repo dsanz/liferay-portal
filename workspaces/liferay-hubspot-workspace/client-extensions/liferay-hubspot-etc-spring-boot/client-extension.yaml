@@ -1,0 +1,33 @@
+assemble:
+    -   fromTask: bootJar
+liferay-hubspot-etc-spring-boot-oahs:
+    .serviceAddress: localhost:58081
+    .serviceScheme: http
+    name: Liferay HubSpot Etc Spring Boot OAuth Application Headless Server
+    scopes:
+        -   c_hs10company.everything
+        -   c_hs10contact.everything
+        -   c_hs10lead.everything
+    type: oAuthApplicationHeadlessServer
+liferay-hubspot-etc-spring-boot-oaua:
+    .serviceAddress: localhost:58081
+    .serviceScheme: http
+    name: Liferay HubSpot Etc Spring Boot OAuth Application User Agent
+    scopes:
+        -   Liferay.Headless.Admin.User.everything
+    type: oAuthApplicationUserAgent
+liferay-hubspot-etc-spring-boot-object-action-company:
+    name: Liferay HubSpot Etc Spring Boot Object Action Company
+    oAuth2ApplicationExternalReferenceCode: liferay-hubspot-etc-spring-boot-oaua
+    resourcePath: /object/action/company
+    type: objectAction
+liferay-hubspot-etc-spring-boot-object-action-contact:
+    name: Liferay HubSpot Etc Spring Boot Object Action Contact
+    oAuth2ApplicationExternalReferenceCode: liferay-hubspot-etc-spring-boot-oaua
+    resourcePath: /object/action/contact
+    type: objectAction
+liferay-hubspot-etc-spring-boot-object-action-lead:
+    name: Liferay HubSpot Etc Spring Boot Object Action Lead
+    oAuth2ApplicationExternalReferenceCode: liferay-hubspot-etc-spring-boot-oaua
+    resourcePath: /object/action/lead
+    type: objectAction

@@ -9,15 +9,13 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.DocumentImpl;
 import com.liferay.portal.kernel.search.Field;
-import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.search.engine.adapter.document.DeleteDocumentRequest;
 import com.liferay.portal.search.engine.adapter.document.IndexDocumentRequest;
 import com.liferay.portal.search.engine.adapter.document.UpdateDocumentRequest;
 import com.liferay.portal.search.opensearch2.internal.BaseOpenSearchTestCase;
 import com.liferay.portal.search.opensearch2.internal.OpenSearchTestRule;
-import com.liferay.portal.search.opensearch2.internal.document.OpenSearchDocumentFactory;
-import com.liferay.portal.search.opensearch2.internal.document.OpenSearchDocumentFactoryImpl;
+import com.liferay.portal.search.opensearch2.internal.document.OpenSearchDocumentFactoryUtil;
 import com.liferay.portal.search.opensearch2.internal.util.JsonpUtil;
 import com.liferay.portal.search.test.util.indexing.DocumentFixture;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
@@ -53,19 +51,6 @@ public class OpenSearchBulkableDocumentRequestTranslatorTest
 
 	@Before
 	public void setUp() throws Exception {
-		OpenSearchDocumentFactory openSearchDocumentFactory =
-			_createOpenSearchDocumentFactory();
-
-		OpenSearchBulkableDocumentRequestTranslator
-			openSearchBulkableDocumentRequestTranslator =
-				_createOpenSearchBulkableDocumentRequestTranslator(
-					openSearchDocumentFactory);
-
-		_openSearchBulkableDocumentRequestTranslator =
-			openSearchBulkableDocumentRequestTranslator;
-
-		_openSearchDocumentFactory = openSearchDocumentFactory;
-
 		_documentFixture.setUp();
 	}
 
@@ -112,25 +97,6 @@ public class OpenSearchBulkableDocumentRequestTranslatorTest
 		return sb.toString();
 	}
 
-	private OpenSearchBulkableDocumentRequestTranslator
-		_createOpenSearchBulkableDocumentRequestTranslator(
-			OpenSearchDocumentFactory openSearchDocumentFactory) {
-
-		OpenSearchBulkableDocumentRequestTranslator
-			openSearchBulkableDocumentRequestTranslator =
-				new OpenSearchBulkableDocumentRequestTranslatorImpl();
-
-		ReflectionTestUtil.setFieldValue(
-			openSearchBulkableDocumentRequestTranslator,
-			"openSearchDocumentFactory", openSearchDocumentFactory);
-
-		return openSearchBulkableDocumentRequestTranslator;
-	}
-
-	private OpenSearchDocumentFactory _createOpenSearchDocumentFactory() {
-		return new OpenSearchDocumentFactoryImpl();
-	}
-
 	private void _setUid(Document document, String uid) {
 		if (!Validator.isBlank(uid)) {
 			document.addKeyword(Field.UID, uid);
@@ -144,7 +110,7 @@ public class OpenSearchBulkableDocumentRequestTranslatorTest
 			TEST_INDEX_NAME, id);
 
 		DeleteOperation deleteOperation =
-			_openSearchBulkableDocumentRequestTranslator.translate(
+			OpenSearchBulkableDocumentRequestTranslatorUtil.translate(
 				deleteDocumentRequest);
 
 		Assert.assertEquals(TEST_INDEX_NAME, deleteOperation.index());
@@ -153,7 +119,7 @@ public class OpenSearchBulkableDocumentRequestTranslatorTest
 		BulkRequest bulkRequest = BulkRequest.of(
 			openSearchBulkRequest -> openSearchBulkRequest.operations(
 				new BulkOperation(
-					_openSearchBulkableDocumentRequestTranslator.translate(
+					OpenSearchBulkableDocumentRequestTranslatorUtil.translate(
 						deleteDocumentRequest))));
 
 		List<BulkOperation> bulkOperations = bulkRequest.operations();
@@ -173,14 +139,14 @@ public class OpenSearchBulkableDocumentRequestTranslatorTest
 			TEST_INDEX_NAME, document);
 
 		IndexOperation indexOperation =
-			_openSearchBulkableDocumentRequestTranslator.translate(
+			OpenSearchBulkableDocumentRequestTranslatorUtil.translate(
 				indexDocumentRequest);
 
 		Assert.assertEquals(TEST_INDEX_NAME, indexOperation.index());
 		Assert.assertEquals(id, indexOperation.id());
 
-		JsonData jsonData1 = _openSearchDocumentFactory.getOpenSearchDocument(
-			document);
+		JsonData jsonData1 =
+			OpenSearchDocumentFactoryUtil.getOpenSearchDocument(document);
 		JsonData jsonData2 = (JsonData)indexOperation.document();
 
 		Assert.assertEquals(jsonData1.toString(), jsonData2.toString());
@@ -188,7 +154,7 @@ public class OpenSearchBulkableDocumentRequestTranslatorTest
 		BulkRequest bulkRequest = BulkRequest.of(
 			openSearchBulkRequest -> openSearchBulkRequest.operations(
 				new BulkOperation(
-					_openSearchBulkableDocumentRequestTranslator.translate(
+					OpenSearchBulkableDocumentRequestTranslatorUtil.translate(
 						indexDocumentRequest))));
 
 		List<BulkOperation> bulkOperations = bulkRequest.operations();
@@ -208,7 +174,7 @@ public class OpenSearchBulkableDocumentRequestTranslatorTest
 			TEST_INDEX_NAME, id, document);
 
 		UpdateOperation updateOperation =
-			_openSearchBulkableDocumentRequestTranslator.translate(
+			OpenSearchBulkableDocumentRequestTranslatorUtil.translate(
 				updateDocumentRequest);
 
 		Assert.assertEquals(TEST_INDEX_NAME, updateOperation.index());
@@ -217,7 +183,7 @@ public class OpenSearchBulkableDocumentRequestTranslatorTest
 		BulkRequest bulkRequest = BulkRequest.of(
 			openSearchBulkRequest -> openSearchBulkRequest.operations(
 				new BulkOperation(
-					_openSearchBulkableDocumentRequestTranslator.translate(
+					OpenSearchBulkableDocumentRequestTranslatorUtil.translate(
 						updateDocumentRequest))));
 
 		List<BulkOperation> bulkOperations = bulkRequest.operations();
@@ -227,8 +193,5 @@ public class OpenSearchBulkableDocumentRequestTranslatorTest
 	}
 
 	private final DocumentFixture _documentFixture = new DocumentFixture();
-	private OpenSearchBulkableDocumentRequestTranslator
-		_openSearchBulkableDocumentRequestTranslator;
-	private OpenSearchDocumentFactory _openSearchDocumentFactory;
 
 }

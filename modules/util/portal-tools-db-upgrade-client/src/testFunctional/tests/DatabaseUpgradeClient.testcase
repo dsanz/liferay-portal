@@ -105,6 +105,20 @@ definition {
 		AntCommands.runCommand("modules/util/portal-tools-db-upgrade-client/src/testFunctional/ant/build-test-db-upgrade-client.xml", "check-upgrade-client-sh-disconnect");
 	}
 
+	@description = "LPD-76264: Upgrade client generates upgrade report on failed upgrade"
+	@priority = 4
+	test CheckUpgradeClientUpgradeReportFailedUpgrade {
+		property custom.mysql.sql.statement = "ALTER TABLE JournalArticle DROP resourcePrimKey;";
+		property custom.properties = "upgrade.report.enabled=true";
+		property skip.get.testcase.database.properties = "true";
+		property skip.upgrade-legacy-database = "true";
+		property timeout.explicit.wait = "600";
+
+		AntCommands.runCommand("modules/util/portal-tools-db-upgrade-client/src/testFunctional/ant/build-test-db-upgrade-client.xml", "run-upgrade-client");
+
+		WaitForConsoleTextPresent(value1 = "Upgrade report generated in");
+	}
+
 	@description = "LPS-158522: Upgrade client contains necessary files"
 	@priority = 3
 	test CheckUpgradeClientZipContents {
@@ -124,25 +138,25 @@ definition {
 		AntCommands.runCommand("modules/util/portal-tools-db-upgrade-client/src/testFunctional/ant/build-test-db-upgrade-client.xml", "check-upgrade-debug-options");
 	}
 
-	@description = "LPS-158522: Upgrade client can run with app server and database properties set"
-	@priority = 3
-	test CheckUpgradePropertiesAppDBSet {
-		AntCommands.runCommand("modules/util/portal-tools-db-upgrade-client/src/testFunctional/ant/build-test-db-upgrade-client.xml", "check-upgrade-properties-app-db-set");
-	}
-
-	@description = "LPS-158522: Upgrade client can run with app server properties set"
+	@description = "LPD-66149: Upgrade client can run with app server and ext properties set"
 	@priority = 3
 	test CheckUpgradePropertiesAppExtSet {
 		AntCommands.runCommand("modules/util/portal-tools-db-upgrade-client/src/testFunctional/ant/build-test-db-upgrade-client.xml", "check-upgrade-properties-app-ext-set");
 	}
 
-	@description = "LPS-158522: Upgrade client can run with database properties set"
+	@description = "LPD-66149: Upgrade client can run with app server properties set"
 	@priority = 3
-	test CheckUpgradePropertiesDBExtSet {
-		AntCommands.runCommand("modules/util/portal-tools-db-upgrade-client/src/testFunctional/ant/build-test-db-upgrade-client.xml", "check-upgrade-properties-db-ext-set");
+	test CheckUpgradePropertiesAppSet {
+		AntCommands.runCommand("modules/util/portal-tools-db-upgrade-client/src/testFunctional/ant/build-test-db-upgrade-client.xml", "check-upgrade-properties-app-set");
 	}
 
-	@description = "LPS-158522: Upgrade client can run with no properties set"
+	@description = "LPD-66149: Upgrade client can run with ext properties set"
+	@priority = 3
+	test CheckUpgradePropertiesExtSet {
+		AntCommands.runCommand("modules/util/portal-tools-db-upgrade-client/src/testFunctional/ant/build-test-db-upgrade-client.xml", "check-upgrade-properties-ext-set");
+	}
+
+	@description = "LPD-66149: Upgrade client can run with no properties set"
 	@priority = 4
 	test CheckUpgradePropertiesNoneSet {
 		AntCommands.runCommand("modules/util/portal-tools-db-upgrade-client/src/testFunctional/ant/build-test-db-upgrade-client.xml", "check-upgrade-properties-none-set");

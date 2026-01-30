@@ -6,13 +6,19 @@
 package com.liferay.headless.admin.site.dto.v1_0;
 
 import com.fasterxml.jackson.annotation.JsonFilter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.vulcan.graphql.annotation.GraphQLField;
 import com.liferay.portal.vulcan.graphql.annotation.GraphQLName;
 import com.liferay.portal.vulcan.util.ObjectMapperUtil;
 
 import jakarta.annotation.Generated;
+
+import jakarta.validation.Valid;
 
 import jakarta.xml.bind.annotation.XmlRootElement;
 
@@ -22,6 +28,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * @author Rubén Pulido
@@ -44,6 +51,140 @@ public class ContentPageSettings extends PageSettings implements Serializable {
 		return ObjectMapperUtil.unsafeReadValue(
 			ContentPageSettings.class, json);
 	}
+
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "A list of custom meta tags this page has."
+	)
+	@Valid
+	public CustomMetaTag[] getCustomMetaTags() {
+		if (_customMetaTagsSupplier != null) {
+			customMetaTags = _customMetaTagsSupplier.get();
+
+			_customMetaTagsSupplier = null;
+		}
+
+		return customMetaTags;
+	}
+
+	public void setCustomMetaTags(CustomMetaTag[] customMetaTags) {
+		this.customMetaTags = customMetaTags;
+
+		_customMetaTagsSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setCustomMetaTags(
+		UnsafeSupplier<CustomMetaTag[], Exception>
+			customMetaTagsUnsafeSupplier) {
+
+		_customMetaTagsSupplier = () -> {
+			try {
+				return customMetaTagsUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(description = "A list of custom meta tags this page has.")
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected CustomMetaTag[] customMetaTags;
+
+	@JsonIgnore
+	private Supplier<CustomMetaTag[]> _customMetaTagsSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "The page's Open Graph settings."
+	)
+	@Valid
+	public OpenGraphSettings getOpenGraphSettings() {
+		if (_openGraphSettingsSupplier != null) {
+			openGraphSettings = _openGraphSettingsSupplier.get();
+
+			_openGraphSettingsSupplier = null;
+		}
+
+		return openGraphSettings;
+	}
+
+	public void setOpenGraphSettings(OpenGraphSettings openGraphSettings) {
+		this.openGraphSettings = openGraphSettings;
+
+		_openGraphSettingsSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setOpenGraphSettings(
+		UnsafeSupplier<OpenGraphSettings, Exception>
+			openGraphSettingsUnsafeSupplier) {
+
+		_openGraphSettingsSupplier = () -> {
+			try {
+				return openGraphSettingsUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(description = "The page's Open Graph settings.")
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected OpenGraphSettings openGraphSettings;
+
+	@JsonIgnore
+	private Supplier<OpenGraphSettings> _openGraphSettingsSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "The page's SEO settings."
+	)
+	@Valid
+	public SEOSettings getSeoSettings() {
+		if (_seoSettingsSupplier != null) {
+			seoSettings = _seoSettingsSupplier.get();
+
+			_seoSettingsSupplier = null;
+		}
+
+		return seoSettings;
+	}
+
+	public void setSeoSettings(SEOSettings seoSettings) {
+		this.seoSettings = seoSettings;
+
+		_seoSettingsSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setSeoSettings(
+		UnsafeSupplier<SEOSettings, Exception> seoSettingsUnsafeSupplier) {
+
+		_seoSettingsSupplier = () -> {
+			try {
+				return seoSettingsUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(description = "The page's SEO settings.")
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected SEOSettings seoSettings;
+
+	@JsonIgnore
+	private Supplier<SEOSettings> _seoSettingsSupplier;
 
 	@Override
 	public boolean equals(Object object) {
@@ -94,30 +235,6 @@ public class ContentPageSettings extends PageSettings implements Serializable {
 			sb.append("]");
 		}
 
-		Boolean hiddenFromNavigation = getHiddenFromNavigation();
-
-		if (hiddenFromNavigation != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"hiddenFromNavigation\": ");
-
-			sb.append(hiddenFromNavigation);
-		}
-
-		NavigationSettings navigationSettings = getNavigationSettings();
-
-		if (navigationSettings != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"navigationSettings\": ");
-
-			sb.append(String.valueOf(navigationSettings));
-		}
-
 		OpenGraphSettings openGraphSettings = getOpenGraphSettings();
 
 		if (openGraphSettings != null) {
@@ -128,34 +245,6 @@ public class ContentPageSettings extends PageSettings implements Serializable {
 			sb.append("\"openGraphSettings\": ");
 
 			sb.append(String.valueOf(openGraphSettings));
-		}
-
-		Integer priority = getPriority();
-
-		if (priority != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"priority\": ");
-
-			sb.append(priority);
-		}
-
-		String queryString = getQueryString();
-
-		if (queryString != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"queryString\": ");
-
-			sb.append("\"");
-
-			sb.append(_escape(queryString));
-
-			sb.append("\"");
 		}
 
 		SEOSettings seoSettings = getSeoSettings();
@@ -170,6 +259,42 @@ public class ContentPageSettings extends PageSettings implements Serializable {
 			sb.append(String.valueOf(seoSettings));
 		}
 
+		Boolean hiddenFromNavigation = getHiddenFromNavigation();
+
+		if (hiddenFromNavigation != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"hiddenFromNavigation\": ");
+
+			sb.append(hiddenFromNavigation);
+		}
+
+		SitePageNavigationSettings navigationSettings = getNavigationSettings();
+
+		if (navigationSettings != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"navigationSettings\": ");
+
+			sb.append(String.valueOf(navigationSettings));
+		}
+
+		Integer priority = getPriority();
+
+		if (priority != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"priority\": ");
+
+			sb.append(priority);
+		}
+
 		Type type = getType();
 
 		if (type != null) {
@@ -180,9 +305,7 @@ public class ContentPageSettings extends PageSettings implements Serializable {
 			sb.append("\"type\": ");
 
 			sb.append("\"");
-
 			sb.append(type);
-
 			sb.append("\"");
 		}
 

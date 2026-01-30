@@ -3,20 +3,19 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {IAssetObjectEntry} from '../../../common/types/AssetType';
 import {
 	IBulkActionFDSData,
 	IBulkActionFDSDataItemTransformed,
 	IBulkActionTaskType,
 	TBulkActionTaskDTO,
 } from '../../../common/types/BulkActionTask';
+import {OBJECT_ENTRY_FOLDER_CLASS_NAME} from '../../../common/utils/constants';
 import {
 	URL_BULK_ACTION_TASK,
 	URL_DOWNLOAD_BULK_ACTION_TASK,
 	URL_TASKS_REPORT_DETAIL,
 } from './constants';
-
-const OBJECT_ENTRY_FOLDER_CLASS_NAME =
-	'com.liferay.object.model.ObjectEntryFolder';
 
 export function composeCreateTaskURL(
 	apiURL: string,
@@ -54,7 +53,7 @@ export function composeCreateTaskURL(
 }
 
 export function composeCreateTaskDTO(
-	actionKey: keyof IBulkActionTaskType,
+	type: keyof IBulkActionTaskType,
 	keyValues: IBulkActionTaskType[keyof IBulkActionTaskType] = {},
 	{items = [], selectAll = false}: IBulkActionFDSData
 ): TBulkActionTaskDTO {
@@ -63,22 +62,30 @@ export function composeCreateTaskDTO(
 			({
 				embedded: {
 					externalReferenceCode: embeddedExternalReferenceCode,
+					file,
 					id: classPK,
 					title: name,
-				} = {} as any,
+				} = {} as IAssetObjectEntry,
 				entryClassName,
 				externalReferenceCode,
-			}: any) =>
-				({
+			}: any) => {
+				const itemsTransformed = {
 					classExternalReferenceCode:
 						externalReferenceCode || embeddedExternalReferenceCode,
 					className: entryClassName || OBJECT_ENTRY_FOLDER_CLASS_NAME,
 					classPK,
 					name,
-				}) as IBulkActionFDSDataItemTransformed
+				} as IBulkActionFDSDataItemTransformed;
+
+				if (type === 'DownloadBulkAction') {
+					itemsTransformed.file = file;
+				}
+
+				return itemsTransformed;
+			}
 		),
-		selectAll,
-		type: actionKey,
+		selectionScope: {selectAll},
+		type,
 		...keyValues,
 	} as TBulkActionTaskDTO;
 }

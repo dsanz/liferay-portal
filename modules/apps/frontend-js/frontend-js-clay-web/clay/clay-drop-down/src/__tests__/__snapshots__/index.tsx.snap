@@ -1,0 +1,447 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ClayDropDown renders dropdown menu when clicked 1`] = `
+<body>
+  <div>
+    <div
+      class="dropdown"
+    >
+      <button
+        aria-controls="clay-dropdown-menu-2"
+        aria-expanded="true"
+        aria-haspopup="true"
+        class="dropdown-toggle"
+        style=""
+      >
+        Click Me
+      </button>
+    </div>
+  </div>
+  <div>
+    <div>
+      <div
+        class="dropdown-menu show"
+        id="clay-dropdown-menu-2"
+        role="presentation"
+        style="left: -999px; top: -995px;"
+      >
+        <ul
+          class="list-unstyled"
+          role="menu"
+        >
+          <li
+            role="presentation"
+          >
+            <a
+              class="dropdown-item"
+              href="#one"
+              role="menuitem"
+              tabindex="-1"
+            >
+              one
+            </a>
+          </li>
+          <li
+            role="presentation"
+          >
+            <a
+              class="dropdown-item"
+              href="#two"
+              role="menuitem"
+              tabindex="-1"
+            >
+              two
+            </a>
+          </li>
+          <li
+            role="presentation"
+          >
+            <a
+              class="dropdown-item"
+              href="#three"
+              role="menuitem"
+              tabindex="-1"
+            >
+              three
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`ClayDropDown renders with groups 1`] = `
+<body>
+  <div>
+    <div
+      class="dropdown"
+    >
+      <button
+        aria-controls="clay-dropdown-menu-7"
+        aria-expanded="true"
+        aria-haspopup="true"
+        class="dropdown-toggle"
+        style=""
+      >
+        Click Me
+      </button>
+    </div>
+  </div>
+  <div>
+    <div>
+      <div
+        class="dropdown-menu show"
+        id="clay-dropdown-menu-7"
+        role="presentation"
+        style="left: -999px; top: -995px;"
+      >
+        <ul
+          class="list-unstyled"
+          role="menu"
+        >
+          <li
+            aria-hidden="true"
+            class="dropdown-subheader"
+            id="clay-dropdown-menu-group-1"
+            role="presentation"
+          >
+            Group #1
+          </li>
+          <li
+            role="presentation"
+          >
+            <ul
+              aria-labelledby="clay-dropdown-menu-group-1"
+              class="list-unstyled"
+              role="group"
+            >
+              <li
+                role="presentation"
+              >
+                <a
+                  class="dropdown-item"
+                  href="#one"
+                  role="menuitem"
+                  tabindex="-1"
+                >
+                  one
+                </a>
+              </li>
+              <li
+                role="presentation"
+              >
+                <a
+                  class="dropdown-item"
+                  href="#two"
+                  role="menuitem"
+                  tabindex="-1"
+                >
+                  two
+                </a>
+              </li>
+              <li
+                role="presentation"
+              >
+                <a
+                  class="dropdown-item"
+                  href="#three"
+                  role="menuitem"
+                  tabindex="-1"
+                >
+                  three
+                </a>
+              </li>
+            </ul>
+          </li>
+          <li
+            aria-hidden="true"
+            class="dropdown-subheader"
+            id="clay-dropdown-menu-group-2"
+            role="presentation"
+          >
+            Group #2
+          </li>
+          <li
+            role="presentation"
+          >
+            <ul
+              aria-labelledby="clay-dropdown-menu-group-2"
+              class="list-unstyled"
+              role="group"
+            >
+              <li
+                role="presentation"
+              >
+                <a
+                  class="dropdown-item"
+                  href="#one"
+                  role="menuitem"
+                  tabindex="-1"
+                >
+                  one
+                </a>
+              </li>
+              <li
+                role="presentation"
+              >
+                <a
+                  class="dropdown-item"
+                  href="#two"
+                  role="menuitem"
+                  tabindex="-1"
+                >
+                  two
+                </a>
+              </li>
+              <li
+                role="presentation"
+              >
+                <a
+                  class="dropdown-item"
+                  href="#three"
+                  role="menuitem"
+                  tabindex="-1"
+                >
+                  three
+                </a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`ClayDropDown renders with icons 1`] = `
+<body>
+  <div>
+    <div
+      class="dropdown"
+    >
+      <button
+        aria-controls="clay-dropdown-menu-6"
+        aria-expanded="true"
+        aria-haspopup="true"
+        class="dropdown-toggle"
+        style=""
+      >
+        Click Me
+      </button>
+    </div>
+  </div>
+  <div>
+    <div>
+      <div
+        class="dropdown-menu dropdown-menu-indicator-end dropdown-menu-indicator-start show"
+        id="clay-dropdown-menu-6"
+        role="presentation"
+        style="left: -999px; top: -995px;"
+      >
+        <ul
+          class="list-unstyled"
+          role="menu"
+        >
+          <li
+            role="presentation"
+          >
+            <span
+              class="dropdown-item"
+              role="menuitem"
+              tabindex="-1"
+            >
+              <span
+                class="dropdown-item-indicator-start"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-trash"
+                  role="presentation"
+                >
+                  <use
+                    href="/foo/bar#trash"
+                  />
+                </svg>
+              </span>
+              Left
+            </span>
+          </li>
+          <li
+            role="presentation"
+          >
+            <span
+              class="dropdown-item"
+              role="menuitem"
+              tabindex="-1"
+            >
+              Right
+              <span
+                class="dropdown-item-indicator-end"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-check"
+                  role="presentation"
+                >
+                  <use
+                    href="/foo/bar#check"
+                  />
+                </svg>
+              </span>
+            </span>
+          </li>
+          <li
+            role="presentation"
+          >
+            <span
+              class="dropdown-item"
+              role="menuitem"
+              tabindex="-1"
+            >
+              <span
+                class="dropdown-item-indicator-start"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-trash"
+                  role="presentation"
+                >
+                  <use
+                    href="/foo/bar#trash"
+                  />
+                </svg>
+              </span>
+              Both
+              <span
+                class="dropdown-item-indicator-end"
+              >
+                <svg
+                  class="lexicon-icon lexicon-icon-check"
+                  role="presentation"
+                >
+                  <use
+                    href="/foo/bar#check"
+                  />
+                </svg>
+              </span>
+            </span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+`;
+
+exports[`ClayDropDown renders with search input 1`] = `
+<body>
+  <div>
+    <div
+      class="dropdown"
+    >
+      <button
+        aria-controls="clay-dropdown-menu-5"
+        aria-expanded="true"
+        aria-haspopup="true"
+        class="dropdown-toggle"
+        style=""
+      >
+        Click Me
+      </button>
+    </div>
+  </div>
+  <div>
+    <div>
+      <div
+        class="dropdown-menu show"
+        id="clay-dropdown-menu-5"
+        role="presentation"
+        style="left: -999px; top: -995px;"
+      >
+        <form
+          class=""
+        >
+          <div
+            class="dropdown-section"
+          >
+            <div
+              class="input-group input-group-sm"
+            >
+              <div
+                class="input-group-item input-group-item-focusable"
+              >
+                <input
+                  class="form-control input-group-inset input-group-inset-after"
+                  tabindex="-1"
+                  type="text"
+                  value="test"
+                />
+                <span
+                  class="input-group-inset-item input-group-inset-item-after"
+                >
+                  <button
+                    aria-label="Search"
+                    class="btn btn-unstyled"
+                    tabindex="-1"
+                    type="button"
+                  >
+                    <svg
+                      class="lexicon-icon lexicon-icon-search"
+                      role="presentation"
+                    >
+                      <use
+                        href="/foo/bar#search"
+                      />
+                    </svg>
+                  </button>
+                </span>
+              </div>
+            </div>
+          </div>
+        </form>
+        <ul
+          class="list-unstyled"
+          role="menu"
+        >
+          <li
+            role="presentation"
+          >
+            <a
+              class="dropdown-item"
+              href="#one"
+              role="menuitem"
+              tabindex="-1"
+            >
+              one
+            </a>
+          </li>
+          <li
+            role="presentation"
+          >
+            <a
+              class="dropdown-item"
+              href="#two"
+              role="menuitem"
+              tabindex="-1"
+            >
+              two
+            </a>
+          </li>
+          <li
+            role="presentation"
+          >
+            <a
+              class="dropdown-item"
+              href="#three"
+              role="menuitem"
+              tabindex="-1"
+            >
+              three
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+`;

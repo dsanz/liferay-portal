@@ -46,6 +46,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -121,7 +122,6 @@ public class CTClosureFactoryImpl implements CTClosureFactory {
 		CTCollection ctCollection = _ctCollectionPersistence.fetchByPrimaryKey(
 			ctCollectionId);
 		Map<Long, List<Long>> map = new LinkedHashMap<>();
-		List<Node> nodes = new ArrayList<>();
 
 		List<CTEntry> ctEntries = new ArrayList<>(
 			_ctEntryLocalService.getCTCollectionCTEntries(ctCollectionId));
@@ -129,6 +129,8 @@ public class CTClosureFactoryImpl implements CTClosureFactory {
 		ctEntries.sort(
 			(ctEntry1, ctEntry2) ->
 				(int)(ctEntry1.getCtEntryId() - ctEntry2.getCtEntryId()));
+
+		Collection<Node> nodes = new LinkedHashSet<>();
 
 		for (CTEntry ctEntry : ctEntries) {
 			if (!classNameIds.isEmpty() &&
@@ -162,9 +164,7 @@ public class CTClosureFactoryImpl implements CTClosureFactory {
 				combinedTableReferenceInfos.get(childClassNameId);
 
 			if (childTableReferenceInfo == null) {
-				if ((ctCollection != null) &&
-					(ctCollection.getStatus() !=
-						WorkflowConstants.STATUS_DRAFT) &&
+				if ((ctCollection != null) && !ctCollection.isInProgress() &&
 					(ctCollection.getStatus() !=
 						WorkflowConstants.STATUS_PENDING)) {
 
@@ -242,7 +242,7 @@ public class CTClosureFactoryImpl implements CTClosureFactory {
 	private List<Long> _collectParentPrimaryKeys(
 		long childClassNameId, Long[] childPrimaryKeys, long ctCollectionId,
 		Map.Entry<Table<?>, List<TableJoinHolder>> entry,
-		Map<Node, Collection<Edge>> edgeMap, List<Node> nodes,
+		Map<Node, Collection<Edge>> edgeMap, Collection<Node> nodes,
 		long parentClassNameId, Set<Long> classNameIds,
 		TableReferenceInfo<?> parentTableReferenceInfo) {
 
@@ -450,7 +450,7 @@ public class CTClosureFactoryImpl implements CTClosureFactory {
 	}
 
 	private Map<Node, Collection<Node>> _getNodeMap(
-		List<Node> nodes, Map<Node, Collection<Edge>> edgeMap) {
+		Collection<Node> nodes, Map<Node, Collection<Edge>> edgeMap) {
 
 		Map<Node, Collection<Node>> nodeMap = new HashMap<>();
 
@@ -467,7 +467,7 @@ public class CTClosureFactoryImpl implements CTClosureFactory {
 
 		for (Edge edge : resolvedEdges) {
 			Collection<Node> children = nodeMap.computeIfAbsent(
-				edge.getFromNode(), node -> new ArrayList<>());
+				edge.getFromNode(), node -> new LinkedHashSet<>());
 
 			Node toNode = edge.getToNode();
 

@@ -162,6 +162,9 @@ public interface BenchmarksPropsKeys {
 	public static final String MAX_OBJECT_ENTRY_PAGE_COUNT =
 		"sample.sql.max.object.entry.page.count";
 
+	public static final String MAX_RELATED_OBJECT_ENTRY_COUNT =
+		"sample.sql.max.related.object.entry.count";
+
 	public static final String MAX_SEGMENTS_ENTRY_COUNT =
 		"sample.sql.max.segments.entry.count";
 
@@ -170,6 +173,9 @@ public interface BenchmarksPropsKeys {
 
 	public static final String MAX_USER_TO_GROUP_COUNT =
 		"sample.sql.max.user.to.group.count";
+
+	public static final String OBJECT_LAYOUT_DATA_ITEM_TYPES =
+		"sample.sql.object.layout.data.item.types";
 
 	public static final String OPTIMIZE_BUFFER_SIZE =
 		"sample.sql.optimize.buffer.size";

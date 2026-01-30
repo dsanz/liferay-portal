@@ -7,6 +7,7 @@ package com.liferay.portal.security.sso.openid.connect.internal.configuration;
 
 import aQute.bnd.annotation.metatype.Meta;
 
+import com.liferay.portal.configuration.metatype.annotations.ExtendedAttributeDefinition;
 import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition;
 
 /**
@@ -37,6 +38,7 @@ public interface OpenIdConnectProviderConfiguration {
 	)
 	public String[] customAuthorizationRequestParameters();
 
+	@ExtendedAttributeDefinition(featureFlagKey = "LPD-57332")
 	@Meta.AD(
 		deflt = "", description = "custom-claims-help", name = "custom-claims",
 		required = false
@@ -78,6 +80,12 @@ public interface OpenIdConnectProviderConfiguration {
 		required = false
 	)
 	public String jwksURI();
+
+	@Meta.AD(
+		deflt = "email", description = "matcher-field-help",
+		name = "matcher-field"
+	)
+	public String matcherField();
 
 	@Meta.AD(
 		deflt = "", description = "open-id-connect-client-id-help",

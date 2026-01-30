@@ -5,6 +5,8 @@
 
 package com.liferay.jenkins.results.parser;
 
+import com.liferay.jenkins.results.parser.history.HistoryFactory;
+import com.liferay.jenkins.results.parser.history.JobHistory;
 import com.liferay.jenkins.results.parser.job.property.GlobJobProperty;
 import com.liferay.jenkins.results.parser.job.property.JobProperty;
 import com.liferay.jenkins.results.parser.job.property.JobPropertyFactory;
@@ -76,6 +78,23 @@ public abstract class BaseJob implements Job {
 		}
 
 		return segmentNames;
+	}
+
+	@Override
+	public Set<String> getAppServerTypes() {
+		JobProperty jobProperty = getJobProperty("test.batch.dist.app.servers");
+
+		return getSetFromString(jobProperty.getValue());
+	}
+
+	@Override
+	public Set<String> getAppServerTypesExcludingTomcat() {
+		Set<String> appServerTypesExcludingTomcat = new TreeSet<>(
+			getAppServerTypes());
+
+		appServerTypesExcludingTomcat.remove("tomcat");
+
+		return appServerTypesExcludingTomcat;
 	}
 
 	@Override
@@ -445,22 +464,6 @@ public abstract class BaseJob implements Job {
 	}
 
 	@Override
-	public Set<String> getDistTypes() {
-		JobProperty jobProperty = getJobProperty("test.batch.dist.app.servers");
-
-		return getSetFromString(jobProperty.getValue());
-	}
-
-	@Override
-	public Set<String> getDistTypesExcludingTomcat() {
-		Set<String> distTypesExcludingTomcat = new TreeSet<>(getDistTypes());
-
-		distTypesExcludingTomcat.remove("tomcat");
-
-		return distTypesExcludingTomcat;
-	}
-
-	@Override
 	public Set<JenkinsCohort> getJenkinsCohorts() {
 		return Collections.singleton(
 			JenkinsResultsParserUtil.getJenkinsCohort());
@@ -472,7 +475,13 @@ public abstract class BaseJob implements Job {
 			return _jobHistory;
 		}
 
-		_jobHistory = HistoryUtil.getJobHistory(this);
+		String portalUpstreamBranchName = _getPortalUpstreamBranchName();
+
+		if (portalUpstreamBranchName == null) {
+			return null;
+		}
+
+		_jobHistory = HistoryFactory.newJobHistory(portalUpstreamBranchName);
 
 		return _jobHistory;
 	}
@@ -693,6 +702,9 @@ public abstract class BaseJob implements Job {
 				"test.batch.minimum.slave.ram",
 				String.valueOf(batchTestClassGroup.getMinimumSlaveRAM()));
 			batchProperties.setProperty(
+				"test.batch.os.architecture",
+				batchTestClassGroup.getOSArchitecture());
+			batchProperties.setProperty(
 				"test.batch.slave.label", batchTestClassGroup.getSlaveLabel());
 
 			if (batchTestClassGroup instanceof FunctionalBatchTestClassGroup) {
@@ -746,6 +758,9 @@ public abstract class BaseJob implements Job {
 				segmentProperties.setProperty(
 					"test.batch.name", segmentTestClassGroup.getBatchName());
 				segmentProperties.setProperty(
+					"test.batch.os.architecture",
+					segmentTestClassGroup.getOSArchitecture());
+				segmentProperties.setProperty(
 					"test.batch.size",
 					String.valueOf(segmentTestClassGroup.getAxisCount()));
 				segmentProperties.setProperty(
@@ -780,6 +795,18 @@ public abstract class BaseJob implements Job {
 				propertiesMap.put(
 					segmentTestClassGroup.getSegmentName(), segmentProperties);
 			}
+		}
+
+		for (AxisTestClassGroup axisTestClassGroup : getAxisTestClassGroups()) {
+			Properties axisProperties = new Properties();
+
+			axisProperties.setProperty(
+				"test.batch.os.architecture",
+				axisTestClassGroup.getOSArchitecture());
+			axisProperties.setProperty(
+				"test.batch.slave.label", axisTestClassGroup.getSlaveLabel());
+
+			propertiesMap.put(axisTestClassGroup.getAxisName(), axisProperties);
 		}
 
 		StringBuilder sb = new StringBuilder();
@@ -1601,6 +1628,23 @@ public abstract class BaseJob implements Job {
 		}
 
 		return jUnitIncludePathMatchers;
+	}
+
+	private String _getPortalUpstreamBranchName() {
+		if (!(this instanceof PortalTestClassJob)) {
+			return null;
+		}
+
+		PortalTestClassJob portalTestClassJob = (PortalTestClassJob)this;
+
+		PortalGitWorkingDirectory portalGitWorkingDirectory =
+			portalTestClassJob.getPortalGitWorkingDirectory();
+
+		if (portalGitWorkingDirectory == null) {
+			return null;
+		}
+
+		return portalGitWorkingDirectory.getUpstreamBranchName();
 	}
 
 	private int _getSlaveRAMMinimumDefault() {

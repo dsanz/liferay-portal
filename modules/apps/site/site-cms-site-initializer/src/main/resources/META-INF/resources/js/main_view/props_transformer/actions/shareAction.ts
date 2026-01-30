@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {openModal, openToast} from 'frontend-js-components-web';
+import {openToast} from 'frontend-js-components-web';
 
 import CollaboratorService from '../../../common/services/CollaboratorService';
+import {openCMSModal} from '../../../common/utils/openCMSModal';
 import ShareModalContent, {
 	Collaborator,
 } from '../../modal/share_modal_content/ShareModalContent';
@@ -14,6 +15,7 @@ export default async function shareAction({
 	autocompleteURL,
 	collaboratorURL,
 	creator,
+	entryClassName,
 	itemId,
 	title,
 }: {
@@ -25,6 +27,7 @@ export default async function shareAction({
 		image?: string;
 		name: string;
 	};
+	entryClassName: string;
 	itemId: number;
 	title: string;
 }) {
@@ -49,7 +52,7 @@ export default async function shareAction({
 				}) as Collaborator
 		);
 
-		openModal({
+		openCMSModal({
 			className: 'share-modal',
 			contentComponent: ({closeModal}: {closeModal: () => void}) =>
 				ShareModalContent({
@@ -57,6 +60,7 @@ export default async function shareAction({
 					closeModal,
 					collaboratorURL,
 					creator: {...creator, id: creator.id.toString()},
+					entryClassName,
 					initialCollaborators,
 					itemId,
 					title,

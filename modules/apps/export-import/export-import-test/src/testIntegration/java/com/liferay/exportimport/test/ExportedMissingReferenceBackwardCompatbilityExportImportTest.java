@@ -14,6 +14,7 @@ import com.liferay.exportimport.kernel.lifecycle.ExportImportLifecycleListener;
 import com.liferay.exportimport.kernel.lifecycle.constants.ExportImportLifecycleConstants;
 import com.liferay.exportimport.test.util.constants.DummyFolderPortletKeys;
 import com.liferay.exportimport.test.util.exportimport.data.handler.DummyFolderWithMissingDummyPortletDataHandler;
+import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -195,53 +196,53 @@ public class ExportedMissingReferenceBackwardCompatbilityExportImportTest
 
 			FileUtil.move(larFile, file);
 
-			ZipReader zipReader = _zipReaderFactory.getZipReader(file);
+			try (ZipReader zipReader = _zipReaderFactory.getZipReader(file)) {
+				ZipWriter zipWriter = _zipWriterFactory.getZipWriter(
+					new File(larFilePath));
 
-			ZipWriter zipWriter = _zipWriterFactory.getZipWriter(
-				new File(larFilePath));
+				for (String zipEntry : zipReader.getEntries()) {
+					try {
+						if (zipEntry.equals("manifest.xml")) {
+							Document document = SAXReaderUtil.read(
+								zipReader.getEntryAsInputStream(zipEntry));
 
-			for (String zipEntry : zipReader.getEntries()) {
-				try {
-					if (zipEntry.equals("manifest.xml")) {
-						Document document = SAXReaderUtil.read(
-							zipReader.getEntryAsInputStream(zipEntry));
+							Element rootElement = document.getRootElement();
 
-						Element rootElement = document.getRootElement();
+							List<Element> missingReferencesElements =
+								rootElement.elements("missing-references");
 
-						List<Element> missingReferencesElements =
-							rootElement.elements("missing-references");
+							Element missingReferencesElement =
+								missingReferencesElements.get(0);
 
-						Element missingReferencesElement =
-							missingReferencesElements.get(0);
+							List<Element> missingReferenceElements =
+								missingReferencesElement.elements(
+									"missing-reference");
 
-						List<Element> missingReferenceElements =
-							missingReferencesElement.elements(
-								"missing-reference");
+							for (Element missingReferenceElement :
+									missingReferenceElements) {
 
-						for (Element missingReferenceElement :
-								missingReferenceElements) {
+								Attribute elementPathAttribute =
+									missingReferenceElement.attribute(
+										"element-path");
 
-							Attribute elementPathAttribute =
-								missingReferenceElement.attribute(
-									"element-path");
-
-							if (elementPathAttribute != null) {
-								missingReferencesElement.remove(
-									missingReferenceElement);
+								if (elementPathAttribute != null) {
+									missingReferencesElement.remove(
+										missingReferenceElement);
+								}
 							}
-						}
 
-						zipWriter.addEntry(
-							zipEntry, document.formattedString());
+							zipWriter.addEntry(
+								zipEntry, document.formattedString());
+						}
+						else {
+							zipWriter.addEntry(
+								zipEntry,
+								zipReader.getEntryAsInputStream(zipEntry));
+						}
 					}
-					else {
-						zipWriter.addEntry(
-							zipEntry,
-							zipReader.getEntryAsInputStream(zipEntry));
+					catch (Exception exception) {
+						throw new RuntimeException(exception);
 					}
-				}
-				catch (Exception exception) {
-					throw new RuntimeException(exception);
 				}
 			}
 
@@ -258,11 +259,16 @@ public class ExportedMissingReferenceBackwardCompatbilityExportImportTest
 		Class<?> currentClazz = clazz;
 
 		while (currentClazz != Object.class) {
-			for (Method method : currentClazz.getDeclaredMethods()) {
-				if (method.isAnnotationPresent(annotation)) {
-					methods.add(method);
-				}
-			}
+			methods.addAll(
+				TransformUtil.transformToList(
+					(Method[])currentClazz.getDeclaredMethods(),
+					method -> {
+						if (method.isAnnotationPresent(annotation)) {
+							return method;
+						}
+
+						return null;
+					}));
 
 			currentClazz = currentClazz.getSuperclass();
 		}

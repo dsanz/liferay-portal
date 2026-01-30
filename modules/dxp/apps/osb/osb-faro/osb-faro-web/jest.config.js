@@ -1,3 +1,5 @@
+const {TextEncoder} = require('node:util');
+
 module.exports = {
 	collectCoverage: true,
 	collectCoverageFrom: [
@@ -248,8 +250,7 @@ module.exports = {
 				ready: 'READY'
 			},
 			segmentTypes: {
-				dynamic: 'DYNAMIC',
-				static: 'STATIC'
+				dynamic: 'BATCH'
 			},
 			subscriptionPlans: {
 				['Liferay Analytics Cloud Basic']: {
@@ -330,7 +331,8 @@ module.exports = {
 					price: 250
 				},
 				['Liferay SaaS - CSP - Up to 100 Users - Extra User']: {
-					baseSubscriptionPlan: 'Liferay SaaS - CSP - Up to 100 Users',
+					baseSubscriptionPlan:
+						'Liferay SaaS - CSP - Up to 100 Users',
 					individualsLimit: 0,
 					name: 'Liferay SaaS - CSP - Up to 100 Users - Extra User',
 					pageViewsLimit: 5000000,
@@ -344,7 +346,8 @@ module.exports = {
 					price: 250
 				},
 				['Liferay SaaS - CSP - Up to 10K Users - Extra User']: {
-					baseSubscriptionPlan: 'Liferay SaaS - CSP - Up to 10K Users',
+					baseSubscriptionPlan:
+						'Liferay SaaS - CSP - Up to 10K Users',
 					individualsLimit: 0,
 					name: 'Liferay SaaS - CSP - Up to 10K Users - Extra User',
 					pageViewsLimit: 5000000,
@@ -372,7 +375,8 @@ module.exports = {
 					price: 250
 				},
 				['Liferay SaaS - CSP - Up to 20K Users - Extra User']: {
-					baseSubscriptionPlan: 'Liferay SaaS - CSP - Up to 20K Users',
+					baseSubscriptionPlan:
+						'Liferay SaaS - CSP - Up to 20K Users',
 					individualsLimit: 0,
 					name: 'Liferay SaaS - CSP - Up to 20K Users - Extra User',
 					pageViewsLimit: 5000000,
@@ -386,7 +390,8 @@ module.exports = {
 					price: 250
 				},
 				['Liferay SaaS - CSP - Up to 500 Users - Extra User']: {
-					baseSubscriptionPlan: 'Liferay SaaS - CSP - Up to 500 Users',
+					baseSubscriptionPlan:
+						'Liferay SaaS - CSP - Up to 500 Users',
 					individualsLimit: 0,
 					name: 'Liferay SaaS - CSP - Up to 500 Users - Extra User',
 					pageViewsLimit: 5000000,
@@ -587,6 +592,7 @@ module.exports = {
 				ok: 0,
 				over: 2
 			},
+			TextEncoder,
 			timeIntervals: {
 				day: 'day',
 				month: 'month',
@@ -619,7 +625,6 @@ module.exports = {
 	moduleNameMapper: {
 		'^assets(.*)$': '<rootDir>/src/main/js/assets$1',
 		'^cerebro-shared(.*)$': '<rootDir>/src/main/js/cerebro-shared$1',
-		'^clay-charts-react(.*)$': '<rootDir>/src/main/js/clay-charts-react$1',
 		'^commerce(.*)$': '<rootDir>/src/main/js/commerce$1',
 		'^contacts(.*)$': '<rootDir>/src/main/js/contacts$1',
 		'^dnd-core$': 'dnd-core/dist/cjs',

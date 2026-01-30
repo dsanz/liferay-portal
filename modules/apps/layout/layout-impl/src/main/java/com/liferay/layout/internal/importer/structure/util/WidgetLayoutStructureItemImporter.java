@@ -229,8 +229,8 @@ public class WidgetLayoutStructureItemImporter
 			ServiceContextThreadLocal.getServiceContext();
 
 		return _fragmentEntryLinkLocalService.addFragmentEntryLink(
-			null, serviceContext.getUserId(), layout.getGroupId(), 0, 0,
-			segmentsExperienceId, layout.getPlid(), StringPool.BLANK,
+			null, serviceContext.getUserId(), layout.getGroupId(), null, null,
+			null, segmentsExperienceId, layout.getPlid(), StringPool.BLANK,
 			StringPool.BLANK, StringPool.BLANK, StringPool.BLANK,
 			editableValueJSONObject.toString(), widgetInstanceId, 0, null,
 			FragmentConstants.TYPE_PORTLET, serviceContext);
@@ -259,8 +259,7 @@ public class WidgetLayoutStructureItemImporter
 						PortletIdCodec.decodePortletName(portletId),
 						portlet.getPortletName())) {
 
-					throw new PortletIdException(
-						"Unable to add uninstanceable portlet more than once");
+					throw new PortletIdException(portletId);
 				}
 			}
 		}

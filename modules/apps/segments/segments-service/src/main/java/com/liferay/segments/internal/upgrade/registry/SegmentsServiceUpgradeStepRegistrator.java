@@ -103,10 +103,8 @@ public class SegmentsServiceUpgradeStepRegistrator
 			new BaseExternalReferenceCodeUpgradeProcess() {
 
 				@Override
-				protected String[][] getTableAndPrimaryKeyColumnNames() {
-					return new String[][] {
-						{"SegmentsExperience", "segmentsExperienceId"}
-					};
+				protected String[] getTableNames() {
+					return new String[] {"SegmentsExperience"};
 				}
 
 			});
@@ -117,6 +115,17 @@ public class SegmentsServiceUpgradeStepRegistrator
 			"3.1.1", "3.2.0",
 			new com.liferay.segments.internal.upgrade.v3_2_0.
 				SegmentsExperienceUpgradeProcess(_layoutLocalService));
+
+		registry.register(
+			"3.2.0", "3.3.0",
+			new BaseExternalReferenceCodeUpgradeProcess() {
+
+				@Override
+				protected String[] getTableNames() {
+					return new String[] {"SegmentsEntry"};
+				}
+
+			});
 	}
 
 	@Reference

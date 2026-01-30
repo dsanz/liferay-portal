@@ -1,12 +1,14 @@
 Bundle-Name: Liferay Change Tracking API
 Bundle-SymbolicName: com.liferay.change.tracking.api
-Bundle-Version: 30.0.2
+Bundle-Version: 30.3.1
 Export-Package:\
 	com.liferay.change.tracking.closure,\
 	com.liferay.change.tracking.configuration,\
+	com.liferay.change.tracking.configuration.helper,\
 	com.liferay.change.tracking.conflict,\
 	com.liferay.change.tracking.constants,\
 	com.liferay.change.tracking.exception,\
+	com.liferay.change.tracking.helper,\
 	com.liferay.change.tracking.mapping,\
 	com.liferay.change.tracking.model,\
 	com.liferay.change.tracking.on.demand.user.ticket.generator,\

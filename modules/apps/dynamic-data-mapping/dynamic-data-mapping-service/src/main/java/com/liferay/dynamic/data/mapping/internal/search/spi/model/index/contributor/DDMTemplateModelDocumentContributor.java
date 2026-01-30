@@ -6,16 +6,24 @@
 package com.liferay.dynamic.data.mapping.internal.search.spi.model.index.contributor;
 
 import com.liferay.dynamic.data.mapping.model.DDMTemplate;
+import com.liferay.dynamic.data.mapping.model.DDMTemplateTable;
 import com.liferay.dynamic.data.mapping.model.DDMTemplateVersion;
+import com.liferay.dynamic.data.mapping.model.DDMTemplateVersionTable;
 import com.liferay.dynamic.data.mapping.security.permission.DDMPermissionSupport;
 import com.liferay.dynamic.data.mapping.service.DDMTemplateVersionLocalService;
+import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.search.ReindexCacheThreadLocal;
 import com.liferay.portal.kernel.util.Localization;
 import com.liferay.portal.search.spi.model.index.contributor.ModelDocumentContributor;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -40,12 +48,12 @@ public class DDMTemplateModelDocumentContributor
 			"resourceClassNameId", ddmTemplate.getResourceClassNameId());
 
 		try {
-			DDMTemplateVersion templateVersion =
-				ddmTemplateVersionLocalService.getTemplateVersion(
-					ddmTemplate.getTemplateId(), ddmTemplate.getVersion());
+			Integer status = _getStatus(ddmTemplate);
 
-			document.addKeyword(Field.STATUS, templateVersion.getStatus());
-			document.addKeyword(Field.VERSION, templateVersion.getVersion());
+			if (status != null) {
+				document.addKeyword(Field.STATUS, status);
+				document.addKeyword(Field.VERSION, ddmTemplate.getVersion());
+			}
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
@@ -65,7 +73,6 @@ public class DDMTemplateModelDocumentContributor
 			}
 		}
 
-		document.addKeyword("type", ddmTemplate.getType());
 		document.addLocalizedText(
 			Field.DESCRIPTION,
 			_localization.populateLocalizationMap(
@@ -76,6 +83,7 @@ public class DDMTemplateModelDocumentContributor
 			_localization.populateLocalizationMap(
 				ddmTemplate.getNameMap(), ddmTemplate.getDefaultLanguageId(),
 				ddmTemplate.getGroupId()));
+		document.addKeyword("type", ddmTemplate.getType());
 	}
 
 	protected String[] getLanguageIds(
@@ -92,6 +100,54 @@ public class DDMTemplateModelDocumentContributor
 
 	@Reference
 	protected DDMTemplateVersionLocalService ddmTemplateVersionLocalService;
+
+	private Integer _getStatus(DDMTemplate ddmTemplate) throws PortalException {
+		Map<Long, Integer> statuses =
+			ReindexCacheThreadLocal.getGlobalReindexCache(
+				() -> -1, DDMTemplateModelDocumentContributor.class.getName(),
+				count -> {
+					Map<Long, Integer> localStatuses = new HashMap<>();
+
+					for (Object[] values :
+							ddmTemplateVersionLocalService.
+								<List<Object[]>>dslQuery(
+									DSLQueryFactoryUtil.select(
+										DDMTemplateVersionTable.INSTANCE.
+											templateId,
+										DDMTemplateVersionTable.INSTANCE.status
+									).from(
+										DDMTemplateVersionTable.INSTANCE
+									).innerJoinON(
+										DDMTemplateTable.INSTANCE,
+										DDMTemplateVersionTable.INSTANCE.
+											templateId.eq(
+												DDMTemplateTable.INSTANCE.
+													templateId
+											).and(
+												DDMTemplateVersionTable.
+													INSTANCE.version.eq(
+														DDMTemplateTable.
+															INSTANCE.version)
+											)
+									),
+									false)) {
+
+						localStatuses.put((Long)values[0], (Integer)values[1]);
+					}
+
+					return localStatuses;
+				});
+
+		if (statuses == null) {
+			DDMTemplateVersion templateVersion =
+				ddmTemplateVersionLocalService.getTemplateVersion(
+					ddmTemplate.getTemplateId(), ddmTemplate.getVersion());
+
+			return templateVersion.getStatus();
+		}
+
+		return statuses.get(ddmTemplate.getTemplateId());
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DDMTemplateModelDocumentContributor.class);

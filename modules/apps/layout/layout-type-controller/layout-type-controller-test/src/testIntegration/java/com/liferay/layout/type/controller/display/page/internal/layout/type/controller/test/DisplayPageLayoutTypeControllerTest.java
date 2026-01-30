@@ -44,7 +44,9 @@ import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutTypeController;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
+import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactory;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
@@ -61,6 +63,7 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
@@ -233,7 +236,8 @@ public class DisplayPageLayoutTypeControllerTest {
 
 		ContentLayoutTestUtil.addFragmentEntryLinkToLayout(
 			null, fragmentEntry.getCss(), fragmentEntry.getConfiguration(),
-			fragmentEntry.getFragmentEntryId(), fragmentEntry.getHtml(),
+			fragmentEntry.getExternalReferenceCode(),
+			fragmentEntry.getScopeERC(), fragmentEntry.getHtml(),
 			fragmentEntry.getJs(), layout.fetchDraftLayout(),
 			fragmentEntry.getFragmentEntryKey(), fragmentEntry.getType(), null,
 			0,
@@ -265,9 +269,9 @@ public class DisplayPageLayoutTypeControllerTest {
 				WorkflowConstants.STATUS_DRAFT,
 				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
-		layout = _layoutLocalService.updateMasterLayoutPlid(
+		layout = _layoutLocalService.updateMasterLayoutPageTemplateEntryERC(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
-			masterLayoutPageTemplateEntry.getPlid());
+			masterLayoutPageTemplateEntry.getExternalReferenceCode());
 
 		mockHttpServletRequest = _getMockHttpServletRequest(
 			layout, TestPropsValues.getUser());
@@ -305,7 +309,8 @@ public class DisplayPageLayoutTypeControllerTest {
 
 		Assert.assertTrue(layout.isPublished());
 
-		_assertIncludeLayoutContent(false, layout.getPlid(), _guestUser);
+		_assertIncludeLayoutContent(
+			HttpServletResponse.SC_OK, false, layout.getPlid(), _guestUser);
 	}
 
 	@Test
@@ -345,7 +350,8 @@ public class DisplayPageLayoutTypeControllerTest {
 
 			ServiceContextThreadLocal.pushServiceContext(serviceContext);
 
-			_assertIncludeLayoutContent(true, layout.getPlid(), _guestUser);
+			_assertIncludeLayoutContent(
+				HttpServletResponse.SC_OK, true, layout.getPlid(), _guestUser);
 		}
 		finally {
 			ServiceContextThreadLocal.pushServiceContext(_serviceContext);
@@ -463,6 +469,7 @@ public class DisplayPageLayoutTypeControllerTest {
 	}
 
 	@Test
+	@TestInfo("LPD-75440")
 	public void testDisplayPageTypeControllerWithoutContextInfoItem()
 		throws Exception {
 
@@ -484,12 +491,27 @@ public class DisplayPageLayoutTypeControllerTest {
 
 		Assert.assertTrue(layout.isPublished());
 
-		_assertIncludeLayoutContent(
-			false, draftLayout.getPlid(), TestPropsValues.getUser());
-		_assertIncludeLayoutContent(
-			false, layout.getPlid(), TestPropsValues.getUser());
-		_assertIncludeLayoutContent(true, draftLayout.getPlid(), _guestUser);
-		_assertIncludeLayoutContent(true, layout.getPlid(), _guestUser);
+		User user = UserTestUtil.addGroupUser(
+			_group, RoleConstants.SITE_MEMBER);
+
+		_testDisplayPageTypeControllerWithoutContextInfoItem(
+			HttpServletResponse.SC_OK, draftLayout, user);
+
+		RoleTestUtil.removeResourcePermission(
+			RoleConstants.GUEST, LayoutPageTemplateEntry.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(
+				layoutPageTemplateEntry.getLayoutPageTemplateEntryId()),
+			ActionKeys.VIEW);
+		RoleTestUtil.removeResourcePermission(
+			RoleConstants.SITE_MEMBER, LayoutPageTemplateEntry.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(
+				layoutPageTemplateEntry.getLayoutPageTemplateEntryId()),
+			ActionKeys.VIEW);
+
+		_testDisplayPageTypeControllerWithoutContextInfoItem(
+			HttpServletResponse.SC_FORBIDDEN, draftLayout, user);
 	}
 
 	private void _addFragmentEntryLink(Layout layout) throws Exception {
@@ -519,7 +541,8 @@ public class DisplayPageLayoutTypeControllerTest {
 					JSONUtil.put("mappedField", "AssetCategory_name"))
 			).toString(),
 			fragmentEntry.getCss(), fragmentEntry.getConfiguration(),
-			fragmentEntry.getFragmentEntryId(), fragmentEntry.getHtml(),
+			fragmentEntry.getExternalReferenceCode(),
+			fragmentEntry.getScopeERC(), fragmentEntry.getHtml(),
 			fragmentEntry.getJs(), layout, fragmentEntry.getFragmentEntryKey(),
 			fragmentEntry.getType(), null, 0,
 			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
@@ -566,7 +589,8 @@ public class DisplayPageLayoutTypeControllerTest {
 	}
 
 	private void _assertIncludeLayoutContent(
-			boolean noSuchLayoutExceptionExpected, long plid, User user)
+			int expectedStatus, boolean noSuchLayoutExceptionExpected,
+			long plid, User user)
 		throws Exception {
 
 		Layout layout = _layoutLocalService.getLayout(plid);
@@ -596,7 +620,7 @@ public class DisplayPageLayoutTypeControllerTest {
 			Assert.assertFalse(noSuchLayoutExceptionExpected);
 
 			Assert.assertEquals(
-				HttpServletResponse.SC_OK, mockHttpServletResponse.getStatus());
+				expectedStatus, mockHttpServletResponse.getStatus());
 		}
 		catch (NoSuchLayoutException noSuchLayoutException) {
 			Assert.assertTrue(noSuchLayoutExceptionExpected);
@@ -763,6 +787,25 @@ public class DisplayPageLayoutTypeControllerTest {
 			_infoItemPermissionProvider.hasPermission(
 				_permissionCheckerFactory.create(_guestUser), _assetCategory,
 				ActionKeys.VIEW));
+	}
+
+	private void _testDisplayPageTypeControllerWithoutContextInfoItem(
+			int expectedStatus, Layout draftLayout, User user)
+		throws Exception {
+
+		_assertIncludeLayoutContent(
+			HttpServletResponse.SC_OK, false, draftLayout.getClassPK(),
+			TestPropsValues.getUser());
+		_assertIncludeLayoutContent(
+			HttpServletResponse.SC_OK, false, draftLayout.getPlid(),
+			TestPropsValues.getUser());
+		_assertIncludeLayoutContent(
+			HttpServletResponse.SC_OK, true, draftLayout.getClassPK(),
+			_guestUser);
+		_assertIncludeLayoutContent(
+			HttpServletResponse.SC_OK, true, draftLayout.getPlid(), _guestUser);
+		_assertIncludeLayoutContent(
+			expectedStatus, false, draftLayout.getClassPK(), user);
 	}
 
 	private static final String _PID =

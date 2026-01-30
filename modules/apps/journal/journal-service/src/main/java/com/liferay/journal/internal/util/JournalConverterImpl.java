@@ -108,7 +108,7 @@ public class JournalConverterImpl implements JournalConverter {
 			for (DDMFormField ddmFormField : ddmForm.getDDMFormFields()) {
 				_addDDMFields(
 					availableLanguageIds, defaultLanguageId, ddmFields,
-					ddmFormField, ddmStructure, rootElement);
+					ddmFormField, ddmStructure, rootElement, rootElement);
 			}
 
 			return ddmFields;
@@ -156,7 +156,7 @@ public class JournalConverterImpl implements JournalConverter {
 	private void _addDDMFields(
 			String[] availableLanguageIds, String defaultLanguageId,
 			Fields ddmFields, DDMFormField ddmFormField,
-			DDMStructure ddmStructure, Element element)
+			DDMStructure ddmStructure, Element element, Element rootElement)
 		throws PortalException {
 
 		String ddmFormFieldName = ddmFormField.getName();
@@ -171,6 +171,16 @@ public class JournalConverterImpl implements JournalConverter {
 		}
 
 		if (dynamicElementElements == null) {
+
+			// This may happen when fields in the structure have been
+			// rearranged. In this case, look for the field starting from the
+			// root again. See LPD-69008.
+
+			dynamicElementElements = _getDynamicElementElements(
+				rootElement, ddmFormFieldName);
+		}
+
+		if (dynamicElementElements == null) {
 			if (Objects.equals(
 					ddmFormField.getType(),
 					DDMFormFieldTypeConstants.FIELDSET)) {
@@ -181,7 +191,7 @@ public class JournalConverterImpl implements JournalConverter {
 
 			_addNestedDDMFields(
 				availableLanguageIds, defaultLanguageId, ddmFields,
-				ddmFormField, ddmStructure, element);
+				ddmFormField, ddmStructure, element, rootElement);
 
 			return;
 		}
@@ -228,33 +238,14 @@ public class JournalConverterImpl implements JournalConverter {
 
 			_addNestedDDMFields(
 				availableLanguageIds, defaultLanguageId, ddmFields,
-				ddmFormField, ddmStructure, dynamicElementElement);
-		}
-	}
-
-	private void _addMissingFieldValues(
-		Field ddmField, String defaultLanguageId,
-		Set<String> missingLanguageIds) {
-
-		if (missingLanguageIds.isEmpty()) {
-			return;
-		}
-
-		Locale defaultLocale = LocaleUtil.fromLanguageId(defaultLanguageId);
-
-		Serializable fieldValue = ddmField.getValue(defaultLocale);
-
-		for (String missingLanguageId : missingLanguageIds) {
-			Locale missingLocale = LocaleUtil.fromLanguageId(missingLanguageId);
-
-			ddmField.setValue(missingLocale, fieldValue);
+				ddmFormField, ddmStructure, dynamicElementElement, rootElement);
 		}
 	}
 
 	private void _addNestedDDMFields(
 			String[] availableLanguageIds, String defaultLanguageId,
 			Fields ddmFields, DDMFormField ddmFormField,
-			DDMStructure ddmStructure, Element element)
+			DDMStructure ddmStructure, Element element, Element rootElement)
 		throws PortalException {
 
 		for (DDMFormField nestedDDMFormField :
@@ -262,7 +253,7 @@ public class JournalConverterImpl implements JournalConverter {
 
 			_addDDMFields(
 				availableLanguageIds, defaultLanguageId, ddmFields,
-				nestedDDMFormField, ddmStructure, element);
+				nestedDDMFormField, ddmStructure, element, rootElement);
 		}
 	}
 
@@ -456,17 +447,6 @@ public class JournalConverterImpl implements JournalConverter {
 			ddmField.addValue(locale, serializable);
 		}
 
-		String type = ddmField.getType();
-
-		if (!StringUtil.equals(
-				type, DDMFormFieldTypeConstants.DOCUMENT_LIBRARY) &&
-			!StringUtil.equals(type, DDMFormFieldTypeConstants.RICH_TEXT) &&
-			!StringUtil.equals(type, DDMFormFieldTypeConstants.TEXT)) {
-
-			_addMissingFieldValues(
-				ddmField, defaultLanguageId, missingLanguageIds);
-		}
-
 		return ddmField;
 	}
 
@@ -602,6 +582,9 @@ public class JournalConverterImpl implements JournalConverter {
 				DDMFormFieldTypeConstants.CHECKBOX_MULTIPLE, fieldType)) {
 
 			try {
+				JSONArray fieldValueJSONArray = _jsonFactory.createJSONArray(
+					fieldValue);
+
 				DDMFormFieldOptions ddmFormFieldOptions =
 					(DDMFormFieldOptions)ddmFormField.getProperty("options");
 
@@ -611,11 +594,20 @@ public class JournalConverterImpl implements JournalConverter {
 				if (options.size() > 1) {
 					dynamicContentElement.addCDATA(fieldValue);
 
+					for (int i = 0; i < fieldValueJSONArray.length(); i++) {
+						String selectedValue = fieldValueJSONArray.getString(i);
+
+						Element optionReferenceElement =
+							dynamicContentElement.addElement(
+								"option-reference");
+
+						optionReferenceElement.addCDATA(
+							ddmFormFieldOptions.getOptionReference(
+								selectedValue));
+					}
+
 					return;
 				}
-
-				JSONArray fieldValueJSONArray = _jsonFactory.createJSONArray(
-					fieldValue);
 
 				if (fieldValueJSONArray.length() == 1) {
 					fieldValue = Boolean.TRUE.toString();
@@ -634,6 +626,20 @@ public class JournalConverterImpl implements JournalConverter {
 			}
 
 			dynamicContentElement.addCDATA(fieldValue);
+		}
+		else if (Objects.equals(DDMFormFieldTypeConstants.RADIO, fieldType) &&
+				 Validator.isNotNull(fieldValue)) {
+
+			DDMFormFieldOptions ddmFormFieldOptions =
+				ddmFormField.getDDMFormFieldOptions();
+
+			dynamicContentElement.addCDATA(fieldValue);
+
+			Element optionReferenceElement = dynamicContentElement.addElement(
+				"option-reference");
+
+			optionReferenceElement.addCDATA(
+				ddmFormFieldOptions.getOptionReference(fieldValue));
 		}
 		else if (Objects.equals(DDMFormFieldTypeConstants.SELECT, fieldType) &&
 				 Validator.isNotNull(fieldValue)) {
@@ -670,10 +676,20 @@ public class JournalConverterImpl implements JournalConverter {
 				}
 			}
 			else {
-				dynamicContentElement.addCDATA(
-					StringUtil.merge(
-						JSONUtil.toStringArray(jsonArray),
-						StringPool.COMMA_AND_SPACE));
+				Element optionElement = dynamicContentElement.addElement(
+					"option");
+
+				optionElement.addCDATA(jsonArray.getString(0));
+
+				Element optionReferenceElement =
+					dynamicContentElement.addElement("option-reference");
+
+				DDMFormFieldOptions ddmFormFieldOptions =
+					ddmFormField.getDDMFormFieldOptions();
+
+				optionReferenceElement.addCDATA(
+					ddmFormFieldOptions.getOptionReference(
+						jsonArray.getString(0)));
 			}
 		}
 		else {

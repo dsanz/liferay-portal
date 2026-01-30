@@ -6,11 +6,13 @@
 import ClayButton from '@clayui/button';
 import ClayDropDown from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
-import React, {useEffect, useState} from 'react';
+import {sub} from 'frontend-js-web';
+import React, {useEffect, useRef, useState} from 'react';
 
 import initializeLock from './initializeLock';
 import PublishModal from './modals/PublishModal';
 import removeAlert from './removeAlert';
+import showAlert from './showAlert';
 
 const ACTION_PUBLISH = 'publish';
 const ACTION_DRAFT = 'draft';
@@ -21,6 +23,7 @@ export default function SaveButtons({
 	defaultLanguageId: initialDefaultLanguageId,
 	displayDate,
 	editingDefaultValues,
+	isPending,
 	permissionsURL,
 	portletNamespace,
 	publishButtonLabel,
@@ -42,6 +45,8 @@ export default function SaveButtons({
 		useState({publishModalAction: '', publishModalVisible: false});
 
 	const [saveButtonDisabled, setSaveButtonDisabled] = useState(false);
+
+	const lockRef = useRef(null);
 
 	useEffect(() => {
 		const localeChangeHandler = (event) => {
@@ -83,36 +88,76 @@ export default function SaveButtons({
 				`${portletNamespace}changesSavedIndicator`
 			),
 		});
+
+		Liferay.componentReady(`${portletNamespace}publishing`).then(
+			(publishLock) => {
+				lockRef.current = publishLock;
+			}
+		);
 	}, [portletNamespace]);
 
-	const onClick = async (action) => {
+	const validateDefaultLanguageTitle = () => {
 		const titleInputComponent = Liferay.component(
 			`${portletNamespace}titleMapAsXML`
 		);
 
 		if (!titleInputComponent?.getValue(defaultLanguageId)) {
-			await validateRequiredFields(formId);
+			showAlert(
+				sub(
+					Liferay.Language.get(
+						'please-enter-a-valid-title-for-the-default-language-x'
+					),
+					defaultLanguageId.replaceAll('_', '-')
+				)
+			);
 
+			return false;
+		}
+
+		return true;
+	};
+
+	const onClick = async (action, directSubmit = false) => {
+		if (!(await validateRequiredFields(formId))) {
 			return;
 		}
 
-		if (articleId && !showPublishModal) {
+		if (!validateDefaultLanguageTitle()) {
+			return;
+		}
+
+		if (directSubmit || (articleId && !showPublishModal)) {
 			handleButtonClick(action);
 
-			await validateRequiredFields(formId);
-
 			return;
 		}
 
+		setPublishModalState({
+			publishModalAction: action,
+			publishModalVisible: true,
+		});
+	};
+
+	const onScheduleButtonClick = async () => {
 		if (await validateRequiredFields(formId)) {
+			if (!validateDefaultLanguageTitle()) {
+				return;
+			}
+
 			setPublishModalState({
-				publishModalAction: action,
+				publishModalAction: ACTION_SCHEDULE,
 				publishModalVisible: true,
 			});
 		}
 	};
 
 	const handleButtonClick = (action) => {
+		if (lockRef.current?.isLocked()) {
+			return;
+		}
+
+		lockRef.current?.lock();
+
 		removeAlert();
 
 		const workflowActionInput = document.getElementById(
@@ -193,7 +238,9 @@ export default function SaveButtons({
 			`${portletNamespace}dataEngineLayoutRenderer`
 		);
 
-		return renderer.reactComponentRef.current.validate();
+		const fields = await renderer.reactComponentRef.current.getFields();
+
+		return fields.every((field) => field.valid === true);
 	};
 
 	useEffect(() => {
@@ -230,78 +277,59 @@ export default function SaveButtons({
 				</ClayButton>
 			) : null}
 
+			<ClayButton
+				className="rounded-0-right"
+				disabled={saveButtonDisabled || isPending}
+				displayType="primary"
+				onClick={() => onClick(ACTION_PUBLISH, true)}
+				title={sub(
+					workflowEnabled
+						? Liferay.Language.get('submit-x-for-workflow')
+						: Liferay.Language.get('publish-x'),
+					Liferay.Language.get('article')
+				)}
+				type="submit"
+			>
+				{publishButtonLabel}
+			</ClayButton>
+
 			<ClayDropDown
 				hasLeftSymbols
 				trigger={
 					<ClayButton
-						aria-label={
-							workflowEnabled
-								? Liferay.Language.get(
-										'select-and-confirm-submit-for-workflow-settings'
-									)
-								: Liferay.Language.get(
-										'select-and-confirm-publish-settings'
-									)
-						}
-						disabled={saveButtonDisabled}
-						title={
-							workflowEnabled
-								? Liferay.Language.get(
-										'select-and-confirm-submit-for-workflow-settings'
-									)
-								: Liferay.Language.get(
-										'select-and-confirm-publish-settings'
-									)
-						}
+						aria-label={Liferay.Language.get('publish-options')}
+						className="border-left px-2 rounded-0-left"
+						disabled={saveButtonDisabled || isPending}
+						title={Liferay.Language.get('publish-options')}
 					>
-						{publishButtonLabel}
-
-						<span className="inline-item inline-item-after">
+						<span className="inline-item">
 							<ClayIcon symbol="caret-bottom" />
 						</span>
 					</ClayButton>
 				}
 			>
 				<ClayDropDown.ItemList>
-					<ClayDropDown.Item
-						form={formId}
-						onClick={() => onClick(ACTION_PUBLISH)}
-						symbolLeft="arrow-right-full"
-						type={showPublishModal ? 'button' : 'submit'}
-					>
-						{articleId
-							? workflowEnabled
-								? showPublishModal
-									? Liferay.Language.get(
-											'submit-for-workflow-with-permissions'
-										)
-									: Liferay.Language.get(
-											'submit-for-workflow'
-										)
-								: showPublishModal
-									? Liferay.Language.get(
-											'publish-with-permissions'
-										)
-									: Liferay.Language.get('publish')
-							: workflowEnabled
+					{(!articleId || showPublishModal) && (
+						<ClayDropDown.Item
+							form={formId}
+							onClick={() => onClick(ACTION_PUBLISH)}
+							symbolLeft="arrow-right-full"
+							type="button"
+						>
+							{workflowEnabled
 								? Liferay.Language.get(
 										'submit-for-workflow-with-permissions'
 									)
 								: Liferay.Language.get(
 										'publish-with-permissions'
 									)}
-					</ClayDropDown.Item>
+						</ClayDropDown.Item>
+					)}
 
 					<ClayDropDown.Item
-						onClick={async () => {
-							if (await validateRequiredFields(formId)) {
-								setPublishModalState({
-									publishModalAction: ACTION_SCHEDULE,
-									publishModalVisible: true,
-								});
-							}
-						}}
+						onClick={onScheduleButtonClick}
 						symbolLeft="date-time"
+						type="button"
 					>
 						{workflowEnabled
 							? Liferay.Language.get(
@@ -316,6 +344,7 @@ export default function SaveButtons({
 				<PublishModal
 					actionButton={publishModalAction}
 					articleId={articleId}
+					buttonDisabled={saveButtonDisabled}
 					displayDate={displayDate}
 					onCloseModal={() =>
 						setPublishModalState({

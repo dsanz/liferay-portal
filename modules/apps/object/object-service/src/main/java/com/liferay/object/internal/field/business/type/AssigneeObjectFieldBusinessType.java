@@ -9,12 +9,13 @@ import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.dynamic.data.mapping.form.field.type.constants.ObjectDDMFormFieldTypeConstants;
 import com.liferay.object.exception.ObjectEntryValuesException;
 import com.liferay.object.field.business.type.ObjectFieldBusinessType;
-import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.field.render.ObjectFieldRenderingContext;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.rest.dto.v1_0.Assignee;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.lazy.referencing.LazyReferencingThreadLocal;
 import com.liferay.portal.kernel.log.Log;
@@ -49,7 +50,7 @@ import org.osgi.service.component.annotations.Reference;
 	service = ObjectFieldBusinessType.class
 )
 public class AssigneeObjectFieldBusinessType
-	implements ObjectFieldBusinessType {
+	extends BaseObjectFieldBusinessType {
 
 	@Override
 	public String getDBType() {
@@ -91,6 +92,19 @@ public class AssigneeObjectFieldBusinessType
 	}
 
 	@Override
+	public Map<String, Object> getProperties(
+			ObjectField objectField,
+			ObjectFieldRenderingContext objectFieldRenderingContext)
+		throws PortalException {
+
+		return HashMapBuilder.<String, Object>put(
+			"portletId", objectFieldRenderingContext.getPortletId()
+		).putAll(
+			super.getProperties(objectField, objectFieldRenderingContext)
+		).build();
+	}
+
+	@Override
 	public PropertyDefinition.PropertyType getPropertyType() {
 		return PropertyDefinition.PropertyType.LONG;
 	}
@@ -112,19 +126,26 @@ public class AssigneeObjectFieldBusinessType
 				Assignee assignee = (Assignee)value;
 
 				return _getValue(
-					objectField.getCompanyId(),
 					assignee.getExternalReferenceCode(), assignee.getName(),
-					assignee.getTypeAsString());
+					objectField, assignee.getTypeAsString());
 			}
 			else if (value instanceof Map) {
 				Map<String, Serializable> valueMap =
 					(Map<String, Serializable>)value;
 
 				return _getValue(
-					objectField.getCompanyId(),
 					MapUtil.getString(valueMap, "externalReferenceCode"),
-					MapUtil.getString(valueMap, "name"),
+					MapUtil.getString(valueMap, "name"), objectField,
 					MapUtil.getString(valueMap, "type"));
+			}
+			else if (value instanceof String) {
+				JSONObject jsonObject = _jsonFactory.createJSONObject(
+					(String)value);
+
+				return _getValue(
+					jsonObject.getString("externalReferenceCode"),
+					jsonObject.getString("name"), objectField,
+					jsonObject.getString("type"));
 			}
 		}
 		catch (Exception exception) {
@@ -144,18 +165,12 @@ public class AssigneeObjectFieldBusinessType
 		return false;
 	}
 
-	@Override
-	public boolean isVisible(ObjectDefinition objectDefinition) {
-		return FeatureFlagManagerUtil.isEnabled(
-			objectDefinition.getCompanyId(), "LPD-6233");
-	}
-
 	private Object _getValue(
-			long companyId, String externalReferenceCode, String name,
+			String externalReferenceCode, String name, ObjectField objectField,
 			String type)
 		throws Exception {
 
-		if (StringUtil.equals(type, Assignee.Type.ROLE.toString())) {
+		if (StringUtil.equalsIgnoreCase(type, Assignee.Type.ROLE.toString())) {
 			return HashMapBuilder.put(
 				"classNameId", _portal.getClassNameId(Role.class.getName())
 			).put(
@@ -170,14 +185,23 @@ public class AssigneeObjectFieldBusinessType
 					}
 					else {
 						role = _roleLocalService.getRoleByExternalReferenceCode(
-							externalReferenceCode, companyId);
+							externalReferenceCode, objectField.getCompanyId());
+					}
+
+					if (StringUtil.equals(
+							role.getName(), RoleConstants.GUEST)) {
+
+						throw new ObjectEntryValuesException.InvalidValue(
+							objectField.getName());
 					}
 
 					return role.getRoleId();
 				}
 			).build();
 		}
-		else if (StringUtil.equals(type, Assignee.Type.USER.toString())) {
+		else if (StringUtil.equalsIgnoreCase(
+					type, Assignee.Type.USER.toString())) {
+
 			return HashMapBuilder.put(
 				"classNameId", _portal.getClassNameId(User.class.getName())
 			).put(
@@ -185,7 +209,7 @@ public class AssigneeObjectFieldBusinessType
 				() -> {
 					User user =
 						_userLocalService.getUserByExternalReferenceCode(
-							externalReferenceCode, companyId);
+							externalReferenceCode, objectField.getCompanyId());
 
 					return user.getUserId();
 				}
@@ -197,6 +221,9 @@ public class AssigneeObjectFieldBusinessType
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		AssigneeObjectFieldBusinessType.class);
+
+	@Reference
+	private JSONFactory _jsonFactory;
 
 	@Reference
 	private Portal _portal;

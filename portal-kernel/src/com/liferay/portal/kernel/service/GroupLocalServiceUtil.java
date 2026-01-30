@@ -52,33 +52,21 @@ public class GroupLocalServiceUtil {
 	}
 
 	public static Group addGroup(
-			long userId, long parentGroupId, String className, long classPK,
-			long liveGroupId, Map<java.util.Locale, String> nameMap,
+			String externalReferenceCode, long userId, long parentGroupId,
+			String className, long classPK, long liveGroupId,
+			Map<java.util.Locale, String> nameMap,
 			Map<java.util.Locale, String> descriptionMap, int type,
-			boolean manualMembership, int membershipRestriction,
-			String friendlyURL, boolean site, boolean inheritContent,
-			boolean active, ServiceContext serviceContext)
-		throws PortalException {
-
-		return getService().addGroup(
-			userId, parentGroupId, className, classPK, liveGroupId, nameMap,
-			descriptionMap, type, manualMembership, membershipRestriction,
-			friendlyURL, site, inheritContent, active, serviceContext);
-	}
-
-	public static Group addGroup(
-			long userId, long parentGroupId, String className, long classPK,
-			long liveGroupId, Map<java.util.Locale, String> nameMap,
-			Map<java.util.Locale, String> descriptionMap, int type,
-			boolean manualMembership, int membershipRestriction,
-			String friendlyURL, boolean site, boolean active,
+			String typeSettings, boolean manualMembership,
+			int membershipRestriction, String friendlyURL, boolean site,
+			boolean inheritContent, boolean active,
 			ServiceContext serviceContext)
 		throws PortalException {
 
 		return getService().addGroup(
-			userId, parentGroupId, className, classPK, liveGroupId, nameMap,
-			descriptionMap, type, manualMembership, membershipRestriction,
-			friendlyURL, site, active, serviceContext);
+			externalReferenceCode, userId, parentGroupId, className, classPK,
+			liveGroupId, nameMap, descriptionMap, type, typeSettings,
+			manualMembership, membershipRestriction, friendlyURL, site,
+			inheritContent, active, serviceContext);
 	}
 
 	public static boolean addOrganizationGroup(
@@ -1337,6 +1325,21 @@ public class GroupLocalServiceUtil {
 			userId, start, end, orderByComparator);
 	}
 
+	public static List<Group> getUserGroups(
+			com.liferay.portal.kernel.model.User user, boolean inherit)
+		throws PortalException {
+
+		return getService().getUserGroups(user, inherit);
+	}
+
+	public static List<Group> getUserGroups(
+			com.liferay.portal.kernel.model.User user, boolean inherit,
+			int start, int end)
+		throws PortalException {
+
+		return getService().getUserGroups(user, inherit, start, end);
+	}
+
 	public static int getUserGroupsCount(long userId) {
 		return getService().getUserGroupsCount(userId);
 	}
@@ -2576,13 +2579,14 @@ public class GroupLocalServiceUtil {
 			long groupId, long parentGroupId,
 			Map<java.util.Locale, String> nameMap,
 			Map<java.util.Locale, String> descriptionMap, int type,
-			boolean manualMembership, int membershipRestriction,
-			String friendlyURL, boolean inheritContent, boolean active,
+			String typeSettings, boolean manualMembership,
+			int membershipRestriction, String friendlyURL,
+			boolean inheritContent, boolean active,
 			ServiceContext serviceContext)
 		throws PortalException {
 
 		return getService().updateGroup(
-			groupId, parentGroupId, nameMap, descriptionMap, type,
+			groupId, parentGroupId, nameMap, descriptionMap, type, typeSettings,
 			manualMembership, membershipRestriction, friendlyURL,
 			inheritContent, active, serviceContext);
 	}

@@ -5,6 +5,7 @@
 
 package com.liferay.site.cms.site.initializer.internal.service;
 
+import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalServiceWrapper;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -20,6 +21,7 @@ import org.osgi.service.component.annotations.Component;
 
 /**
  * @author Jürgen Kappler
+ * @author Roberto Díaz
  */
 @Component(service = ServiceWrapper.class)
 public class CMSObjectEntryFolderDepotEntryLocalServiceWrapper
@@ -31,7 +33,10 @@ public class CMSObjectEntryFolderDepotEntryLocalServiceWrapper
 
 		DepotEntry depotEntry = super.addDepotEntry(group, serviceContext);
 
-		ObjectEntryFolderUtil.addObjectEntryFolders(depotEntry.getGroupId());
+		if (depotEntry.getType() == DepotConstants.TYPE_SPACE) {
+			ObjectEntryFolderUtil.addObjectEntryFolders(
+				depotEntry.getGroupId());
+		}
 
 		return depotEntry;
 	}
@@ -45,9 +50,36 @@ public class CMSObjectEntryFolderDepotEntryLocalServiceWrapper
 		DepotEntry depotEntry = super.addDepotEntry(
 			nameMap, descriptionMap, type, serviceContext);
 
-		ObjectEntryFolderUtil.addObjectEntryFolders(depotEntry.getGroupId());
+		if (depotEntry.getType() == DepotConstants.TYPE_SPACE) {
+			ObjectEntryFolderUtil.addObjectEntryFolders(
+				depotEntry.getGroupId());
+		}
 
 		return depotEntry;
+	}
+
+	@Override
+	public DepotEntry deleteDepotEntry(DepotEntry depotEntry)
+		throws PortalException {
+
+		if (depotEntry.getType() == DepotConstants.TYPE_SPACE) {
+			ObjectEntryFolderUtil.deleteObjectEntryFolders(depotEntry);
+		}
+
+		return super.deleteDepotEntry(depotEntry);
+	}
+
+	@Override
+	public DepotEntry deleteDepotEntry(long depotEntryId)
+		throws PortalException {
+
+		DepotEntry depotEntry = getDepotEntry(depotEntryId);
+
+		if (depotEntry.getType() == DepotConstants.TYPE_SPACE) {
+			ObjectEntryFolderUtil.deleteObjectEntryFolders(depotEntry);
+		}
+
+		return super.deleteDepotEntry(depotEntryId);
 	}
 
 }

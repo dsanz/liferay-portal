@@ -37,11 +37,11 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -56,7 +56,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 /**
  * @author Istvan Sajtos
  */
-@FeatureFlag("LPD-6378")
 @RunWith(Arquillian.class)
 public class LoginMVCActionCommandTest {
 
@@ -92,7 +91,7 @@ public class LoginMVCActionCommandTest {
 				_layoutUtilityPageEntryLocalService.addLayoutUtilityPageEntry(
 					null, _serviceContext.getUserId(), _group.getGroupId(), 0,
 					0, true, RandomTestUtil.randomString(),
-					LayoutUtilityPageEntryConstants.TYPE_LOGIN, 0,
+					LayoutUtilityPageEntryConstants.TYPE_LOGIN, null,
 					_serviceContext);
 
 			CustomMockLiferayPortletActionResponse
@@ -186,6 +185,11 @@ public class LoginMVCActionCommandTest {
 
 		MockLiferayPortletActionRequest mockLiferayPortletActionRequest =
 			new MockLiferayPortletActionRequest() {
+
+				@Override
+				public HttpServletRequest getOriginalHttpServletRequest() {
+					return new MockHttpServletRequest();
+				}
 
 				@Override
 				public Portlet getPortlet() {

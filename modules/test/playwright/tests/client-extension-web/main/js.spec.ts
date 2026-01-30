@@ -5,7 +5,6 @@
 
 import {Page, expect, mergeTests} from '@playwright/test';
 
-import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {pagesAdminPagesTest} from '../../../fixtures/pagesAdminPagesTest';
@@ -13,6 +12,7 @@ import {siteSettingsPagesTest} from '../../../fixtures/siteSettingsPagesTest';
 import {styleBookPageTest} from '../../../fixtures/styleBookPageTest';
 import {PagesAdminPage} from '../../../pages/layout-admin-web/PagesAdminPage';
 import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
+import {disableCache} from '../../../utils/disableCache';
 import getRandomString from '../../../utils/getRandomString';
 import {clientExtensionsPageTest} from './fixtures/clientExtensionsPageTest';
 import {editJSClientExtensionsPageTest} from './fixtures/editJSClientExtensionsPageTest';
@@ -32,9 +32,6 @@ const test = mergeTests(
 const testSample = mergeTests(loginTest());
 const testSampleInstanceScoped = mergeTests(
 	editJSClientExtensionsPageTest,
-	featureFlagsTest({
-		'LPD-30371': {enabled: true},
-	}),
 	loginTest(),
 	styleBookPageTest
 );
@@ -43,91 +40,91 @@ const SAMPLES = [
 	{
 		erc: 'LXC:liferay-sample-global-js-1',
 		name: 'Liferay Sample Global JS 1',
-		url: '',
 	},
 	{
 		erc: 'LXC:liferay-sample-global-js-2',
 		name: 'Liferay Sample Global JS 2',
-		url: '',
 	},
 	{
 		erc: 'LXC:liferay-sample-global-js-3',
 		name: 'Liferay Sample Global JS 3',
-		url: '',
 	},
 ];
 
+const INSTANCE_SCOPED_SAMPLE = SAMPLES[2];
+
+async function getRegisteredSampleData(page: Page, erc: string) {
+	const viewClientExtensionPage = new ViewClientExtensionPage(page, erc);
+
+	await viewClientExtensionPage.goto();
+
+	return {
+		name: await viewClientExtensionPage.nameInput.inputValue(),
+		scriptUrl: await viewClientExtensionPage
+			.getInputByLabel('JavaScript URL')
+			.inputValue(),
+	};
+}
+
 testSample.describe('Samples', () => {
-	for (const sample of SAMPLES) {
-		testSample(`${sample.name} is registered`, async ({page}) => {
-			const viewClientExtensionPage = new ViewClientExtensionPage(
-				page,
-				sample.erc
-			);
+	for (const {erc, name} of SAMPLES) {
+		testSample(`${name} is registered`, async ({page}) => {
+			const data = await getRegisteredSampleData(page, erc);
 
-			await viewClientExtensionPage.goto();
-
-			await expect(viewClientExtensionPage.nameInput).toHaveValue(
-				sample.name
-			);
-
-			sample.url = await viewClientExtensionPage
-				.getInputByLabel('JavaScript URL')
-				.inputValue();
-
-			await expect(
-				viewClientExtensionPage.getInputByLabel('JavaScript URL')
-			).toHaveValue(sample.url);
+			expect(data.name).toBe(name);
+			expect(data.scriptUrl).toBeTruthy();
 		});
 
-		testSample(
-			`${sample.name}'s .js file can be downloaded`,
-			async ({page}) => {
-				const response = await page.goto(sample.url);
+		testSample(`${name}'s .js file can be downloaded`, async ({page}) => {
+			const {scriptUrl} = await getRegisteredSampleData(page, erc);
 
-				expect(response.status()).toBe(200);
-				expect(await response.headerValue('Content-Type')).toBe(
-					'application/javascript'
-				);
-			}
-		);
+			await disableCache(page);
+
+			const response = await page.goto(scriptUrl);
+
+			expect(response.status()).toBe(200);
+			expect(await response.headerValue('Content-Type')).toContain(
+				'application/javascript'
+			);
+		});
 	}
 });
 
 testSampleInstanceScoped.describe('Samples (instance scoped)', () => {
 	testSampleInstanceScoped(
 		'Assert that the instance scoped client extensions are injected into site pages, site control panel pages, and instance control panel pages',
-		async ({editJSClientExtensionsPage, page, styleBooksPage}) => {
-			const scriptLocator = page.locator(
-				`script[src="${SAMPLES[2].url}"]`
+		async ({page, styleBooksPage}) => {
+			const {scriptUrl} = await getRegisteredSampleData(
+				page,
+				INSTANCE_SCOPED_SAMPLE.erc
 			);
 
-			await testSampleInstanceScoped.step(
-				'Assert that the client extension is imported into a site page',
-				async () => {
-					await page.goto('/');
+			const injectionsTests = [
+				{
+					name: 'an instance control panel page',
+				},
+				{
+					name: 'a site control panel page',
+					navigateToPage: () => styleBooksPage.goto(),
+				},
+				{
+					name: 'a site page',
+					navigateToPage: () => page.goto('/'),
+				},
+			];
 
-					await expect(scriptLocator).toBeAttached();
-				}
-			);
+			for (const {name, navigateToPage} of injectionsTests) {
+				await testSampleInstanceScoped.step(
+					`Assert that the client extension is imported into ${name}`,
+					async () => {
+						await navigateToPage?.();
 
-			await testSampleInstanceScoped.step(
-				'Assert that the client extension is imported into an instance control panel page',
-				async () => {
-					await editJSClientExtensionsPage.goto();
-
-					await expect(scriptLocator).toBeAttached();
-				}
-			);
-
-			await testSampleInstanceScoped.step(
-				'Assert that the client extension is imported into a site control panel page',
-				async () => {
-					await styleBooksPage.goto();
-
-					await expect(scriptLocator).toBeAttached();
-				}
-			);
+						await expect(
+							page.locator(`script[src="${scriptUrl}"]`)
+						).toBeAttached();
+					}
+				);
+			}
 		}
 	);
 });

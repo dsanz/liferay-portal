@@ -1,0 +1,241 @@
+# Change Log
+
+All notable changes to this project will be documented in this file.
+See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
+
+## [3.144.1](https://github.com/liferay/clay/compare/v3.144.0...v3.144.1) (2025-08-29)
+
+### Bug Fixes
+
+- make sure peerDependencies for react aren't too greedy ([72c4612](https://github.com/liferay/clay/commit/72c4612944bcfe61c51c0d224ac145f76a819a62))
+
+## [3.143.2](https://github.com/liferay/clay/compare/v3.143.1...v3.143.2) (2025-08-22)
+
+### Bug Fixes
+
+- types should always be first ([b1fcc40](https://github.com/liferay/clay/commit/b1fcc40a68d9a6bd2d285820baea4b17d1045ab6))
+
+## [3.143.1](https://github.com/liferay/clay/compare/v3.143.0...v3.143.1) (2025-08-22)
+
+### Bug Fixes
+
+- include types in the npm exports configuration ([ad973f0](https://github.com/liferay/clay/commit/ad973f0faea57569480d802096a689889ac036c9))
+
+# [3.143.0](https://github.com/liferay/clay/compare/v3.141.1...v3.143.0) (2025-08-15)
+
+### Features
+
+- publish clay as both CJS and ESM ([32cb387](https://github.com/liferay/clay/commit/32cb3872e825d937d2807637efdee62ff7977d7c))
+
+# [3.130.0](https://github.com/liferay/clay/compare/@clayui/management-toolbar@3.3.0...@clayui/management-toolbar@3.130.0) (2025-08-01)
+
+# 3.129.0 (2025-02-27)
+
+### Features
+
+- **@clayui/management-toolbar:** LPD-49362 Add fluidSize prop ([d47205f](https://github.com/liferay/clay/commit/d47205ff1170bf91363739bd23abf1b802b52261))
+
+# 3.128.0 (2025-02-20)
+
+### Bug Fixes
+
+- fix typescript error ([79b6a1f](https://github.com/liferay/clay/commit/79b6a1f9b6f160fcf9c158bf4e88702a07aa7280))
+
+### Features
+
+- **@clayui/management-toolbar:** improves component typing to create API Management Toolbar ([6ab6ee8](https://github.com/liferay/clay/commit/6ab6ee89e478966c3da6fc80045c83ef47f4d00d))
+
+# 3.111.0 (2024-02-15)
+
+## 3.106.1 (2023-10-26)
+
+# 3.106.0 (2023-10-25)
+
+### Bug Fixes
+
+- remove 'src' dir from being packaged with npm ([9383e8d](https://github.com/liferay/clay/commit/9383e8d8abb25ca3396e7c6e4dfa53bbc72691c5))
+- use package's directory for baseDir when generating type ([0a5c710](https://github.com/liferay/clay/commit/0a5c710092f36243bc8d5487f70e831295715072))
+
+# 3.93.0 (2023-04-19)
+
+## 3.65.1 (2022-07-11)
+
+# 3.65.0 (2022-07-11)
+
+# 3.56.0 (2022-05-09)
+
+# 3.55.0 (2022-05-02)
+
+### Features
+
+- **@clayui/management-toolbar:** Deprecate ClayManagementToolbar ([744b46e](https://github.com/liferay/clay/commit/744b46e54c322fae32d00f2b1cd4762a25e4e5c9))
+
+# 3.40.0 (2021-11-17)
+
+# 3.39.0 (2021-10-29)
+
+# 3.38.0 (2021-10-22)
+
+# 3.37.0 (2021-10-06)
+
+# 3.31.0 (2021-06-30)
+
+# [3.129.0](https://github.com/liferay/clay/compare/v3.128.3...v3.129.0) (2025-02-27)
+
+### Features
+
+- **@clayui/management-toolbar:** LPD-49362 Add fluidSize prop ([d47205f](https://github.com/liferay/clay/commit/d47205ff1170bf91363739bd23abf1b802b52261))
+
+# [3.128.0](https://github.com/liferay/clay/compare/v3.127.0...v3.128.0) (2025-02-20)
+
+### Bug Fixes
+
+- fix typescript error ([79b6a1f](https://github.com/liferay/clay/commit/79b6a1f9b6f160fcf9c158bf4e88702a07aa7280))
+
+### Features
+
+- **@clayui/management-toolbar:** improves component typing to create API Management Toolbar ([6ab6ee8](https://github.com/liferay/clay/commit/6ab6ee89e478966c3da6fc80045c83ef47f4d00d))
+
+# [3.111.0](https://github.com/liferay/clay/compare/v3.110.0...v3.111.0) (2024-02-15)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+## [3.106.1](https://github.com/liferay/clay/compare/v3.106.0...v3.106.1) (2023-10-26)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+# [3.106.0](https://github.com/liferay/clay/compare/v3.105.0...v3.106.0) (2023-10-25)
+
+### Bug Fixes
+
+- remove 'src' dir from being packaged with npm ([9383e8d](https://github.com/liferay/clay/commit/9383e8d8abb25ca3396e7c6e4dfa53bbc72691c5))
+- use package's directory for baseDir when generating type ([0a5c710](https://github.com/liferay/clay/commit/0a5c710092f36243bc8d5487f70e831295715072))
+
+# [3.93.0](https://github.com/liferay/clay/compare/v3.92.0...v3.93.0) (2023-04-19)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+## [3.65.1](https://github.com/liferay/clay/compare/v3.65.0...v3.65.1) (2022-07-11)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+# [3.65.0](https://github.com/liferay/clay/compare/v3.64.0...v3.65.0) (2022-07-11)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+# [3.56.0](https://github.com/liferay/clay/compare/v3.55.0...v3.56.0) (2022-05-09)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+# [3.55.0](https://github.com/liferay/clay/compare/v3.54.0...v3.55.0) (2022-05-02)
+
+### Features
+
+- **@clayui/management-toolbar:** Deprecate ClayManagementToolbar ([744b46e](https://github.com/liferay/clay/commit/744b46e54c322fae32d00f2b1cd4762a25e4e5c9))
+
+# [3.40.0](https://github.com/liferay/clay/compare/v3.39.0...v3.40.0) (2021-11-17)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+# [3.39.0](https://github.com/liferay/clay/compare/v3.38.0...v3.39.0) (2021-10-29)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+# [3.38.0](https://github.com/liferay/clay/compare/v3.37.0...v3.38.0) (2021-10-22)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+# [3.37.0](https://github.com/liferay/clay/compare/v3.36.0...v3.37.0) (2021-10-06)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+# [3.32.0](https://github.com/liferay/clay/compare/v3.31.0...v3.32.0) (2021-07-28)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+# [3.31.0](https://github.com/liferay/clay/compare/v3.30.0...v3.31.0) (2021-06-30)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+# [3.3.0](https://github.com/liferay/clay/compare/@clayui/management-toolbar@3.2.3...@clayui/management-toolbar@3.3.0) (2021-01-13)
+
+### Features
+
+- **clayui.com:** Move API tables to new files and update document tabs, rename files to use singular naming instead of plural, change mainTabURL of pagination-bar to a proper one ([d812ee9](https://github.com/liferay/clay/commit/d812ee9))
+
+## [3.2.3](https://github.com/liferay/clay/compare/@clayui/management-toolbar@3.2.2...@clayui/management-toolbar@3.2.3) (2020-08-11)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+## [3.2.2](https://github.com/liferay/clay/compare/@clayui/management-toolbar@3.2.1...@clayui/management-toolbar@3.2.2) (2020-07-14)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+## [3.2.1](https://github.com/liferay/clay/compare/@clayui/management-toolbar@3.2.0...@clayui/management-toolbar@3.2.1) (2020-06-18)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+# [3.2.0](https://github.com/liferay/clay/compare/@clayui/management-toolbar@3.1.1...@clayui/management-toolbar@3.2.0) (2020-05-21)
+
+### Bug Fixes
+
+- apply @clayui/layout to other components ([e8a6d0e](https://github.com/liferay/clay/commit/e8a6d0e))
+
+### Features
+
+- **clayui.com:** Revert the change made to headings used, rename stickers and tables to sticker and table respectively, also change some wording ([791dabe](https://github.com/liferay/clay/commit/791dabe))
+- **clayui.com:** Update content structure: Checkbox, Management Toolbar, Select Box, Sticker, Table & Tabs ([0fcd54a](https://github.com/liferay/clay/commit/0fcd54a))
+
+## [3.1.1](https://github.com/liferay/clay/compare/@clayui/management-toolbar@3.1.0...@clayui/management-toolbar@3.1.1) (2020-04-24)
+
+### Bug Fixes
+
+- Fix accessibility issues ([5e09db0](https://github.com/liferay/clay/commit/5e09db0))
+
+# 3.1.0 (2020-02-28)
+
+### Bug Fixes
+
+- **@clayui/management-toolbar:** remove duplicate class ([19a96e5](https://github.com/liferay/clay/commit/19a96e5))
+- **drop-down:** allow containerElement to accept a react component ([dc7f77a](https://github.com/liferay/clay/commit/dc7f77a))
+- adjust button displayType ([26a9f12](https://github.com/liferay/clay/commit/26a9f12))
+- bump all components to alpha.1 ([afabdec](https://github.com/liferay/clay/commit/afabdec))
+- replace npm in favor of yarn in new packages ([e366fbb](https://github.com/liferay/clay/commit/e366fbb))
+
+### Features
+
+- **@clayui/management-toolbar:** add basic rendering tests ([2a0869b](https://github.com/liferay/clay/commit/2a0869b))
+- **@clayui/management-toolbar:** add callback to search button ([0bc1d5f](https://github.com/liferay/clay/commit/0bc1d5f))
+- **@clayui/management-toolbar:** add ClayManagementToolbar component ([fdab7b8](https://github.com/liferay/clay/commit/fdab7b8))
+- **@clayui/management-toolbar:** set up ClayManagementToolbar structure ([15a66cb](https://github.com/liferay/clay/commit/15a66cb))
+- **management-toolbar:** add placeholder prop for search input ([9056774](https://github.com/liferay/clay/commit/9056774))
+
+## [3.0.6](https://github.com/liferay/clay/tree/master/packages/clay-management-toolbar/compare/@clayui/management-toolbar@3.0.3...@clayui/management-toolbar@3.0.6) (2020-01-31)
+
+### Bug Fixes
+
+- **drop-down:** allow containerElement to accept a react component ([dc7f77a](https://github.com/liferay/clay/commit/dc7f77a))
+- adjust button displayType ([26a9f12](https://github.com/liferay/clay/commit/26a9f12))
+
+## [3.0.5](https://github.com/liferay/clay/tree/master/packages/clay-management-toolbar/compare/@clayui/management-toolbar@3.0.3...@clayui/management-toolbar@3.0.5) (2020-01-20)
+
+### Bug Fixes
+
+- adjust button displayType ([26a9f12](https://github.com/liferay/clay/commit/26a9f12))
+- **drop-down:** allow containerElement to accept a react component ([dc7f77a](https://github.com/liferay/clay/commit/dc7f77a))
+
+## [3.0.4](https://github.com/liferay/clay/tree/master/packages/clay-management-toolbar/compare/@clayui/management-toolbar@3.0.3...@clayui/management-toolbar@3.0.4) (2019-12-05)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+## [3.0.3](https://github.com/liferay/clay/tree/master/packages/clay-management-toolbar/compare/@clayui/management-toolbar@3.0.2...@clayui/management-toolbar@3.0.3) (2019-11-07)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+## [3.0.2](https://github.com/liferay/clay/tree/master/packages/clay-management-toolbar/compare/@clayui/management-toolbar@3.0.1...@clayui/management-toolbar@3.0.2) (2019-11-01)
+
+**Note:** Version bump only for package @clayui/management-toolbar
+
+## [3.0.1](https://github.com/liferay/clay/tree/master/packages/clay-management-toolbar/compare/@clayui/management-toolbar@3.0.0...@clayui/management-toolbar@3.0.1) (2019-10-28)
+
+**Note:** Version bump only for package @clayui/management-toolbar

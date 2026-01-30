@@ -9,6 +9,7 @@ import {apiHelpersTest} from '../../../fixtures/apiHelpersTest';
 import {isolatedSiteTest} from '../../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {createCategories} from '../../../helpers/CreateCategories';
+import getRandomString from '../../../utils/getRandomString';
 import getBasicWebContentStructureId from '../../../utils/structured-content/getBasicWebContentStructureId';
 import {journalPagesTest} from './fixtures/journalPagesTest';
 import getDataStructureDefinition from './utils/getDataStructureDefinition';
@@ -206,51 +207,6 @@ test(
 
 		expect(
 			page.getByRole('row', {name: /\d+ .* ago by .*/i})
-		).toBeVisible();
-	}
-);
-
-test(
-	'Delete option should not be available when there is only one version available',
-	{tag: '@LPD-65083'},
-	async ({apiHelpers, journalPage, page, site}) => {
-		const basicWebContentStructureId =
-			await getBasicWebContentStructureId(apiHelpers);
-
-		const article = await apiHelpers.jsonWebServicesJournal.addWebContent({
-			ddmStructureId: basicWebContentStructureId,
-			groupId: site.id,
-			titleMap: {en_US: 'Basic Web content'},
-		});
-
-		await journalPage.goto(site.friendlyUrlPath);
-
-		await page.getByRole('button', {name: 'Actions'}).click();
-
-		await page.getByRole('menuitem', {name: 'View History'}).click();
-
-		await page.getByRole('button', {name: 'Actions'}).first().click();
-
-		await expect(
-			page.getByRole('menuitem', {name: 'Delete'})
-		).not.toBeVisible();
-
-		await apiHelpers.jsonWebServicesJournal.editWebContent(
-			{title: 'Updated Basic Web content'},
-			site.id,
-			article
-		);
-
-		await journalPage.goto(site.friendlyUrlPath);
-
-		await page.getByRole('button', {name: 'Actions'}).click();
-
-		await page.getByRole('menuitem', {name: 'View History'}).click();
-
-		await page.getByRole('button', {name: 'Actions'}).first().click();
-
-		await expect(
-			page.getByRole('menuitem', {name: 'Delete'})
 		).toBeVisible();
 	}
 );
@@ -546,3 +502,65 @@ test(
 		).toHaveCount(0);
 	}
 );
+
+test('Sorting must be disabled when the Recent filter is applied', async ({
+	apiHelpers,
+	journalPage,
+	page,
+	site,
+}) => {
+	const title = getRandomString();
+
+	const basicWebContentStructureId =
+		await getBasicWebContentStructureId(apiHelpers);
+
+	await apiHelpers.jsonWebServicesJournal.addWebContent({
+		ddmStructureId: basicWebContentStructureId,
+		groupId: site.id,
+		titleMap: {en_US: `${title}`},
+	});
+
+	await journalPage.goto(site.friendlyUrlPath);
+
+	await page.getByLabel('Filter', {exact: true}).click();
+
+	await page.getByRole('menuitem', {name: 'Recent'}).click();
+
+	await expect(page.getByLabel('Order')).not.toBeVisible();
+});
+
+test('Correct order must be applied when searching', async ({
+	apiHelpers,
+	journalPage,
+	site,
+}) => {
+	const title1 = 'EMEA Guild';
+	const title2 = 'APAC Guild';
+
+	const basicWebContentStructureId =
+		await getBasicWebContentStructureId(apiHelpers);
+
+	await apiHelpers.jsonWebServicesJournal.addWebContent({
+		ddmStructureId: basicWebContentStructureId,
+		groupId: site.id,
+		titleMap: {en_US: `${title1}`},
+	});
+
+	await apiHelpers.jsonWebServicesJournal.addWebContent({
+		ddmStructureId: basicWebContentStructureId,
+		groupId: site.id,
+		titleMap: {en_US: `${title2}`},
+	});
+
+	await journalPage.goto(site.friendlyUrlPath);
+
+	await journalPage.setOrderBy('Title');
+
+	await journalPage.assertJournalArticlePosition(1, title1);
+	await journalPage.assertJournalArticlePosition(2, title2);
+
+	await journalPage.setOrderBy('Create Date');
+
+	await journalPage.assertJournalArticlePosition(1, title2);
+	await journalPage.assertJournalArticlePosition(2, title1);
+});

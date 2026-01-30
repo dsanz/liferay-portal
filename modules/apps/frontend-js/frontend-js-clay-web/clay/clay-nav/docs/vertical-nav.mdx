@@ -1,0 +1,220 @@
+---
+title: 'Vertical Navigation'
+description: 'An alternative patterns that displays navigation items in a vertical menu.'
+lexiconDefinition: 'https://liferay.design/lexicon/core-components/navigation/vertical-nav/'
+packageNpm: '@clayui/nav'
+storybookPath: 'design-system-components-verticalnav--default'
+packageUse: "import {ClayVerticalNav} from '@clayui/nav';"
+packageTypes:
+    [
+        'clay-nav/src/Vertical.tsx',
+        'clay-core/src/vertical-nav/Item.tsx',
+        'clay-core/src/vertical-nav/Trigger.tsx',
+    ]
+---
+
+## Example
+
+```jsx preview
+import {Provider} from '@clayui/core';
+import {ClayVerticalNav} from '@clayui/nav';
+import React, {useState} from 'react';
+
+import '@clayui/css/lib/css/atlas.css';
+
+export default function App() {
+	return (
+		<Provider spritemap="/public/icons.svg">
+			<div className="p-4">
+				<ClayVerticalNav
+					aria-label="vertical navbar"
+					active="6"
+					defaultExpandedKeys={new Set(['5'])}
+					items={[
+						{
+							id: '1',
+							items: [
+								{
+									id: '2',
+									href: '#nested1',
+									label: 'Nested1',
+								},
+							],
+							label: 'Home',
+						},
+						{
+							id: '3',
+							href: '#2',
+							label: 'About',
+						},
+						{
+							id: '4',
+							href: '#3',
+							label: 'Contact',
+						},
+						{
+							id: '5',
+							items: [
+								{
+									id: '6',
+									href: '#5',
+									label: 'Five',
+								},
+								{
+									id: '7',
+									href: '#6',
+									label: 'Six',
+								},
+							],
+							label: 'Projects',
+						},
+						{
+							id: '8',
+							href: '#7',
+							label: 'Seven',
+						},
+					]}
+					large={false}
+				>
+					{(item) => (
+						<ClayVerticalNav.Item
+							href={item.href}
+							items={item.items}
+							key={item.id}
+						>
+							{item.label}
+						</ClayVerticalNav.Item>
+					)}
+				</ClayVerticalNav>
+			</div>
+		</Provider>
+	);
+}
+```
+
+## Custom Links
+
+The markup between the `<ClayVerticalNav.Item>` tag will render inside the `nav-link`. In the example below, we are outputting the lock icon next to the label only for non collapsible items.
+
+```jsx preview
+import {Provider} from '@clayui/core';
+import {ClayVerticalNav} from '@clayui/nav';
+import Icon from '@clayui/icon';
+import React, {useState} from 'react';
+
+import '@clayui/css/lib/css/atlas.css';
+
+const noIcons = ['1', '5'];
+
+export default function App() {
+	return (
+		<Provider spritemap="/public/icons.svg">
+			<div className="p-4">
+				<ClayVerticalNav
+					aria-label="vertical navbar"
+					active="6"
+					defaultExpandedKeys={new Set(['5'])}
+					items={[
+						{
+							id: '1',
+							items: [
+								{
+									id: '2',
+									href: '#nested1',
+									label: 'Nested1',
+								},
+							],
+							label: 'Home',
+						},
+						{
+							id: '3',
+							href: '#2',
+							label: 'About',
+						},
+						{
+							id: '4',
+							href: '#3',
+							label: 'Contact',
+						},
+						{
+							id: '5',
+							items: [
+								{
+									id: '6',
+									href: '#5',
+									label: 'Five',
+								},
+								{
+									id: '7',
+									href: '#6',
+									label: 'Six',
+								},
+							],
+							label: 'Projects',
+						},
+						{
+							id: '8',
+							href: '#7',
+							label: 'Seven',
+						},
+					]}
+					large={false}
+				>
+					{(item) => (
+						<ClayVerticalNav.Item
+							href={item.href}
+							items={item.items}
+							key={item.id}
+						>
+							{item.label}
+							{!noIcons.includes(item.id) && (
+								<span class="inline-item inline-item-after">
+									<Icon symbol="lock" />
+								</span>
+							)}
+						</ClayVerticalNav.Item>
+					)}
+				</ClayVerticalNav>
+			</div>
+		</Provider>
+	);
+}
+```
+
+## Custom Trigger
+
+In its mobile version, Vertical Navigation adds a trigger that is responsible for opening the menu, in some cases you may want to customize this trigger, for this use the `<ClayVerticalNav.Trigger />` component.
+
+```js
+<ClayVerticalNav
+	aria-label="vertical navbar"
+	trigger={(props) => (
+		<ClayVerticalNav.Trigger {...props}>
+			<ClayIcon
+				focusable="false"
+				role="presentation"
+				spritemap={spritemap}
+				symbol="ellipsis-v"
+			/>
+		</ClayVerticalNav.Trigger>
+	)}
+/>
+```
+
+Your custom trigger receives the `children` property with the default content, for cases when you just want to change the Trigger Button and not its content.
+
+```js
+<ClayVerticalNav
+	aria-label="vertical navbar"
+	trigger={({onClick}) => (
+		<button className="btn btn-secondary" onClick={onClick}>
+			<ClayIcon
+				focusable="false"
+				role="presentation"
+				spritemap={spritemap}
+				symbol="ellipsis-v"
+			/>
+		</button>
+	)}
+/>
+```

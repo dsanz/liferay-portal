@@ -1285,6 +1285,7 @@ public class CommerceOrderLocalServiceImpl
 		return indexer.searchCount(searchContext);
 	}
 
+	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public CommerceOrder updateAccount(
 			long commerceOrderId, long userId, long commerceAccountId)
@@ -2342,7 +2343,6 @@ public class CommerceOrderLocalServiceImpl
 				CommerceOrder.class, Sort.LONG_TYPE, Field.CREATE_DATE, "DESC");
 		}
 		else {
-			sort.setFieldName(Field.CREATE_DATE);
 			sort.setType(Sort.LONG_TYPE);
 		}
 
@@ -3359,7 +3359,6 @@ public class CommerceOrderLocalServiceImpl
 				CommerceOrder.class, Sort.LONG_TYPE, Field.CREATE_DATE, "DESC");
 		}
 		else {
-			sort.setFieldName(Field.CREATE_DATE);
 			sort.setType(Sort.LONG_TYPE);
 		}
 

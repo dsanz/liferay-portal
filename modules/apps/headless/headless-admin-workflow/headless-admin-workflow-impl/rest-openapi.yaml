@@ -93,7 +93,7 @@ components:
                     # @review
                     description:
                         The workflow's node types.
-                    enum: [CONDITION, FORK, INITIAL_STATE, JOIN, JOIN_XOR, STATE, TASK, TERMINAL_STATE]
+                    enum: [AI_DECISION, CONDITION, FORK, INITIAL_STATE, JOIN, JOIN_XOR, LLM, STATE, TASK, TERMINAL_STATE]
                     readOnly: true
                     type: string
             type: object
@@ -240,6 +240,8 @@ components:
                         $ref: "#/components/schemas/Node"
                     readOnly: true
                     type: array
+                scope:
+                    type: string
                 title:
                     type: string
                 title_i18n:
@@ -293,6 +295,9 @@ components:
                         A flag that indicates whether the instance is complete.
                     readOnly: true
                     type: boolean
+                context:
+                    additionalProperties: true
+                    type: object
                 currentNodeNames:
                     # @review
                     description:
@@ -675,7 +680,7 @@ components:
 info:
     description:
         "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID
-        'com.liferay.headless.admin.workflow.client', and version '4.0.41'."
+        'com.liferay.headless.admin.workflow.client', and version '4.0.44'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -1147,6 +1152,32 @@ paths:
                     schema:
                         format: int64
                         type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/WorkflowInstance"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/WorkflowInstance"
+            tags: ["WorkflowInstance"]
+        patch:
+            parameters:
+                -   in: path
+                    name: workflowInstanceId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/WorkflowInstance"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/WorkflowInstance"
             responses:
                 200:
                     content:

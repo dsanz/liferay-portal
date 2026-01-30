@@ -5,6 +5,7 @@
 
 package com.liferay.jenkins.results.parser;
 
+import com.liferay.jenkins.results.parser.history.TestClassHistory;
 import com.liferay.jenkins.results.parser.test.clazz.TestClass;
 
 import java.io.IOException;
@@ -38,6 +39,17 @@ public abstract class BaseTestResult implements TestResult {
 	}
 
 	@Override
+	public TestClassHistory getTestClassHistory() {
+		TestClass testClass = getTestClass();
+
+		if (testClass == null) {
+			return null;
+		}
+
+		return testClass.getTestClassHistory();
+	}
+
+	@Override
 	public TestClassResult getTestClassResult() {
 		List<TestClassResult> testClassResults = _build.getTestClassResults();
 
@@ -58,17 +70,6 @@ public abstract class BaseTestResult implements TestResult {
 		}
 
 		return _testClassResult;
-	}
-
-	@Override
-	public TestHistory getTestHistory() {
-		TestClass testClass = getTestClass();
-
-		if (testClass == null) {
-			return null;
-		}
-
-		return testClass.getTestHistory();
 	}
 
 	@Override

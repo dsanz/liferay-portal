@@ -1389,7 +1389,6 @@ information.
 				<jvmarg line="${app.server.jvm.args}" />
 				<jvmarg line="${junit.java.gc}" />
 				<jvmarg line="${whip.agent}" />
-				<jvmarg value="-Xss2m" />
 				<jvmarg value="-Dexternal-properties=${test.properties}" />
 				<jvmarg value="-Dfixed.issues=${fixed.issues}" />
 				<jvmarg value="-Djava.locale.providers=CLDR" />
@@ -1400,6 +1399,7 @@ information.
 				<jvmarg value="-DsocksProxyHost=127.0.0.1" />
 				<jvmarg value="-DsocksProxyPort=8888" />
 				<jvmarg value="-Dsun.zip.disableMemoryMapping=true" />
+				<jvmarg value="-Xss2m" />
 				<misc />
 				<classpath location="test-coverage" />
 				<classpath refid="test.classpath" />
@@ -2070,9 +2070,19 @@ artifact.url=${remote.repository.cdn.url}/com/liferay/portal/com.liferay.${proce
 						</else>
 					</if>
 
-					<retry retrycount="5" retrydelay="30000">
-						<gradle-execute dir="${project.dir}/modules" task=":portalYarnInstall" />
-					</retry>
+					<if>
+						<not>
+							<and>
+								<isset property="env.JENKINS_HOME" />
+								<available file="build/node" />
+							</and>
+						</not>
+						<then>
+							<retry retrycount="5" retrydelay="30000">
+								<gradle-execute dir="${project.dir}/modules" task=":portalYarnInstall" />
+							</retry>
+						</then>
+					</if>
 
 					<if>
 						<isset property="env.FIX_PACKS_RELEASE_ENVIRONMENT" />
@@ -2294,6 +2304,7 @@ rerun your task.
 					<propertyref prefix="build.jakarta.transformer." />
 					<propertyref prefix="gradle.publish." />
 					<propertyref prefix="gradle.releng.pom." />
+					<propertyref prefix="gradle.s3.build.cache." />
 					<propertyref prefix="ivy.pom." />
 					<propertyref prefix="microsoft.translator." />
 					<propertyref prefix="nodejs." />

@@ -378,9 +378,9 @@ public abstract class BaseKnowledgeBaseFolderResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(knowledgeBaseFolderId);
+		Long resourceId = getPermissionCheckerResourceId(knowledgeBaseFolderId);
 		String resourceName = getPermissionCheckerResourceName(
 			knowledgeBaseFolderId);
-		Long resourceId = getPermissionCheckerResourceId(knowledgeBaseFolderId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -997,9 +997,9 @@ public abstract class BaseKnowledgeBaseFolderResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(knowledgeBaseFolderId);
+		Long resourceId = getPermissionCheckerResourceId(knowledgeBaseFolderId);
 		String resourceName = getPermissionCheckerResourceName(
 			knowledgeBaseFolderId);
-		Long resourceId = getPermissionCheckerResourceId(knowledgeBaseFolderId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -1318,9 +1318,37 @@ public abstract class BaseKnowledgeBaseFolderResourceImpl
 
 		UnsafeFunction<KnowledgeBaseFolder, KnowledgeBaseFolder, Exception>
 			knowledgeBaseFolderUnsafeFunction = knowledgeBaseFolder -> {
-				deleteKnowledgeBaseFolder(knowledgeBaseFolder.getId());
+				if (knowledgeBaseFolder.getId() != null) {
+					try {
+						deleteKnowledgeBaseFolder(knowledgeBaseFolder.getId());
 
-				return knowledgeBaseFolder;
+						return knowledgeBaseFolder;
+					}
+					catch (Exception exception) {
+						if (knowledgeBaseFolder.getExternalReferenceCode() !=
+								null) {
+
+							if (parameters.containsKey("siteId")) {
+								deleteSiteKnowledgeBaseFolderByExternalReferenceCode(
+									(Long)parameters.get("siteId"),
+									knowledgeBaseFolder.
+										getExternalReferenceCode());
+
+								return knowledgeBaseFolder;
+							}
+						}
+					}
+				}
+				else if (parameters.containsKey("siteId")) {
+					deleteSiteKnowledgeBaseFolderByExternalReferenceCode(
+						(Long)parameters.get("siteId"),
+						knowledgeBaseFolder.getExternalReferenceCode());
+
+					return knowledgeBaseFolder;
+				}
+
+				throw new UnsupportedOperationException(
+					"Unable to delete by external reference code or ID");
 			};
 
 		if (contextBatchUnsafeBiConsumer != null) {
@@ -1619,6 +1647,9 @@ public abstract class BaseKnowledgeBaseFolderResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

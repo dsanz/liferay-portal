@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 import {RenderResult, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -13,15 +13,14 @@ import {
 	UserGroup,
 } from '../../../../src/main/resources/META-INF/resources/js/common/types/UserAccount';
 import {
-	SelectOptions,
 	SpaceMembersInputWithSelect,
 	SpaceMembersInputWithSelectProps,
 } from '../../../../src/main/resources/META-INF/resources/js/main_view/spaces/SpaceMembersInputWithSelect';
+import {SelectOptions} from '../../../../src/main/resources/META-INF/resources/js/main_view/spaces/SpaceMembersSelectOptions';
 import {createMockFetchMembersImplementation} from '../../__mocks__/createMockFetchMembersImplementation';
 import {mockFetch} from '../../__mocks__/frontend-js-web';
 
 const DEFAULT_PROPS: SpaceMembersInputWithSelectProps = {
-	disabled: false,
 	selectValue: SelectOptions.USERS,
 };
 
@@ -119,48 +118,6 @@ describe('SpaceMembersInputWithSelect', () => {
 		mockFetch.mockReset();
 	});
 
-	it('accepts a custom className', async () => {
-		const customClass = 'custom-class';
-
-		const {container} = await renderComponent({
-			className: customClass,
-		});
-
-		expect(container.getElementsByClassName(customClass)).toHaveLength(1);
-	});
-
-	it('renders with initial value for select', async () => {
-		const selectValue = SelectOptions.GROUPS;
-
-		await renderComponent({
-			selectValue,
-		});
-
-		const typeSelect = screen.getByRole('combobox', {
-			name: 'add-people-to-collaborate',
-		});
-		expect(typeSelect).toBeInTheDocument();
-		expect(typeSelect).toHaveValue(selectValue);
-	});
-
-	it('calls "onSelectChange" callback when changing value for input', async () => {
-		const onSelectChange = jest.fn();
-
-		await renderComponent({
-			onSelectChange,
-		});
-
-		expect(onSelectChange).not.toHaveBeenCalled();
-
-		await userEvent.selectOptions(
-			screen.getByRole('combobox', {name: 'add-people-to-collaborate'}),
-			SelectOptions.GROUPS
-		);
-
-		expect(onSelectChange).toHaveBeenCalledTimes(1);
-		expect(onSelectChange).toHaveBeenCalledWith(SelectOptions.GROUPS);
-	});
-
 	it('displays a list of users when the select value is "users"', async () => {
 		await renderComponent();
 
@@ -237,9 +194,7 @@ describe('SpaceMembersInputWithSelect', () => {
 
 		await userEvent.type(input, 'non-existent');
 
-		await waitFor(() => {
-			expect(screen.getByText('no-results-found')).toBeInTheDocument();
-		});
+		expect(await screen.findByText('no-results-found')).toBeInTheDocument();
 	});
 
 	it('calls "onAutocompleteItemSelected" callback when a user is selected', async () => {
@@ -313,18 +268,6 @@ describe('SpaceMembersInputWithSelect', () => {
 			});
 			expect(input).toHaveValue('Group 1');
 		});
-	});
-
-	it('renders a disabled input when disabled is true', async () => {
-		await renderComponent({
-			disabled: true,
-		});
-
-		const input = screen.getByPlaceholderText('enter-name-or-email');
-
-		expect(input).toBeDisabled();
-
-		await waitFor(() => expect(mockFetch).not.toHaveBeenCalled());
 	});
 
 	it('builds the apiURL with excludeMembers for users and exclude from UI', async () => {

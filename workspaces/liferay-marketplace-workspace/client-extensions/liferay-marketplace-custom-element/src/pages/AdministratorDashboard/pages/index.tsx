@@ -15,18 +15,16 @@ import {formatCurrency} from '../../../utils/currencies';
 import InfoCard from '../components/InfoCard';
 import DonutKPIChart from '../components/charts/DonutKPIChart';
 import useAccountsMetrics from '../hooks/useAccountsMetrics';
-import useAnalyticsViewsMetrics from '../hooks/useAnalyticsViewsMetrics';
 import useKPI from '../hooks/useKPI';
 import useOrderMetrics from '../hooks/useOrderMetrics';
 import AdministratorAppsListView from './Apps/AdministratorAppsListView';
 import {AdministratorOrdersListView} from './Orders';
 
 export default function AdministratorSummary() {
-	const {data: {kpis = [], projectsKPI} = {}} = useKPI();
+	const {data: {kpis = []} = {}} = useKPI();
 	const {data: accounts} = useAccountsMetrics('week');
 	const {data: orderMetrics} = useOrderMetrics('week');
 	const {marketplaceUserAccount} = useMarketplaceContext();
-	const {visitorsMetric} = useAnalyticsViewsMetrics();
 
 	const infoCards = useMemo(
 		() => [
@@ -45,7 +43,7 @@ export default function AdministratorSummary() {
 						&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;
 					</span>
 				),
-				value: formatCurrency(projectsKPI?.totalAmount?.USD || 0),
+				value: formatCurrency(orderMetrics?.totalAmount || 0),
 			},
 			{
 				growth: orderMetrics?.growth ?? 0,
@@ -54,11 +52,6 @@ export default function AdministratorSummary() {
 				title: i18n.translate('orders'),
 				value: orderMetrics?.totalCount ?? 0,
 			},
-			{
-				symbol: 'analytics',
-				title: 'Site Visitors',
-				value: visitorsMetric ?? 0,
-			},
 		],
 		[
 			accounts?.growth,
@@ -66,9 +59,8 @@ export default function AdministratorSummary() {
 			accounts?.totalCount,
 			orderMetrics?.growth,
 			orderMetrics?.lastPeriod,
+			orderMetrics?.totalAmount,
 			orderMetrics?.totalCount,
-			projectsKPI?.totalAmount?.USD,
-			visitorsMetric,
 		]
 	);
 
@@ -77,7 +69,7 @@ export default function AdministratorSummary() {
 			description={i18n.translate(
 				'a-sleek-and-intuitive-admin-dashboard-for-monitoring-key-metrics'
 			)}
-			title={i18n.translate('admin-dashboard')}
+			title={i18n.translate('administrator-dashboard')}
 		>
 			<div className="d-flex flex-column">
 				<div className="d-flex flex-wrap mb-4" style={{gap: '20px'}}>

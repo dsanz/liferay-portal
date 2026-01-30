@@ -7,9 +7,7 @@ package com.liferay.exportimport.report.internal.empty.model;
 
 import com.liferay.exportimport.kernel.empty.model.EmptyModelManager;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
-import com.liferay.exportimport.report.constants.ExportImportReportEntryConstants;
 import com.liferay.exportimport.report.service.ExportImportReportEntryLocalService;
-import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.petra.function.UnsafeBiFunction;
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.lang.SafeCloseable;
@@ -106,7 +104,7 @@ public class EmptyModelManagerImplTest {
 
 							return null;
 						}),
-					_toUnsafeBiFunction(() -> _user)));
+					_toUnsafeBiFunction(() -> _user), User.class.getName()));
 		}
 	}
 
@@ -136,7 +134,8 @@ public class EmptyModelManagerImplTest {
 					_toUnsafeBiFunction(
 						() -> {
 							throw new NoSuchUserException();
-						})));
+						}),
+					User.class.getName()));
 		}
 	}
 
@@ -173,7 +172,8 @@ public class EmptyModelManagerImplTest {
 							Assert.fail();
 
 							return null;
-						})));
+						}),
+					User.class.getName()));
 
 			Mockito.verify(
 				_classNameLocalService
@@ -185,9 +185,7 @@ public class EmptyModelManagerImplTest {
 				_exportImportReportEntryLocalService
 			).addEmptyExportImportReportEntry(
 				0L, companyId, externalReferenceCode, classNameId,
-				exportImportConfigurationId, User.class.getName(),
-				ExportImportReportEntryConstants.ORIGIN_STAGING,
-				ObjectDefinitionConstants.SCOPE_COMPANY, null
+				exportImportConfigurationId, User.class.getName()
 			);
 		}
 	}
@@ -202,7 +200,7 @@ public class EmptyModelManagerImplTest {
 			Assert.assertSame(
 				_user,
 				_emptyModelManager.getOrAddEmptyModel(
-					User.class,
+					User.class, RandomTestUtil.randomLong(),
 					() -> {
 						Assert.fail();
 
@@ -215,7 +213,7 @@ public class EmptyModelManagerImplTest {
 
 							return null;
 						}),
-					RandomTestUtil.randomLong()));
+					User.class.getName()));
 		}
 	}
 
@@ -229,7 +227,7 @@ public class EmptyModelManagerImplTest {
 			Assert.assertSame(
 				_user,
 				_emptyModelManager.getOrAddEmptyModel(
-					User.class,
+					User.class.getName(), null,
 					() -> {
 						Assert.fail();
 
@@ -243,7 +241,7 @@ public class EmptyModelManagerImplTest {
 							return null;
 						}),
 					_toUnsafeBiFunction(() -> _user),
-					RandomTestUtil.randomLong()));
+					RandomTestUtil.randomLong(), User.class.getName()));
 		}
 	}
 
@@ -257,7 +255,7 @@ public class EmptyModelManagerImplTest {
 			Assert.assertThrows(
 				NoSuchUserException.class,
 				() -> _emptyModelManager.getOrAddEmptyModel(
-					User.class,
+					User.class.getName(), null,
 					() -> {
 						Assert.fail();
 
@@ -274,7 +272,7 @@ public class EmptyModelManagerImplTest {
 						() -> {
 							throw new NoSuchUserException();
 						}),
-					RandomTestUtil.randomLong()));
+					RandomTestUtil.randomLong(), User.class.getName()));
 		}
 	}
 
@@ -348,15 +346,15 @@ public class EmptyModelManagerImplTest {
 			Assert.assertSame(
 				_user,
 				_emptyModelManager.getOrAddEmptyModel(
-					User.class, () -> _user, userExternalReferenceCode,
-					_toBiFunction(() -> null),
+					User.class.getName(), companyId, () -> _user,
+					userExternalReferenceCode, _toBiFunction(() -> null),
 					_toUnsafeBiFunction(
 						() -> {
 							Assert.fail();
 
 							return null;
 						}),
-					groupId));
+					groupId, User.class.getName()));
 
 			Mockito.verify(
 				_classNameLocalService
@@ -369,14 +367,6 @@ public class EmptyModelManagerImplTest {
 			).getCompanyId();
 
 			Mockito.verify(
-				_group
-			).getExternalReferenceCode();
-
-			Mockito.verify(
-				_group
-			).isCompany();
-
-			Mockito.verify(
 				_groupLocalService
 			).fetchGroup(
 				groupId
@@ -386,9 +376,7 @@ public class EmptyModelManagerImplTest {
 				_exportImportReportEntryLocalService
 			).addEmptyExportImportReportEntry(
 				groupId, companyId, userExternalReferenceCode, classNameId,
-				exportImportConfigurationId, User.class.getName(),
-				ExportImportReportEntryConstants.ORIGIN_STAGING,
-				ObjectDefinitionConstants.SCOPE_SITE, groupExternalReferenceCode
+				exportImportConfigurationId, User.class.getName()
 			);
 		}
 	}
@@ -419,7 +407,7 @@ public class EmptyModelManagerImplTest {
 			Assert.assertSame(
 				_user,
 				_emptyModelManager.getOrAddEmptyModel(
-					User.class,
+					User.class.getName(), companyId,
 					() -> {
 						Assert.fail();
 
@@ -432,7 +420,7 @@ public class EmptyModelManagerImplTest {
 
 							return null;
 						}),
-					groupId));
+					groupId, User.class.getName()));
 		}
 	}
 
@@ -477,7 +465,8 @@ public class EmptyModelManagerImplTest {
 						Assert.fail();
 
 						return null;
-					}));
+					}),
+				User.class.getName());
 
 			Mockito.verify(
 				_classNameLocalService
@@ -489,9 +478,7 @@ public class EmptyModelManagerImplTest {
 				_exportImportReportEntryLocalService
 			).addEmptyExportImportReportEntry(
 				0L, companyId, externalReferenceCode, classNameId,
-				exportImportConfigurationId, User.class.getName(),
-				ExportImportReportEntryConstants.ORIGIN_STAGING,
-				ObjectDefinitionConstants.SCOPE_COMPANY, null
+				exportImportConfigurationId, User.class.getName()
 			);
 		}
 	}

@@ -35,13 +35,13 @@ testSample.describe('Samples', () => {
 
 			await viewClientExtensionPage.goto();
 
-			sample.url = await viewClientExtensionPage
-				.getInputByLabel('URL')
-				.inputValue();
-
 			await expect(viewClientExtensionPage.nameInput).toHaveValue(
 				sample.name
 			);
+
+			sample.url = await viewClientExtensionPage
+				.getInputByLabel('URL')
+				.inputValue();
 		});
 
 		testSample(
@@ -50,7 +50,7 @@ testSample.describe('Samples', () => {
 				const response = await page.goto(sample.url);
 
 				expect(response.status()).toBe(200);
-				expect(await response.headerValue('Content-Type')).toBe(
+				expect(await response.headerValue('Content-Type')).toContain(
 					'application/javascript'
 				);
 			}

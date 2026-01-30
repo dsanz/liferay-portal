@@ -21,7 +21,7 @@ import useGetBusinessEventTypesList from '~/features/project/pages/Project/Busin
 import useGetLiferayVersions from '~/features/project/pages/Project/BusinessEvents/hooks/useGetLiferayVersions';
 import useGetUTCTimeZonesList from '~/features/project/pages/Project/BusinessEvents/hooks/useGetUTCTimeZonesList';
 import {Liferay} from '~/services/liferay';
-import {updateBusinessEvent} from '~/services/liferay/graphql/queries';
+import {patchBusinessEvent} from '~/services/liferay/graphql/queries';
 import i18n from '~/utils/I18n';
 import getKebabCase from '~/utils/getKebabCase';
 import {IBusinessEvent, IOption, ITicket} from '~/utils/types';
@@ -30,6 +30,7 @@ import {isValidDate} from '~/utils/validations.form';
 import AssociatedTicketsContainer from '../../../components/AssociatedTicketsContainer';
 import useAccountsSyncBusinessEvents from '../../../hooks/useAccountsSyncBusinessEvents';
 import useAccountsTickets from '../../../hooks/useAccountsTickets';
+import useCanViewTickets from '../../../hooks/useCanViewTickets';
 import useGetBusinessEvent from '../../../hooks/useGetBusinessEvent';
 import useHasAllEventsPermissions from '../../../hooks/useHasAllEventsPermissions';
 import {containsOption} from '../../../utils/containsOption';
@@ -58,7 +59,7 @@ const BusinessEventsItemEditPage: React.FC<IProps> = ({
 	setFieldValue,
 	values,
 }) => {
-	const {client, featureFlags} = useAppPropertiesContext();
+	const {client} = useAppPropertiesContext();
 
 	const [{project, subscriptionGroups}] = useAppContext();
 
@@ -79,7 +80,12 @@ const BusinessEventsItemEditPage: React.FC<IProps> = ({
 
 	const {hasAllEventsPermissions} = useHasAllEventsPermissions();
 
-	const [hasImpactingEvents, setHasImpactingEvents] = useState<string>('no');
+	const [hasImpactingEvents, setHasImpactingEvents] = useState(() => {
+		return originalBusinessEvent.associatedTickets &&
+			originalBusinessEvent.associatedTickets !== '[]'
+			? 'yes'
+			: 'no';
+	});
 
 	const isDescriptionRequired = useMemo(
 		() => businessEvent.eventType?.key === 'otherEvent',
@@ -100,7 +106,8 @@ const BusinessEventsItemEditPage: React.FC<IProps> = ({
 
 	const {loading: loadingTickets, tickets} = useAccountsTickets(
 		originalBusinessEvent,
-		project?.accountKey || ''
+		project?.accountKey || '',
+		hasImpactingEvents === 'no'
 	);
 
 	const {loading: loadingUTCTimeZonesList, utcTimeZonesList} =
@@ -125,6 +132,11 @@ const BusinessEventsItemEditPage: React.FC<IProps> = ({
 		true,
 		false
 	);
+
+	const {
+		canViewTickets: canViewTickets,
+		loading: loadingJiraAccountChecking,
+	} = useCanViewTickets(project?.accountKey || '');
 
 	const {
 		dxpMinorVersionsAndPortalMajorVersions,
@@ -213,13 +225,13 @@ const BusinessEventsItemEditPage: React.FC<IProps> = ({
 			await updateAccountBusinessEvents();
 
 			await client.mutate<{
-				updateBusinessEvent: IBusinessEvent;
+				patchBusinessEvent: IBusinessEvent;
 			}>({
 				context: {
 					displaySuccess: false,
 					type: 'liferay-rest',
 				},
-				mutation: updateBusinessEvent,
+				mutation: patchBusinessEvent,
 				variables: {
 					businessEvent: formattedBusinessEvent,
 					businessEventId: businessEvent.id,
@@ -248,16 +260,14 @@ const BusinessEventsItemEditPage: React.FC<IProps> = ({
 
 	const loading =
 		loadingBusinessEventTypesList ||
+		loadingJiraAccountChecking ||
 		loadingLiferayVersions ||
-		loadingTickets ||
 		loadingUTCTimeZonesList;
 
 	useEffect(() => {
 		if (hasImpactingEvents === 'yes') {
-			const selectedTickets = selectedTicketOptions.map((ticket) =>
-				featureFlags.includes('LRSD-8280')
-					? `"${ticket.ticketId}"`
-					: ticket.ticketId
+			const selectedTickets = selectedTicketOptions.map(
+				(ticket) => `"${ticket.ticketId}"`
 			);
 
 			setFieldValue(
@@ -268,12 +278,7 @@ const BusinessEventsItemEditPage: React.FC<IProps> = ({
 		else {
 			setFieldValue('businessEvent.associatedTickets', '[]');
 		}
-	}, [
-		featureFlags,
-		hasImpactingEvents,
-		selectedTicketOptions,
-		setFieldValue,
-	]);
+	}, [hasImpactingEvents, selectedTicketOptions, setFieldValue]);
 
 	useEffect(() => {
 		setFieldValue(
@@ -388,18 +393,11 @@ const BusinessEventsItemEditPage: React.FC<IProps> = ({
 			);
 
 			setTicketOptions([
-				...tickets
-					?.filter((ticket) => {
-						return featureFlags.includes('LRSD-8280')
-							? true
-							: ticket.status !== 'closed' &&
-									ticket.status !== 'solved';
-					})
-					.map((ticket) =>
-						associatedTickets.includes(ticket.ticketId)
-							? {...ticket, selected: true}
-							: {...ticket, selected: false}
-					),
+				...tickets?.map((ticket) =>
+					associatedTickets.includes(ticket.ticketId)
+						? {...ticket, selected: true}
+						: {...ticket, selected: false}
+				),
 			]);
 
 			setSelectedTicketOptions([
@@ -412,7 +410,7 @@ const BusinessEventsItemEditPage: React.FC<IProps> = ({
 				handleRadioChange('yes');
 			}
 		}
-	}, [featureFlags, originalBusinessEvent, tickets]);
+	}, [originalBusinessEvent, tickets]);
 
 	useEffect(() => {
 		const hasCurrentLiferayVersion =
@@ -460,7 +458,7 @@ const BusinessEventsItemEditPage: React.FC<IProps> = ({
 	]);
 
 	return !loading ? (
-		tickets ? (
+		canViewTickets ? (
 			hasAllEventsPermissions ? (
 				<div className="be-edit-page">
 					<div className="be-breadcrumbs font-weight-semi-bold mb-4">
@@ -490,10 +488,13 @@ const BusinessEventsItemEditPage: React.FC<IProps> = ({
 						</div>
 
 						<div className="align-items-center d-flex justify-content-between mb-4 mt-2">
-							<div className="font-weight-bold text-neutral-10">
-								<h3>{businessEvent.name}</h3>
+							<div className="flex-fill font-weight-bold pr-4 text-neutral-10">
+								<h3 className="mb-0 text-break">
+									{businessEvent.name}
+								</h3>
 							</div>
-							<div>
+
+							<div className="flex-shrink-0">
 								<Button
 									displayType="secondary"
 									onClick={() => {
@@ -795,8 +796,10 @@ const BusinessEventsItemEditPage: React.FC<IProps> = ({
 
 									{hasImpactingEvents === 'yes' && (
 										<div className="event-edit-field mx-3 pb-3">
-											{!!ticketOptions.length ||
-											!!selectedTicketOptions.length ? (
+											{loadingTickets ? (
+												<ClayLoadingIndicator size="sm" />
+											) : !!ticketOptions.length ||
+											  !!selectedTicketOptions.length ? (
 												<>
 													<label>
 														{i18n.translate(

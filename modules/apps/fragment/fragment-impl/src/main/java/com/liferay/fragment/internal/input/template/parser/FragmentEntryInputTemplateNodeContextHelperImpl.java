@@ -16,6 +16,7 @@ import com.liferay.fragment.util.configuration.FragmentEntryConfigurationParser;
 import com.liferay.info.exception.InfoFormValidationException;
 import com.liferay.info.field.InfoField;
 import com.liferay.info.field.InfoFieldValue;
+import com.liferay.info.field.RelatedInfoFieldValue;
 import com.liferay.info.field.type.DateInfoFieldType;
 import com.liferay.info.field.type.DateTimeInfoFieldType;
 import com.liferay.info.field.type.FileInfoFieldType;
@@ -68,6 +69,7 @@ import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
@@ -84,6 +86,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAccessor;
@@ -311,10 +314,10 @@ public class FragmentEntryInputTemplateNodeContextHelperImpl
 
 		if (infoFormParameterMap != null) {
 			label = String.valueOf(
-				infoFormParameterMap.get(infoField.getName() + "-label"));
+				infoFormParameterMap.get(infoField.getUniqueId() + "-label"));
 
-			Object infoParameterMapValue = infoFormParameterMap.get(
-				infoField.getName());
+			Object infoParameterMapValue = _getInfoParameterMapValue(
+				infoField, infoFormParameterMap, httpServletRequest);
 
 			if (infoParameterMapValue instanceof Map) {
 				Map<Locale, String> map =
@@ -347,6 +350,21 @@ public class FragmentEntryInputTemplateNodeContextHelperImpl
 			else {
 				value = String.valueOf(infoFieldValue);
 			}
+		}
+
+		if (infoFieldType instanceof LongTextInfoFieldType ||
+			infoFieldType instanceof TextInfoFieldType) {
+
+			value = HtmlUtil.escape(value);
+
+			Map<Locale, String> escapedValueI18n = new HashMap<>();
+
+			for (Map.Entry<Locale, String> entry : valueI18n.entrySet()) {
+				escapedValueI18n.put(
+					entry.getKey(), HtmlUtil.escape(entry.getValue()));
+			}
+
+			valueI18n = escapedValueI18n;
 		}
 
 		InputTemplateNode inputTemplateNode = new InputTemplateNode(
@@ -794,6 +812,69 @@ public class FragmentEntryInputTemplateNodeContextHelperImpl
 		}
 
 		return null;
+	}
+
+	private Object _getInfoParameterMapValue(
+		InfoField infoField, Map<String, String> infoFormParameterMap,
+		HttpServletRequest httpServletRequest) {
+
+		Object infoParameterMapValue = infoFormParameterMap.get(
+			infoField.getUniqueId());
+
+		if (!(infoParameterMapValue instanceof RelatedInfoFieldValue<?>)) {
+			return infoParameterMapValue;
+		}
+
+		RelatedInfoFieldValue<?> relatedInfoFieldValue =
+			(RelatedInfoFieldValue<?>)infoParameterMapValue;
+
+		String parentExternalReferenceCode =
+			(String)httpServletRequest.getAttribute(
+				LayoutStructureRendererConstants.
+					LAYOUT_PARENT_ITEM_EXTERNAL_REFERENCE_CODE);
+		String relatedItemExternalReferenceCode =
+			(String)httpServletRequest.getAttribute(
+				LayoutStructureRendererConstants.
+					LAYOUT_RELATED_ITEM_EXTERNAL_REFERENCE_CODE);
+
+		InfoFieldValue<?> infoFieldValue =
+			relatedInfoFieldValue.getInfoFieldValue(
+				relatedItemExternalReferenceCode, parentExternalReferenceCode);
+
+		if (infoFieldValue == null) {
+			return StringPool.BLANK;
+		}
+
+		if (infoField.getInfoFieldType() == DateInfoFieldType.INSTANCE) {
+			SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
+				"yyyy-MM-dd");
+
+			try {
+				return simpleDateFormat.format(infoFieldValue.getValue());
+			}
+			catch (IllegalArgumentException illegalArgumentException) {
+				if (_log.isDebugEnabled()) {
+					_log.debug(illegalArgumentException);
+				}
+
+				return null;
+			}
+		}
+
+		Object value = infoFieldValue.getValue();
+
+		if (value instanceof List) {
+			return ListUtil.toString((List<?>)value, StringPool.BLANK);
+		}
+
+		if (value instanceof InfoLocalizedValue) {
+			InfoLocalizedValue<?> infoLocalizedValue =
+				(InfoLocalizedValue<?>)value;
+
+			return infoLocalizedValue.getValues();
+		}
+
+		return String.valueOf(value);
 	}
 
 	private String _getInputLabel(

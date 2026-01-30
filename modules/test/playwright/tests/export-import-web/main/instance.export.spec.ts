@@ -3,7 +3,10 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {ObjectDefinitionAPI} from '@liferay/object-admin-rest-client-js';
+import {
+	ObjectRelationship,
+	ObjectRelationshipAPI,
+} from '@liferay/object-admin-rest-client-js';
 import {expect, mergeTests} from '@playwright/test';
 
 import {applicationsMenuPageTest} from '../../../fixtures/applicationsMenuPageTest';
@@ -13,21 +16,24 @@ import {loginTest} from '../../../fixtures/loginTest';
 import {productMenuPageTest} from '../../../fixtures/productMenuPageTest';
 import {uiElementsPageTest} from '../../../fixtures/uiElementsTest';
 import {getRandomInt} from '../../../utils/getRandomInt';
+import {normalizeRestPath} from '../../../utils/normalizeRestPath';
 import performLogin, {
 	performLogout,
 	userData,
 } from '../../../utils/performLogin';
 import {getTempDir} from '../../../utils/temp';
-import {readFileFromZip} from '../../../utils/zip';
+import {checkInZip, readFileFromZip} from '../../../utils/zip';
 import {companyExportImportPageTest} from './fixtures/companyExportImportPagesTest';
+import {exportImportPagesTest} from './fixtures/exportImportPagesTest';
 import {toDateRangeDate, toDateRangeTime} from './utils/dateRangeUtil';
-import {objectDefitionRequestData} from './utils/objectDefitionRequestData';
 
 export const test = mergeTests(
 	applicationsMenuPageTest,
 	companyExportImportPageTest,
 	dataApiHelpersTest,
+	exportImportPagesTest,
 	featureFlagsTest({
+		'LPD-35443': {enabled: true},
 		'LPD-35914': {enabled: true},
 	}),
 	loginTest(),
@@ -35,58 +41,268 @@ export const test = mergeTests(
 	uiElementsPageTest
 );
 
+const rootModelTest = mergeTests(
+	test,
+	featureFlagsTest({
+		'LPD-34594': {enabled: true},
+		'LPD-35443': {enabled: true},
+		'LPD-35914': {enabled: true},
+	})
+);
+
+rootModelTest.describe(
+	'Manage export and import of root model object definitions',
+	() => {
+		rootModelTest(
+			'can distinguish root model object definitions in export/import',
+			async ({
+				apiHelpers,
+				applicationsMenuPage,
+				exportImportPage,
+				page,
+			}) => {
+				const objectRelationships: ObjectRelationship[] = [];
+				const objectRelationshipAPIClient =
+					await apiHelpers.buildRestClient(ObjectRelationshipAPI);
+
+				try {
+					const objectDefinitionA =
+						await apiHelpers.objectAdmin.postRandomObjectDefinition(
+							{
+								status: {code: 0},
+							}
+						);
+
+					const objectDefinitionB =
+						await apiHelpers.objectAdmin.postRandomObjectDefinition(
+							{
+								status: {code: 0},
+							}
+						);
+
+					const objectDefinitionC =
+						await apiHelpers.objectAdmin.postRandomObjectDefinition(
+							{
+								status: {code: 0},
+							}
+						);
+
+					apiHelpers.data.push({
+						id: objectDefinitionA.id,
+						type: 'objectDefinition',
+					});
+					apiHelpers.data.push({
+						id: objectDefinitionB.id,
+						type: 'objectDefinition',
+					});
+					apiHelpers.data.push({
+						id: objectDefinitionC.id,
+						type: 'objectDefinition',
+					});
+
+					const {body: objectRelationshipAB} =
+						await objectRelationshipAPIClient.postObjectDefinitionByExternalReferenceCodeObjectRelationship(
+							objectDefinitionA.externalReferenceCode,
+							{
+								edge: true,
+								label: {
+									en_US:
+										'objectRelationshipABLabel' +
+										getRandomInt(),
+								},
+								name:
+									'objectRelationshipABName' +
+									Math.floor(Math.random() * 99),
+								objectDefinitionExternalReferenceCode1:
+									objectDefinitionA.externalReferenceCode,
+								objectDefinitionExternalReferenceCode2:
+									objectDefinitionB.externalReferenceCode,
+								objectDefinitionId1: objectDefinitionA.id,
+								objectDefinitionId2: objectDefinitionB.id,
+								objectDefinitionName2: objectDefinitionB.name,
+								type: 'oneToMany',
+							}
+						);
+
+					const {body: objectRelationshipAC} =
+						await objectRelationshipAPIClient.postObjectDefinitionByExternalReferenceCodeObjectRelationship(
+							objectDefinitionA.externalReferenceCode,
+							{
+								edge: true,
+								label: {
+									en_US:
+										'objectRelationshipBCLabel' +
+										getRandomInt(),
+								},
+								name:
+									'objectRelationshipBCName' +
+									Math.floor(Math.random() * 99),
+								objectDefinitionExternalReferenceCode1:
+									objectDefinitionA.externalReferenceCode,
+								objectDefinitionExternalReferenceCode2:
+									objectDefinitionC.externalReferenceCode,
+								objectDefinitionId1: objectDefinitionA.id,
+								objectDefinitionId2: objectDefinitionC.id,
+								objectDefinitionName2: objectDefinitionC.name,
+								type: 'oneToMany',
+							}
+						);
+
+					objectRelationships.push(
+						objectRelationshipAB,
+						objectRelationshipAC
+					);
+
+					apiHelpers.data.push({
+						id: objectRelationshipAB.id,
+						type: 'objectRelationship',
+					});
+					apiHelpers.data.push({
+						id: objectRelationshipAC.id,
+						type: 'objectRelationship',
+					});
+
+					const objectEntryA =
+						await apiHelpers.objectEntry.postObjectEntry(
+							{textField: 'entryA'},
+							'c/' + objectDefinitionA.name.toLowerCase() + 's'
+						);
+
+					const objectEntryB =
+						await apiHelpers.objectEntry.postObjectEntry(
+							{textField: 'entryB'},
+							'c/' + objectDefinitionB.name.toLowerCase() + 's'
+						);
+
+					await apiHelpers.objectEntry.postObjectEntry(
+						{
+							[`r_${objectRelationshipAB.name}_c_${objectDefinitionA.name[0].toLowerCase() + objectDefinitionA.name.substring(1)}Id`]:
+								objectEntryA.id.toString(),
+							[`r_${objectRelationshipAC.name}_c_${objectDefinitionB.name[0].toLowerCase() + objectDefinitionB.name.substring(1)}Id`]:
+								objectEntryB.id.toString(),
+							textField: 'entryC',
+						},
+						'c/' + objectDefinitionC.name.toLowerCase() + 's'
+					);
+
+					const objectDefinitionRootCheckbox = page.getByLabel(
+						new RegExp(
+							`${objectDefinitionA.label.en_US}\\s*Root Object`
+						)
+					);
+
+					await applicationsMenuPage.goToExport();
+
+					await exportImportPage.newExportButton.click();
+
+					await expect(objectDefinitionRootCheckbox).toBeVisible();
+
+					await expect(
+						page.getByText(
+							`${objectDefinitionB.label.en_US}, ${objectDefinitionC.label.en_US}`
+						)
+					).toBeVisible();
+
+					await applicationsMenuPage.goToExport();
+
+					const filePath = await exportImportPage.export({
+						portletLabels: [
+							`${objectDefinitionA.name} Root Object 1 Items`,
+						],
+					});
+
+					await applicationsMenuPage.goToImport();
+
+					await exportImportPage.newImportButton.click();
+
+					await page
+						.locator('input[type="file"]')
+						.setInputFiles(filePath);
+
+					await exportImportPage.continueButton.click();
+
+					await expect(objectDefinitionRootCheckbox).toBeChecked();
+
+					await expect(
+						page.getByText(
+							`${objectDefinitionB.label.en_US}, ${objectDefinitionC.label.en_US}`
+						)
+					).toBeVisible();
+				}
+				finally {
+					for (const objectRelationship of objectRelationships) {
+						await objectRelationshipAPIClient.putObjectRelationship(
+							objectRelationship.id,
+							{
+								...objectRelationship,
+								edge: false,
+							}
+						);
+					}
+				}
+			}
+		);
+	}
+);
+
 test('cannot export site scoped custom object entries at instance level', async ({
 	apiHelpers,
 	applicationsMenuPage,
 	page,
 }) => {
-	const objectActionAPIClient =
-		await apiHelpers.buildRestClient(ObjectDefinitionAPI);
+	const objectDefinition =
+		await apiHelpers.objectAdmin.postRandomObjectDefinition({
+			scope: 'site',
+			status: {code: 0},
+		});
 
-	const {body: objectDefinition} =
-		await objectActionAPIClient.postObjectDefinition(
-			objectDefitionRequestData({scope: 'site'})
-		);
-
-	apiHelpers.data.push({id: objectDefinition.id, type: 'objectDefinition'});
+	apiHelpers.data.push({
+		id: objectDefinition.id,
+		type: 'objectDefinition',
+	});
 
 	await apiHelpers.objectEntry.postObjectEntry(
-		{externalReferenceCode: '', name: 'test'},
-		'c/tests/scopes/Guest'
+		{externalReferenceCode: '', textField: objectDefinition.name},
+		`${normalizeRestPath(objectDefinition.restContextPath)}/scopes/Guest`
 	);
 
 	await applicationsMenuPage.goToExport();
 
 	await page.getByTestId('creationMenuNewButton').nth(1).click();
 
-	await expect(page.getByLabel('Tests')).toBeHidden();
+	await expect(page.getByLabel(`${objectDefinition.name}`)).toBeHidden();
 });
 
 test('can export custom object entries at instance level with date filter', async ({
 	apiHelpers,
-	companyExportImportPage,
+	applicationsMenuPage,
+	exportImportPage,
 }) => {
-	const objectActionAPIClient =
-		await apiHelpers.buildRestClient(ObjectDefinitionAPI);
+	const objectDefinition =
+		await apiHelpers.objectAdmin.postRandomObjectDefinition({
+			status: {code: 0},
+		});
 
-	const {body: objectDefinition} =
-		await objectActionAPIClient.postObjectDefinition(
-			objectDefitionRequestData()
-		);
-
-	apiHelpers.data.push({id: objectDefinition.id, type: 'objectDefinition'});
+	apiHelpers.data.push({
+		id: objectDefinition.id,
+		type: 'objectDefinition',
+	});
 
 	await apiHelpers.objectEntry.postObjectEntry(
-		{externalReferenceCode: '', name: 'test'},
-		'c/tests'
+		{externalReferenceCode: '', textField: objectDefinition.name},
+		`${normalizeRestPath(objectDefinition.restContextPath)}`
 	);
 
-	const exportFilePath1 = await companyExportImportPage.export(
-		['Tests 1 Items'],
-		false
-	);
+	await applicationsMenuPage.goToExport();
 
-	const content1 = await readFileFromZip('C_Test.json', exportFilePath1);
+	const exportFilePath1 = await exportImportPage.export({
+		portletLabels: [`${objectDefinition.name} 1 Items`],
+	});
+
+	const content1 = await readFileFromZip(
+		`C_${objectDefinition.name}.json`,
+		exportFilePath1
+	);
 
 	const json1 = JSON.parse(content1);
 
@@ -100,32 +316,33 @@ test('can export custom object entries at instance level with date filter', asyn
 
 	startDate.setDate(startDate.getDate() - 2);
 
-	const exportFilePath2 = await companyExportImportPage.export(
-		['Tests 1 Items'],
-		false,
-		{
+	await applicationsMenuPage.goToExport();
+
+	const exportFilePath2 = await exportImportPage.export({
+		dateFilter: {
 			endDate: toDateRangeDate(endDate),
 			endTime: toDateRangeTime(endDate),
 			startDate: toDateRangeDate(startDate),
 			startTime: toDateRangeTime(startDate),
-		}
+		},
+		portletLabels: [`${objectDefinition.name} 1 Items`],
+	});
+
+	await expect(
+		checkInZip(exportFilePath2, `C_${objectDefinition.name}.json`)
+	).resolves.toBe(false);
+
+	await applicationsMenuPage.goToExport();
+
+	const exportFilePath3 = await exportImportPage.export({
+		dateFilter: {rangeLast: '12 Hours'},
+		portletLabels: [`${objectDefinition.name} 1 Items`],
+	});
+
+	const content3 = await readFileFromZip(
+		`C_${objectDefinition.name}.json`,
+		exportFilePath3
 	);
-
-	const content2 = await readFileFromZip('C_Test.json', exportFilePath2);
-
-	const json2 = JSON.parse(content2);
-
-	expect(json2.length).toBe(0);
-
-	const exportFilePath3 = await companyExportImportPage.export(
-		['Tests 1 Items'],
-		false,
-		{
-			rangeLast: '12 Hours',
-		}
-	);
-
-	const content3 = await readFileFromZip('C_Test.json', exportFilePath3);
 
 	const json3 = JSON.parse(content3);
 
@@ -134,26 +351,29 @@ test('can export custom object entries at instance level with date filter', asyn
 
 test('can export new default and custom task name', async ({
 	apiHelpers,
-	companyExportImportPage,
+	applicationsMenuPage,
+	exportImportPage,
 }) => {
-	const objectActionAPIClient =
-		await apiHelpers.buildRestClient(ObjectDefinitionAPI);
+	const objectDefinition =
+		await apiHelpers.objectAdmin.postRandomObjectDefinition({
+			status: {code: 0},
+		});
 
-	const {body: objectDefinition} =
-		await objectActionAPIClient.postObjectDefinition(
-			objectDefitionRequestData()
-		);
-
-	apiHelpers.data.push({id: objectDefinition.id, type: 'objectDefinition'});
+	apiHelpers.data.push({
+		id: objectDefinition.id,
+		type: 'objectDefinition',
+	});
 
 	await apiHelpers.objectEntry.postObjectEntry(
-		{externalReferenceCode: '', name: 'test'},
-		'c/tests'
+		{externalReferenceCode: '', textField: objectDefinition.name},
+		`${normalizeRestPath(objectDefinition.restContextPath)}`
 	);
 
-	const defaultExportFilePath = await companyExportImportPage.export([
-		'Tests 1 Items',
-	]);
+	await applicationsMenuPage.goToExport();
+
+	const defaultExportFilePath = await exportImportPage.export({
+		portletLabels: [`${objectDefinition.name} 1 Items`],
+	});
 
 	expect(defaultExportFilePath).toMatch(
 		new RegExp(`^${getTempDir()}Export-`)
@@ -161,12 +381,12 @@ test('can export new default and custom task name', async ({
 
 	const taskName = 'CustomTaskName';
 
-	const customExportFilePath = await companyExportImportPage.export(
-		['Tests 1 Items'],
-		false,
-		undefined,
-		taskName
-	);
+	await applicationsMenuPage.goToExport();
+
+	const customExportFilePath = await exportImportPage.export({
+		portletLabels: [`${objectDefinition.name} 1 Items`],
+		taskName,
+	});
 
 	expect(customExportFilePath).toMatch(
 		new RegExp(`^${getTempDir()}${taskName}-`)
@@ -175,29 +395,35 @@ test('can export new default and custom task name', async ({
 
 test('can export custom object entries at instance level with permissions', async ({
 	apiHelpers,
-	companyExportImportPage,
+	applicationsMenuPage,
+	exportImportPage,
 }) => {
-	const objectActionAPIClient =
-		await apiHelpers.buildRestClient(ObjectDefinitionAPI);
+	const objectDefinition =
+		await apiHelpers.objectAdmin.postRandomObjectDefinition({
+			status: {code: 0},
+		});
 
-	const {body: objectDefinition} =
-		await objectActionAPIClient.postObjectDefinition(
-			objectDefitionRequestData()
-		);
-
-	apiHelpers.data.push({id: objectDefinition.id, type: 'objectDefinition'});
+	apiHelpers.data.push({
+		id: objectDefinition.id,
+		type: 'objectDefinition',
+	});
 
 	await apiHelpers.objectEntry.postObjectEntry(
-		{externalReferenceCode: '', name: 'test'},
-		'c/tests'
+		{externalReferenceCode: '', textField: objectDefinition.name},
+		`${normalizeRestPath(objectDefinition.restContextPath)}`
 	);
 
-	const exportFilePath = await companyExportImportPage.export(
-		['Tests 1 Items'],
-		true
-	);
+	await applicationsMenuPage.goToExport();
 
-	const content = await readFileFromZip('C_Test.json', exportFilePath);
+	const exportFilePath = await exportImportPage.export({
+		includePermissions: true,
+		portletLabels: [`${objectDefinition.name} 1 Items`],
+	});
+
+	const content = await readFileFromZip(
+		`C_${objectDefinition.name}.json`,
+		exportFilePath
+	);
 
 	const json = JSON.parse(content);
 
@@ -207,33 +433,45 @@ test('can export custom object entries at instance level with permissions', asyn
 
 test('can see corresponding elements at instance level', async ({
 	apiHelpers,
+	applicationsMenuPage,
 	companyExportImportPage,
 	uiElementsPage,
 }) => {
-	const objectActionAPIClient =
-		await apiHelpers.buildRestClient(ObjectDefinitionAPI);
-	const {body: objectDefinition} =
-		await objectActionAPIClient.postObjectDefinition(
-			objectDefitionRequestData()
-		);
-	apiHelpers.data.push({id: objectDefinition.id, type: 'objectDefinition'});
+	const objectDefinition =
+		await apiHelpers.objectAdmin.postRandomObjectDefinition({
+			status: {code: 0},
+		});
 
-	await apiHelpers.objectEntry.postObjectEntry({name: 'test'}, 'c/tests');
+	apiHelpers.data.push({
+		id: objectDefinition.id,
+		type: 'objectDefinition',
+	});
 
-	await companyExportImportPage.applicationsMenuPage.goToExport();
+	await apiHelpers.objectEntry.postObjectEntry(
+		{externalReferenceCode: '', textField: objectDefinition.name},
+		`${normalizeRestPath(objectDefinition.restContextPath)}`
+	);
+
+	await applicationsMenuPage.goToExport();
 	await uiElementsPage.clickNewButton();
 	await expect(
 		companyExportImportPage.page.getByText('Comments, Ratings')
 	).not.toBeVisible();
 
 	await expect(
-		companyExportImportPage.page.getByText('Tests 1 Items')
+		companyExportImportPage.page.getByText(
+			`${objectDefinition.name} 1 Items`
+		)
 	).not.toBeVisible();
 
-	await companyExportImportPage.page.getByLabel('Tests').click();
+	await companyExportImportPage.page
+		.getByLabel(`${objectDefinition.name}`)
+		.click();
 
 	await expect(
-		companyExportImportPage.page.getByText('C_Test Change')
+		companyExportImportPage.page.getByText(
+			`C_${objectDefinition.name} Change`
+		)
 	).not.toBeVisible();
 
 	await expect(
@@ -244,12 +482,12 @@ test('can see corresponding elements at instance level', async ({
 test(
 	'can see the Deletions label at the instance level',
 	{tag: ['@LPD-37317']},
-	async ({companyExportImportPage, uiElementsPage}) => {
-		await companyExportImportPage.applicationsMenuPage.goToExport();
+	async ({applicationsMenuPage, exportImportPage, uiElementsPage}) => {
+		await applicationsMenuPage.goToExport();
 		await uiElementsPage.clickNewButton();
 
 		const deletionsLabelText =
-			await companyExportImportPage.deletionsLabel.textContent();
+			await exportImportPage.deletionsLabel.textContent();
 
 		expect(deletionsLabelText?.replace(/\s+/g, ' ').trim()).toBe(
 			'Export Individual Deletions: If this is checked, the delete operations performed will be exported in the LAR file.'
@@ -260,7 +498,7 @@ test(
 test('Can/not view Export menu item in Application menu depending on permissions', async ({
 	apiHelpers,
 	applicationsMenuPage,
-	companyExportImportPage,
+	exportImportPage,
 	page,
 }) => {
 	const companyId = await page.evaluate(() => {
@@ -337,9 +575,7 @@ test('Can/not view Export menu item in Application menu depending on permissions
 
 	await applicationsMenuPage.goToExport();
 
-	await expect(
-		companyExportImportPage.exportImportPage.newExportButton
-	).toBeVisible();
+	await expect(exportImportPage.newExportButton).toBeVisible();
 
 	await performLogout(page);
 
@@ -351,7 +587,5 @@ test('Can/not view Export menu item in Application menu depending on permissions
 
 	await page.goto(exportUrl);
 
-	await expect(
-		companyExportImportPage.exportImportPage.newExportButton
-	).toBeHidden();
+	await expect(exportImportPage.newExportButton).toBeHidden();
 });

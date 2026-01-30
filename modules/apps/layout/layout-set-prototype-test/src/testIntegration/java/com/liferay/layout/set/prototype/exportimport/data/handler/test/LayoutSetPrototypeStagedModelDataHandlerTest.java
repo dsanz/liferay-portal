@@ -8,6 +8,7 @@ package com.liferay.layout.set.prototype.exportimport.data.handler.test;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.exportimport.kernel.lar.ExportImportPathUtil;
 import com.liferay.exportimport.test.util.lar.BaseStagedModelDataHandlerTestCase;
+import com.liferay.layout.page.template.kernel.provider.util.LayoutPageTemplateEntryLayoutProviderUtil;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
@@ -273,40 +274,39 @@ public class LayoutSetPrototypeStagedModelDataHandlerTest
 		try (InputStream inputStream =
 				portletDataContext.getZipEntryAsInputStream(modelPath)) {
 
-			ZipReader zipReader = _zipReaderFactory.getZipReader(inputStream);
+			try (ZipReader zipReader = _zipReaderFactory.getZipReader(
+					inputStream)) {
 
-			Document document = UnsecureSAXReaderUtil.read(
-				zipReader.getEntryAsString("manifest.xml"));
+				Document document = UnsecureSAXReaderUtil.read(
+					zipReader.getEntryAsString("manifest.xml"));
 
-			Element rootElement = document.getRootElement();
+				Element rootElement = document.getRootElement();
 
-			Element layoutElement = rootElement.element("Layout");
+				Element layoutElement = rootElement.element("Layout");
 
-			List<Element> elements = layoutElement.elements();
+				List<Element> elements = layoutElement.elements();
 
-			List<Layout> importedLayouts = new ArrayList<>(elements.size());
+				List<Layout> importedLayouts = new ArrayList<>(elements.size());
 
-			for (Element element : elements) {
-				String layoutPrototypeUuid = element.attributeValue(
-					"layout-prototype-uuid");
+				for (Element element : elements) {
+					String layoutPrototypeUuid = element.attributeValue(
+						"layout-prototype-uuid");
 
-				if (Validator.isNotNull(layoutPrototypeUuid)) {
-					String path = element.attributeValue("path");
+					if (Validator.isNotNull(layoutPrototypeUuid)) {
+						String path = element.attributeValue("path");
 
-					Layout layout = (Layout)portletDataContext.fromXML(
-						zipReader.getEntryAsString(path));
+						Layout layout = (Layout)portletDataContext.fromXML(
+							zipReader.getEntryAsString(path));
 
-					importedLayouts.add(layout);
+						importedLayouts.add(layout);
+					}
 				}
+
+				Assert.assertEquals(
+					importedLayouts.toString(), 1, importedLayouts.size());
+
+				return importedLayouts.get(0);
 			}
-
-			Assert.assertEquals(
-				importedLayouts.toString(), 1, importedLayouts.size());
-
-			return importedLayouts.get(0);
-		}
-		finally {
-			zipReader.close();
 		}
 	}
 
@@ -365,7 +365,8 @@ public class LayoutSetPrototypeStagedModelDataHandlerTest
 		validatePrototypedLayouts(
 			LayoutPrototype.class, importedLayoutPrototype.getGroupId());
 
-		Assert.assertNotNull(layoutSetPrototypeLayout.getLayoutPrototypeUuid());
+		Assert.assertNotNull(
+			layoutSetPrototypeLayout.getPortletLayoutPageTemplateEntryERC());
 
 		Layout importedLayout =
 			LayoutLocalServiceUtil.fetchLayoutByUuidAndGroupId(
@@ -376,9 +377,17 @@ public class LayoutSetPrototypeStagedModelDataHandlerTest
 		Assert.assertEquals(
 			importedLayoutSetPrototype.getGroupId(),
 			importedLayout.getGroupId());
+
+		LayoutPrototype layoutPrototype =
+			LayoutPageTemplateEntryLayoutProviderUtil.
+				getLayoutPageTemplateEntryLayoutPrototype(
+					importedLayout.getCompanyId(),
+					importedLayout.getPortletLayoutPageTemplateEntryERC(),
+					importedLayout.getPortletLayoutPageTemplateEntryScopeERC(),
+					importedLayout.getGroupId());
+
 		Assert.assertEquals(
-			importedLayoutPrototype.getUuid(),
-			importedLayout.getLayoutPrototypeUuid());
+			importedLayoutPrototype.getUuid(), layoutPrototype.getUuid());
 	}
 
 	protected void validatePrototypedLayouts(Class<?> clazz, long groupId)

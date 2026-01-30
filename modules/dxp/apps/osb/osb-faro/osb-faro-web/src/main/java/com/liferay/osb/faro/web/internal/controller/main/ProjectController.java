@@ -224,6 +224,61 @@ public class ProjectController extends BaseFaroController {
 			incidentReportEmailAddressesFaroParam, name, timeZoneId);
 	}
 
+	@Path("/consume-product")
+	@POST
+	@RolesAllowed(RoleConstants.SITE_ADMINISTRATOR)
+	public void consumeProduct(@QueryParam("groupId") Long groupId)
+		throws Exception {
+
+		List<FaroProject> faroProjects = new ArrayList<>();
+
+		if (groupId != null) {
+			faroProjects.add(
+				faroProjectLocalService.getFaroProjectByGroupId(groupId));
+		}
+		else {
+			faroProjects.addAll(
+				faroProjectLocalService.getFaroProjects(
+					QueryUtil.ALL_POS, QueryUtil.ALL_POS));
+		}
+
+		for (FaroProject faroProject : faroProjects) {
+			if (Validator.isNull(faroProject.getCorpProjectUuid()) ||
+				Objects.equals(
+					faroProject.getCorpProjectUuid(),
+					FaroPropsValues.FARO_PROJECT_ID)) {
+
+				continue;
+			}
+
+			try {
+				if (_provisioningClient.isProductConsumed(
+						faroProject.getCorpProjectUuid())) {
+
+					if (_log.isInfoEnabled()) {
+						_log.info(
+							"Faro project" + faroProject.getFaroProjectId() +
+								" was already consumed");
+					}
+
+					continue;
+				}
+
+				_provisioningClient.addProductConsumption(
+					faroProject.getCorpProjectUuid(), faroProject.getGroupId());
+
+				if (_log.isInfoEnabled()) {
+					_log.info(
+						"Faro project " + faroProject.getFaroProjectId() +
+							" was consumed successfully");
+				}
+			}
+			catch (Exception exception) {
+				_log.error(exception);
+			}
+		}
+	}
+
 	@Path("/provisioned")
 	@POST
 	@RolesAllowed(StringPool.BLANK)
@@ -992,6 +1047,11 @@ public class ProjectController extends BaseFaroController {
 			contactsEngineClient.addProject(faroProject) + ".lfr.cloud";
 
 		faroProject.setWeDeployKey(weDeployKey);
+
+		if (!Objects.equals(corpProjectUuid, FaroPropsValues.FARO_PROJECT_ID)) {
+			_provisioningClient.addProductConsumption(
+				corpProjectUuid, faroProject.getGroupId());
+		}
 
 		return _faroProjectLocalService.updateFaroProject(faroProject);
 	}

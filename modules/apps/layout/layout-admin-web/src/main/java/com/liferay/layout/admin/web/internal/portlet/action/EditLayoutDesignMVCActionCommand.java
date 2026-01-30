@@ -212,15 +212,19 @@ public class EditLayoutDesignMVCActionCommand extends BaseMVCActionCommand {
 
 			Layout layout = _layoutLocalService.getLayout(selPlid);
 
-			long styleBookEntryId = ParamUtil.getLong(
-				uploadPortletRequest, "styleBookEntryId",
-				layout.getStyleBookEntryId());
-			long faviconFileEntryId = ParamUtil.getLong(
-				uploadPortletRequest, "faviconFileEntryId",
-				layout.getFaviconFileEntryId());
-			long masterLayoutPlid = ParamUtil.getLong(
-				uploadPortletRequest, "masterLayoutPlid",
-				layout.getMasterLayoutPlid());
+			String styleBookEntryERC = ParamUtil.getString(
+				uploadPortletRequest, "styleBookEntryERC",
+				layout.getStyleBookEntryERC());
+
+			String faviconFileEntryERC = ParamUtil.getString(
+				uploadPortletRequest, "faviconFileEntryERC",
+				layout.getFaviconFileEntryERC());
+			String faviconFileEntryScopeERC = ParamUtil.getString(
+				uploadPortletRequest, "faviconFileEntryScopeERC",
+				layout.getFaviconFileEntryScopeERC());
+			String masterLayoutPageTemplateEntryERC = ParamUtil.getString(
+				uploadPortletRequest, "masterLayoutPageTemplateEntryERC",
+				layout.getMasterLayoutPageTemplateEntryERC());
 
 			ServiceContext serviceContext = ServiceContextFactory.getInstance(
 				Layout.class.getName(), actionRequest);
@@ -254,8 +258,9 @@ public class EditLayoutDesignMVCActionCommand extends BaseMVCActionCommand {
 				layout.getTitleMap(), layout.getDescriptionMap(),
 				layout.getKeywordsMap(), layout.getRobotsMap(),
 				layout.getType(), layout.isHidden(), layout.getFriendlyURLMap(),
-				!deleteLogo, iconBytes, styleBookEntryId, faviconFileEntryId,
-				masterLayoutPlid, serviceContext);
+				!deleteLogo, iconBytes, styleBookEntryERC, faviconFileEntryERC,
+				faviconFileEntryScopeERC, masterLayoutPageTemplateEntryERC,
+				serviceContext);
 
 			_updateClientExtensionEntryRels(
 				actionRequest, layout, themeDisplay.getUserId());
@@ -280,8 +285,10 @@ public class EditLayoutDesignMVCActionCommand extends BaseMVCActionCommand {
 					draftLayout.getKeywordsMap(), draftLayout.getRobotsMap(),
 					draftLayout.getType(), draftLayout.isHidden(),
 					draftLayout.getFriendlyURLMap(), !deleteLogo, iconBytes,
-					styleBookEntryId, faviconFileEntryId,
-					draftLayout.getMasterLayoutPlid(), serviceContext);
+					styleBookEntryERC, faviconFileEntryERC,
+					faviconFileEntryScopeERC,
+					draftLayout.getMasterLayoutPageTemplateEntryERC(),
+					serviceContext);
 
 				_updateClientExtensionEntryRels(
 					actionRequest, draftLayout, themeDisplay.getUserId());
@@ -303,7 +310,7 @@ public class EditLayoutDesignMVCActionCommand extends BaseMVCActionCommand {
 					Boolean.TRUE.toString());
 			}
 
-			layout = _layoutService.updateLayout(
+			layout = _layoutService.updateTypeSettings(
 				groupId, layout.isPrivateLayout(), layout.getLayoutId(),
 				layoutTypeSettingsUnicodeProperties.toString());
 

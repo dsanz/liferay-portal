@@ -200,7 +200,10 @@ public class LayoutPageTemplateCollectionLocalServiceImpl
 
 	@Indexable(type = IndexableType.DELETE)
 	@Override
-	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
+	@SystemEvent(
+		action = SystemEventConstants.ACTION_SKIP,
+		type = SystemEventConstants.TYPE_DELETE
+	)
 	public LayoutPageTemplateCollection deleteLayoutPageTemplateCollection(
 			LayoutPageTemplateCollection layoutPageTemplateCollection)
 		throws PortalException {
@@ -255,8 +258,10 @@ public class LayoutPageTemplateCollectionLocalServiceImpl
 			long layoutPageTemplateCollectionId)
 		throws PortalException {
 
-		return deleteLayoutPageTemplateCollection(
-			getLayoutPageTemplateCollection(layoutPageTemplateCollectionId));
+		return layoutPageTemplateCollectionLocalService.
+			deleteLayoutPageTemplateCollection(
+				getLayoutPageTemplateCollection(
+					layoutPageTemplateCollectionId));
 	}
 
 	@Override
@@ -264,9 +269,10 @@ public class LayoutPageTemplateCollectionLocalServiceImpl
 			String externalReferenceCode, long groupId)
 		throws PortalException {
 
-		return deleteLayoutPageTemplateCollection(
-			getLayoutPageTemplateCollectionByExternalReferenceCode(
-				externalReferenceCode, groupId));
+		return layoutPageTemplateCollectionLocalService.
+			deleteLayoutPageTemplateCollection(
+				getLayoutPageTemplateCollectionByExternalReferenceCode(
+					externalReferenceCode, groupId));
 	}
 
 	@Override
@@ -375,11 +381,12 @@ public class LayoutPageTemplateCollectionLocalServiceImpl
 			String sourceName, int type)
 		throws PortalException {
 
-		return UniqueUtil.getCopyValue(
-			copyValue -> {
+		return UniqueUtil.getUniqueValue(
+			"copy",
+			uniqueValue -> {
 				LayoutPageTemplateCollection layoutPageTemplateCollection =
 					layoutPageTemplateCollectionPersistence.fetchByG_P_N_T(
-						groupId, layoutPageTemplateCollectionId, copyValue,
+						groupId, layoutPageTemplateCollectionId, uniqueValue,
 						type);
 
 				if (layoutPageTemplateCollection == null) {

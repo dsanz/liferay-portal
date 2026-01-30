@@ -6,6 +6,7 @@
 package com.liferay.object.rest.resource.v1_0;
 
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
+import com.liferay.object.rest.dto.v1_0.TranslationResponse;
 import com.liferay.object.rest.dto.v1_0.ValidationRequest;
 import com.liferay.object.rest.dto.v1_0.ValidationResponse;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -18,6 +19,7 @@ import com.liferay.portal.odata.sort.SortParserProvider;
 import com.liferay.portal.vulcan.accept.language.AcceptLanguage;
 import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineExportTaskResource;
 import com.liferay.portal.vulcan.batch.engine.resource.VulcanBatchEngineImportTaskResource;
+import com.liferay.portal.vulcan.multipart.MultipartBody;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
@@ -56,9 +58,6 @@ public interface ObjectEntryResource {
 	public Response deleteObjectEntryBatch(String callbackURL, Object object)
 		throws Exception;
 
-	public void deleteObjectEntryByVersion(Long objectEntryId, Integer version)
-		throws Exception;
-
 	public void deleteScopeScopeKeyByExternalReferenceCode(
 			String scopeKey, String externalReferenceCode)
 		throws Exception;
@@ -87,7 +86,8 @@ public interface ObjectEntryResource {
 		throws Exception;
 
 	public Page<ObjectEntry> getByExternalReferenceCodeVersionsPage(
-			String externalReferenceCode, Pagination pagination)
+			String externalReferenceCode, Pagination pagination,
+			com.liferay.portal.kernel.search.Sort[] sorts)
 		throws Exception;
 
 	public Page<ObjectEntry> getObjectEntriesPage(
@@ -98,18 +98,19 @@ public interface ObjectEntryResource {
 			com.liferay.portal.kernel.search.Sort[] sorts)
 		throws Exception;
 
-	public Page<ObjectEntry> getObjectEntriesVersionsPage(
-			Long objectEntryId, Pagination pagination)
-		throws Exception;
-
 	public ObjectEntry getObjectEntry(Long objectEntryId) throws Exception;
-
-	public ObjectEntry getObjectEntryByVersion(
-			Long objectEntryId, Integer version)
-		throws Exception;
 
 	public Page<com.liferay.portal.vulcan.permission.Permission>
 			getObjectEntryPermissionsPage(Long objectEntryId, String roleNames)
+		throws Exception;
+
+	public Response getObjectEntryTranslation(
+			Long objectEntryId, String sourceLanguageId,
+			String targetLanguageIds, String version)
+		throws Exception;
+
+	public Response getObjectEntryTranslationLanguage(
+			Long objectEntryId, String languageId, String targetLanguageId)
 		throws Exception;
 
 	public ObjectEntry getScopeScopeKeyApprovedByExternalReferenceCode(
@@ -132,10 +133,21 @@ public interface ObjectEntryResource {
 			String scopeKey, String externalReferenceCode, Integer version)
 		throws Exception;
 
+	public Response getScopeScopeKeyByExternalReferenceCodeTranslation(
+			String scopeKey, String externalReferenceCode,
+			String sourceLanguageId, String targetLanguageIds, String version)
+		throws Exception;
+
+	public Response getScopeScopeKeyByExternalReferenceCodeTranslationLanguage(
+			String scopeKey, String externalReferenceCode, String languageId,
+			String targetLanguageId)
+		throws Exception;
+
 	public Page<ObjectEntry>
 			getScopeScopeKeyByExternalReferenceCodeVersionsPage(
 				String scopeKey, String externalReferenceCode,
-				Pagination pagination)
+				Pagination pagination,
+				com.liferay.portal.kernel.search.Sort[] sorts)
 		throws Exception;
 
 	public Page<ObjectEntry> getScopeScopeKeyPage(
@@ -167,6 +179,10 @@ public interface ObjectEntryResource {
 			String externalReferenceCode, Integer version)
 		throws Exception;
 
+	public ObjectEntry postByExternalReferenceCodeExpire(
+			String externalReferenceCode)
+		throws Exception;
+
 	public void postByExternalReferenceCodeSubscribe(
 			String externalReferenceCode)
 		throws Exception;
@@ -188,15 +204,24 @@ public interface ObjectEntryResource {
 	public Response postObjectEntryBatch(String callbackURL, Object object)
 		throws Exception;
 
-	public ObjectEntry postObjectEntryByVersionCopy(
-			Long objectEntryId, Integer version)
+	public ObjectEntry postObjectEntryByObjectEntryFolderCopy(
+			Long objectEntryId, Long objectEntryFolderId)
 		throws Exception;
 
-	public ObjectEntry postObjectEntryByVersionExpire(
-			Long objectEntryId, Integer version)
+	public ObjectEntry postObjectEntryByObjectEntryFolderCopyReplace(
+			Long objectEntryId, Long objectEntryFolderId)
 		throws Exception;
 
-	public ObjectEntry postObjectEntryExpire(Long objectEntryId)
+	public ObjectEntry postObjectEntryByObjectEntryFolderMove(
+			Long objectEntryId, Long objectEntryFolderId)
+		throws Exception;
+
+	public ObjectEntry postObjectEntryByObjectEntryFolderMoveReplace(
+			Long objectEntryId, Long objectEntryFolderId)
+		throws Exception;
+
+	public TranslationResponse postObjectEntryTranslation(
+			Long objectEntryId, MultipartBody multipartBody)
 		throws Exception;
 
 	public ObjectEntry postScopeScopeKey(
@@ -217,6 +242,12 @@ public interface ObjectEntryResource {
 
 	public void postScopeScopeKeyByExternalReferenceCodeSubscribe(
 			String scopeKey, String externalReferenceCode)
+		throws Exception;
+
+	public TranslationResponse
+			postScopeScopeKeyByExternalReferenceCodeTranslation(
+				String scopeKey, String externalReferenceCode,
+				MultipartBody multipartBody)
 		throws Exception;
 
 	public void postScopeScopeKeyByExternalReferenceCodeUnsubscribe(
@@ -251,10 +282,6 @@ public interface ObjectEntryResource {
 		throws Exception;
 
 	public Response putObjectEntryBatch(String callbackURL, Object object)
-		throws Exception;
-
-	public ObjectEntry putObjectEntryByVersionRestore(
-			Long objectEntryId, Integer version)
 		throws Exception;
 
 	public void putObjectEntryObjectActionObjectActionName(

@@ -4,10 +4,11 @@
  */
 
 import ClayModal from '@clayui/modal';
-import {Observer} from '@clayui/modal/lib/types';
 import React from 'react';
 
 import {IOrderItem} from './Types';
+
+import type {Observer} from '@clayui/modal/src/types';
 
 interface IOrderItemModalDetailProps {
 	observer: Observer;
@@ -32,7 +33,9 @@ const OrderItemDetailModal = ({
 			observer={observer}
 			spritemap={spritemap}
 		>
-			<ClayModal.Header>
+			<ClayModal.Header
+				closeButtonAriaLabel={Liferay.Language.get('close')}
+			>
 				{`${Liferay.Language.get('view')} ${orderItem.sku} ${Liferay.Language.get('details')}`}
 			</ClayModal.Header>
 

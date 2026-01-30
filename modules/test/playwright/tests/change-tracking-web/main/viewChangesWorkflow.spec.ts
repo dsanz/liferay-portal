@@ -90,7 +90,11 @@ test('LPD-19748 Add workflow info to the View Change screen', async ({
 
 	await changeTrackingPage.reviewChange(journalName);
 
-	await expect(page.getByText(`Pending`)).toBeVisible();
+	await expect(
+		page.getByText(`Pending`, {
+			exact: true,
+		})
+	).toBeVisible();
 
 	await changeTrackingPage.viewDisplayTab('Workflow');
 });
@@ -127,7 +131,11 @@ test('LPD-19748 Only workflow status is displayed when workflow is disabled', as
 
 	await changeTrackingPage.reviewChange(journalName);
 
-	await expect(page.getByText(`Pending`)).toBeVisible();
+	await expect(
+		page.getByText(`Pending`, {
+			exact: true,
+		})
+	).toBeVisible();
 
 	await changeTrackingPage.viewDisplayTab('Workflow', {isHidden: true});
 });
@@ -675,4 +683,60 @@ test('LPD-28975 Workflow tab shows unexpected error for asset added in publicati
 	await changeTrackingPage.reviewChange(title1);
 
 	await changeTrackingPage.viewDisplayTab('Workflow', {isHidden: true});
+});
+
+test('LPD-68030 Workflow logs does not show comment when action is performed in review change view', async ({
+	changeTrackingPage,
+	ctCollection,
+	page,
+}) => {
+	await changeTrackingPage.goToReviewChanges(ctCollection.body.name);
+
+	await changeTrackingPage.reviewChange(journalName);
+
+	const moreActionsButton = page.getByLabel('more-actions');
+
+	await moreActionsButton.click();
+
+	const assignToMeMenuItem = page.getByRole('menuitem', {
+		name: 'Assign to me',
+	});
+
+	await expect(assignToMeMenuItem).toBeVisible();
+
+	await assignToMeMenuItem.click();
+
+	let doneButton = page
+		.frameLocator('iframe[title="Assign to Me"]')
+		.getByRole('button', {exact: true, name: 'Done'});
+
+	await doneButton.click();
+
+	await moreActionsButton.click();
+
+	const rejectMeMenuItem = page.getByRole('menuitem', {
+		name: 'Reject',
+	});
+
+	await expect(rejectMeMenuItem).toBeVisible();
+
+	await rejectMeMenuItem.click();
+
+	const commentTextBox = page.getByRole('textbox');
+
+	const comment = getRandomString();
+
+	commentTextBox.fill(comment);
+
+	doneButton = page.getByRole('button', {exact: true, name: 'Done'});
+
+	await doneButton.click();
+
+	await changeTrackingPage.selectTab('Workflow');
+
+	await page.getByRole('button', {exact: true, name: 'Activities'}).click();
+
+	await expect(
+		page.getByText(`completed the task Review. ${comment}`)
+	).toBeVisible();
 });

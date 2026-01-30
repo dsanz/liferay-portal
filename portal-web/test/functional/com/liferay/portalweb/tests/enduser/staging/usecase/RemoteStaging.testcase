@@ -2,6 +2,7 @@
 definition {
 
 	property app.server.bundles.size = "1";
+	property browser.chrome.version = "139.0";
 	property ci.retries.disabled = "true";
 	property custom.properties = "auth.verifier.TunnelAuthVerifier.hosts.allowed=${line.separator}tunneling.servlet.shared.secret=1234567890123456";
 	property databases.size = "1";
@@ -905,6 +906,7 @@ definition {
 	@description = "This is a use case for LPS-81953. Web contents can be published with manually chosen ID."
 	@priority = 3
 	test StagingRemoteLiveWebContentWithManualChosenID {
+		property browser.chrome.version = "139.0";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
 

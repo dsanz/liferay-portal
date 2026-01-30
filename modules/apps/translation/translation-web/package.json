@@ -1,16 +1,17 @@
 {
 	"dependencies": {
-		"@clayui/alert": "3.148.0",
-		"@clayui/button": "3.144.1",
-		"@clayui/drop-down": "3.149.0",
-		"@clayui/form": "3.148.0",
-		"@clayui/icon": "3.144.1",
-		"@clayui/layout": "3.144.1",
-		"@clayui/link": "3.144.1",
-		"@clayui/list": "3.149.0",
-		"@clayui/loading-indicator": "3.144.1",
-		"@clayui/panel": "3.148.0",
-		"@clayui/toolbar": "3.148.0",
+		"@ckeditor/ckeditor5-source-editing": "46.0.3",
+		"@clayui/alert": "*",
+		"@clayui/button": "*",
+		"@clayui/drop-down": "*",
+		"@clayui/form": "*",
+		"@clayui/icon": "*",
+		"@clayui/layout": "*",
+		"@clayui/link": "*",
+		"@clayui/list": "*",
+		"@clayui/loading-indicator": "*",
+		"@clayui/panel": "*",
+		"@clayui/toolbar": "*",
 		"@liferay/frontend-js-react-web": "*",
 		"classnames": "2.3.1",
 		"frontend-editor-ckeditor-web": "*",
@@ -32,5 +33,5 @@
 		"format": "node-scripts format",
 		"test": "node-scripts test"
 	},
-	"version": "2.0.126"
+	"version": "2.0.130"
 }

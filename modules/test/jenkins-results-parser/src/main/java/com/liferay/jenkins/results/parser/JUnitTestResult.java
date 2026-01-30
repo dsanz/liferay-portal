@@ -5,6 +5,7 @@
 
 package com.liferay.jenkins.results.parser;
 
+import com.liferay.jenkins.results.parser.history.TestClassHistory;
 import com.liferay.jenkins.results.parser.test.clazz.TestClass;
 
 import java.io.IOException;
@@ -71,19 +72,15 @@ public class JUnitTestResult extends BaseTestResult {
 					getTestReportURL(), getDisplayName()));
 		}
 
-		TestHistory testHistory = getTestHistory();
+		TestClassHistory testClassHistory = getTestClassHistory();
 
-		if (testHistory != null) {
-			downstreamBuildListItemElement.addText(" - ");
-
-			downstreamBuildListItemElement.add(
-				Dom4JUtil.getNewAnchorElement(
-					testHistory.getTestrayCaseResultURL(),
-					JenkinsResultsParserUtil.combine(
-						"Failed ",
-						String.valueOf(testHistory.getFailureCount()),
-						" of last ",
-						String.valueOf(testHistory.getTestCount()))));
+		if (testClassHistory != null) {
+			downstreamBuildListItemElement.addText(
+				JenkinsResultsParserUtil.combine(
+					" - Failed ",
+					String.valueOf(testClassHistory.getFailureCount()),
+					" of last ",
+					String.valueOf(testClassHistory.getTestCount())));
 		}
 
 		String errorStackTrace = getErrorStackTrace();

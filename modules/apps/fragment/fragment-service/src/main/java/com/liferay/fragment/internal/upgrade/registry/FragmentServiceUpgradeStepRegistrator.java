@@ -131,10 +131,13 @@ public class FragmentServiceUpgradeStepRegistrator
 				FragmentEntryVersionUpgradeProcess());
 
 		registry.register(
-			"2.6.0", "2.7.0",
+			"2.6.0", "2.6.1",
 			new CTModelUpgradeProcess(
 				"FragmentCollection", "FragmentComposition", "FragmentEntry",
-				"FragmentEntryLink", "FragmentEntryVersion"),
+				"FragmentEntryLink", "FragmentEntryVersion"));
+
+		registry.register(
+			"2.6.1", "2.7.0",
 			new MVCCVersionUpgradeProcess() {
 
 				@Override
@@ -210,10 +213,8 @@ public class FragmentServiceUpgradeStepRegistrator
 			new BaseExternalReferenceCodeUpgradeProcess() {
 
 				@Override
-				protected String[][] getTableAndPrimaryKeyColumnNames() {
-					return new String[][] {
-						{"FragmentCollection", "fragmentCollectionId"}
-					};
+				protected String[] getTableNames() {
+					return new String[] {"FragmentCollection"};
 				}
 
 			});
@@ -223,11 +224,10 @@ public class FragmentServiceUpgradeStepRegistrator
 			new BaseExternalReferenceCodeUpgradeProcess() {
 
 				@Override
-				protected String[][] getTableAndPrimaryKeyColumnNames() {
-					return new String[][] {
-						{"FragmentComposition", "fragmentCompositionId"},
-						{"FragmentEntry", "fragmentEntryId"},
-						{"FragmentEntryVersion", "fragmentEntryId"}
+				protected String[] getTableNames() {
+					return new String[] {
+						"FragmentComposition", "FragmentEntry",
+						"FragmentEntryVersion"
 					};
 				}
 
@@ -238,10 +238,8 @@ public class FragmentServiceUpgradeStepRegistrator
 			new BaseExternalReferenceCodeUpgradeProcess() {
 
 				@Override
-				protected String[][] getTableAndPrimaryKeyColumnNames() {
-					return new String[][] {
-						{"FragmentEntryLink", "fragmentEntryLinkId"}
-					};
+				protected String[] getTableNames() {
+					return new String[] {"FragmentEntryLink"};
 				}
 
 			});
@@ -264,6 +262,11 @@ public class FragmentServiceUpgradeStepRegistrator
 			"2.14.0", "2.15.0",
 			UpgradeProcessFactory.addColumns(
 				"FragmentCollection", "marketplace BOOLEAN"));
+
+		registry.register(
+			"2.15.0", "3.0.0",
+			new com.liferay.fragment.internal.upgrade.v3_0_0.
+				FragmentEntryLinkUpgradeProcess());
 	}
 
 	@Reference

@@ -1,23 +1,32 @@
 /**
- * SPDX-FileCopyrightText: (c) 2024 Liferay, Inc. https://liferay.com
+ * SPDX-FileCopyrightText: (c) 2025 Liferay, Inc. https://liferay.com
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
 import {Locator, Page} from '@playwright/test';
 
 import {ProductMenuPage} from '../../pages/product-navigation-control-menu-web/ProductMenuPage';
+import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import {PORTLET_URLS} from '../../utils/portletUrls';
 import {waitForAlert} from '../../utils/waitForAlert';
+import {waitForSPAToBeLoaded} from '../../utils/waitForSPAToBeLoaded';
 
 export class SiteSettingsPage {
 	readonly page: Page;
 
+	readonly defaultValuesAlert: Locator;
 	readonly productMenuPage: ProductMenuPage;
 	readonly saveButton: Locator;
 
 	constructor(page: Page) {
 		this.page = page;
 
+		this.defaultValuesAlert = page
+			.getByRole('alert')
+			.first()
+			.getByText(
+				'Info:This configuration is not saved yet. The values shown are the default.'
+			);
 		this.productMenuPage = new ProductMenuPage(page);
 		this.saveButton = page
 			.getByRole('button', {name: 'Save'})
@@ -52,6 +61,20 @@ export class SiteSettingsPage {
 				})
 				.click();
 		}
+
+		await waitForSPAToBeLoaded(this.page);
+	}
+
+	async clickOnAction(actionName: string) {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {name: actionName}),
+			trigger: this.page.getByRole('button', {name: 'Actions'}),
+		});
+	}
+
+	async resetToDefaultValues() {
+		await this.clickOnAction('Reset Default Values');
 	}
 
 	async saveConfiguration() {

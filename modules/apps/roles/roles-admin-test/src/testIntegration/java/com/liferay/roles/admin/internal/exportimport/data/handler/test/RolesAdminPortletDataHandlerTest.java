@@ -39,6 +39,7 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -64,7 +65,9 @@ import org.junit.runner.RunWith;
 /**
  * @author Zoltan Csaszi
  */
-@FeatureFlag("LPD-35914")
+@FeatureFlags(
+	featureFlags = {@FeatureFlag("LPD-35443"), @FeatureFlag("LPD-35914")}
+)
 @RunWith(Arquillian.class)
 public class RolesAdminPortletDataHandlerTest
 	extends BasePortletDataHandlerTestCase {
@@ -184,8 +187,11 @@ public class RolesAdminPortletDataHandlerTest
 
 		Set<String> classNames = new HashSet<>();
 
-		classNames.add(StagedModelType.REFERRER_CLASS_NAME_ALL);
 		classNames.add(Role.class.getName());
+		classNames.add(StagedModelType.REFERRER_CLASS_NAME_ALL);
+		classNames.add(
+			"com.liferay.headless.admin.user.internal.resource.v1_0." +
+				"RoleResourceImpl");
 
 		for (RoleTypeContributor roleTypeContributor :
 				_roleTypeContributorProvider.getRoleTypeContributors()) {

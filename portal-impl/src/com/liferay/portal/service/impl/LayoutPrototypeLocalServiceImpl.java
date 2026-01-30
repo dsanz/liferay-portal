@@ -5,12 +5,10 @@
 
 package com.liferay.portal.service.impl;
 
-import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.exception.NoSuchLayoutPrototypeException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.exception.RequiredLayoutPrototypeException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
@@ -32,7 +30,6 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.service.base.LayoutPrototypeLocalServiceBaseImpl;
-import com.liferay.portal.util.PortalInstances;
 
 import java.util.Date;
 import java.util.List;
@@ -88,12 +85,12 @@ public class LayoutPrototypeLocalServiceImpl
 			"/template-" + layoutPrototype.getLayoutPrototypeId();
 
 		Group group = _groupLocalService.addGroup(
-			userId, GroupConstants.DEFAULT_PARENT_GROUP_ID,
+			StringPool.BLANK, userId, GroupConstants.DEFAULT_PARENT_GROUP_ID,
 			LayoutPrototype.class.getName(),
 			layoutPrototype.getLayoutPrototypeId(),
 			GroupConstants.DEFAULT_LIVE_GROUP_ID, layoutPrototype.getNameMap(),
-			null, 0, true, GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION,
-			friendlyURL, false, true, null);
+			null, 0, null, true, GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION,
+			friendlyURL, false, false, true, null);
 
 		if (GetterUtil.getBoolean(
 				serviceContext.getAttribute("addDefaultLayout"), true)) {
@@ -122,21 +119,6 @@ public class LayoutPrototypeLocalServiceImpl
 		throws PortalException {
 
 		// Group
-
-		if (!PortalInstances.isCurrentCompanyInDeletionProcess()) {
-			int count = _layoutPersistence.countByC_L(
-				layoutPrototype.getCompanyId(), layoutPrototype.getUuid());
-
-			if (count > 0) {
-				throw new RequiredLayoutPrototypeException(
-					StringBundler.concat(
-						"Layout prototype cannot be deleted because it is ",
-						"used by layout with company ID ",
-						layoutPrototype.getCompanyId(),
-						" and layout prototype UUID ",
-						layoutPrototype.getUuid()));
-			}
-		}
 
 		_groupLocalService.deleteGroup(layoutPrototype.getGroup());
 

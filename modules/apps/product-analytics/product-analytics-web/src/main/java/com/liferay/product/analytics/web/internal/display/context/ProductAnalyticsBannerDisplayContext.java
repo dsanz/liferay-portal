@@ -39,6 +39,10 @@ public class ProductAnalyticsBannerDisplayContext extends BaseDisplayContext {
 		).put(
 			"configurationURL", _getConfigurationURL()
 		).put(
+			"consentRenewalPeriod", getConsentRenewalPeriod()
+		).put(
+			"lastModified", getLastModified()
+		).put(
 			"optionalConsentCookieTypeNames",
 			getConsentCookieTypeNamesJSONArray(getOptionalConsentCookieTypes())
 		).put(

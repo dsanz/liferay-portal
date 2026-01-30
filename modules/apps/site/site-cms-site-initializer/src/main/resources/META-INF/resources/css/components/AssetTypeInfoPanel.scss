@@ -32,17 +32,19 @@
 
 .c-slideout .sidebar {
 	.asset-metadata-section {
-		margin-top: 1rem;
+		.breadcrumb {
+			&-item {
+				margin-right: 0;
+			}
 
-		&-title {
-			font-weight: 600;
-			margin-bottom: 0;
+			&-link {
+				font-size: 0.875rem;
+				text-decoration: none !important;
+			}
 		}
 
 		p {
-			display: block;
 			font-size: 0.875rem;
-			margin-bottom: 0;
 		}
 	}
 
@@ -52,7 +54,6 @@
 		}
 
 		.c-empty-state-text {
-			color: $gray-600;
 			margin-top: 2rem;
 		}
 	}
@@ -60,11 +61,10 @@
 	.card-image {
 		height: 250px;
 		object-fit: contain;
-		width: 100%;
 	}
 
 	.nav {
-		flex-wrap: nowrap;
+		flex-wrap: wrap;
 	}
 
 	.nav-tabs {
@@ -77,23 +77,13 @@
 	}
 
 	.sidebar-header {
-		border-bottom-width: 0;
-
-		.asset-icon {
-			font-size: 20px;
-
-			&-files {
-				color: $red-l1;
-			}
+		.asset-icon-files {
+			color: $red-l1;
 		}
+	}
 
-		.asset-title {
-			margin-bottom: 0;
-		}
-
-		.component-title {
-			margin-right: 0.5rem;
-		}
+	.space-breadcrumb {
+		margin-top: 0.375rem;
 	}
 
 	.tab-content {

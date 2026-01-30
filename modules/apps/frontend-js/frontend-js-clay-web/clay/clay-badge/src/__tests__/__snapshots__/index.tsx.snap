@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ClayBadge applies custom className 1`] = `
+<span
+  className="badge badge-primary bar foo"
+>
+  <span
+    className="badge-item badge-item-expand"
+  >
+    4
+  </span>
+</span>
+`;
+
+exports[`ClayBadge renders 1`] = `
+<span
+  className="badge badge-primary"
+>
+  <span
+    className="badge-item badge-item-expand"
+  >
+    4
+  </span>
+</span>
+`;
+
+exports[`ClayBadge renders dark and translucent 1`] = `
+<span
+  className="badge badge-info badge-translucent clay-dark"
+>
+  <span
+    className="badge-item badge-item-expand"
+  >
+    Beta
+  </span>
+</span>
+`;
+
+exports[`ClayBadge renders displayType="beta" as info and translucent 1`] = `
+<span
+  className="badge badge-info badge-translucent"
+>
+  <span
+    className="badge-item badge-item-expand"
+  >
+    Beta
+  </span>
+</span>
+`;
+
+exports[`ClayBadge renders displayType="beta-dark" as dark, info and translucent 1`] = `
+<span
+  className="badge badge-info badge-translucent clay-dark"
+>
+  <span
+    className="badge-item badge-item-expand"
+  >
+    Beta
+  </span>
+</span>
+`;
+
+exports[`ClayBadge renders translucent 1`] = `
+<span
+  className="badge badge-info badge-translucent"
+>
+  <span
+    className="badge-item badge-item-expand"
+  >
+    Beta
+  </span>
+</span>
+`;

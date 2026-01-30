@@ -138,6 +138,26 @@ public class LayoutServiceUpgradeStepRegistrator
 			UpgradeProcessFactory.alterColumnName(
 				"LayoutClassedModelUsage", "cmExternalReferenceCode",
 				"classExternalReferenceCode VARCHAR(75) null"));
+
+		registry.register(
+			"2.0.0", "3.0.0",
+			new com.liferay.layout.internal.upgrade.v3_0_0.
+				LayoutUpgradeProcess());
+
+		registry.register(
+			"3.0.0", "4.0.0",
+			new com.liferay.layout.internal.upgrade.v4_0_0.
+				LayoutUpgradeProcess());
+
+		registry.register(
+			"4.0.0", "5.0.0",
+			new com.liferay.layout.internal.upgrade.v5_0_0.
+				LayoutUpgradeProcess());
+
+		registry.register(
+			"5.0.0", "6.0.0",
+			new com.liferay.layout.internal.upgrade.v6_0_0.
+				LayoutUpgradeProcess());
 	}
 
 	@Reference
@@ -182,7 +202,7 @@ public class LayoutServiceUpgradeStepRegistrator
 	private LayoutLocalService _layoutLocalService;
 
 	@Reference(
-		target = "(&(release.bundle.symbolic.name=com.liferay.layout.page.template.service)(release.schema.version>=2.1.0))"
+		target = "(&(release.bundle.symbolic.name=com.liferay.layout.page.template.service)(release.schema.version>=5.7.0))"
 	)
 	private Release _layoutPageTemplateServiceRelease;
 
@@ -197,5 +217,10 @@ public class LayoutServiceUpgradeStepRegistrator
 
 	@Reference
 	private PortalPreferencesLocalService _portalPreferencesLocalService;
+
+	@Reference(
+		target = "(&(release.bundle.symbolic.name=com.liferay.style.book.service)(release.schema.version>=1.5.0))"
+	)
+	private Release _styleBookEntryServiceRelease;
 
 }

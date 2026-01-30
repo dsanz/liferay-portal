@@ -394,6 +394,8 @@ Map<String, Map<String, String>> languagesTranslationsAriaLabelsMap = new HashMa
 					import (PATH_CONTEXT + '/o/frontend-js-state-web/__liferay__/index.js')
 				]).then(
 					([frontendJsComponentsWebModule, frontendJsReactWebModule, frontendJsStateWebModule]) => {
+						// Wrapping in a timeout to deal with React's async rendering
+setTimeout(() => {
 						Liferay.InputLocalized.register(
 							'<%= namespace + id + HtmlUtil.getAUICompatibleId(fieldSuffix) %>',
 							{
@@ -404,6 +406,7 @@ Map<String, Map<String, String>> languagesTranslationsAriaLabelsMap = new HashMa
 								...inputLocalizedProps
 							}
 						);
+});
 					}
 				)
 				</c:when>
@@ -413,14 +416,17 @@ Map<String, Map<String, String>> languagesTranslationsAriaLabelsMap = new HashMa
 					import (PATH_CONTEXT + '/o/frontend-js-state-web/__liferay__/index.js')
 				]).then(
 					([frontendJsComponentsWebModule, frontendJsStateWebModule]) => {
-						Liferay.InputLocalized.register(
-							'<%= namespace + id + HtmlUtil.getAUICompatibleId(fieldSuffix) %>',
-							{
-								frontendJsComponentsWebModule,
-								frontendJsStateWebModule,
-								...inputLocalizedProps
-							}
-						);
+						// Wrapping in a timeout to deal with React's async rendering
+						setTimeout(() => {
+							Liferay.InputLocalized.register(
+								'<%= namespace + id + HtmlUtil.getAUICompatibleId(fieldSuffix) %>',
+								{
+									frontendJsComponentsWebModule,
+									frontendJsStateWebModule,
+									...inputLocalizedProps
+								}
+							);
+						});
 					});
 				</c:otherwise>
 			</c:choose>

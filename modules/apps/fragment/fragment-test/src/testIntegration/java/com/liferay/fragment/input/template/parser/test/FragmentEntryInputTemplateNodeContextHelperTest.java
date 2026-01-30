@@ -81,7 +81,6 @@ import com.liferay.portal.kernel.util.MimeTypesUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TempFileEntryUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -287,7 +286,7 @@ public class FragmentEntryInputTemplateNodeContextHelperTest {
 		SessionMessages.add(
 			httpServletRequest, "infoFormParameterMap",
 			HashMapBuilder.<String, Object>put(
-				"myRichText", localeMap
+				"ObjectField_myRichText", localeMap
 			).build());
 
 		ServiceContext serviceContext =
@@ -334,7 +333,7 @@ public class FragmentEntryInputTemplateNodeContextHelperTest {
 		SessionMessages.add(
 			httpServletRequest, "infoFormParameterMap",
 			HashMapBuilder.<String, Object>put(
-				"myText", value
+				"ObjectField_myText", value
 			).build());
 
 		ServiceContext serviceContext =
@@ -370,7 +369,6 @@ public class FragmentEntryInputTemplateNodeContextHelperTest {
 		}
 	}
 
-	@FeatureFlag("LPD-32050")
 	@Test
 	public void testToInputTemplateNodeLocalizedInputValue() throws Exception {
 		ObjectDefinition objectDefinition =
@@ -632,8 +630,8 @@ public class FragmentEntryInputTemplateNodeContextHelperTest {
 		throws Exception {
 
 		return _fragmentEntryLinkLocalService.addFragmentEntryLink(
-			null, TestPropsValues.getUserId(), _group.getGroupId(), 0,
-			RandomTestUtil.randomLong(),
+			null, TestPropsValues.getUserId(), _group.getGroupId(), null,
+			RandomTestUtil.randomString(), null,
 			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
 				_layout.getPlid()),
 			_layout.getPlid(), StringPool.BLANK, StringPool.BLANK,
@@ -672,7 +670,7 @@ public class FragmentEntryInputTemplateNodeContextHelperTest {
 				null, TestPropsValues.getUserId(),
 				Collections.singletonMap(
 					LocaleUtil.US, RandomTestUtil.randomString()),
-				false, _listTypeEntries);
+				false, _listTypeEntries, new ServiceContext());
 
 		ObjectField myRichTextObjectField = ObjectFieldUtil.createObjectField(
 			ObjectFieldConstants.BUSINESS_TYPE_RICH_TEXT,
@@ -748,14 +746,15 @@ public class FragmentEntryInputTemplateNodeContextHelperTest {
 
 		objectDefinition =
 			_objectDefinitionLocalService.addCustomObjectDefinition(
-				TestPropsValues.getUserId(), 0, null, false, true, false, true,
+				null, TestPropsValues.getUserId(), 0, null, false, true, false,
 				true, true, false, false, false, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				"CustomObjectDefinition", null, "control_panel.sites",
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				true, ObjectDefinitionConstants.SCOPE_SITE,
 				ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
-				Collections.emptyList(), objectFields, Collections.emptyList());
+				Collections.emptyList(), objectFields, Collections.emptyList(),
+				new ServiceContext());
 
 		ObjectField myTextObjectField = ObjectFieldUtil.addCustomObjectField(
 			new TextObjectFieldBuilder(

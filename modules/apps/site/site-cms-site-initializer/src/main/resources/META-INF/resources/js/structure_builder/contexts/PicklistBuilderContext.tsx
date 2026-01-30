@@ -14,7 +14,7 @@ import React, {
 
 import {Option, Options, Picklist} from '../../common/types/Picklist';
 import getRandomId from '../utils/getRandomId';
-import normalizeI18n from '../utils/normalizeI18n';
+import normalizeI18nValue from '../utils/normalizeI18nValue';
 
 const noop = () => null;
 
@@ -94,13 +94,13 @@ const buildState = (picklist: Picklist): State => {
 		...INITIAL_STATE,
 		erc: picklist.externalReferenceCode,
 		id: picklist.id,
-		name: normalizeI18n(picklist.name_i18n),
+		name: normalizeI18nValue(picklist.name_i18n),
 		options: new Map(
 			picklist.listTypeEntries.map((option) => [
 				option.externalReferenceCode,
 				{
 					key: option.key,
-					name: normalizeI18n(option.name_i18n),
+					name: normalizeI18nValue(option.name_i18n),
 				},
 			])
 		),
@@ -110,12 +110,19 @@ const buildState = (picklist: Picklist): State => {
 const useAddOption = () => {
 	const {setOptions} = useContext(PicklistBuilderContext);
 
-	return ({erc, key, name}: Option) =>
-		setOptions((options) => {
+	return ({erc, key, name}: Option) => {
+		if (!erc || !key || !name) {
+			return;
+		}
+
+		return setOptions((previousOptions) => {
+			const options = new Map(previousOptions);
+
 			options.set(erc, {key, name});
 
 			return options;
 		});
+	};
 };
 
 const useDeletedOptions = () =>

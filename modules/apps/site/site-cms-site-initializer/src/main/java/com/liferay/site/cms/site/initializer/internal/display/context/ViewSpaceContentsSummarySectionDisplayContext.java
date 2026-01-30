@@ -13,11 +13,13 @@ import com.liferay.object.service.ObjectEntryFolderLocalService;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.site.cms.site.initializer.internal.constants.CMSSpaceConstants;
 import com.liferay.site.cms.site.initializer.internal.util.ActionUtil;
 import com.liferay.site.cms.site.initializer.internal.util.SpaceSummaryHeaderUtil;
+import com.liferay.translation.exporter.TranslationInfoItemFieldValuesExporterRegistry;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -39,16 +41,28 @@ public class ViewSpaceContentsSummarySectionDisplayContext
 		ObjectEntryFolderLocalService objectEntryFolderLocalService,
 		ModelResourcePermission<ObjectEntryFolder>
 			objectEntryFolderModelResourcePermission,
-		Portal portal) {
+		Portal portal,
+		TranslationInfoItemFieldValuesExporterRegistry
+			translationInfoItemFieldValuesExporterRegistry) {
 
 		super(
 			depotEntryLocalService, groupLocalService, httpServletRequest,
 			language, objectDefinitionService,
 			objectDefinitionSettingLocalService,
-			objectEntryFolderModelResourcePermission, portal);
+			objectEntryFolderModelResourcePermission, portal,
+			translationInfoItemFieldValuesExporterRegistry);
 
 		_groupId = groupId;
 		_objectEntryFolderLocalService = objectEntryFolderLocalService;
+	}
+
+	@Override
+	public Map<String, Object> getAdditionalProps() {
+		return new HashMapBuilder<>().putAll(
+			super.getAdditionalProps()
+		).put(
+			"showAdditionalItemInfo", true
+		).build();
 	}
 
 	@Override
@@ -67,8 +81,9 @@ public class ViewSpaceContentsSummarySectionDisplayContext
 					themeDisplay.getCompanyId());
 
 		return SpaceSummaryHeaderUtil.getSpaceSummaryHeaderProps(
-			httpServletRequest, "view-all-content", Collections.emptyMap(),
-			Collections.emptyMap(), "content",
+			getAPIURL(), getCreationMenu(), httpServletRequest,
+			"view-all-content", Collections.emptyMap(), Collections.emptyMap(),
+			"content",
 			ActionUtil.getBaseViewFolderURL(themeDisplay) +
 				objectEntryFolder.getObjectEntryFolderId());
 	}

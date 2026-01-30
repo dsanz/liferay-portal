@@ -8,17 +8,13 @@ resource "aws_security_group" "nodes" {
 }
 resource "aws_vpc_security_group_egress_rule" "cluster_egress" {
 	cidr_ipv4="0.0.0.0/0"
-	from_port=0
 	ip_protocol="-1"
 	security_group_id=aws_security_group.cluster.id
-	to_port=0
 }
 resource "aws_vpc_security_group_egress_rule" "nodes_egress" {
 	cidr_ipv4="0.0.0.0/0"
-	from_port=0
 	ip_protocol="-1"
 	security_group_id=aws_security_group.nodes.id
-	to_port=0
 }
 resource "aws_vpc_security_group_ingress_rule" "cluster_ingress" {
 	cidr_ipv4=var.vpc_cidr
@@ -47,4 +43,12 @@ resource "aws_vpc_security_group_ingress_rule" "nodes_ingress_ephemeral" {
 	ip_protocol="tcp"
 	security_group_id=aws_security_group.nodes.id
 	to_port=65535
+}
+resource "aws_vpc_security_group_ingress_rule" "nodes_ingress_public" {
+	cidr_ipv4="0.0.0.0/0"
+	count=var.demo_mode ? 1 : 0
+	from_port=80
+	ip_protocol="tcp"
+	security_group_id=aws_security_group.nodes.id
+	to_port=443
 }

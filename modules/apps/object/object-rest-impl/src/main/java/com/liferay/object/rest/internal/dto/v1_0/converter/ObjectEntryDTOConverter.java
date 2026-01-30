@@ -17,6 +17,8 @@ import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.exportimport.attachment.ExportImportAttachmentManager;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
+import com.liferay.headless.delivery.dto.v1_0.Comment;
+import com.liferay.headless.delivery.dto.v1_0.util.CommentUtil;
 import com.liferay.list.type.model.ListTypeEntry;
 import com.liferay.list.type.service.ListTypeEntryLocalService;
 import com.liferay.object.constants.ObjectActionKeys;
@@ -44,7 +46,6 @@ import com.liferay.object.rest.dto.v1_0.Folder;
 import com.liferay.object.rest.dto.v1_0.ListEntry;
 import com.liferay.object.rest.dto.v1_0.ObjectDefinitionBrief;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
-import com.liferay.object.rest.dto.v1_0.Scope;
 import com.liferay.object.rest.dto.v1_0.Status;
 import com.liferay.object.rest.dto.v1_0.SystemProperties;
 import com.liferay.object.rest.dto.v1_0.TaxonomyCategoryBrief;
@@ -66,6 +67,8 @@ import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.comment.CommentManager;
+import com.liferay.portal.kernel.comment.DiscussionPermission;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
@@ -73,6 +76,7 @@ import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.lazy.referencing.LazyReferencingThreadLocal;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.BaseModel;
@@ -81,21 +85,28 @@ import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.repository.model.FileVersion;
+import com.liferay.portal.kernel.security.auth.GuestOrUserUtil;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.PermissionService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Base64;
 import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.File;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlParserUtil;
+import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -115,6 +126,7 @@ import com.liferay.portal.vulcan.fields.NestedFieldsSupplier;
 import com.liferay.portal.vulcan.jaxrs.extension.ExtendedEntity;
 import com.liferay.portal.vulcan.permission.Permission;
 import com.liferay.portal.vulcan.permission.PermissionUtil;
+import com.liferay.portal.vulcan.scope.Scope;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 import com.liferay.trash.model.TrashEntry;
 import com.liferay.trash.service.TrashEntryLocalService;
@@ -259,7 +271,8 @@ public class ObjectEntryDTOConverter
 			serviceBuilderObjectEntry);
 
 		if (GetterUtil.getBoolean(
-				dtoConverterContext.getAttribute("simplifiedObjectEntry"))) {
+				dtoConverterContext.getAttribute("simplifiedObjectEntry")) &&
+			!serviceBuilderObjectEntry.isRootDescendantNode()) {
 
 			return objectEntry;
 		}
@@ -281,6 +294,8 @@ public class ObjectEntryDTOConverter
 			() -> _toAuditEvents(
 				dtoConverterContext, objectDefinition,
 				serviceBuilderObjectEntry));
+		objectEntry.setComments(
+			() -> _toComments(objectDefinition, serviceBuilderObjectEntry));
 		objectEntry.setCreator(
 			() -> {
 				long userId = _getAttribute(
@@ -300,15 +315,7 @@ public class ObjectEntryDTOConverter
 				objectEntryVersion, ObjectEntryVersionModel::getModifiedDate,
 				serviceBuilderObjectEntry, ObjectEntryModel::getModifiedDate));
 		objectEntry.setDefaultLanguageId(
-			() -> {
-				if (FeatureFlagManagerUtil.isEnabled(
-						objectDefinition.getCompanyId(), "LPD-32050")) {
-
-					return serviceBuilderObjectEntry.getDefaultLanguageId();
-				}
-
-				return null;
-			});
+			serviceBuilderObjectEntry::getDefaultLanguageId);
 		objectEntry.setDisplayDate(
 			() -> _getAttribute(
 				objectEntryVersion, ObjectEntryVersionModel::getDisplayDate,
@@ -319,10 +326,23 @@ public class ObjectEntryDTOConverter
 				serviceBuilderObjectEntry,
 				ObjectEntryModel::getExpirationDate));
 		objectEntry.setFriendlyUrlPath(
-			() -> serviceBuilderObjectEntry.getURLTitle(
-				dtoConverterContext.getLocale()));
+			() -> HttpComponentsUtil.decodePath(
+				serviceBuilderObjectEntry.getURLTitle(
+					dtoConverterContext.getLocale())));
 		objectEntry.setFriendlyUrlPath_i18n(
-			serviceBuilderObjectEntry::getURLTitleMap);
+			() -> {
+				Map<String, String> urlTitleMap =
+					serviceBuilderObjectEntry.getURLTitleMap();
+
+				if (MapUtil.isEmpty(urlTitleMap)) {
+					return urlTitleMap;
+				}
+
+				urlTitleMap.replaceAll(
+					(key, value) -> HttpComponentsUtil.decodePath(value));
+
+				return urlTitleMap;
+			});
 		objectEntry.setId(serviceBuilderObjectEntry::getObjectEntryId);
 		objectEntry.setKeywords(
 			() -> {
@@ -404,23 +424,30 @@ public class ObjectEntryDTOConverter
 			() -> _getAttribute(
 				objectEntryVersion, ObjectEntryVersionModel::getReviewDate,
 				serviceBuilderObjectEntry, ObjectEntryModel::getReviewDate));
+		objectEntry.setScopeId(serviceBuilderObjectEntry::getGroupId);
+		objectEntry.setScopeKey(
+			() -> _getScopeKey(objectDefinition, serviceBuilderObjectEntry));
 		objectEntry.setStatus(
-			() -> {
-				int status = _getAttribute(
-					objectEntryVersion, ObjectEntryVersionModel::getStatus,
-					serviceBuilderObjectEntry, ObjectEntryModel::getStatus);
-
-				return _toStatus(dtoConverterContext.getLocale(), status);
-			});
+			() -> _getAttribute(
+				objectEntryVersion,
+				curObjectEntryVersion -> _toStatus(
+					dtoConverterContext.getLocale(),
+					curObjectEntryVersion.getStatus()),
+				serviceBuilderObjectEntry,
+				curServiceBuilderObjectEntry -> _toStatus(
+					dtoConverterContext.getLocale(),
+					curServiceBuilderObjectEntry.getStatus())));
 		objectEntry.setSystemProperties(
 			() -> {
 				if (objectEntryVersion != null) {
 					return _toSystemProperties(
+						serviceBuilderObjectEntry.getGroupId(),
 						dtoConverterContext.getLocale(), objectDefinition,
 						objectEntryVersion.getVersion());
 				}
 
 				return _toSystemProperties(
+					serviceBuilderObjectEntry.getGroupId(),
 					dtoConverterContext.getLocale(), objectDefinition,
 					serviceBuilderObjectEntry.getVersion());
 			});
@@ -439,7 +466,8 @@ public class ObjectEntryDTOConverter
 						serviceBuilderObjectEntry.getObjectEntryId()),
 					assetCategory ->
 						TaxonomyCategoryBriefUtil.toTaxonomyCategoryBrief(
-							assetCategory, dtoConverterContext),
+							assetCategory, dtoConverterContext,
+							serviceBuilderObjectEntry.getGroupId()),
 					TaxonomyCategoryBrief.class);
 			});
 
@@ -530,6 +558,15 @@ public class ObjectEntryDTOConverter
 									getSystemObjectDefinitionManager(
 										objectDefinition.getName());
 
+						if (!systemObjectDefinitionManager.
+								hasModelResourcePermission(
+									objectDefinition.getObjectDefinitionId(),
+									GuestOrUserUtil.getPermissionChecker(),
+									primaryKey, ActionKeys.VIEW)) {
+
+							return null;
+						}
+
 						BaseModel<?> baseModel =
 							systemObjectDefinitionManager.
 								getBaseModelByExternalReferenceCode(
@@ -576,6 +613,13 @@ public class ObjectEntryDTOConverter
 							(Serializable)values);
 					}
 					else {
+						if (!_objectEntryService.hasModelResourcePermission(
+								objectDefinition.getObjectDefinitionId(),
+								primaryKey, ActionKeys.VIEW)) {
+
+							return null;
+						}
+
 						com.liferay.object.model.ObjectEntry
 							serviceBuilderObjectEntry =
 								_objectEntryLocalService.getObjectEntry(
@@ -665,6 +709,19 @@ public class ObjectEntryDTOConverter
 				{
 					setExternalReferenceCode(user::getExternalReferenceCode);
 					setName(user::getFullName);
+					setPortrait(
+						() -> {
+							if (user.getPortraitId() == 0) {
+								return null;
+							}
+
+							return user.getPortraitURL(
+								new ThemeDisplay() {
+									{
+										setPathImage(_portal.getPathImage());
+									}
+								});
+						});
 					setType(() -> Type.USER);
 				}
 			};
@@ -816,8 +873,10 @@ public class ObjectEntryDTOConverter
 			() -> LinkUtil.toLink(
 				_dlAppService, dlFileEntry, _dlURLHelper,
 				objectEntry.getGroupId(),
-				objectDefinition.getExternalReferenceCode(),
-				objectEntry.getExternalReferenceCode(), _portal));
+				objectDefinition.getExternalReferenceCode(), objectEntry,
+				_objectEntryService, objectField,
+				GuestOrUserUtil.getPermissionChecker(), _portal));
+
 		fileEntry.setMetadata(
 			() -> NestedFieldsSupplier.supply(
 				objectFieldName + ".metadata",
@@ -859,22 +918,15 @@ public class ObjectEntryDTOConverter
 					return null;
 				}
 
-				Scope scope = new Scope();
-
 				Group group = _groupLocalService.getGroup(
 					dlFileEntry.getGroupId());
 
-				scope.setExternalReferenceCode(group::getExternalReferenceCode);
-				scope.setType(
-					() -> {
-						if (group.getType() == GroupConstants.TYPE_DEPOT) {
-							return Scope.Type.ASSET_LIBRARY;
-						}
+				Scope.Type type =
+					(group.getType() == GroupConstants.TYPE_DEPOT) ?
+						Scope.Type.ASSET_LIBRARY : Scope.Type.SITE;
 
-						return Scope.Type.SITE;
-					});
-
-				return scope;
+				return Scope.ofReference(
+					group.getExternalReferenceCode(), type);
 			});
 		fileEntry.setThumbnailURL(
 			() -> NestedFieldsSupplier.supply(
@@ -901,6 +953,7 @@ public class ObjectEntryDTOConverter
 			return new ListEntry() {
 				{
 					setKey(() -> StringPool.BLANK);
+					setName(() -> StringPool.BLANK);
 				}
 			};
 		}
@@ -1190,9 +1243,28 @@ public class ObjectEntryDTOConverter
 				return serializable;
 			}
 
+			String[] keys = null;
+
+			if (serializable instanceof Object[]) {
+				keys = TransformUtil.transform(
+					(Object[])serializable,
+					object -> {
+						if (!(object instanceof Map)) {
+							return null;
+						}
+
+						return MapUtil.getString(
+							(Map<String, String>)object, "key");
+					},
+					String.class);
+			}
+			else if (serializable instanceof String) {
+				keys = StringUtil.split(
+					(String)serializable, StringPool.COMMA_AND_SPACE);
+			}
+
 			return (Serializable)TransformUtil.transformToList(
-				StringUtil.split(
-					(String)serializable, StringPool.COMMA_AND_SPACE),
+				keys,
 				key -> _getListEntry(
 					dtoConverterContext, key,
 					objectField.getListTypeDefinitionId()));
@@ -1319,6 +1391,47 @@ public class ObjectEntryDTOConverter
 			AuditFieldChange.class);
 	}
 
+	private Comment[] _toComments(
+			ObjectDefinition objectDefinition,
+			com.liferay.object.model.ObjectEntry objectEntry)
+		throws Exception {
+
+		return NestedFieldsSupplier.supply(
+			"comments",
+			nestedFieldNames -> {
+				if (!FeatureFlagManagerUtil.isEnabled(
+						objectDefinition.getCompanyId(), "LPD-43996") ||
+					!objectDefinition.isEnableComments() ||
+					!_discussionPermission.hasViewPermission(
+						PermissionThreadLocal.getPermissionChecker(),
+						objectDefinition.getCompanyId(),
+						objectEntry.getGroupId(),
+						objectDefinition.getClassName(),
+						objectEntry.getObjectEntryId())) {
+
+					return null;
+				}
+
+				return TransformUtil.transformToArray(
+					_commentManager.getComments(
+						objectDefinition.getClassName(),
+						objectEntry.getObjectEntryId(),
+						WorkflowConstants.STATUS_APPROVED, QueryUtil.ALL_POS,
+						QueryUtil.ALL_POS),
+					comment -> {
+						if (comment.isRoot() &&
+							!LazyReferencingThreadLocal.isEnabled()) {
+
+							return null;
+						}
+
+						return CommentUtil.toComment(
+							comment, _commentManager, PortalUtil.getPortal());
+					},
+					Comment.class);
+			});
+	}
+
 	private ExtendedEntity _toExtendedEntity(
 			BaseModel<?> baseModel, DTOConverterContext dtoConverterContext,
 			ObjectDefinition objectDefinition,
@@ -1356,6 +1469,9 @@ public class ObjectEntryDTOConverter
 
 		return new ObjectDefinitionBrief() {
 			{
+				setClassNameId(
+					() -> _classNameLocalService.getClassNameId(
+						objectDefinition.getClassName()));
 				setExternalReferenceCode(
 					objectDefinition::getExternalReferenceCode);
 				setLabel(() -> objectDefinition.getLabel(locale));
@@ -1560,38 +1676,49 @@ public class ObjectEntryDTOConverter
 	}
 
 	private SystemProperties _toSystemProperties(
-			Locale locale, ObjectDefinition objectDefinition, int versionInt)
+			long groupId, Locale locale, ObjectDefinition objectDefinition,
+			int versionInt)
 		throws Exception {
 
-		boolean enableObjectEntryVersioning =
-			objectDefinition.isEnableObjectEntryVersioning();
-		ObjectDefinitionBrief objectDefinitionBrief =
+		Group group = _groupLocalService.fetchGroup(groupId);
+
+		ObjectDefinitionBrief nestedObjectDefinitionBrief =
 			NestedFieldsSupplier.supply(
 				"systemProperties.objectDefinitionBrief",
 				nestedField -> _toObjectDefinitionBrief(
 					locale, objectDefinition));
 
-		if (!enableObjectEntryVersioning && (objectDefinitionBrief == null)) {
+		if (!objectDefinition.isEnableObjectEntryVersioning() &&
+			(group == null) && (nestedObjectDefinitionBrief == null)) {
+
 			return null;
 		}
 
-		SystemProperties systemProperties = new SystemProperties();
+		return new SystemProperties() {
+			{
+				setObjectDefinitionBrief(() -> nestedObjectDefinitionBrief);
+				setScope(
+					() -> {
+						if (group == null) {
+							return null;
+						}
 
-		if (objectDefinitionBrief != null) {
-			systemProperties.setObjectDefinitionBrief(
-				() -> objectDefinitionBrief);
-		}
+						return Scope.of(groupId, locale);
+					});
+				setVersion(
+					() -> {
+						if (!objectDefinition.isEnableObjectEntryVersioning()) {
+							return null;
+						}
 
-		if (enableObjectEntryVersioning) {
-			systemProperties.setVersion(
-				() -> new Version() {
-					{
-						setNumber(() -> versionInt);
-					}
-				});
-		}
-
-		return systemProperties;
+						return new Version() {
+							{
+								setNumber(() -> versionInt);
+							}
+						};
+					});
+			}
+		};
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -1605,6 +1732,15 @@ public class ObjectEntryDTOConverter
 
 	@Reference
 	private AuditEventLocalService _auditEventLocalService;
+
+	@Reference
+	private ClassNameLocalService _classNameLocalService;
+
+	@Reference
+	private CommentManager _commentManager;
+
+	@Reference
+	private DiscussionPermission _discussionPermission;
 
 	@Reference
 	private DLAppLocalService _dlAppLocalService;

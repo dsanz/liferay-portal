@@ -1,0 +1,42 @@
+{
+	"compilerOptions": {
+		"allowJs": true,
+		"allowUnreachableCode": true,
+		"allowUnusedLabels": true,
+		"baseUrl": ".",
+		"esModuleInterop": true,
+		"jsx": "react",
+		"module": "esnext",
+		"moduleResolution": "node",
+		"noEmit": true,
+		"noFallthroughCasesInSwitch": true,
+		"noImplicitAny": true,
+		"noPropertyAccessFromIndexSignature": true,
+		"noUncheckedIndexedAccess": true,
+		"noUnusedParameters": true,
+		"paths": {
+			"*": [
+				"custom-types/*",
+				"node_modules/*",
+				"packages/*"
+			],
+			"@clayui/*": [
+				"node_modules/@clayui/*/src"
+			]
+		},
+		"removeComments": true,
+		"resolveJsonModule": true,
+		"strict": true,
+		"strictFunctionTypes": true,
+		"strictNullChecks": true,
+		"target": "es2015"
+	},
+	"exclude": [
+		"node_modules",
+		"packages/**/lib",
+		"packages/generator-clay-component"
+	],
+	"include": [
+		"packages/**/*"
+	]
+}

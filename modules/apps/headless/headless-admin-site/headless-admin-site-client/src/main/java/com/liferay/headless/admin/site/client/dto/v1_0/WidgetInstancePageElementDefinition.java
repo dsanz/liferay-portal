@@ -26,6 +26,31 @@ public class WidgetInstancePageElementDefinition
 		return WidgetInstancePageElementDefinitionSerDes.toDTO(json);
 	}
 
+	public FragmentImage getBackgroundFragmentImage() {
+		return backgroundFragmentImage;
+	}
+
+	public void setBackgroundFragmentImage(
+		FragmentImage backgroundFragmentImage) {
+
+		this.backgroundFragmentImage = backgroundFragmentImage;
+	}
+
+	public void setBackgroundFragmentImage(
+		UnsafeSupplier<FragmentImage, Exception>
+			backgroundFragmentImageUnsafeSupplier) {
+
+		try {
+			backgroundFragmentImage =
+				backgroundFragmentImageUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected FragmentImage backgroundFragmentImage;
+
 	public String[] getCssClasses() {
 		return cssClasses;
 	}
@@ -47,69 +72,31 @@ public class WidgetInstancePageElementDefinition
 
 	protected String[] cssClasses;
 
-	public String getCustomCSS() {
-		return customCSS;
+	public String getDraftWidgetInstanceExternalReferenceCode() {
+		return draftWidgetInstanceExternalReferenceCode;
 	}
 
-	public void setCustomCSS(String customCSS) {
-		this.customCSS = customCSS;
+	public void setDraftWidgetInstanceExternalReferenceCode(
+		String draftWidgetInstanceExternalReferenceCode) {
+
+		this.draftWidgetInstanceExternalReferenceCode =
+			draftWidgetInstanceExternalReferenceCode;
 	}
 
-	public void setCustomCSS(
-		UnsafeSupplier<String, Exception> customCSSUnsafeSupplier) {
+	public void setDraftWidgetInstanceExternalReferenceCode(
+		UnsafeSupplier<String, Exception>
+			draftWidgetInstanceExternalReferenceCodeUnsafeSupplier) {
 
 		try {
-			customCSS = customCSSUnsafeSupplier.get();
+			draftWidgetInstanceExternalReferenceCode =
+				draftWidgetInstanceExternalReferenceCodeUnsafeSupplier.get();
 		}
 		catch (Exception e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	protected String customCSS;
-
-	public CustomCSSViewport[] getCustomCSSViewports() {
-		return customCSSViewports;
-	}
-
-	public void setCustomCSSViewports(CustomCSSViewport[] customCSSViewports) {
-		this.customCSSViewports = customCSSViewports;
-	}
-
-	public void setCustomCSSViewports(
-		UnsafeSupplier<CustomCSSViewport[], Exception>
-			customCSSViewportsUnsafeSupplier) {
-
-		try {
-			customCSSViewports = customCSSViewportsUnsafeSupplier.get();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	protected CustomCSSViewport[] customCSSViewports;
-
-	public FragmentStyle getFragmentStyle() {
-		return fragmentStyle;
-	}
-
-	public void setFragmentStyle(FragmentStyle fragmentStyle) {
-		this.fragmentStyle = fragmentStyle;
-	}
-
-	public void setFragmentStyle(
-		UnsafeSupplier<FragmentStyle, Exception> fragmentStyleUnsafeSupplier) {
-
-		try {
-			fragmentStyle = fragmentStyleUnsafeSupplier.get();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	protected FragmentStyle fragmentStyle;
+	protected String draftWidgetInstanceExternalReferenceCode;
 
 	public FragmentViewport[] getFragmentViewports() {
 		return fragmentViewports;
@@ -132,6 +119,27 @@ public class WidgetInstancePageElementDefinition
 	}
 
 	protected FragmentViewport[] fragmentViewports;
+
+	public Boolean getIndexed() {
+		return indexed;
+	}
+
+	public void setIndexed(Boolean indexed) {
+		this.indexed = indexed;
+	}
+
+	public void setIndexed(
+		UnsafeSupplier<Boolean, Exception> indexedUnsafeSupplier) {
+
+		try {
+			indexed = indexedUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean indexed;
 
 	public String getName() {
 		return name;
@@ -173,6 +181,32 @@ public class WidgetInstancePageElementDefinition
 	}
 
 	protected WidgetInstance widgetInstance;
+
+	public String getWidgetInstanceExternalReferenceCode() {
+		return widgetInstanceExternalReferenceCode;
+	}
+
+	public void setWidgetInstanceExternalReferenceCode(
+		String widgetInstanceExternalReferenceCode) {
+
+		this.widgetInstanceExternalReferenceCode =
+			widgetInstanceExternalReferenceCode;
+	}
+
+	public void setWidgetInstanceExternalReferenceCode(
+		UnsafeSupplier<String, Exception>
+			widgetInstanceExternalReferenceCodeUnsafeSupplier) {
+
+		try {
+			widgetInstanceExternalReferenceCode =
+				widgetInstanceExternalReferenceCodeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String widgetInstanceExternalReferenceCode;
 
 	@Override
 	public WidgetInstancePageElementDefinition clone()

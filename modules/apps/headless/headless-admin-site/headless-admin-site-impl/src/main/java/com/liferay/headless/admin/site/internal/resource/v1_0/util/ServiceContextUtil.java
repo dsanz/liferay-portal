@@ -9,25 +9,17 @@ import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.service.AssetCategoryServiceUtil;
 import com.liferay.headless.admin.site.dto.v1_0.ContentPageSpecification;
 import com.liferay.headless.admin.site.dto.v1_0.ItemExternalReference;
-import com.liferay.headless.admin.site.dto.v1_0.PageSettings;
 import com.liferay.headless.admin.site.dto.v1_0.PageSpecification;
-import com.liferay.headless.admin.site.dto.v1_0.Scope;
-import com.liferay.headless.admin.site.dto.v1_0.WidgetPageSettings;
 import com.liferay.headless.admin.site.internal.util.LogUtil;
 import com.liferay.headless.common.spi.service.context.ServiceContextBuilder;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
-import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
-import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServiceUtil;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
-import com.liferay.portal.kernel.model.LayoutPrototype;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
-import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupServiceUtil;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
-import com.liferay.portal.kernel.service.LayoutPrototypeLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutSetLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutSetPrototypeLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -35,6 +27,7 @@ import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.vulcan.scope.Scope;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -50,8 +43,7 @@ public class ServiceContextUtil {
 			ItemExternalReference[] assetCategoriesItemExternalReferences,
 			long companyId, Date createDate, long groupId,
 			HttpServletRequest httpServletRequest, String[] keywords,
-			Date modifiedDate, long userId, String uuid,
-			PageSettings pageSettings)
+			Date modifiedDate, long userId, String uuid)
 		throws Exception {
 
 		ServiceContext serviceContext = ServiceContextBuilder.create(
@@ -68,53 +60,6 @@ public class ServiceContextUtil {
 		serviceContext.setUserId(userId);
 		serviceContext.setUuid(uuid);
 
-		if (pageSettings instanceof WidgetPageSettings) {
-			WidgetPageSettings widgetPageSettings =
-				(WidgetPageSettings)pageSettings;
-
-			serviceContext.setAttribute(
-				"layoutPrototypeLinkEnabled",
-				widgetPageSettings.getInheritChanges());
-
-			ItemExternalReference itemExternalReference =
-				widgetPageSettings.getWidgetPageTemplateReference();
-
-			if (itemExternalReference != null) {
-				long scopeGroupId = groupId;
-
-				Scope scope = itemExternalReference.getScope();
-
-				if (scope != null) {
-					Group group =
-						GroupLocalServiceUtil.getGroupByExternalReferenceCode(
-							scope.getExternalReferenceCode(), companyId);
-
-					scopeGroupId = group.getGroupId();
-				}
-
-				LayoutPageTemplateEntry layoutPageTemplateEntry =
-					LayoutPageTemplateEntryLocalServiceUtil.
-						fetchLayoutPageTemplateEntryByExternalReferenceCode(
-							itemExternalReference.getExternalReferenceCode(),
-							scopeGroupId);
-
-				if (layoutPageTemplateEntry == null) {
-					throw new UnsupportedOperationException();
-				}
-
-				LayoutPrototype layoutPrototype =
-					LayoutPrototypeLocalServiceUtil.fetchLayoutPrototype(
-						layoutPageTemplateEntry.getLayoutPrototypeId());
-
-				if (layoutPrototype == null) {
-					throw new UnsupportedOperationException();
-				}
-
-				serviceContext.setAttribute(
-					"layoutPrototypeUuid", layoutPrototype.getUuid());
-			}
-		}
-
 		return serviceContext;
 	}
 
@@ -130,14 +75,26 @@ public class ServiceContextUtil {
 		return serviceContext;
 	}
 
+	public static ServiceContext createServiceContext(
+		long groupId, HttpServletRequest httpServletRequest, long userId,
+		String uuid) {
+
+		ServiceContext serviceContext = createServiceContext(
+			groupId, httpServletRequest, userId);
+
+		serviceContext.setUuid(uuid);
+
+		return serviceContext;
+	}
+
 	public static void setLayoutSetPrototypeLayoutERC(
 			long groupId, PageSpecification pageSpecification,
-			ServiceContext serviceContext)
+			ServiceContext serviceContext,
+			String siteTemplatePageSpecificationExternalReferenceCode)
 		throws Exception {
 
 		if (Validator.isNull(
-				pageSpecification.
-					getSiteTemplatePageSpecificationExternalReferenceCode())) {
+				siteTemplatePageSpecificationExternalReferenceCode)) {
 
 			return;
 		}
@@ -191,10 +148,6 @@ public class ServiceContextUtil {
 					layoutSet.getLayoutSetPrototypeUuid(),
 					layoutSet.getCompanyId());
 
-		String siteTemplatePageSpecificationExternalReferenceCode =
-			pageSpecification.
-				getSiteTemplatePageSpecificationExternalReferenceCode();
-
 		Layout layoutSetPrototypeLayout =
 			LayoutLocalServiceUtil.fetchLayoutByExternalReferenceCode(
 				siteTemplatePageSpecificationExternalReferenceCode,
@@ -237,14 +190,9 @@ public class ServiceContextUtil {
 				}
 
 				AssetCategory assetCategory =
-					AssetCategoryServiceUtil.
-						fetchCategoryByExternalReferenceCode(
-							itemExternalReference.getExternalReferenceCode(),
-							scopeGroupId);
-
-				if (assetCategory == null) {
-					throw new UnsupportedOperationException();
-				}
+					AssetCategoryServiceUtil.getOrAddEmptyCategory(
+						itemExternalReference.getExternalReferenceCode(),
+						scopeGroupId);
 
 				return assetCategory.getCategoryId();
 			});

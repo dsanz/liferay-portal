@@ -59,6 +59,57 @@ public class UserSearchPermissionFilterContributorTest {
 			PermissionCheckerMethodTestRule.INSTANCE);
 
 	@Test
+	public void testWhenHasOrganizationManageSuborganizationsUsersPermissionSearch()
+		throws Exception {
+
+		Organization organization1 = OrganizationTestUtil.addOrganization();
+
+		User user1 = _addOrganizationUser(organization1);
+
+		Assert.assertEquals(1, _performUserSearchCount(user1));
+
+		Role organizationRole = RoleTestUtil.addRole(
+			RoleConstants.TYPE_ORGANIZATION);
+
+		_resourcePermissionLocalService.addResourcePermission(
+			TestPropsValues.getCompanyId(), Organization.class.getName(),
+			ResourceConstants.SCOPE_GROUP_TEMPLATE,
+			String.valueOf(
+				OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID),
+			organizationRole.getRoleId(), ActionKeys.MANAGE_SUBORGANIZATIONS);
+
+		_userGroupRoleLocalService.addUserGroupRole(
+			user1.getUserId(), organization1.getGroupId(),
+			organizationRole.getRoleId());
+
+		Organization organization2 = OrganizationTestUtil.addOrganization(
+			organization1.getOrganizationId(), RandomTestUtil.randomString(),
+			true);
+
+		_addOrganizationUser(organization2);
+
+		Assert.assertEquals(1, _performUserSearchCount(user1));
+
+		_resourcePermissionLocalService.addResourcePermission(
+			TestPropsValues.getCompanyId(), Organization.class.getName(),
+			ResourceConstants.SCOPE_GROUP_TEMPLATE,
+			String.valueOf(
+				OrganizationConstants.DEFAULT_PARENT_ORGANIZATION_ID),
+			organizationRole.getRoleId(),
+			ActionKeys.MANAGE_SUBORGANIZATIONS_USERS);
+
+		Assert.assertEquals(2, _performUserSearchCount(user1));
+
+		Organization organization3 = OrganizationTestUtil.addOrganization(
+			organization2.getOrganizationId(), RandomTestUtil.randomString(),
+			true);
+
+		_addOrganizationUser(organization3);
+
+		Assert.assertEquals(3, _performUserSearchCount(user1));
+	}
+
+	@Test
 	public void testWhenHasOrganizationManageUsersPermissionSearch()
 		throws Exception {
 

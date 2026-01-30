@@ -4,8 +4,9 @@
 	&-image {
 		align-items: center;
 		border-radius: 50%;
-		height: 30px;
-		width: 30px;
+		display: flex;
+		height: 24px;
+		width: 24px;
 	}
 
 	&-initials {
@@ -14,16 +15,23 @@
 		border-radius: 50%;
 		color: #fff;
 		display: flex;
-		font-size: 12px;
+		font-size: 10px;
 		font-weight: 800;
-		height: 30px;
+		height: 24px;
 		justify-content: center;
-		width: 30px;
+		min-width: 24px;
+		width: 24px;
 	}
 
 	&-option {
 		align-items: center;
 		display: flex;
 		gap: 1rem;
+
+		&-name {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
 	}
 }

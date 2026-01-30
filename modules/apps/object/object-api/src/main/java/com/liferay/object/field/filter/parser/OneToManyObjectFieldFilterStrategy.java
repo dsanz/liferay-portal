@@ -26,6 +26,7 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.NoSuchModelException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.model.PersistedModel;
 import com.liferay.portal.kernel.service.PersistedModelLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -133,7 +134,20 @@ public class OneToManyObjectFieldFilterStrategy
 		}
 
 		if (_objectDefinition1.isUnmodifiableSystemObject()) {
+			PersistedModelLocalService persistedModelLocalService =
+				PersistedModelLocalServiceRegistryUtil.
+					getPersistedModelLocalService(
+						_objectDefinition1.getClassName());
+
 			for (int i = 0; i < jsonArray.length(); i++) {
+				PersistedModel persistedModel =
+					persistedModelLocalService.fetchPersistedModel(
+						GetterUtil.getLong(jsonArray.get(i)));
+
+				if (persistedModel == null) {
+					continue;
+				}
+
 				selectionFDSFilterItems.add(
 					new SelectionFDSFilterItem(
 						_objectEntryLocalService.getTitleValue(

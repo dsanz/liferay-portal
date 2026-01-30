@@ -1,0 +1,184 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.site.cmp.site.initializer.test.util;
+
+import com.liferay.batch.engine.test.util.BatchEngineTestUtil;
+import com.liferay.depot.constants.DepotConstants;
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.service.DepotEntryLocalServiceUtil;
+import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
+import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServiceUtil;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
+import com.liferay.object.service.ObjectEntryLocalServiceUtil;
+import com.liferay.petra.lang.SafeCloseable;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.module.service.Snapshot;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
+import com.liferay.site.initializer.SiteInitializer;
+import com.liferay.site.initializer.SiteInitializerRegistry;
+
+import java.io.Serializable;
+
+import java.util.Collections;
+
+/**
+ * @author Carolina Barbosa
+ */
+public class CMPTestUtil {
+
+	public static ObjectEntry addProjectObjectEntry() throws PortalException {
+		DepotEntry depotEntry = DepotEntryLocalServiceUtil.addDepotEntry(
+			Collections.singletonMap(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+			Collections.singletonMap(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+			DepotConstants.TYPE_PROJECT,
+			ServiceContextTestUtil.getServiceContext());
+
+		ObjectDefinition objectDefinition =
+			ObjectDefinitionLocalServiceUtil.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_CMP_PROJECT", TestPropsValues.getCompanyId());
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
+
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
+
+		return ObjectEntryLocalServiceUtil.addObjectEntry(
+			depotEntry.getGroupId(), depotEntry.getUserId(),
+			objectDefinition.getObjectDefinitionId(), 0, null,
+			HashMapBuilder.<String, Serializable>put(
+				"title", RandomTestUtil.randomString()
+			).build(),
+			serviceContext);
+	}
+
+	public static ObjectEntry addTaskObjectEntry() throws PortalException {
+		return addTaskObjectEntry(addProjectObjectEntry());
+	}
+
+	public static ObjectEntry addTaskObjectEntry(ObjectEntry projectObjectEntry)
+		throws PortalException {
+
+		ObjectDefinition taskObjectDefinition =
+			ObjectDefinitionLocalServiceUtil.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_CMP_TASK", TestPropsValues.getCompanyId());
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
+
+		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
+
+		return ObjectEntryLocalServiceUtil.addObjectEntry(
+			projectObjectEntry.getGroupId(), projectObjectEntry.getUserId(),
+			taskObjectDefinition.getObjectDefinitionId(), 0, null,
+			HashMapBuilder.<String, Serializable>put(
+				"r_cmpProjectToCMPTasks_c_cmpProjectId",
+				projectObjectEntry.getObjectEntryId()
+			).put(
+				"title", RandomTestUtil.randomString()
+			).build(),
+			serviceContext);
+	}
+
+	public static Group getOrAddGroup(Class<?> clazz) throws Exception {
+		Group group = CMSTestUtil.getOrAddGroup(clazz);
+
+		ObjectDefinition objectDefinition =
+			ObjectDefinitionLocalServiceUtil.
+				fetchObjectDefinitionByExternalReferenceCode(
+					"L_CMP_PROJECT", TestPropsValues.getCompanyId());
+
+		if (objectDefinition != null) {
+			return group;
+		}
+
+		_initialize(true, clazz, group);
+
+		objectDefinition =
+			ObjectDefinitionLocalServiceUtil.
+				fetchObjectDefinitionByExternalReferenceCode(
+					"L_CMP_PROJECT", TestPropsValues.getCompanyId());
+
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			LayoutPageTemplateEntryLocalServiceUtil.
+				fetchDefaultLayoutPageTemplateEntry(
+					group.getGroupId(),
+					PortalUtil.getClassNameId(objectDefinition.getClassName()),
+					0);
+
+		if (layoutPageTemplateEntry == null) {
+			_initialize(false, clazz, group);
+		}
+
+		return group;
+	}
+
+	private static void _initialize(
+			boolean processBatchEngine, Class<?> clazz, Group group)
+		throws Exception {
+
+		try {
+			ServiceContextThreadLocal.pushServiceContext(
+				ServiceContextTestUtil.getServiceContext(group.getGroupId()));
+
+			try (SafeCloseable safeCloseable =
+					CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+						group.getCompanyId())) {
+
+				SiteInitializerRegistry siteInitializerRegistry =
+					_siteInitializerRegistrySnapshot.get();
+
+				SiteInitializer siteInitializer =
+					siteInitializerRegistry.getSiteInitializer(
+						_BUNDLE_SYMBOLIC_NAME);
+
+				siteInitializer.initialize(group.getGroupId());
+
+				if (processBatchEngine) {
+					BatchEngineTestUtil.processBatchEngineUnits(
+						_BUNDLE_SYMBOLIC_NAME, clazz,
+						new String[] {
+							"." + _BUNDLE_SYMBOLIC_NAME +
+								".internal.batch.00.list.type.definition",
+							"." + _BUNDLE_SYMBOLIC_NAME +
+								".internal.batch.01.notification.template",
+							"." + _BUNDLE_SYMBOLIC_NAME +
+								".internal.batch.02.object.folder",
+							"." + _BUNDLE_SYMBOLIC_NAME +
+								".internal.batch.03.object.definition"
+						});
+				}
+			}
+		}
+		finally {
+			ServiceContextThreadLocal.popServiceContext();
+		}
+	}
+
+	private static final String _BUNDLE_SYMBOLIC_NAME =
+		"com.liferay.site.initializer.cmp";
+
+	private static final Snapshot<SiteInitializerRegistry>
+		_siteInitializerRegistrySnapshot = new Snapshot<>(
+			CMPTestUtil.class, SiteInitializerRegistry.class);
+
+}

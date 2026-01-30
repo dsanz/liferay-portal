@@ -74,11 +74,8 @@ public class GroupPagesPortletDataHandler extends BasePortletDataHandler {
 
 	@Activate
 	protected void activate() {
-		setDeletionSystemEventStagedModelTypes(
-			new StagedModelType(LayoutPageTemplateCollection.class),
-			new StagedModelType(LayoutPageTemplateEntry.class),
-			new StagedModelType(LayoutUtilityPageEntry.class));
-		setExportControls(
+		setDeletionSystemEventStagedModelTypes(_getStagedModelTypes());
+		setExportPortletDataHandlerControls(
 			new PortletDataHandlerBoolean(
 				NAMESPACE, "page-template-sets", true, true, null,
 				LayoutPageTemplateCollection.class.getName()),
@@ -88,10 +85,10 @@ public class GroupPagesPortletDataHandler extends BasePortletDataHandler {
 				StagedModelType.REFERRER_CLASS_NAME_ALL),
 			new PortletDataHandlerBoolean(
 				NAMESPACE, "utility-pages", true, false, null,
-				LayoutUtilityPageEntry.class.getName(),
-				StagedModelType.REFERRER_CLASS_NAME_ALL));
+				LayoutUtilityPageEntry.class.getName()));
 		setPublishToLiveByDefault(true);
-		setStagingControls(getExportControls());
+		setStagingPortletDataHandlerControls(
+			getExportPortletDataHandlerControls());
 	}
 
 	@Override
@@ -236,14 +233,7 @@ public class GroupPagesPortletDataHandler extends BasePortletDataHandler {
 				portletDataContext)) {
 
 			_staging.populateLastPublishDateCounts(
-				portletDataContext,
-				new StagedModelType[] {
-					new StagedModelType(
-						LayoutPageTemplateCollection.class.getName()),
-					new StagedModelType(
-						LayoutPageTemplateEntry.class.getName()),
-					new StagedModelType(LayoutUtilityPageEntry.class.getName())
-				});
+				portletDataContext, _getStagedModelTypes());
 
 			return;
 		}
@@ -268,6 +258,16 @@ public class GroupPagesPortletDataHandler extends BasePortletDataHandler {
 					getExportActionableDynamicQuery(portletDataContext);
 
 		layoutUtilityPageEntryExportActionableDynamicQuery.performCount();
+	}
+
+	private StagedModelType[] _getStagedModelTypes() {
+		return new StagedModelType[] {
+			new StagedModelType(LayoutPageTemplateCollection.class),
+			new StagedModelType(
+				LayoutPageTemplateEntry.class.getName(),
+				StagedModelType.REFERRER_CLASS_NAME_ALL),
+			new StagedModelType(LayoutUtilityPageEntry.class)
+		};
 	}
 
 	@Reference(

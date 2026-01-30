@@ -49,9 +49,9 @@ public interface DefaultObjectEntryManager extends ObjectEntryManager {
 			long primaryKey2)
 		throws Exception;
 
-	public ObjectEntry copyObjectEntryByVersion(
-			DTOConverterContext dtoConverterContext,
-			ObjectDefinition objectDefinition, long objectEntryId, int version)
+	public ObjectEntry copyObjectEntry(
+			DTOConverterContext dtoConverterContext, long objectEntryId,
+			long objectEntryFolderId, boolean replace)
 		throws Exception;
 
 	public ObjectEntry copyObjectEntryByVersion(
@@ -62,10 +62,6 @@ public interface DefaultObjectEntryManager extends ObjectEntryManager {
 
 	public void deleteObjectEntry(
 			ObjectDefinition objectDefinition, long objectEntryId)
-		throws Exception;
-
-	public void deleteObjectEntryByVersion(
-			ObjectDefinition objectDefinition, long objectEntryId, int version)
 		throws Exception;
 
 	public void deleteObjectEntryByVersion(
@@ -102,18 +98,9 @@ public interface DefaultObjectEntryManager extends ObjectEntryManager {
 		throws Exception;
 
 	public ObjectEntry expireObjectEntry(
-			DTOConverterContext dtoConverterContext, long objectEntryId)
-		throws Exception;
-
-	public ObjectEntry expireObjectEntry(
 			DTOConverterContext dtoConverterContext,
 			String externalReferenceCode, ObjectDefinition objectDefinition,
 			String scopeKey)
-		throws Exception;
-
-	public ObjectEntry expireObjectEntryByVersion(
-			DTOConverterContext dtoConverterContext,
-			ObjectDefinition objectDefinition, long objectEntryId, int version)
 		throws Exception;
 
 	public ObjectEntry expireObjectEntryByVersion(
@@ -165,11 +152,6 @@ public interface DefaultObjectEntryManager extends ObjectEntryManager {
 		throws Exception;
 
 	public ObjectEntry getObjectEntryByVersion(
-			DTOConverterContext dtoConverterContext, Long objectEntryId,
-			int version)
-		throws Exception;
-
-	public ObjectEntry getObjectEntryByVersion(
 			DTOConverterContext dtoConverterContext,
 			String externalReferenceCode, ObjectDefinition objectDefinition,
 			String scopeKey, int version)
@@ -210,14 +192,13 @@ public interface DefaultObjectEntryManager extends ObjectEntryManager {
 
 	public Page<ObjectEntry> getVersionedObjectEntries(
 			DTOConverterContext dtoConverterContext,
-			ObjectDefinition objectDefinition, long objectEntryId,
-			Pagination pagination)
+			String externalReferenceCode, ObjectDefinition objectDefinition,
+			String scopeKey, Pagination pagination, Sort[] sorts)
 		throws Exception;
 
-	public Page<ObjectEntry> getVersionedObjectEntries(
-			DTOConverterContext dtoConverterContext,
-			String externalReferenceCode, ObjectDefinition objectDefinition,
-			String scopeKey, Pagination pagination)
+	public ObjectEntry moveObjectEntry(
+			DTOConverterContext dtoConverterContext, long objectEntryId,
+			long objectEntryFolderId, boolean replace)
 		throws Exception;
 
 	public ObjectEntry partialUpdateObjectEntry(
@@ -243,11 +224,6 @@ public interface DefaultObjectEntryManager extends ObjectEntryManager {
 			DTOConverterContext dtoConverterContext,
 			String externalReferenceCode, ObjectDefinition objectDefinition,
 			String scopeKey)
-		throws Exception;
-
-	public ObjectEntry restoreObjectEntryByVersion(
-			DTOConverterContext dtoConverterContext,
-			ObjectDefinition objectDefinition, long objectEntryId, int version)
 		throws Exception;
 
 	public ObjectEntry restoreObjectEntryByVersion(

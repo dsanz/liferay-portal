@@ -8,7 +8,6 @@ import {expect, mergeTests} from '@playwright/test';
 import {apiHelpersTest} from '../../../fixtures/apiHelpersTest';
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
 import {editObjectDefinitionPagesTest} from '../../../fixtures/editObjectDefinitionPagesTest';
-import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {notificationPagesTest} from '../../../fixtures/notificationPagesTest';
 import {objectPagesTest} from '../../../fixtures/objectPagesTest';
@@ -26,9 +25,6 @@ export const test = mergeTests(
 	apiHelpersTest,
 	dataApiHelpersTest,
 	editObjectDefinitionPagesTest,
-	featureFlagsTest({
-		'LPD-50091': {enabled: true},
-	}),
 	loginTest(),
 	notificationPagesTest,
 	objectPagesTest,
@@ -155,11 +151,11 @@ test.describe('User notification template', () => {
 
 		await viewObjectActionsPage.goto(objectDefinition.label['en_US']);
 
-		await editObjectActionPage.addNewAction(
-			'Notification',
-			'On After Add',
-			notificationTemplateName
-		);
+		await editObjectActionPage.addNewAction({
+			notificationTemplateName,
+			thenOption: 'Notification',
+			whenOption: 'On After Add',
+		});
 
 		const applicationName =
 			'c/' + objectDefinition.name.toLowerCase() + 's';

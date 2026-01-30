@@ -30,6 +30,10 @@ public class ProductAnalyticsConsentPanelDisplayContext
 
 	public Map<String, Object> getContext() {
 		return HashMapBuilder.<String, Object>put(
+			"consentRenewalPeriod", getConsentRenewalPeriod()
+		).put(
+			"lastModified", getLastModified()
+		).put(
 			"optionalConsentCookieTypeNames",
 			getConsentCookieTypeNamesJSONArray(getOptionalConsentCookieTypes())
 		).put(

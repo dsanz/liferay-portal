@@ -51,7 +51,8 @@ public class ActionUtil {
 		Group group = layout.getGroup();
 		LayoutSet layoutSet = layout.getLayoutSet();
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPS-174417") ||
+		if (!FeatureFlagManagerUtil.isEnabled(
+				group.getCompanyId(), "LPS-174417") ||
 			(!group.isLayoutSetPrototype() &&
 			 !layoutSet.isLayoutSetPrototypeLinkActive())) {
 
@@ -150,7 +151,7 @@ public class ActionUtil {
 				typeSettingsUnicodeProperties, deviceThemeId, true);
 		}
 
-		LayoutServiceUtil.updateLayout(
+		LayoutServiceUtil.updateTypeSettings(
 			groupId, privateLayout, layoutId,
 			typeSettingsUnicodeProperties.toString());
 

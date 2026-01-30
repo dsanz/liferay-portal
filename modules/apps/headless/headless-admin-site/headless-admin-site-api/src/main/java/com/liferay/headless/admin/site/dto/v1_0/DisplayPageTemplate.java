@@ -746,30 +746,32 @@ public class DisplayPageTemplate implements Serializable {
 		description = "The display page template's thumbnail."
 	)
 	@Valid
-	public ItemExternalReference getThumbnail() {
-		if (_thumbnailSupplier != null) {
-			thumbnail = _thumbnailSupplier.get();
+	public ThumbnailURLReference getThumbnailURLReference() {
+		if (_thumbnailURLReferenceSupplier != null) {
+			thumbnailURLReference = _thumbnailURLReferenceSupplier.get();
 
-			_thumbnailSupplier = null;
+			_thumbnailURLReferenceSupplier = null;
 		}
 
-		return thumbnail;
+		return thumbnailURLReference;
 	}
 
-	public void setThumbnail(ItemExternalReference thumbnail) {
-		this.thumbnail = thumbnail;
+	public void setThumbnailURLReference(
+		ThumbnailURLReference thumbnailURLReference) {
 
-		_thumbnailSupplier = null;
+		this.thumbnailURLReference = thumbnailURLReference;
+
+		_thumbnailURLReferenceSupplier = null;
 	}
 
 	@JsonIgnore
-	public void setThumbnail(
-		UnsafeSupplier<ItemExternalReference, Exception>
-			thumbnailUnsafeSupplier) {
+	public void setThumbnailURLReference(
+		UnsafeSupplier<ThumbnailURLReference, Exception>
+			thumbnailURLReferenceUnsafeSupplier) {
 
-		_thumbnailSupplier = () -> {
+		_thumbnailURLReferenceSupplier = () -> {
 			try {
-				return thumbnailUnsafeSupplier.get();
+				return thumbnailURLReferenceUnsafeSupplier.get();
 			}
 			catch (RuntimeException runtimeException) {
 				throw runtimeException;
@@ -782,10 +784,10 @@ public class DisplayPageTemplate implements Serializable {
 
 	@GraphQLField(description = "The display page template's thumbnail.")
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	protected ItemExternalReference thumbnail;
+	protected ThumbnailURLReference thumbnailURLReference;
 
 	@JsonIgnore
-	private Supplier<ItemExternalReference> _thumbnailSupplier;
+	private Supplier<ThumbnailURLReference> _thumbnailURLReferenceSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "A valid external identifier to reference this display page template."
@@ -1086,16 +1088,17 @@ public class DisplayPageTemplate implements Serializable {
 			sb.append("]");
 		}
 
-		ItemExternalReference thumbnail = getThumbnail();
+		ThumbnailURLReference thumbnailURLReference =
+			getThumbnailURLReference();
 
-		if (thumbnail != null) {
+		if (thumbnailURLReference != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
 			}
 
-			sb.append("\"thumbnail\": ");
+			sb.append("\"thumbnailURLReference\": ");
 
-			sb.append(String.valueOf(thumbnail));
+			sb.append(String.valueOf(thumbnailURLReference));
 		}
 
 		String uuid = getUuid();

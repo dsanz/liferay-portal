@@ -1,0 +1,332 @@
+---
+title: 'SidePanel'
+description: 'SidePanels are vertical containers used to display additional information that supports the main content area or to edit specific content within the page.'
+packageNpm: '@clayui/core'
+packageStatus: 'Beta'
+packageUse: "import {SidePanel} from '@clayui/core';"
+storybookPath: 'design-system-components-sidepanel'
+packageTypes:
+    [
+        'clay-core/src/side-panel/SidePanel.tsx',
+        'clay-core/src/side-panel/SidePanelWithDrilldown.tsx',
+        'clay-core/src/side-panel/Header.tsx',
+        'clay-core/src/side-panel/Title.tsx',
+        'clay-core/src/side-panel/Body.tsx',
+        'clay-core/src/side-panel/Footer.tsx',
+    ]
+---
+
+## Example
+
+```jsx preview
+import {SidePanel, Provider} from '@clayui/core';
+import Button from '@clayui/button';
+import React from 'react';
+
+import '@clayui/css/lib/css/atlas.css';
+
+export default function App() {
+	const [open, setOpen] = React.useState(false);
+
+	const ref = React.useRef();
+
+	return (
+		<Provider spritemap="/public/icons.svg">
+			<div className="p-4" ref={ref} style={{minHeight: '100vh'}}>
+				<Button
+					aria-controls="sidepanel-example"
+					aria-pressed={open}
+					onClick={() => setOpen(!open)}
+				>
+					Open
+				</Button>
+
+				<SidePanel
+					containerRef={ref}
+					id="sidepanel-example"
+					onOpenChange={setOpen}
+					open={open}
+				>
+					<SidePanel.Header>
+						<SidePanel.Title>Title</SidePanel.Title>
+					</SidePanel.Header>
+					<SidePanel.Body>Body</SidePanel.Body>
+					<SidePanel.Footer>
+						<Button.Group spaced>
+							<Button>Primary</Button>
+							<Button displayType="secondary">Secondary</Button>
+						</Button.Group>
+					</SidePanel.Footer>
+				</SidePanel>
+			</div>
+		</Provider>
+	);
+}
+```
+
+## Introduction
+
+The SidePanel component provides a more easy and quick way for the users to consult or edit information without the need for deeper navigation.
+
+SidePanels can anchor to the left or right side of the screen. They can be collapsible or triggered by a button or a link. When activated, the SidePanel opens and the content of the page is readjusted. You can navigate through the SidePanel content using both mouse and keyboard.
+
+## Anatomy
+
+```jsx
+import {SidePanel} from '@clayui/core';
+
+<SidePanel>
+	<SidePanel.Header>
+		<SidePanel.Title />
+	</SidePanel.Header>
+	<SidePanel.Body />
+	<SidePanel.Footer />
+</SidePanel>;
+```
+
+## Content
+
+The SidePanel component follows a compositional API with subcomponents: Header, Title, Body, and Footer. Refer to the design specifications to configure each part according to your use case.
+
+### Header
+
+he `<SidePanel.Header />` subcomponent always renders the close button by default but leaves the left side of the header open for developer customization.
+
+The `<SidePanel.Title />` must always be used as a direct child of Header. It automatically configures accessibility attributes—such as setting the appropriate `aria-labelledby` relationship between the title and the panel.
+
+```jsx
+<SidePanel.Header>
+	<SidePanel.Title>Title</SidePanel.Title>
+</SidePanel.Header>
+```
+
+### Body and Footer
+
+The `<SidePanel.Body />` and `<SidePanel.Footer />` components are flexible containers that can render any content. However, you should follow design system guidelines and recommendations to ensure consistent layout and behavior across the application.
+
+## Open panel
+
+The SidePanel component requires the open state to be controlled, even though it defaults to an uncontrolled behavior.
+
+Opening the SidePanel can be triggered from any button or link in the DOM, so it’s your responsibility to ensure the trigger element meets accessibility standards. This includes adding appropriate attributes such as `aria-controls` and `aria-pressed` to the button:
+
+```jsx
+import {SidePanel} from '@clayui/core';
+import Button from '@clayui/button';
+
+export default function App() {
+	const [open, setOpen] = useState(false);
+
+	const ref = useRef();
+
+	return (
+		<>
+			<Button
+				aria-controls="sidepanel-example"
+				aria-pressed={open}
+				onClick={() => setOpen(!open)}
+			>
+				Open
+			</Button>
+
+			<div ref={ref}>
+				<SidePanel
+					containerRef={ref}
+					id="sidepanel-example"
+					onOpenChange={setOpen}
+					open={open}
+				/>
+			</div>
+		</>
+	);
+}
+```
+
+Make sure the `id` used in `aria-controls` matches the `id` of the `<SidePanel />` component to maintain a proper relationship between the trigger and the panel.
+
+## Direction
+
+The SidePanel can be displayed on the right or left side by setting the `direction` property.
+
+```jsx
+<SidePanel direction="left" />
+```
+
+## Position
+
+The SidePanel is designed to use either `absolute` or `fixed` positioning.
+
+`absolute` positioning is the default which allows the SidePanel to be used in more flexible contexts If the SidePanel cannot be placed at the edge of the window then `absolute` positioning should be used. When the SidePanel is positioned absolutely the header and footer may be scrolled out of view on longer pages.
+
+`fixed` positioning should only be used when the SidePanel can be placed at a horizontal edge of the window without any elements above it that are not also using `fixed` or `sticky` positioning. With `fixed` positioning the header and footer will also be fixed and the SidePanel body will have it's own independent scroll.
+
+```jsx
+<SidePanel position="fixed" />
+```
+
+## Fluid Width
+
+The SidePanel is designed to adapt fluidly to the screen size, with its width automatically set as a percentage of the container. It does not rely on a fixed width and integrates seamlessly across different resolutions.
+
+```jsx
+<SidePanel fluid />
+```
+
+In addition to the fluid width, the SidePanel supports manual resizing, allowing users to customize the panel width for better readability and workflow efficiency:
+
+-   On **small screens** manual resizing is disabled.
+-   On **all other screens** the panel can be freely resized.
+
+<div className="clay-site-alert alert alert-info">
+	<strong className="lead">Info</strong>
+	Manual resizing is only available when using the fluid width. If the panel has
+	a fixed width, users cannot resize it manually.
+</div>
+
+## Variants
+
+### Drilldown
+
+This variant provides a Drilldown in the Side Panel, allowing users to explore more detailed content without losing their navigation context. It facilitates the visualization of hierarchical or related information within the side panel.
+
+```jsx preview
+import Button from '@clayui/button';
+import {Provider, SidePanel, SidePanelWithDrilldown} from '@clayui/core';
+import React, {useRef, useState} from 'react';
+
+import '@clayui/css/lib/css/atlas.css';
+
+export default function App() {
+	const [open, setOpen] = React.useState(true);
+	const [panelKey, setPanelKey] = useState('x1');
+
+	const ref = React.useRef();
+
+	return (
+		<Provider spritemap="/public/icons.svg">
+			<div className="p-4" ref={ref} style={{minHeight: '100vh'}}>
+				<Button
+					aria-controls="sidepanel-example"
+					aria-pressed={open}
+					onClick={() => setOpen(!open)}
+				>
+					Open
+				</Button>
+				<SidePanelWithDrilldown
+					containerRef={ref}
+					id="sidepanel-example"
+					onOpenChange={setOpen}
+					onSelectedPanelKeyChange={setPanelKey}
+					open={open}
+					panels={{
+						x1: {
+							component: (
+								<SidePanel.Body>
+									<button
+										className="list-group-item list-group-item-action"
+										onClick={() => setPanelKey('x2')}
+									>
+										List Item 1
+									</button>
+									<button
+										className="list-group-item list-group-item-action"
+										onClick={() => setPanelKey('x3')}
+									>
+										List Item 2
+									</button>
+								</SidePanel.Body>
+							),
+							title: 'Drilldown Title',
+						},
+						x2: {
+							component: (
+								<SidePanel.Body>
+									This is more detailed content without losing
+									the navigation context.
+								</SidePanel.Body>
+							),
+							headerProps: {
+								messages: {
+									backAriaLabel: 'Back to previous panel',
+								},
+							},
+							parentKey: 'x1',
+							title: 'List Item 1 Detail',
+						},
+						x3: {
+							component: (
+								<SidePanel.Body>
+									This is more detailed content without losing
+									the navigation context.
+								</SidePanel.Body>
+							),
+							headerProps: {
+								messages: {
+									backAriaLabel: 'Back to previous panel',
+								},
+							},
+							parentKey: 'x1',
+							title: 'List Item 2 Detail',
+						},
+					}}
+					position="fixed"
+					selectedPanelKey={panelKey}
+				/>
+			</div>
+		</Provider>
+	);
+}
+```
+
+The Drilldown component establishes navigation by referencing panels through their keys, so each panel must have a unique `key`.
+
+```js
+const panels = {
+	of23: {
+		component: <SidePanel.Body>Drilldown Body</SidePanel.Body>,
+		title: 'Drilldown Title',
+	},
+};
+```
+
+Using the `key`, you can link a panel to its parent by setting its `parentKey` property.
+
+```js
+const panels = {
+	of23: {
+		component: (
+			<SidePanel.Body>
+				Drilldown Body
+				<button onClick={() => setPanelKey('of09')}>List Item</button>
+			</SidePanel.Body>
+		),
+		title: 'Drilldown Title',
+	},
+	of09: {
+		component: (
+			<SidePanel.Body>
+				This is more detailed content without losing the navigation
+				context.
+			</SidePanel.Body>
+		),
+		title: 'List Item Detail',
+		parentKey: 'of23',
+	},
+};
+```
+
+<div className="clay-site-alert alert alert-info">
+	<strong className="lead">Info</strong>
+	The <code className="language-text">SidePanelWithDrilldown</code> component always
+	displays a header. If a panel defines a <code className="language-text">
+		parentKey
+	</code> (i.e., it is part of a hierarchy), the header includes a back button
+	that lets users return to the parent panel.
+</div>
+
+<div className="clay-site-alert alert alert-warning">
+	An important thing to keep in mind is that the `SidePanelWithDrilldown`
+	component renders panels in the order in which they are defined. If the
+	panels are defined in the wrong order, the panel animation may not behave
+	correctly.
+</div>

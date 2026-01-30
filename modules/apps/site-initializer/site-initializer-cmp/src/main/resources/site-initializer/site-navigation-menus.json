@@ -1,0 +1,30 @@
+[
+	{
+		"externalReferenceCode": "CMSPRIMARYNAVIGATION",
+		"menuItems": [
+			{
+				"externalReferenceCode": "CMPPRIMARYNAVIGATION1",
+				"menuItems": [
+					{
+						"displayIcon": "archive",
+						"externalReferenceCode": "CMPPRIMARYNAVIGATION2",
+						"friendlyURL": "/projects",
+						"privateLayout": false,
+						"type": "layout"
+					},
+					{
+						"displayIcon": "paste",
+						"externalReferenceCode": "CMPPRIMARYNAVIGATION3",
+						"friendlyURL": "/tasks",
+						"privateLayout": false,
+						"type": "layout"
+					}
+				],
+				"name_i18n": {
+					"en_US": "Planning"
+				},
+				"type": "node"
+			}
+		]
+	}
+]

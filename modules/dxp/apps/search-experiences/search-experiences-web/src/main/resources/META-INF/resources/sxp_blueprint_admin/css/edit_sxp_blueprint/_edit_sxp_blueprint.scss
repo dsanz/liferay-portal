@@ -3,6 +3,17 @@
 		padding-bottom: 40px;
 		padding-top: $pageToolbarHeight + 40px;
 
+		&.unified-query-builder-tab {
+			.layout-section-main-shift {
+				max-width: unset;
+				transition: margin-right ease 0.2s;
+			}
+
+			.sheet + .sheet {
+				margin-top: 24px;
+			}
+		}
+
 		.layout-section-main-shift {
 			max-width: $layoutSectionMainMaxWidth;
 			transition: margin-right ease 0.2s;

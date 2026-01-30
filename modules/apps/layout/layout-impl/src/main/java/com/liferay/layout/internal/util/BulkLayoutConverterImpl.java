@@ -33,6 +33,7 @@ import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.LayoutService;
 import com.liferay.portal.kernel.service.PortletPreferenceValueLocalService;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -255,11 +256,11 @@ public class BulkLayoutConverterImpl implements BulkLayoutConverter {
 			Layout layout = _layoutLocalService.getLayout(
 				draftLayout.getClassPK());
 
-			_layoutLocalService.copyLayoutContent(draftLayout, layout);
+			_layoutService.copyLayoutContent(draftLayout, layout);
 
 			draftLayout = _layoutLocalService.getLayout(draftLayout.getPlid());
 
-			draftLayout.setLayoutPrototypeLinkEnabled(false);
+			draftLayout.setPortletLayoutPageTemplateEntryLinkEnabled(false);
 
 			UnicodeProperties typeSettingsUnicodeProperties =
 				draftLayout.getTypeSettingsProperties();
@@ -275,8 +276,9 @@ public class BulkLayoutConverterImpl implements BulkLayoutConverter {
 			layout = _layoutLocalService.getLayout(layout.getPlid());
 
 			layout.setType(draftLayout.getType());
-			layout.setLayoutPrototypeUuid(StringPool.BLANK);
-			layout.setLayoutPrototypeLinkEnabled(false);
+			layout.setPortletLayoutPageTemplateEntryERC(StringPool.BLANK);
+			layout.setPortletLayoutPageTemplateEntryScopeERC(StringPool.BLANK);
+			layout.setPortletLayoutPageTemplateEntryLinkEnabled(false);
 			layout.setStatus(WorkflowConstants.STATUS_APPROVED);
 
 			return _layoutLocalService.updateLayout(layout);
@@ -352,11 +354,11 @@ public class BulkLayoutConverterImpl implements BulkLayoutConverter {
 				layout.getDescriptionMap(), layout.getKeywordsMap(),
 				layout.getRobotsMap(), LayoutConstants.TYPE_CONTENT,
 				layout.getTypeSettings(), true, true, Collections.emptyMap(),
-				layout.getMasterLayoutPlid(), serviceContext);
+				layout.getMasterLayoutPageTemplateEntryERC(), serviceContext);
 		}
 
 		try {
-			return _layoutLocalService.copyLayoutContent(layout, draftLayout);
+			return _layoutService.copyLayoutContent(layout, draftLayout);
 		}
 		catch (Exception exception) {
 			throw new PortalException(exception);
@@ -420,6 +422,9 @@ public class BulkLayoutConverterImpl implements BulkLayoutConverter {
 	@Reference
 	private LayoutPageTemplateStructureLocalService
 		_layoutPageTemplateStructureLocalService;
+
+	@Reference
+	private LayoutService _layoutService;
 
 	@Reference
 	private PortletPreferencesLocalService _portletPreferencesLocalService;

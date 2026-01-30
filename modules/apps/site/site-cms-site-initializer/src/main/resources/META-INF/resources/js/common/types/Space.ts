@@ -15,26 +15,21 @@ export type LogoColor =
 	| 'outline-8'
 	| 'outline-9';
 
-export type MimeTypeLimit = {
-	id?: string;
-	maximumSize: number | '';
-	mimeType: string;
-};
-
 export type Space = {
+	assetLibraryKey: string;
 	creatorUserId: string;
 	description: string;
 	externalReferenceCode: string;
 	id: number;
 	name: string;
 	settings?: SpaceSettings;
+	siteId: number;
 };
 
 export type SpaceSettings = {
 	availableLanguageIds?: string[];
 	defaultLanguageId?: string;
 	logoColor?: LogoColor;
-	mimeTypeLimits?: MimeTypeLimit[];
 	sharingEnabled?: boolean;
 	trashEnabled?: boolean;
 	trashEntriesMaxAge?: number;

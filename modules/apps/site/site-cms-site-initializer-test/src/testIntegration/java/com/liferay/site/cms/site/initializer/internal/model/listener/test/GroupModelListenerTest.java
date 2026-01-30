@@ -6,26 +6,31 @@
 package com.liferay.site.cms.site.initializer.internal.model.listener.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.batch.engine.unit.BatchEngineUnitProcessor;
-import com.liferay.batch.engine.unit.BatchEngineUnitReader;
 import com.liferay.depot.constants.DepotConstants;
+import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntryFolder;
 import com.liferay.object.rest.filter.factory.FilterFactory;
+import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryFolderLocalService;
+import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Group;
-import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.ResourceAction;
+import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
-import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
-import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.GetterUtil;
@@ -37,17 +42,11 @@ import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.site.cms.site.initializer.internal.display.context.test.BaseDisplayContextTestCase;
+import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 import com.liferay.site.cms.site.initializer.util.CMSDefaultPermissionUtil;
-import com.liferay.site.initializer.SiteInitializer;
-import com.liferay.site.initializer.SiteInitializerRegistry;
-
-import java.io.File;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -56,13 +55,10 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.FrameworkUtil;
-
 /**
  * @author Adolfo Pérez
  */
+@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 public class GroupModelListenerTest {
 
@@ -75,31 +71,165 @@ public class GroupModelListenerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_cmsGroup = _getGroup();
+		_cmsGroup = CMSTestUtil.getOrAddGroup(GroupModelListenerTest.class);
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testAddDepotEntry() throws Exception {
 		DepotEntry depotEntry = _addDepotEntry();
 
 		Group group = depotEntry.getGroup();
 
-		JSONObject jsonObject = CMSDefaultPermissionUtil.getJSONObject(
+		JSONObject jsonObject1 = CMSDefaultPermissionUtil.getJSONObject(
 			depotEntry.getCompanyId(), depotEntry.getUserId(),
 			group.getExternalReferenceCode(), depotEntry.getModelClassName(),
 			_filterFactory);
 
-		Assert.assertTrue(
-			jsonObject.has(
-				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS));
-		Assert.assertTrue(
-			jsonObject.has(
-				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES));
-		Assert.assertTrue(jsonObject.has("OBJECT_ENTRY_FOLDERS"));
+		JSONObject jsonObject2 = jsonObject1.getJSONObject(
+			ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS);
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_CMS_BASIC_WEB_CONTENT", TestPropsValues.getCompanyId());
+
+		Assert.assertArrayEquals(
+			new String[] {
+				ActionKeys.ADD_DISCUSSION, ActionKeys.DELETE,
+				ActionKeys.DELETE_DISCUSSION, ActionKeys.PERMISSIONS,
+				ActionKeys.UPDATE, ActionKeys.UPDATE_DISCUSSION, ActionKeys.VIEW
+			},
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(
+					DepotRolesConstants.ASSET_LIBRARY_ADMINISTRATOR)));
+		Assert.assertArrayEquals(
+			new String[] {
+				ActionKeys.ADD_DISCUSSION, ActionKeys.DELETE,
+				ActionKeys.DELETE_DISCUSSION, ActionKeys.PERMISSIONS,
+				ActionKeys.UPDATE, ActionKeys.UPDATE_DISCUSSION, ActionKeys.VIEW
+			},
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(
+					DepotRolesConstants.ASSET_LIBRARY_CONTENT_REVIEWER)));
+		Assert.assertArrayEquals(
+			new String[] {ActionKeys.ADD_DISCUSSION, ActionKeys.VIEW},
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(
+					DepotRolesConstants.ASSET_LIBRARY_MEMBER)));
+		Assert.assertArrayEquals(
+			TransformUtil.transformToArray(
+				_resourceActionLocalService.getResourceActions(
+					objectDefinition.getClassName()),
+				ResourceAction::getActionId, String.class),
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(RoleConstants.CMS_ADMINISTRATOR)));
+		Assert.assertArrayEquals(
+			TransformUtil.transformToArray(
+				_resourceActionLocalService.getResourceActions(
+					objectDefinition.getClassName()),
+				ResourceAction::getActionId, String.class),
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(RoleConstants.OWNER)));
+		Assert.assertArrayEquals(
+			new String[] {ActionKeys.VIEW},
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(RoleConstants.USER)));
+
+		jsonObject2 = jsonObject1.getJSONObject(
+			ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES);
+
+		objectDefinition =
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_CMS_BASIC_DOCUMENT", TestPropsValues.getCompanyId());
+
+		Assert.assertArrayEquals(
+			new String[] {
+				ActionKeys.ADD_DISCUSSION, ActionKeys.DELETE,
+				ActionKeys.DELETE_DISCUSSION, ActionKeys.PERMISSIONS,
+				ActionKeys.UPDATE, ActionKeys.UPDATE_DISCUSSION, ActionKeys.VIEW
+			},
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(
+					DepotRolesConstants.ASSET_LIBRARY_ADMINISTRATOR)));
+		Assert.assertArrayEquals(
+			new String[] {
+				ActionKeys.ADD_DISCUSSION, ActionKeys.DELETE,
+				ActionKeys.DELETE_DISCUSSION, ActionKeys.PERMISSIONS,
+				ActionKeys.UPDATE, ActionKeys.UPDATE_DISCUSSION, ActionKeys.VIEW
+			},
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(
+					DepotRolesConstants.ASSET_LIBRARY_CONTENT_REVIEWER)));
+		Assert.assertArrayEquals(
+			new String[] {ActionKeys.ADD_DISCUSSION, ActionKeys.VIEW},
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(
+					DepotRolesConstants.ASSET_LIBRARY_MEMBER)));
+		Assert.assertArrayEquals(
+			TransformUtil.transformToArray(
+				_resourceActionLocalService.getResourceActions(
+					objectDefinition.getClassName()),
+				ResourceAction::getActionId, String.class),
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(RoleConstants.CMS_ADMINISTRATOR)));
+		Assert.assertArrayEquals(
+			TransformUtil.transformToArray(
+				_resourceActionLocalService.getResourceActions(
+					objectDefinition.getClassName()),
+				ResourceAction::getActionId, String.class),
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(RoleConstants.OWNER)));
+		Assert.assertArrayEquals(
+			new String[] {ActionKeys.VIEW},
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(RoleConstants.USER)));
+
+		jsonObject2 = jsonObject1.getJSONObject("OBJECT_ENTRY_FOLDERS");
+
+		Assert.assertArrayEquals(
+			new String[] {
+				ActionKeys.ADD_ENTRY, ActionKeys.DELETE, ActionKeys.PERMISSIONS,
+				ActionKeys.UPDATE, ActionKeys.SUBSCRIBE, ActionKeys.VIEW
+			},
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(
+					DepotRolesConstants.ASSET_LIBRARY_ADMINISTRATOR)));
+		Assert.assertArrayEquals(
+			new String[] {
+				ActionKeys.ADD_ENTRY, ActionKeys.DELETE, ActionKeys.PERMISSIONS,
+				ActionKeys.UPDATE, ActionKeys.SUBSCRIBE, ActionKeys.VIEW
+			},
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(
+					DepotRolesConstants.ASSET_LIBRARY_CONTENT_REVIEWER)));
+		Assert.assertArrayEquals(
+			new String[] {
+				ActionKeys.ADD_DISCUSSION, ActionKeys.VIEW, ActionKeys.SUBSCRIBE
+			},
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(
+					DepotRolesConstants.ASSET_LIBRARY_MEMBER)));
+		Assert.assertArrayEquals(
+			TransformUtil.transformToArray(
+				_resourceActionLocalService.getResourceActions(
+					ObjectEntryFolder.class.getName()),
+				ResourceAction::getActionId, String.class),
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(RoleConstants.CMS_ADMINISTRATOR)));
+		Assert.assertArrayEquals(
+			TransformUtil.transformToArray(
+				_resourceActionLocalService.getResourceActions(
+					ObjectEntryFolder.class.getName()),
+				ResourceAction::getActionId, String.class),
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(RoleConstants.OWNER)));
+		Assert.assertArrayEquals(
+			new String[] {ActionKeys.VIEW, ActionKeys.SUBSCRIBE},
+			JSONUtil.toStringArray(
+				jsonObject2.getJSONArray(RoleConstants.USER)));
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testDeleteDepotEntry() throws Exception {
 		DepotEntry depotEntry = _addDepotEntry();
@@ -121,25 +251,11 @@ public class GroupModelListenerTest {
 					PARENT_OBJECT_ENTRY_FOLDER_ID_DEFAULT));
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testUpdateDepotEntry() throws Exception {
 		Layout layout = _getRecycleBinLayout(_cmsGroup);
 
 		Assert.assertFalse(layout.isHidden());
-
-		Group defaultGroup = _groupLocalService.getGroup(
-			TestPropsValues.getCompanyId(), "Default");
-
-		_setTrashEnabled(defaultGroup, Boolean.FALSE.toString());
-
-		Assert.assertFalse(
-			GetterUtil.getBoolean(
-				defaultGroup.getTypeSettingsProperty("trashEnabled")));
-
-		layout = _getRecycleBinLayout(_cmsGroup);
-
-		Assert.assertTrue(layout.isHidden());
 
 		DepotEntry depotEntry = _addDepotEntry();
 
@@ -151,11 +267,11 @@ public class GroupModelListenerTest {
 			GetterUtil.getBoolean(
 				depotGroup.getTypeSettingsProperty("trashEnabled")));
 
-		layout = _getRecycleBinLayout(_cmsGroup);
+		_setTrashEnabled(depotGroup, Boolean.FALSE.toString());
 
-		Assert.assertFalse(layout.isHidden());
-
-		_setTrashEnabled(defaultGroup, null);
+		Assert.assertFalse(
+			GetterUtil.getBoolean(
+				depotGroup.getTypeSettingsProperty("trashEnabled")));
 	}
 
 	private DepotEntry _addDepotEntry() throws Exception {
@@ -172,76 +288,6 @@ public class GroupModelListenerTest {
 		_depotEntries.add(depotEntry);
 
 		return depotEntry;
-	}
-
-	private void _deleteFile(Bundle bundle, String fileName) {
-		File file = bundle.getDataFile(
-			".com.liferay.site.initializer.cms.internal.batch." + fileName +
-				".batch.engine.data.json.0.processed");
-
-		if ((file != null) && file.exists()) {
-			file.delete();
-		}
-	}
-
-	private Group _getGroup() throws Exception {
-		Group group = _groupLocalService.fetchGroup(
-			TestPropsValues.getCompanyId(), GroupConstants.CMS);
-
-		if (group != null) {
-			return group;
-		}
-
-		group = GroupTestUtil.addGroup();
-
-		group.setGroupKey(GroupConstants.CMS);
-
-		group = _groupLocalService.updateGroup(group);
-
-		ServiceContextThreadLocal.pushServiceContext(
-			ServiceContextTestUtil.getServiceContext(group.getGroupId()));
-
-		try {
-
-			// These tests require the instance to be created with the feature
-			// flag LPD-17564 enabled. On CI, feature flags are enabled on
-			// demand for each test, but not during instance initialization.
-			// Until the feature flag LPD-17564 is removed, run the instance
-			// lifecycle initializer manually so that the role is created.
-
-			SiteInitializer siteInitializer =
-				_siteInitializerRegistry.getSiteInitializer(
-					"com.liferay.site.initializer.cms");
-
-			siteInitializer.initialize(group.getGroupId());
-
-			Bundle testBundle = FrameworkUtil.getBundle(
-				BaseDisplayContextTestCase.class);
-
-			BundleContext bundleContext = testBundle.getBundleContext();
-
-			for (Bundle bundle : bundleContext.getBundles()) {
-				if (Objects.equals(
-						bundle.getSymbolicName(),
-						"com.liferay.site.initializer.cms")) {
-
-					_deleteFile(bundle, "00.list.type.definition");
-					_deleteFile(bundle, "01.object.folder");
-					_deleteFile(bundle, "02.object.definition");
-
-					CompletableFuture<Void> completableFuture =
-						_batchEngineUnitProcessor.processBatchEngineUnits(
-							_batchEngineUnitReader.getBatchEngineUnits(bundle));
-
-					completableFuture.join();
-				}
-			}
-		}
-		finally {
-			ServiceContextThreadLocal.popServiceContext();
-		}
-
-		return group;
 	}
 
 	private Layout _getRecycleBinLayout(Group group) throws Exception {
@@ -263,12 +309,6 @@ public class GroupModelListenerTest {
 			group.getGroupId(), unicodeProperties.toString());
 	}
 
-	@Inject
-	private BatchEngineUnitProcessor _batchEngineUnitProcessor;
-
-	@Inject
-	private BatchEngineUnitReader _batchEngineUnitReader;
-
 	private Group _cmsGroup;
 
 	@DeleteAfterTestRun
@@ -289,9 +329,12 @@ public class GroupModelListenerTest {
 	private LayoutLocalService _layoutLocalService;
 
 	@Inject
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Inject
 	private ObjectEntryFolderLocalService _objectEntryFolderLocalService;
 
 	@Inject
-	private SiteInitializerRegistry _siteInitializerRegistry;
+	private ResourceActionLocalService _resourceActionLocalService;
 
 }

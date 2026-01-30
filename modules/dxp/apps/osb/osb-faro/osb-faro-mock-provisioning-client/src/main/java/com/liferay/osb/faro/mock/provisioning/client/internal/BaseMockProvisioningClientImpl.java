@@ -26,6 +26,13 @@ public abstract class BaseMockProvisioningClientImpl
 	}
 
 	@Override
+	public void addProductConsumption(String corpProjectUuid, long groupId)
+		throws Exception {
+
+		provisioningClient.addProductConsumption(corpProjectUuid, groupId);
+	}
+
+	@Override
 	public void addUserCorpProjectRoles(
 			String corpProjectUuid, String[] userUuids, String roleName)
 		throws Exception {
@@ -57,6 +64,11 @@ public abstract class BaseMockProvisioningClientImpl
 		throws Exception {
 
 		return provisioningClient.getOSBAccountEntry(corpProjectUuid);
+	}
+
+	@Override
+	public boolean isProductConsumed(String corpProjectUuid) throws Exception {
+		return provisioningClient.isProductConsumed(corpProjectUuid);
 	}
 
 	@Override

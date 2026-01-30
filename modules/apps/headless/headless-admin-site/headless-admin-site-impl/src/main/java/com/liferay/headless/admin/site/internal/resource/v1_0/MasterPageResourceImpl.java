@@ -8,6 +8,7 @@ package com.liferay.headless.admin.site.internal.resource.v1_0;
 import com.liferay.client.extension.type.manager.CETManager;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.vulcan.batch.engine.ExportImportVulcanBatchEngineTaskItemDelegate;
+import com.liferay.fragment.processor.FragmentEntryProcessorRegistry;
 import com.liferay.headless.admin.site.dto.v1_0.ContentPageSpecification;
 import com.liferay.headless.admin.site.dto.v1_0.MasterPage;
 import com.liferay.headless.admin.site.dto.v1_0.PageSpecification;
@@ -94,23 +95,29 @@ public class MasterPageResourceImpl
 		return new ExportImportDescriptor() {
 
 			@Override
-			public String getItemClassName() {
-				return LayoutPageTemplateEntry.class.getName();
-			}
-
-			@Override
-			public String getLabel() {
+			public String getLabelLanguageKey() {
 				return "master-pages";
 			}
 
 			@Override
+			public String getModelClassName() {
+				return LayoutPageTemplateEntry.class.getName();
+			}
+
+			@Override
 			public List<String> getNestedFields() {
-				return List.of("friendlyUrlHistory", "pageSpecifications");
+				return List.of(
+					"friendlyUrlHistory", "pageSpecifications", "thumbnail");
 			}
 
 			@Override
 			public String getPortletId() {
 				return LayoutAdminPortletKeys.GROUP_PAGES;
+			}
+
+			@Override
+			public String getResourceClassName() {
+				return MasterPageResourceImpl.class.getName();
 			}
 
 			@Override
@@ -121,6 +128,11 @@ public class MasterPageResourceImpl
 			@Override
 			public boolean isActive(PortletDataContext portletDataContext) {
 				return FeatureFlagManagerUtil.isEnabled("LPD-35443");
+			}
+
+			@Override
+			public boolean isStagingSupported() {
+				return true;
 			}
 
 		};
@@ -154,7 +166,8 @@ public class MasterPageResourceImpl
 
 		return (ContentPageSpecification)_pageSpecificationDTOConverter.toDTO(
 			LayoutUtil.addDraftToLayout(
-				_cetManager, contentPageSpecification, _infoItemServiceRegistry,
+				_cetManager, contentPageSpecification,
+				_fragmentEntryProcessorRegistry, _infoItemServiceRegistry,
 				_layoutLocalService.getLayout(
 					layoutPageTemplateEntry.getPlid()),
 				ServiceContextUtil.createServiceContext(
@@ -265,8 +278,11 @@ public class MasterPageResourceImpl
 			return _addMasterPage(groupId, masterPage);
 		}
 
+		ServiceContext serviceContext = _getServiceContext(groupId, masterPage);
+
 		long previewFileEntryId = FileEntryUtil.getPreviewFileEntryId(
-			groupId, masterPage.getThumbnail());
+			groupId, getResourceName(), serviceContext,
+			masterPage.getThumbnailURLReference());
 
 		if (previewFileEntryId !=
 				layoutPageTemplateEntry.getPreviewFileEntryId()) {
@@ -280,10 +296,9 @@ public class MasterPageResourceImpl
 		Layout layout = _layoutLocalService.getLayout(
 			layoutPageTemplateEntry.getPlid());
 
-		ServiceContext serviceContext = _getServiceContext(groupId, masterPage);
-
 		layout = LayoutUtil.updateContentLayout(
-			_cetManager, _infoItemServiceRegistry, layout, layout.getNameMap(),
+			_cetManager, _fragmentEntryProcessorRegistry,
+			_infoItemServiceRegistry, layout, layout.getNameMap(),
 			layout.getTitleMap(), layout.getDescriptionMap(),
 			layout.getKeywordsMap(), layout.getRobotsMap(),
 			layout.getFriendlyURLMap(), layout.getTypeSettingsProperties(),
@@ -359,8 +374,9 @@ public class MasterPageResourceImpl
 				masterPage::getTaxonomyCategoryItemExternalReferences);
 		}
 
-		if (masterPage.getThumbnail() != null) {
-			existingMasterPage.setThumbnail(masterPage::getThumbnail);
+		if (masterPage.getThumbnailURLReference() != null) {
+			existingMasterPage.setThumbnailURLReference(
+				masterPage::getThumbnailURLReference);
 		}
 	}
 
@@ -383,7 +399,8 @@ public class MasterPageResourceImpl
 				masterPage.getKey(), 0, 0, masterPage.getName(),
 				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT,
 				FileEntryUtil.getPreviewFileEntryId(
-					groupId, masterPage.getThumbnail()),
+					groupId, getResourceName(), serviceContext,
+					masterPage.getThumbnailURLReference()),
 				defaultTemplate, 0,
 				_getLayoutPlid(groupId, masterPage, serviceContext), 0,
 				PageSpecificationUtil.getPublishedStatus(
@@ -405,8 +422,8 @@ public class MasterPageResourceImpl
 			LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT);
 
 		Layout layout = LayoutUtil.addContentLayout(
-			_cetManager, groupId, _infoItemServiceRegistry,
-			masterPage.getPageSpecifications(),
+			_cetManager, _fragmentEntryProcessorRegistry, groupId,
+			_infoItemServiceRegistry, masterPage.getPageSpecifications(),
 			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, true, nameMap, null, null,
 			null, null, LayoutConstants.TYPE_CONTENT, null, true, true,
 			Collections.emptyMap(), WorkflowConstants.STATUS_APPROVED,
@@ -424,13 +441,16 @@ public class MasterPageResourceImpl
 			contextCompany.getCompanyId(), masterPage.getDateCreated(), groupId,
 			contextHttpServletRequest, masterPage.getKeywords(),
 			masterPage.getDateModified(), contextUser.getUserId(),
-			masterPage.getUuid(), null);
+			masterPage.getUuid());
 	}
 
 	private static final EntityModel _entityModel = new MasterPageEntityModel();
 
 	@Reference
 	private CETManager _cetManager;
+
+	@Reference
+	private FragmentEntryProcessorRegistry _fragmentEntryProcessorRegistry;
 
 	@Reference
 	private InfoItemServiceRegistry _infoItemServiceRegistry;

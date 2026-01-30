@@ -11,20 +11,23 @@ export default function actionGeneratesChanges(actionType: Action['type']) {
 		case 'add-referenced-structures':
 		case 'add-repeatable-group':
 		case 'delete-child':
+		case 'duplicate-child':
+		case 'rename-item':
 		case 'set-workflow':
 		case 'ungroup':
 		case 'update-field':
 		case 'update-repeatable-group':
 		case 'update-structure':
 			return true;
-		case 'add-validation-error':
-		case 'clear-error':
+		case 'add-error':
+		case 'clear-errors':
 		case 'create-structure':
 		case 'delete-selection':
 		case 'publish-structure':
 		case 'refresh-referenced-structures':
-		case 'set-error':
+		case 'set-renaming-item-uuid':
 		case 'set-selection':
+		case 'set-structure-status':
 		case 'validate':
 			return false;
 		default: {

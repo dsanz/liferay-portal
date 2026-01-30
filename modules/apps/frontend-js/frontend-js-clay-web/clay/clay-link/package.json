@@ -1,0 +1,33 @@
+{
+	"browserslist": [
+		"extends browserslist-config-clay"
+	],
+	"dependencies": {
+		"classnames": "2.3.1"
+	},
+	"description": "ClayLink component",
+	"files": [
+		"lib"
+	],
+	"keywords": [
+		"clay",
+		"react"
+	],
+	"license": "BSD-3-Clause",
+	"main": "src/index.tsx",
+	"name": "@clayui/link",
+	"peerDependencies": {
+		"@clayui/css": "*",
+		"react": "^16.0.0 || ^17.0.0 || ^18.0.0",
+		"react-dom": "^16.0.0 || ^17.0.0 || ^18.0.0"
+	},
+	"repository": "https://github.com/liferay/clay",
+	"scripts": {
+		"build": "yarn build:cjs && yarn build:esm",
+		"build:cjs": "babel src --root-mode upward --out-dir lib/cjs --extensions .ts,.tsx",
+		"build:esm": "babel src --root-mode upward --out-dir lib/esm --extensions .ts,.tsx --env-name esm",
+		"buildTypes": "tsc --project ./tsconfig.declarations.json",
+		"test": "jest --config ../../jest.config.js"
+	},
+	"version": "3.144.1"
+}

@@ -6,17 +6,14 @@
 package com.liferay.portal.kernel.portlet.render;
 
 import com.liferay.petra.io.StreamUtil;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.content.security.policy.ContentSecurityPolicyNonceProviderUtil;
-import com.liferay.portal.kernel.frontend.esm.FrontendESMUtil;
 import com.liferay.portal.kernel.frontend.hashed.files.HashedFilesRegistryUtil;
 import com.liferay.portal.kernel.frontend.hashed.files.HashedFilesUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.model.Portlet;
-import com.liferay.portal.kernel.model.Theme;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -47,7 +44,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
 
 /**
  * @author Iván Zaera Avellón
@@ -197,110 +193,6 @@ public class PortletRenderUtil {
 		return allPortlets;
 	}
 
-	private static List<String> _getComboServletURLs(
-		Collection<PortletResourceAccessor> portletResourceAccessors,
-		Collection<Portlet> portlets, Predicate<String> predicate,
-		long timestamp, String urlPrefix, Set<String> visitedURLs) {
-
-		if (predicate == null) {
-			predicate = s -> true;
-		}
-
-		List<String> urls = new ArrayList<>();
-
-		StringBundler comboServletSB = new StringBundler();
-
-		for (Portlet portlet : portlets) {
-			for (PortletResourceAccessor portletResourceAccessor :
-					portletResourceAccessors) {
-
-				String contextPath = null;
-
-				if (portletResourceAccessor.isPortalResource()) {
-					contextPath = PortalUtil.getPathContext();
-				}
-				else {
-					contextPath =
-						PortalUtil.getPathProxy() + portlet.getContextPath();
-				}
-
-				Collection<String> portletResources =
-					portletResourceAccessor.get(portlet);
-
-				for (String portletResource : portletResources) {
-					if (!predicate.test(portletResource)) {
-						continue;
-					}
-
-					String prefix = null;
-
-					for (String specialPrefix : _specialPrefixes) {
-						if (portletResource.startsWith(specialPrefix)) {
-							portletResource = portletResource.substring(
-								specialPrefix.length());
-
-							prefix = specialPrefix;
-
-							break;
-						}
-					}
-
-					boolean absolute = HttpComponentsUtil.hasProtocol(
-						portletResource);
-
-					if (!absolute) {
-						portletResource = contextPath + portletResource;
-					}
-
-					if (Validator.isNotNull(prefix)) {
-						portletResource = prefix + portletResource;
-					}
-
-					if (visitedURLs.contains(portletResource)) {
-						continue;
-					}
-
-					visitedURLs.add(portletResource);
-
-					if (absolute || Validator.isNotNull(prefix)) {
-						urls.add(portletResource);
-					}
-					else {
-						comboServletSB.append(StringPool.AMPERSAND);
-
-						if (!portletResourceAccessor.isPortalResource()) {
-							comboServletSB.append(portlet.getPortletId());
-							comboServletSB.append(StringPool.COLON);
-						}
-
-						comboServletSB.append(
-							HtmlUtil.escapeURL(portletResource));
-
-						timestamp = Math.max(timestamp, portlet.getTimestamp());
-					}
-				}
-			}
-		}
-
-		if (comboServletSB.length() > 0) {
-			String url = urlPrefix + comboServletSB;
-
-			url = HttpComponentsUtil.addParameter(url, "t", timestamp);
-
-			urls.add(url);
-		}
-
-		return urls;
-	}
-
-	private static String _getMinifierType(URLType urlType) {
-		if (urlType == URLType.CSS) {
-			return "css";
-		}
-
-		return "js";
-	}
-
 	private static PortletRenderParts _getPortletRenderParts(
 		HttpServletRequest httpServletRequest, String portletHTML,
 		Portlet portlet, boolean portletOnLayout) {
@@ -345,38 +237,40 @@ public class PortletRenderUtil {
 	}
 
 	private static String _getStaticCSSResourceURL(
-		HttpServletRequest httpServletRequest, ThemeDisplay themeDisplay,
-		String unhashedFileURI) {
+		HttpServletRequest httpServletRequest, String originalURL,
+		ThemeDisplay themeDisplay) {
 
-		String url = unhashedFileURI;
+		String url = null;
+
+		String proxyPath = PortalUtil.getPathProxy();
+
+		String unhashedFileURI = originalURL.substring(proxyPath.length());
 
 		String hashedFileURI = HashedFilesRegistryUtil.getHashedFileURI(
 			unhashedFileURI);
 
 		if (hashedFileURI == null) {
+			url = originalURL;
+
 			if (PortalUtil.isRightToLeft(httpServletRequest)) {
-				int i = unhashedFileURI.lastIndexOf(StringPool.PERIOD);
+				int i = url.lastIndexOf(StringPool.PERIOD);
 
 				if (i != -1) {
-					url =
-						unhashedFileURI.substring(0, i) + "_rtl" +
-							unhashedFileURI.substring(i);
+					url = url.substring(0, i) + "_rtl" + url.substring(i);
 				}
 			}
 		}
 		else {
+			url = proxyPath + hashedFileURI;
+
 			if (PortalUtil.isRightToLeft(httpServletRequest)) {
-				url = HashedFilesUtil.addNameSuffix(hashedFileURI, "_rtl");
-			}
-			else {
-				url = hashedFileURI;
+				url = HashedFilesUtil.addNameSuffix(url, "_rtl");
 			}
 		}
 
-		if (_isTokenized(url)) {
+		if (_isTokenized(unhashedFileURI)) {
 			url = HttpComponentsUtil.addParameter(
 				url, "themeId", themeDisplay.getThemeId());
-			url = HttpComponentsUtil.addParameter(url, "tokenize", true);
 		}
 
 		return url;
@@ -428,16 +322,19 @@ public class PortletRenderUtil {
 					if (!HttpComponentsUtil.hasProtocol(portletResource)) {
 						if (urlType == URLType.CSS) {
 							portletResource = _getStaticCSSResourceURL(
-								httpServletRequest, themeDisplay,
-								contextPath + portletResource);
+								httpServletRequest,
+								contextPath + portletResource, themeDisplay);
 						}
 						else if (urlType == URLType.JAVASCRIPT) {
-							Portlet rootPortlet = portlet.getRootPortlet();
+							portletResource = contextPath + portletResource;
 
-							portletResource = PortalUtil.getStaticResourceURL(
-								httpServletRequest,
-								contextPath + portletResource,
-								rootPortlet.getTimestamp());
+							String hashedFileURI =
+								HashedFilesRegistryUtil.getHashedFileURI(
+									portletResource);
+
+							if (hashedFileURI != null) {
+								portletResource = hashedFileURI;
+							}
 						}
 						else {
 							throw new UnsupportedOperationException(
@@ -486,42 +383,10 @@ public class PortletRenderUtil {
 
 		List<String> urls;
 
-		if (urlType == URLType.CSS) {
+		if ((urlType == URLType.CSS) || (urlType == URLType.JAVASCRIPT)) {
 			urls = _getStaticURLs(
 				httpServletRequest, portletResourceAccessors, portlets, urlType,
 				visitedURLs);
-		}
-		else if (urlType == URLType.JAVASCRIPT) {
-			ThemeDisplay themeDisplay =
-				(ThemeDisplay)httpServletRequest.getAttribute(
-					WebKeys.THEME_DISPLAY);
-
-			boolean fastLoad = themeDisplay.isThemeJsFastLoad();
-
-			if (fastLoad) {
-				Predicate<String> predicate =
-					resource -> !themeDisplay.isIncludedJs(resource);
-
-				Theme theme = themeDisplay.getTheme();
-
-				urls = _getComboServletURLs(
-					portletResourceAccessors, portlets, predicate,
-					theme.getTimestamp(),
-					PortalUtil.getStaticResourceURL(
-						httpServletRequest,
-						themeDisplay.getCDNDynamicResourcesHost() +
-							themeDisplay.getPathContext() + "/combo",
-						StringBundler.concat(
-							"minifierType=", _getMinifierType(urlType),
-							"&themeId=", themeDisplay.getThemeId()),
-						-1),
-					visitedURLs);
-			}
-			else {
-				urls = _getStaticURLs(
-					httpServletRequest, portletResourceAccessors, portlets,
-					urlType, visitedURLs);
-			}
 		}
 		else {
 			throw new UnsupportedOperationException(
@@ -549,10 +414,12 @@ public class PortletRenderUtil {
 				content = StreamUtil.toString(resourceURL.openStream());
 			}
 			catch (Exception exception) {
-				_log.error(
-					"Assuming " + resourceURI +
-						" has no tokens because it could not be read",
-					exception);
+				if (_log.isDebugEnabled()) {
+					_log.debug(
+						"Assuming " + resourceURI +
+							" has no tokens because it could not be read",
+						exception);
+				}
 
 				_tokenized.putIfAbsent(resourceURI, false);
 
@@ -601,7 +468,7 @@ public class PortletRenderUtil {
 
 		if (javaScriptPath.startsWith("module:")) {
 			javaScriptPath = javaScriptPath.substring(7);
-			type = FrontendESMUtil.getScriptType();
+			type = "module";
 		}
 
 		printWriter.print("<script");

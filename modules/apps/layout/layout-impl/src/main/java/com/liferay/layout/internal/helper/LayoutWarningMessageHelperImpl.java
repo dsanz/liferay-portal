@@ -16,7 +16,6 @@ import com.liferay.info.constants.InfoDisplayWebKeys;
 import com.liferay.info.exception.NoSuchInfoItemException;
 import com.liferay.info.item.ClassPKInfoItemIdentifier;
 import com.liferay.info.item.InfoItemDetails;
-import com.liferay.info.item.InfoItemIdentifier;
 import com.liferay.info.item.InfoItemReference;
 import com.liferay.info.item.InfoItemServiceRegistry;
 import com.liferay.info.item.provider.InfoItemObjectProvider;
@@ -57,7 +56,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
@@ -78,7 +76,10 @@ public class LayoutWarningMessageHelperImpl
 			HttpServletRequest httpServletRequest)
 		throws Exception {
 
-		int totalCount = _getTotalCount(collectionStyledLayoutStructureItem);
+		int totalCount = _getTotalCount(
+			collectionStyledLayoutStructureItem,
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY));
 
 		if (!Objects.equals(
 				collectionStyledLayoutStructureItem.getPaginationType(),
@@ -225,7 +226,7 @@ public class LayoutWarningMessageHelperImpl
 	private long _getFileEntryId(
 			JSONObject editableValueJSONObject,
 			HttpServletRequest httpServletRequest,
-			HttpServletResponse httpServletResponse, Locale locale)
+			HttpServletResponse httpServletResponse, ThemeDisplay themeDisplay)
 		throws Exception {
 
 		if (_fragmentEntryProcessorHelper.isMapped(editableValueJSONObject) ||
@@ -237,8 +238,10 @@ public class LayoutWarningMessageHelperImpl
 			Object fieldValue = _fragmentEntryProcessorHelper.getFieldValue(
 				editableValueJSONObject, new HashMap<>(),
 				new DefaultFragmentEntryProcessorContext(
-					httpServletRequest, httpServletResponse,
-					FragmentEntryLinkConstants.VIEW, locale));
+					themeDisplay.getCompanyId(), httpServletRequest,
+					httpServletResponse, themeDisplay.getLocale(),
+					FragmentEntryLinkConstants.VIEW,
+					themeDisplay.getScopeGroupId()));
 
 			if (fieldValue == null) {
 				return 0;
@@ -268,7 +271,7 @@ public class LayoutWarningMessageHelperImpl
 		}
 
 		String value = _fragmentEntryProcessorHelper.getEditableValue(
-			editableValueJSONObject, locale);
+			editableValueJSONObject, themeDisplay.getLocale());
 
 		if (JSONUtil.isJSONObject(value)) {
 			try {
@@ -287,9 +290,8 @@ public class LayoutWarningMessageHelperImpl
 	}
 
 	private long _getFileEntryId(
-			String fieldId, InfoItemDetails infoItemDetails,
-			ThemeDisplay themeDisplay)
-		throws Exception {
+		String fieldId, InfoItemDetails infoItemDetails,
+		ThemeDisplay themeDisplay) {
 
 		if (infoItemDetails == null) {
 			return 0;
@@ -302,20 +304,8 @@ public class LayoutWarningMessageHelperImpl
 			return 0;
 		}
 
-		InfoItemIdentifier infoItemIdentifier =
-			infoItemReference.getInfoItemIdentifier();
-
-		if (!(infoItemIdentifier instanceof ClassPKInfoItemIdentifier)) {
-			return 0;
-		}
-
-		ClassPKInfoItemIdentifier classPKInfoItemIdentifier =
-			(ClassPKInfoItemIdentifier)infoItemIdentifier;
-
 		return _fragmentEntryProcessorHelper.getFileEntryId(
-			_portal.getClassNameId(infoItemReference.getClassName()),
-			classPKInfoItemIdentifier.getClassPK(), fieldId,
-			themeDisplay.getLocale());
+			infoItemReference, fieldId, themeDisplay.getLocale());
 	}
 
 	private Object _getInfoItem(JSONObject layoutObjectReferenceJSONObject) {
@@ -352,7 +342,8 @@ public class LayoutWarningMessageHelperImpl
 
 	private int _getTotalCount(
 			CollectionStyledLayoutStructureItem
-				collectionStyledLayoutStructureItem)
+				collectionStyledLayoutStructureItem,
+			ThemeDisplay themeDisplay)
 		throws Exception {
 
 		JSONObject layoutObjectReferenceJSONObject =
@@ -387,6 +378,11 @@ public class LayoutWarningMessageHelperImpl
 
 		if (infoItem != null) {
 			defaultLayoutListRetrieverContext.setContextObject(infoItem);
+		}
+
+		if (themeDisplay != null) {
+			defaultLayoutListRetrieverContext.setScopeGroupId(
+				themeDisplay.getScopeGroupId());
 		}
 
 		InfoPage<?> infoPage = layoutListRetriever.getInfoPage(
@@ -477,7 +473,7 @@ public class LayoutWarningMessageHelperImpl
 				if (_exceedsFileSize(
 						_getFileEntryId(
 							editableValueJSONObject, httpServletRequest,
-							httpServletResponse, themeDisplay.getLocale()))) {
+							httpServletResponse, themeDisplay))) {
 
 					return true;
 				}

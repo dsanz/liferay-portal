@@ -16,6 +16,7 @@ import com.liferay.object.rest.dto.v1_0.Assignee;
 import com.liferay.object.rest.dto.v1_0.FileEntry;
 import com.liferay.object.rest.dto.v1_0.ListEntry;
 import com.liferay.object.rest.internal.resource.v1_0.CollaboratorResourceImpl;
+import com.liferay.object.rest.internal.resource.v1_0.CommentResourceImpl;
 import com.liferay.object.rest.internal.resource.v1_0.ObjectEntryRelatedObjectsResourceImpl;
 import com.liferay.object.rest.internal.resource.v1_0.ObjectEntryResourceImpl;
 import com.liferay.object.rest.internal.resource.v1_0.OpenAPIResourceImpl;
@@ -436,6 +437,7 @@ public class ObjectEntryOpenAPIResourceImpl
 			new HashSet<Class<?>>() {
 				{
 					add(CollaboratorResourceImpl.class);
+					add(CommentResourceImpl.class);
 					add(ObjectEntryRelatedObjectsResourceImpl.class);
 					add(ObjectEntryResourceImpl.class);
 					add(OpenAPIResourceImpl.class);
@@ -505,13 +507,15 @@ public class ObjectEntryOpenAPIResourceImpl
 		return requiredPropertySchemaNames;
 	}
 
+	private static final Map<String, String> _fieldNameMappings =
+		HashMapBuilder.put(
+			"createDate", "dateCreated"
+		).put(
+			"modifiedDate", "dateModified"
+		).build();
+
 	private final BundleContext _bundleContext;
 	private final DTOConverterRegistry _dtoConverterRegistry;
-	private final Map<String, String> _fieldNameMappings = HashMapBuilder.put(
-		"createDate", "dateCreated"
-	).put(
-		"modifiedDate", "dateModified"
-	).build();
 	private final ObjectActionLocalService _objectActionLocalService;
 	private final ObjectDefinition _objectDefinition;
 	private final ObjectDefinitionLocalService _objectDefinitionLocalService;

@@ -341,9 +341,9 @@ public abstract class BaseSiteTestEntityResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(siteTestEntityId);
+		Long resourceId = getPermissionCheckerResourceId(siteTestEntityId);
 		String resourceName = getPermissionCheckerResourceName(
 			siteTestEntityId);
-		Long resourceId = getPermissionCheckerResourceId(siteTestEntityId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -825,9 +825,9 @@ public abstract class BaseSiteTestEntityResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(siteTestEntityId);
+		Long resourceId = getPermissionCheckerResourceId(siteTestEntityId);
 		String resourceName = getPermissionCheckerResourceName(
 			siteTestEntityId);
-		Long resourceId = getPermissionCheckerResourceId(siteTestEntityId);
 
 		PermissionServiceUtil.checkPermission(
 			groupId, resourceName, resourceId);
@@ -998,8 +998,33 @@ public abstract class BaseSiteTestEntityResourceImpl
 			Map<String, Serializable> parameters)
 		throws Exception {
 
-		throw new UnsupportedOperationException(
-			"This method needs to be implemented");
+		UnsafeFunction<SiteTestEntity, SiteTestEntity, Exception>
+			siteTestEntityUnsafeFunction = siteTestEntity -> {
+				if (parameters.containsKey("siteId")) {
+					deleteSiteSiteTestEntityByExternalReferenceCode(
+						(Long)parameters.get("siteId"),
+						siteTestEntity.getExternalReferenceCode());
+
+					return siteTestEntity;
+				}
+
+				throw new UnsupportedOperationException(
+					"Unable to delete by external reference code or ID");
+			};
+
+		if (contextBatchUnsafeBiConsumer != null) {
+			contextBatchUnsafeBiConsumer.accept(
+				siteTestEntities, siteTestEntityUnsafeFunction);
+		}
+		else if (contextBatchUnsafeConsumer != null) {
+			contextBatchUnsafeConsumer.accept(
+				siteTestEntities, siteTestEntityUnsafeFunction::apply);
+		}
+		else {
+			for (SiteTestEntity siteTestEntity : siteTestEntities) {
+				siteTestEntityUnsafeFunction.apply(siteTestEntity);
+			}
+		}
 	}
 
 	public Set<String> getAvailableCreateStrategies() {
@@ -1277,6 +1302,9 @@ public abstract class BaseSiteTestEntityResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

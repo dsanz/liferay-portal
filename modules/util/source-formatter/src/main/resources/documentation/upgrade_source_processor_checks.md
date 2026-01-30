@@ -7,6 +7,7 @@ UpgradeBNDIncludeResourceCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | C
 UpgradeCatchAllCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Performs replacements on Liferay's outdated code. |
 [UpgradeCatchAllJSPImportsCheck](check/jsp_imports_check.md#jspimportscheck) | [Upgrade](upgrade_checks.md#upgrade-checks) | Sorts and groups imports in `LPD_XXXXX.jsp` and `LPS_XXXXX.jsp` files. |
 UpgradeCatchAllJavaImportsCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Sorts and groups imports in `LPD_XXXXX.java` and `LPS_XXXXX.java` files. |
+UpgradeCatchAllJavaLongLinesCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Finds lines that are longer than the specified maximum line length in `LPD_XXXXX.java` and `LPS_XXXXX.java` files. |
 UpgradeCatchAllJavaTermOrderCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Sorts javaterms in `LPD_XXXXX.java` and `LPS_XXXXX.java` files. |
 UpgradeGradleIncludeResourceCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Replaces with `compileInclude` the configuration attribute for dependencies in `build.gradle` that are listed at `Include-Resource` property at `bnd.bnd` associated file. |
 UpgradeImportsCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Replaces deprecated package references with updated values from `imports.txt` and handles class renaming by updating variable declarations and references when a package change involves a class name change. |
@@ -25,7 +26,6 @@ UpgradeJavaGetFileMethodCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Ru
 UpgradeJavaGetLayoutDisplayPageObjectProviderCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Replace parameter type long by ItemInfoReference in the getLayoutDisplayPageObjectProvider method. |
 UpgradeJavaGetLayoutDisplayPageProviderCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Replace getLayoutDisplayPageProvider by getLayoutDisplayPageProviderByClassName. |
 UpgradeJavaLocalServiceImplCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Add Component annotation to `*LocalServiceImpl.java` file. |
-UpgradeJavaMultiVMPoolUtilCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Replaces the references of the MultiVMPoolUtil class and also its methods usages. |
 UpgradeJavaPortletIdMethodCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Replace the 'document.get(Field.PORTLET_ID)' by the new interface 'PortletProviderUtil.getPortletId'. |
 UpgradeJavaPortletSharedSearchSettingsCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Replaces the Optional return type of the methods `getParameterValues` and `getPortletPreferences` of `PortletSharedSearchSettings` class. |
 UpgradeJavaProductDTOConverterReferenceCheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Updates references of `ProductDTOConverter` to `DTOConverter` |

@@ -14,6 +14,7 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.expando.kernel.service.ExpandoColumnLocalService;
 import com.liferay.expando.kernel.service.ExpandoTableLocalService;
 import com.liferay.expando.kernel.service.ExpandoValueLocalService;
+import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.portal.configuration.test.util.ConfigurationTestUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
@@ -119,6 +120,11 @@ public class UserResourceTest extends BaseUserResourceTestCase {
 
 		Assert.assertFalse(portalUser.isActive());
 
+		_userLocalService.deleteUser(portalUser);
+
+		assertHttpResponseStatusCode(
+			404, userResource.getV2UserByIdHttpResponse(user.getId()));
+
 		// Delete an existing user with no SCIM client ID
 
 		portalUser = UserTestUtil.addUser();
@@ -158,6 +164,14 @@ public class UserResourceTest extends BaseUserResourceTestCase {
 
 		assertHttpResponseStatusCode(200, httpResponse);
 		assertValid(User.toDTO(httpResponse.getContent()));
+
+		_userLocalService.updateStatus(
+			GetterUtil.getLong(user.getId()), WorkflowConstants.STATUS_INACTIVE,
+			new ServiceContext());
+
+		user = _getUser(user.getId());
+
+		Assert.assertFalse(user.getActive());
 
 		ConfigurationTestUtil.deleteConfiguration(_pid);
 
@@ -239,6 +253,13 @@ public class UserResourceTest extends BaseUserResourceTestCase {
 				RandomTestUtil.randomString() + "eq \"" +
 					RandomTestUtil.randomString() + "\""));
 
+		assertHttpResponseStatusCode(
+			204,
+			userResource.deleteV2UserHttpResponse(
+				String.valueOf(user2.getId())));
+
+		_assertListResponse(userResource.getV2Users(5, 0, null), 1, 1, user1);
+
 		ConfigurationTestUtil.deleteConfiguration(_pid);
 
 		assertHttpResponseStatusCode(
@@ -249,65 +270,35 @@ public class UserResourceTest extends BaseUserResourceTestCase {
 	@Test
 	@TestInfo("LPD-48895")
 	public void testPatchV2User() throws Exception {
-		User user = testDeleteV2User_addUser();
+		_testPatchV2User(
+			"active", "false", user -> Assert.assertFalse(user.getActive()));
 
-		PatchOp patchOp = new PatchOp();
+		String emailAddress =
+			StringUtil.toLowerCase(RandomTestUtil.randomString()) +
+				"@liferay.com";
+
+		_testPatchV2User(
+			"emails[type eq \"work\" and primary eq \"true\"].value",
+			emailAddress,
+			user -> {
+				JSONObject jsonObject = _jsonFactory.createJSONObject(
+					String.valueOf(user.getEmails()[0]));
+
+				Assert.assertEquals(
+					emailAddress, jsonObject.getString("value"));
+			});
 
 		String title = StringUtil.toLowerCase(RandomTestUtil.randomString());
 
-		patchOp.setOperations(
-			new Operation[] {
-				new Operation() {
-					{
-						setOp("replace");
-						setPath("title");
-						setValue(title);
-					}
-				}
-			});
+		_testPatchV2User(
+			"title", title,
+			user -> Assert.assertEquals(title, user.getTitle()));
 
-		patchOp.setSchemas(
-			new String[] {"\"urn:ietf:params:scim:api:messages:2.0:PatchOp\""});
+		String userName = StringUtil.toLowerCase(RandomTestUtil.randomString());
 
-		HttpInvoker.HttpResponse httpResponse =
-			userResource.patchV2UserHttpResponse(user.getId(), patchOp);
-
-		assertHttpResponseStatusCode(200, httpResponse);
-
-		User patchUser = User.toDTO(httpResponse.getContent());
-
-		assertValid(patchUser);
-
-		Assert.assertEquals(patchUser.getTitle(), title);
-
-		patchOp.setOperations(
-			new Operation[] {
-				new Operation() {
-					{
-						setOp("replace");
-						setPath("active");
-						setValue(false);
-					}
-				}
-			});
-
-		httpResponse = userResource.patchV2UserHttpResponse(
-			user.getId(), patchOp);
-
-		assertHttpResponseStatusCode(200, httpResponse);
-
-		patchUser = User.toDTO(httpResponse.getContent());
-
-		assertValid(patchUser);
-
-		Assert.assertEquals(patchUser.getActive(), false);
-
-		ConfigurationTestUtil.deleteConfiguration(_pid);
-
-		assertHttpResponseStatusCode(
-			404,
-			userResource.patchV2UserHttpResponse(
-				randomUser().getId(), patchOp));
+		_testPatchV2User(
+			"userName", userName,
+			user -> Assert.assertEquals(userName, user.getUserName()));
 	}
 
 	@Override
@@ -402,6 +393,31 @@ public class UserResourceTest extends BaseUserResourceTestCase {
 
 		Assert.assertTrue(portalUser4.isActive());
 
+		assertHttpResponseStatusCode(
+			204,
+			userResource.deleteV2UserHttpResponse(
+				String.valueOf(portalUser4.getUserId())));
+
+		assertHttpResponseStatusCode(
+			404,
+			userResource.getV2UserByIdHttpResponse(
+				String.valueOf(portalUser4.getUserId())));
+
+		postUser4.setActive(true);
+
+		assertHttpResponseStatusCode(
+			201, userResource.postV2UserHttpResponse(postUser4));
+
+		assertHttpResponseStatusCode(
+			200,
+			userResource.getV2UserByIdHttpResponse(
+				String.valueOf(portalUser4.getUserId())));
+
+		portalUser4 = _userLocalService.getUserByExternalReferenceCode(
+			postUser4.getExternalId(), TestPropsValues.getCompanyId());
+
+		Assert.assertTrue(portalUser4.isActive());
+
 		ConfigurationTestUtil.deleteConfiguration(_pid);
 
 		assertHttpResponseStatusCode(
@@ -447,6 +463,14 @@ public class UserResourceTest extends BaseUserResourceTestCase {
 
 		assertHttpResponseStatusCode(
 			409, userResource.putV2UserHttpResponse(user2.getId(), user2));
+
+		User user3 = testDeleteV2User_addUser();
+
+		assertHttpResponseStatusCode(
+			204, userResource.deleteV2UserHttpResponse(user3.getId()));
+
+		assertHttpResponseStatusCode(
+			404, userResource.putV2UserHttpResponse(user3.getId(), user2));
 
 		ConfigurationTestUtil.deleteConfiguration(_pid);
 
@@ -612,6 +636,43 @@ public class UserResourceTest extends BaseUserResourceTestCase {
 		Object userObject = userResource.getV2UserById(userId);
 
 		return User.toDTO(userObject.toString());
+	}
+
+	private void _testPatchV2User(
+			String fieldPath, String fieldValue,
+			UnsafeConsumer<User, Exception> unsafeConsumer)
+		throws Exception {
+
+		User user = testDeleteV2User_addUser();
+
+		PatchOp patchOp = new PatchOp();
+
+		patchOp.setOperations(
+			new Operation[] {
+				new Operation() {
+					{
+						setOp("replace");
+						setPath(fieldPath);
+						setValue(fieldValue);
+					}
+				}
+			});
+
+		patchOp.setSchemas(
+			new String[] {"\"urn:ietf:params:scim:api:messages:2.0:PatchOp\""});
+
+		HttpInvoker.HttpResponse httpResponse =
+			userResource.patchV2UserHttpResponse(user.getId(), patchOp);
+
+		assertHttpResponseStatusCode(200, httpResponse);
+
+		HttpInvoker.HttpResponse httpResponse1 =
+			userResource.getV2UserByIdHttpResponse(user.getId());
+
+		User patchUser = User.toDTO(httpResponse1.getContent());
+
+		assertValid(patchUser);
+		unsafeConsumer.accept(patchUser);
 	}
 
 	private static final String _PREFIX = StringUtil.toLowerCase(

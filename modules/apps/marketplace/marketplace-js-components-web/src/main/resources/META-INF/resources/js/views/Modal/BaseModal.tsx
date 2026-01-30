@@ -4,8 +4,9 @@
  */
 
 import ClayModal from '@clayui/modal';
-import {Observer, Size} from '@clayui/modal/lib/types';
 import React, {ReactNode} from 'react';
+
+import type {Observer, Size} from '@clayui/modal/src/types';
 
 type BaseModalProps = {
 	children: ReactNode;
@@ -33,7 +34,11 @@ function BaseModal({
 			observer={observer}
 			size={size}
 		>
-			<ClayModal.Header>{title}</ClayModal.Header>
+			<ClayModal.Header
+				closeButtonAriaLabel={Liferay.Language.get('close')}
+			>
+				{title}
+			</ClayModal.Header>
 
 			<ClayModal.Body className="m-0 p-0">{children}</ClayModal.Body>
 		</ClayModal>

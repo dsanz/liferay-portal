@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 
 // eslint-disable-next-line
 import {checkAccessibility} from '@liferay/layout-js-components-web/test/__lib__/index';
@@ -15,6 +15,7 @@ import React from 'react';
 import ConnectedSiteService from '../../../../src/main/resources/META-INF/resources/js/common/services/ConnectedSiteService';
 import {Site} from '../../../../src/main/resources/META-INF/resources/js/common/types/Site';
 import SpaceConnectedSitesModal from '../../../../src/main/resources/META-INF/resources/js/main_view/spaces/SpaceConnectedSitesModal';
+import {mockFetch} from '../../__mocks__/frontend-js-web';
 
 jest.mock(
 	'../../../../src/main/resources/META-INF/resources/js/common/services/ConnectedSiteService'
@@ -28,10 +29,6 @@ const mockGetConnectedSitesFromSpace =
 	ConnectedSiteService.getConnectedSitesFromSpace as jest.MockedFunction<
 		typeof ConnectedSiteService.getConnectedSitesFromSpace
 	>;
-
-const mockGetAllSites = ConnectedSiteService.getAllSites as jest.MockedFunction<
-	typeof ConnectedSiteService.getAllSites
->;
 
 const mockConnectSiteToSpace =
 	ConnectedSiteService.connectSiteToSpace as jest.MockedFunction<
@@ -47,13 +44,15 @@ const mockedOpenToast = openToast as jest.Mock;
 
 const mockConnectedSites: Site[] = [
 	{
+		descriptiveName: 'Connected Site 1',
 		externalReferenceCode: '1',
 		id: '1',
 		logo: 'logo1.png',
-		name: 'Connected Site 1',
+		name: 'Guest',
 		searchable: true,
 	},
 	{
+		descriptiveName: 'Connected Site 2',
 		externalReferenceCode: '2',
 		id: '2',
 		logo: 'logo2.png',
@@ -63,6 +62,7 @@ const mockConnectedSites: Site[] = [
 ];
 
 const mockUnconnectedSite: Site = {
+	descriptiveName: 'Unconnected Site 3',
 	externalReferenceCode: '3',
 	id: '3',
 	logo: 'logo3.png',
@@ -92,6 +92,17 @@ const assertErrorToast = async () => {
 	});
 };
 
+const assertSuccessToast = async (message: string) => {
+	await waitFor(() => {
+		expect(mockedOpenToast).toHaveBeenCalledTimes(1);
+
+		expect(mockedOpenToast).toHaveBeenCalledWith({
+			message,
+			type: 'success',
+		});
+	});
+};
+
 const waitForComponentRendering = async () => {
 	const connectedSite = await screen.findByText('Connected Site 1');
 
@@ -117,14 +128,10 @@ describe('SpaceConnectedSitesModal', () => {
 			error: null,
 		});
 
-		mockGetAllSites.mockResolvedValue({
-			data: {items: mockConnectedSites},
-			error: null,
-		});
-
 		mockConnectSiteToSpace.mockImplementation(
 			async (_externalReferenceCode, siteId, searchable) => ({
 				data: {
+					descriptiveName: mockUnconnectedSite.descriptiveName,
 					externalReferenceCode:
 						mockUnconnectedSite.externalReferenceCode,
 					id: siteId,
@@ -189,9 +196,15 @@ describe('SpaceConnectedSitesModal', () => {
 
 	describe('when hasConnectSitesPermission is true', () => {
 		it('allows connecting a new site', async () => {
-			mockGetAllSites.mockResolvedValue({
-				data: {items: [mockUnconnectedSite]},
-				error: null,
+			mockFetch.mockImplementation(async () => {
+				return {
+					headers: new Headers([
+						['Content-Type', 'application/json'],
+					]),
+					json: async () => ({
+						items: [...mockConnectedSites, mockUnconnectedSite],
+					}),
+				} as Response;
 			});
 
 			renderComponent();
@@ -199,8 +212,18 @@ describe('SpaceConnectedSitesModal', () => {
 
 			await userEvent.click(screen.getByPlaceholderText('select-a-site'));
 
+			await waitFor(() => {
+				expect(
+					screen.getByRole('option', {
+						name: mockUnconnectedSite.descriptiveName,
+					})
+				).toBeInTheDocument();
+			});
+
 			await userEvent.click(
-				screen.getByRole('option', {name: mockUnconnectedSite.name})
+				screen.getByRole('option', {
+					name: mockUnconnectedSite.descriptiveName,
+				})
 			);
 
 			await userEvent.click(
@@ -214,15 +237,25 @@ describe('SpaceConnectedSitesModal', () => {
 				);
 			});
 
+			await assertSuccessToast(
+				'site-x-was-successfully-connected-to-the-space'
+			);
+
 			expect(
-				screen.getByText(mockUnconnectedSite.name)
+				screen.getByText(mockUnconnectedSite.descriptiveName)
 			).toBeInTheDocument();
 		});
 
 		it('shows an error toast if connecting a site fails', async () => {
-			mockGetAllSites.mockResolvedValue({
-				data: {items: [mockUnconnectedSite]},
-				error: null,
+			mockFetch.mockImplementation(async () => {
+				return {
+					headers: new Headers([
+						['Content-Type', 'application/json'],
+					]),
+					json: async () => ({
+						items: [...mockConnectedSites, mockUnconnectedSite],
+					}),
+				} as Response;
 			});
 
 			mockConnectSiteToSpace.mockResolvedValue({
@@ -235,8 +268,18 @@ describe('SpaceConnectedSitesModal', () => {
 
 			await userEvent.click(screen.getByPlaceholderText('select-a-site'));
 
+			await waitFor(() => {
+				expect(
+					screen.getByRole('option', {
+						name: mockUnconnectedSite.descriptiveName,
+					})
+				).toBeInTheDocument();
+			});
+
 			await userEvent.click(
-				screen.getByRole('option', {name: mockUnconnectedSite.name})
+				screen.getByRole('option', {
+					name: mockUnconnectedSite.descriptiveName,
+				})
 			);
 
 			await userEvent.click(
@@ -268,6 +311,10 @@ describe('SpaceConnectedSitesModal', () => {
 					'1'
 				);
 			});
+
+			await assertSuccessToast(
+				'site-x-was-successfully-disconnected-from-the-space'
+			);
 
 			expect(
 				screen.queryByText('Connected Site 1')
@@ -359,6 +406,42 @@ describe('SpaceConnectedSitesModal', () => {
 			);
 
 			await assertErrorToast();
+		});
+
+		it('disable connect to site button when site already selected', async () => {
+			mockFetch.mockImplementation(async () => {
+				return {
+					headers: new Headers([
+						['Content-Type', 'application/json'],
+					]),
+					json: async () => ({
+						items: [...mockConnectedSites],
+					}),
+				} as Response;
+			});
+
+			renderComponent();
+			await waitForComponentRendering();
+
+			await userEvent.click(screen.getByPlaceholderText('select-a-site'));
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole('option', {
+						name: mockConnectedSites[0].descriptiveName,
+					})
+				).toBeInTheDocument();
+			});
+
+			await userEvent.click(
+				screen.getByRole('option', {
+					name: mockConnectedSites[0].descriptiveName,
+				})
+			);
+
+			expect(
+				screen.getByRole('button', {name: 'connect'})
+			).toBeDisabled();
 		});
 	});
 

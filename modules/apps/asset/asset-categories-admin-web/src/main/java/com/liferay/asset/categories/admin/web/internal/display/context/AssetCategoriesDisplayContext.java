@@ -35,6 +35,7 @@ import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.IconItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.LabelItemListBuilder;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.VerticalNavItemList;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.item.selector.criteria.InfoItemItemSelectorReturnType;
@@ -205,9 +206,21 @@ public class AssetCategoriesDisplayContext {
 					}
 				}
 				else {
-					name = ResourceActionsUtil.getModelResource(
-						_themeDisplay.getLocale(),
-						PortalUtil.getClassName(classNameId));
+					try {
+						name = ResourceActionsUtil.getModelResource(
+							_themeDisplay.getLocale(),
+							PortalUtil.getClassName(classNameId));
+					}
+					catch (RuntimeException runtimeException) {
+						if (_log.isDebugEnabled()) {
+							_log.debug(
+								"Unable to get class type with class name ID " +
+									classNameId,
+								runtimeException);
+						}
+
+						continue;
+					}
 				}
 			}
 
@@ -624,6 +637,21 @@ public class AssetCategoriesDisplayContext {
 									"for-internal-use-only")));
 					}
 
+					if (vocabulary.getVisibilityType() ==
+							AssetVocabularyConstants.VISIBILITY_TYPE_EMPTY) {
+
+						verticalNavItem.setLabelItems(
+							LabelItemListBuilder.add(
+								labelItem -> {
+									labelItem.setDisplayType("warning");
+									labelItem.setLabel(
+										LanguageUtil.get(
+											_themeDisplay.getLocale(),
+											"empty"));
+								}
+							).build());
+					}
+
 					verticalNavItem.setActive(
 						getVocabularyId() == vocabulary.getVocabularyId());
 					verticalNavItem.setHref(
@@ -950,6 +978,39 @@ public class AssetCategoriesDisplayContext {
 		_showSelectAssetDisplayPage = showSelectAssetDisplayPage;
 
 		return _showSelectAssetDisplayPage;
+	}
+
+	public boolean isVisibilityTypeDisabled(AssetVocabulary vocabulary) {
+		if ((vocabulary == null) ||
+			(vocabulary.getVisibilityType() ==
+				AssetVocabularyConstants.VISIBILITY_TYPE_EMPTY)) {
+
+			return false;
+		}
+
+		return true;
+	}
+
+	public boolean isVisibilityTypeInternalChecked(AssetVocabulary vocabulary) {
+		if ((vocabulary != null) &&
+			(vocabulary.getVisibilityType() ==
+				AssetVocabularyConstants.VISIBILITY_TYPE_INTERNAL)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public boolean isVisibilityTypePublicChecked(AssetVocabulary vocabulary) {
+		if ((vocabulary == null) ||
+			(vocabulary.getVisibilityType() ==
+				AssetVocabularyConstants.VISIBILITY_TYPE_PUBLIC)) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	private long _getDefaultVocabularyId() throws PortalException {

@@ -7,7 +7,7 @@ import Label from '@clayui/label';
 import ClayPanel from '@clayui/panel';
 import {ItemSelector} from '@liferay/frontend-js-item-selector-web';
 import {sub} from 'frontend-js-web';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 
 import TagService from '../../../common/services/TagService';
 import {IAssetObjectEntry} from '../../../common/types/AssetType';
@@ -19,42 +19,64 @@ type TKeyword = {
 };
 
 const AssetTags = ({
+	assetLibraryId,
 	cmsGroupId,
+	collapsable = true,
+	hasUpdatePermission,
 	inputSize,
 	objectEntry,
 	updateObjectEntry,
 }: {
+	assetLibraryId?: number | string | null | undefined;
 	cmsGroupId: number | string;
+	collapsable?: boolean;
+	hasUpdatePermission?: boolean;
 	inputSize?: CategorizationInputSize;
-	objectEntry:
-		| IAssetObjectEntry
-		| Pick<IAssetObjectEntry, 'keywords' | 'taxonomyCategoryBriefs'>;
+	objectEntry: IAssetObjectEntry | EntryCategorizationDTO;
 	updateObjectEntry: (object: EntryCategorizationDTO) => void | Promise<void>;
 }) => {
 	const [value, setValue] = useState('');
 
-	const [keywords, setKeywords] = useState<string[]>(
-		objectEntry.keywords || []
+	const scopeId = useMemo(
+		() =>
+			(objectEntry as IAssetObjectEntry).scopeId ||
+			assetLibraryId ||
+			cmsGroupId,
+		[assetLibraryId, cmsGroupId, objectEntry]
 	);
+
+	const apiURL = useMemo(() => {
+		const baseURL = `${Liferay.ThemeDisplay.getPortalURL()}/o/headless-admin-taxonomy/v1.0/sites`;
+
+		if (scopeId >= 0) {
+			return `${baseURL}/${scopeId}/keywords`;
+		}
+
+		return `${baseURL}/${cmsGroupId}/keywords?filter=groupIds in ('${scopeId}')`;
+	}, [cmsGroupId, scopeId]);
 
 	const addKeyword = useCallback(
 		async (keyword: TKeyword) => {
+			const {keywords = []} = objectEntry;
+
 			if (keywords.includes(keyword.name)) {
 				return;
 			}
 
-			setKeywords((prevItems) => [...prevItems, keyword.name]);
+			const updated = [...keywords, keyword.name];
 
 			await updateObjectEntry({
-				keywords: [...keywords, keyword.name],
-			});
+				keywords: updated,
+				keywordsToAdd: updated,
+			} as EntryCategorizationDTO);
 		},
-		[keywords, updateObjectEntry]
+		[objectEntry, updateObjectEntry]
 	);
 
 	const createAndAddKeyword = useCallback(async () => {
 		const {data, error} = await TagService.createTag({
-			groupId: cmsGroupId,
+			assetLibraryId: scopeId,
+			cmsGroupId,
 			name: value,
 		});
 
@@ -66,26 +88,27 @@ const AssetTags = ({
 		else if (error) {
 			console.error('Failed to create new keyword.', error);
 		}
-	}, [addKeyword, cmsGroupId, value]);
+	}, [addKeyword, cmsGroupId, scopeId, value]);
 
 	const removeKeyword = useCallback(
 		async (keyword: string) => {
+			const {keywords = []} = objectEntry;
+
 			const newKeywords = keywords.filter((value) => value !== keyword);
 
 			if (newKeywords.length < keywords.length) {
-				setKeywords(newKeywords);
-
 				await updateObjectEntry({
 					keywords: newKeywords,
-				});
+					keywordsToRemove: [keyword],
+				} as EntryCategorizationDTO);
 			}
 		},
-		[keywords, updateObjectEntry]
+		[objectEntry, updateObjectEntry]
 	);
 
 	return (
 		<ClayPanel
-			collapsable
+			collapsable={collapsable}
 			defaultExpanded={true}
 			displayTitle={
 				<ClayPanel.Title className="panel-title text-secondary">
@@ -93,11 +116,12 @@ const AssetTags = ({
 				</ClayPanel.Title>
 			}
 			displayType="unstyled"
-			showCollapseIcon={true}
+			showCollapseIcon={collapsable}
 		>
 			<ClayPanel.Body>
 				<ItemSelector<TKeyword>
-					apiURL={`${Liferay.ThemeDisplay.getPortalURL()}/o/headless-admin-taxonomy/v1.0/sites/${cmsGroupId}/keywords`}
+					apiURL={apiURL}
+					disabled={!hasUpdatePermission}
 					locator={{
 						id: 'id',
 						label: 'name',
@@ -118,7 +142,7 @@ const AssetTags = ({
 					placeholder={Liferay.Language.get('add-tag')}
 					primaryAction={
 						!!value.length &&
-						!keywords.includes(value) && {
+						!(objectEntry?.keywords || []).includes(value) && {
 							label: sub(
 								Liferay.Language.get('create-new-tag-x'),
 								value
@@ -126,6 +150,7 @@ const AssetTags = ({
 							onClick: createAndAddKeyword,
 						}
 					}
+					refetchOnActive
 					sizing={inputSize}
 					value={value}
 				>
@@ -140,12 +165,13 @@ const AssetTags = ({
 				</ItemSelector>
 
 				<div className="asset-tags mt-3">
-					{keywords.map((keyword, index) => {
+					{objectEntry?.keywords?.map((keyword, index) => {
 						return (
 							<Label
 								className="mr-2 mt-2"
 								closeButtonProps={{
 									'aria-label': Liferay.Language.get('close'),
+									'disabled': !hasUpdatePermission,
 									'onClick': async (event) => {
 										event.preventDefault();
 
@@ -155,6 +181,7 @@ const AssetTags = ({
 								}}
 								displayType="secondary"
 								key={`${keyword}_${index}`}
+								style={{textTransform: 'none'}}
 							>
 								{keyword}
 							</Label>

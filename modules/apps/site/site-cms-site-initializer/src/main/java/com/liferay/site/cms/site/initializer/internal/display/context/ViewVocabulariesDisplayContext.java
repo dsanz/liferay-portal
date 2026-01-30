@@ -5,33 +5,32 @@
 
 package com.liferay.site.cms.site.initializer.internal.display.context;
 
-import com.liferay.asset.kernel.AssetRendererFactoryRegistryUtil;
-import com.liferay.asset.kernel.model.AssetRendererFactory;
+import com.liferay.asset.categories.admin.web.constants.AssetCategoriesAdminPortletKeys;
 import com.liferay.asset.kernel.model.AssetVocabulary;
-import com.liferay.frontend.data.set.filter.FDSFilter;
+import com.liferay.asset.tags.constants.AssetTagsAdminPortletKeys;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
-import com.liferay.portal.kernel.security.permission.ResourceActionsUtil;
+import com.liferay.portal.kernel.service.GroupService;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
-import com.liferay.site.cms.site.initializer.internal.frontend.data.set.filter.VocabularyAssetTypesSelectionFDSFilter;
+import com.liferay.site.cms.site.initializer.internal.util.ExportImportUtil;
 import com.liferay.taglib.security.PermissionsURLTag;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -41,8 +40,10 @@ import java.util.Map;
 public class ViewVocabulariesDisplayContext {
 
 	public ViewVocabulariesDisplayContext(
-		HttpServletRequest httpServletRequest, ThemeDisplay themeDisplay) {
+		GroupService groupService, HttpServletRequest httpServletRequest,
+		ThemeDisplay themeDisplay) {
 
+		_groupService = groupService;
 		_httpServletRequest = httpServletRequest;
 		_themeDisplay = themeDisplay;
 	}
@@ -50,42 +51,6 @@ public class ViewVocabulariesDisplayContext {
 	public String getAPIURL() {
 		return "/o/headless-admin-taxonomy/v1.0/sites/" +
 			_themeDisplay.getScopeGroupId() + "/taxonomy-vocabularies";
-	}
-
-	public List<AssetRendererFactory<?>> getAvailableAssetRendererFactories() {
-		return ListUtil.filter(
-			AssetRendererFactoryRegistryUtil.getAssetRendererFactories(
-				_themeDisplay.getCompanyId()),
-			AssetRendererFactory::isCategorizable);
-	}
-
-	public List<Map<String, String>> getClassNameIdOptions() {
-		List<Map<String, String>> selectOptions = new ArrayList<>();
-
-		List<AssetRendererFactory<?>> availableAssetRendererFactories =
-			getAvailableAssetRendererFactories();
-
-		for (AssetRendererFactory<?> availableAssetRendererFactory :
-				availableAssetRendererFactories) {
-
-			selectOptions.add(
-				HashMapBuilder.put(
-					"icon", availableAssetRendererFactory.getIconCssClass()
-				).put(
-					"label",
-					ResourceActionsUtil.getModelResource(
-						_themeDisplay.getLocale(),
-						availableAssetRendererFactory.getClassName())
-				).put(
-					"restricted", Boolean.FALSE.toString()
-				).put(
-					"value",
-					String.valueOf(
-						availableAssetRendererFactory.getClassNameId())
-				).build());
-		}
-
-		return selectOptions;
 	}
 
 	public CreationMenu getCreationMenu() {
@@ -132,10 +97,6 @@ public class ViewVocabulariesDisplayContext {
 				LanguageUtil.get(_httpServletRequest, "edit"), "get", "update",
 				null),
 			new FDSActionDropdownItem(
-				_getEditPermissionsURL(), "password-policies", "permissions",
-				LanguageUtil.get(_httpServletRequest, "permissions"), "get",
-				null, "modal-permissions"),
-			new FDSActionDropdownItem(
 				HttpComponentsUtil.addParameter(
 					PortalUtil.getLayoutFullURL(
 						LayoutLocalServiceUtil.getLayoutByFriendlyURL(
@@ -147,19 +108,27 @@ public class ViewVocabulariesDisplayContext {
 				LanguageUtil.get(_httpServletRequest, "view-categories"), "get",
 				null, null),
 			new FDSActionDropdownItem(
+				_getEditPermissionsURL(), "password-policies", "permissions",
+				LanguageUtil.get(_httpServletRequest, "permissions"), "get",
+				null, "modal-permissions"),
+			new FDSActionDropdownItem(
 				null, "trash", "delete",
 				LanguageUtil.get(_httpServletRequest, "delete"), null, "delete",
 				null));
 	}
 
-	public List<FDSFilter> getFDSFilters() {
-		return ListUtil.fromArray(
-			new VocabularyAssetTypesSelectionFDSFilter(
-				getClassNameIdOptions()));
-	}
-
-	public Map<String, Object> getReactData() throws PortalException {
+	public Map<String, Object> getReactData() throws Exception {
 		return HashMapBuilder.<String, Object>put(
+			"actionItems",
+			JSONUtil.putAll(
+				ExportImportUtil.getActionItemJSONObject(
+					_httpServletRequest, "export-import-vocabularies",
+					AssetCategoriesAdminPortletKeys.ASSET_CATEGORIES_ADMIN,
+					_themeDisplay),
+				ExportImportUtil.getActionItemJSONObject(
+					_httpServletRequest, "export-import-tags",
+					AssetTagsAdminPortletKeys.ASSET_TAGS_ADMIN, _themeDisplay))
+		).put(
 			"activeTab", "vocabularies"
 		).put(
 			"tagsURL",
@@ -200,6 +169,7 @@ public class ViewVocabulariesDisplayContext {
 	private static final Log _log = LogFactoryUtil.getLog(
 		ViewVocabulariesDisplayContext.class);
 
+	private final GroupService _groupService;
 	private final HttpServletRequest _httpServletRequest;
 	private final ThemeDisplay _themeDisplay;
 

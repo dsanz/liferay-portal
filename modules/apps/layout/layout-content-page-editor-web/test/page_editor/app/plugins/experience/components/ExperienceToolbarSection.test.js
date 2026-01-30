@@ -24,7 +24,7 @@ import {
 } from '../../../../../../src/main/resources/META-INF/resources/page_editor/plugins/experience/actions';
 import ExperienceToolbarSection from '../../../../../../src/main/resources/META-INF/resources/page_editor/plugins/experience/components/ExperienceToolbarSection';
 
-import '@testing-library/jest-dom/extend-expect';
+import '@testing-library/jest-dom';
 
 const MOCK_DELETE_URL = 'delete-experience-test-url';
 const MOCK_DUPLICATE_URL = 'duplicate-experience-test-url';
@@ -332,14 +332,6 @@ describe('ExperienceToolbarSection', () => {
 		const icons = getAllByRole('presentation');
 
 		const lockIcon = icons[2];
-
-		// Hackily work around:
-		//
-		//      "TypeError: Cannot read property '_defaultView' of undefined"
-		//
-		// Caused by: https://github.com/jsdom/jsdom/issues/2499
-
-		document.activeElement.blur = () => {};
 
 		await userEvent.click(lockIcon);
 

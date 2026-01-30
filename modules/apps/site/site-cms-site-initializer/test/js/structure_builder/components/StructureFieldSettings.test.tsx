@@ -4,8 +4,6 @@
  */
 
 import '@testing-library/jest-dom';
-
-import '@testing-library/jest-dom/extend-expect';
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
@@ -44,10 +42,14 @@ const FIELD: Field = {
 };
 
 const DEFAULT_STATE: State = {
-	error: null,
-	history: {deletedChildren: false},
+	history: {
+		deletedChildren: false,
+		deletedGroupERCs: [],
+		modifiedNames: new Set(),
+	},
 	invalids: new Map(),
 	publishedChildren: new Set(),
+	renamingItemUuid: null,
 	selection: [],
 	structure: {
 		children: new Map([[TEXT_FIELD_UUID, FIELD]]),
@@ -56,6 +58,7 @@ const DEFAULT_STATE: State = {
 		name: 'UntitledStructure',
 		spaces: [],
 		status: 'new',
+		system: false,
 		uuid: getUuid(),
 		workflows: {},
 	},

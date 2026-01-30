@@ -309,9 +309,9 @@ public abstract class BaseERCSiteTestEntityResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(siteExternalReferenceCode);
-		String resourceName = getPermissionCheckerResourceName(
-			siteExternalReferenceCode, ercSiteTestEntityExternalReferenceCode);
 		Long resourceId = getPermissionCheckerResourceId(
+			siteExternalReferenceCode, ercSiteTestEntityExternalReferenceCode);
+		String resourceName = getPermissionCheckerResourceName(
 			siteExternalReferenceCode, ercSiteTestEntityExternalReferenceCode);
 
 		PermissionServiceUtil.checkPermission(
@@ -645,9 +645,9 @@ public abstract class BaseERCSiteTestEntityResourceImpl
 		throws Exception {
 
 		Long groupId = getPermissionCheckerGroupId(siteExternalReferenceCode);
-		String resourceName = getPermissionCheckerResourceName(
-			siteExternalReferenceCode, ercSiteTestEntityExternalReferenceCode);
 		Long resourceId = getPermissionCheckerResourceId(
+			siteExternalReferenceCode, ercSiteTestEntityExternalReferenceCode);
+		String resourceName = getPermissionCheckerResourceName(
 			siteExternalReferenceCode, ercSiteTestEntityExternalReferenceCode);
 
 		PermissionServiceUtil.checkPermission(
@@ -1048,6 +1048,9 @@ public abstract class BaseERCSiteTestEntityResourceImpl
 			Permission permission = new Permission() {
 				{
 					actionIds = actionsIdsSet.toArray(new String[0]);
+
+					roleExternalReferenceCode = role.getExternalReferenceCode();
+
 					roleName = role.getName();
 				}
 			};

@@ -6,6 +6,7 @@
 package com.liferay.cookies.banner.web.internal.display.context;
 
 import com.liferay.cookies.configuration.CookiesConfigurationProvider;
+import com.liferay.cookies.configuration.CookiesPreferenceHandlingConfiguration;
 import com.liferay.cookies.configuration.banner.CookiesBannerConfiguration;
 import com.liferay.cookies.configuration.consent.CookiesConsentConfiguration;
 import com.liferay.layout.utility.page.kernel.provider.LayoutUtilityPageEntryLayoutProvider;
@@ -35,6 +36,7 @@ public class BaseCookiesBannerDisplayContext {
 			layoutUtilityPageEntryLayoutProvider) {
 
 		_cookiesConfigurationProvider = cookiesConfigurationProvider;
+
 		this.httpServletRequest = httpServletRequest;
 		this.layoutUtilityPageEntryLayoutProvider =
 			layoutUtilityPageEntryLayoutProvider;
@@ -43,6 +45,8 @@ public class BaseCookiesBannerDisplayContext {
 			httpServletRequest);
 		cookiesConsentConfiguration = _getCookiesConsentConfiguration(
 			httpServletRequest);
+		cookiesPreferenceHandlingConfiguration =
+			_getCookiesPreferenceHandlingConfiguration(httpServletRequest);
 	}
 
 	public List<ConsentCookieType> getOptionalConsentCookieTypes() {
@@ -103,8 +107,18 @@ public class BaseCookiesBannerDisplayContext {
 		return consentCookieTypeNamesJSONArray;
 	}
 
+	protected int getConsentRenewalPeriod() {
+		return cookiesPreferenceHandlingConfiguration.consentRenewalPeriod();
+	}
+
+	protected long getModifiedDate() {
+		return cookiesPreferenceHandlingConfiguration.modifiedDate();
+	}
+
 	protected CookiesBannerConfiguration cookiesBannerConfiguration;
 	protected CookiesConsentConfiguration cookiesConsentConfiguration;
+	protected CookiesPreferenceHandlingConfiguration
+		cookiesPreferenceHandlingConfiguration;
 	protected HttpServletRequest httpServletRequest;
 	protected LayoutUtilityPageEntryLayoutProvider
 		layoutUtilityPageEntryLayoutProvider;
@@ -141,6 +155,27 @@ public class BaseCookiesBannerDisplayContext {
 		catch (Exception exception) {
 			_log.error(
 				"Unable to get cookies consent configuration", exception);
+		}
+
+		return null;
+	}
+
+	private CookiesPreferenceHandlingConfiguration
+		_getCookiesPreferenceHandlingConfiguration(
+			HttpServletRequest httpServletRequest) {
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		try {
+			return _cookiesConfigurationProvider.
+				getCookiesPreferenceHandlingConfiguration(themeDisplay);
+		}
+		catch (Exception exception) {
+			_log.error(
+				"Unable to get cookies preference handling configuration",
+				exception);
 		}
 
 		return null;

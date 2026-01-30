@@ -8,6 +8,7 @@ package com.liferay.headless.admin.site.internal.resource.v1_0;
 import com.liferay.client.extension.type.manager.CETManager;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
 import com.liferay.exportimport.vulcan.batch.engine.ExportImportVulcanBatchEngineTaskItemDelegate;
+import com.liferay.fragment.processor.FragmentEntryProcessorRegistry;
 import com.liferay.headless.admin.site.dto.v1_0.ContentPageSpecification;
 import com.liferay.headless.admin.site.dto.v1_0.ContentPageTemplate;
 import com.liferay.headless.admin.site.dto.v1_0.NavigationSettings;
@@ -19,6 +20,7 @@ import com.liferay.headless.admin.site.dto.v1_0.WidgetPageSpecification;
 import com.liferay.headless.admin.site.dto.v1_0.WidgetPageTemplate;
 import com.liferay.headless.admin.site.dto.v1_0.WidgetPageTemplateSettings;
 import com.liferay.headless.admin.site.internal.odata.entity.v1_0.PageTemplateEntityModel;
+import com.liferay.headless.admin.site.internal.resource.v1_0.util.FileEntryUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.GroupUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.LayoutUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.PageSpecificationUtil;
@@ -114,23 +116,29 @@ public class PageTemplateResourceImpl
 		return new ExportImportDescriptor() {
 
 			@Override
-			public String getItemClassName() {
-				return LayoutPageTemplateEntry.class.getName();
-			}
-
-			@Override
-			public String getLabel() {
+			public String getLabelLanguageKey() {
 				return "page-templates";
 			}
 
 			@Override
+			public String getModelClassName() {
+				return LayoutPageTemplateEntry.class.getName();
+			}
+
+			@Override
 			public List<String> getNestedFields() {
-				return List.of("friendlyUrlHistory", "pageSpecifications");
+				return List.of(
+					"friendlyUrlHistory", "pageSpecifications", "thumbnail");
 			}
 
 			@Override
 			public String getPortletId() {
 				return LayoutAdminPortletKeys.GROUP_PAGES;
+			}
+
+			@Override
+			public String getResourceClassName() {
+				return PageTemplateResourceImpl.class.getName();
 			}
 
 			@Override
@@ -141,6 +149,11 @@ public class PageTemplateResourceImpl
 			@Override
 			public boolean isActive(PortletDataContext portletDataContext) {
 				return FeatureFlagManagerUtil.isEnabled("LPD-35443");
+			}
+
+			@Override
+			public boolean isStagingSupported() {
+				return true;
 			}
 
 		};
@@ -210,7 +223,8 @@ public class PageTemplateResourceImpl
 
 		return (ContentPageSpecification)_pageSpecificationDTOConverter.toDTO(
 			LayoutUtil.addDraftToLayout(
-				_cetManager, contentPageSpecification, _infoItemServiceRegistry,
+				_cetManager, contentPageSpecification,
+				_fragmentEntryProcessorRegistry, _infoItemServiceRegistry,
 				_layoutLocalService.getLayout(
 					layoutPageTemplateEntry.getPlid()),
 				ServiceContextUtil.createServiceContext(
@@ -391,6 +405,22 @@ public class PageTemplateResourceImpl
 					layoutPageTemplateCollectionId);
 		}
 
+		ServiceContext serviceContext = _getServiceContext(
+			groupId, pageTemplate);
+
+		long previewFileEntryId = FileEntryUtil.getPreviewFileEntryId(
+			groupId, getResourceName(), serviceContext,
+			pageTemplate.getThumbnailURLReference());
+
+		if (previewFileEntryId !=
+				layoutPageTemplateEntry.getPreviewFileEntryId()) {
+
+			layoutPageTemplateEntry =
+				_layoutPageTemplateEntryService.updateLayoutPageTemplateEntry(
+					layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+					previewFileEntryId);
+		}
+
 		if (Objects.equals(
 				layoutPageTemplateEntry.getType(),
 				LayoutPageTemplateEntryTypeConstants.BASIC)) {
@@ -409,7 +439,7 @@ public class PageTemplateResourceImpl
 		throws Exception {
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
-			_layoutPageTemplateEntryLocalService.
+			_layoutPageTemplateEntryService.
 				getLayoutPageTemplateEntryByExternalReferenceCode(
 					externalReferenceCode,
 					getPermissionCheckerGroupId(groupExternalReferenceCode));
@@ -448,6 +478,11 @@ public class PageTemplateResourceImpl
 				pageTemplate::getTaxonomyCategoryItemExternalReferences);
 		}
 
+		if (pageTemplate.getThumbnailURLReference() != null) {
+			existingPageTemplate.setThumbnailURLReference(
+				pageTemplate::getThumbnailURLReference);
+		}
+
 		if (Objects.equals(
 				existingPageTemplate.getType(),
 				PageTemplate.Type.CONTENT_PAGE_TEMPLATE)) {
@@ -479,7 +514,11 @@ public class PageTemplateResourceImpl
 				contentPageTemplate.getExternalReferenceCode(), groupId,
 				layoutPageTemplateCollectionId, contentPageTemplate.getKey(), 0,
 				0, contentPageTemplate.getName(),
-				LayoutPageTemplateEntryTypeConstants.BASIC, 0L, false, 0,
+				LayoutPageTemplateEntryTypeConstants.BASIC,
+				FileEntryUtil.getPreviewFileEntryId(
+					groupId, getResourceName(), serviceContext,
+					contentPageTemplate.getThumbnailURLReference()),
+				false, 0,
 				_getLayoutPlid(contentPageTemplate, groupId, serviceContext), 0,
 				PageSpecificationUtil.getPublishedStatus(
 					contentPageTemplate.getPageSpecifications()),
@@ -552,7 +591,9 @@ public class PageTemplateResourceImpl
 
 			ServiceContextUtil.setLayoutSetPrototypeLayoutERC(
 				serviceContext.getScopeGroupId(), widgetPageSpecification,
-				serviceContext);
+				serviceContext,
+				widgetPageSpecification.
+					getSiteTemplatePageSpecificationExternalReferenceCode());
 		}
 
 		LayoutPrototype layoutPrototype =
@@ -566,6 +607,10 @@ public class PageTemplateResourceImpl
 				getFirstLayoutPageTemplateEntry(
 					layoutPrototype.getLayoutPrototypeId());
 
+		if (widgetPageTemplate.getUuid() != null) {
+			layoutPageTemplateEntry.setUuid(widgetPageTemplate.getUuid());
+		}
+
 		if (widgetPageTemplate.getExternalReferenceCode() != null) {
 			layoutPageTemplateEntry.setExternalReferenceCode(
 				widgetPageTemplate.getExternalReferenceCode());
@@ -575,8 +620,11 @@ public class PageTemplateResourceImpl
 		layoutPageTemplateEntry.setLayoutPageTemplateCollectionId(
 			layoutPageTemplateCollectionId);
 
-		if (widgetPageTemplate.getUuid() != null) {
-			layoutPageTemplateEntry.setUuid(widgetPageTemplate.getUuid());
+		if (widgetPageTemplate.getThumbnailURLReference() != null) {
+			layoutPageTemplateEntry.setPreviewFileEntryId(
+				FileEntryUtil.getPreviewFileEntryId(
+					groupId, getResourceName(), serviceContext,
+					widgetPageTemplate.getThumbnailURLReference()));
 		}
 
 		layoutPageTemplateEntry =
@@ -634,7 +682,8 @@ public class PageTemplateResourceImpl
 			LayoutPageTemplateEntryTypeConstants.BASIC);
 
 		Layout layout = LayoutUtil.addContentLayout(
-			_cetManager, groupId, _infoItemServiceRegistry,
+			_cetManager, _fragmentEntryProcessorRegistry, groupId,
+			_infoItemServiceRegistry,
 			contentPageTemplate.getPageSpecifications(),
 			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID, true, nameMap, null, null,
 			null, null, LayoutConstants.TYPE_CONTENT, null, true, true,
@@ -697,8 +746,7 @@ public class PageTemplateResourceImpl
 			pageTemplate.getTaxonomyCategoryItemExternalReferences(),
 			contextCompany.getCompanyId(), pageTemplate.getDateCreated(),
 			groupId, contextHttpServletRequest, pageTemplate.getKeywords(),
-			pageTemplate.getDateModified(), contextUser.getUserId(), uuid,
-			null);
+			pageTemplate.getDateModified(), contextUser.getUserId(), uuid);
 	}
 
 	private UnicodeProperties
@@ -796,7 +844,8 @@ public class PageTemplateResourceImpl
 			layoutPageTemplateEntry.getGroupId(), contentPageTemplate);
 
 		layout = LayoutUtil.updateContentLayout(
-			_cetManager, _infoItemServiceRegistry, layout, layout.getNameMap(),
+			_cetManager, _fragmentEntryProcessorRegistry,
+			_infoItemServiceRegistry, layout, layout.getNameMap(),
 			layout.getTitleMap(), layout.getDescriptionMap(),
 			layout.getKeywordsMap(), layout.getRobotsMap(),
 			layout.getFriendlyURLMap(), layout.getTypeSettingsProperties(),
@@ -872,7 +921,7 @@ public class PageTemplateResourceImpl
 				widgetPageTemplate.getPageSpecifications()));
 
 		return _pageTemplateDTOConverter.toDTO(
-			_layoutPageTemplateEntryLocalService.getLayoutPageTemplateEntry(
+			_layoutPageTemplateEntryService.getLayoutPageTemplateEntry(
 				layoutPageTemplateEntry.getLayoutPageTemplateEntryId()));
 	}
 
@@ -881,6 +930,9 @@ public class PageTemplateResourceImpl
 
 	@Reference
 	private CETManager _cetManager;
+
+	@Reference
+	private FragmentEntryProcessorRegistry _fragmentEntryProcessorRegistry;
 
 	@Reference
 	private InfoItemServiceRegistry _infoItemServiceRegistry;

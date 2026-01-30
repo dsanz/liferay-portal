@@ -25,28 +25,6 @@ public abstract class PageSettings implements Cloneable, Serializable {
 		return PageSettingsSerDes.toDTO(json);
 	}
 
-	public CustomMetaTag[] getCustomMetaTags() {
-		return customMetaTags;
-	}
-
-	public void setCustomMetaTags(CustomMetaTag[] customMetaTags) {
-		this.customMetaTags = customMetaTags;
-	}
-
-	public void setCustomMetaTags(
-		UnsafeSupplier<CustomMetaTag[], Exception>
-			customMetaTagsUnsafeSupplier) {
-
-		try {
-			customMetaTags = customMetaTagsUnsafeSupplier.get();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	protected CustomMetaTag[] customMetaTags;
-
 	public Boolean getHiddenFromNavigation() {
 		return hiddenFromNavigation;
 	}
@@ -68,16 +46,18 @@ public abstract class PageSettings implements Cloneable, Serializable {
 
 	protected Boolean hiddenFromNavigation;
 
-	public NavigationSettings getNavigationSettings() {
+	public SitePageNavigationSettings getNavigationSettings() {
 		return navigationSettings;
 	}
 
-	public void setNavigationSettings(NavigationSettings navigationSettings) {
+	public void setNavigationSettings(
+		SitePageNavigationSettings navigationSettings) {
+
 		this.navigationSettings = navigationSettings;
 	}
 
 	public void setNavigationSettings(
-		UnsafeSupplier<NavigationSettings, Exception>
+		UnsafeSupplier<SitePageNavigationSettings, Exception>
 			navigationSettingsUnsafeSupplier) {
 
 		try {
@@ -88,29 +68,7 @@ public abstract class PageSettings implements Cloneable, Serializable {
 		}
 	}
 
-	protected NavigationSettings navigationSettings;
-
-	public OpenGraphSettings getOpenGraphSettings() {
-		return openGraphSettings;
-	}
-
-	public void setOpenGraphSettings(OpenGraphSettings openGraphSettings) {
-		this.openGraphSettings = openGraphSettings;
-	}
-
-	public void setOpenGraphSettings(
-		UnsafeSupplier<OpenGraphSettings, Exception>
-			openGraphSettingsUnsafeSupplier) {
-
-		try {
-			openGraphSettings = openGraphSettingsUnsafeSupplier.get();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	protected OpenGraphSettings openGraphSettings;
+	protected SitePageNavigationSettings navigationSettings;
 
 	public Integer getPriority() {
 		return priority;
@@ -132,48 +90,6 @@ public abstract class PageSettings implements Cloneable, Serializable {
 	}
 
 	protected Integer priority;
-
-	public String getQueryString() {
-		return queryString;
-	}
-
-	public void setQueryString(String queryString) {
-		this.queryString = queryString;
-	}
-
-	public void setQueryString(
-		UnsafeSupplier<String, Exception> queryStringUnsafeSupplier) {
-
-		try {
-			queryString = queryStringUnsafeSupplier.get();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	protected String queryString;
-
-	public SEOSettings getSeoSettings() {
-		return seoSettings;
-	}
-
-	public void setSeoSettings(SEOSettings seoSettings) {
-		this.seoSettings = seoSettings;
-	}
-
-	public void setSeoSettings(
-		UnsafeSupplier<SEOSettings, Exception> seoSettingsUnsafeSupplier) {
-
-		try {
-			seoSettings = seoSettingsUnsafeSupplier.get();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	protected SEOSettings seoSettings;
 
 	public Type getType() {
 		return type;
@@ -236,6 +152,8 @@ public abstract class PageSettings implements Cloneable, Serializable {
 	public static enum Type {
 
 		CONTENT_PAGE_SETTINGS("ContentPageSettings"),
+		LINK_TO_URL_PAGE_SETTINGS("LinkToURLPageSettings"),
+		PAGE_SET_PAGE_SETTINGS("PageSetPageSettings"),
 		WIDGET_PAGE_SETTINGS("WidgetPageSettings");
 
 		public static Type create(String value) {

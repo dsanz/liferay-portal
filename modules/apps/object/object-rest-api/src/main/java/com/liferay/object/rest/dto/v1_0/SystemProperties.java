@@ -95,6 +95,49 @@ public class SystemProperties implements Serializable {
 
 	@io.swagger.v3.oas.annotations.media.Schema
 	@Valid
+	public com.liferay.portal.vulcan.scope.Scope getScope() {
+		if (_scopeSupplier != null) {
+			scope = _scopeSupplier.get();
+
+			_scopeSupplier = null;
+		}
+
+		return scope;
+	}
+
+	public void setScope(com.liferay.portal.vulcan.scope.Scope scope) {
+		this.scope = scope;
+
+		_scopeSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setScope(
+		UnsafeSupplier<com.liferay.portal.vulcan.scope.Scope, Exception>
+			scopeUnsafeSupplier) {
+
+		_scopeSupplier = () -> {
+			try {
+				return scopeUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected com.liferay.portal.vulcan.scope.Scope scope;
+
+	@JsonIgnore
+	private Supplier<com.liferay.portal.vulcan.scope.Scope> _scopeSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
+	@Valid
 	public Version getVersion() {
 		if (_versionSupplier != null) {
 			version = _versionSupplier.get();
@@ -173,6 +216,18 @@ public class SystemProperties implements Serializable {
 			sb.append("\"objectDefinitionBrief\": ");
 
 			sb.append(String.valueOf(objectDefinitionBrief));
+		}
+
+		com.liferay.portal.vulcan.scope.Scope scope = getScope();
+
+		if (scope != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"scope\": ");
+
+			sb.append(scope);
 		}
 
 		Version version = getVersion();

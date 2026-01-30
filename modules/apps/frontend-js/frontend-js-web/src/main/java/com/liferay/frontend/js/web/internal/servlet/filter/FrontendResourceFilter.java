@@ -5,15 +5,19 @@
 
 package com.liferay.frontend.js.web.internal.servlet.filter;
 
-import com.liferay.frontend.js.web.internal.configuration.FrontendCachingConfiguration;
 import com.liferay.frontend.js.web.internal.resource.FrontendResource;
 import com.liferay.frontend.js.web.internal.resource.handler.FrontendResourceRequestHandler;
 import com.liferay.frontend.js.web.internal.resource.handler.HashedFileFrontendResourceRequestHandler;
+import com.liferay.frontend.js.web.internal.resource.handler.JavaScriptFrontendResourceRequestHandler;
+import com.liferay.frontend.js.web.internal.resource.handler.LanguageFrontendResourceRequestHandler;
 import com.liferay.frontend.js.web.internal.resource.handler.StyleSheetFrontendResourceRequestHandler;
 import com.liferay.petra.io.StreamUtil;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
+import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.frontend.hashed.files.HashedFilesRegistry;
+import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.portlet.PortletConfigFactoryUtil;
 import com.liferay.portal.kernel.service.ThemeLocalService;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
 import com.liferay.portal.kernel.util.ContentTypes;
@@ -31,13 +35,11 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -76,29 +78,26 @@ public class FrontendResourceFilter extends BasePortalFilter {
 	}
 
 	@Activate
-	@Modified
-	protected void activate(Map<String, Object> properties) {
+	protected void activate() {
 		List<FrontendResourceRequestHandler> frontendResourceRequestHandlers =
 			new ArrayList<>();
 
 		frontendResourceRequestHandlers.add(
 			new HashedFileFrontendResourceRequestHandler(
-				ContentTypes.APPLICATION_JSON, ".map", _hashedFilesRegistry,
-				86400, "esModulesMaxAge", _portal, false,
-				"sendNoCacheForESModules"));
+				ContentTypes.APPLICATION_JSON, 86400, false, ".map",
+				_hashedFilesRegistry, "jsFilesMaxAge", _portal,
+				"sendNoCacheForJSFiles"));
 		frontendResourceRequestHandlers.add(
-			new HashedFileFrontendResourceRequestHandler(
-				ContentTypes.TEXT_JAVASCRIPT, ".js", _hashedFilesRegistry,
-				86400, "esModulesMaxAge", _portal, false,
-				"sendNoCacheForESModules"));
-
-		FrontendCachingConfiguration frontendCachingConfiguration =
-			ConfigurableUtil.createConfigurable(
-				FrontendCachingConfiguration.class, properties);
-
+			new JavaScriptFrontendResourceRequestHandler(
+				_configurationProvider, _hashedFilesRegistry, _language,
+				_portal, PortletConfigFactoryUtil.getPortletConfigFactory()));
+		frontendResourceRequestHandlers.add(
+			new LanguageFrontendResourceRequestHandler(
+				_configurationProvider, _hashedFilesRegistry, _jsonFactory,
+				_language, _portal));
 		frontendResourceRequestHandlers.add(
 			new StyleSheetFrontendResourceRequestHandler(
-				frontendCachingConfiguration, _hashedFilesRegistry, _portal,
+				_configurationProvider, _hashedFilesRegistry, _portal,
 				_themeLocalService));
 
 		_frontendResourceRequestHandlers.set(frontendResourceRequestHandlers);
@@ -184,7 +183,12 @@ public class FrontendResourceFilter extends BasePortalFilter {
 				sb.append(", must-revalidate");
 			}
 
-			sb.append(", public");
+			if (frontendResource.isPrivate()) {
+				sb.append(", private");
+			}
+			else {
+				sb.append(", public");
+			}
 
 			httpServletResponse.setHeader(
 				HttpHeaders.CACHE_CONTROL, sb.toString());
@@ -199,12 +203,21 @@ public class FrontendResourceFilter extends BasePortalFilter {
 		}
 	}
 
+	@Reference
+	private ConfigurationProvider _configurationProvider;
+
 	private final AtomicReference<List<FrontendResourceRequestHandler>>
 		_frontendResourceRequestHandlers = new AtomicReference<>(
 			Collections.emptyList());
 
 	@Reference
 	private HashedFilesRegistry _hashedFilesRegistry;
+
+	@Reference
+	private JSONFactory _jsonFactory;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private Portal _portal;

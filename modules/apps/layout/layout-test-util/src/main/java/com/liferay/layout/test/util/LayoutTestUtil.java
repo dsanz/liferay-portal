@@ -6,6 +6,8 @@
 package com.liferay.layout.test.util;
 
 import com.liferay.layout.constants.LayoutTypeSettingsConstants;
+import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
+import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServiceUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.NoSuchLayoutException;
 import com.liferay.portal.kernel.log.Log;
@@ -115,7 +117,7 @@ public class LayoutTestUtil {
 		String newPortletId = layoutTypePortlet.addPortletId(
 			userId, portletId, columnId, -1);
 
-		LayoutLocalServiceUtil.updateLayout(
+		LayoutLocalServiceUtil.updateTypeSettings(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
 			layout.getTypeSettings());
 
@@ -160,7 +162,7 @@ public class LayoutTestUtil {
 
 	public static Layout addTypeContentLayout(
 			Group group, boolean privateLayout, boolean system,
-			long masterLayoutPlid)
+			String masterLayoutPageTemplateEntryERC)
 		throws Exception {
 
 		return LayoutLocalServiceUtil.addLayout(
@@ -172,7 +174,7 @@ public class LayoutTestUtil {
 			Collections.emptyMap(), Collections.emptyMap(),
 			Collections.emptyMap(), Collections.emptyMap(),
 			LayoutConstants.TYPE_CONTENT, StringPool.BLANK, false, system,
-			Collections.emptyMap(), masterLayoutPlid,
+			Collections.emptyMap(), masterLayoutPageTemplateEntryERC,
 			ServiceContextTestUtil.getServiceContext(
 				group.getGroupId(), TestPropsValues.getUserId()));
 	}
@@ -202,7 +204,7 @@ public class LayoutTestUtil {
 			Collections.emptyMap(), Collections.emptyMap(),
 			Collections.emptyMap(), Collections.emptyMap(),
 			LayoutConstants.TYPE_CONTENT, StringPool.BLANK, false, false,
-			Collections.emptyMap(), 0,
+			Collections.emptyMap(), null,
 			ServiceContextTestUtil.getServiceContext(
 				group.getGroupId(), TestPropsValues.getUserId()));
 	}
@@ -504,10 +506,23 @@ public class LayoutTestUtil {
 			ServiceContextTestUtil.getServiceContext(group, user.getUserId());
 
 		if (layoutPrototype != null) {
+			LayoutPageTemplateEntry layoutPageTemplateEntry =
+				LayoutPageTemplateEntryLocalServiceUtil.
+					getFirstLayoutPageTemplateEntry(
+						layoutPrototype.getLayoutPrototypeId());
+
+			layoutPageTemplateEntry.setGroupId(group.getGroupId());
+
+			layoutPageTemplateEntry =
+				LayoutPageTemplateEntryLocalServiceUtil.
+					updateLayoutPageTemplateEntry(layoutPageTemplateEntry);
+
 			serviceContext.setAttribute(
-				"layoutPrototypeLinkEnabled", linkEnabled);
+				"portletLayoutPageTemplateEntryERC",
+				layoutPageTemplateEntry.getExternalReferenceCode());
+
 			serviceContext.setAttribute(
-				"layoutPrototypeUuid", layoutPrototype.getUuid());
+				"portletLayoutPageTemplateEntryLinkEnabled", linkEnabled);
 		}
 
 		return LayoutLocalServiceUtil.addLayout(
@@ -577,8 +592,9 @@ public class LayoutTestUtil {
 			layout.getTitleMap(), layout.getDescriptionMap(),
 			layout.getKeywordsMap(), layout.getRobotsMap(), layout.getType(),
 			layout.isHidden(), friendlyURLMap, layout.getIconImage(), null,
-			layout.getStyleBookEntryId(), layout.getFaviconFileEntryId(),
-			layout.getMasterLayoutPlid(),
+			layout.getStyleBookEntryERC(), layout.getFaviconFileEntryERC(),
+			layout.getFaviconFileEntryScopeERC(),
+			layout.getMasterLayoutPageTemplateEntryERC(),
 			ServiceContextTestUtil.getServiceContext(
 				layout.getGroupId(), TestPropsValues.getUserId()));
 	}
@@ -595,7 +611,7 @@ public class LayoutTestUtil {
 			String.valueOf(customizable));
 		layoutTypePortlet.setUpdatePermission(customizable);
 
-		return LayoutServiceUtil.updateLayout(
+		return LayoutServiceUtil.updateTypeSettings(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
 			layout.getTypeSettings());
 	}
@@ -645,7 +661,7 @@ public class LayoutTestUtil {
 		layoutTypePortlet.setLayoutTemplateId(
 			user.getUserId(), layoutTemplateId);
 
-		return LayoutServiceUtil.updateLayout(
+		return LayoutServiceUtil.updateTypeSettings(
 			layout.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
 			layout.getTypeSettings());
 	}
