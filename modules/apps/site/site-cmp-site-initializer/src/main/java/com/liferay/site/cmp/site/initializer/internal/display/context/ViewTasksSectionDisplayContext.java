@@ -8,6 +8,8 @@ package com.liferay.site.cmp.site.initializer.internal.display.context;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.frontend.data.set.filter.FDSFilter;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
+import com.liferay.frontend.data.set.model.FDSActionDropdownItemBuilder;
+import com.liferay.frontend.data.set.model.FDSActionDropdownItemList;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenuBuilder;
 import com.liferay.object.model.ObjectDefinition;
@@ -126,6 +128,42 @@ public class ViewTasksSectionDisplayContext extends BaseSectionDisplayContext {
 				HashMapBuilder.<String, Object>put(
 					"entryClassName", objectDefinition.getClassName()
 				).build()),
+			FDSActionDropdownItemBuilder.setFDSActionDropdownItems(
+				FDSActionDropdownItemList.of(
+					// Interpolated action in the composite
+					FDSActionDropdownItemBuilder.putData(
+							"interpolationType", "item"
+						).setLabel(
+							"{embedded.description}"
+						).setMethod(
+							"{embedded.actions.copy-replace.method}"
+						).build(
+							"{embedded.description}.{embedded.id}" // NEW
+						),
+					// Interpolated-array action in the composite
+					FDSActionDropdownItemBuilder.putData(
+						"interpolationType", "array"
+					).putData(
+						"interpolationSource", "embedded.keywords"
+					).setLabel(
+						"{embedded.keywords[]label}"
+					).setMethod(
+						"{embedded.actions.copy-replace.method}"
+					).build(
+						"{embedded.keywords}" // NEW
+					)
+				)
+			).setIcon(
+				"nodes"
+			).setLabel(
+				LanguageUtil.get(httpServletRequest, "change-transition")
+			).setSeparator(
+				false
+			).setType(
+				"contextual"
+			).build(
+				"change-transition"
+			),
 			new FDSActionDropdownItem(
 				null, "trash", "delete",
 				LanguageUtil.get(httpServletRequest, "delete"), null, "delete",

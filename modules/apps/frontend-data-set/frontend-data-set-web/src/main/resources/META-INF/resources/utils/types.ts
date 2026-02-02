@@ -168,6 +168,8 @@ export interface IItemActionsData {
 	disableHeader?: boolean;
 	errorMessage?: string;
 	id?: string | number;
+	interpolationSource?: string;
+	interpolationType?: 'item' | 'array';
 	method?: 'delete' | 'get' | 'patch' | 'post';
 	permissionKey?: string;
 	requestBody?: string;
