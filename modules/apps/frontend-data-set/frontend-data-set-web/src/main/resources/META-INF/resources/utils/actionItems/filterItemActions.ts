@@ -124,7 +124,7 @@ const transformAction = ({
 	return action;
 };
 
-const expandActions = (
+const addWorkflowActions = (
 	actions: Array<IItemsActions>,
 	itemData: any
 ): Array<IItemsActions> => {
@@ -138,30 +138,36 @@ const expandActions = (
 		return actions;
 	}
 
-	return [
-		...actions,
-		...Object.keys(itemActions)
-			.filter((key) => key.startsWith('workflow_'))
-			.map((workflowKey) => {
-				return {
-					data: {
-						requestBody: JSON.stringify({
-							transitionName: itemActions[workflowKey].name,
-						}),
-						title: itemActions[workflowKey].label,
-					},
-					href: itemActions[workflowKey].href,
-					id: workflowKey,
-					label: itemActions[workflowKey].label,
-					method: itemActions[workflowKey].method,
-					target: ACTION_ITEM_TARGETS.MODAL_WORKFLOW_TRANSITION,
-					type: 'item',
-				} as IItemsActions;
-			}),
-	];
+	return actions.flatMap((action) => {
+		if (action.target !== ACTION_ITEM_TARGETS.MODAL_WORKFLOW_TRANSITION) {
+			return action;
+		}
+
+		return [
+			...Object.keys(itemActions)
+				.filter((key) => key.startsWith('workflow_'))
+				.sort((a, b) => a.localeCompare(b))
+				.map((workflowKey) => {
+					return {
+						data: {
+							requestBody: JSON.stringify({
+								transitionName: itemActions[workflowKey].name,
+							}),
+							title: itemActions[workflowKey].label,
+						},
+						href: itemActions[workflowKey].href,
+						id: workflowKey,
+						label: itemActions[workflowKey].label,
+						method: itemActions[workflowKey].method,
+						target: ACTION_ITEM_TARGETS.MODAL_WORKFLOW_TRANSITION,
+						type: 'item',
+					} as IItemsActions;
+				}),
+		];
+	});
 };
 
-const transformItemActions = ({
+const filterItemActions = ({
 	actions,
 	infoPanelOpen = false,
 	itemData,
@@ -183,7 +189,7 @@ const transformItemActions = ({
 		);
 
 	return actions
-		? actions
+		? addWorkflowActions(actions, itemData)
 				.filter((action: IItemsActions) =>
 					isVisible(action, itemData, selectable)
 				)
@@ -202,7 +208,7 @@ const transformItemActions = ({
 					) {
 						return {
 							...transformedAction,
-							items: transformItemActions({
+							items: filterItemActions({
 								actions: action.items,
 								infoPanelOpen,
 								itemData,
@@ -216,33 +222,6 @@ const transformItemActions = ({
 					return transformedAction;
 				})
 		: [];
-};
-
-const filterItemActions = ({
-	actions,
-	infoPanelOpen = false,
-	itemData,
-	selectable,
-	selectedItemsKey,
-	selectedItemsValue,
-}: {
-	actions: Array<IItemsActions>;
-	infoPanelOpen?: boolean;
-	itemData: any;
-	selectable?: boolean;
-	selectedItemsKey: string;
-	selectedItemsValue?: Array<any>;
-}): Array<IItemsActions> => {
-	const expandedActions = expandActions(actions, itemData);
-
-	return transformItemActions({
-		actions: expandedActions,
-		infoPanelOpen,
-		itemData,
-		selectable,
-		selectedItemsKey,
-		selectedItemsValue,
-	});
 };
 
 export default filterItemActions;
