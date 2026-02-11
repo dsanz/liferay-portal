@@ -167,142 +167,156 @@ public class ViewTasksSectionDisplayContext extends BaseSectionDisplayContext {
 					).build(
 						"workflow-transition"
 					))
-			).setSeparator(
-				true
 			).setType(
 				"group"
 			).build(
 				"workflow-transitions"
 			),
-			FDSActionDropdownItemBuilder.setHref(
-				StringBundler.concat(
-					ActionUtil.getBaseEditTaskURL(
-						objectDefinition, themeDisplay),
-					"{embedded.id}?redirect=", themeDisplay.getURLCurrent())
-			).setIcon(
-				"pencil"
-			).setLabel(
-				LanguageUtil.get(httpServletRequest, "edit")
-			).setMethod(
-				"get"
-			).setPermissionKey(
-				"update"
-			).setVisibilityFilters(
-				HashMapBuilder.<String, Object>put(
-					"entryClassName", objectDefinition.getClassName()
-				).build()
+			FDSActionDropdownItemBuilder.setFDSActionDropdownItems(
+				FDSActionDropdownItemList.of(
+					FDSActionDropdownItemBuilder.setHref(
+						StringBundler.concat(
+							ActionUtil.getBaseEditTaskURL(
+								objectDefinition, themeDisplay),
+							"{embedded.id}?redirect=",
+							themeDisplay.getURLCurrent())
+					).setIcon(
+						"pencil"
+					).setLabel(
+						LanguageUtil.get(httpServletRequest, "edit")
+					).setMethod(
+						"get"
+					).setPermissionKey(
+						"update"
+					).setVisibilityFilters(
+						HashMapBuilder.<String, Object>put(
+							"entryClassName", objectDefinition.getClassName()
+						).build()
+					).build(
+						"edit"
+					),
+					FDSActionDropdownItemBuilder.setHref(
+						StringBundler.concat(
+							ActionUtil.getBaseViewTaskURL(
+								objectDefinition, themeDisplay),
+							"{embedded.id}?redirect=",
+							themeDisplay.getURLCurrent())
+					).setIcon(
+						"view"
+					).setLabel(
+						LanguageUtil.get(httpServletRequest, "view")
+					).setMethod(
+						"get"
+					).setVisibilityFilters(
+						HashMapBuilder.<String, Object>put(
+							"entryClassName", objectDefinition.getClassName()
+						).build()
+					).build(
+						"actionLink"
+					),
+					FDSActionDropdownItemBuilder.setLabel(
+						LanguageUtil.get(httpServletRequest, "assign-to-...")
+					).setPermissionKey(
+						"get"
+					).setVisibilityFilters(
+						HashMapBuilder.<String, Object>put(
+							"entryClassName", objectDefinition.getClassName()
+						).build()
+					).build(
+						"assign-to"
+					),
+					FDSActionDropdownItemBuilder.setIcon(
+						"trash"
+					).setLabel(
+						LanguageUtil.get(httpServletRequest, "delete")
+					).setPermissionKey(
+						"delete"
+					).setVisibilityFilters(
+						HashMapBuilder.<String, Object>put(
+							"entryClassName", objectDefinition.getClassName()
+						).build()
+					).build(
+						"delete"
+					),
+					FDSActionDropdownItemBuilder.setHref(
+						PortletURLBuilder.create(
+							PortalUtil.getControlPanelPortletURL(
+								httpServletRequest,
+								PortletKeys.MY_WORKFLOW_TASK,
+								ActionRequest.RENDER_PHASE)
+						).setMVCPath(
+							"/edit_workflow_task.jsp"
+						).setRedirect(
+							themeDisplay.getURLCurrent()
+						).setParameter(
+							"workflowTaskId", "{embedded.id}"
+						).buildString()
+					).setIcon(
+						"view"
+					).setLabel(
+						LanguageUtil.get(httpServletRequest, "view")
+					).setPermissionKey(
+						"get"
+					).setVisibilityFilters(
+						HashMapBuilder.<String, Object>put(
+							"entryClassName",
+							KaleoTaskInstanceToken.class.getName()
+						).build()
+					).build(
+						"actionLinkWorkflowTask"
+					),
+					FDSActionDropdownItemBuilder.setLabel(
+						LanguageUtil.get(httpServletRequest, "assign-to-me")
+					).setPermissionKey(
+						"assignToMe"
+					).setVisibilityFilters(
+						HashMapBuilder.<String, Object>put(
+							"embedded.assignedToMe", false
+						).put(
+							"embedded.completed", false
+						).put(
+							"entryClassName",
+							KaleoTaskInstanceToken.class.getName()
+						).build()
+					).build(
+						"assignToMeWorkflowTask"
+					),
+					FDSActionDropdownItemBuilder.setLabel(
+						LanguageUtil.get(httpServletRequest, "assign-to-...")
+					).setPermissionKey(
+						"assignToUser"
+					).setVisibilityFilters(
+						HashMapBuilder.<String, Object>put(
+							"embedded.completed", false
+						).put(
+							"entryClassName",
+							KaleoTaskInstanceToken.class.getName()
+						).build()
+					).build(
+						"assignToWorkflowTask"
+					),
+					FDSActionDropdownItemBuilder.setIcon(
+						"date-time"
+					).setLabel(
+						LanguageUtil.get(httpServletRequest, "update-due-date")
+					).setPermissionKey(
+						"updateDueDate"
+					).setVisibilityFilters(
+						HashMapBuilder.<String, Object>put(
+							"embedded.completed", false
+						).put(
+							"entryClassName",
+							KaleoTaskInstanceToken.class.getName()
+						).build()
+					).build(
+						"updateDueDateWorkflowTask"
+					))
+			).setSeparator(
+				true
+			).setType(
+				"group"
 			).build(
-				"edit"
-			),
-			FDSActionDropdownItemBuilder.setHref(
-				StringBundler.concat(
-					ActionUtil.getBaseViewTaskURL(
-						objectDefinition, themeDisplay),
-					"{embedded.id}?redirect=", themeDisplay.getURLCurrent())
-			).setIcon(
-				"view"
-			).setLabel(
-				LanguageUtil.get(httpServletRequest, "view")
-			).setMethod(
-				"get"
-			).setVisibilityFilters(
-				HashMapBuilder.<String, Object>put(
-					"entryClassName", objectDefinition.getClassName()
-				).build()
-			).build(
-				"actionLink"
-			),
-			FDSActionDropdownItemBuilder.setLabel(
-				LanguageUtil.get(httpServletRequest, "assign-to-...")
-			).setPermissionKey(
-				"get"
-			).setVisibilityFilters(
-				HashMapBuilder.<String, Object>put(
-					"entryClassName", objectDefinition.getClassName()
-				).build()
-			).build(
-				"assign-to"
-			),
-			FDSActionDropdownItemBuilder.setIcon(
-				"trash"
-			).setLabel(
-				LanguageUtil.get(httpServletRequest, "delete")
-			).setPermissionKey(
-				"delete"
-			).setVisibilityFilters(
-				HashMapBuilder.<String, Object>put(
-					"entryClassName", objectDefinition.getClassName()
-				).build()
-			).build(
-				"delete"
-			),
-			FDSActionDropdownItemBuilder.setHref(
-				PortletURLBuilder.create(
-					PortalUtil.getControlPanelPortletURL(
-						httpServletRequest, PortletKeys.MY_WORKFLOW_TASK,
-						ActionRequest.RENDER_PHASE)
-				).setMVCPath(
-					"/edit_workflow_task.jsp"
-				).setRedirect(
-					themeDisplay.getURLCurrent()
-				).setParameter(
-					"workflowTaskId", "{embedded.id}"
-				).buildString()
-			).setIcon(
-				"view"
-			).setLabel(
-				LanguageUtil.get(httpServletRequest, "view")
-			).setPermissionKey(
-				"get"
-			).setVisibilityFilters(
-				HashMapBuilder.<String, Object>put(
-					"entryClassName", KaleoTaskInstanceToken.class.getName()
-				).build()
-			).build(
-				"actionLinkWorkflowTask"
-			),
-			FDSActionDropdownItemBuilder.setLabel(
-				LanguageUtil.get(httpServletRequest, "assign-to-me")
-			).setPermissionKey(
-				"assignToMe"
-			).setVisibilityFilters(
-				HashMapBuilder.<String, Object>put(
-					"embedded.assignedToMe", false
-				).put(
-					"embedded.completed", false
-				).put(
-					"entryClassName", KaleoTaskInstanceToken.class.getName()
-				).build()
-			).build(
-				"assignToMeWorkflowTask"
-			),
-			FDSActionDropdownItemBuilder.setLabel(
-				LanguageUtil.get(httpServletRequest, "assign-to-...")
-			).setPermissionKey(
-				"assignToUser"
-			).setVisibilityFilters(
-				HashMapBuilder.<String, Object>put(
-					"embedded.completed", false
-				).put(
-					"entryClassName", KaleoTaskInstanceToken.class.getName()
-				).build()
-			).build(
-				"assignToWorkflowTask"
-			),
-			FDSActionDropdownItemBuilder.setIcon(
-				"date-time"
-			).setLabel(
-				LanguageUtil.get(httpServletRequest, "update-due-date")
-			).setPermissionKey(
-				"updateDueDate"
-			).setVisibilityFilters(
-				HashMapBuilder.<String, Object>put(
-					"embedded.completed", false
-				).put(
-					"entryClassName", KaleoTaskInstanceToken.class.getName()
-				).build()
-			).build(
-				"updateDueDateWorkflowTask"
+				"other-actions"
 			));
 	}
 
