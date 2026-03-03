@@ -720,7 +720,7 @@ public class NodePlugin implements Plugin<Project> {
 		File yarnWorkingDir = packageRunBuildTask.getYarnWorkingDir();
 
 		if ((yarnWorkingDir != null) &&
-			_hasLiferayNpmScripts12Dependency(project, yarnWorkingDir)) {
+			_hasNodeScriptsOrNpmScriptsDependency(project, yarnWorkingDir)) {
 
 			final File destinationDir = new File(
 				project.getBuildDir(), "node/packageRunBuild/resources");
@@ -757,7 +757,9 @@ public class NodePlugin implements Plugin<Project> {
 
 					@Override
 					public void execute(Task task) {
-						project.delete(destinationDir.getParentFile());
+						if (_usesNodeScripts(project, yarnWorkingDir)) {
+							project.delete(destinationDir.getParentFile());
+						}
 
 						Action<CopySpec> action = new Action<CopySpec>() {
 
@@ -1047,32 +1049,21 @@ public class NodePlugin implements Plugin<Project> {
 	}
 
 	@SuppressWarnings("unchecked")
-	private boolean _hasLiferayNpmScripts12Dependency(File packageJSONFile) {
+	private boolean _hasNodeScriptsOrNpmScriptsDependency(
+		File packageJSONFile) {
+
 		if ((packageJSONFile == null) || !packageJSONFile.exists()) {
 			return false;
+		}
+
+		if (_usesNodeScripts(packageJSONFile)) {
+			return true;
 		}
 
 		JsonSlurper jsonSlurper = new JsonSlurper();
 
 		Map<String, Object> packageJSONMap =
 			(Map<String, Object>)jsonSlurper.parse(packageJSONFile);
-
-		Map<String, String> scriptsJSONMap =
-			(Map<String, String>)packageJSONMap.get("scripts");
-
-		if (scriptsJSONMap != null) {
-			for (Map.Entry<String, String> entry : scriptsJSONMap.entrySet()) {
-				String command = entry.getValue();
-				String name = entry.getKey();
-
-				if (Objects.equals(name, "build") &&
-					(Objects.equals(command, "node-scripts") ||
-					 command.startsWith("node-scripts "))) {
-
-					return true;
-				}
-			}
-		}
 
 		Map<String, Object> devDependencies =
 			(Map<String, Object>)packageJSONMap.get("devDependencies");
@@ -1105,18 +1096,18 @@ public class NodePlugin implements Plugin<Project> {
 		return true;
 	}
 
-	private boolean _hasLiferayNpmScripts12Dependency(
+	private boolean _hasNodeScriptsOrNpmScriptsDependency(
 		Project project, File yarnWorkingDir) {
 
 		File packageJSONFile = project.file("package.json");
 
-		if (_hasLiferayNpmScripts12Dependency(packageJSONFile)) {
+		if (_hasNodeScriptsOrNpmScriptsDependency(packageJSONFile)) {
 			return true;
 		}
 
 		packageJSONFile = new File(yarnWorkingDir, "package.json");
 
-		return _hasLiferayNpmScripts12Dependency(packageJSONFile);
+		return _hasNodeScriptsOrNpmScriptsDependency(packageJSONFile);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -1165,6 +1156,48 @@ public class NodePlugin implements Plugin<Project> {
 		}
 
 		return false;
+	}
+
+	private boolean _usesNodeScripts(File packageJSONFile) {
+		if ((packageJSONFile == null) || !packageJSONFile.exists()) {
+			return false;
+		}
+
+		JsonSlurper jsonSlurper = new JsonSlurper();
+
+		Map<String, Object> packageJSONMap =
+			(Map<String, Object>)jsonSlurper.parse(packageJSONFile);
+
+		Map<String, String> scriptsJSONMap =
+			(Map<String, String>)packageJSONMap.get("scripts");
+
+		if (scriptsJSONMap != null) {
+			for (Map.Entry<String, String> entry : scriptsJSONMap.entrySet()) {
+				String command = entry.getValue();
+				String name = entry.getKey();
+
+				if (Objects.equals(name, "build") &&
+					(Objects.equals(command, "node-scripts") ||
+					 command.startsWith("node-scripts "))) {
+
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private boolean _usesNodeScripts(Project project, File yarnWorkingDir) {
+		File packageJSONFile = project.file("package.json");
+
+		if (_usesNodeScripts(packageJSONFile)) {
+			return true;
+		}
+
+		packageJSONFile = new File(yarnWorkingDir, "package.json");
+
+		return _usesNodeScripts(packageJSONFile);
 	}
 
 	private static final String _PACKAGE_RUN_TASK_NAME_PREFIX = "packageRun";
