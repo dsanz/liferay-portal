@@ -36,6 +36,13 @@ public class PackageRunBuildTask extends PackageRunTask {
 	@InputFile
 	@Optional
 	@PathSensitive(PathSensitivity.RELATIVE)
+	public File getNodeScriptsConfigJSFile() {
+		return _getExistentFile("node-scripts.config.js");
+	}
+
+	@InputFile
+	@Optional
+	@PathSensitive(PathSensitivity.RELATIVE)
 	public File getNodeScriptsPackageJsonFile() {
 		Project project = getProject();
 
@@ -119,6 +126,13 @@ public class PackageRunBuildTask extends PackageRunTask {
 	@PathSensitive(PathSensitivity.RELATIVE)
 	public File getYarnLockFile() {
 		return _getExistentYarnFile("yarn.lock");
+	}
+
+	@InputFile
+	@Optional
+	@PathSensitive(PathSensitivity.RELATIVE)
+	public File getYarnNodeScriptsConfigJSFile() {
+		return _getExistentYarnFile("node-scripts.config.js");
 	}
 
 	@InputFile
