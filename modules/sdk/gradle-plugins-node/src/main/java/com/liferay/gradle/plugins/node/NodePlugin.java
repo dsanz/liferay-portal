@@ -757,6 +757,8 @@ public class NodePlugin implements Plugin<Project> {
 
 					@Override
 					public void execute(Task task) {
+						project.delete(destinationDir.getParentFile());
+
 						Action<CopySpec> action = new Action<CopySpec>() {
 
 							@Override
