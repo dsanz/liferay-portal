@@ -234,6 +234,7 @@ import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LogEntry;
 import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -3386,7 +3387,11 @@ public class ObjectEntryLocalServiceTest {
 		_assertCount(9);
 	}
 
-	@FeatureFlag("LPD-31212")
+	@FeatureFlags(
+		featureFlags = {
+			@FeatureFlag(value = "LPD-11235"), @FeatureFlag(value = "LPD-31212")
+		}
+	)
 	@Test
 	public void testAddObjectEntryWithRichTextObjectFieldWithCKEditor4()
 		throws Exception {
@@ -3407,7 +3412,7 @@ public class ObjectEntryLocalServiceTest {
 			).build());
 	}
 
-	@FeatureFlag("LPD-11235")
+	@FeatureFlag(enable = false, value = "LPD-11235")
 	@Test
 	public void testAddObjectEntryWithRichTextObjectFieldWithCKEditor5()
 		throws Exception {
