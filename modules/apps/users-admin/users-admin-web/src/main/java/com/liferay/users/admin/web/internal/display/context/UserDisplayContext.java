@@ -9,6 +9,7 @@ import com.liferay.item.selector.ItemSelector;
 import com.liferay.item.selector.criteria.GroupItemSelectorReturnType;
 import com.liferay.item.selector.criteria.UUIDItemSelectorReturnType;
 import com.liferay.organizations.item.selector.OrganizationItemSelectorCriterion;
+import com.liferay.organizations.item.selector.util.OrganizationsItemSelectorCriterionUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Contact;
 import com.liferay.portal.kernel.model.Group;
@@ -165,7 +166,8 @@ public class UserDisplayContext {
 			new UUIDItemSelectorReturnType());
 		organizationItemSelectorCriterion.setMultiSelection(multiSelection);
 		organizationItemSelectorCriterion.setSelectedOrganizationIds(
-			_getSelectedOrganizationIds());
+			OrganizationsItemSelectorCriterionUtil.toString(
+			_getSelectedOrganizationIds()));
 
 		return String.valueOf(
 			itemSelector.getItemSelectorURL(

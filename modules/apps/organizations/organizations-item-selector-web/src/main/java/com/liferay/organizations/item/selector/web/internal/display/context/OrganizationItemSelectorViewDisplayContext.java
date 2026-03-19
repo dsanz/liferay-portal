@@ -6,6 +6,7 @@
 package com.liferay.organizations.item.selector.web.internal.display.context;
 
 import com.liferay.organizations.item.selector.OrganizationItemSelectorCriterion;
+import com.liferay.organizations.item.selector.util.OrganizationsItemSelectorCriterionUtil;
 import com.liferay.organizations.item.selector.web.internal.search.OrganizationItemSelectorChecker;
 import com.liferay.organizations.search.OrganizationSearch;
 import com.liferay.organizations.search.OrganizationSearchTerms;
@@ -117,8 +118,9 @@ public class OrganizationItemSelectorViewDisplayContext {
 		_searchContainer.setRowChecker(
 			new OrganizationItemSelectorChecker(
 				_renderResponse,
+				OrganizationsItemSelectorCriterionUtil.toLongArray(
 				_organizationItemSelectorCriterion.
-					getSelectedOrganizationIds()));
+					getSelectedOrganizationIds())));
 
 		return _searchContainer;
 	}
