@@ -167,7 +167,7 @@ public class UserDisplayContext {
 		organizationItemSelectorCriterion.setMultiSelection(multiSelection);
 		organizationItemSelectorCriterion.setSelectedOrganizationIds(
 			OrganizationsItemSelectorCriterionUtil.toString(
-			_getSelectedOrganizationIds()));
+				_getSelectedOrganizationIds()));
 
 		return String.valueOf(
 			itemSelector.getItemSelectorURL(

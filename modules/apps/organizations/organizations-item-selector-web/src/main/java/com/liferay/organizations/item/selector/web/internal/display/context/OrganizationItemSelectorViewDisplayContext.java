@@ -119,8 +119,8 @@ public class OrganizationItemSelectorViewDisplayContext {
 			new OrganizationItemSelectorChecker(
 				_renderResponse,
 				OrganizationsItemSelectorCriterionUtil.toLongArray(
-				_organizationItemSelectorCriterion.
-					getSelectedOrganizationIds())));
+					_organizationItemSelectorCriterion.
+						getSelectedOrganizationIds())));
 
 		return _searchContainer;
 	}

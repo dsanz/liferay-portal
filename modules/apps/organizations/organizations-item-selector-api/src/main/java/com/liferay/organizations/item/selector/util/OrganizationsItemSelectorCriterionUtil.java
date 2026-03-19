@@ -1,8 +1,7 @@
 /**
- * SPDX-FileCopyrightText: (c) 2025 Liferay, Inc. https://liferay.com
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
-
 
 package com.liferay.organizations.item.selector.util;
 
@@ -22,11 +21,6 @@ import java.util.zip.Inflater;
  * @author Daniel Sanz
  */
 public class OrganizationsItemSelectorCriterionUtil {
-	public static String toString(long[] selectedOrganizationIds) {
-		String merged = StringUtil.merge(selectedOrganizationIds, "-");
-
-		return _compress(merged);
-	}
 
 	public static long[] toLongArray(String selectedOrganizationIds) {
 		String decompressed = _decompress(selectedOrganizationIds);
@@ -34,6 +28,12 @@ public class OrganizationsItemSelectorCriterionUtil {
 		List<String> ids = StringUtil.split(decompressed, '-');
 
 		return TransformUtil.transformToLongArray(ids, Long::parseLong);
+	}
+
+	public static String toString(long[] selectedOrganizationIds) {
+		String merged = StringUtil.merge(selectedOrganizationIds, "-");
+
+		return _compress(merged);
 	}
 
 	private static String _compress(String value) {
@@ -44,8 +44,8 @@ public class OrganizationsItemSelectorCriterionUtil {
 		deflater.setInput(input);
 		deflater.finish();
 
-		ByteArrayOutputStream byteArrayOutputStream =
-			new ByteArrayOutputStream(input.length);
+		ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream(
+			input.length);
 
 		byte[] buffer = new byte[1024];
 
@@ -57,13 +57,19 @@ public class OrganizationsItemSelectorCriterionUtil {
 
 		deflater.end();
 
-		return Base64.getUrlEncoder().withoutPadding().encodeToString(
-			byteArrayOutputStream.toByteArray());
+		return Base64.getUrlEncoder(
+		).withoutPadding(
+		).encodeToString(
+			byteArrayOutputStream.toByteArray()
+		);
 	}
 
 	private static String _decompress(String value) {
 		try {
-			byte[] compressed = Base64.getUrlDecoder().decode(value);
+			byte[] compressed = Base64.getUrlDecoder(
+			).decode(
+				value
+			);
 
 			Inflater inflater = new Inflater();
 
@@ -89,4 +95,5 @@ public class OrganizationsItemSelectorCriterionUtil {
 			throw new RuntimeException(exception);
 		}
 	}
+
 }
