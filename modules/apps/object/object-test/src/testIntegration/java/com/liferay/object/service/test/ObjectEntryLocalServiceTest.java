@@ -7953,7 +7953,7 @@ public class ObjectEntryLocalServiceTest {
 
 			resultSet.next();
 
-			return resultSet.getLong("count");
+			return resultSet.getInt("count");
 		}
 	}
 
