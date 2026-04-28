@@ -52,11 +52,7 @@ public class DeepLTranslator extends BaseTranslator {
 
 	@Override
 	public boolean isEnabled(long companyId) throws ConfigurationException {
-		DeepLTranslatorConfiguration deepLTranslatorConfiguration =
-			_configurationProvider.getCompanyConfiguration(
-				DeepLTranslatorConfiguration.class, companyId);
-
-		return deepLTranslatorConfiguration.enabled();
+		return false;
 	}
 
 	@Override

@@ -42,11 +42,7 @@ public class AzureTranslator extends BaseTranslator {
 
 	@Override
 	public boolean isEnabled(long companyId) throws ConfigurationException {
-		AzureTranslatorConfiguration azureTranslatorConfiguration =
-			_configurationProvider.getCompanyConfiguration(
-				AzureTranslatorConfiguration.class, companyId);
-
-		return azureTranslatorConfiguration.enabled();
+		return false;
 	}
 
 	@Override

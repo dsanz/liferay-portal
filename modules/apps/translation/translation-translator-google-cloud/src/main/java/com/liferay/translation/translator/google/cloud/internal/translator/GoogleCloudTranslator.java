@@ -50,18 +50,6 @@ public class GoogleCloudTranslator extends BaseTranslator {
 
 	@Override
 	public boolean isEnabled(long companyId) throws ConfigurationException {
-		GoogleCloudTranslatorConfiguration googleCloudTranslatorConfiguration =
-			_configurationProvider.getCompanyConfiguration(
-				GoogleCloudTranslatorConfiguration.class, companyId);
-
-		if (googleCloudTranslatorConfiguration.enabled() &&
-			!Validator.isBlank(
-				googleCloudTranslatorConfiguration.
-					serviceAccountPrivateKey())) {
-
-			return true;
-		}
-
 		return false;
 	}
 

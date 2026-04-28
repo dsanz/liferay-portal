@@ -38,40 +38,16 @@ public class AWSTranslator extends BaseTranslator {
 
 	@Override
 	public boolean isEnabled(long companyId) throws ConfigurationException {
-		AWSTranslatorConfiguration awsTranslatorConfiguration =
-			_configurationProvider.getCompanyConfiguration(
-				AWSTranslatorConfiguration.class, companyId);
-
-		return awsTranslatorConfiguration.enabled();
+		return true;
 	}
 
 	@Override
 	public TranslatorPacket translate(TranslatorPacket translatorPacket)
 		throws PortalException {
 
-		AWSTranslatorConfiguration awsTranslatorConfiguration =
-			_configurationProvider.getCompanyConfiguration(
-				AWSTranslatorConfiguration.class,
-				translatorPacket.getCompanyId());
-
-		if (!awsTranslatorConfiguration.enabled()) {
-			return translatorPacket;
-		}
-
-		TranslateClient translateClient = TranslateClient.builder(
-		).credentialsProvider(
-			StaticCredentialsProvider.create(
-				AwsBasicCredentials.create(
-					awsTranslatorConfiguration.accessKey(),
-					awsTranslatorConfiguration.secretKey()))
-		).region(
-			Region.of(awsTranslatorConfiguration.region())
-		).build();
 
 		Map<String, String> translatedFieldsMap = new HashMap<>();
 
-		String sourceLanguageCode = getLanguageCode(
-			translatorPacket.getSourceLanguageId());
 		String targetLanguageCode = getLanguageCode(
 			translatorPacket.getTargetLanguageId());
 
@@ -80,9 +56,7 @@ public class AWSTranslator extends BaseTranslator {
 		fieldsMap.forEach(
 			(key, value) -> translatedFieldsMap.put(
 				key,
-				_translate(
-					translateClient, value, sourceLanguageCode,
-					targetLanguageCode)));
+				value + targetLanguageCode));
 
 		return new TranslatorPacket() {
 
@@ -113,29 +87,5 @@ public class AWSTranslator extends BaseTranslator {
 
 		};
 	}
-
-	private String _translate(
-		TranslateClient translateClient, String text, String sourceLanguageCode,
-		String targetLanguageCode) {
-
-		if (Validator.isBlank(text)) {
-			return text;
-		}
-
-		TranslateTextResponse translateTextResponse =
-			translateClient.translateText(
-				builder -> builder.sourceLanguageCode(
-					sourceLanguageCode
-				).targetLanguageCode(
-					targetLanguageCode
-				).text(
-					text
-				).build());
-
-		return translateTextResponse.translatedText();
-	}
-
-	@Reference
-	private ConfigurationProvider _configurationProvider;
 
 }
