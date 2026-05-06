@@ -257,7 +257,10 @@ public class FilterableFieldsOpenAPIContributor implements OpenAPIContributor {
 
 		Map<String, Object> filterableFields = new TreeMap<>();
 
-		Set<EntityField> visitedEntityFields = new HashSet<>();
+		String rootSchemaName = _getRootSchemaName(schema);
+
+		Set<Map.Entry<String, EntityField>> visitedComplexEntries =
+			new HashSet<>();
 
 		Queue<Map.Entry<String, EntityField>> queue = new LinkedList<>(
 			entityFieldsMap.entrySet());
@@ -306,9 +309,16 @@ public class FilterableFieldsOpenAPIContributor implements OpenAPIContributor {
 			ComplexEntityField complexEntityField =
 				(ComplexEntityField)entityField;
 
-			if (!visitedEntityFields.add(complexEntityField)) {
+			if ((Validator.isNotNull(rootSchemaName) &&
+				 StringUtil.equals(
+					 complexEntityField.getTypeKey(), rootSchemaName)) ||
+				!visitedComplexEntries.add(
+					Map.entry(fieldName, complexEntityField))) {
+
 				continue;
 			}
+
+			String pathBoundaries = "/" + fieldName + "/";
 
 			Map<String, EntityField> complexEntityFieldEntityFieldsMap =
 				complexEntityField.getEntityFieldsMap();
@@ -316,14 +326,33 @@ public class FilterableFieldsOpenAPIContributor implements OpenAPIContributor {
 			for (Map.Entry<String, EntityField> entry2 :
 					complexEntityFieldEntityFieldsMap.entrySet()) {
 
+				if (pathBoundaries.contains("/" + entry2.getKey() + "/")) {
+					continue;
+				}
+
 				queue.add(
 					new AbstractMap.SimpleEntry<>(
-						entry1.getKey() + "/" + entry2.getKey(),
-						entry2.getValue()));
+						fieldName + "/" + entry2.getKey(), entry2.getValue()));
 			}
 		}
 
 		return filterableFields;
+	}
+
+	private String _getRootSchemaName(Schema schema) {
+		Map<String, Schema> properties = schema.getProperties();
+
+		if (properties == null) {
+			return null;
+		}
+
+		Schema xSchemaNameSchema = properties.get("x-schema-name");
+
+		if (xSchemaNameSchema == null) {
+			return null;
+		}
+
+		return (String)xSchemaNameSchema.getDefault();
 	}
 
 	private void _setXFilterable(
