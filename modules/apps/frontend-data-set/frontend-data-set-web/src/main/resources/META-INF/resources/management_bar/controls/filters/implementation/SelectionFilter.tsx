@@ -134,7 +134,11 @@ function getOdataString({
 		}
 
 		if (entityFieldType === EEntityFieldType.BOOLEAN) {
-			let parsedValue = item.value;
+			let parsedValue =
+				typeof item.value === 'string'
+					? item.value
+					: String(item.value);
+
 			item.value === '0' && (parsedValue = `false`);
 			item.value === '1' && (parsedValue = `true`);
 
@@ -240,10 +244,13 @@ function SelectionFilter({
 			fetchData(apiURL, searchOptions.query, searchOptions.currentPage)
 				.then((response) => {
 					const selectionItems = response.items.map((item: any) => {
+						const rawLabel = itemLabel
+							? getValueFromItem(item, itemLabel.split('.'))
+							: item.label;
+
 						return {
-							label: itemLabel
-								? getValueFromItem(item, itemLabel.split('.'))
-								: item.label,
+							label:
+								rawLabel == null ? '' : String(rawLabel),
 							value: itemKey
 								? getValueFromItem(item, itemKey.split('.'))
 								: item.value,
@@ -411,7 +418,7 @@ function SelectionFilter({
 										}}
 										key={selectedItem.value}
 									>
-										{selectedItem.label}
+										{selectedItem.label.toString()}
 									</ClayLabel>
 								))}
 							</div>
@@ -448,7 +455,7 @@ function SelectionFilter({
 						className="inline-scroller mx-n2 px-2"
 						ref={setScrollingArea}
 					>
-						{items.map(({label, value}) => {
+						{items.map(({label, value}, index) => {
 							const newValue = {
 								label,
 								value,
@@ -462,8 +469,8 @@ function SelectionFilter({
 											(element) => element.value === value
 										)
 									)}
-									key={value}
-									label={label}
+									key={`${value}-${index}`}
+									label={label.toString()}
 									multiple={multiple}
 									onChange={() => {
 										setSelectedItems(
