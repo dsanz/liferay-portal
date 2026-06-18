@@ -78,6 +78,10 @@ For `liferay-sample-etc-cron` and `liferay-sample-etc-spring-boot` the third typ
 
 	Build a custom element that uses `react`, `react-dom`, and `vite`.
 
+- *liferay-sample-custom-element-7*
+
+	Build a custom element that connects to a given Frontend Data Set.
+
 - *liferay-sample-editor-config-contributor*
 
 	Build a JavaScript function to configure WYSIWYG editors.
