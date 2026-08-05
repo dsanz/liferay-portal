@@ -5,15 +5,21 @@
 
 package com.liferay.portal.url.builder.internal;
 
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.portal.kernel.frontend.hashed.files.HashedFilesRegistry;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilderFactory;
+import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
 import com.liferay.portal.url.builder.internal.util.CacheHelper;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import org.osgi.framework.BundleContext;
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -28,7 +34,20 @@ public class AbsolutePortalURLBuilderFactoryImpl
 		HttpServletRequest httpServletRequest) {
 
 		return new AbsolutePortalURLBuilderImpl(
-			_cacheHelper, _hashedFilesRegistry, _portal, httpServletRequest);
+			_cacheHelper, _hashedFilesRegistry, _serviceTrackerMap, _portal,
+			httpServletRequest);
+	}
+
+	@Activate
+	protected void activate(BundleContext bundleContext) {
+		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+			bundleContext, ImageTransformationURLRenderer.class,
+			ImageTransformationURLRenderer.RENDERER_NAME);
+	}
+
+	@Deactivate
+	protected void deactivate() {
+		_serviceTrackerMap.close();
 	}
 
 	@Reference
@@ -39,5 +58,14 @@ public class AbsolutePortalURLBuilderFactoryImpl
 
 	@Reference
 	private Portal _portal;
+
+	/**
+	 * Indexed by name rather than resolved by service ranking: which provider
+	 * serves a company's images is a configuration decision, and ranking would
+	 * make it a deployment ordering accident. Empty is normal, and means
+	 * transformations are dropped rather than that anything is wrong.
+	 */
+	private ServiceTrackerMap<String, ImageTransformationURLRenderer>
+		_serviceTrackerMap;
 
 }
