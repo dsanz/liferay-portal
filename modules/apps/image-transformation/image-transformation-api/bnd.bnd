@@ -1,0 +1,6 @@
+Bundle-Name: Liferay Image Transformation API
+Bundle-SymbolicName: com.liferay.image.transformation.api
+Bundle-Version: 1.0.0
+Export-Package:\
+	com.liferay.image.transformation,\
+	com.liferay.image.transformation.spi
