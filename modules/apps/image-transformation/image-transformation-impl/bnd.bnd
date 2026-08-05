@@ -1,0 +1,7 @@
+Bundle-Name: Liferay Image Transformation Implementation
+Bundle-SymbolicName: com.liferay.image.transformation.impl
+Bundle-Version: 1.0.0
+Import-Package:\
+	com.liferay.adaptive.media.*;resolution:=optional,\
+	\
+	*
