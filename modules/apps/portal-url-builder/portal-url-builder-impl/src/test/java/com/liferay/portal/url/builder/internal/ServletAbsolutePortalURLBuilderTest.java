@@ -50,7 +50,7 @@ public class ServletAbsolutePortalURLBuilderTest
 
 		_absolutePortalURLBuilder = new AbsolutePortalURLBuilderImpl(
 			mockCacheHelper(),
-			mockHashedFilesRegistry(CachingStrategy.DO_NOT_USE_HASHES),
+			mockHashedFilesRegistry(CachingStrategy.DO_NOT_USE_HASHES), null,
 			mockPortal(context, proxy, cdnHost), mockHttpServletRequest());
 
 		_servletAbsolutePortalURLBuilder = _absolutePortalURLBuilder.forServlet(

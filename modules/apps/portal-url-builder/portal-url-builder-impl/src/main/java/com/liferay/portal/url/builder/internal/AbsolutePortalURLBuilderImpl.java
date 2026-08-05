@@ -5,6 +5,7 @@
 
 package com.liferay.portal.url.builder.internal;
 
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.frontend.hashed.files.HashedFilesRegistry;
@@ -19,10 +20,12 @@ import com.liferay.portal.url.builder.BundleScriptAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.BundleStylesheetAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.ComboRequestAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.ESModuleAbsolutePortalURLBuilder;
+import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
 import com.liferay.portal.url.builder.PortalImageAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.PortalMainResourceAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.PortletDependencyAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.ServletAbsolutePortalURLBuilder;
+import com.liferay.portal.url.builder.TransformedImageAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.WebContextScriptAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.WebContextStylesheetAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.internal.util.CacheHelper;
@@ -38,10 +41,13 @@ public class AbsolutePortalURLBuilderImpl implements AbsolutePortalURLBuilder {
 
 	public AbsolutePortalURLBuilderImpl(
 		CacheHelper cacheHelper, HashedFilesRegistry hashedFilesRegistry,
+		ServiceTrackerMap<String, ImageTransformationURLRenderer>
+			serviceTrackerMap,
 		Portal portal, HttpServletRequest httpServletRequest) {
 
 		_cacheHelper = cacheHelper;
 		_hashedFilesRegistry = hashedFilesRegistry;
+		_serviceTrackerMap = serviceTrackerMap;
 		_portal = portal;
 		_httpServletRequest = httpServletRequest;
 
@@ -135,6 +141,15 @@ public class AbsolutePortalURLBuilderImpl implements AbsolutePortalURLBuilder {
 	}
 
 	@Override
+	public TransformedImageAbsolutePortalURLBuilder forTransformedImage(
+		String relativeURL) {
+
+		return new TransformedImageAbsolutePortalURLBuilderImpl(
+			_getCDNHost(_httpServletRequest), _serviceTrackerMap, _pathProxy,
+			relativeURL);
+	}
+
+	@Override
 	public WebContextScriptAbsolutePortalURLBuilder forWebContextScript(
 		String webContextName, String scriptPath) {
 
@@ -224,5 +239,7 @@ public class AbsolutePortalURLBuilderImpl implements AbsolutePortalURLBuilder {
 	private final String _pathModule;
 	private final String _pathProxy;
 	private final Portal _portal;
+	private final ServiceTrackerMap<String, ImageTransformationURLRenderer>
+		_serviceTrackerMap;
 
 }
