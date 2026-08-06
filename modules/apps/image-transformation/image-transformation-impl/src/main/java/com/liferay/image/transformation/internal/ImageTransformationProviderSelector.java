@@ -16,31 +16,42 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.List;
-
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.component.annotations.ReferencePolicyOption;
+import java.util.function.Supplier;
 
 /**
  * Decides which provider handles a given image.
  *
  * <p>
  * Extracted so that model production and markup rendering cannot disagree about
- * who is active. Both paths ask this one component.
+ * who is active. Both paths ask this one object.
+ * </p>
+ *
+ * <p>
+ * A plain object built by {@link ImageTransformationFactory} rather than an
+ * OSGi component; its consumers are services and inject what it needs.
  * </p>
  *
  * @author Daniel Sanz
  */
-@Component(service = {})
 public class ImageTransformationProviderSelector {
+
+	public ImageTransformationProviderSelector(
+		ImageTransformationConfigurationHelper
+			imageTransformationConfigurationHelper,
+		Supplier<List<ImageTransformationProvider>>
+			imageTransformationProvidersSupplier) {
+
+		_imageTransformationConfigurationHelper =
+			imageTransformationConfigurationHelper;
+		_imageTransformationProvidersSupplier =
+			imageTransformationProvidersSupplier;
+	}
 
 	public ImageTransformationProvider getImageTransformationProvider(
 		ResponsiveImageRequest responsiveImageRequest) {
 
 		List<ImageTransformationProvider> imageTransformationProviders =
-			_imageTransformationProviders;
+			_imageTransformationProvidersSupplier.get();
 
 		if ((imageTransformationProviders == null) ||
 			(responsiveImageRequest == null)) {
@@ -114,16 +125,9 @@ public class ImageTransformationProviderSelector {
 	private static final Log _log = LogFactoryUtil.getLog(
 		ImageTransformationProviderSelector.class);
 
-	@Reference
-	private ImageTransformationConfigurationHelper
+	private final ImageTransformationConfigurationHelper
 		_imageTransformationConfigurationHelper;
-
-	@Reference(
-		cardinality = ReferenceCardinality.MULTIPLE,
-		policy = ReferencePolicy.DYNAMIC,
-		policyOption = ReferencePolicyOption.GREEDY
-	)
-	private volatile List<ImageTransformationProvider>
-		_imageTransformationProviders;
+	private final Supplier<List<ImageTransformationProvider>>
+		_imageTransformationProvidersSupplier;
 
 }

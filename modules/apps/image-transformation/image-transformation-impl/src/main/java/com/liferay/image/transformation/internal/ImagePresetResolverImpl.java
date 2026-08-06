@@ -12,9 +12,11 @@ import com.liferay.image.transformation.internal.configuration.ImageTransformati
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 
@@ -26,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -73,6 +76,14 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 		}
 
 		return _FALLBACK;
+	}
+
+	@Activate
+	protected void activate() {
+		_imageTransformationConfigurationHelper =
+			ImageTransformationFactory.
+				createImageTransformationConfigurationHelper(
+					_configurationProvider, _portal);
 	}
 
 	/**
@@ -364,11 +375,15 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 		ImagePresetResolverImpl.class);
 
 	@Reference
+	private ConfigurationProvider _configurationProvider;
+
 	private ImageTransformationConfigurationHelper
 		_imageTransformationConfigurationHelper;
-
 	private final Map<Long, ParsedPresets> _parsedPresets =
 		new ConcurrentHashMap<>();
+
+	@Reference
+	private Portal _portal;
 
 	private static class ParsedPresets {
 

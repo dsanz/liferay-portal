@@ -13,16 +13,19 @@ import com.liferay.image.transformation.ImageVariant;
 import com.liferay.image.transformation.ImageVariantGroup;
 import com.liferay.image.transformation.ResponsiveImage;
 import com.liferay.image.transformation.ResponsiveImageRequest;
+import com.liferay.image.transformation.internal.ImageTransformationFactory;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfiguration;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilderFactory;
@@ -38,6 +41,7 @@ import java.util.Objects;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
@@ -188,6 +192,14 @@ public class CDNImageTransformationProvider
 
 		return _renderPicture(
 			imageVariantGroups, originalImgTag, responsiveImageRequest);
+	}
+
+	@Activate
+	protected void activate() {
+		_imageTransformationConfigurationHelper =
+			ImageTransformationFactory.
+				createImageTransformationConfigurationHelper(
+					_configurationProvider, _portal);
 	}
 
 	private String _buildURL(
@@ -541,11 +553,16 @@ public class CDNImageTransformationProvider
 		new ConcurrentHashMap<>();
 
 	@Reference
-	private ImagePresetResolver _imagePresetResolver;
+	private ConfigurationProvider _configurationProvider;
 
 	@Reference
+	private ImagePresetResolver _imagePresetResolver;
+
 	private ImageTransformationConfigurationHelper
 		_imageTransformationConfigurationHelper;
+
+	@Reference
+	private Portal _portal;
 
 	private static class CompanySettings {
 

@@ -8,10 +8,18 @@ package com.liferay.image.transformation.internal;
 import com.liferay.image.transformation.ImageHTMLTagFactory;
 import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
+import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.util.Portal;
 
+import java.util.List;
+
+import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * Dispatches to the active provider.
@@ -48,8 +56,32 @@ public class ImageHTMLTagFactoryImpl implements ImageHTMLTagFactory {
 			originalImgTag, responsiveImageRequest);
 	}
 
+	@Activate
+	protected void activate() {
+		_imageTransformationProviderSelector =
+			ImageTransformationFactory.
+				createImageTransformationProviderSelector(
+					ImageTransformationFactory.
+						createImageTransformationConfigurationHelper(
+							_configurationProvider, _portal),
+					() -> _imageTransformationProviders);
+	}
+
 	@Reference
+	private ConfigurationProvider _configurationProvider;
+
+	@Reference(
+		cardinality = ReferenceCardinality.MULTIPLE,
+		policy = ReferencePolicy.DYNAMIC,
+		policyOption = ReferencePolicyOption.GREEDY
+	)
+	private volatile List<ImageTransformationProvider>
+		_imageTransformationProviders;
+
 	private ImageTransformationProviderSelector
 		_imageTransformationProviderSelector;
+
+	@Reference
+	private Portal _portal;
 
 }
