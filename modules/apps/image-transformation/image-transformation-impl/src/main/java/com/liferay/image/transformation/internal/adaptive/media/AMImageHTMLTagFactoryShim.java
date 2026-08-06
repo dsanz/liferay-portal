@@ -76,23 +76,18 @@ public class AMImageHTMLTagFactoryShim implements AMImageHTMLTagFactory {
 	public String create(String originalImgTag, FileEntry fileEntry)
 		throws PortalException {
 
-		HttpServletRequest httpServletRequest = _getHttpServletRequest();
-
-		if (httpServletRequest == null) {
-
-			// The umbrella requires a request and this interface has no way to
-			// carry one, which is one more reason it is temporary. Hand back to
-			// Adaptive Media rather than guess, so that a caller with no
-			// request behaves exactly as it did before this shim existed.
-
-			return _amImageHTMLTagFactory.create(originalImgTag, fileEntry);
-		}
+		// Best effort on the request. This interface has no way to carry one,
+		// and the content transformer chain that calls it has none either, so
+		// most of the time there is nothing to find. Absent it, the company
+		// comes from the ambient one and the CDN host is resolved per company.
 
 		return _imageHTMLTagFactory.create(
 			originalImgTag,
-			ResponsiveImageRequest.of(
-				_imageResourceFactory.fromFileEntry(fileEntry),
-				httpServletRequest));
+			ResponsiveImageRequest.builder(
+				_imageResourceFactory.fromFileEntry(fileEntry)
+			).httpServletRequest(
+				_getHttpServletRequest()
+			).build());
 	}
 
 	private HttpServletRequest _getHttpServletRequest() {
@@ -105,13 +100,6 @@ public class AMImageHTMLTagFactoryShim implements AMImageHTMLTagFactory {
 
 		return serviceContext.getRequest();
 	}
-
-	/**
-	 * Adaptive Media's own implementation, selected by excluding this shim, and
-	 * used only when no request can be found.
-	 */
-	@Reference(target = "(!(" + PROPERTY_SHIM + "=true))")
-	private AMImageHTMLTagFactory _amImageHTMLTagFactory;
 
 	@Reference
 	private ImageHTMLTagFactory _imageHTMLTagFactory;

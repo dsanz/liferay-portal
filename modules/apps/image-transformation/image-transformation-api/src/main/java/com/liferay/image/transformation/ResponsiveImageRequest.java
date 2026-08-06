@@ -22,10 +22,8 @@ import jakarta.servlet.http.HttpServletRequest;
  */
 public final class ResponsiveImageRequest {
 
-	public static Builder builder(
-		ImageResource imageResource, HttpServletRequest httpServletRequest) {
-
-		return new Builder(imageResource, httpServletRequest);
+	public static Builder builder(ImageResource imageResource) {
+		return new Builder(imageResource);
 	}
 
 	/**
@@ -33,37 +31,34 @@ public final class ResponsiveImageRequest {
 	 * loading enabled, which reproduces current behavior.
 	 *
 	 * @param  imageResource the image to transform
-	 * @param  httpServletRequest the request being served
 	 * @return the request
 	 */
-	public static ResponsiveImageRequest of(
-		ImageResource imageResource, HttpServletRequest httpServletRequest) {
-
+	public static ResponsiveImageRequest of(ImageResource imageResource) {
 		return new Builder(
-			imageResource, httpServletRequest
+			imageResource
 		).build();
 	}
 
 	/**
-	 * Returns the request being served. Never <code>null</code>.
+	 * Returns the request being served, or <code>null</code> if the caller has
+	 * none.
 	 *
 	 * <p>
-	 * Carries two things providers need: CDN host resolution is request scoped,
-	 * and the company whose configuration applies, obtained with {@code
-	 * Portal#getCompanyId(HttpServletRequest)}. Supplied by the caller rather
-	 * than read from a thread local, because the thread local that would
-	 * otherwise carry it is pushed by the service layer and is frequently
-	 * absent while rendering.
+	 * Worth supplying when available: it resolves the CDN host exactly, knows
+	 * whether the connection is secure, and identifies the company. Callers
+	 * that have one should pass it.
 	 * </p>
 	 *
 	 * <p>
-	 * Required rather than optional. Without it a URL can still be built, but
-	 * without the CDN host or the proxy path, so it is wrong for the deployment
-	 * in a way nothing downstream can detect. A caller with no request should
-	 * not be asking for a transformed image at all.
+	 * Optional rather than required, because several rendering paths genuinely
+	 * have none to give. Content transformers and template transformer
+	 * listeners take a string and return a string, and there is no portal wide
+	 * thread local carrying the current request. Without it, the company comes
+	 * from the ambient one and the CDN host is resolved per company rather than
+	 * per request.
 	 * </p>
 	 *
-	 * @return the servlet request
+	 * @return the servlet request, or <code>null</code>
 	 */
 	public HttpServletRequest getHttpServletRequest() {
 		return _httpServletRequest;
@@ -111,6 +106,14 @@ public final class ResponsiveImageRequest {
 				_httpServletRequest, _imageResource, _lazy, _presetGroupName);
 		}
 
+		public Builder httpServletRequest(
+			HttpServletRequest httpServletRequest) {
+
+			_httpServletRequest = httpServletRequest;
+
+			return this;
+		}
+
 		public Builder lazy(boolean lazy) {
 			_lazy = lazy;
 
@@ -123,24 +126,15 @@ public final class ResponsiveImageRequest {
 			return this;
 		}
 
-		private Builder(
-			ImageResource imageResource,
-			HttpServletRequest httpServletRequest) {
-
+		private Builder(ImageResource imageResource) {
 			if (imageResource == null) {
 				throw new IllegalArgumentException("Image resource is null");
 			}
 
-			if (httpServletRequest == null) {
-				throw new IllegalArgumentException(
-					"HTTP servlet request is null");
-			}
-
 			_imageResource = imageResource;
-			_httpServletRequest = httpServletRequest;
 		}
 
-		private final HttpServletRequest _httpServletRequest;
+		private HttpServletRequest _httpServletRequest;
 		private final ImageResource _imageResource;
 		private boolean _lazy = true;
 		private String _presetGroupName;

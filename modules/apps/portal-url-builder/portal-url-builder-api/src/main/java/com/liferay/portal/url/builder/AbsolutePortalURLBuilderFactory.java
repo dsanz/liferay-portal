@@ -18,7 +18,15 @@ public interface AbsolutePortalURLBuilderFactory {
 	 * Returns a new Absolute Portal URL Builder instance tied to the given
 	 * request.
 	 *
-	 * @param  httpServletRequest the servlet request
+	 * <p>
+	 * The request may be <code>null</code> for callers that genuinely have
+	 * none, such as a content transformer that takes a string and returns a
+	 * string. The CDN host is then resolved from the ambient company instead of
+	 * from the request, and the secure host is preferred. Builders that consume
+	 * the request for anything else must not be used on such an instance.
+	 * </p>
+	 *
+	 * @param  httpServletRequest the servlet request, or <code>null</code>
 	 * @return an instance of Absolute Portal URL Builder
 	 */
 	public AbsolutePortalURLBuilder getAbsolutePortalURLBuilder(

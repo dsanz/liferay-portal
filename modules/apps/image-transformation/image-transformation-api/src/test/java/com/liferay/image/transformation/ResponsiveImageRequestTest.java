@@ -27,32 +27,47 @@ public class ResponsiveImageRequestTest {
 		LiferayUnitTestRule.INSTANCE;
 
 	@Test(expected = IllegalArgumentException.class)
-	public void testBuilderRejectsMissingHttpServletRequest() {
-
-		// Without a request there is no CDN host and no proxy path, so any URL
-		// built would be wrong for the deployment in a way nothing downstream
-		// can detect. Failing here is the point.
-
-		ResponsiveImageRequest.builder(_imageResource, null);
+	public void testBuilderRejectsMissingImageResource() {
+		ResponsiveImageRequest.builder(null);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
-	public void testBuilderRejectsMissingImageResource() {
-		ResponsiveImageRequest.builder(null, _httpServletRequest);
+	@Test
+	public void testBuildsWithoutAHttpServletRequest() {
+
+		// Content transformers and template transformer listeners take a
+		// string and return a string, and no portal wide thread local carries
+		// the current request. Requiring one would leave those paths unable to
+		// ask for a transformed image at all.
+
+		ResponsiveImageRequest responsiveImageRequest =
+			ResponsiveImageRequest.of(_imageResource);
+
+		Assert.assertNull(responsiveImageRequest.getHttpServletRequest());
+		Assert.assertSame(
+			_imageResource, responsiveImageRequest.getImageResource());
+	}
+
+	@Test
+	public void testCarriesAHttpServletRequestWhenGiven() {
+		ResponsiveImageRequest responsiveImageRequest =
+			ResponsiveImageRequest.builder(
+				_imageResource
+			).httpServletRequest(
+				_httpServletRequest
+			).build();
+
+		Assert.assertSame(
+			_httpServletRequest,
+			responsiveImageRequest.getHttpServletRequest());
 	}
 
 	@Test
 	public void testDefaultsToLazyWithNoPresetGroup() {
 		ResponsiveImageRequest responsiveImageRequest =
-			ResponsiveImageRequest.of(_imageResource, _httpServletRequest);
+			ResponsiveImageRequest.of(_imageResource);
 
 		Assert.assertTrue(responsiveImageRequest.isLazy());
 		Assert.assertNull(responsiveImageRequest.getPresetGroupName());
-		Assert.assertSame(
-			_imageResource, responsiveImageRequest.getImageResource());
-		Assert.assertSame(
-			_httpServletRequest,
-			responsiveImageRequest.getHttpServletRequest());
 	}
 
 	@Test
@@ -63,7 +78,7 @@ public class ResponsiveImageRequestTest {
 
 		ResponsiveImageRequest responsiveImageRequest =
 			ResponsiveImageRequest.builder(
-				_imageResource, _httpServletRequest
+				_imageResource
 			).lazy(
 				false
 			).build();
@@ -75,7 +90,7 @@ public class ResponsiveImageRequestTest {
 	public void testPresetGroupNameIsCarried() {
 		ResponsiveImageRequest responsiveImageRequest =
 			ResponsiveImageRequest.builder(
-				_imageResource, _httpServletRequest
+				_imageResource
 			).presetGroupName(
 				"card"
 			).build();
