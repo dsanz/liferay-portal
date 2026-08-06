@@ -12,6 +12,7 @@ import com.liferay.portal.kernel.frontend.hashed.files.HashedFilesRegistry;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.portlet.PortletDependency;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
@@ -198,7 +199,37 @@ public class AbsolutePortalURLBuilderImpl implements AbsolutePortalURLBuilder {
 		return pathProxy;
 	}
 
+	/**
+	 * Resolves the CDN host from the company rather than the request.
+	 *
+	 * <p>
+	 * Prefers the secure host, because a deployment serving images over plain
+	 * HTTP in one context and HTTPS in another would fragment the edge cache
+	 * anyway. Falls back to the insecure host so that an HTTP only deployment
+	 * still resolves.
+	 * </p>
+	 */
+	private String _getCDNHost() {
+		Long companyId = CompanyThreadLocal.getCompanyId();
+
+		if ((companyId == null) || (companyId <= 0)) {
+			return StringPool.BLANK;
+		}
+
+		String cdnHost = _portal.getCDNHostHttps(companyId);
+
+		if (Validator.isBlank(cdnHost)) {
+			cdnHost = _portal.getCDNHostHttp(companyId);
+		}
+
+		return cdnHost;
+	}
+
 	private String _getCDNHost(HttpServletRequest httpServletRequest) {
+		if (httpServletRequest == null) {
+			return _getCDNHost();
+		}
+
 		String cdnHost;
 
 		try {

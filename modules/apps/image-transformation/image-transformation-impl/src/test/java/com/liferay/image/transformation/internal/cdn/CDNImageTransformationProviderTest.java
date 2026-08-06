@@ -256,6 +256,24 @@ public class CDNImageTransformationProviderTest {
 	}
 
 	@Test
+	public void testTransformsWithoutAHttpServletRequest() {
+
+		// The content transformer chain has no request to give, and refusing
+		// to transform there would leave web content unoptimized.
+
+		_givenPresetGroup(_preset(null, null, null, "100vw"));
+
+		ResponsiveImage responsiveImage =
+			_cdnImageTransformationProvider.getResponsiveImage(
+				_requestWithoutHttpServletRequest());
+
+		Assert.assertFalse(
+			String.valueOf(responsiveImage.getVariantGroups()),
+			responsiveImage.getVariantGroups(
+			).isEmpty());
+	}
+
+	@Test
 	public void testVariantsCarryPresetTransformationsAndWidth() {
 		_givenPresetGroup(
 			_preset("narrow", null, "(max-width: 767px)", "100vw", "crop=1:1"));
@@ -316,7 +334,15 @@ public class CDNImageTransformationProviderTest {
 	}
 
 	private ResponsiveImageRequest _request() {
-		return ResponsiveImageRequest.of(_imageResource, _httpServletRequest);
+		return ResponsiveImageRequest.builder(
+			_imageResource
+		).httpServletRequest(
+			_httpServletRequest
+		).build();
+	}
+
+	private ResponsiveImageRequest _requestWithoutHttpServletRequest() {
+		return ResponsiveImageRequest.of(_imageResource);
 	}
 
 	/**
@@ -327,7 +353,7 @@ public class CDNImageTransformationProviderTest {
 	private void _setUpAbsolutePortalURLBuilderFactory(boolean transforming) {
 		Mockito.when(
 			_absolutePortalURLBuilderFactory.getAbsolutePortalURLBuilder(
-				_httpServletRequest)
+				Mockito.nullable(HttpServletRequest.class))
 		).thenReturn(
 			_absolutePortalURLBuilder
 		);
