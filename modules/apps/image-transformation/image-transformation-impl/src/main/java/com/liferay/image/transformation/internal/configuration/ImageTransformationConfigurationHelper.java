@@ -15,9 +15,6 @@ import com.liferay.portal.kernel.util.Portal;
 
 import jakarta.servlet.http.HttpServletRequest;
 
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-
 /**
  * Resolves which company's configuration applies to a call, and reads it.
  *
@@ -27,10 +24,23 @@ import org.osgi.service.component.annotations.Reference;
  * and different presets at the same moment.
  * </p>
  *
+ * <p>
+ * A plain object built by {@link
+ * com.liferay.image.transformation.internal.ImageTransformationFactory} rather
+ * than an OSGi component, because it implements no interface and would have to
+ * be registered under its own class.
+ * </p>
+ *
  * @author Daniel Sanz
  */
-@Component(service = {})
 public class ImageTransformationConfigurationHelper {
+
+	public ImageTransformationConfigurationHelper(
+		ConfigurationProvider configurationProvider, Portal portal) {
+
+		_configurationProvider = configurationProvider;
+		_portal = portal;
+	}
 
 	/**
 	 * Returns the company this call is being made for, or <code>0</code> if it
@@ -108,10 +118,7 @@ public class ImageTransformationConfigurationHelper {
 	private static final Log _log = LogFactoryUtil.getLog(
 		ImageTransformationConfigurationHelper.class);
 
-	@Reference
-	private ConfigurationProvider _configurationProvider;
-
-	@Reference
-	private Portal _portal;
+	private final ConfigurationProvider _configurationProvider;
+	private final Portal _portal;
 
 }
