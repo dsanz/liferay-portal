@@ -190,6 +190,7 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 		}
 
 		Map<String, String> labels = new LinkedHashMap<>();
+		Map<String, Boolean> lazyValues = new LinkedHashMap<>();
 		Map<String, Map<String, Map<String, String>>> groups =
 			new LinkedHashMap<>();
 
@@ -215,6 +216,12 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 
 			if ((keyParts.length == 2) && _LABEL.equals(keyParts[1])) {
 				labels.put(keyParts[0], value);
+
+				continue;
+			}
+
+			if ((keyParts.length == 2) && _LAZY.equals(keyParts[1])) {
+				lazyValues.put(keyParts[0], GetterUtil.getBoolean(value));
 
 				continue;
 			}
@@ -258,7 +265,8 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 			imagePresetGroups.put(
 				entry.getKey(),
 				new ImagePresetGroup(
-					labels.get(entry.getKey()), entry.getKey(),
+					labels.get(entry.getKey()), lazyValues.get(entry.getKey()),
+					entry.getKey(),
 					_toImagePresets(breakpoints, entry.getValue())));
 		}
 
@@ -286,6 +294,7 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 
 			imagePresets.add(
 				new ImagePreset(
+					GetterUtil.getBoolean(breakpointPreset.get(_AUTO_SIZES)),
 					entry.getKey(),
 					_toMaxWidth(breakpointPreset.get(_MAX_WIDTH)),
 					entry.getValue(), breakpointPreset.get(_SIZES),
@@ -298,6 +307,7 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 		if (breakpointPreset != null) {
 			imagePresets.add(
 				new ImagePreset(
+					GetterUtil.getBoolean(breakpointPreset.get(_AUTO_SIZES)),
 					_NAME_DEFAULT,
 					_toMaxWidth(breakpointPreset.get(_MAX_WIDTH)), null,
 					breakpointPreset.get(_SIZES),
@@ -352,14 +362,18 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 		return transformations;
 	}
 
+	private static final String _AUTO_SIZES = "autoSizes";
+
 	private static final ImagePresetGroup _FALLBACK = new ImagePresetGroup(
-		null, "default",
+		null, null, "default",
 		Collections.singletonList(
 			new ImagePreset(
-				"default", null, null, "100vw",
+				false, "default", null, null, "100vw",
 				Collections.<String, String>emptyMap())));
 
 	private static final String _LABEL = "label";
+
+	private static final String _LAZY = "lazy";
 
 	private static final String _MAX_WIDTH = "maxWidth";
 

@@ -30,9 +30,10 @@ import java.util.List;
 public final class ImagePresetGroup {
 
 	public ImagePresetGroup(
-		String label, String name, List<ImagePreset> presets) {
+		String label, Boolean lazy, String name, List<ImagePreset> presets) {
 
 		_label = label;
+		_lazy = lazy;
 		_name = name;
 		_presets = Collections.unmodifiableList(presets);
 	}
@@ -44,6 +45,28 @@ public final class ImagePresetGroup {
 	 */
 	public String getLabel() {
 		return _label;
+	}
+
+	/**
+	 * Returns whether images in this placement are lazily loaded by default, or
+	 * <code>null</code> if the placement does not say.
+	 *
+	 * <p>
+	 * On the group rather than on a preset, because an image is loaded once:
+	 * laziness is a property of the image element, not of a media condition.
+	 * A caller that knows better overrides it per instance.
+	 * </p>
+	 *
+	 * <p>
+	 * Undeclared means eager. Loading eagerly costs bandwidth; loading the
+	 * largest contentful image lazily costs a Core Web Vital, so the safer
+	 * default is the one that cannot regress it.
+	 * </p>
+	 *
+	 * @return whether to lazily load, or <code>null</code> if undeclared
+	 */
+	public Boolean getLazy() {
+		return _lazy;
 	}
 
 	/**
@@ -79,6 +102,7 @@ public final class ImagePresetGroup {
 	}
 
 	private final String _label;
+	private final Boolean _lazy;
 	private final String _name;
 	private final List<ImagePreset> _presets;
 

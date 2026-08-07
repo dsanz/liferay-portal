@@ -217,7 +217,7 @@ public class CDNImageTransformationProviderTest {
 		Assert.assertTrue(markup, markup.startsWith("<img "));
 		Assert.assertFalse(markup, markup.contains("<picture>"));
 		Assert.assertTrue(markup, markup.contains("sizes=\"100vw\""));
-		Assert.assertTrue(markup, markup.contains("loading=\"lazy\""));
+		Assert.assertFalse(markup, markup.contains("loading="));
 		Assert.assertTrue(markup, markup.contains("alt=\"A photo\""));
 
 		Assert.assertTrue(
@@ -307,7 +307,8 @@ public class CDNImageTransformationProviderTest {
 			_imagePresetResolver.resolve(
 				Mockito.anyLong(), Mockito.nullable(String.class))
 		).thenReturn(
-			new ImagePresetGroup(null, "test", Arrays.asList(imagePresets))
+			new ImagePresetGroup(
+				null, null, "test", Arrays.asList(imagePresets))
 		);
 	}
 
@@ -316,7 +317,7 @@ public class CDNImageTransformationProviderTest {
 		String sizes) {
 
 		return new ImagePreset(
-			breakpointName, maxWidth, mediaQuery, sizes,
+			false, breakpointName, maxWidth, mediaQuery, sizes,
 			Collections.<String, String>emptyMap());
 	}
 
@@ -327,7 +328,7 @@ public class CDNImageTransformationProviderTest {
 		int i = transformation.indexOf('=');
 
 		return new ImagePreset(
-			breakpointName, maxWidth, mediaQuery, sizes,
+			false, breakpointName, maxWidth, mediaQuery, sizes,
 			HashMapBuilder.put(
 				transformation.substring(0, i), transformation.substring(i + 1)
 			).build());

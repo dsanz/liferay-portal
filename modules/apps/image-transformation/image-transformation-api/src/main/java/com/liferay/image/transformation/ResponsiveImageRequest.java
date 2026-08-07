@@ -74,6 +74,30 @@ public final class ResponsiveImageRequest {
 	}
 
 	/**
+	 * Returns whether the rendered image should be lazily loaded, or
+	 * <code>null</code> to use the preset group's default.
+	 *
+	 * <p>
+	 * Deliberately per call rather than per placement. Whether an image is
+	 * lazily loaded depends on where <em>this</em> instance sits on the page,
+	 * not on what kind of slot it occupies: the same card is above the fold in
+	 * the first row and below it further down, and lazily loading the largest
+	 * contentful image is a measurable regression.
+	 * </p>
+	 *
+	 * <p>
+	 * Also decides whether automatic sizing may be used at all, since
+	 * <code>sizes="auto"</code> is only honored on a lazily loaded image.
+	 * </p>
+	 *
+	 * @return whether to lazily load, or <code>null</code> to defer to the
+	 *         preset group
+	 */
+	public Boolean getLazy() {
+		return _lazy;
+	}
+
+	/**
 	 * Returns the name of the configured preset group describing where this
 	 * image sits in the page layout (for example <code>card</code>), or
 	 * <code>null</code> to use the default.
@@ -82,21 +106,6 @@ public final class ResponsiveImageRequest {
 	 */
 	public String getPresetGroupName() {
 		return _presetGroupName;
-	}
-
-	/**
-	 * Returns <code>true</code> if the rendered image should be lazily loaded.
-	 *
-	 * <p>
-	 * Not merely a rendering detail: <code>sizes="auto"</code> is only valid
-	 * together with <code>loading="lazy"</code>, so the framework cannot choose
-	 * the automatic sizes strategy without knowing this.
-	 * </p>
-	 *
-	 * @return <code>true</code> if lazily loaded
-	 */
-	public boolean isLazy() {
-		return _lazy;
 	}
 
 	public static final class Builder {
@@ -114,7 +123,7 @@ public final class ResponsiveImageRequest {
 			return this;
 		}
 
-		public Builder lazy(boolean lazy) {
+		public Builder lazy(Boolean lazy) {
 			_lazy = lazy;
 
 			return this;
@@ -136,14 +145,14 @@ public final class ResponsiveImageRequest {
 
 		private HttpServletRequest _httpServletRequest;
 		private final ImageResource _imageResource;
-		private boolean _lazy = true;
+		private Boolean _lazy;
 		private String _presetGroupName;
 
 	}
 
 	private ResponsiveImageRequest(
 		HttpServletRequest httpServletRequest, ImageResource imageResource,
-		boolean lazy, String presetGroupName) {
+		Boolean lazy, String presetGroupName) {
 
 		_httpServletRequest = httpServletRequest;
 		_imageResource = imageResource;
@@ -153,7 +162,7 @@ public final class ResponsiveImageRequest {
 
 	private final HttpServletRequest _httpServletRequest;
 	private final ImageResource _imageResource;
-	private final boolean _lazy;
+	private final Boolean _lazy;
 	private final String _presetGroupName;
 
 }

@@ -29,9 +29,10 @@ import java.util.Map;
 public final class ImagePreset {
 
 	public ImagePreset(
-		String breakpointName, Integer maxWidth, String mediaQuery,
-		String sizes, Map<String, String> transformations) {
+		boolean autoSizes, String breakpointName, Integer maxWidth,
+		String mediaQuery, String sizes, Map<String, String> transformations) {
 
+		_autoSizes = autoSizes;
 		_breakpointName = breakpointName;
 		_maxWidth = maxWidth;
 		_mediaQuery = mediaQuery;
@@ -108,6 +109,26 @@ public final class ImagePreset {
 		return _transformations;
 	}
 
+	/**
+	 * Returns <code>true</code> if this condition's width is best determined by
+	 * layout rather than declared.
+	 *
+	 * <p>
+	 * An opt in, and only an opt in: it adds the <code>auto</code> keyword in
+	 * front of {@link #getSizes()}, which stays mandatory and serves both as
+	 * the fallback for browsers without automatic sizing and as the value used
+	 * when the image is not lazily loaded. Automatic sizing is only honored on
+	 * a lazily loaded image, so this alone never produces
+	 * <code>sizes="auto"</code>.
+	 * </p>
+	 *
+	 * @return <code>true</code> if automatic sizing may be used
+	 */
+	public boolean isAutoSizes() {
+		return _autoSizes;
+	}
+
+	private final boolean _autoSizes;
 	private final String _breakpointName;
 	private final Integer _maxWidth;
 	private final String _mediaQuery;

@@ -62,11 +62,16 @@ public class ResponsiveImageRequestTest {
 	}
 
 	@Test
-	public void testDefaultsToLazyWithNoPresetGroup() {
+	public void testDefersLazinessToConfigurationByDefault() {
+
+		// Null rather than true: defaulting every image to lazy would lazily
+		// load the largest contentful one, which costs a Core Web Vital. The
+		// placement decides unless this caller says otherwise.
+
 		ResponsiveImageRequest responsiveImageRequest =
 			ResponsiveImageRequest.of(_imageResource);
 
-		Assert.assertTrue(responsiveImageRequest.isLazy());
+		Assert.assertNull(responsiveImageRequest.getLazy());
 		Assert.assertNull(responsiveImageRequest.getPresetGroupName());
 	}
 
@@ -83,7 +88,7 @@ public class ResponsiveImageRequestTest {
 				false
 			).build();
 
-		Assert.assertFalse(responsiveImageRequest.isLazy());
+		Assert.assertEquals(Boolean.FALSE, responsiveImageRequest.getLazy());
 	}
 
 	@Test

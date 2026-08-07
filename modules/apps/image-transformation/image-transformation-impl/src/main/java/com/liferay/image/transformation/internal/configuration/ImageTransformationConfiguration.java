@@ -72,11 +72,13 @@ public interface ImageTransformationConfiguration {
 	 * forms:
 	 *
 	 * <p>
-	 * <code>&lt;group&gt;.label</code> names the group for authoring UIs.
+	 * <code>&lt;group&gt;.label</code> names the group for authoring UIs and
+	 * <code>&lt;group&gt;.lazy</code> says whether images in this placement are
+	 * lazily loaded by default.
 	 * <code>&lt;group&gt;.&lt;breakpoint&gt;.sizes</code>,
-	 * <code>.transformations</code> and <code>.maxWidth</code> describe what to
-	 * generate at one breakpoint, which must be one declared in {@link
-	 * #breakpoints()}.
+	 * <code>.transformations</code>, <code>.maxWidth</code> and
+	 * <code>.autoSizes</code> describe what to generate at one breakpoint,
+	 * which must be one declared in {@link #breakpoints()}.
 	 * </p>
 	 *
 	 * <pre>
@@ -90,7 +92,26 @@ public interface ImageTransformationConfiguration {
 	 * thumb.label=Thumbnail
 	 * thumb.default.sizes=96px
 	 * thumb.default.maxWidth=320
+	 * card.lazy=true
+	 * card.default.autoSizes=true
 	 * </pre>
+	 *
+	 * <p>
+	 * <code>lazy</code> is undeclared by default, which means eager. Loading
+	 * eagerly costs bandwidth, while lazily loading the largest contentful
+	 * image costs a Core Web Vital, so the default is the one that cannot
+	 * regress it. A caller that knows where a particular image sits on the page
+	 * overrides it per instance.
+	 * </p>
+	 *
+	 * <p>
+	 * <code>autoSizes</code> puts the <code>auto</code> keyword in front of
+	 * that breakpoint's <code>sizes</code>, letting the browser measure the
+	 * container instead of trusting a value that duplicates the theme's CSS.
+	 * It applies only when the image is lazily loaded, because that is the only
+	 * case a browser honors it, and <code>sizes</code> stays mandatory so that
+	 * browsers without support still receive a real value.
+	 * </p>
 	 *
 	 * <p>
 	 * <code>maxWidth</code> stops a small placement from advertising the whole
