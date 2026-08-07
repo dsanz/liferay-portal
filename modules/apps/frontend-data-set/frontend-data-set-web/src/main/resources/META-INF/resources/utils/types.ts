@@ -576,6 +576,12 @@ interface ISelectionFilterState extends IBaseFilterState {
 		selectedItems: Array<ISelectionFilterStateItem>;
 	};
 }
+
+/**
+ * What the data set itself writes to its state. The slice a connection owns
+ * is deliberately absent: see `IConnectedFDSState`, next to the only code
+ * that reads it.
+ */
 interface IFDSState {
 	filters: Array<IBaseFilterState>;
 	search: ISearch;
