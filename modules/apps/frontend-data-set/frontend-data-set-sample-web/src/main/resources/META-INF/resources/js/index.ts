@@ -8,6 +8,7 @@ import ContentRenderersFrontendDataSet from './ContentRenderersFrontendDataSet';
 import ControlledFrontendDataSet from './ControlledFrontendDataSet';
 import CustomAuthorTableCell from './CustomAuthorTableCell';
 import CustomInternalViewPropsTransformer from './CustomInternalViewPropsTransformer';
+import DelegatedFiltersPropsTransformer from './DelegatedFiltersPropsTransformer';
 import EmptyPropsTransformer from './EmptyPropsTransformer';
 import GreenCheckColorTableCell from './GreenCheckColorTableCell';
 import ReactFrontendDataSet from './ReactFrontendDataSet';
@@ -25,6 +26,7 @@ export {
 	ControlledFrontendDataSet,
 	CustomAuthorTableCell,
 	CustomInternalViewPropsTransformer,
+	DelegatedFiltersPropsTransformer,
 	EmptyPropsTransformer,
 	GreenCheckColorTableCell,
 	ReactFrontendDataSet,
