@@ -83,6 +83,8 @@ public class CDNImageTransformationProvider
 
 		List<ImagePreset> imagePresets = imagePresetGroup.getPresets();
 
+		boolean lazy = _isLazy(imagePresetGroup, responsiveImageRequest);
+
 		List<ImageVariantGroup> imageVariantGroups = new ArrayList<>(
 			imagePresets.size());
 
@@ -98,7 +100,8 @@ public class CDNImageTransformationProvider
 					imagePreset,
 					_getImageVariants(
 						companySettings, imagePreset, responsiveImageRequest,
-						widths)));
+						widths),
+					lazy));
 		}
 
 		if (!_isTransformed(imageVariantGroups)) {
@@ -184,14 +187,18 @@ public class CDNImageTransformationProvider
 			return originalImgTag;
 		}
 
+		boolean lazy = _isLazy(
+			_imagePresetResolver.resolve(
+				_imageTransformationConfigurationHelper.getCompanyId(
+					responsiveImageRequest),
+				responsiveImageRequest.getPresetGroupName()),
+			responsiveImageRequest);
+
 		if (imageVariantGroups.size() == 1) {
-			return _renderImg(
-				imageVariantGroups.get(0), originalImgTag,
-				responsiveImageRequest);
+			return _renderImg(imageVariantGroups.get(0), lazy, originalImgTag);
 		}
 
-		return _renderPicture(
-			imageVariantGroups, originalImgTag, responsiveImageRequest);
+		return _renderPicture(imageVariantGroups, lazy, originalImgTag);
 	}
 
 	@Activate
@@ -380,6 +387,29 @@ public class CDNImageTransformationProvider
 	}
 
 	/**
+	 * Returns whether this image is lazily loaded: what the caller asked for if
+	 * it said anything, otherwise what the placement declares, otherwise eager.
+	 */
+	private boolean _isLazy(
+		ImagePresetGroup imagePresetGroup,
+		ResponsiveImageRequest responsiveImageRequest) {
+
+		Boolean lazy = responsiveImageRequest.getLazy();
+
+		if (lazy != null) {
+			return lazy;
+		}
+
+		lazy = imagePresetGroup.getLazy();
+
+		if (lazy != null) {
+			return lazy;
+		}
+
+		return false;
+	}
+
+	/**
 	 * Returns <code>true</code> if building actually changed anything.
 	 *
 	 * <p>
@@ -408,8 +438,8 @@ public class CDNImageTransformationProvider
 	}
 
 	private String _renderImg(
-		ImageVariantGroup imageVariantGroup, String originalImgTag,
-		ResponsiveImageRequest responsiveImageRequest) {
+		ImageVariantGroup imageVariantGroup, boolean lazy,
+		String originalImgTag) {
 
 		StringBundler sb = new StringBundler(7);
 
@@ -430,9 +460,7 @@ public class CDNImageTransformationProvider
 		// sizes="auto" is only honored on a lazily loaded image, so the two
 		// attributes have to be emitted together or not at all.
 
-		if (responsiveImageRequest.isLazy() &&
-			!originalImgTag.contains("loading=")) {
-
+		if (lazy && !originalImgTag.contains("loading=")) {
 			sb.append(" loading=\"lazy\"");
 		}
 
@@ -440,8 +468,8 @@ public class CDNImageTransformationProvider
 	}
 
 	private String _renderPicture(
-		List<ImageVariantGroup> imageVariantGroups, String originalImgTag,
-		ResponsiveImageRequest responsiveImageRequest) {
+		List<ImageVariantGroup> imageVariantGroups, boolean lazy,
+		String originalImgTag) {
 
 		StringBundler sb = new StringBundler(
 			(imageVariantGroups.size() * 7) + 3);
@@ -480,8 +508,8 @@ public class CDNImageTransformationProvider
 
 		sb.append(
 			_renderImg(
-				imageVariantGroups.get(imageVariantGroups.size() - 1),
-				originalImgTag, responsiveImageRequest));
+				imageVariantGroups.get(imageVariantGroups.size() - 1), lazy,
+				originalImgTag));
 
 		sb.append("</picture>");
 

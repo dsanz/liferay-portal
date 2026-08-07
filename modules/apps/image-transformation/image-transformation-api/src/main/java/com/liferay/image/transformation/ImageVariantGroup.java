@@ -48,16 +48,30 @@ public final class ImageVariantGroup {
 	 * was asked to honor.
 	 * </p>
 	 *
+	 * <p>
+	 * Automatic sizing is applied here, and only when the image is lazily
+	 * loaded, because that is the only case a browser honors it. The declared
+	 * sizes is kept behind the keyword so that browsers without support still
+	 * receive a real value.
+	 * </p>
+	 *
 	 * @param  imagePreset the preset whose transformations produced the
 	 *         variants
 	 * @param  variants the generated candidates
+	 * @param  lazy whether the image is lazily loaded
 	 * @return the group
 	 */
 	public static ImageVariantGroup from(
-		ImagePreset imagePreset, List<ImageVariant> variants) {
+		ImagePreset imagePreset, List<ImageVariant> variants, boolean lazy) {
+
+		String sizes = imagePreset.getSizes();
+
+		if (lazy && imagePreset.isAutoSizes() && (sizes != null)) {
+			sizes = "auto, " + sizes;
+		}
 
 		return new ImageVariantGroup(
-			imagePreset.getMediaQuery(), imagePreset.getSizes(), variants);
+			imagePreset.getMediaQuery(), sizes, variants);
 	}
 
 	/**

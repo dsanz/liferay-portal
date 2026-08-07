@@ -28,6 +28,30 @@ public class ImageVariantGroupTest {
 		LiferayUnitTestRule.INSTANCE;
 
 	@Test
+	public void testAutoSizesIsIgnoredWhenNotLazy() {
+
+		// A browser only honors sizes="auto" on a lazily loaded image, so
+		// emitting it here would be an invalid attribute rather than a hint.
+
+		ImageVariantGroup imageVariantGroup = ImageVariantGroup.from(
+			_autoSizesPreset(), _variants, false);
+
+		Assert.assertEquals("100vw", imageVariantGroup.getSizes());
+	}
+
+	@Test
+	public void testAutoSizesKeepsDeclaredSizesAsFallback() {
+
+		// The declared value stays behind the keyword so that a browser
+		// without automatic sizing still receives a real one.
+
+		ImageVariantGroup imageVariantGroup = ImageVariantGroup.from(
+			_autoSizesPreset(), _variants, true);
+
+		Assert.assertEquals("auto, 100vw", imageVariantGroup.getSizes());
+	}
+
+	@Test
 	public void testFromCarriesPresetLayoutThrough() {
 
 		// The single crossing point from configuration into output. A provider
@@ -35,13 +59,13 @@ public class ImageVariantGroupTest {
 		// here first.
 
 		ImagePreset imagePreset = new ImagePreset(
-			"narrow", 320, "(max-width: 767px)", "100vw",
+			false, "narrow", 320, "(max-width: 767px)", "100vw",
 			HashMapBuilder.put(
 				"crop", "1:1"
 			).build());
 
 		ImageVariantGroup imageVariantGroup = ImageVariantGroup.from(
-			imagePreset, _variants);
+			imagePreset, _variants, false);
 
 		Assert.assertEquals(
 			"(max-width: 767px)", imageVariantGroup.getMediaQuery());
@@ -87,6 +111,12 @@ public class ImageVariantGroupTest {
 			ImageVariant.builder(
 				"/other.jpg"
 			).build());
+	}
+
+	private ImagePreset _autoSizesPreset() {
+		return new ImagePreset(
+			true, "default", null, null, "100vw",
+			Collections.<String, String>emptyMap());
 	}
 
 	private final List<ImageVariant> _variants = Arrays.asList(
