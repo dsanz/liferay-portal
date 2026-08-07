@@ -16,8 +16,12 @@
 
 import {
 	FDSConnection,
+	FDSConnectionFilter,
 	FDSConnectionInfo,
 	FDSConnectionStatus,
+	FDSFilterDate,
+	FDSFilterDateBound,
+	FDSFilterInfo,
 } from '@liferay/frontend-data-set-web/api';
 import React, {useEffect, useRef, useState} from 'react';
 
@@ -32,9 +36,74 @@ const PLACEHOLDERS: Record<FDSConnectionStatus, string> = {
 	timeout: 'Search is not available',
 };
 
+const pad = (value: number) => String(value).padStart(2, '0');
+
+function formatDate(date: FDSFilterDate | null): string {
+	if (!date) {
+		return 'any';
+	}
+
+	const {day, hour, minute, month, year} = date;
+
+	const time = hour === undefined ? '' : ` ${pad(hour)}:${pad(minute ?? 0)}`;
+
+	return `${year}-${pad(month)}-${pad(day)}${time}`;
+}
+
+function formatDateBound(bound: FDSFilterDateBound | null): string {
+	return bound === 'now' ? 'now' : formatDate(bound);
+}
+
+/**
+ * What a filter matches, read off the description the data set hands over.
+ * Narrowing on the type is what gives access to it.
+ */
+function describeFilter(filter: FDSFilterInfo): string {
+	if (filter.type === 'selection') {
+		if (filter.autocomplete) {
+			return `values from ${filter.autocomplete.apiURL}`;
+		}
+
+		return `values: ${filter.items.map(({label}) => label).join(', ')}`;
+	}
+
+	return `between ${formatDateBound(filter.min)} and ${formatDateBound(
+		filter.max
+	)}`;
+}
+
+/**
+ * What the data set would have filtered by on its own, which is where a
+ * consumer starts from to behave the way it would have.
+ */
+function describePreselection(filter: FDSFilterInfo): string | null {
+	if (filter.type === 'selection' && filter.preselection) {
+		const {exclude, items} = filter.preselection;
+
+		return `${exclude ? 'all but ' : ''}${items
+			.map(({label}) => label)
+			.join(', ')}`;
+	}
+
+	if (
+		(filter.type === 'dateRange' || filter.type === 'dateTimeRange') &&
+		filter.preselection
+	) {
+		const {from, to} = filter.preselection;
+
+		return `${formatDate(from)} to ${formatDate(to)}`;
+	}
+
+	return null;
+}
+
 function App({fdsName}: AppProps) {
+	const [customExpression, setCustomExpression] = useState('');
 	const [disabled, setDisabled] = useState<boolean>(true);
-	const [expression, setExpression] = useState('');
+	const [declaredFilters, setDeclaredFilters] = useState<
+		Array<FDSFilterInfo>
+	>([]);
+	const [obeyedIds, setObeyedIds] = useState<Array<string> | null>(null);
 	const [placeholder, setPlaceholder] = useState<string>(
 		PLACEHOLDERS.connecting
 	);
@@ -52,6 +121,16 @@ function App({fdsName}: AppProps) {
 			(fdsConnectionInfo: FDSConnectionInfo) => {
 				setPlaceholder(PLACEHOLDERS[fdsConnectionInfo.status]);
 				setDisabled(fdsConnectionInfo.status !== 'ready');
+
+				// The filters the data set declares never change while this
+				// element drives the filtering, so reading them once the
+				// connection is ready is all it takes.
+
+				if (fdsConnectionInfo.status === 'ready') {
+					setDeclaredFilters(
+						fdsConnectionRef.current?.getFilters() ?? []
+					);
+				}
 			}
 		);
 
@@ -63,20 +142,46 @@ function App({fdsName}: AppProps) {
 		};
 	}, [fdsName]);
 
+	// Until anything is checked or unchecked, the data set's own selection is
+	// what this sample would apply.
+
+	const isObeyed = ({active, id}: FDSFilterInfo) =>
+		obeyedIds ? obeyedIds.includes(id) : active;
+
 	const handleSearch = () => {
 		fdsConnectionRef.current?.setSearch(query);
 	};
 
-	const handleApplyFilter = () => {
-		fdsConnectionRef.current?.setFilters([
-			{id: 'custom', odataFilterString: expression.trim()},
-		]);
+	const handleApplyFilters = () => {
+		const connectionFilters: Array<FDSConnectionFilter> = declaredFilters
+			.filter((filter) => !!filter.odataFilterString && isObeyed(filter))
+			.map(({id, odataFilterString}) => ({id, odataFilterString}));
+
+		if (customExpression.trim()) {
+			connectionFilters.push({
+				id: 'custom',
+				odataFilterString: customExpression.trim(),
+			});
+		}
+
+		fdsConnectionRef.current?.setFilters(connectionFilters);
 	};
 
 	const handleClearFilters = () => {
-		setExpression('');
+		setCustomExpression('');
+		setObeyedIds([]);
 
 		fdsConnectionRef.current?.clearFilters();
+	};
+
+	const toggleFilter = (filter: FDSFilterInfo) => {
+		const ids = declaredFilters.filter(isObeyed).map(({id}) => id);
+
+		setObeyedIds(
+			isObeyed(filter)
+				? ids.filter((id) => id !== filter.id)
+				: [...ids, filter.id]
+		);
 	};
 
 	return (
@@ -107,24 +212,65 @@ function App({fdsName}: AppProps) {
 				</button>
 			</div>
 
+			<div>
+				<strong>Filters declared in the data set</strong>
+
+				{declaredFilters.length ? (
+					declaredFilters.map((filter) => (
+						<div className="form-check" key={filter.id}>
+							<label>
+								<input
+									checked={isObeyed(filter)}
+									className="form-check-input"
+									disabled={
+										disabled || !filter.odataFilterString
+									}
+									onChange={() => toggleFilter(filter)}
+									type="checkbox"
+								/>
+
+								{filter.label}
+
+								<code style={{marginLeft: '0.5rem'}}>
+									{filter.odataFilterString ||
+										'(not applied by the data set)'}
+								</code>
+							</label>
+
+							<small style={{display: 'block'}}>
+								{describeFilter(filter)}
+
+								{describePreselection(filter)
+									? `, preselected: ${describePreselection(filter)}`
+									: ''}
+							</small>
+						</div>
+					))
+				) : (
+					<p>This data set declares no filter.</p>
+				)}
+			</div>
+
 			<div style={{display: 'flex', gap: '0.5rem'}}>
 				<input
 					className="form-control"
 					disabled={disabled}
-					onChange={(event) => setExpression(event.target.value)}
+					onChange={(event) =>
+						setCustomExpression(event.target.value)
+					}
 					placeholder="Filter with OData, such as name eq 'Liferay'"
 					style={{flex: 1}}
 					type="text"
-					value={expression}
+					value={customExpression}
 				/>
 
 				<button
 					className="btn btn-primary"
-					disabled={disabled || !expression.trim()}
-					onClick={handleApplyFilter}
+					disabled={disabled}
+					onClick={handleApplyFilters}
 					type="button"
 				>
-					Apply filter
+					Apply filters
 				</button>
 
 				<button
