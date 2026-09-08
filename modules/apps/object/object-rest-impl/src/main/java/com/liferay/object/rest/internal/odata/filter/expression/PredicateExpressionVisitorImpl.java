@@ -757,10 +757,13 @@ public class PredicateExpressionVisitorImpl
 				value = right;
 			}
 
+			String valueString = String.valueOf(value);
+
 			if (Objects.equals(
 					objectFieldBusinessType.getDBType(),
 					ObjectFieldConstants.DB_TYPE_LONG) &&
-				Validator.isNumber(String.valueOf(value))) {
+				(Validator.isNull(valueString) ||
+				 Validator.isNumber(valueString))) {
 
 				return GetterUtil.getLong(value);
 			}

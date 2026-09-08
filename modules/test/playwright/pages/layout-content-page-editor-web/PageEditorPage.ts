@@ -57,9 +57,11 @@ export class PageEditorPage {
 	readonly publishButton: Locator;
 	readonly publishMasterButton: Locator;
 	readonly publishToLiveButton: Locator;
+	readonly previewItemSelectorButton: Locator;
 	readonly redoButton: Locator;
 	readonly segmentEditorPage: SegmentEditorPage;
 	readonly selectItemMappingButton: Locator;
+	readonly selectOtherPreviewItemMenuItem: Locator;
 	readonly undoButton: Locator;
 	readonly undoHistory: Locator;
 
@@ -86,9 +88,19 @@ export class PageEditorPage {
 		this.publishToLiveButton = page.getByRole('button', {
 			name: 'Publish to Live',
 		});
+
+		// Projects configure testIdAttribute differently, so the page editor
+		// data-qa-id attributes are matched explicitly
+
+		this.previewItemSelectorButton = page.locator(
+			'[data-qa-id="previewItemSelectorButton"]'
+		);
 		this.redoButton = page.getByTitle('Redo');
 		this.segmentEditorPage = new SegmentEditorPage(page);
 		this.selectItemMappingButton = page.getByLabel('Select Item');
+		this.selectOtherPreviewItemMenuItem = page.locator(
+			'[data-qa-id="selectOtherItemDropdownItem"]'
+		);
 		this.undoButton = page.getByTitle('Undo');
 		this.undoHistory = page.locator('.page-editor__undo-history');
 	}
@@ -97,7 +109,7 @@ export class PageEditorPage {
 		await this.page.goto('/');
 
 		await this.page.goto(
-			`/web${siteUrl || '/guest'}${layout.friendlyUrlPath || layout.friendlyURL}?p_l_mode=edit`
+			`/web${siteUrl || '/guest'}${layout.draftLayout?.friendlyURL || layout.friendlyUrlPath || layout.friendlyURL}?p_l_mode=edit`
 		);
 	}
 
@@ -149,12 +161,222 @@ export class PageEditorPage {
 
 		await this.goToSidebarTab('Comments');
 
+		await this.submitFragmentComment(comment);
+	}
+
+	async addFragmentCommentViaTopper(fragmentId: string, comment: string) {
+		await this.goToFragmentComment(fragmentId);
+
+		await this.submitFragmentComment(comment);
+	}
+
+	async deleteFragmentComment(comment: string) {
+		await this.openFragmentCommentOptions(comment, 'Delete');
+
+		await clickAndExpectToBeHidden({
+			target: this.getFragmentComment(comment),
+			trigger: this.page
+				.locator('.page-editor__inline-confirm')
+				.getByRole('button', {exact: true, name: 'Delete'}),
+		});
+	}
+
+	async editFragmentComment(comment: string, editedComment: string) {
+		await this.openFragmentCommentOptions(comment, 'Edit');
+
+		// The edited comment replaces the original text, so target the comment
+		// being edited through its Update button
+
+		const editedFragmentComment = this.page
+			.locator('.page-editor__fragment-comment')
+			.filter({
+				has: this.page.getByRole('button', {
+					exact: true,
+					name: 'Update',
+				}),
+			});
+
+		await editedFragmentComment.getByLabel('Add Comment').click();
+
+		await this.page.keyboard.press('ControlOrMeta+KeyA');
+		await this.page.keyboard.press('Backspace');
+		await this.page.keyboard.type(editedComment);
+
+		// "Update" saves the edit. It is a one-shot action and the edited text
+		// is already in the editor, so a retrying click helper would short
+		// circuit without ever saving
+
+		await editedFragmentComment
+			.getByRole('button', {exact: true, name: 'Update'})
+			.click();
+
+		await expect(this.getFragmentComment(editedComment)).toBeVisible();
+	}
+
+	getFragmentComment(comment: string) {
+		return this.page
+			.locator('.page-editor__fragment-comment')
+			.filter({hasText: comment});
+	}
+
+	async goToCommentList() {
+		await clickAndExpectToBeVisible({
+			target: this.page
+				.locator('.page-editor__sidebar__panel-header')
+				.getByText('Comments', {exact: true}),
+			trigger: this.page.getByLabel('Back', {exact: true}),
+		});
+	}
+
+	async goToElementVariations() {
+		await this.page.getByLabel('Create Variations').click();
+
+		await this.page
+			.getByText('Element Variations', {exact: true})
+			.waitFor();
+	}
+
+	async goToFragmentComment(fragmentId: string) {
+		await this.selectFragment(fragmentId);
+
+		await clickAndExpectToBeVisible({
+			target: this.page.getByLabel('Add Comment'),
+			trigger: this.page
+				.getByLabel('Comments', {exact: true})
+				.locator('.page-editor__topper__icon'),
+		});
+	}
+
+	async openFragmentCommentOptions(
+		comment: string,
+		option: 'Delete' | 'Edit'
+	) {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {
+				exact: true,
+				name: option,
+			}),
+			trigger: this.getFragmentComment(comment)
+				.getByLabel('Options')
+				.first(),
+		});
+	}
+
+	async reopenResolvedFragmentComment(comment: string) {
+		await this.showResolvedComments();
+
+		await this.getFragmentComment(comment)
+			.locator('[data-title="Reopen"]')
+			.click();
+	}
+
+	async replyToFragmentComment(comment: string, reply: string) {
+		const fragmentComment = this.getFragmentComment(comment);
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: fragmentComment.getByLabel('Add Comment'),
+			trigger: fragmentComment.getByRole('button', {
+				exact: true,
+				name: 'Reply',
+			}),
+		});
+
+		await this.page.keyboard.type(reply);
+
+		await fragmentComment
+			.getByRole('button', {exact: true, name: 'Reply'})
+			.click();
+	}
+
+	async resolveFragmentComment(comment: string) {
+
+		// "Resolve" is a toggle, so a retrying click helper would flip it back
+		// and forth; click it once and wait for the comment to hide
+
+		await this.getFragmentComment(comment)
+			.locator('[data-title="Resolve"]')
+			.click();
+
+		await expect(this.getFragmentComment(comment)).toBeHidden();
+	}
+
+	async showResolvedComments() {
+		const checkbox = this.page.getByLabel('Show Resolved Comments');
+
+		if (!(await checkbox.isChecked())) {
+
+			// The label is a toggle, so a retrying click helper would uncheck
+			// it again; click it once and wait for the checked state
+
+			await this.page.getByText('Show Resolved Comments').click();
+
+			await expect(checkbox).toBeChecked();
+		}
+	}
+
+	async viewCommentList({
+		commentCount,
+		fragmentName,
+		openComment = false,
+	}: {
+		commentCount: string;
+		fragmentName: string;
+		openComment?: boolean;
+	}) {
+		const commentListItem = this.page
+			.getByLabel('Show Comments')
+			.filter({hasText: fragmentName});
+
+		await expect(commentListItem.locator('strong')).toHaveText(
+			fragmentName
+		);
+		await expect(commentListItem.locator('.text-secondary')).toHaveText(
+			commentCount
+		);
+
+		if (openComment) {
+			await commentListItem.click();
+		}
+	}
+
+	async viewFragmentComment(comment: string) {
+		await expect(this.getFragmentComment(comment)).toBeVisible();
+	}
+
+	async viewFragmentCommentReply(reply: string, author: string) {
+		const fragmentCommentReply = this.page
+			.locator('.page-editor__fragment-comment--reply')
+			.filter({hasText: reply});
+
+		await expect(fragmentCommentReply).toBeVisible();
+
+		await expect(fragmentCommentReply.locator('strong').first()).toHaveText(
+			author
+		);
+	}
+
+	async viewFragmentCommentWithoutOptions(comment: string) {
+		await this.viewFragmentComment(comment);
+
+		await expect(
+			this.getFragmentComment(comment).getByLabel('Options')
+		).toBeHidden();
+	}
+
+	async submitFragmentComment(comment: string) {
 		const commentButton = this.page.getByRole('button', {
 			exact: true,
 			name: 'Comment',
 		});
 
 		await this.page.getByLabel('Add Comment').click();
+
+		// Clear any content left in the editor before typing the comment
+
+		await this.page.keyboard.press('ControlOrMeta+KeyA');
+		await this.page.keyboard.press('Backspace');
 
 		await this.page.keyboard.type(comment);
 
@@ -593,14 +815,20 @@ export class PageEditorPage {
 	) {
 		await this.selectFragment(fragmentId, isDesktop);
 
+		const optionsButton = this.page
+			.locator('.page-editor__topper__item')
+			.getByRole('button', {name: 'Options'});
+
+		await optionsButton.evaluate((element) =>
+			element.scrollIntoView({block: 'center', inline: 'center'})
+		);
+
 		await clickAndExpectToBeVisible({
 			autoClick: true,
 			target: this.page
 				.locator('.dropdown-menu.show')
 				.getByText(name, {exact: true}),
-			trigger: this.page
-				.locator('.page-editor__topper__item')
-				.getByRole('button', {name: 'Options'}),
+			trigger: optionsButton,
 		});
 	}
 
@@ -886,17 +1114,6 @@ export class PageEditorPage {
 			{steps: 5}
 		);
 
-		// Calculate drop data
-
-		const targetBox = await targetNode.boundingBox();
-
-		const y =
-			position === 'middle'
-				? targetBox.height / 2
-				: position === 'bottom'
-					? targetBox.height - 2
-					: 2;
-
 		const cssClass =
 			position === 'middle'
 				? /drag-over-middle/
@@ -904,14 +1121,23 @@ export class PageEditorPage {
 					? /drag-over-bottom/
 					: /drag-over-top/;
 
-		const approachY = position === 'top' ? y + 4 : y - 4;
-
-		// Move over the target until the drop indicator appears. Each pass
-		// moves to a nearby point first and then to the real drop point, so
-		// the pointer position always changes and Chromium keeps firing
-		// dragover events.
+		// Move over the target until the drop indicator appears. The target
+		// box is recomputed on every pass because starting the drag can shift
+		// the tree. Each pass also approaches from a nearby point so the
+		// pointer keeps moving and Chromium keeps firing dragover events.
 
 		await expect(async () => {
+			const targetBox = await targetNode.boundingBox();
+
+			const y =
+				position === 'middle'
+					? targetBox.height / 2
+					: position === 'bottom'
+						? targetBox.height - 2
+						: 2;
+
+			const approachY = position === 'top' ? y + 4 : y - 4;
+
 			await this.page.mouse.move(
 				targetBox.x + targetBox.width / 2,
 				targetBox.y + approachY,
@@ -1177,7 +1403,11 @@ export class PageEditorPage {
 	}
 
 	async goToConfigurationTab(tab: ConfigurationTab) {
-		await this.page.getByRole('tab', {exact: true, name: tab}).click();
+		await this.page
+			.getByRole('tab', {exact: true, name: tab})
+			.filter({visible: true})
+			.last()
+			.click();
 	}
 
 	async goToSidebarTab(tab: SidebarTab) {
@@ -1567,6 +1797,26 @@ export class PageEditorPage {
 		}
 	}
 
+	async selectDisplayPagePreviewItem(itemName: string) {
+		await this.previewItemSelectorButton.click();
+
+		await this.selectOtherPreviewItemMenuItem.click();
+
+		// The item selector renders each entry differently per item type, so the
+		// entry is reached by its name and the click bubbles up to the row
+
+		const item = this.page
+			.frameLocator('iframe[title="Select"]')
+			.getByText(itemName, {exact: true})
+			.first();
+
+		await expect(item).toBeVisible();
+
+		await item.click();
+
+		await expect(this.previewItemSelectorButton).toHaveText(itemName);
+	}
+
 	async selectDirectImage(fileName: string, imageId: string) {
 		await this.selectEditable(imageId, 'image-square');
 
@@ -1894,9 +2144,7 @@ export class PageEditorPage {
 			target: iframe.locator('.card', {
 				hasText: fragmentName,
 			}),
-			trigger: iframe.locator('.card', {
-				hasText: folder,
-			}),
+			trigger: iframe.getByRole('link', {name: folder}),
 		});
 
 		await clickAndExpectToBeHidden({
@@ -1980,7 +2228,9 @@ export class PageEditorPage {
 	}
 
 	async waitForChangesSaved({timeout}: {timeout?: number} = {}) {
-		await this.page.getByLabel('Saved', {exact: true}).waitFor({timeout});
+		await this.page
+			.getByLabel('Saved as Draft', {exact: true})
+			.waitFor({timeout});
 
 		await this.page
 			.getByText(

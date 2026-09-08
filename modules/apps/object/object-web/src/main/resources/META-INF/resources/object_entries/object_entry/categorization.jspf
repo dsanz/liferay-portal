@@ -41,6 +41,7 @@ ObjectLayoutBox categorizationObjectLayoutBox = objectEntryDisplayContext.getObj
 							<liferay-asset:asset-categories-selector
 								className="<%= objectDefinition.getClassName() %>"
 								classPK="<%= classPK %>"
+								groupIds="<%= objectEntryDisplayContext.getGroupIds() %>"
 								visibilityTypes="<%= AssetVocabularyConstants.VISIBILITY_TYPES %>"
 							/>
 

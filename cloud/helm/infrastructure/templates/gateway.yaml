@@ -1,0 +1,72 @@
+{{- if and .Values.enabled .Values.gateway.className .Values.gateway.name }}
+{{- $gateway := .Values.gateway }}
+{{- range $name, $endpoint := .Values.endpoints }}
+{{- include "liferay.validateEndpoint" (dict "endpoint" $endpoint "name" $name) }}
+{{- end }}
+{{- with $gateway.clientTrafficPolicySpec }}
+apiVersion: gateway.envoyproxy.io/v1alpha1
+kind: ClientTrafficPolicy
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "-30"
+    labels:
+        app: liferay
+        component: gateway
+        environmentId: {{ $.Values.environmentId | quote }}
+        projectId: {{ $.Values.projectId | quote }}
+    name: {{ printf "%s-attachment" $gateway.name | quote }}
+    namespace: {{ $.Release.Namespace }}
+spec:
+    {{- toYaml . | nindent 4 }}
+    targetRefs:
+        -   group: gateway.networking.k8s.io
+            kind: Gateway
+            name: {{ $gateway.name | quote }}
+---
+{{- end }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "-30"
+        {{- with $gateway.annotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    labels:
+        app: liferay
+        component: gateway
+        environmentId: {{ .Values.environmentId | quote }}
+        projectId: {{ .Values.projectId | quote }}
+    name: {{ $gateway.name | quote }}
+    namespace: {{ .Release.Namespace }}
+spec:
+    gatewayClassName: {{ $gateway.className | quote }}
+    listeners:
+        {{- if not (hasKey .Values.endpoints "http") }}
+        -   allowedRoutes:
+                namespaces:
+                    from: Same
+            name: http
+            port: 80
+            protocol: HTTP
+        {{- end }}
+        {{- range $name, $endpoint := .Values.endpoints }}
+        -   allowedRoutes:
+                namespaces:
+                    from: Same
+            {{- with $endpoint.hostname }}
+            hostname: {{ . | quote }}
+            {{- end }}
+            name: {{ $name | quote }}
+            port: {{ $endpoint.port }}
+            protocol: {{ $endpoint.protocol | quote }}
+            {{- with dig "tls" "externalSecretKeys" (list) $endpoint }}
+            tls:
+                certificateRefs:
+                    {{- range . }}
+                    -   kind: Secret
+                        name: {{ . | quote }}
+                    {{- end }}
+            {{- end }}
+        {{- end }}
+{{- end -}}

@@ -16,13 +16,25 @@
 			[#assign roomId = themeDisplay.getScopeGroup().getClassPK() /]
 
 			<div>
-				[#assign response = restClient.get("/digital-sales-room/rooms/${roomId}?nestedFields=r_accountToDSRRooms_accountEntryId") /]
+				[#attempt]
+					[#assign response = restClient.get("/digital-sales-room/rooms/${roomId}?nestedFields=r_accountToDSRRooms_accountEntryId") /]
+				[#recover]
+					[#assign response = "" /]
+				[/#attempt]
+
+				[#if response?has_content && (response.roomStatus)?? && (response.roomStatus == 5)]
+					<div class="alert alert-info" id="dsr-archived-room-warning" role="alert">
+						[@clay["icon"] symbol="info-circle" /]
+
+						[@liferay.language key="this-digital-sales-room-is-archived-new-comments-cannot-be-added-and-it-can-no-longer-be-shared" /]
+					</div>
+				[/#if]
 
 				<div class="dsr-header-banner">
 					<img alt="" data-lfr-editable-id="banner" data-lfr-editable-type="image" src="[resources:banner.png]" />
 
 					<h1>
-						[#if response?has_content && (response.name)??]${response.name}[/#if]
+						[#if response?has_content && (response.name)??]${response.name?html}[/#if]
 					</h1>
 
 					<div class="dsr-container-logos">
@@ -38,12 +50,12 @@
 							<img alt="" class="dsr-logo dsr-logo-custom" data-lfr-editable-id="primary-logo" data-lfr-editable-type="image" />
 
 							[#if response?has_content && (response.r_accountToDSRRooms_accountEntry)?? && response.r_accountToDSRRooms_accountEntry.logoId > 0]
-								<img alt="" class="dsr-logo dsr-logo-api" src="${response.r_accountToDSRRooms_accountEntry.logoURL}" />
+								<img alt="" class="dsr-logo dsr-logo-api" src="${response.r_accountToDSRRooms_accountEntry.logoURL?html}" />
 							[/#if]
 
 							<span class="dsr-logo dsr-logo-name">
 								[#if response?has_content && (response.r_accountToDSRRooms_accountEntry)??]
-									${response.r_accountToDSRRooms_accountEntry.name?substring(0, 1)?upper_case}
+									${response.r_accountToDSRRooms_accountEntry.name?substring(0, 1)?upper_case?html}
 								[/#if]
 							</span>
 						</div>

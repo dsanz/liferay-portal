@@ -22,11 +22,17 @@ public class FDSSampleFDSNames {
 	public static final String CUSTOM_INTERNAL_VIEW =
 		FDSSamplePortletKeys.FDS_SAMPLE + "-customInternalView";
 
+	public static final String DELEGATED_FILTERS =
+		FDSSamplePortletKeys.FDS_SAMPLE + "-delegatedFilters";
+
 	public static final String DYNAMIC_ACTIONS =
 		FDSSamplePortletKeys.FDS_SAMPLE + "-dynamicActions";
 
 	public static final String EMPTY =
 		FDSSamplePortletKeys.FDS_SAMPLE + "-empty";
+
+	public static final String HIDDEN_EXCLUDE_TOGGLE =
+		FDSSamplePortletKeys.FDS_SAMPLE + "-hiddenExcludeToggle";
 
 	public static final String MINIMUM =
 		FDSSamplePortletKeys.FDS_SAMPLE + "-minimum";

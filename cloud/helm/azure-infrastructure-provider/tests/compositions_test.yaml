@@ -1,0 +1,201 @@
+release:
+    name: my-release
+    namespace: crossplane-system
+suite: Compositions
+templates:
+    -   templates/compositions.yaml
+tests:
+    -   asserts:
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "kind: Job"
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "image: postgres:18-alpine"
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "image: mcr.microsoft.com/azure-cli"
+            -   documentIndex: 0
+                notMatchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: postgresql.sql.m.crossplane.io
+        it: Bootstraps the database through a job rather than the SQL provider
+    -   asserts:
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: CREATE ROLE {{ \$databaseOwnerRole }} NOLOGIN
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: GRANT CONNECT, TEMPORARY ON DATABASE
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: SET ROLE {{ \$databaseOwnerRole }}
+        it: Grants the application a least privileged database role
+    -   asserts:
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "GRANT USAGE, CREATE ON SCHEMA public TO \\{\\{ \\$databaseOwnerRole \\}\\};"
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "--dbname \"\\{\\{ \\$databaseName \\}\\}\""
+            -   documentIndex: 0
+                notMatchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: --dbname postgres
+        it: Grants the shared owner role create rights on the public schema
+    -   asserts:
+            -   equal:
+                    path: spec.compositeTypeRef.apiVersion
+                    value: liferay.com/v1alpha1
+            -   equal:
+                    path: spec.pipeline[0].functionRef.name
+                    value: function-environment-configs
+            -   equal:
+                    path: spec.pipeline[1].functionRef.name
+                    value: function-go-templating
+            -   equal:
+                    path: spec.pipeline[2].functionRef.name
+                    value: function-auto-ready
+            -   hasDocuments:
+                    count: 2
+            -   isKind:
+                    of: Composition
+            -   documentIndex: 0
+                equal:
+                    path: metadata.labels["liferay.com/interface"]
+                    value: liferay-infrastructure
+            -   documentIndex: 0
+                equal:
+                    path: metadata.name
+                    value: liferay-infrastructure
+            -   documentIndex: 0
+                equal:
+                    path: spec.compositeTypeRef.kind
+                    value: LiferayInfrastructure
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "kind: FlexibleServer"
+            -   documentIndex: 1
+                equal:
+                    path: metadata.labels["liferay.com/interface"]
+                    value: liferay-overlay
+            -   documentIndex: 1
+                equal:
+                    path: metadata.name
+                    value: liferay-overlay
+            -   documentIndex: 1
+                equal:
+                    path: spec.compositeTypeRef.kind
+                    value: LiferayOverlay
+            -   documentIndex: 1
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "kind: Account"
+        it: Implements the shared Liferay APIs through the packaged function pipeline
+    -   asserts:
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "autoGeneratePassword: true"
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "name: database-admin-password"
+        it: Lets the provider generate and own the database administrator password
+    -   asserts:
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "kind: FlexibleServerActiveDirectoryAdministrator"
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "principalType: ServicePrincipal"
+        it: Makes the bootstrap identity a Microsoft Entra administrator
+    -   asserts:
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "kind: ConfigMap"
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "name: database-server-details"
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: DATABASE_ENDPOINT
+            -   documentIndex: 0
+                notMatchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: DATABASE_PORT
+            -   documentIndex: 0
+                notMatchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: DATABASE_USERNAME
+        it: Publishes only the database endpoint it discovered from Azure
+    -   asserts:
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "sharedAccessKeyEnabled: true"
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "name: liferay-storage-\\{\\{ \\$dataPlane \\}\\}-credentials"
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: attribute.primary_connection_string
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "\\| toString \\| b64dec"
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: LIFERAY_DOCLIB_CONNECTION_STRING
+        it: Publishes the storage account connection string for the document library store
+    -   asserts:
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "\\$isDatabaseReady := and \\(ne \\$activeDatabaseFqdn \"\"\\) \\$isDatabaseBootstrapped"
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "managedServiceDetailsReady: \\{\\{ and \\$isDatabaseReady \\$isDoclibReady \\}\\}"
+        it: Reports the managed service details ready only once every service is ready
+    -   asserts:
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "activeDirectoryAuthEnabled: true"
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: resource-type oss-rdbms
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: PGPASSWORD=\$\(cat /entra/token\)
+        it: Uses Microsoft Entra for the bootstrap connection rather than a password
+    -   asserts:
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: \{\{- if \$isDoclibReady \}\}
+            -   documentIndex: 0
+                matchRegex:
+                    path: spec.pipeline[1].input.inline.template
+                    pattern: "\\$isDoclibReady := and \\(ne \\$doclibConnectionString \"\"\\) \\$isDoclibContainerReady"
+        it: Withholds the document library details until the container and its credential exist

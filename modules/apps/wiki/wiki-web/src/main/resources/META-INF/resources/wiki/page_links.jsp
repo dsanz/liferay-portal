@@ -52,7 +52,7 @@ boolean hasOutgoingLinkPages = ListUtil.isNotEmpty(outgoingLinkPages);
 											"nodeName", wikiNode.getName()
 										).setParameter(
 											"title", incomingLinkPage.getTitle()
-										).buildString() %>"><%= incomingLinkPage.getTitle() %></a
+										).buildString() %>"><%= HtmlUtil.escape(incomingLinkPage.getTitle()) %></a
 												>
 											</div>
 										</dt>
@@ -98,7 +98,7 @@ boolean hasOutgoingLinkPages = ListUtil.isNotEmpty(outgoingLinkPages);
 											<c:when test="<%= outgoingLinkPage.isNew() %>">
 												<dt class="h5">
 													<div class="h4 text-truncate">
-														<a class="text-default" href="<%= outgoingLinkPage.getTitle() %>"><%= outgoingLinkPage.getTitle() %></a>
+														<a class="text-default" href="<%= HtmlUtil.escapeHREF(outgoingLinkPage.getTitle()) %>"><%= HtmlUtil.escape(outgoingLinkPage.getTitle()) %></a>
 													</div>
 												</dt>
 											</c:when>
@@ -122,7 +122,7 @@ boolean hasOutgoingLinkPages = ListUtil.isNotEmpty(outgoingLinkPages);
 													"nodeName", wikiNode.getName()
 												).setParameter(
 													"title", outgoingLinkPage.getTitle()
-												).buildString() %>"><%= outgoingLinkPage.getTitle() %></a
+												).buildString() %>"><%= HtmlUtil.escape(outgoingLinkPage.getTitle()) %></a
 														>
 													</div>
 												</dt>

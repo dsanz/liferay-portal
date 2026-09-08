@@ -40,7 +40,6 @@ const test = mergeTests(
 	documentLibraryPagesTest,
 	featureFlagsTest({
 		'LPD-11235': {enabled: false},
-		'LPD-17564': {enabled: true},
 		'LPD-39304': {enabled: true},
 		'LPS-178052': {enabled: true},
 	}),
@@ -106,27 +105,23 @@ test.describe('Related Asset Fragment', () => {
 
 			await journalEditArticlePage.editArticle(journalArticleTitle1);
 
-			const row = page
-				.frameLocator('iframe[title="Select Basic Web Content"]')
-				.locator('.list-group-item', {hasText: journalArticleTitle2});
+			const itemCheckbox = page
+				.locator('.modal-dialog')
+				.getByLabel(`Select ${journalArticleTitle2}`);
 
 			await expect(async () => {
-				await journalEditArticlePage.openRelatedAsset(
-					'Basic Web Content'
-				);
+				await journalEditArticlePage.openRelatedAsset();
 
-				await expect(
-					page.getByText('Select Basic Web Content')
-				).toBeVisible({timeout: 3000});
+				await expect(itemCheckbox).toBeVisible({timeout: 3000});
 			}).toPass();
 
-			await row.getByRole('checkbox').check({trial: true});
-
-			await row.getByRole('checkbox').check();
+			await itemCheckbox.check();
 
 			await clickAndExpectToBeHidden({
 				target: page.locator('.modal-dialog'),
-				trigger: page.getByRole('button', {name: 'Done'}),
+				trigger: page
+					.locator('.modal-dialog')
+					.getByRole('button', {exact: true, name: 'Select'}),
 			});
 
 			await journalEditArticlePage.publishArticle(true);
@@ -1260,6 +1255,16 @@ test.describe('Slider Fragment', () => {
 		await expectSlideIsActive('Slide 1');
 		await expectSlideIsNotActive('Slide 2');
 
+		// Check that every ARIA reference resolves
+
+		for (const element of await page
+			.locator('.component-slider [aria-controls]')
+			.all()) {
+			const id = await element.getAttribute('aria-controls');
+
+			await expect(page.locator(`[id="${id}"]`)).toBeAttached();
+		}
+
 		// Check accessibility
 
 		await checkAccessibility({page, selectors: ['.component-slider']});
@@ -1312,9 +1317,8 @@ test.describe('Tabs Fragment', () => {
 
 		let dropdownButton = page.getByLabel('Current Selection: Tab 1');
 
-		await expect(dropdownButton).toHaveAttribute(
-			'aria-activedescendant',
-			''
+		await expect(dropdownButton).not.toHaveAttribute(
+			'aria-activedescendant'
 		);
 		await expect(dropdownButton).toHaveAttribute('aria-expanded', 'false');
 		await expect(dropdownButton).toHaveAttribute(
@@ -1322,6 +1326,12 @@ test.describe('Tabs Fragment', () => {
 			'listbox'
 		);
 		await expect(dropdownButton).toHaveAttribute('role', 'combobox');
+
+		// Check that the editable titles are not focusable inside the tabs
+
+		await expect(
+			page.locator('.component-tabs [role=tab] [tabindex]')
+		).toHaveCount(0);
 
 		// Open the dropdown and navigate by keyboard to select the Tab 2
 
@@ -2012,6 +2022,10 @@ test.describe('Accordion Fragment', () => {
 		await expect(
 			accordionButton.getByText('Heading Example')
 		).not.toBeVisible();
+
+		// Check accessibility
+
+		await checkAccessibility({page, selectors: ['.component-accordion']});
 	});
 });
 

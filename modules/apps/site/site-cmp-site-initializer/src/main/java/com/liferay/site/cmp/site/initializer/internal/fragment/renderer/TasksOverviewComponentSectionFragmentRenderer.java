@@ -7,9 +7,11 @@ package com.liferay.site.cmp.site.initializer.internal.fragment.renderer;
 
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.fragment.renderer.FragmentRendererContext;
+import com.liferay.object.constants.ObjectActionKeys;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectEntryService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -55,35 +57,42 @@ public class TasksOverviewComponentSectionFragmentRenderer
 		FragmentRendererContext fragmentRendererContext,
 		HttpServletRequest httpServletRequest) {
 
-		ObjectEntry projectObjectEntry = ObjectEntryUtil.getObjectEntry(
+		ObjectEntry cmpProjectObjectEntry = ObjectEntryUtil.getObjectEntry(
 			httpServletRequest);
 
-		if (projectObjectEntry == null) {
+		if (cmpProjectObjectEntry == null) {
 			return null;
 		}
 
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		ObjectDefinition cmpTaskObjectDefinition =
+			_objectDefinitionLocalService.
+				fetchObjectDefinitionByExternalReferenceCode(
+					"L_CMP_TASK", themeDisplay.getCompanyId());
+
 		return HashMapBuilder.<String, Object>put(
-			"projectId", projectObjectEntry.getObjectEntryId()
+			"cmpProjectObjectEntryId", cmpProjectObjectEntry.getObjectEntryId()
+		).put(
+			"hasAddTaskPermission",
+			() -> _objectEntryService.hasPortletResourcePermission(
+				cmpProjectObjectEntry.getGroupId(),
+				cmpTaskObjectDefinition.getObjectDefinitionId(),
+				ObjectActionKeys.ADD_OBJECT_ENTRY)
 		).put(
 			"redirect",
-			() -> {
-				ThemeDisplay themeDisplay =
-					(ThemeDisplay)httpServletRequest.getAttribute(
-						WebKeys.THEME_DISPLAY);
-
-				ObjectDefinition taskObjectDefinition =
-					_objectDefinitionLocalService.
-						fetchObjectDefinitionByExternalReferenceCode(
-							"L_CMP_TASK", themeDisplay.getCompanyId());
-
-				return ActionUtil.getAddTaskURL(
-					projectObjectEntry.getGroupId(), taskObjectDefinition,
-					projectObjectEntry.getObjectEntryId(), themeDisplay);
-			}
+			ActionUtil.getAddTaskURL(
+				cmpProjectObjectEntry.getGroupId(), cmpTaskObjectDefinition,
+				cmpProjectObjectEntry.getObjectEntryId(), themeDisplay)
 		).build();
 	}
 
 	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private ObjectEntryService _objectEntryService;
 
 }

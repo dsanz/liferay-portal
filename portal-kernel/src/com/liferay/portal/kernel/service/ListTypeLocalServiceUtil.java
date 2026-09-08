@@ -210,6 +210,12 @@ public class ListTypeLocalServiceUtil {
 		return getService().fetchListType(listTypeId);
 	}
 
+	public static ListType fetchListType(
+		long companyId, String name, String type) {
+
+		return getService().fetchListType(companyId, name, type);
+	}
+
 	/**
 	 * Returns the list type with the matching UUID and company.
 	 *
@@ -255,8 +261,8 @@ public class ListTypeLocalServiceUtil {
 		return getService().getListType(listTypeId);
 	}
 
-	public static ListType getListType(
-		long companyId, String name, String type) {
+	public static ListType getListType(long companyId, String name, String type)
+		throws PortalException {
 
 		return getService().getListType(companyId, name, type);
 	}
@@ -276,7 +282,9 @@ public class ListTypeLocalServiceUtil {
 		return getService().getListTypeByUuidAndCompanyId(uuid, companyId);
 	}
 
-	public static long getListTypeId(long companyId, String name, String type) {
+	public static long getListTypeId(long companyId, String name, String type)
+		throws PortalException {
+
 		return getService().getListTypeId(companyId, name, type);
 	}
 
@@ -363,4 +371,4 @@ public class ListTypeLocalServiceUtil {
 	private static volatile ListTypeLocalService _service;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-75455825
+// LIFERAY-SERVICE-BUILDER-HASH:567064924

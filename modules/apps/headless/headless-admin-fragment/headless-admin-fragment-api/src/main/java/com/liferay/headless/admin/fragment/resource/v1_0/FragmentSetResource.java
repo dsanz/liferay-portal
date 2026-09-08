@@ -46,9 +46,25 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface FragmentSetResource {
 
+	public void deleteDesignLibraryFragmentSet(
+			String designLibraryExternalReferenceCode,
+			String fragmentSetExternalReferenceCode)
+		throws Exception;
+
 	public void deleteSiteFragmentSet(
 			String siteExternalReferenceCode,
 			String fragmentSetExternalReferenceCode)
+		throws Exception;
+
+	public FragmentSet getDesignLibraryFragmentSet(
+			String designLibraryExternalReferenceCode,
+			String fragmentSetExternalReferenceCode)
+		throws Exception;
+
+	public Page<FragmentSet> getDesignLibraryFragmentSetsPage(
+			String designLibraryExternalReferenceCode,
+			com.liferay.portal.kernel.search.filter.Filter filter,
+			Pagination pagination)
 		throws Exception;
 
 	public FragmentSet getSiteFragmentSet(
@@ -177,4 +193,4 @@ public interface FragmentSetResource {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:696716228
+// LIFERAY-REST-BUILDER-HASH:1376008915

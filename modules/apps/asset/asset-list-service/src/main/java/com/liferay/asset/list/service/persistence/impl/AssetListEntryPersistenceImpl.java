@@ -14,7 +14,6 @@ import com.liferay.asset.list.model.impl.AssetListEntryModelImpl;
 import com.liferay.asset.list.service.persistence.AssetListEntryPersistence;
 import com.liferay.asset.list.service.persistence.AssetListEntryUtil;
 import com.liferay.asset.list.service.persistence.impl.constants.AssetListPersistenceConstants;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
@@ -24,8 +23,6 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.sanitizer.Sanitizer;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
@@ -379,23 +376,9 @@ public class AssetListEntryPersistenceImpl
 			long groupId, OrderByComparator<AssetListEntry> orderByComparator)
 		throws NoSuchEntryException {
 
-		AssetListEntry assetListEntry = fetchByGroupId_First(
-			groupId, orderByComparator);
-
-		if (assetListEntry != null) {
-			return assetListEntry;
-		}
-
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append("}");
-
-		throw new NoSuchEntryException(sb.toString());
+		return _collectionPersistenceFinderByGroupId.findFirst(
+			finderCache, new Object[] {new long[] {groupId}},
+			orderByComparator);
 	}
 
 	/**
@@ -779,26 +762,9 @@ public class AssetListEntryPersistenceImpl
 			OrderByComparator<AssetListEntry> orderByComparator)
 		throws NoSuchEntryException {
 
-		AssetListEntry assetListEntry = fetchByG_LikeT_First(
-			groupId, title, orderByComparator);
-
-		if (assetListEntry != null) {
-			return assetListEntry;
-		}
-
-		StringBundler sb = new StringBundler(6);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append(", titleLIKE");
-		sb.append(title);
-
-		sb.append("}");
-
-		throw new NoSuchEntryException(sb.toString());
+		return _collectionPersistenceFinderByG_LikeT.findFirst(
+			finderCache, new Object[] {new long[] {groupId}, title},
+			orderByComparator);
 	}
 
 	/**
@@ -1266,26 +1232,10 @@ public class AssetListEntryPersistenceImpl
 			OrderByComparator<AssetListEntry> orderByComparator)
 		throws NoSuchEntryException {
 
-		AssetListEntry assetListEntry = fetchByG_AET_First(
-			groupId, assetEntryType, orderByComparator);
-
-		if (assetListEntry != null) {
-			return assetListEntry;
-		}
-
-		StringBundler sb = new StringBundler(6);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append(", assetEntryType=");
-		sb.append(assetEntryType);
-
-		sb.append("}");
-
-		throw new NoSuchEntryException(sb.toString());
+		return _collectionPersistenceFinderByG_AET.findFirst(
+			finderCache,
+			new Object[] {new long[] {groupId}, new String[] {assetEntryType}},
+			orderByComparator);
 	}
 
 	/**
@@ -1579,29 +1529,12 @@ public class AssetListEntryPersistenceImpl
 			OrderByComparator<AssetListEntry> orderByComparator)
 		throws NoSuchEntryException {
 
-		AssetListEntry assetListEntry = fetchByG_LikeT_AET_First(
-			groupId, title, assetEntryType, orderByComparator);
-
-		if (assetListEntry != null) {
-			return assetListEntry;
-		}
-
-		StringBundler sb = new StringBundler(8);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append(", titleLIKE");
-		sb.append(title);
-
-		sb.append(", assetEntryType=");
-		sb.append(assetEntryType);
-
-		sb.append("}");
-
-		throw new NoSuchEntryException(sb.toString());
+		return _collectionPersistenceFinderByG_LikeT_AET.findFirst(
+			finderCache,
+			new Object[] {
+				new long[] {groupId}, title, new String[] {assetEntryType}
+			},
+			orderByComparator);
 	}
 
 	/**
@@ -2012,29 +1945,12 @@ public class AssetListEntryPersistenceImpl
 			OrderByComparator<AssetListEntry> orderByComparator)
 		throws NoSuchEntryException {
 
-		AssetListEntry assetListEntry = fetchByG_AES_AET_First(
-			groupId, assetEntrySubtype, assetEntryType, orderByComparator);
-
-		if (assetListEntry != null) {
-			return assetListEntry;
-		}
-
-		StringBundler sb = new StringBundler(8);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append(", assetEntrySubtype=");
-		sb.append(assetEntrySubtype);
-
-		sb.append(", assetEntryType=");
-		sb.append(assetEntryType);
-
-		sb.append("}");
-
-		throw new NoSuchEntryException(sb.toString());
+		return _collectionPersistenceFinderByG_AES_AET.findFirst(
+			finderCache,
+			new Object[] {
+				new long[] {groupId}, assetEntrySubtype, assetEntryType
+			},
+			orderByComparator);
 	}
 
 	/**
@@ -2370,33 +2286,12 @@ public class AssetListEntryPersistenceImpl
 			OrderByComparator<AssetListEntry> orderByComparator)
 		throws NoSuchEntryException {
 
-		AssetListEntry assetListEntry = fetchByG_LikeT_AES_AET_First(
-			groupId, title, assetEntrySubtype, assetEntryType,
+		return _collectionPersistenceFinderByG_LikeT_AES_AET.findFirst(
+			finderCache,
+			new Object[] {
+				new long[] {groupId}, title, assetEntrySubtype, assetEntryType
+			},
 			orderByComparator);
-
-		if (assetListEntry != null) {
-			return assetListEntry;
-		}
-
-		StringBundler sb = new StringBundler(10);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append(", titleLIKE");
-		sb.append(title);
-
-		sb.append(", assetEntrySubtype=");
-		sb.append(assetEntrySubtype);
-
-		sb.append(", assetEntryType=");
-		sb.append(assetEntryType);
-
-		sb.append("}");
-
-		throw new NoSuchEntryException(sb.toString());
 	}
 
 	/**
@@ -3247,7 +3142,8 @@ public class AssetListEntryPersistenceImpl
 				new String[] {String.class.getName()}, new String[] {"uuid_"},
 				0, 1, false, null),
 			_SQL_SELECT_ASSETLISTENTRY_WHERE, _SQL_COUNT_ASSETLISTENTRY_WHERE,
-			AssetListEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			AssetListEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"assetListEntry.", "uuid", "uuid_", FinderColumn.Type.STRING,
 				"=", true, true, AssetListEntry::getUuid));
@@ -3290,6 +3186,7 @@ public class AssetListEntryPersistenceImpl
 				_SQL_SELECT_ASSETLISTENTRY_WHERE,
 				_SQL_COUNT_ASSETLISTENTRY_WHERE,
 				AssetListEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"assetListEntry.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -3320,6 +3217,7 @@ public class AssetListEntryPersistenceImpl
 				_SQL_SELECT_ASSETLISTENTRY_WHERE,
 				_SQL_COUNT_ASSETLISTENTRY_WHERE,
 				AssetListEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new ArrayableFinderColumn<>(
 					"assetListEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					false, true, true, AssetListEntry::getGroupId));
@@ -3376,6 +3274,7 @@ public class AssetListEntryPersistenceImpl
 				_SQL_SELECT_ASSETLISTENTRY_WHERE,
 				_SQL_COUNT_ASSETLISTENTRY_WHERE,
 				AssetListEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new ArrayableFinderColumn<>(
 					"assetListEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					false, true, true, AssetListEntry::getGroupId),
@@ -3409,6 +3308,7 @@ public class AssetListEntryPersistenceImpl
 				_SQL_SELECT_ASSETLISTENTRY_WHERE,
 				_SQL_COUNT_ASSETLISTENTRY_WHERE,
 				AssetListEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"assetListEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					true, true, AssetListEntry::getGroupId),
@@ -3441,6 +3341,7 @@ public class AssetListEntryPersistenceImpl
 				_SQL_SELECT_ASSETLISTENTRY_WHERE,
 				_SQL_COUNT_ASSETLISTENTRY_WHERE,
 				AssetListEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new ArrayableFinderColumn<>(
 					"assetListEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					false, true, true, AssetListEntry::getGroupId),
@@ -3473,6 +3374,7 @@ public class AssetListEntryPersistenceImpl
 				_SQL_SELECT_ASSETLISTENTRY_WHERE,
 				_SQL_COUNT_ASSETLISTENTRY_WHERE,
 				AssetListEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new ArrayableFinderColumn<>(
 					"assetListEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					false, true, true, AssetListEntry::getGroupId),
@@ -3523,6 +3425,7 @@ public class AssetListEntryPersistenceImpl
 				_SQL_SELECT_ASSETLISTENTRY_WHERE,
 				_SQL_COUNT_ASSETLISTENTRY_WHERE,
 				AssetListEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new ArrayableFinderColumn<>(
 					"assetListEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					false, true, true, AssetListEntry::getGroupId),
@@ -3568,6 +3471,7 @@ public class AssetListEntryPersistenceImpl
 				_SQL_SELECT_ASSETLISTENTRY_WHERE,
 				_SQL_COUNT_ASSETLISTENTRY_WHERE,
 				AssetListEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new ArrayableFinderColumn<>(
 					"assetListEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					false, true, true, AssetListEntry::getGroupId),
@@ -3657,12 +3561,6 @@ public class AssetListEntryPersistenceImpl
 	private static final String _SQL_COUNT_ASSETLISTENTRY_WHERE =
 		"SELECT COUNT(assetListEntry) FROM AssetListEntry assetListEntry WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No AssetListEntry exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		AssetListEntryPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid", "type"});
 
@@ -3672,4 +3570,4 @@ public class AssetListEntryPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1311483211
+// LIFERAY-SERVICE-BUILDER-HASH:1352737343

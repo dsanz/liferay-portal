@@ -5,7 +5,6 @@
 
 package com.liferay.dynamic.data.mapping.form.field.type.internal.rich.text;
 
-import com.liferay.ai.creator.openai.manager.AICreatorOpenAIManager;
 import com.liferay.dynamic.data.mapping.form.field.type.DDMFormFieldTemplateContextContributor;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.form.field.type.internal.util.DDMFormFieldTypeUtil;
@@ -30,7 +29,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Carlos Lancha
@@ -117,12 +115,6 @@ public class RichTextDDMFormFieldTemplateContextContributor
 				).put(
 					"liferay-ui:input-editor:name",
 					ddmFormFieldRenderingContext.getName()
-				).put(
-					"liferay-ui:input-editor:showAICreator",
-					_aiCreatorOpenAIManager.isAICreatorToolbarEnabled(
-						themeDisplay.getCompanyId(),
-						themeDisplay.getScopeGroupId(),
-						ddmFormFieldRenderingContext.getPortletNamespace())
 				).build(),
 				themeDisplay,
 				RequestBackedPortletURLFactoryUtil.create(httpServletRequest));
@@ -137,8 +129,10 @@ public class RichTextDDMFormFieldTemplateContextContributor
 		Map<String, Object> data = editorConfiguration.getData();
 
 		for (String key : data.keySet()) {
-			if (ddmFormFieldProperties.containsKey(key)) {
-				data.put(key, ddmFormFieldProperties.get(key));
+			Object value = ddmFormFieldProperties.get(key);
+
+			if (value != null) {
+				data.put(key, value);
 			}
 		}
 
@@ -158,8 +152,5 @@ public class RichTextDDMFormFieldTemplateContextContributor
 		return localizedValue.getString(
 			ddmFormFieldRenderingContext.getLocale());
 	}
-
-	@Reference
-	private AICreatorOpenAIManager _aiCreatorOpenAIManager;
 
 }

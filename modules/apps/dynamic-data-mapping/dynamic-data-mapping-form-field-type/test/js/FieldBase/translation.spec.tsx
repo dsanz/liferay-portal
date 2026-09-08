@@ -149,6 +149,36 @@ describe('showField(editingLanguageId, field, filter)', () => {
 });
 
 describe('showFilteredFields(editingLanguageId, fields, filter, visibleFieldsets)', () => {
+	it('keeps a field previously hidden by the filter marked as filter-hidden when excluded again', () => {
+		const fields = showFilteredFields({
+			editingLanguageId: 'pt_BR',
+			fields: [
+				{
+					...fieldLocalizableTranslated,
+					hiddenByTranslationFilter: true,
+					visible: false,
+				},
+			],
+			filter: 'untranslated',
+			visibleFieldsets: new Set<string>(),
+		});
+
+		expect(fields[0].hiddenByTranslationFilter).toBe(true);
+		expect(fields[0].visible).toBe(false);
+	});
+
+	it('keeps a rule-hidden field marked as rule-hidden when the filter excludes it', () => {
+		const fields = showFilteredFields({
+			editingLanguageId: 'pt_BR',
+			fields: [{...fieldLocalizableTranslated, visible: false}],
+			filter: 'untranslated',
+			visibleFieldsets: new Set<string>(),
+		});
+
+		expect(fields[0].hiddenByTranslationFilter).toBe(false);
+		expect(fields[0].visible).toBe(false);
+	});
+
 	it('returns an array of fields having the visible properties correctly updated using the filter translated', () => {
 		const editingLanguageId = 'pt_BR';
 		const visibleFieldsets = new Set<string>();
@@ -167,11 +197,13 @@ describe('showFilteredFields(editingLanguageId, fields, filter, visibleFieldsets
 			) {
 				expect(field.disabled).toBe(false);
 				expect(field.hidden).toBe(false);
+				expect(field.hiddenByTranslationFilter).toBe(false);
 				expect(field.visible).toBe(true);
 			}
 			else {
 				expect(field.disabled).toBe(true);
 				expect(field.hidden).toBe(true);
+				expect(field.hiddenByTranslationFilter).toBe(true);
 				expect(field.visible).toBe(false);
 			}
 		});
@@ -195,11 +227,13 @@ describe('showFilteredFields(editingLanguageId, fields, filter, visibleFieldsets
 			) {
 				expect(field.disabled).toBe(true);
 				expect(field.hidden).toBe(true);
+				expect(field.hiddenByTranslationFilter).toBe(true);
 				expect(field.visible).toBe(false);
 			}
 			else {
 				expect(field.disabled).toBe(false);
 				expect(field.hidden).toBe(false);
+				expect(field.hiddenByTranslationFilter).toBe(false);
 				expect(field.visible).toBe(true);
 			}
 		});

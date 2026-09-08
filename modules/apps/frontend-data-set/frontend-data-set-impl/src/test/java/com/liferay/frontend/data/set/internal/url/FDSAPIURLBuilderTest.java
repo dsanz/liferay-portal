@@ -12,9 +12,11 @@ import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerCustomizer
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.module.util.SystemBundleUtil;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -173,6 +175,75 @@ public class FDSAPIURLBuilderTest {
 			).addQueryString(
 				"param5=value5"
 			).build());
+
+		// Nullified tokens
+
+		Assert.assertEquals(
+			"/o/app/{foo}/endpoint",
+			new FDSAPIURLBuilder(
+				_fdsAPIURLResolverRegistry, _httpServletRequest, "/app",
+				"/{foo}/endpoint", "schema"
+			).setTokenResolutions(
+				JSONUtil.put("foo", JSONFactoryUtil.createJSONObject())
+			).build());
+		Assert.assertEquals(
+			"/o/app/{siteId}/endpoint",
+			new FDSAPIURLBuilder(
+				_fdsAPIURLResolverRegistry, _httpServletRequest, "/app",
+				"/{siteId}/endpoint", "schema"
+			).setTokenResolutions(
+				JSONUtil.put("siteId", JSONFactoryUtil.createJSONObject())
+			).build());
+		Assert.assertEquals(
+			"/o/app/{userId}/{userExternalReferenceCode}/endpoint",
+			new FDSAPIURLBuilder(
+				_fdsAPIURLResolverRegistry, _httpServletRequest, "/app",
+				"/{userId}/{userExternalReferenceCode}/endpoint", "schema"
+			).setTokenResolutions(
+				JSONUtil.put(
+					"userExternalReferenceCode",
+					JSONFactoryUtil.createJSONObject()
+				).put(
+					"userId", JSONFactoryUtil.createJSONObject()
+				)
+			).build());
+		Assert.assertEquals(
+			"/o/app/{siteId}/bar/endpoint",
+			new FDSAPIURLBuilder(
+				_fdsAPIURLResolverRegistry, _httpServletRequest, "/app",
+				"/{siteId}/{foo}/endpoint", "schema"
+			).setTokenResolutions(
+				JSONUtil.put(
+					"foo", "bar"
+				).put(
+					"siteId", JSONFactoryUtil.createJSONObject()
+				)
+			).build());
+
+		// Nullified tokens, resolver
+
+		serviceRegistration1 = _registerFDSAPIURLResolver(
+			"/app", "schema", new String[] {"{foo}", "{userId}"},
+			new String[] {"bar", RandomTestUtil.randomString()});
+
+		Assert.assertEquals(
+			"/o/app/{foo}/endpoint",
+			new FDSAPIURLBuilder(
+				_fdsAPIURLResolverRegistry, _httpServletRequest, "/app",
+				"/{foo}/endpoint", "schema"
+			).setTokenResolutions(
+				JSONUtil.put("foo", JSONFactoryUtil.createJSONObject())
+			).build());
+		Assert.assertEquals(
+			"/o/app/bar/{userId}/endpoint",
+			new FDSAPIURLBuilder(
+				_fdsAPIURLResolverRegistry, _httpServletRequest, "/app",
+				"/{foo}/{userId}/endpoint", "schema"
+			).setTokenResolutions(
+				JSONUtil.put("userId", JSONFactoryUtil.createJSONObject())
+			).build());
+
+		serviceRegistration1.unregister();
 
 		// One resolver, one token
 

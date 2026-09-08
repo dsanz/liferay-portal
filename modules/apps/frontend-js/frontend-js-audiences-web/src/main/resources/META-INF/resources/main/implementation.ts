@@ -7,20 +7,34 @@ import {Detection} from './detection';
 import {log} from './log';
 import {store} from './store';
 
-import type {AudiencesDefinition, Handler, RetentionType} from './index';
+import type {AudienceId, AudiencesDefinition, Handler} from './index';
 
 interface HandlersMap {
-	[audienceId: string]: Handler[];
+	[audienceId: AudienceId]: Handler[];
 }
 
 const handlers: HandlersMap = {};
 
-export function clear(retentionType?: RetentionType): void {
-	store.clear(retentionType);
+let priorities: Map<AudienceId, number> = new Map();
+
+export function clear(): void {
+	store.clear();
 }
 
-export function get(): Set<string> {
+export function clearHandlers(): void {
+	for (const audienceId of Object.keys(handlers)) {
+		delete handlers[audienceId];
+	}
+}
+
+export function get(): Set<AudienceId> {
 	return store.getAudienceIds();
+}
+
+export function getPriority(audienceId: AudienceId): number {
+	const priority = priorities.get(audienceId);
+
+	return priority === undefined ? Infinity : priority;
 }
 
 export async function runDetection(
@@ -57,6 +71,13 @@ export async function runDetection(
 		);
 	}
 
+	priorities = new Map(
+		audiencesDefinition.audiences.map((audience, index) => [
+			audience.id,
+			index,
+		])
+	);
+
 	const detection = new Detection(audiencesDefinition);
 
 	let matches;
@@ -70,41 +91,16 @@ export async function runDetection(
 		);
 	}
 
-	const browserAudienceIds = store.getBrowserAudienceIds();
-	const pageAudienceIds = store.getPageAudienceIds();
-	const tabAudienceIds = store.getTabAudienceIds();
+	const audienceIds = store.getAudienceIds();
 
 	for (const match of matches) {
-		switch (match.retentionType) {
-			case 'BROWSER': {
-				browserAudienceIds.add(match.id);
-				break;
-			}
-
-			case 'PAGE': {
-				pageAudienceIds.add(match.id);
-				break;
-			}
-
-			case 'TAB': {
-				tabAudienceIds.add(match.id);
-				break;
-			}
-
-			default: {
-				throw new Error(
-					`Unsupported retention type '${match.retentionType}' for audience '${match.id}'`
-				);
-			}
-		}
+		audienceIds.add(match);
 	}
 
-	store.setBrowserAudienceIds(browserAudienceIds);
-	store.setPageAudienceIds(pageAudienceIds);
-	store.setTabAudienceIds(tabAudienceIds);
+	store.setAudienceIds(audienceIds);
 }
 
-export function on(audienceId: string, handler: Handler): void {
+export function on(audienceId: AudienceId, handler: Handler): void {
 	log(
 		`Adding handler '${handler.name ?? 'anonymous'}' for audience '${audienceId}'`
 	);
@@ -135,16 +131,12 @@ export async function runHandlers(): Promise<void> {
 				await handler();
 			}
 			catch (error) {
-				throw new Error(
-					`There was an error running handler '${handlerName}' of audience ` +
+				log(
+					`Unable to run handler '${handlerName}' of audience ` +
 						`'${audienceId}': ${getErrorMessage(error)}`
 				);
 			}
 		}
-	}
-
-	for (const key of Object.keys(handlers)) {
-		delete handlers[key];
 	}
 }
 

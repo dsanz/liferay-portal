@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.site.dsr.site.initializer.internal.servlet.ServletContextUtil;
+import com.liferay.site.dsr.site.initializer.util.DSRRoomUtil;
 import com.liferay.taglib.util.IncludeTag;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -64,12 +65,22 @@ public class ShareTag extends IncludeTag {
 				return SKIP_BODY;
 			}
 
+			PermissionChecker permissionChecker =
+				themeDisplay.getPermissionChecker();
+
 			_hasAssignMembersPermission = _hasAssignMembersPermission(
-				themeDisplay.getPermissionChecker(), objectEntry);
+				permissionChecker, objectEntry);
 
 			if (!_hasAssignMembersPermission) {
 				return SKIP_BODY;
 			}
+
+			_canAssignAllRoles =
+				permissionChecker.isGroupAdmin(_groupId) ||
+				permissionChecker.isGroupOwner(_groupId);
+			_readOnly =
+				DSRRoomUtil.isArchived(objectEntry) ||
+				DSRRoomUtil.isReadOnly(objectEntry, permissionChecker);
 		}
 		catch (PortalException portalException) {
 			if (_log.isDebugEnabled()) {
@@ -126,8 +137,10 @@ public class ShareTag extends IncludeTag {
 	protected void cleanUp() {
 		super.cleanUp();
 
+		_canAssignAllRoles = false;
 		_groupId = 0;
 		_hasAssignMembersPermission = false;
+		_readOnly = false;
 		_roomId = 0;
 	}
 
@@ -138,6 +151,11 @@ public class ShareTag extends IncludeTag {
 
 	@Override
 	protected void setAttributes(HttpServletRequest httpServletRequest) {
+		httpServletRequest.setAttribute(
+			"liferay-site-dsr-site-initializer:share:canAssignAllRoles",
+			_canAssignAllRoles);
+		httpServletRequest.setAttribute(
+			"liferay-site-dsr-site-initializer:share:readOnly", _readOnly);
 		httpServletRequest.setAttribute(
 			"liferay-site-dsr-site-initializer:share:roomId", _roomId);
 	}
@@ -166,8 +184,10 @@ public class ShareTag extends IncludeTag {
 
 	private static final Log _log = LogFactoryUtil.getLog(ShareTag.class);
 
+	private boolean _canAssignAllRoles;
 	private long _groupId;
 	private boolean _hasAssignMembersPermission;
+	private boolean _readOnly;
 	private long _roomId;
 
 }

@@ -5,15 +5,18 @@
 
 package com.liferay.design.library.web.internal.display.context;
 
-import com.liferay.design.library.web.internal.constants.DesignLibraryConstants;
+import com.liferay.depot.constants.DepotActionKeys;
+import com.liferay.depot.constants.DepotConstants;
 import com.liferay.exportimport.constants.ExportImportPortletKeys;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.petra.string.StringBundler;
-import com.liferay.portal.kernel.json.JSONArray;
-import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
+import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
@@ -47,18 +50,26 @@ public class ViewDesignLibraryAdminDisplayContext {
 			"eq 'DesignLibrary'";
 	}
 
-	public Map<String, Object> getBreadcrumbProps() {
-		return HashMapBuilder.<String, Object>put(
-			"breadcrumbItems", _getBreadcrumbItemsJSONArray()
-		).build();
+	public List<DropdownItem> getBulkActionDropdownItems() {
+		return ListUtil.fromArray(
+			new FDSActionDropdownItem(
+				null, "trash", "delete",
+				LanguageUtil.get(_httpServletRequest, "delete"), null, "delete",
+				null));
 	}
 
 	public Map<String, Object> getEmptyState() {
 		return HashMapBuilder.<String, Object>put(
 			"description",
-			LanguageUtil.get(
-				_httpServletRequest,
-				"click-new-to-create-your-first-design-library")
+			() -> {
+				if (_hasAddDepotEntryPermission()) {
+					return LanguageUtil.get(
+						_httpServletRequest,
+						"click-new-to-create-your-first-design-library");
+				}
+
+				return StringPool.BLANK;
+			}
 		).put(
 			"image", "/states/design_library_empty_state.svg"
 		).put(
@@ -73,9 +84,9 @@ public class ViewDesignLibraryAdminDisplayContext {
 				PortletURLBuilder.createActionURL(
 					_liferayPortletResponse
 				).setMVCRenderCommandName(
-					"/design_library/design_library_resources"
+					"/design_library/view_resources_design_library"
 				).setParameter(
-					DesignLibraryConstants.DESIGN_LIBRARY_ENTRY_ID_KEY, "{id}"
+					"designLibraryEntryId", "{id}"
 				).buildString(),
 				"pencil", "edit", LanguageUtil.get(_httpServletRequest, "edit"),
 				null, null, "link"),
@@ -97,25 +108,17 @@ public class ViewDesignLibraryAdminDisplayContext {
 
 	public Map<String, Object> getFDSAdditionalProps() {
 		return HashMapBuilder.<String, Object>put(
-			"entryIdKey", DesignLibraryConstants.DESIGN_LIBRARY_ENTRY_ID_KEY
+			"canAddDesignLibrary", _hasAddDepotEntryPermission()
+		).put(
+			"entryIdKey", "designLibraryEntryId"
 		).put(
 			"redirectURL",
 			PortletURLBuilder.createRenderURL(
 				_liferayPortletResponse
 			).setMVCRenderCommandName(
-				"/design_library/design_library_resources"
+				"/design_library/view_resources_design_library"
 			).buildString()
 		).build();
-	}
-
-	private JSONArray _getBreadcrumbItemsJSONArray() {
-		return JSONUtil.putAll(
-			JSONUtil.put(
-				"active", true
-			).put(
-				"label",
-				LanguageUtil.get(_httpServletRequest, "design-libraries")
-			));
 	}
 
 	private String _getExportImportPortletURL(String portletId) {
@@ -128,6 +131,25 @@ public class ViewDesignLibraryAdminDisplayContext {
 			PortalUtil.getPortletNamespace(portletId) + "backURL",
 			PortalUtil.getCurrentURL(_httpServletRequest));
 	}
+
+	private boolean _hasAddDepotEntryPermission() {
+		PortletResourcePermission portletResourcePermission =
+			_depotPortletResourcePermissionSnapshot.get();
+
+		if (portletResourcePermission == null) {
+			return false;
+		}
+
+		return portletResourcePermission.contains(
+			_themeDisplay.getPermissionChecker(),
+			_themeDisplay.getScopeGroupId(), DepotActionKeys.ADD_DEPOT_ENTRY);
+	}
+
+	private static final Snapshot<PortletResourcePermission>
+		_depotPortletResourcePermissionSnapshot = new Snapshot<>(
+			ViewDesignLibraryAdminDisplayContext.class,
+			PortletResourcePermission.class,
+			"(resource.name=" + DepotConstants.RESOURCE_NAME + ")");
 
 	private final HttpServletRequest _httpServletRequest;
 	private final LiferayPortletResponse _liferayPortletResponse;

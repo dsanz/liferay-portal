@@ -1807,9 +1807,7 @@ public class LanguageImpl implements Language, Serializable {
 				languageCode = languageId.substring(0, pos);
 			}
 
-			if (!groupLanguageCodeLocalesMap.containsKey(languageCode)) {
-				groupLanguageCodeLocalesMap.put(languageCode, locale);
-			}
+			groupLanguageCodeLocalesMap.putIfAbsent(languageCode, locale);
 
 			groupLanguageIdLocalesMap.put(languageId, locale);
 		}
@@ -2160,11 +2158,10 @@ public class LanguageImpl implements Language, Serializable {
 					languageCode = languageId.substring(0, pos);
 				}
 
-				if (_languageCodeLocalesMap.containsKey(languageCode)) {
+				if (_languageCodeLocalesMap.putIfAbsent(languageCode, locale) !=
+						null) {
+
 					duplicateLanguageCodes.add(languageCode);
-				}
-				else {
-					_languageCodeLocalesMap.put(languageCode, locale);
 				}
 
 				linkedHashMapWrapper.put(languageId, locale);

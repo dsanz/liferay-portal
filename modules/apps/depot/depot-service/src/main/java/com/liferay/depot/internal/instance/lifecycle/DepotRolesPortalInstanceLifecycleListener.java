@@ -6,11 +6,14 @@
 package com.liferay.depot.internal.instance.lifecycle;
 
 import com.liferay.depot.constants.DepotRolesConstants;
+import com.liferay.depot.internal.roles.DepotDesignLibraryRolesHelper;
 import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.security.permission.contributor.DepotRolePermissionsContributor;
 import com.liferay.depot.util.DepotRoleUtil;
 import com.liferay.portal.instance.lifecycle.BasePortalInstanceLifecycleListener;
 import com.liferay.portal.instance.lifecycle.PortalInstanceLifecycleListener;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.ResourceConstants;
@@ -29,6 +32,9 @@ import java.util.List;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * @author Cristina González
@@ -97,6 +103,22 @@ public class DepotRolesPortalInstanceLifecycleListener
 				assetLibraryAdministratorRole.getRoleId(),
 				new String[] {ActionKeys.VIEW});
 		}
+
+		if (FeatureFlagManagerUtil.isEnabled(
+				company.getCompanyId(), "LPD-57283")) {
+
+			DepotDesignLibraryRolesHelper depotDesignLibraryRolesHelper =
+				new DepotDesignLibraryRolesHelper(
+					_language, _resourceLocalService,
+					_resourcePermissionLocalService, _roleLocalService,
+					_userLocalService);
+
+			depotDesignLibraryRolesHelper.setUpDesignLibraryRoles(
+				company.getCompanyId());
+
+			depotDesignLibraryRolesHelper.setUpResourcePermissions(
+				company.getCompanyId(), _depotRolePermissionsContributors);
+		}
 	}
 
 	private Role _getOrCreateRole(long companyId, String name)
@@ -115,8 +137,8 @@ public class DepotRolesPortalInstanceLifecycleListener
 				return _roleLocalService.addRole(
 					RoleConstants.toSystemRoleExternalReferenceCode(name),
 					user.getUserId(), null, 0, name,
-					DepotRoleUtil.getTitleMap(companyId, _language, name),
-					DepotRoleUtil.getDescriptionMap(companyId, _language, name),
+					DepotRoleUtil.getTitleMap(_language, name),
+					DepotRoleUtil.getDescriptionMap(_language, name),
 					RoleConstants.TYPE_DEPOT, null, null);
 			}
 			finally {
@@ -129,6 +151,14 @@ public class DepotRolesPortalInstanceLifecycleListener
 
 	private static final String _ASSET_TAGS_RESOURCE_NAME =
 		"com.liferay.asset.tags";
+
+	@Reference(
+		cardinality = ReferenceCardinality.MULTIPLE,
+		policy = ReferencePolicy.DYNAMIC,
+		policyOption = ReferencePolicyOption.GREEDY
+	)
+	private volatile List<DepotRolePermissionsContributor>
+		_depotRolePermissionsContributors;
 
 	@Reference
 	private Language _language;

@@ -9,6 +9,7 @@ import {apiHelpersTest} from '../../../fixtures/apiHelpersTest';
 import {isolatedSiteTest} from '../../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {messageBoardsPagesTest} from '../../../fixtures/messageBoardsTest';
+import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
 import createUserWithPermissions from '../../../utils/createUserWithPermissions';
 import getRandomString from '../../../utils/getRandomString';
 import {
@@ -26,8 +27,8 @@ const test = mergeTests(
 );
 
 test(
-	'A site member cannot edit or delete a thread without permissions',
-	{tag: ['@LPS-136934', '@LPS-136936']},
+	'A site member cannot edit or delete threads or categories without permissions',
+	{tag: ['@LPS-136933', '@LPS-136934', '@LPS-136936', '@LPS-136938']},
 	async ({
 		apiHelpers,
 		messageBoardsEditThreadPage,
@@ -35,12 +36,15 @@ test(
 		page,
 		site,
 	}) => {
+		const categoryName = getRandomString();
 		const headline = getRandomString();
 
 		const layout =
 			await messageBoardsWidgetPage.addMessageBoardsPortlet(site);
 
-		// The administrator creates a thread through the UI
+		// The administrator creates a category and a thread through the UI
+
+		await messageBoardsWidgetPage.addCategory(site, layout, categoryName);
 
 		await messageBoardsEditThreadPage.gotoAndPublishNewBasicThread(
 			headline,
@@ -71,30 +75,54 @@ test(
 
 		await page.goto(`/web${site.friendlyUrlPath}${layout.friendlyURL}`);
 
-		// The member can see the thread
+		// The member can see the category and the thread
 
+		await expect(
+			page.getByRole('link', {name: categoryName}).first()
+		).toBeVisible();
 		await expect(
 			page.getByRole('link', {name: headline}).first()
 		).toBeVisible();
 
+		const messageBoards = page.locator(
+			'.portlet-boundary_com_liferay_message_boards_web_portlet_MBPortlet_'
+		);
+
+		const dropdownMenu = page.locator('.dropdown-menu:visible');
+
 		// The thread action menu offers Subscribe but not Edit or Delete
 
-		const dropdownMenu = page.locator('.dropdown-menu');
+		const threadActions = messageBoards
+			.locator('.list-group-item')
+			.filter({hasText: headline})
+			.getByTitle('Actions');
 
-		await expect(async () => {
-			await page
-				.locator('a.component-action.dropdown-toggle')
-				.first()
-				.click();
-
-			await expect(
-				dropdownMenu.getByText('Subscribe', {exact: true}).first()
-			).toBeVisible({timeout: 3000});
-		}).toPass();
+		await clickAndExpectToBeVisible({
+			target: dropdownMenu.getByText('Subscribe', {exact: true}),
+			trigger: threadActions,
+		});
 
 		await expect(dropdownMenu.getByText('Edit', {exact: true})).toHaveCount(
 			0
 		);
+		await expect(
+			dropdownMenu.getByText('Delete', {exact: true})
+		).toHaveCount(0);
+
+		await page.keyboard.press('Escape');
+
+		// The category action menu does not offer Delete
+
+		const categoryActions = messageBoards
+			.locator('.list-group-item')
+			.filter({hasText: categoryName})
+			.getByTitle('Actions');
+
+		await clickAndExpectToBeVisible({
+			target: dropdownMenu,
+			trigger: categoryActions,
+		});
+
 		await expect(
 			dropdownMenu.getByText('Delete', {exact: true})
 		).toHaveCount(0);
@@ -392,4 +420,85 @@ test('A regular role with portlet access can open the message boards admin', asy
 	await expect(
 		page.getByText('There are no threads or categories.')
 	).toBeVisible();
+});
+
+test('A guest granted reply permission can reply to a thread', async ({
+	messageBoardsEditThreadPage,
+	messageBoardsPage,
+	messageBoardsWidgetPage,
+	page,
+	site,
+}) => {
+	await messageBoardsPage.setGuestCategoryPermissions(site.friendlyUrlPath);
+
+	await messageBoardsEditThreadPage.gotoAndPublishNewBasicThread(
+		'Thread Subject',
+		'Thread Body',
+		site.friendlyUrlPath
+	);
+
+	const layout = await messageBoardsWidgetPage.addMessageBoardsPortlet(site);
+
+	// The guest reply is posted and attributed to an anonymous author
+
+	await messageBoardsWidgetPage.addGuestReply(site, layout, 'Publish');
+
+	await expect(page.getByText('test guest')).toBeVisible();
+	await expect(page.getByText('Anonymous')).toBeVisible();
+});
+
+test('A reply keeps the owner only view permissions of its thread', async ({
+	apiHelpers,
+	messageBoardsWidgetPage,
+	page,
+	site,
+}) => {
+	const replyBody = getRandomString();
+	const threadSubject = getRandomString();
+
+	const layout = await messageBoardsWidgetPage.addMessageBoardsPortlet(site);
+
+	// A thread and its reply created through the API are viewable by the owner
+	// only
+
+	const thread = await apiHelpers.headlessDelivery.postMessageBoardThread({
+		articleBody: getRandomString(),
+		headline: threadSubject,
+		siteId: site.id,
+	});
+
+	await apiHelpers.headlessDelivery.postMessageBoardMessage({
+		articleBody: replyBody,
+		messageBoardThreadId: String(thread.id),
+	});
+
+	await messageBoardsWidgetPage.goToThread(site, layout, threadSubject);
+
+	// Open the reply's inline permissions
+
+	const replyCard = page
+		.locator('.card-tab.message-container')
+		.filter({hasText: replyBody});
+
+	await clickAndExpectToBeVisible({
+		autoClick: true,
+		target: page
+			.locator('.dropdown-menu:visible')
+			.getByText('Permissions', {
+				exact: true,
+			}),
+		trigger: replyCard.locator('a.component-action.dropdown-toggle'),
+	});
+
+	const permissionsFrame = page.frameLocator('iframe[title="Permissions"]');
+
+	// Only the owner keeps the view permission on the reply
+
+	await expect(permissionsFrame.locator('#owner_ACTION_VIEW')).toBeChecked();
+	await expect(
+		permissionsFrame.locator('#power-user_ACTION_VIEW')
+	).not.toBeChecked();
+	await expect(
+		permissionsFrame.locator('#user_ACTION_VIEW')
+	).not.toBeChecked();
 });

@@ -44,6 +44,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
@@ -125,6 +126,8 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -768,7 +771,7 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			messageBoardSectionResource.
 				getMessageBoardSectionMessageBoardSectionsPage(
 					parentMessageBoardSectionId, null, null, null,
-					Pagination.of(1, 10), null);
+					Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1217,20 +1220,9 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 		Long parentMessageBoardSectionId =
 			testGetMessageBoardSectionMessageBoardSectionsPage_getParentMessageBoardSectionId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"messageBoardSectionMessageBoardSections",
-			new HashMap<String, Object>() {
-				{
-					put(
-						"parentMessageBoardSectionId",
-						parentMessageBoardSectionId);
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetMessageBoardSectionMessageBoardSectionsPageMessageBoardSection_getGraphQLField(
+				parentMessageBoardSectionId);
 
 		// No namespace
 
@@ -1300,6 +1292,27 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 				MessageBoardSectionSerDes.toDTOs(
 					messageBoardSectionMessageBoardSectionsJSONObject.getString(
 						"items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetMessageBoardSectionMessageBoardSectionsPageMessageBoardSection_getGraphQLField(
+				Long parentMessageBoardSectionId)
+		throws Exception {
+
+		return new GraphQLField(
+			"messageBoardSectionMessageBoardSections",
+			new HashMap<String, Object>() {
+				{
+					put(
+						"parentMessageBoardSectionId",
+						parentMessageBoardSectionId);
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	protected MessageBoardSection
@@ -1621,7 +1634,8 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 				siteId, randomMessageBoardSection());
 
 		page = messageBoardSectionResource.getSiteMessageBoardSectionsPage(
-			siteId, null, null, null, null, Pagination.of(1, 10), null);
+			siteId, null, null, null, null,
+			Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -2054,18 +2068,9 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 	public void testGraphQLGetSiteMessageBoardSectionsPage() throws Exception {
 		Long siteId = testGetSiteMessageBoardSectionsPage_getSiteId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"messageBoardSections",
-			new HashMap<String, Object>() {
-				{
-					put("siteKey", "\"" + siteId + "\"");
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetSiteMessageBoardSectionsPageSiteMessageBoardSection_getGraphQLField(
+				siteId);
 
 		// No namespace
 
@@ -2125,6 +2130,25 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 			Arrays.asList(
 				MessageBoardSectionSerDes.toDTOs(
 					messageBoardSectionsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetSiteMessageBoardSectionsPageSiteMessageBoardSection_getGraphQLField(
+				Long siteId)
+		throws Exception {
+
+		return new GraphQLField(
+			"messageBoardSections",
+			new HashMap<String, Object>() {
+				{
+					put("siteKey", "\"" + siteId + "\"");
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -3860,4 +3884,4 @@ public abstract class BaseMessageBoardSectionResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-539812710
+// LIFERAY-REST-BUILDER-HASH:978631343

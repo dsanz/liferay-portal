@@ -3,30 +3,38 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import ClayEmptyState from '@clayui/empty-state';
-import {Card, ICardSchema} from '@liferay/frontend-data-set-web';
-import React, {Context, useContext, useMemo, useState} from 'react';
-
-import '../../../../css/props_transformer/GalleryView.scss';
-
 import {ClayButtonWithIcon} from '@clayui/button';
+import ClayEmptyState from '@clayui/empty-state';
+import {
+	Card,
+	ICardSchema,
+	IFileDropSettings,
+} from '@liferay/frontend-data-set-web';
 
 // eslint-disable-next-line
 import {IFrontendDataSetContext} from '@liferay/frontend-data-set-web/src/main/resources/META-INF/resources/FrontendDataSetContext';
 import classNames from 'classnames';
+import {getObjectValueFromPath, sub} from 'frontend-js-web';
+import React, {Context, useContext, useEffect, useRef, useState} from 'react';
+import {useDropzone} from 'react-dropzone';
 
 import AssetPreview from '../../../common/components/AssetPreview';
+import useResizeObserver from '../../../common/hooks/useResizeObserver';
 
-const VISIBLE_ITEMS_COUNT = 5;
-const MAX_VISIBLE_INDEX = (itemsLength: number) =>
-	Math.max(0, itemsLength - VISIBLE_ITEMS_COUNT);
+import '../../../../css/props_transformer/GalleryView.scss';
+
+const THUMBNAIL_WIDTH = 190;
+const THUMBNAIL_GAP = 16;
+const DEFAULT_VISIBLE_ITEMS_COUNT = 5;
 
 const GalleryView = ({
+	fileDropSettings,
 	frontendDataSetContext,
 	items,
 	schema,
 	...otherProps
 }: {
+	fileDropSettings?: IFileDropSettings;
 	frontendDataSetContext: Context<IFrontendDataSetContext>;
 	items: any[];
 	schema: ICardSchema;
@@ -34,93 +42,74 @@ const GalleryView = ({
 	const {selectedItems} = useContext(frontendDataSetContext);
 	const [selectedIndex, setSelectedIndex] = useState(0);
 	const [visibleStartIndex, setVisibleStartIndex] = useState(0);
+	const [visibleItemsCount, setVisibleItemsCount] = useState(
+		DEFAULT_VISIBLE_ITEMS_COUNT
+	);
+	const thumbnailsRef = useRef<HTMLDivElement>(null);
+
+	const safeSelectedIndex = Math.min(
+		selectedIndex,
+		Math.max(0, items.length - 1)
+	);
+
+	useResizeObserver(thumbnailsRef, (element, entry) => {
+		const {width} = entry?.contentRect ?? element.getBoundingClientRect();
+
+		const fittingCount = Math.floor(
+			(width + THUMBNAIL_GAP) / (THUMBNAIL_WIDTH + THUMBNAIL_GAP)
+		);
+
+		setVisibleItemsCount(Math.max(1, fittingCount));
+	});
+
+	useEffect(() => {
+		setVisibleStartIndex((start) => {
+			const maxStart = Math.max(0, items.length - visibleItemsCount);
+
+			if (safeSelectedIndex < start) {
+				return safeSelectedIndex;
+			}
+
+			if (safeSelectedIndex >= start + visibleItemsCount) {
+				return Math.min(
+					safeSelectedIndex - visibleItemsCount + 1,
+					maxStart
+				);
+			}
+
+			return Math.min(start, maxStart);
+		});
+	}, [items.length, safeSelectedIndex, visibleItemsCount]);
 
 	const handlePrevClick = () => {
-		const itemsLength = items.length;
-
-		let newSelectedIndex;
-		let newVisibleIndex;
-
-		if (selectedIndex === 0) {
-			newSelectedIndex = itemsLength - 1;
-			newVisibleIndex = MAX_VISIBLE_INDEX(itemsLength);
-		}
-		else {
-			newSelectedIndex = selectedIndex - 1;
-			newVisibleIndex = visibleStartIndex;
-
-			if (newSelectedIndex < visibleStartIndex) {
-				newVisibleIndex = visibleStartIndex - 1;
-			}
-		}
-
-		setSelectedIndex(newSelectedIndex);
-		setVisibleStartIndex(newVisibleIndex);
+		setSelectedIndex(
+			safeSelectedIndex === 0 ? items.length - 1 : safeSelectedIndex - 1
+		);
 	};
 
 	const handleNextClick = () => {
-		const itemsLength = items.length;
-		const maxVisibleIndex = MAX_VISIBLE_INDEX(itemsLength);
-
-		let newSelectedIndex;
-		let newVisibleIndex;
-
-		if (selectedIndex === itemsLength - 1) {
-			newSelectedIndex = 0;
-			newVisibleIndex = 0;
-		}
-		else {
-			newSelectedIndex = selectedIndex + 1;
-			newVisibleIndex = visibleStartIndex;
-
-			if (newSelectedIndex >= visibleStartIndex + VISIBLE_ITEMS_COUNT) {
-				newVisibleIndex = Math.min(
-					maxVisibleIndex,
-					visibleStartIndex + 1
-				);
-			}
-		}
-
-		setSelectedIndex(newSelectedIndex);
-		setVisibleStartIndex(newVisibleIndex);
-	};
-
-	const handleItemClick = (index: number) => {
-		setSelectedIndex(index);
-
-		const itemsLength = items.length;
-		const maxVisibleIndex = MAX_VISIBLE_INDEX(itemsLength);
-
-		if (itemsLength > VISIBLE_ITEMS_COUNT) {
-			if (index < visibleStartIndex) {
-				setVisibleStartIndex(index);
-			}
-			else if (index >= visibleStartIndex + VISIBLE_ITEMS_COUNT) {
-				setVisibleStartIndex(
-					Math.min(maxVisibleIndex, index - VISIBLE_ITEMS_COUNT + 1)
-				);
-			}
-		}
+		setSelectedIndex(
+			safeSelectedIndex === items.length - 1 ? 0 : safeSelectedIndex + 1
+		);
 	};
 
 	const handleKeyDown = (event: React.KeyboardEvent, index: number) => {
+		if (event.target !== event.currentTarget) {
+			return;
+		}
+
 		if (event.key === 'Enter' || event.key === ' ') {
 			event.preventDefault();
-			handleItemClick(index);
+			setSelectedIndex(index);
 		}
 	};
 
 	const visibleItems = items.slice(
 		visibleStartIndex,
-		visibleStartIndex + VISIBLE_ITEMS_COUNT
+		visibleStartIndex + visibleItemsCount
 	);
 
-	const currentItem = useMemo(
-		() => items[selectedIndex],
-		[items, selectedIndex]
-	);
-
-	const cardWidth = `calc((100% - ${VISIBLE_ITEMS_COUNT - 1}rem) / ${VISIBLE_ITEMS_COUNT})`;
+	const currentItem = items[safeSelectedIndex];
 
 	const isNavigationDisabled = items.length === 1;
 
@@ -143,7 +132,7 @@ const GalleryView = ({
 					) : (
 						<AssetPreview
 							item={currentItem}
-							key={selectedIndex}
+							key={safeSelectedIndex}
 							showContentPreview={false}
 							url=""
 						/>
@@ -162,36 +151,27 @@ const GalleryView = ({
 					symbol="angle-left"
 				/>
 
-				<div className="c-gap-3 d-flex fds-gallery-view__thumbnails flex-grow-1">
+				<div
+					className="d-flex fds-gallery-view__thumbnails flex-grow-1 justify-content-center mb-3"
+					ref={thumbnailsRef}
+				>
 					{visibleItems.map((item, index) => {
 						const actualIndex = visibleStartIndex + index;
-						const classes = classNames(
-							'fds-gallery-view__thumbnail',
-							{
-								selected: actualIndex === selectedIndex,
-							}
-						);
 
 						return (
-							<div
-								className={classes}
-								key={actualIndex}
-								onClick={() => handleItemClick(actualIndex)}
+							<GalleryThumbnail
+								fileDropSettings={fileDropSettings}
+								item={item}
+								items={items}
+								key={item.id}
+								onClick={() => setSelectedIndex(actualIndex)}
 								onKeyDown={(event) =>
 									handleKeyDown(event, actualIndex)
 								}
-								style={{
-									width: cardWidth,
-								}}
-								tabIndex={0}
-							>
-								<Card
-									item={item}
-									items={items}
-									schema={schema}
-									{...otherProps}
-								/>
-							</div>
+								schema={schema}
+								selected={actualIndex === safeSelectedIndex}
+								{...otherProps}
+							/>
 						);
 					})}
 				</div>
@@ -211,3 +191,62 @@ const GalleryView = ({
 };
 
 export default GalleryView;
+
+function GalleryThumbnail({
+	fileDropSettings,
+	item,
+	items,
+	onClick,
+	onKeyDown,
+	schema,
+	selected,
+	...otherProps
+}: {
+	fileDropSettings?: IFileDropSettings;
+	item: any;
+	items: any[];
+	onClick: () => void;
+	onKeyDown: (event: React.KeyboardEvent) => void;
+	schema: ICardSchema;
+	selected: boolean;
+}) {
+	const isDropTarget = Boolean(
+		fileDropSettings?.enabled && fileDropSettings.isDropTarget({item})
+	);
+
+	// Only folders accept drops
+
+	const {getRootProps, isDragActive} = useDropzone({
+		disabled: !isDropTarget,
+		noClick: true,
+		noDragEventsBubbling: true,
+		noKeyboard: true,
+		onDrop: (droppedFiles) => {
+			fileDropSettings?.onFileDrop?.(droppedFiles, item);
+		},
+	});
+
+	const title = schema.title
+		? getObjectValueFromPath({object: item, path: schema.title})
+		: '';
+
+	return (
+		<div
+			{...getRootProps()}
+			aria-label={
+				title
+					? sub(Liferay.Language.get('preview-x'), title)
+					: undefined
+			}
+			className={classNames('fds-gallery-view__thumbnail', {
+				'drop-target': isDragActive,
+				selected,
+			})}
+			onClick={onClick}
+			onKeyDown={onKeyDown}
+			tabIndex={0}
+		>
+			<Card item={item} items={items} schema={schema} {...otherProps} />
+		</div>
+	);
+}

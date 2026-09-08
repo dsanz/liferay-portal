@@ -27,6 +27,7 @@ public class YMLSourceProcessorTest extends BaseSourceProcessorTestCase {
 		test("FormatIndentation1.testyaml");
 		test("FormatIndentation2.testyaml");
 		test("FormatIndentation3.testyaml");
+		test("FormatIndentation4.testyaml");
 	}
 
 	@Test
@@ -42,11 +43,6 @@ public class YMLSourceProcessorTest extends BaseSourceProcessorTestCase {
 	@Test
 	public void testIncorrectWhitespace() throws Exception {
 		test("IncorrectWhitespace.testyaml");
-	}
-
-	@Test
-	public void testLongLinesCheck() throws Exception {
-		test("ExceedMaxLineLength.testyaml");
 	}
 
 	@Test

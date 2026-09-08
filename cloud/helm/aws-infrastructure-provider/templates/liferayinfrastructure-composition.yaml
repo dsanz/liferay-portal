@@ -48,6 +48,11 @@ spec:
                                                 type: object
                                             minItems: 1
                                             type: array
+                                        vaultTags:
+                                            additionalProperties:
+                                                type: string
+                                            default: {}
+                                            type: object
                                     required:
                                         -   rules
                                     type: object
@@ -101,6 +106,12 @@ spec:
                                     type: boolean
                                 orphanOnDelete:
                                     type: boolean
+                                overlayAccess:
+                                    properties:
+                                        enabled:
+                                            default: false
+                                            type: boolean
+                                    type: object
                                 projectId:
                                     type: string
                                 region:
@@ -142,6 +153,11 @@ spec:
                                     properties:
                                         region:
                                             type: string
+                                        tags:
+                                            additionalProperties:
+                                                type: string
+                                            default: {}
+                                            type: object
                                     type: object
                                 targetActiveDataPlane:
                                     enum:
@@ -554,7 +570,6 @@ spec:
                         kind: Selection
                         metadata:
                             annotations:
-                                crossplane.io/external-name: {{ $baseName }}-by-tags-selection
                                 gotemplating.fn.crossplane.io/composition-resource-name: by-tags-selection
                             labels:
                                 app: liferay
@@ -617,6 +632,10 @@ spec:
                                         projectId: {{ $projectId }}
                                 {{- end }}
                                 region: {{ $backupRegion }}
+                                {{- with $backupSpec.vaultTags }}
+                                tags:
+                                    {{- . | toYaml | nindent 36 }}
+                                {{- end }}
                             managementPolicies: {{ $managementPolicies }}
                         {{- end }}
 
@@ -811,6 +830,9 @@ spec:
                                     Active: {{ printf "%t" (eq $dataPlane $activeDataPlane) | quote }}
                                     Backup: "true"
                                     Name: {{ $storageName }}-{{ $dataPlane }}
+                                    {{- with $storageSpec.tags }}
+                                    {{- . | toYaml | nindent 36 }}
+                                    {{- end }}
                             managementPolicies: {{ $managementPolicies }}
                         ---
                         apiVersion: s3.aws.m.upbound.io/v1beta1
@@ -1329,18 +1351,18 @@ spec:
                         {{- $environmentId := $xr.spec.environmentId -}}
                         {{- $managementPolicies := $xr.spec.orphanOnDelete | ternary (list "Create" "Observe" "Update") (list "*") | toJson -}}
                         {{- $namespace := $xr.metadata.namespace -}}
+                        {{- $overlayAccess := $xr.spec.overlayAccess | default dict -}}
                         {{- $projectId := $xr.spec.projectId -}}
                         {{- $restorePhase := $xr.spec.restorePhase | default "none" -}}
+                        {{- $targetActiveDataPlane := $xr.spec.targetActiveDataPlane | default "blue" -}}
+
+                        {{- $overlayBucketName := printf "%s-overlay-%s" $deploymentName (printf "%.18s-%s" $projectId (printf "%s-%s-%s" $accountId $deploymentName $projectId | sha256sum | trunc 6)) -}}
 
                         {{- $projectIdFull := printf "%s-%s" $projectId $environmentId -}}
+
                         {{- $uidHash := printf "%s-%s-%s" $accountId $deploymentName $projectIdFull | sha256sum | trunc 6 -}}
                         {{- $baseName := printf "%.18s-%s" $projectIdFull $uidHash -}}
 
-                        `}}
-                        {{- include "aws-infrastructure-provider.overlayBucketName" . | nindent 24 }}
-                        {{`
-
-                        {{- $targetActiveDataPlane := $xr.spec.targetActiveDataPlane | default "blue" -}}
                         {{- $targetInactiveDataPlane := (eq $targetActiveDataPlane "blue") | ternary "green" "blue" -}}
                         {{- $activeDataPlane := $targetActiveDataPlane -}}
 
@@ -1632,6 +1654,7 @@ spec:
                                     type: Opaque
                             managementPolicies: {{ $managementPolicies }}
                         {{- end }}
+                        {{- if $overlayAccess.enabled }}
                         ---
                         apiVersion: kubernetes.m.crossplane.io/v1alpha1
                         kind: Object
@@ -1670,6 +1693,7 @@ spec:
                                                 uid: {{ .observed.composite.resource.metadata.uid }}
                                     type: Opaque
                             managementPolicies: {{ $managementPolicies }}
+                        {{- end }}
                         ---
                         {{ $isDatabaseReady := false -}}
                         {{- if and $databaseAddress $databasePassword $databasePort -}}

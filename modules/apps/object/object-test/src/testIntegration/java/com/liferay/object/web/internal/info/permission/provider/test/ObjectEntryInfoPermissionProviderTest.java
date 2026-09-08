@@ -16,18 +16,31 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.PortletLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PersistenceTestRule;
@@ -44,6 +57,7 @@ import org.junit.runner.RunWith;
 
 /**
  * @author Eudaldo Alonso
+ * @author Nathaly Gomes
  */
 @RunWith(Arquillian.class)
 public class ObjectEntryInfoPermissionProviderTest {
@@ -60,23 +74,8 @@ public class ObjectEntryInfoPermissionProviderTest {
 	}
 
 	@Test
-	public void testHasViewPermission() throws Exception {
-		_testHasViewPermissionForCustomObjectDefinition(
-			false, false, PermissionCheckerFactoryUtil.create(_user));
-		_testHasViewPermissionForCustomObjectDefinition(
-			false, true, PermissionThreadLocal.getPermissionChecker());
-		_testHasViewPermissionForCustomObjectDefinition(
-			true, true, PermissionThreadLocal.getPermissionChecker());
-		_testHasViewPermissionForModifiableSystemObjectDefinition(false, false);
-		_testHasViewPermissionForModifiableSystemObjectDefinition(true, false);
-		_testHasViewPermissionForUnmodifiableSystemObjectDefinition(false);
-		_testHasViewPermissionForUnmodifiableSystemObjectDefinition(true);
-	}
-
-	@FeatureFlag("LPD-17564")
-	@Test
 	@TestInfo("LPD-83634")
-	public void testHasViewPermissionWithFF() throws Exception {
+	public void testHasViewPermission() throws Exception {
 		_testHasViewPermissionForCustomObjectDefinition(
 			false, false, PermissionCheckerFactoryUtil.create(_user));
 		_testHasViewPermissionForCustomObjectDefinition(
@@ -85,13 +84,13 @@ public class ObjectEntryInfoPermissionProviderTest {
 			true, true, PermissionThreadLocal.getPermissionChecker());
 		_testHasViewPermissionForModifiableSystemObjectDefinition(false, false);
 		_testHasViewPermissionForModifiableSystemObjectDefinition(true, true);
+		_testHasViewPermissionForSiteRole();
 		_testHasViewPermissionForUnmodifiableSystemObjectDefinition(false);
 		_testHasViewPermissionForUnmodifiableSystemObjectDefinition(true);
 	}
 
-	private void _testHasViewPermissionForCustomObjectDefinition(
-			boolean enableFormContainer, boolean expectedResult,
-			PermissionChecker permissionChecker)
+	private ObjectDefinition _publishCustomObjectDefinition(
+			boolean enableFormContainer)
 		throws Exception {
 
 		ObjectDefinition objectDefinition =
@@ -109,10 +108,19 @@ public class ObjectEntryInfoPermissionProviderTest {
 
 		objectDefinition = _objectDefinitionLocalService.updateObjectDefinition(
 			objectDefinition);
-		objectDefinition =
-			_objectDefinitionLocalService.publishCustomObjectDefinition(
-				TestPropsValues.getUserId(),
-				objectDefinition.getObjectDefinitionId());
+
+		return _objectDefinitionLocalService.publishCustomObjectDefinition(
+			TestPropsValues.getUserId(),
+			objectDefinition.getObjectDefinitionId());
+	}
+
+	private void _testHasViewPermissionForCustomObjectDefinition(
+			boolean enableFormContainer, boolean expectedResult,
+			PermissionChecker permissionChecker)
+		throws Exception {
+
+		ObjectDefinition objectDefinition = _publishCustomObjectDefinition(
+			enableFormContainer);
 
 		PermissionChecker originalPermissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
@@ -181,6 +189,47 @@ public class ObjectEntryInfoPermissionProviderTest {
 		}
 	}
 
+	private void _testHasViewPermissionForSiteRole() throws Exception {
+		Group group = GroupTestUtil.addGroup();
+		Role siteRole = RoleTestUtil.addRole(RoleConstants.TYPE_SITE);
+		User siteUser = UserTestUtil.addUser();
+
+		_userGroupRoleLocalService.addUserGroupRoles(
+			siteUser.getUserId(), group.getGroupId(),
+			new long[] {siteRole.getRoleId()});
+		_userLocalService.addGroupUsers(
+			group.getGroupId(), new long[] {siteUser.getUserId()});
+
+		ObjectDefinition objectDefinition = _publishCustomObjectDefinition(
+			true);
+
+		Portlet portlet = _portletLocalService.getPortletById(
+			objectDefinition.getCompanyId(), objectDefinition.getPortletId());
+
+		_resourcePermissionLocalService.setResourcePermissions(
+			objectDefinition.getCompanyId(), portlet.getRootPortletId(),
+			ResourceConstants.SCOPE_GROUP, String.valueOf(group.getGroupId()),
+			siteRole.getRoleId(), new String[] {ActionKeys.VIEW});
+
+		InfoPermissionProvider<ObjectEntry> infoPermissionProvider =
+			_infoItemServiceRegistry.getFirstInfoItemService(
+				InfoPermissionProvider.class, objectDefinition.getClassName());
+
+		Assert.assertFalse(
+			infoPermissionProvider.hasViewPermission(
+				null, group.getGroupId(),
+				PermissionCheckerFactoryUtil.create(_user)));
+		Assert.assertTrue(
+			infoPermissionProvider.hasViewPermission(
+				null, group.getGroupId(),
+				PermissionCheckerFactoryUtil.create(siteUser)));
+
+		_groupLocalService.deleteGroup(group);
+		_objectDefinitionLocalService.deleteObjectDefinition(objectDefinition);
+		_roleLocalService.deleteRole(siteRole);
+		_userLocalService.deleteUser(siteUser);
+	}
+
 	private void _testHasViewPermissionForUnmodifiableSystemObjectDefinition(
 			boolean enableFormContainer)
 		throws Exception {
@@ -217,12 +266,30 @@ public class ObjectEntryInfoPermissionProviderTest {
 	}
 
 	@Inject
+	private GroupLocalService _groupLocalService;
+
+	@Inject
 	private InfoItemServiceRegistry _infoItemServiceRegistry;
 
 	@Inject
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
 
+	@Inject
+	private PortletLocalService _portletLocalService;
+
+	@Inject
+	private ResourcePermissionLocalService _resourcePermissionLocalService;
+
+	@Inject
+	private RoleLocalService _roleLocalService;
+
 	@DeleteAfterTestRun
 	private User _user;
+
+	@Inject
+	private UserGroupRoleLocalService _userGroupRoleLocalService;
+
+	@Inject
+	private UserLocalService _userLocalService;
 
 }

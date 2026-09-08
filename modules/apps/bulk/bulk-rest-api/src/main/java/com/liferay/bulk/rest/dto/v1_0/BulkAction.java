@@ -45,6 +45,10 @@ import java.util.function.Supplier;
 @JsonSubTypes(
 	{
 		@JsonSubTypes.Type(
+			name = "AddObjectToProjectBulkSelectionAction",
+			value = AddObjectToProjectBulkSelectionAction.class
+		),
+		@JsonSubTypes.Type(
 			name = "AssignStructureDefaultWorkflowBulkSelectionAction",
 			value = AssignStructureDefaultWorkflowBulkSelectionAction.class
 		),
@@ -113,8 +117,16 @@ import java.util.function.Supplier;
 			value = StatusObjectBulkSelectionAction.class
 		),
 		@JsonSubTypes.Type(
+			name = "UpdateExpirationDateObjectBulkSelectionAction",
+			value = UpdateExpirationDateObjectBulkSelectionAction.class
+		),
+		@JsonSubTypes.Type(
 			name = "UpdateObjectValuesBulkSelectionAction",
 			value = UpdateObjectValuesBulkSelectionAction.class
+		),
+		@JsonSubTypes.Type(
+			name = "UpdateReviewDateObjectBulkSelectionAction",
+			value = UpdateReviewDateObjectBulkSelectionAction.class
 		)
 	}
 )
@@ -361,6 +373,8 @@ public abstract class BulkAction implements Serializable {
 	@GraphQLName("Type")
 	public static enum Type {
 
+		ADD_OBJECT_TO_PROJECT_BULK_SELECTION_ACTION(
+			"AddObjectToProjectBulkSelectionAction"),
 		ASSIGN_STRUCTURE_DEFAULT_WORKFLOW_BULK_SELECTION_ACTION(
 			"AssignStructureDefaultWorkflowBulkSelectionAction"),
 		ASSIGN_TO_OBJECT_BULK_SELECTION_ACTION(
@@ -390,8 +404,12 @@ public abstract class BulkAction implements Serializable {
 		STATUS_OBJECT_BULK_SELECTION_ACTION("StatusObjectBulkSelectionAction"),
 		EDIT_OBJECT_CATEGORIES_BULK_SELECTION_ACTION(
 			"EditObjectCategoriesBulkSelectionAction"),
+		UPDATE_EXPIRATION_DATE_OBJECT_BULK_SELECTION_ACTION(
+			"UpdateExpirationDateObjectBulkSelectionAction"),
 		UPDATE_OBJECT_VALUES_BULK_SELECTION_ACTION(
-			"UpdateObjectValuesBulkSelectionAction");
+			"UpdateObjectValuesBulkSelectionAction"),
+		UPDATE_REVIEW_DATE_OBJECT_BULK_SELECTION_ACTION(
+			"UpdateReviewDateObjectBulkSelectionAction");
 
 		@JsonCreator
 		public static Type create(String value) {
@@ -515,4 +533,4 @@ public abstract class BulkAction implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1397213679
+// LIFERAY-REST-BUILDER-HASH:1193260222

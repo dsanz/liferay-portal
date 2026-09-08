@@ -59,6 +59,10 @@ const State = {
 			get selectors() {
 				return Array.from(selectors.values());
 			},
+
+			get subscribers() {
+				return subscribers;
+			},
 		},
 
 		reset() {
@@ -189,7 +193,8 @@ const State = {
 
 	_invalidateDependencies(
 		atomOrSelector: Atom<unknown> | Selector<unknown>,
-		invalidated: Array<Selector<unknown>>
+		invalidated: Array<Selector<unknown>>,
+		previousValues: Map<Selector<unknown>, unknown>
 	) {
 		const directDependencies = dependencies.get(atomOrSelector);
 
@@ -198,11 +203,15 @@ const State = {
 		}
 
 		for (const selector of directDependencies) {
+			if (values.has(selector) && !previousValues.has(selector)) {
+				previousValues.set(selector, values.get(selector));
+			}
+
 			values.delete(selector);
 
 			invalidated.push(selector);
 
-			this._invalidateDependencies(selector, invalidated);
+			this._invalidateDependencies(selector, invalidated, previousValues);
 		}
 	},
 
@@ -484,14 +493,28 @@ const State = {
 		}
 
 		const invalidatedSelectors: Array<Selector<unknown>> = [];
+		const previousSelectorValues = new Map<Selector<unknown>, unknown>();
 
-		this._invalidateDependencies(atom, invalidatedSelectors);
+		this._invalidateDependencies(
+			atom as Atom<unknown>,
+			invalidatedSelectors,
+			previousSelectorValues
+		);
 
 		for (const selector of invalidatedSelectors) {
+			const nextValue = State.readSelector(selector);
+
+			if (
+				previousSelectorValues.has(selector) &&
+				Object.is(nextValue, previousSelectorValues.get(selector))
+			) {
+				continue;
+			}
+
 			for (const callback of subscribers
 				.getCallbacks(selector)
 				.values()) {
-				State._notify(callback, State.readSelector(selector));
+				State._notify(callback, nextValue);
 			}
 		}
 	},
@@ -501,7 +524,14 @@ function isAtom(value: unknown): value is Atom<any> {
 	return Object.hasOwnProperty.call(value, ATOM);
 }
 
-window.Liferay.State = State;
+/**
+ * The public `Liferay.State` declaration (see liferay.d.ts) exposes `Atom`
+ * and `Selector` as opaque types so consumers cannot depend on their internal
+ * shape. The implementation here uses the concrete shape, so the assignment to
+ * the global must be asserted at this boundary.
+ */
+
+window.Liferay.State = State as unknown as typeof window.Liferay.State;
 
 /**
  * Boilerplate to satisfy TypeScript and prevent: "TS2669: Augmentations

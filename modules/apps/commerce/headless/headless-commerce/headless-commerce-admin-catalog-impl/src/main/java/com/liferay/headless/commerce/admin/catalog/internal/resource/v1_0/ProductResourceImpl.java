@@ -41,6 +41,7 @@ import com.liferay.commerce.product.service.CPInstanceUnitOfMeasureService;
 import com.liferay.commerce.product.service.CPOptionCategoryService;
 import com.liferay.commerce.product.service.CPOptionService;
 import com.liferay.commerce.product.service.CPSpecificationOptionService;
+import com.liferay.commerce.product.service.CPTaxCategoryLocalService;
 import com.liferay.commerce.product.service.CProductLocalService;
 import com.liferay.commerce.product.service.CommerceCatalogLocalService;
 import com.liferay.commerce.product.service.CommerceChannelRelService;
@@ -52,6 +53,7 @@ import com.liferay.commerce.product.type.virtual.service.CPDVirtualSettingFileEn
 import com.liferay.commerce.product.type.virtual.service.CPDefinitionVirtualSettingService;
 import com.liferay.commerce.service.CPDAvailabilityEstimateService;
 import com.liferay.commerce.service.CPDefinitionInventoryService;
+import com.liferay.commerce.service.CommerceAvailabilityEstimateService;
 import com.liferay.commerce.shop.by.diagram.constants.CSDiagramCPTypeConstants;
 import com.liferay.commerce.shop.by.diagram.service.CSDiagramEntryService;
 import com.liferay.commerce.shop.by.diagram.service.CSDiagramPinService;
@@ -104,6 +106,7 @@ import com.liferay.headless.commerce.core.util.DateConfig;
 import com.liferay.headless.commerce.core.util.ExpandoUtil;
 import com.liferay.headless.commerce.core.util.LanguageUtils;
 import com.liferay.headless.common.spi.odata.entity.EntityFieldsUtil;
+import com.liferay.journal.service.JournalArticleService;
 import com.liferay.petra.function.UnsafeFunction;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
@@ -116,6 +119,7 @@ import com.liferay.portal.kernel.search.filter.Filter;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.GroupService;
 import com.liferay.portal.kernel.service.RepositoryLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.settings.CompanyServiceSettingsLocator;
@@ -124,6 +128,7 @@ import com.liferay.portal.kernel.util.BigDecimalUtil;
 import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -339,8 +344,8 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 
 	@Override
 	public Product patchProduct(Long id, Product product) throws Exception {
-		CPDefinition cpDefinition =
-			_cpDefinitionService.fetchCPDefinitionByCProductId(id, false);
+		CPDefinition cpDefinition = ProductUtil.fetchCPDefinitionByCProductId(
+			id, _cpDefinitionService);
 
 		if (cpDefinition == null) {
 			throw new NoSuchCPDefinitionException(
@@ -358,10 +363,9 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 		throws Exception {
 
 		CPDefinition cpDefinition =
-			_cpDefinitionService.
-				fetchCPDefinitionByCProductExternalReferenceCode(
-					externalReferenceCode, contextCompany.getCompanyId(),
-					false);
+			ProductUtil.fetchCPDefinitionByCProductExternalReferenceCode(
+				externalReferenceCode, contextCompany.getCompanyId(),
+				_cpDefinitionService);
 
 		if (cpDefinition == null) {
 			throw new NoSuchCPDefinitionException(
@@ -369,19 +373,7 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 					externalReferenceCode);
 		}
 
-		ServiceContext serviceContext = _serviceContextHelper.getServiceContext(
-			cpDefinition.getGroupId());
-
-		int productStatus = GetterUtil.getInteger(product.getProductStatus());
-
-		if (productStatus == WorkflowConstants.STATUS_DRAFT) {
-			serviceContext.setWorkflowAction(
-				WorkflowConstants.ACTION_SAVE_DRAFT);
-		}
-
-		cpDefinition = _updateProduct(cpDefinition, product);
-
-		return _toProduct(cpDefinition.getCPDefinitionId());
+		return patchProduct(cpDefinition.getCProductId(), product);
 	}
 
 	@Override
@@ -604,10 +596,9 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 			_getProductTaxConfiguration(product);
 
 		CPDefinition cpDefinition =
-			_cpDefinitionService.
-				fetchCPDefinitionByCProductExternalReferenceCode(
-					externalReferenceCode, contextCompany.getCompanyId(),
-					false);
+			ProductUtil.fetchCPDefinitionByCProductExternalReferenceCode(
+				externalReferenceCode, contextCompany.getCompanyId(),
+				_cpDefinitionService);
 
 		Category[] categories = product.getCategories();
 
@@ -1000,6 +991,23 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 		return productTaxConfiguration;
 	}
 
+	private boolean _isPublishedCPDefinitionVersionable(
+			CPDefinition cpDefinition)
+		throws Exception {
+
+		CProduct cProduct = cpDefinition.getCProduct();
+
+		CPDefinition publishedCPDefinition =
+			_cpDefinitionService.fetchCPDefinition(
+				cProduct.getPublishedCPDefinitionId());
+
+		if (publishedCPDefinition == null) {
+			return false;
+		}
+
+		return _cpDefinitionService.isVersionable(publishedCPDefinition);
+	}
+
 	private boolean _isTaxable(
 		ProductTaxConfiguration productTaxConfiguration) {
 
@@ -1059,8 +1067,9 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 					GetterUtil.getBoolean(
 						productConfiguration.getAllowBackOrder(),
 						masterCPConfigurationEntry.isBackOrders()),
-					GetterUtil.getLong(
-						productConfiguration.getAvailabilityEstimateId(),
+					ProductConfigurationUtil.getCommerceAvailabilityEstimateId(
+						_commerceAvailabilityEstimateService,
+						productConfiguration,
 						masterCPConfigurationEntry.
 							getCommerceAvailabilityEstimateId()),
 					GetterUtil.getString(
@@ -1125,6 +1134,7 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 				cpDefinition.getCPDefinitionId());
 
 			ProductConfigurationUtil.updateCPDAvailabilityEstimate(
+				_commerceAvailabilityEstimateService,
 				_cpdAvailabilityEstimateService, productConfiguration,
 				cpDefinition.getCPDefinitionId());
 		}
@@ -1162,8 +1172,9 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 		if (productTaxConfiguration != null) {
 			cpDefinition =
 				ProductTaxConfigurationUtil.updateCPDefinitionTaxCategoryInfo(
-					_cpDefinitionService, productTaxConfiguration,
-					cpDefinition);
+					contextCompany.getCompanyId(), cpDefinition,
+					_cpDefinitionService, _cpTaxCategoryLocalService,
+					productTaxConfiguration, contextUser.getUserId());
 		}
 
 		// Product specifications
@@ -1484,6 +1495,7 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 					cpDefinition, productVirtualSettings,
 					_cpDefinitionVirtualSettingService,
 					_cpdVirtualSettingFileEntryService, _dlAppService,
+					_groupService, _journalArticleService,
 					_repositoryLocalService, _uniqueFileNameProvider,
 					serviceContext);
 			}
@@ -1499,6 +1511,8 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 			CPDefinition cpDefinition, Product product)
 		throws Exception {
 
+		boolean publish = false;
+
 		ServiceContext serviceContext = _serviceContextHelper.getServiceContext(
 			cpDefinition.getGroupId());
 
@@ -1508,8 +1522,12 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 			serviceContext.setWorkflowAction(
 				WorkflowConstants.ACTION_SAVE_DRAFT);
 		}
+		else if (_isPublishedCPDefinitionVersionable(cpDefinition)) {
+			publish = true;
 
-		cpDefinition = _getCPDefinition(cpDefinition, serviceContext);
+			serviceContext.setWorkflowAction(
+				WorkflowConstants.ACTION_SAVE_DRAFT);
+		}
 
 		String[] assetTagNames = product.getTags();
 
@@ -1621,6 +1639,8 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 				cpDefinition.getExpirationDate()),
 			contextUser.getTimeZone());
 
+		cpDefinition = _getCPDefinition(cpDefinition, serviceContext);
+
 		cpDefinition = _cpDefinitionService.updateCPDefinition(
 			cpDefinition.getCPDefinitionId(), cpDefinition.getCPTaxCategoryId(),
 			GetterUtil.getBoolean(
@@ -1658,6 +1678,17 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 				cpDefinition.getCPDefinitionId());
 		}
 
+		Map<String, ?> expando = product.getExpando();
+
+		if (MapUtil.isNotEmpty(expando)) {
+			ExpandoUtil.updateExpando(
+				serviceContext.getCompanyId(), CPDefinition.class,
+				cpDefinition.getPrimaryKey(), expando);
+		}
+
+		cpDefinition = _updateNestedResources(
+			product, cpDefinition, serviceContext);
+
 		if ((product.getActive() != null) && !product.getActive()) {
 			Map<String, Serializable> workflowContext = new HashMap<>();
 
@@ -1666,16 +1697,18 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 				WorkflowConstants.STATUS_INACTIVE, serviceContext,
 				workflowContext);
 		}
+		else if (publish && (productStatus != WorkflowConstants.STATUS_DRAFT)) {
+			Map<String, Serializable> workflowContext = new HashMap<>();
 
-		Map<String, ?> expando = product.getExpando();
+			serviceContext.setWorkflowAction(WorkflowConstants.ACTION_PUBLISH);
 
-		if ((expando != null) && !expando.isEmpty()) {
-			ExpandoUtil.updateExpando(
-				serviceContext.getCompanyId(), CPDefinition.class,
-				cpDefinition.getPrimaryKey(), expando);
+			cpDefinition = _cpDefinitionService.updateStatus(
+				cpDefinition.getCPDefinitionId(),
+				WorkflowConstants.STATUS_APPROVED, serviceContext,
+				workflowContext);
 		}
 
-		return _updateNestedResources(product, cpDefinition, serviceContext);
+		return cpDefinition;
 	}
 
 	@Reference
@@ -1695,6 +1728,10 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 
 	@Reference
 	private ClassNameLocalService _classNameLocalService;
+
+	@Reference
+	private CommerceAvailabilityEstimateService
+		_commerceAvailabilityEstimateService;
 
 	@Reference
 	private CommerceCatalogLocalService _commerceCatalogLocalService;
@@ -1779,6 +1816,9 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 	private CPSpecificationOptionService _cpSpecificationOptionService;
 
 	@Reference
+	private CPTaxCategoryLocalService _cpTaxCategoryLocalService;
+
+	@Reference
 	private CPTypeRegistry _cpTypeRegistry;
 
 	@Reference
@@ -1813,6 +1853,12 @@ public class ProductResourceImpl extends BaseProductResourceImpl {
 
 	@Reference
 	private GroupLocalService _groupLocalService;
+
+	@Reference
+	private GroupService _groupService;
+
+	@Reference
+	private JournalArticleService _journalArticleService;
 
 	@Reference
 	private Portal _portal;

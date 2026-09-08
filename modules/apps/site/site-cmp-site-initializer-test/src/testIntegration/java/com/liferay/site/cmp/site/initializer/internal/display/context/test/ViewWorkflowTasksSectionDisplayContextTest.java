@@ -39,9 +39,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Fábio Alves
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-58677")}
-)
+@FeatureFlags(featureFlags = @FeatureFlag("LPD-58677"))
 @RunWith(Arquillian.class)
 @Sync
 public class ViewWorkflowTasksSectionDisplayContextTest
@@ -60,7 +58,7 @@ public class ViewWorkflowTasksSectionDisplayContextTest
 			StringBundler.concat(
 				"/o/search/v1.0/search?emptySearch=true&entryClassNames=",
 				CLASS_NAME_KALEO_TASK_INSTANCE_TOKEN,
-				"&filter=keywords/any(k:startswith(k, 'L_CMP_TASK'))",
+				"&filter=cmpTaskObjectEntryIds/any(x:x gt 0)",
 				"&nestedFields=embedded"),
 			getAPIURL(null));
 	}
@@ -195,10 +193,11 @@ public class ViewWorkflowTasksSectionDisplayContextTest
 			FDSEntityFieldTypes.STRING, "cmpAssignTo", "assignee",
 			fdsFilters.get(0));
 		assertFDSFilter(
-			FDSEntityFieldTypes.DATE_TIME, "cmpDueDate", "due-date",
+			FDSEntityFieldTypes.DATE_TIME, "dueDate", "due-date",
 			fdsFilters.get(1));
 		assertFDSFilter(
-			FDSEntityFieldTypes.STRING, "cmpState", "state", fdsFilters.get(2));
+			FDSEntityFieldTypes.BOOLEAN, "completed", "status",
+			fdsFilters.get(2));
 	}
 
 	@Override

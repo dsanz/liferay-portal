@@ -1,8 +1,9 @@
 {
 	"friendlyURL": "/analytics",
 	"hidden": true,
+	"name": "Analytics",
 	"name_i18n": {
-		"en_US": "Analytics"
+		"[$FOR_EACH_LANGUAGE_ID$]": "analytics"
 	},
 	"permissions": [
 		{

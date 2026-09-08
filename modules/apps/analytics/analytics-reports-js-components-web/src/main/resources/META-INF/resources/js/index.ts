@@ -5,6 +5,8 @@
 
 import CMSPerformance from './CMSPerformance';
 import ContentDashboardPerformance from './ContentDashboardPerformance';
+import ConnectSites from './components/cms/ConnectSites';
+import ConnectToAnalyticsCloud from './components/cms/ConnectToAnalyticsCloud';
 
 export * from './utils/buildQueryString';
 export * from './utils/date';
@@ -12,4 +14,9 @@ export * from './utils/math';
 export * from './components/RangeSelectorsDropdown';
 export * from './utils/metrics';
 
-export {ContentDashboardPerformance, CMSPerformance};
+export {
+	CMSPerformance,
+	ConnectSites,
+	ConnectToAnalyticsCloud,
+	ContentDashboardPerformance,
+};

@@ -15,7 +15,7 @@ import java.util.List;
  */
 public class ElasticsearchDistribution implements Distribution {
 
-	public static final String VERSION = "8.19.11";
+	public static final String VERSION = "8.19.20";
 
 	@Override
 	public Distributable getElasticsearchDistributable() {
@@ -46,23 +46,23 @@ public class ElasticsearchDistribution implements Distribution {
 	}
 
 	private static final String _ELASTICSEARCH_CHECKSUM =
-		"f645466fa4989a0e8fc5b9e3b51a6ad08e0dfbebd8f1e0627935a0339d02f8232aee" +
-			"1e0e534af823c92a85a1bb7d361d2782890c16a963027a9c199bbd84d596";
+		"1c416956374360cec621bedcd293b6365e87dc3a911353bc7b17087f977f2426a3f9" +
+			"8a7d8c2add14324207e5a44afbe87cd236b977f5fd3051cb2999899b2def";
 
 	private static final String _ICU_CHECKSUM =
-		"709bcdfea6589378e6c0793d00fdcb5ad7de4eb72c33d32c81881a27a7e02c011a64" +
-			"ac5195abc51d7899236e3173131d2b4d862c6f6d74f1924ac8ed61d1bc38";
+		"229ed8d94e75dd38367d1292e5c3db4de57f3a7af9c6b4312770deeab82658a93b6f" +
+			"971881f589ea104a7832231972eed2abc41b67f9dcd44a9490218af35c99";
 
 	private static final String _KUROMOJI_CHECKSUM =
-		"12448ed5bb4b763d4804640a19701db0dbcf42d02991a71071872c805fd2faf177ca" +
-			"e80d2c3bc687302be9f4b55e235c1c7a04f7361e8a84fc659bdb884e1d21";
+		"bdc9a461ff021381597058a16a52e0b5a190ab9fd4b6d25efd4672cb096c676f5362" +
+			"4a7959ff3714711c4def423459447b9832f19bb52e15ff4a3cb76d5cfbd9";
 
 	private static final String _SMARTCN_CHECKSUM =
-		"e19e094785369d577a9a61fb1c260ce46d99203050c6734583e468a480cb4aaed1e7" +
-			"6f71e33ff1f7270c9b485f0b106bb2f0ae84d53ede560b9f72787dba9bc2";
+		"8a115d74e0f99789ffec97e184953fe4d53baadbaba5647b3971a5f6839e5819d4b7" +
+			"02ae9aeff7d376c74677b1f50baa7aa36d8f73db6eab9ba6483eb998fe79";
 
 	private static final String _STEMPEL_CHECKSUM =
-		"6214b0f5d8aa49a6bb4ff9656e495013d5fa88c7e4edf399937afa93fc98c06a33bd" +
-			"99beee93dd707e764e39e71e6c665b132dd6726c5882ffe98d5ac1f59565";
+		"5d189a776e1914ab3c8982966f5302908e230b88909f8800f909b2f4311956fa9ae6" +
+			"295781810805c28a3e7965e4080712336db97c800af8ac4a7359ec65bd93";
 
 }

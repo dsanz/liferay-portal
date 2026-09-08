@@ -115,6 +115,9 @@ public class SitemapStrutsActionTest {
 
 	@After
 	public void tearDown() throws Exception {
+		_sitemapManager.deleteRegenerateSitemapScheduledJobs(
+			TestPropsValues.getCompanyId());
+
 		if (_group != null) {
 			_sitemapStorageHelper.deleteSitemaps(
 				TestPropsValues.getCompanyId(), _group.getGroupId());
@@ -187,6 +190,8 @@ public class SitemapStrutsActionTest {
 						TestPropsValues.getCompanyId(),
 						_PID_SITEMAP_COMPANY_CONFIGURATION,
 						HashMapDictionaryBuilder.<String, Object>put(
+							"cachedGenerationEnabled", true
+						).put(
 							"xmlSitemapIndexEnabled", true
 						).put(
 							"xmlSitemapIndexMode",
@@ -225,6 +230,8 @@ public class SitemapStrutsActionTest {
 						TestPropsValues.getCompanyId(),
 						_PID_SITEMAP_COMPANY_CONFIGURATION,
 						HashMapDictionaryBuilder.<String, Object>put(
+							"cachedGenerationEnabled", true
+						).put(
 							"xmlSitemapIndexEnabled", true
 						).put(
 							"xmlSitemapIndexMode",
@@ -233,11 +240,13 @@ public class SitemapStrutsActionTest {
 
 			_addJournalArticleAssetDisplayPageEntry(_addJournalArticle());
 
-			Map<String, String> assetTypeKeys =
+			Map<Long, String> assetTypeKeys =
 				_sitemapManager.getAssetTypeKeys();
 
 			MockHttpServletResponse mockHttpServletResponse = _executeRequest(
-				assetTypeKeys.get(JournalArticle.class.getName()), null);
+				assetTypeKeys.get(
+					_portal.getClassNameId(JournalArticle.class.getName())),
+				null);
 
 			Assert.assertEquals(200, mockHttpServletResponse.getStatus());
 

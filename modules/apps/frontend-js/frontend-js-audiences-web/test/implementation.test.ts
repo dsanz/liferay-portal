@@ -6,8 +6,34 @@
 import * as audiences from '../src/main/resources/META-INF/resources/main/implementation';
 import {store} from '../src/main/resources/META-INF/resources/main/store';
 
+import type {AudiencesDefinition} from '../src/main/resources/META-INF/resources/main/index';
+
+const DEFINITION_URL = 'https://example.com/audiences.json';
+
+function mockAudiencesDefinition(audienceIds: string[]) {
+	const audiencesDefinition: AudiencesDefinition = {
+		audiences: audienceIds.map((audienceId) => ({
+			conjunction: 'AND',
+			id: audienceId,
+			rules: [],
+		})),
+	};
+
+	(global as any).fetch = jest.fn(() =>
+		Promise.resolve({
+			json: () => Promise.resolve(audiencesDefinition),
+			ok: true,
+			status: 200,
+			statusText: 'OK',
+		})
+	);
+}
+
 describe('implementation', () => {
 	afterEach(async () => {
+		jest.restoreAllMocks();
+
+		audiences.setLogEnabled(false);
 		store.clear();
 	});
 
@@ -19,7 +45,7 @@ describe('implementation', () => {
 
 			// Store audiences in reverse order so that we really test the registration is honored
 
-			store.setPageAudienceIds(new Set(audienceIds.reverse()));
+			store.setAudienceIds(new Set(audienceIds.reverse()));
 
 			for (const audienceId of audienceIds) {
 				audiences.on(audienceId, () => {
@@ -33,12 +59,12 @@ describe('implementation', () => {
 			expect(executionOrder).toHaveLength(audienceIds.length);
 		});
 
-		it('clears the registered handlers after running', async () => {
+		it('keeps the registered handlers so they run again on the next navigation', async () => {
 			let runCount = 0;
 
-			store.setPageAudienceIds(new Set(['a']));
+			store.setAudienceIds(new Set(['persistent']));
 
-			audiences.on('a', () => {
+			audiences.on('persistent', () => {
 				runCount += 1;
 			});
 
@@ -46,11 +72,107 @@ describe('implementation', () => {
 
 			expect(runCount).toBe(1);
 
-			// The handler was cleared, so a second run does not invoke it again
+			// The handler stays registered so a later navigation runs it again
+
+			await audiences.runHandlers();
+
+			expect(runCount).toBe(2);
+		});
+
+		it('does not run handlers after they are cleared', async () => {
+			let runCount = 0;
+
+			store.setAudienceIds(new Set(['cleared']));
+
+			audiences.on('cleared', () => {
+				runCount += 1;
+			});
 
 			await audiences.runHandlers();
 
 			expect(runCount).toBe(1);
+
+			// Navigating to another page clears the previous page's handlers
+
+			audiences.clearHandlers();
+
+			await audiences.runHandlers();
+
+			expect(runCount).toBe(1);
+		});
+
+		it('runs the remaining handlers when one handler throws', async () => {
+			audiences.setLogEnabled(true);
+
+			const consoleLog = jest
+				.spyOn(console, 'log')
+				.mockImplementation(() => {});
+
+			const executionOrder: string[] = [];
+
+			const brokenHandler = () => {
+				throw new Error('The handler is broken');
+			};
+
+			store.setAudienceIds(new Set(['first', 'broken', 'last']));
+
+			audiences.on('first', () => {
+				executionOrder.push('first');
+			});
+
+			audiences.on('broken', brokenHandler);
+
+			audiences.on('last', () => {
+				executionOrder.push('last');
+			});
+
+			await audiences.runHandlers();
+
+			expect(executionOrder).toEqual(['first', 'last']);
+
+			expect(consoleLog).toHaveBeenCalledWith(
+				expect.anything(),
+				expect.anything(),
+				expect.stringContaining(
+					"Unable to run handler 'brokenHandler' of audience 'broken'"
+				)
+			);
+		});
+	});
+
+	describe('getPriority', () => {
+		it('reflects the definition order', async () => {
+			mockAudiencesDefinition(['a', 'b', 'c']);
+
+			await audiences.runDetection(DEFINITION_URL);
+
+			expect(audiences.getPriority('a')).toBe(0);
+			expect(audiences.getPriority('b')).toBe(1);
+			expect(audiences.getPriority('c')).toBe(2);
+		});
+
+		it('returns Infinity for an audience absent from the definition', async () => {
+			mockAudiencesDefinition(['a']);
+
+			await audiences.runDetection(DEFINITION_URL);
+
+			expect(audiences.getPriority('missing')).toBe(Infinity);
+		});
+
+		it('refreshes the priorities on a second runDetection', async () => {
+			mockAudiencesDefinition(['a', 'b']);
+
+			await audiences.runDetection(DEFINITION_URL);
+
+			expect(audiences.getPriority('a')).toBe(0);
+			expect(audiences.getPriority('b')).toBe(1);
+
+			mockAudiencesDefinition(['b', 'a']);
+
+			await audiences.runDetection(DEFINITION_URL);
+
+			expect(audiences.getPriority('b')).toBe(0);
+			expect(audiences.getPriority('a')).toBe(1);
 		});
 	});
 });

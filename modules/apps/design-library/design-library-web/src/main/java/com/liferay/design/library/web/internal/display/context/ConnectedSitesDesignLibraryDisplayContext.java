@@ -1,0 +1,85 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.design.library.web.internal.display.context;
+
+import com.liferay.depot.service.DepotEntryGroupRelLocalService;
+import com.liferay.design.library.web.internal.constants.DesignLibraryAdminFDSNames;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.module.service.Snapshot;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.Map;
+
+/**
+ * @author Mario Leandro
+ */
+public class ConnectedSitesDesignLibraryDisplayContext
+	extends BaseDesignLibraryDisplayContext {
+
+	public ConnectedSitesDesignLibraryDisplayContext(
+		HttpServletRequest httpServletRequest) {
+
+		super(httpServletRequest);
+	}
+
+	public String getAPIURL() throws PortalException {
+		return getAssetLibraryURL(
+			getGroup(), "/connected-sites?page=1&pageSize=10");
+	}
+
+	public Map<String, Object> getEmptyState() {
+		return buildEmptyState(
+			"connect-sites-to-this-design-library",
+			"/states/design_library_empty_state.svg",
+			"no-sites-are-connected-yet");
+	}
+
+	public Map<String, Object> getFDSAdditionalProps() throws PortalException {
+		Group group = getGroup();
+
+		return HashMapBuilder.<String, Object>put(
+			"externalReferenceCode", group.getExternalReferenceCode()
+		).put(
+			"hasConnectSitesPermission",
+			hasDepotEntryPermission(group, ActionKeys.UPDATE)
+		).put(
+			"refreshDataSetIds",
+			new String[] {
+				DesignLibraryAdminFDSNames.DESIGN_LIBRARY_CONNECTED_SITES
+			}
+		).build();
+	}
+
+	public Map<String, Object> getSectionHeaderProps() throws PortalException {
+		return HashMapBuilder.<String, Object>putAll(
+			getFDSAdditionalProps()
+		).put(
+			"count", _getCount()
+		).build();
+	}
+
+	private int _getCount() {
+		DepotEntryGroupRelLocalService depotEntryGroupRelLocalService =
+			_depotEntryGroupRelLocalServiceSnapshot.get();
+
+		if (depotEntryGroupRelLocalService == null) {
+			return 0;
+		}
+
+		return depotEntryGroupRelLocalService.getDepotEntryGroupRelsCount(
+			depotEntry);
+	}
+
+	private static final Snapshot<DepotEntryGroupRelLocalService>
+		_depotEntryGroupRelLocalServiceSnapshot = new Snapshot<>(
+			ConnectedSitesDesignLibraryDisplayContext.class,
+			DepotEntryGroupRelLocalService.class);
+
+}

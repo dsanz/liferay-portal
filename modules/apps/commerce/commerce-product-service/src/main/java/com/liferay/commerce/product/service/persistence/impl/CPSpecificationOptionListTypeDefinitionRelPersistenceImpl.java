@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
@@ -574,6 +572,11 @@ public class CPSpecificationOptionListTypeDefinitionRelPersistenceImpl
 	}
 
 	@Override
+	protected String getPKFieldName() {
+		return "CPSpecificationOptionListTypeDefinitionRelId";
+	}
+
+	@Override
 	protected String getSelectSQL() {
 		return _SQL_SELECT_CPSPECIFICATIONOPTIONLISTTYPEDEFINITIONREL;
 	}
@@ -670,7 +673,7 @@ public class CPSpecificationOptionListTypeDefinitionRelPersistenceImpl
 				_SQL_COUNT_CPSPECIFICATIONOPTIONLISTTYPEDEFINITIONREL_WHERE,
 				CPSpecificationOptionListTypeDefinitionRelModelImpl.
 					ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"cpSpecificationOptionListTypeDefinitionRel.",
 					"CPSpecificationOptionId", FinderColumn.Type.LONG, "=",
@@ -704,7 +707,7 @@ public class CPSpecificationOptionListTypeDefinitionRelPersistenceImpl
 				_SQL_COUNT_CPSPECIFICATIONOPTIONLISTTYPEDEFINITIONREL_WHERE,
 				CPSpecificationOptionListTypeDefinitionRelModelImpl.
 					ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"cpSpecificationOptionListTypeDefinitionRel.",
 					"listTypeDefinitionId", FinderColumn.Type.LONG, "=", true,
@@ -799,12 +802,6 @@ public class CPSpecificationOptionListTypeDefinitionRelPersistenceImpl
 		_SQL_COUNT_CPSPECIFICATIONOPTIONLISTTYPEDEFINITIONREL_WHERE =
 			"SELECT COUNT(cpSpecificationOptionListTypeDefinitionRel) FROM CPSpecificationOptionListTypeDefinitionRel cpSpecificationOptionListTypeDefinitionRel WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No CPSpecificationOptionListTypeDefinitionRel exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		CPSpecificationOptionListTypeDefinitionRelPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"CPSpecificationOptionListTypeDefinitionRelId"});
 
@@ -814,4 +811,4 @@ public class CPSpecificationOptionListTypeDefinitionRelPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1868229986
+// LIFERAY-SERVICE-BUILDER-HASH:-530942943

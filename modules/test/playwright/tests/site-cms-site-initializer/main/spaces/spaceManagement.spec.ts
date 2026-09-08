@@ -6,22 +6,14 @@
 import {expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../../../fixtures/dataApiHelpersTest';
-import {featureFlagsTest} from '../../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../../fixtures/loginTest';
 import getRandomString from '../../../../utils/getRandomString';
 import {PORTLET_URLS} from '../../../../utils/portletUrls';
 import {waitForAlert} from '../../../../utils/waitForAlert';
+import {PermissionsPage} from '../../permissions/pages/PermissionsPage';
 import {cmsPagesTest} from '../fixtures/cmsPagesTest';
 
-const test = mergeTests(
-	cmsPagesTest,
-	dataApiHelpersTest,
-	featureFlagsTest({
-		'LPD-17564': {enabled: true},
-		'LPD-34594': {enabled: true},
-	}),
-	loginTest()
-);
+const test = mergeTests(cmsPagesTest, dataApiHelpersTest, loginTest());
 
 test(
 	'A new Space can be created from the All Spaces view and shows up in the left panel',
@@ -160,14 +152,9 @@ test(
 
 		await spaceRow.getByRole('button', {name: 'Actions'}).click();
 
-		await page
-			.getByRole('menuitem', {exact: true, name: 'Permissions'})
-			.click();
+		const permissionsPage = new PermissionsPage(page);
 
-		await page
-			.getByRole('menuitem', {exact: true, name: 'Permissions'})
-			.last()
-			.click();
+		await permissionsPage.openFromActionsMenu();
 
 		await expect(
 			page.getByRole('dialog').getByRole('heading', {name: 'Permissions'})

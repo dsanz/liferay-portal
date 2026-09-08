@@ -11,7 +11,6 @@ import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
-import com.liferay.object.deployer.ObjectDefinitionDeployer;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectEntryFolder;
@@ -24,14 +23,15 @@ import com.liferay.portal.kernel.model.ResourceConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionRegistryUtil;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
-import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.context.ContextUserReplace;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
@@ -43,11 +43,9 @@ import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 import com.liferay.site.cms.site.initializer.util.CMSDefaultPermissionUtil;
 
 import org.junit.Assert;
@@ -60,7 +58,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Stefano Motta
  */
-@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 public class ObjectDefinitionDeployerImplTest {
 
@@ -73,8 +70,6 @@ public class ObjectDefinitionDeployerImplTest {
 
 	@Before
 	public void setUp() throws Exception {
-		CMSTestUtil.getOrAddGroup(ObjectDefinitionDeployerImplTest.class);
-
 		_depotEntry = _depotEntryLocalService.addDepotEntry(
 			HashMapBuilder.put(
 				LocaleUtil.getDefault(), StringUtil.randomString()
@@ -95,8 +90,6 @@ public class ObjectDefinitionDeployerImplTest {
 				getObjectDefinitionByExternalReferenceCode(
 					"L_CMS_DEFAULT_PERMISSION", TestPropsValues.getCompanyId());
 
-		_objectDefinitionDeployer.deploy(objectDefinition);
-
 		ModelResourcePermission<ObjectEntry> modelResourcePermission =
 			ModelResourcePermissionRegistryUtil.getModelResourcePermission(
 				objectDefinition.getClassName());
@@ -107,17 +100,13 @@ public class ObjectDefinitionDeployerImplTest {
 			"CMSDefaultPermissionObjectEntryModelResourcePermission",
 			clazz.getSimpleName());
 
-		Role role = _roleLocalService.getRole(
-			TestPropsValues.getCompanyId(), RoleConstants.USER);
+		Snapshot<ModelResourcePermission<ObjectEntry>>
+			modelResourcePermissionSnapshot = ReflectionTestUtil.getFieldValue(
+				modelResourcePermission, "_modelResourcePermissionSnapshot");
 
-		Assert.assertTrue(
-			_resourcePermissionLocalService.hasResourcePermission(
-				TestPropsValues.getCompanyId(), objectDefinition.getClassName(),
-				ResourceConstants.SCOPE_COMPANY,
-				String.valueOf(TestPropsValues.getCompanyId()),
-				role.getRoleId(), ActionKeys.VIEW));
+		Assert.assertNotNull(modelResourcePermissionSnapshot.get());
 
-		role = RoleTestUtil.addRole(RoleConstants.TYPE_DEPOT);
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_DEPOT);
 
 		User user = UserTestUtil.addUser();
 
@@ -264,11 +253,6 @@ public class ObjectDefinitionDeployerImplTest {
 	@DeleteAfterTestRun
 	private Group _group;
 
-	@Inject(
-		filter = "component.name=com.liferay.site.cms.site.initializer.internal.object.deployer.ObjectDefinitionDeployerImpl"
-	)
-	private ObjectDefinitionDeployer _objectDefinitionDeployer;
-
 	@Inject
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
 
@@ -277,9 +261,6 @@ public class ObjectDefinitionDeployerImplTest {
 
 	@Inject
 	private ResourcePermissionLocalService _resourcePermissionLocalService;
-
-	@Inject
-	private RoleLocalService _roleLocalService;
 
 	@Inject
 	private UserLocalService _userLocalService;

@@ -62,15 +62,16 @@ create unique index IX_3966DE44 on AssetVocabulary (groupId, uuid_[$COLUMN_LENGT
 create index IX_2F7F11EE on AssetVocabulary (groupId, visibilityType);
 create index IX_55F58818 on AssetVocabulary (uuid_[$COLUMN_LENGTH:75$]);
 
-create index IX_104CE969 on AssetVocabularyGroupRel (groupId, vocabularyId);
-create unique index IX_BD51FF2A on AssetVocabularyGroupRel (uuid_[$COLUMN_LENGTH:75$], groupId, ctCollectionId);
-create index IX_65F8A72B on AssetVocabularyGroupRel (vocabularyId);
+create index IX_F2A36C80 on AssetVocabularyGroupRel (groupId, depotEntryType);
+create unique index IX_672FE37E on AssetVocabularyGroupRel (groupId, uuid_[$COLUMN_LENGTH:75$], ctCollectionId);
+create index IX_DF366DD5 on AssetVocabularyGroupRel (groupId, vocabularyId, depotEntryType);
+create index IX_2FB8A59E on AssetVocabularyGroupRel (uuid_[$COLUMN_LENGTH:75$]);
+create index IX_8826797 on AssetVocabularyGroupRel (vocabularyId, depotEntryType);
 
 create unique index IX_E7B95510 on BrowserTracker (userId);
 
 create unique index IX_B27A301F on ClassName_ (value[$COLUMN_LENGTH:200$]);
 
-create index IX_38EFE3FD on Company (logoId);
 create unique index IX_EC00543C on Company (webId[$COLUMN_LENGTH:75$]);
 
 create unique index IX_85C63FD7 on CompanyInfo (companyId);

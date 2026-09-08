@@ -27,6 +27,8 @@ components:
                     items:
                         type: customField
                     type: array
+                embeddedNestedField:
+                    type: object
                 externalReferenceCode:
                     type: string
                 id:
@@ -35,7 +37,9 @@ components:
                     type: integer
                 name:
                     type: string
-                nestedField:
+                nestedField1:
+                    type: string
+                nestedField2:
                     type: string
                 relatedCompanyTestEntity:
                     $ref: "#/components/schemas/CompanyTestEntity"
@@ -1367,7 +1371,7 @@ paths:
         get:
             description:
                 "Retrieve a EntityModelResourceTestEntity2 item. (EntityModelResource and VulcanBatchEngineTaskItemDelegate interfaces will not be implemented automatically)"
-            operationId: getEntityModelResourceTestEntities2EntityModelResourceTestEntity2
+            operationId: getEntityModelResourceTestEntity2
             parameters:
                 -   in: path
                     name: entityModelResourceTestEntity2Id

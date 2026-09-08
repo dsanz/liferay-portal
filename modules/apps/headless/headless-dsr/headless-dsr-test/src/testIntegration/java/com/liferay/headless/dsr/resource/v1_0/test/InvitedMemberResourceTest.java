@@ -10,6 +10,7 @@ import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.headless.dsr.client.dto.v1_0.InvitedMember;
 import com.liferay.headless.dsr.client.dto.v1_0.UserAccount;
+import com.liferay.headless.dsr.client.pagination.Page;
 import com.liferay.headless.dsr.client.problem.Problem;
 import com.liferay.headless.dsr.client.resource.v1_0.InvitedMemberResource;
 import com.liferay.headless.dsr.client.resource.v1_0.UserAccountResource;
@@ -30,17 +31,21 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsValues;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.site.dsr.site.initializer.constants.DSRRoleConstants;
 import com.liferay.site.dsr.site.initializer.test.util.DSRTestUtil;
 
 import java.io.Serializable;
+
+import java.util.Date;
+import java.util.Objects;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -50,7 +55,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Stefano Motta
  */
-@FeatureFlag("LPD-66359")
 @RunWith(Arquillian.class)
 public class InvitedMemberResourceTest
 	extends BaseInvitedMemberResourceTestCase {
@@ -143,7 +147,8 @@ public class InvitedMemberResourceTest
 			new long[] {groupId}, ServiceContextTestUtil.getServiceContext());
 
 		role = _roleLocalService.getRole(
-			_objectEntry.getCompanyId(), DSRRoleConstants.NAME_DSR_CONTRIBUTOR);
+			_objectEntry.getCompanyId(),
+			DSRRoleConstants.NAME_DSR_CONTENT_CONTRIBUTOR);
 
 		_userGroupRoleLocalService.addUserGroupRoles(
 			new long[] {_user.getUserId()}, groupId, role.getRoleId());
@@ -168,6 +173,14 @@ public class InvitedMemberResourceTest
 
 	@Override
 	@Test
+	public void testGetRoomInvitedMembersPage() throws Exception {
+		super.testGetRoomInvitedMembersPage();
+
+		_testGetRoomInvitedMembersPageWithMembershipExpirationDate();
+	}
+
+	@Override
+	@Test
 	public void testPatchRoomInvitedMember() throws Exception {
 		InvitedMember invitedMember1 = randomInvitedMember();
 
@@ -187,19 +200,27 @@ public class InvitedMemberResourceTest
 				_objectEntry.getObjectEntryId(), invitedMember1.getId(),
 				new InvitedMember() {
 					{
-						roleKey = DSRRoleConstants.NAME_DSR_CONTRIBUTOR;
+						membershipExpirationDate = new Date(
+							((System.currentTimeMillis() + Time.DAY) / 1000) *
+								1000);
+						roleKey = DSRRoleConstants.NAME_DSR_CONTENT_CONTRIBUTOR;
 					}
 				});
 
 		Assert.assertEquals(
 			invitedMember1.getId(), patchedInvitedMember.getId());
+		Assert.assertNotNull(
+			patchedInvitedMember.getMembershipExpirationDate());
 		Assert.assertEquals(
 			Long.valueOf(_user.getUserId()), patchedInvitedMember.getOwnerId());
 		Assert.assertEquals(
-			DSRRoleConstants.NAME_DSR_CONTRIBUTOR,
+			DSRRoleConstants.NAME_DSR_CONTENT_CONTRIBUTOR,
 			patchedInvitedMember.getRoleKey());
 
 		InvitedMember invitedMember2 = randomInvitedMember();
+
+		invitedMember2.setMembershipExpirationDate(
+			new Date(((System.currentTimeMillis() + Time.DAY) / 1000) * 1000));
 
 		UserAccount userAccount2 =
 			_userAccountAdminResource.postRoomUserAccount(
@@ -207,8 +228,14 @@ public class InvitedMemberResourceTest
 				new UserAccount() {
 					{
 						setEmailAddress(invitedMember2::getEmailAddress);
+						setMembershipExpirationDate(
+							invitedMember2::getMembershipExpirationDate);
 					}
 				});
+
+		Assert.assertEquals(
+			invitedMember2.getMembershipExpirationDate(),
+			userAccount2.getMembershipExpirationDate());
 
 		invitedMember2.setId(userAccount2.getId());
 
@@ -217,7 +244,7 @@ public class InvitedMemberResourceTest
 				_objectEntry.getObjectEntryId(), invitedMember2.getId(),
 				new InvitedMember() {
 					{
-						roleKey = DSRRoleConstants.NAME_DSR_CONTRIBUTOR;
+						roleKey = DSRRoleConstants.NAME_DSR_CONTENT_CONTRIBUTOR;
 					}
 				});
 
@@ -234,16 +261,65 @@ public class InvitedMemberResourceTest
 				_objectEntry.getObjectEntryId(), invitedMember1.getId(),
 				new InvitedMember() {
 					{
+						membershipExpirationDate = new Date(
+							((System.currentTimeMillis() + Time.MONTH) / 1000) *
+								1000);
 						roleKey = RoleConstants.SITE_MEMBER;
 					}
 				});
 
 		Assert.assertEquals(
 			invitedMember1.getId(), patchedInvitedMember.getId());
+		Assert.assertNotEquals(
+			invitedMember1.getMembershipExpirationDate(),
+			patchedInvitedMember.getMembershipExpirationDate());
 		Assert.assertEquals(
 			Long.valueOf(_user.getUserId()), patchedInvitedMember.getOwnerId());
 		Assert.assertEquals(
 			RoleConstants.SITE_MEMBER, patchedInvitedMember.getRoleKey());
+
+		patchedInvitedMember =
+			_invitedMemberDSRSellerResource.patchRoomInvitedMember(
+				_objectEntry.getObjectEntryId(), invitedMember1.getId(),
+				new InvitedMember() {
+					{
+						roleKey = RoleConstants.SITE_MEMBER;
+					}
+				});
+
+		Assert.assertNull(patchedInvitedMember.getMembershipExpirationDate());
+
+		patchedInvitedMember =
+			_invitedMemberDSRSellerResource.patchRoomInvitedMember(
+				_objectEntry.getObjectEntryId(), invitedMember1.getId(),
+				new InvitedMember() {
+					{
+						roleKey = DSRRoleConstants.NAME_DSR_ROOM_COLLABORATOR;
+					}
+				});
+
+		Assert.assertEquals(
+			DSRRoleConstants.NAME_DSR_ROOM_COLLABORATOR,
+			patchedInvitedMember.getRoleKey());
+
+		try {
+			_invitedMemberDSRSellerResource.patchRoomInvitedMember(
+				_objectEntry.getObjectEntryId(), invitedMember1.getId(),
+				new InvitedMember() {
+					{
+						membershipExpirationDate = new Date(
+							System.currentTimeMillis() - Time.DAY);
+					}
+				});
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals(
+				"Expiration date must be a future date.", problem.getTitle());
+		}
 	}
 
 	@Override
@@ -294,6 +370,40 @@ public class InvitedMemberResourceTest
 	@Override
 	protected Long testGetRoomInvitedMembersPage_getRoomId() throws Exception {
 		return _objectEntry.getObjectEntryId();
+	}
+
+	private void _testGetRoomInvitedMembersPageWithMembershipExpirationDate()
+		throws Exception {
+
+		InvitedMember invitedMember = randomInvitedMember();
+
+		invitedMember.setMembershipExpirationDate(
+			new Date(((System.currentTimeMillis() + Time.DAY) / 1000) * 1000));
+
+		UserAccount userAccount =
+			_userAccountDSRContributorResource.postRoomUserAccount(
+				_objectEntry.getObjectEntryId(),
+				new UserAccount() {
+					{
+						setEmailAddress(invitedMember::getEmailAddress);
+						setMembershipExpirationDate(
+							invitedMember::getMembershipExpirationDate);
+					}
+				});
+
+		Page<InvitedMember> page =
+			invitedMemberResource.getRoomInvitedMembersPage(
+				_objectEntry.getObjectEntryId());
+
+		Assert.assertTrue(
+			ListUtil.exists(
+				ListUtil.fromCollection(page.getItems()),
+				curInvitedMember ->
+					Objects.equals(
+						curInvitedMember.getId(), userAccount.getId()) &&
+					Objects.equals(
+						curInvitedMember.getMembershipExpirationDate(),
+						invitedMember.getMembershipExpirationDate())));
 	}
 
 	@Inject

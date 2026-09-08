@@ -12,6 +12,7 @@ import com.liferay.object.action.util.ObjectActionThreadLocal;
 import com.liferay.object.constants.ObjectActionConstants;
 import com.liferay.object.constants.ObjectActionExecutorConstants;
 import com.liferay.object.entry.util.ObjectEntryThreadLocal;
+import com.liferay.object.internal.action.util.ObjectActionStatusUtil;
 import com.liferay.object.internal.action.util.ObjectEntryVariablesUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
@@ -137,8 +138,13 @@ public class UpdateObjectEntryObjectActionExecutorImpl
 				});
 		}
 		catch (Exception exception) {
-			_objectActionLocalService.updateStatus(
-				objectActionId, ObjectActionConstants.STATUS_FAILED);
+
+			// The write happens after the commit, so the rethrow below cannot
+			// undo it
+
+			ObjectActionStatusUtil.updateStatusAfterCommit(
+				_objectActionLocalService, objectActionId,
+				ObjectActionConstants.STATUS_FAILED);
 
 			throw exception;
 		}

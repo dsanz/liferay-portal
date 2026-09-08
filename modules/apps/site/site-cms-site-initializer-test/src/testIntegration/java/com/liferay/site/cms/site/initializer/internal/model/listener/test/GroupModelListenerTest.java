@@ -13,6 +13,7 @@ import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.rest.filter.factory.FilterFactory;
 import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
@@ -21,23 +22,21 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 import com.liferay.site.cms.site.initializer.util.CMSDefaultPermissionUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -46,7 +45,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Adolfo Pérez
  */
-@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 public class GroupModelListenerTest {
 
@@ -56,11 +54,6 @@ public class GroupModelListenerTest {
 		new AggregateTestRule(
 			new LiferayIntegrationTestRule(),
 			PermissionCheckerMethodTestRule.INSTANCE);
-
-	@Before
-	public void setUp() throws Exception {
-		_cmsGroup = CMSTestUtil.getOrAddGroup(GroupModelListenerTest.class);
-	}
 
 	@Test
 	@TestInfo("LPD-92888")
@@ -135,8 +128,11 @@ public class GroupModelListenerTest {
 	}
 
 	private void _testOnAfterUpdateWithTrashEnabled() throws Exception {
+		Group cmsGroup = _groupLocalService.getGroup(
+			TestPropsValues.getCompanyId(), GroupConstants.CMS);
+
 		Layout layout = _layoutLocalService.getLayoutByFriendlyURL(
-			_cmsGroup.getGroupId(), false, "/recycle-bin");
+			cmsGroup.getGroupId(), false, "/recycle-bin");
 
 		Assert.assertFalse(layout.isHidden());
 
@@ -156,8 +152,6 @@ public class GroupModelListenerTest {
 			GetterUtil.getBoolean(
 				depotGroup.getTypeSettingsProperty("trashEnabled")));
 	}
-
-	private Group _cmsGroup;
 
 	@DeleteAfterTestRun
 	private final List<DepotEntry> _depotEntries = new ArrayList<>();

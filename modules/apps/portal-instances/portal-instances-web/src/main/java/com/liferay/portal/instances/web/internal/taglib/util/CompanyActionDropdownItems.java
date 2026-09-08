@@ -7,12 +7,15 @@ package com.liferay.portal.instances.web.internal.taglib.util;
 
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemListBuilder;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.instance.PortalInstancePool;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
+import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
+import com.liferay.portal.kernel.util.PropsValues;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -51,6 +54,54 @@ public class CompanyActionDropdownItems {
 								).buildString());
 							dropdownItem.setLabel(
 								LanguageUtil.get(_httpServletRequest, "edit"));
+						}
+					).build());
+				dropdownGroupItem.setSeparator(true);
+			}
+		).addGroup(
+			() ->
+				(_company.getCompanyId() != _defaultCompanyId) &&
+				FeatureFlagManagerUtil.isEnabled(
+					PortalUtil.getCompanyId(_httpServletRequest), "LPD-11342"),
+			dropdownGroupItem -> {
+				dropdownGroupItem.setDropdownItems(
+					DropdownItemListBuilder.add(
+						() -> PropsValues.DATABASE_PARTITION_ENABLED,
+						dropdownItem -> {
+							dropdownItem.putData(
+								"action", "copyDBPartitionCompany");
+							dropdownItem.putData(
+								"copyURL",
+								PortletURLBuilder.createRenderURL(
+									_liferayPortletResponse
+								).setMVCPath(
+									"/copy_db_partition_company.jsp"
+								).setRedirect(
+									PortalUtil.getCurrentURL(
+										_httpServletRequest)
+								).setParameter(
+									"companyId", _company.getCompanyId()
+								).setWindowState(
+									LiferayWindowState.POP_UP
+								).buildString());
+							dropdownItem.setLabel(
+								LanguageUtil.get(_httpServletRequest, "copy"));
+						}
+					).add(
+						dropdownItem -> {
+							dropdownItem.putData("action", "exportInstance");
+							dropdownItem.putData(
+								"exportURL",
+								PortletURLBuilder.createActionURL(
+									_liferayPortletResponse
+								).setActionName(
+									"/portal_instances/export_instance"
+								).setParameter(
+									"companyId", _company.getCompanyId()
+								).buildString());
+							dropdownItem.setLabel(
+								LanguageUtil.get(
+									_httpServletRequest, "export"));
 						}
 					).build());
 				dropdownGroupItem.setSeparator(true);

@@ -31,7 +31,13 @@ describe('TasksOverview', () => {
 			});
 
 		await act(async () => {
-			render(<TasksOverview projectId="123" redirect="/redirect-url" />);
+			render(
+				<TasksOverview
+					cmpProjectObjectEntryId="123"
+					hasAddTaskPermission
+					redirect="/redirect-url"
+				/>
+			);
 		});
 
 		expect(fetch).toHaveBeenCalledWith('/o/cmp/projects/123');
@@ -64,7 +70,13 @@ describe('TasksOverview', () => {
 			});
 
 		await act(async () => {
-			render(<TasksOverview projectId="123" redirect="/redirect-url" />);
+			render(
+				<TasksOverview
+					cmpProjectObjectEntryId="123"
+					hasAddTaskPermission
+					redirect="/redirect-url"
+				/>
+			);
 		});
 
 		expect(fetch).toHaveBeenCalledWith('/o/cmp/projects/123');
@@ -82,5 +94,36 @@ describe('TasksOverview', () => {
 
 		expect(screen.queryByText('tasks-overview')).not.toBeInTheDocument();
 		expect(screen.queryByText('total-tasks')).not.toBeInTheDocument();
+	});
+
+	it('hides the new task button on the empty state when the user lacks add task permission', async () => {
+		(fetch as jest.Mock)
+			.mockResolvedValueOnce({
+				json: () => Promise.resolve({completionRate: 0}),
+				ok: true,
+			})
+			.mockResolvedValueOnce({
+				json: () =>
+					Promise.resolve({
+						blockedCount: 0,
+						inProgressCount: 0,
+						overdueCount: 0,
+						totalCount: 0,
+					}),
+				ok: true,
+			});
+
+		await act(async () => {
+			render(
+				<TasksOverview
+					cmpProjectObjectEntryId="123"
+					hasAddTaskPermission={false}
+					redirect="/redirect-url"
+				/>
+			);
+		});
+
+		expect(screen.getByText('no-tasks')).toBeInTheDocument();
+		expect(screen.queryByText('new-task')).not.toBeInTheDocument();
 	});
 });

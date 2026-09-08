@@ -292,12 +292,23 @@ public class ScimUtil {
 		scimUser.setBirthday(portalUser.getBirthday());
 		scimUser.setCompanyId(portalUser.getCompanyId());
 		scimUser.setCreateDate(_truncateDate(portalUser.getCreateDate()));
-		scimUser.setEmailAddresses(
-			_getEmailAddresses(
-				EmailAddressLocalServiceUtil.getEmailAddresses(
-					portalUser.getCompanyId(), Contact.class.getName(),
-					portalUser.getContactId()),
-				EmailAddress::getAddress, EmailAddress::isPrimary));
+
+		List<EmailAddress> emailAddresses =
+			EmailAddressLocalServiceUtil.getEmailAddresses(
+				portalUser.getCompanyId(), Contact.class.getName(),
+				portalUser.getContactId());
+
+		if (ListUtil.isEmpty(emailAddresses)) {
+			scimUser.setEmailAddresses(
+				new String[] {portalUser.getEmailAddress()});
+		}
+		else {
+			scimUser.setEmailAddresses(
+				_getEmailAddresses(
+					emailAddresses, EmailAddress::getAddress,
+					EmailAddress::isPrimary));
+		}
+
 		scimUser.setExternalReferenceCode(
 			portalUser.getExternalReferenceCode());
 		scimUser.setFirstName(portalUser.getFirstName());
@@ -767,7 +778,7 @@ public class ScimUtil {
 			return null;
 		}
 
-		ExpandoValue expandoValue = ExpandoValueLocalServiceUtil.getValue(
+		ExpandoValue expandoValue = ExpandoValueLocalServiceUtil.fetchValue(
 			expandoTableId, expandoColumn.getColumnId(),
 			GetterUtil.getLong(userIdString));
 
@@ -801,7 +812,7 @@ public class ScimUtil {
 	private static long _getListTypeId(
 		long companyId, String name, String type) {
 
-		ListType listType = ListTypeLocalServiceUtil.getListType(
+		ListType listType = ListTypeLocalServiceUtil.fetchListType(
 			companyId, StringUtil.toLowerCase(name), type);
 
 		if (listType == null) {
@@ -812,7 +823,7 @@ public class ScimUtil {
 	}
 
 	private static String _getProfileURL(Contact contact) {
-		long listTypeId = ListTypeLocalServiceUtil.getListTypeId(
+		long listTypeId = _getListTypeId(
 			contact.getCompanyId(), "personal",
 			Contact.class.getName() + ".website");
 

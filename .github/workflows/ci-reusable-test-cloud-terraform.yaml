@@ -10,7 +10,7 @@ jobs:
             -   name: Set up Terraform
                 uses: hashicorp/setup-terraform@v3
                 with:
-                    terraform_version: 1.12.2
+                    terraform_version: 1.15.6
             -   name: Set up TFLint
                 uses: terraform-linters/setup-tflint@v4
                 with:
@@ -55,9 +55,12 @@ jobs:
                     -   aws/eks
                     -   aws/gitops/platform
                     -   aws/gitops/resources
+                    -   azure/aks
+                    -   azure/platform
                     -   gcp/gitops/platform
                     -   gcp/gitops/resources
                     -   gcp/gke
+                    -   modules/argocd
 on:
     workflow_call:
 permissions:

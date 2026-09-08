@@ -100,24 +100,6 @@ public class QAWebsitesControllerBuildRunner
 	}
 
 	protected void invokeBuild() {
-		StringBuilder sb = new StringBuilder();
-
-		String jobInvocationURL = getJobInvocationURL();
-
-		sb.append(jobInvocationURL);
-
-		sb.append("/buildWithParameters?");
-		sb.append("token=");
-
-		try {
-			sb.append(
-				JenkinsResultsParserUtil.getBuildProperty(
-					"jenkins.authentication.token"));
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
-		}
-
 		BuildData buildData = getBuildData();
 
 		Map<String, String> invocationParameters = new HashMap<>();
@@ -155,41 +137,24 @@ public class QAWebsitesControllerBuildRunner
 
 		invocationParameters.putAll(buildData.getBuildParameters());
 
-		for (Map.Entry<String, String> invocationParameter :
-				invocationParameters.entrySet()) {
+		String jobInvocationURL = getJobInvocationURL();
 
-			String invocationParameterValue = invocationParameter.getValue();
+		long queueId = JenkinsResultsParserUtil.invokeJenkinsBuild(
+			jobInvocationURL, invocationParameters);
 
-			if (JenkinsResultsParserUtil.isNullOrEmpty(
-					invocationParameterValue)) {
-
-				continue;
-			}
-
-			sb.append("&");
-			sb.append(invocationParameter.getKey());
-			sb.append("=");
-			sb.append(invocationParameterValue);
+		if (queueId == 0) {
+			throw new RuntimeException("Unable to invoke " + jobInvocationURL);
 		}
 
-		try {
-			System.out.println(sb.toString());
+		StringBuilder sb = new StringBuilder();
 
-			JenkinsResultsParserUtil.toString(sb.toString());
+		sb.append("<a href=\"");
+		sb.append(JenkinsResultsParserUtil.getRemoteURL(jobInvocationURL));
+		sb.append("\"><strong>IN QUEUE</strong></a>");
 
-			sb = new StringBuilder();
+		buildData.setBuildDescription(sb.toString());
 
-			sb.append("<a href=\"");
-			sb.append(JenkinsResultsParserUtil.getRemoteURL(jobInvocationURL));
-			sb.append("\"><strong>IN QUEUE</strong></a>");
-
-			buildData.setBuildDescription(sb.toString());
-
-			updateBuildDescription();
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
-		}
+		updateBuildDescription();
 	}
 
 	private boolean _allowConcurrentBuilds() {

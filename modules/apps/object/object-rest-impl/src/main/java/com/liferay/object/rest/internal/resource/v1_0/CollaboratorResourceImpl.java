@@ -13,7 +13,6 @@ import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.events.ServicePreAction;
 import com.liferay.portal.events.ThemeServicePreAction;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.TicketLocalService;
@@ -21,7 +20,6 @@ import com.liferay.portal.kernel.service.UserGroupLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.servlet.DummyHttpServletResponse;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
@@ -71,14 +69,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 			Long objectEntryId, String emailAddress)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564") ||
-			!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-52006")) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			objectEntryId);
 
@@ -96,15 +86,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 			Long objectEntryId, String type, Long collaboratorId)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564") ||
-			(StringUtil.equals("Email", type) &&
-			 !FeatureFlagManagerUtil.isEnabled(
-				 contextCompany.getCompanyId(), "LPD-52006"))) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			objectEntryId);
 
@@ -121,14 +102,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 				String scopeKey, String externalReferenceCode,
 				String emailAddress)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564") ||
-			!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-52006")) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			externalReferenceCode,
@@ -152,15 +125,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 				Long collaboratorId)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564") ||
-			(StringUtil.equals("Email", type) &&
-			 !FeatureFlagManagerUtil.isEnabled(
-				 contextCompany.getCompanyId(), "LPD-52006"))) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			externalReferenceCode,
 			CollaboratorUtil.getGroupId(
@@ -178,14 +142,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 	public Collaborator getObjectEntryCollaboratorByEmailAddress(
 			Long objectEntryId, String emailAddress)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564") ||
-			!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-52006")) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			objectEntryId);
@@ -205,15 +161,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 			Long objectEntryId, String type, Long collaboratorId)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564") ||
-			(StringUtil.equals("Email", type) &&
-			 !FeatureFlagManagerUtil.isEnabled(
-				 contextCompany.getCompanyId(), "LPD-52006"))) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			objectEntryId);
 
@@ -231,12 +178,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 	public Page<Collaborator> getObjectEntryCollaboratorsPage(
 			Long objectEntryId, Pagination pagination)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564")) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			objectEntryId);
@@ -257,14 +198,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 				String scopeKey, String externalReferenceCode,
 				String emailAddress)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564") ||
-			!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-52006")) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			externalReferenceCode,
@@ -289,15 +222,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 				Long collaboratorId)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564") ||
-			(StringUtil.equals("Email", type) &&
-			 !FeatureFlagManagerUtil.isEnabled(
-				 contextCompany.getCompanyId(), "LPD-52006"))) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			externalReferenceCode,
 			CollaboratorUtil.getGroupId(
@@ -321,12 +245,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 				Pagination pagination)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564")) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			externalReferenceCode,
 			CollaboratorUtil.getGroupId(
@@ -347,12 +265,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 	public Page<Collaborator> postObjectEntryCollaboratorsPage(
 			Long objectEntryId, Collaborator[] collaborators)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564")) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			objectEntryId);
@@ -377,12 +289,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 				String scopeKey, String externalReferenceCode,
 				Collaborator[] collaborators)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564")) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			externalReferenceCode,
@@ -409,14 +315,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 			Long objectEntryId, String emailAddress, Collaborator collaborator)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564") ||
-			!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-52006")) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			objectEntryId);
 
@@ -439,15 +337,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 			Long objectEntryId, String type, Long collaboratorId,
 			Collaborator collaborator)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564") ||
-			(StringUtil.equals("Email", type) &&
-			 !FeatureFlagManagerUtil.isEnabled(
-				 contextCompany.getCompanyId(), "LPD-52006"))) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			objectEntryId);
@@ -472,14 +361,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 				String scopeKey, String externalReferenceCode,
 				String emailAddress, Collaborator collaborator)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564") ||
-			!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-52006")) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			externalReferenceCode,
@@ -507,15 +388,6 @@ public class CollaboratorResourceImpl extends BaseCollaboratorResourceImpl {
 				String scopeKey, String externalReferenceCode, String type,
 				Long collaboratorId, Collaborator collaborator)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564") ||
-			(StringUtil.equals("Email", type) &&
-			 !FeatureFlagManagerUtil.isEnabled(
-				 contextCompany.getCompanyId(), "LPD-52006"))) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
 			externalReferenceCode,

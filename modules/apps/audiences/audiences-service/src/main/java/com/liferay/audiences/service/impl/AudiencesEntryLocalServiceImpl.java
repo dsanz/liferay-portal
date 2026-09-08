@@ -5,23 +5,29 @@
 
 package com.liferay.audiences.service.impl;
 
+import com.liferay.audiences.criteria.AudiencesCriteriaProvider;
+import com.liferay.audiences.exception.AudiencesEntryJSONAttributeException;
 import com.liferay.audiences.exception.AudiencesEntryJSONException;
 import com.liferay.audiences.exception.AudiencesEntryNameException;
 import com.liferay.audiences.model.AudiencesEntry;
 import com.liferay.audiences.service.base.AudiencesEntryLocalServiceBaseImpl;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.dao.orm.custom.sql.CustomSQL;
 import com.liferay.portal.json.validator.JSONValidator;
 import com.liferay.portal.json.validator.JSONValidatorException;
 import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.List;
+import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -38,18 +44,17 @@ public class AudiencesEntryLocalServiceImpl
 
 	@Override
 	public AudiencesEntry addAudiencesEntry(
-			String externalReferenceCode, String json, String name,
-			ServiceContext serviceContext)
+			String externalReferenceCode, long userId, String json, String name)
 		throws PortalException {
 
-		_validate(json, name);
+		User user = _userLocalService.getUser(userId);
+
+		_validate(user.getCompanyId(), json, name);
 
 		AudiencesEntry audiencesEntry = audiencesEntryPersistence.create(
 			counterLocalService.increment());
 
 		audiencesEntry.setExternalReferenceCode(externalReferenceCode);
-
-		User user = _userLocalService.getUser(serviceContext.getUserId());
 
 		audiencesEntry.setCompanyId(user.getCompanyId());
 		audiencesEntry.setUserId(user.getUserId());
@@ -106,13 +111,21 @@ public class AudiencesEntryLocalServiceImpl
 
 	@Override
 	public AudiencesEntry updateAudiencesEntry(
-			long audiencesEntryId, String json, String name)
+			String externalReferenceCode, long userId, long audiencesEntryId,
+			String json, String name)
 		throws PortalException {
-
-		_validate(json, name);
 
 		AudiencesEntry audiencesEntry =
 			audiencesEntryPersistence.findByPrimaryKey(audiencesEntryId);
+
+		_validate(audiencesEntry.getCompanyId(), json, name);
+
+		audiencesEntry.setExternalReferenceCode(externalReferenceCode);
+
+		User user = _userLocalService.getUser(userId);
+
+		audiencesEntry.setUserId(user.getUserId());
+		audiencesEntry.setUserName(user.getFullName());
 
 		audiencesEntry.setJSON(json);
 		audiencesEntry.setName(name);
@@ -120,7 +133,9 @@ public class AudiencesEntryLocalServiceImpl
 		return audiencesEntryPersistence.update(audiencesEntry);
 	}
 
-	private void _validate(String json, String name) throws PortalException {
+	private void _validate(long companyId, String json, String name)
+		throws PortalException {
+
 		try {
 			_criteriaJSONValidator.validate(json);
 		}
@@ -132,15 +147,63 @@ public class AudiencesEntryLocalServiceImpl
 		if (Validator.isNull(name)) {
 			throw new AudiencesEntryNameException();
 		}
+
+		_validateAttributes(companyId, json);
+	}
+
+	private void _validateAttributes(
+			JSONObject jsonObject, Set<String> customAudiencesCriteriaKeys)
+		throws PortalException {
+
+		JSONArray rulesJSONArray = jsonObject.getJSONArray("rules");
+
+		if (rulesJSONArray == null) {
+			String attribute = jsonObject.getString("attribute");
+
+			if (attribute.startsWith("custom:") &&
+				!customAudiencesCriteriaKeys.contains(attribute)) {
+
+				throw new AudiencesEntryJSONAttributeException(
+					StringBundler.concat(
+						"Attribute \"", attribute,
+						"\" is not a valid custom attribute"));
+			}
+
+			return;
+		}
+
+		for (int i = 0; i < rulesJSONArray.length(); i++) {
+			_validateAttributes(
+				rulesJSONArray.getJSONObject(i), customAudiencesCriteriaKeys);
+		}
+	}
+
+	private void _validateAttributes(long companyId, String json)
+		throws PortalException {
+
+		if (Validator.isNull(json)) {
+			return;
+		}
+
+		_validateAttributes(
+			_jsonFactory.createJSONObject(json),
+			_audiencesCriteriaProvider.getCustomAudiencesCriteriaKeys(
+				companyId));
 	}
 
 	private static final JSONValidator _criteriaJSONValidator =
 		new JSONValidator(
 			AudiencesEntryLocalServiceImpl.class.getResource(
-				"dependencies/criteria-json-schema.json"));
+				"dependencies/audiences-criteria-json-schema.json"));
+
+	@Reference
+	private AudiencesCriteriaProvider _audiencesCriteriaProvider;
 
 	@Reference
 	private CustomSQL _customSQL;
+
+	@Reference
+	private JSONFactory _jsonFactory;
 
 	@Reference
 	private UserLocalService _userLocalService;

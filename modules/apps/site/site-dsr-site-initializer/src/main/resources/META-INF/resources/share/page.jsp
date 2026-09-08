@@ -11,6 +11,10 @@
 	module="{RoomShareButton} from site-dsr-site-initializer"
 	props='<%=
 		HashMapBuilder.<String, Object>put(
+			"canAssignAllRoles", canAssignAllRoles
+		).put(
+			"readOnly", readOnly
+		).put(
 			"roomId", roomId
 		).build()
 	%>'

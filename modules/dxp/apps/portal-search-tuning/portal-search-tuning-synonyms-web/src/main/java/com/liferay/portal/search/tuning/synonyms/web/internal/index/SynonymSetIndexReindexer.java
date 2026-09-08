@@ -36,12 +36,9 @@ import org.osgi.service.component.annotations.Reference;
 public class SynonymSetIndexReindexer implements IndexReindexer {
 
 	@Override
-	public void reindex(long companyId) throws Exception {
-		reindex(companyId, null);
-	}
+	public void reindex(long companyId, ExecutionMode executionMode)
+		throws Exception {
 
-	@Override
-	public void reindex(long companyId, String executionMode) throws Exception {
 		if (!searchCapabilities.isSynonymsSupported() ||
 			(companyId == CompanyConstants.SYSTEM)) {
 
@@ -57,6 +54,21 @@ public class SynonymSetIndexReindexer implements IndexReindexer {
 			date = new Date();
 
 			Thread.sleep(1000);
+
+			try {
+				synchronized (synonymSetIndexNameBuilder) {
+					_synonymSetIndexCreator.createIfNotExists(
+						synonymSetIndexName);
+				}
+			}
+			catch (RuntimeException runtimeException) {
+				_log.error(
+					"Unable to create index " +
+						synonymSetIndexName.getIndexName(),
+					runtimeException);
+
+				return;
+			}
 		}
 		else {
 			if (_log.isInfoEnabled()) {
@@ -145,9 +157,10 @@ public class SynonymSetIndexReindexer implements IndexReindexer {
 		return synonymSetBuilder.build();
 	}
 
-	private boolean _isExecuteSyncReindex(String executionMode) {
+	private boolean _isExecuteSyncReindex(ExecutionMode executionMode) {
 		if ((_syncReindexManagerSnapshot.get() != null) &&
-			(executionMode != null) && executionMode.equals("sync")) {
+			(executionMode != null) &&
+			executionMode.equals(ExecutionMode.SYNC)) {
 
 			return true;
 		}

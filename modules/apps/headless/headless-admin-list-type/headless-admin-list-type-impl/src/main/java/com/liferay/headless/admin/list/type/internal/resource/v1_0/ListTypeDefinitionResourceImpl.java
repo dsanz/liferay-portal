@@ -126,7 +126,7 @@ public class ListTypeDefinitionResourceImpl
 
 			@Override
 			public String getSectionKey() {
-				return ExportImportConstants.SECTION_KEY_CONTENT;
+				return ExportImportConstants.SECTION_KEY_CONTENT_AND_DATA;
 			}
 
 		};
@@ -257,6 +257,17 @@ public class ListTypeDefinitionResourceImpl
 		}
 
 		return postListTypeDefinition(listTypeDefinition);
+	}
+
+	@Override
+	protected void preparePatch(
+		ListTypeDefinition listTypeDefinition,
+		ListTypeDefinition existingListTypeDefinition) {
+
+		if (listTypeDefinition.getListTypeEntries() != null) {
+			existingListTypeDefinition.setListTypeEntries(
+				listTypeDefinition::getListTypeEntries);
+		}
 	}
 
 	private ServiceContext _createServiceContext(

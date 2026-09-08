@@ -188,7 +188,7 @@ public class StyleBookEntryServiceImpl extends StyleBookEntryServiceBaseImpl {
 			getPermissionChecker(), groupId,
 			StyleBookActionKeys.MANAGE_STYLE_BOOK_ENTRIES);
 
-		return styleBookEntryLocalService.getStyleBookEntriesCount(groupId);
+		return styleBookEntryPersistence.countByGroupId_Head(groupId, true);
 	}
 
 	@Override
@@ -259,6 +259,22 @@ public class StyleBookEntryServiceImpl extends StyleBookEntryServiceBaseImpl {
 
 		return styleBookEntryLocalService.updateDefaultStyleBookEntry(
 			styleBookEntryId, defaultStyleBookEntry);
+	}
+
+	@Override
+	public StyleBookEntry updateFrontendTokenDefinition(
+			long styleBookEntryId, String frontendTokenDefinition)
+		throws PortalException {
+
+		StyleBookEntry styleBookEntry =
+			styleBookEntryPersistence.findByPrimaryKey(styleBookEntryId);
+
+		_portletResourcePermission.check(
+			getPermissionChecker(), styleBookEntry.getGroupId(),
+			StyleBookActionKeys.MANAGE_STYLE_BOOK_ENTRIES);
+
+		return styleBookEntryLocalService.updateFrontendTokenDefinition(
+			styleBookEntryId, frontendTokenDefinition);
 	}
 
 	@Override

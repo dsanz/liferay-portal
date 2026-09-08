@@ -7,6 +7,8 @@ package com.liferay.asset.categories.admin.web.internal.display.context;
 
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.model.AssetVocabularyConstants;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import org.junit.Assert;
@@ -31,8 +33,40 @@ public class AssetCategoriesDisplayContextTest {
 
 	@Before
 	public void setUp() throws Exception {
+		MockHttpServletRequest mockHttpServletRequest =
+			new MockHttpServletRequest();
+
+		mockHttpServletRequest.setAttribute(
+			WebKeys.THEME_DISPLAY, Mockito.mock(ThemeDisplay.class));
+
 		_assetCategoriesDisplayContext = new AssetCategoriesDisplayContext(
-			new MockHttpServletRequest(), null, null);
+			mockHttpServletRequest, null, null);
+	}
+
+	@Test
+	public void testIsSystemVocabulary() {
+		Assert.assertFalse(
+			_assetCategoriesDisplayContext.isSystemVocabulary(null));
+
+		AssetVocabulary vocabulary = Mockito.mock(AssetVocabulary.class);
+
+		Mockito.when(
+			vocabulary.isSystem()
+		).thenReturn(
+			true
+		);
+
+		Assert.assertTrue(
+			_assetCategoriesDisplayContext.isSystemVocabulary(vocabulary));
+
+		Mockito.when(
+			vocabulary.isSystem()
+		).thenReturn(
+			false
+		);
+
+		Assert.assertFalse(
+			_assetCategoriesDisplayContext.isSystemVocabulary(vocabulary));
 	}
 
 	@Test
@@ -48,6 +82,24 @@ public class AssetCategoriesDisplayContextTest {
 		Assert.assertTrue(
 			_isVisibilityTypeDisabled(
 				AssetVocabularyConstants.VISIBILITY_TYPE_PUBLIC));
+
+		AssetVocabulary vocabulary = Mockito.mock(AssetVocabulary.class);
+
+		Mockito.when(
+			vocabulary.getVisibilityType()
+		).thenReturn(
+			AssetVocabularyConstants.VISIBILITY_TYPE_EMPTY
+		);
+
+		Mockito.when(
+			vocabulary.isSystem()
+		).thenReturn(
+			true
+		);
+
+		Assert.assertTrue(
+			_assetCategoriesDisplayContext.isVisibilityTypeDisabled(
+				vocabulary));
 	}
 
 	@Test

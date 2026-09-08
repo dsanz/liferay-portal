@@ -1,5 +1,5 @@
 {
-	"@generated": "6f8d62b05587756ac1b214b52b518f1ebe09ba0e",
+	"@generated": "b60bcf0c5859c1a5b151ddd5f0c20da9a6d1b4e5",
 	"@readonly": "** AUTO-GENERATED: DO NOT EDIT **",
 	"compilerOptions": {
 		"allowSyntheticDefaultImports": true,
@@ -13,6 +13,9 @@
 		"paths": {
 			"@liferay/frontend-data-set-web": [
 				"../../frontend-data-set-web/src/main/resources/META-INF/resources/index.ts"
+			],
+			"@liferay/frontend-data-set-web/api": [
+				"../../frontend-data-set-web/src/main/resources/META-INF/resources/js/api/api.ts"
 			],
 			"frontend-js-components-web": [
 				"../../../frontend-js/frontend-js-components-web/src/main/resources/META-INF/resources/index.ts"

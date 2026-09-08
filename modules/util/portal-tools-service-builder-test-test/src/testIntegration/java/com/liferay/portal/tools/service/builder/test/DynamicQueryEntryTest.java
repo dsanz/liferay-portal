@@ -450,41 +450,8 @@ public class DynamicQueryEntryTest {
 
 	@Test
 	public void testDynamicQueryWithAlias() {
-		Class<?> clazz = _dynamicQueryEntryLocalService.getClass();
-
-		DynamicQuery dynamicQuery = DynamicQueryFactoryUtil.forClass(
-			DynamicQueryEntry.class, "parent", clazz.getClassLoader());
-
-		dynamicQuery.add(RestrictionsFactoryUtil.eq("parent.name", "alpha"));
-
-		_testDynamicQuery(dynamicQuery, "alpha");
-
-		Property property = PropertyFactoryUtil.forName("parent.name");
-
-		dynamicQuery = DynamicQueryFactoryUtil.forClass(
-			DynamicQueryEntry.class, "parent", clazz.getClassLoader());
-
-		dynamicQuery.add(property.eq("alpha"));
-
-		_testDynamicQuery(dynamicQuery, "alpha");
-
-		dynamicQuery = DynamicQueryFactoryUtil.forClass(
-			DynamicQueryEntry.class, "child", clazz.getClassLoader());
-
-		dynamicQuery.add(
-			RestrictionsFactoryUtil.eqProperty("child.status", "status"));
-		dynamicQuery.add(RestrictionsFactoryUtil.eq("child.name", "alpha"));
-		dynamicQuery.setProjection(
-			ProjectionFactoryUtil.property("child.name"));
-
-		property = PropertyFactoryUtil.forName("name");
-
-		DynamicQuery parentDynamicQuery =
-			_dynamicQueryEntryLocalService.dynamicQuery();
-
-		parentDynamicQuery.add(property.eq(dynamicQuery));
-
-		_testDynamicQuery(parentDynamicQuery, "alpha");
+		_testDynamicQueryWithAlias(null);
+		_testDynamicQueryWithAlias(RandomTestUtil.randomString());
 	}
 
 	@Test
@@ -526,21 +493,38 @@ public class DynamicQueryEntryTest {
 	@Test
 	public void testDynamicQueryWithProjection() {
 		_testDynamicQueryWithProjection(
-			ProjectionFactoryUtil.avg("amount"), 250.0);
+			null, ProjectionFactoryUtil.avg("amount"), 250.0);
 		_testDynamicQueryWithProjection(
-			ProjectionFactoryUtil.count("dynamicQueryEntryId"),
+			null, ProjectionFactoryUtil.count("dynamicQueryEntryId"),
 			Long.valueOf(_dynamicQueryEntries.size()));
 		_testDynamicQueryWithProjection(
-			ProjectionFactoryUtil.countDistinct("status"), 3L);
+			null, ProjectionFactoryUtil.countDistinct("status"), 3L);
 		_testDynamicQueryWithProjection(
-			ProjectionFactoryUtil.max("amount"), 400L);
+			null, ProjectionFactoryUtil.max("amount"), 400L);
 		_testDynamicQueryWithProjection(
-			ProjectionFactoryUtil.min("amount"), 100L);
+			null, ProjectionFactoryUtil.min("amount"), 100L);
 		_testDynamicQueryWithProjection(
-			ProjectionFactoryUtil.rowCount(),
+			null, ProjectionFactoryUtil.rowCount(),
 			Long.valueOf(_dynamicQueryEntries.size()));
 		_testDynamicQueryWithProjection(
-			ProjectionFactoryUtil.sum("amount"), 1000L);
+			null, ProjectionFactoryUtil.sum("amount"), 1000L);
+	}
+
+	@Test
+	public void testDynamicQueryWithProjectionAliasOrder() {
+		DynamicQuery dynamicQuery =
+			_dynamicQueryEntryLocalService.dynamicQuery();
+
+		dynamicQuery.setProjection(
+			ProjectionFactoryUtil.alias(
+				ProjectionFactoryUtil.sqlProjection(
+					"(select count(*) from DynamicQueryEntry where status = " +
+						"this_.status) AS statusCount",
+					new String[] {"statusCount"}, new Type[] {Type.LONG}),
+				"statusCount"));
+		dynamicQuery.addOrder(OrderFactoryUtil.desc("statusCount"));
+
+		_testDynamicQuery(dynamicQuery, 2L, 2L, 1L, 1L);
 	}
 
 	@Test
@@ -550,14 +534,9 @@ public class DynamicQueryEntryTest {
 		projectionList.add(ProjectionFactoryUtil.count("dynamicQueryEntryId"));
 		projectionList.add(ProjectionFactoryUtil.groupProperty("status"));
 
-		DynamicQuery dynamicQuery =
-			_dynamicQueryEntryLocalService.dynamicQuery();
-
-		dynamicQuery.addOrder(OrderFactoryUtil.asc("status"));
-
 		_testDynamicQueryWithProjection(
-			projectionList, new Object[] {2L, 1}, new Object[] {1L, 2},
-			new Object[] {1L, 3});
+			OrderFactoryUtil.asc("status"), projectionList,
+			new Object[] {2L, 1}, new Object[] {1L, 2}, new Object[] {1L, 3});
 	}
 
 	@Test
@@ -570,19 +549,15 @@ public class DynamicQueryEntryTest {
 		projectionList.add(projection, "b");
 
 		_testDynamicQueryWithProjection(
-			projectionList, new Object[] {"alpha", "alpha"},
-			new Object[] {"beta", "beta"}, new Object[] {"gamma", "gamma"},
-			new Object[] {"delta", "delta"});
+			OrderFactoryUtil.asc("dynamicQueryEntryId"), projectionList,
+			new Object[] {"alpha", "alpha"}, new Object[] {"beta", "beta"},
+			new Object[] {"gamma", "gamma"}, new Object[] {"delta", "delta"});
 	}
 
 	@Test
 	public void testDynamicQueryWithProjectionSqlGroupProjection() {
-		DynamicQuery dynamicQuery =
-			_dynamicQueryEntryLocalService.dynamicQuery();
-
-		dynamicQuery.addOrder(OrderFactoryUtil.asc("status"));
-
 		_testDynamicQueryWithProjection(
+			OrderFactoryUtil.asc("status"),
 			ProjectionFactoryUtil.sqlGroupProjection(
 				"count(*) AS c, status AS s", "status", new String[] {"c", "s"},
 				new Type[] {Type.LONG, Type.INTEGER}),
@@ -591,12 +566,8 @@ public class DynamicQueryEntryTest {
 
 	@Test
 	public void testDynamicQueryWithProjectionSqlProjection() {
-		DynamicQuery dynamicQuery =
-			_dynamicQueryEntryLocalService.dynamicQuery();
-
-		dynamicQuery.addOrder(OrderFactoryUtil.asc("amount"));
-
 		_testDynamicQueryWithProjection(
+			OrderFactoryUtil.asc("amount"),
 			ProjectionFactoryUtil.sqlProjection(
 				"name AS sqlName", new String[] {"sqlName"},
 				new Type[] {Type.STRING}),
@@ -689,13 +660,160 @@ public class DynamicQueryEntryTest {
 		}
 	}
 
+	private void _testDynamicQueryWithAlias(String alias) {
+		Class<?> clazz = _dynamicQueryEntryLocalService.getClass();
+
+		// Test 1
+
+		DynamicQuery dynamicQuery = null;
+
+		if (alias == null) {
+			dynamicQuery = _dynamicQueryEntryLocalService.dynamicQuery();
+
+			dynamicQuery.add(RestrictionsFactoryUtil.eq("this.status", 1));
+		}
+		else {
+			dynamicQuery = DynamicQueryFactoryUtil.forClass(
+				DynamicQueryEntry.class, alias, clazz.getClassLoader());
+
+			dynamicQuery.add(RestrictionsFactoryUtil.eq(alias + ".status", 1));
+		}
+
+		dynamicQuery.addOrder(OrderFactoryUtil.asc("amount"));
+
+		_testDynamicQuery(dynamicQuery, "alpha", "gamma");
+
+		// Test 2
+
+		dynamicQuery = DynamicQueryFactoryUtil.forClass(
+			DynamicQueryEntry.class, "child", clazz.getClassLoader());
+
+		dynamicQuery.add(RestrictionsFactoryUtil.eq("child.name", "alpha"));
+		dynamicQuery.setProjection(
+			ProjectionFactoryUtil.property("child.name"));
+
+		DynamicQuery parentDynamicQuery = null;
+		Property property = null;
+
+		if (alias == null) {
+			dynamicQuery.add(
+				RestrictionsFactoryUtil.eqProperty(
+					"child.status", "this.status"));
+			dynamicQuery.add(
+				RestrictionsFactoryUtil.eqProperty(
+					"this.status", "child.status"));
+			dynamicQuery.add(
+				RestrictionsFactoryUtil.eqProperty(
+					"child.amount", "this.amount"));
+
+			parentDynamicQuery = _dynamicQueryEntryLocalService.dynamicQuery();
+			property = PropertyFactoryUtil.forName("name");
+		}
+		else {
+			dynamicQuery.add(
+				RestrictionsFactoryUtil.eqProperty(
+					"child.status", alias + ".status"));
+			dynamicQuery.add(
+				RestrictionsFactoryUtil.eqProperty(
+					alias + ".status", "child.status"));
+			dynamicQuery.add(
+				RestrictionsFactoryUtil.eqProperty(
+					"child.amount", alias + ".amount"));
+
+			parentDynamicQuery = DynamicQueryFactoryUtil.forClass(
+				DynamicQueryEntry.class, alias, clazz.getClassLoader());
+			property = PropertyFactoryUtil.forName(alias + ".name");
+		}
+
+		parentDynamicQuery.add(property.eq(dynamicQuery));
+
+		_testDynamicQuery(parentDynamicQuery, "alpha");
+
+		// Test 3
+
+		if (alias == null) {
+			dynamicQuery = _dynamicQueryEntryLocalService.dynamicQuery();
+		}
+		else {
+			dynamicQuery = DynamicQueryFactoryUtil.forClass(
+				DynamicQueryEntry.class, alias, clazz.getClassLoader());
+		}
+
+		dynamicQuery.add(
+			RestrictionsFactoryUtil.sqlRestriction(
+				"exists (select 1 from DynamicQueryEntry where status = " +
+					"this_.status and amount > this_.amount)"));
+
+		_testDynamicQuery(dynamicQuery, "alpha");
+
+		// Test 4
+
+		if (alias == null) {
+			dynamicQuery = _dynamicQueryEntryLocalService.dynamicQuery();
+		}
+		else {
+			dynamicQuery = DynamicQueryFactoryUtil.forClass(
+				DynamicQueryEntry.class, alias, clazz.getClassLoader());
+		}
+
+		dynamicQuery.add(
+			RestrictionsFactoryUtil.sqlRestriction(
+				"exists (select 1 from DynamicQueryEntry where status = " +
+					"this_.status and amount > ?)",
+				250L, Type.LONG));
+		dynamicQuery.addOrder(OrderFactoryUtil.asc("amount"));
+
+		_testDynamicQuery(dynamicQuery, "alpha", "gamma", "delta");
+
+		// Test 5
+
+		if (alias == null) {
+			dynamicQuery = _dynamicQueryEntryLocalService.dynamicQuery();
+		}
+		else {
+			dynamicQuery = DynamicQueryFactoryUtil.forClass(
+				DynamicQueryEntry.class, alias, clazz.getClassLoader());
+		}
+
+		dynamicQuery.setProjection(
+			ProjectionFactoryUtil.sqlProjection(
+				"(select count(*) from DynamicQueryEntry where status = " +
+					"this_.status) AS statusCount",
+				new String[] {"statusCount"}, new Type[] {Type.LONG}));
+		dynamicQuery.addOrder(OrderFactoryUtil.asc("amount"));
+
+		_testDynamicQuery(dynamicQuery, 2L, 1L, 2L, 1L);
+
+		// Test 6
+
+		if (alias == null) {
+			dynamicQuery = _dynamicQueryEntryLocalService.dynamicQuery();
+		}
+		else {
+			dynamicQuery = DynamicQueryFactoryUtil.forClass(
+				DynamicQueryEntry.class, alias, clazz.getClassLoader());
+		}
+
+		dynamicQuery.add(
+			RestrictionsFactoryUtil.sqlRestriction(
+				"exists (select 1 from DynamicQueryEntry where status = " +
+					"this_.status and amount > this_.amount)"));
+
+		Assert.assertEquals(
+			1L, _dynamicQueryEntryLocalService.dynamicQueryCount(dynamicQuery));
+	}
+
 	private void _testDynamicQueryWithProjection(
-		Projection projection, Object... expectedResults) {
+		Order order, Projection projection, Object... expectedResults) {
 
 		DynamicQuery dynamicQuery =
 			_dynamicQueryEntryLocalService.dynamicQuery();
 
 		dynamicQuery.setProjection(projection);
+
+		if (order != null) {
+			dynamicQuery.addOrder(order);
+		}
 
 		_testDynamicQuery(dynamicQuery, expectedResults);
 	}

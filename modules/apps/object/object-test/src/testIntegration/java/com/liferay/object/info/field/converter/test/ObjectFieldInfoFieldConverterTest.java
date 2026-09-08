@@ -36,23 +36,26 @@ import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectFieldSettingLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
+import com.liferay.object.system.SystemObjectDefinitionManagerRegistry;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.object.test.util.ObjectRelationshipTestUtil;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
-import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
@@ -61,6 +64,8 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Locale;
+import java.util.Set;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -128,7 +133,7 @@ public class ObjectFieldInfoFieldConverterTest {
 				null, null, null, _objectDefinitionLocalService,
 				_objectFieldLocalService, null, _objectRelationshipLocalService,
 				_objectScopeProviderRegistry, null, null, _portal,
-				_restContextPathResolverRegistry, null);
+				_restContextPathResolverRegistry, null, null);
 
 		InfoField.FinalStep finalStep = InfoField.builder(
 		).infoFieldType(
@@ -156,14 +161,8 @@ public class ObjectFieldInfoFieldConverterTest {
 				_portal.getPortalURL(new MockHttpServletRequest()) +
 					_portal.getPathContext()));
 
-		Group cmsGroup = GroupLocalServiceUtil.fetchGroup(
+		Group cmsGroup = _groupLocalService.getGroup(
 			TestPropsValues.getCompanyId(), GroupConstants.CMS);
-
-		if (cmsGroup == null) {
-			cmsGroup = GroupTestUtil.addGroup(
-				TestPropsValues.getCompanyId(), TestPropsValues.getUserId(), 0,
-				GroupConstants.CMS);
-		}
 
 		RESTContextPathResolver restContextPathResolver =
 			_restContextPathResolverRegistry.getRESTContextPathResolver(
@@ -199,12 +198,49 @@ public class ObjectFieldInfoFieldConverterTest {
 	}
 
 	@Test
+	public void testAddRelationshipInfoFieldAttributesWithOrganization()
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionLocalService.fetchSystemObjectDefinition(
+				TestPropsValues.getCompanyId(), "Organization");
+
+		ObjectRelationship objectRelationship =
+			ObjectRelationshipTestUtil.addObjectRelationship(
+				_objectRelationshipLocalService, objectDefinition,
+				_objectDefinition);
+
+		ObjectFieldInfoFieldConverter objectFieldInfoFieldConverter =
+			new ObjectFieldInfoFieldConverter(
+				null, null, null, _objectDefinitionLocalService,
+				_objectFieldLocalService, null, _objectRelationshipLocalService,
+				_objectScopeProviderRegistry, null, null, _portal,
+				_restContextPathResolverRegistry,
+				_systemObjectDefinitionManagerRegistry, null);
+
+		InfoField.FinalStep finalStep = InfoField.builder(
+		).infoFieldType(
+			RelationshipInfoFieldType.INSTANCE
+		).namespace(
+			RandomTestUtil.randomString()
+		).name(
+			RandomTestUtil.randomString()
+		);
+
+		String url = _getRelationshipURL(
+			finalStep, objectFieldInfoFieldConverter, objectRelationship,
+			_getServiceContext(TestPropsValues.getGroupId(), null));
+
+		Assert.assertTrue(url, url.endsWith("?fields=id,name&flatten=true"));
+	}
+
+	@Test
 	public void testGetInfoField() throws Exception {
 		ObjectFieldInfoFieldConverter objectFieldInfoFieldConverter =
 			new ObjectFieldInfoFieldConverter(
 				_ddmExpressionFactory, null, null, null, null,
 				_objectFieldSettingLocalService, null, null, null, null, null,
-				null, null);
+				null, null, null);
 
 		InfoField<?> infoField = objectFieldInfoFieldConverter.getInfoField(
 			true, ObjectField.class.getSimpleName(), _objectField);
@@ -250,7 +286,39 @@ public class ObjectFieldInfoFieldConverterTest {
 		}
 	}
 
-	@FeatureFlag("LPD-83570")
+	@Test
+	public void testGetInfoFieldWithUnavailableDefaultLocale()
+		throws Exception {
+
+		Locale originalLocale = LocaleUtil.getDefault();
+		Set<Locale> originalLocales = _language.getAvailableLocales();
+
+		try {
+			CompanyTestUtil.resetCompanyLocales(
+				TestPropsValues.getCompanyId(),
+				Collections.singletonList(LocaleUtil.GERMANY),
+				LocaleUtil.GERMANY);
+
+			ObjectFieldInfoFieldConverter objectFieldInfoFieldConverter =
+				new ObjectFieldInfoFieldConverter(
+					_ddmExpressionFactory, null, null, null, null,
+					_objectFieldSettingLocalService, null, null, null, null,
+					null, null, null, null);
+
+			InfoField<?> infoField = objectFieldInfoFieldConverter.getInfoField(
+				true, ObjectField.class.getSimpleName(), _objectField);
+
+			Assert.assertEquals(
+				_objectField.getLabel(originalLocale),
+				infoField.getLabel(LocaleUtil.GERMANY));
+		}
+		finally {
+			CompanyTestUtil.resetCompanyLocales(
+				TestPropsValues.getCompanyId(), originalLocales,
+				originalLocale);
+		}
+	}
+
 	@Test
 	public void testGetPhoneNumberInfoField() throws Exception {
 		ObjectField objectField = ObjectFieldUtil.addCustomObjectField(
@@ -277,7 +345,7 @@ public class ObjectFieldInfoFieldConverterTest {
 			new ObjectFieldInfoFieldConverter(
 				_ddmExpressionFactory, null, null, null, null,
 				_objectFieldSettingLocalService, null, null, null, null, null,
-				null, null);
+				null, null, null);
 
 		InfoField<PhoneNumberInfoFieldType> infoField =
 			(InfoField<PhoneNumberInfoFieldType>)
@@ -378,6 +446,12 @@ public class ObjectFieldInfoFieldConverterTest {
 	private DDMExpressionFactory _ddmExpressionFactory;
 
 	@Inject
+	private GroupLocalService _groupLocalService;
+
+	@Inject
+	private Language _language;
+
+	@Inject
 	private LayoutDisplayPageProviderRegistry
 		_layoutDisplayPageProviderRegistry;
 
@@ -409,5 +483,9 @@ public class ObjectFieldInfoFieldConverterTest {
 
 	@Inject
 	private RESTContextPathResolverRegistry _restContextPathResolverRegistry;
+
+	@Inject
+	private SystemObjectDefinitionManagerRegistry
+		_systemObjectDefinitionManagerRegistry;
 
 }

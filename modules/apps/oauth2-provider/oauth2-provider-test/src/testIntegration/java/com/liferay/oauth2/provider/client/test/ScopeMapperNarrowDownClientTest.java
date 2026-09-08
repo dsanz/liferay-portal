@@ -10,6 +10,7 @@ import com.liferay.oauth2.provider.internal.test.TestAnnotatedApplication;
 import com.liferay.oauth2.provider.internal.test.TestApplication;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
@@ -48,7 +49,7 @@ public class ScopeMapperNarrowDownClientTest extends BaseClientTestCase {
 		Invocation.Builder invocationBuilder = authorize(
 			webTarget.request(),
 			getToken(
-				"oauthTestApplication", null,
+				_CLIENT_ID, null,
 				getClientCredentialsResponseBiFunction("everything"),
 				this::parseTokenString));
 
@@ -56,14 +57,14 @@ public class ScopeMapperNarrowDownClientTest extends BaseClientTestCase {
 			"everything.read", invocationBuilder.get(String.class));
 
 		String error = getToken(
-			"oauthTestApplication", null,
+			_CLIENT_ID, null,
 			getClientCredentialsResponseBiFunction("everything.read"),
 			this::parseError);
 
 		Assert.assertEquals("invalid_grant", error);
 
 		String scopeString = getToken(
-			"oauthTestApplicationNarrowed", null,
+			_CLIENT_ID_NARROWED, null,
 			getClientCredentialsResponseBiFunction("everything"),
 			this::parseScopeString);
 
@@ -72,7 +73,7 @@ public class ScopeMapperNarrowDownClientTest extends BaseClientTestCase {
 		invocationBuilder = authorize(
 			webTarget.request(),
 			getToken(
-				"oauthTestApplicationNarrowed", null,
+				_CLIENT_ID_NARROWED, null,
 				getClientCredentialsResponseBiFunction("everything"),
 				this::parseTokenString));
 
@@ -80,7 +81,7 @@ public class ScopeMapperNarrowDownClientTest extends BaseClientTestCase {
 			"everything.read", invocationBuilder.get(String.class));
 
 		scopeString = getToken(
-			"oauthTestApplicationNarrowed", null,
+			_CLIENT_ID_NARROWED, null,
 			getClientCredentialsResponseBiFunction("everything.read"),
 			this::parseScopeString);
 
@@ -89,7 +90,7 @@ public class ScopeMapperNarrowDownClientTest extends BaseClientTestCase {
 		invocationBuilder = authorize(
 			webTarget.request(),
 			getToken(
-				"oauthTestApplicationNarrowed", null,
+				_CLIENT_ID_NARROWED, null,
 				getClientCredentialsResponseBiFunction("everything.read"),
 				this::parseTokenString));
 
@@ -101,6 +102,11 @@ public class ScopeMapperNarrowDownClientTest extends BaseClientTestCase {
 	protected BundleActivator getBundleActivator() {
 		return new ScopeMapperNarrowDownClientTestPreparatorBundleActivator();
 	}
+
+	private static final String _CLIENT_ID = RandomTestUtil.randomString();
+
+	private static final String _CLIENT_ID_NARROWED =
+		RandomTestUtil.randomString();
 
 	private class ScopeMapperNarrowDownClientTestPreparatorBundleActivator
 		extends BaseTestPreparatorBundleActivator {
@@ -128,11 +134,11 @@ public class ScopeMapperNarrowDownClientTest extends BaseClientTestCase {
 				applicationProperties);
 
 			createOAuth2Application(
-				companyId, user, "oauthTestApplication",
+				companyId, user, _CLIENT_ID,
 				Collections.singletonList("everything"));
 
 			createOAuth2Application(
-				companyId, user, "oauthTestApplicationNarrowed",
+				companyId, user, _CLIENT_ID_NARROWED,
 				Arrays.asList("everything", "everything.read"));
 		}
 

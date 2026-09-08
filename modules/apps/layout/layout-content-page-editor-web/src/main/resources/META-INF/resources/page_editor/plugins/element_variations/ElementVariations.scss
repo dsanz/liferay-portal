@@ -1,0 +1,29 @@
+@import 'functions/_global-functions';
+@import 'variables/_globals';
+
+.element-variations {
+	height: calc(100vh - var(--control-menu-container-height, 0px));
+
+	&__content {
+		min-height: 0;
+	}
+
+	&__default-language-value {
+		border-left: 2px solid $secondary;
+		border-radius: 2px;
+	}
+
+	&__default-language-value--empty {
+		border-color: $primary-d2;
+		color: $primary-d2;
+	}
+
+	&__not-localizable-label {
+		color: $secondary-l0;
+	}
+
+	&__sidebar {
+		border-right: 0.5px solid $secondary;
+		width: 320px;
+	}
+}

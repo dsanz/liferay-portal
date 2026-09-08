@@ -1,15 +1,22 @@
 #!/bin/bash
 
 function cluster_set_up {
+	local jvm_heap_override=${3}
+
+	if [[ -n ${jvm_heap_override} ]]
+	then
+		override_jvm_heap "$(get_app_server_dir ${LIFERAY_HOME})" "${jvm_heap_override}"
+	fi
+
 	default_set_up
 
-	prepare_additional_bundles ${1} ${2}
+	prepare_additional_bundles "${1}" "${2}" "${jvm_heap_override}"
 
 	local slave_home="${LIFERAY_HOME}-${1}"
 
-	cp "${CURRENT_DIR_NAME}/com.liferay.portal.search.elasticsearch8.configuration.ElasticsearchConfiguration.config" "${slave_home}/osgi/configs"
+	local current_dir_name=$(dirname "${BASH_SOURCE[1]}")
 
-	sed -i "s/%LIFERAY_DOCKER_NETWORK_NAME%/${LIFERAY_DOCKER_NETWORK_NAME}/g" "${slave_home}/osgi/configs/com.liferay.portal.search.elasticsearch8.configuration.ElasticsearchConfiguration.config"
+	cp "${current_dir_name}/com.liferay.portal.search.elasticsearch8.configuration.ElasticsearchConfiguration.config" "${slave_home}/osgi/configs"
 
 	rm -fr "${slave_home}/data"
 
@@ -24,7 +31,6 @@ function cluster_set_up {
 		sed -i 's/8080/9080/g' "${domain}"
 	done
 
-	rm -fr "${slave_home}/elasticsearch-sidecar"
 	rm -fr "${slave_home}/osgi/state"
 	rm -fr "${slave_home}/osgi/tomcat/work"
 	rm -fr "${slave_home}/osgi/work"
@@ -92,6 +98,8 @@ function combine_properties_files {
 
 function default_set_up {
 	update_portal_ext_properties
+
+	update_learn_resources_dir
 
 	start_default_app_server
 
@@ -186,7 +194,7 @@ function deploy_osgi_modules {
 
 		for osgi_module_name in $(cat ${osgi_modules_list_file})
 		do
-			local osgi_module_dir=$(find ${_PORTAL_PROJECT_DIR}/modules/apps -type d -name "${osgi_module_name}" | grep -v .releng | grep -v .npmscripts | grep -v node_modules)
+			local osgi_module_dir=$(find ${_PORTAL_PROJECT_DIR}/modules/apps ${_PORTAL_PROJECT_DIR}/modules/dxp/apps -type d -name "${osgi_module_name}" | grep -v .releng | grep -v .npmscripts | grep -v node_modules)
 
 			if [[ $(echo ${osgi_module_dir} | wc -w | grep -o -E '[0-9]+') > 1 ]]
 			then
@@ -475,7 +483,19 @@ function reverse {
 	done
 }
 
+function override_jvm_heap {
+	local app_server_dir=${1}
+	local jvm_heap_override=${2}
+
+	if [[ -n ${jvm_heap_override} ]]
+	then
+		sed -i "s/-Xms[0-9]*m -Xmx[0-9]*m/${jvm_heap_override}/" "${app_server_dir}/bin/setenv.sh"
+	fi
+}
+
 function prepare_additional_bundles {
+	local jvm_heap_override=${3}
+
 	for ((i = 0 ; i < ${1} ; i++))
 	do
 		local app_server_bundles_size=$((1 + ${i}))
@@ -494,6 +514,8 @@ function prepare_additional_bundles {
 		local app_server_dir=$(get_app_server_dir ${liferay_home})
 
 		echo ${app_server_dir}
+
+		override_jvm_heap "${app_server_dir}" "${jvm_heap_override}"
 
 		sed -i "s/=\"8\([0-9]\{3\}\)\"/=\"${leading_port_number}\1\"/g" "${app_server_dir}/conf/server.xml"
 
@@ -588,7 +610,7 @@ function start_app_server {
 
 	local liferay_portal_url=${2}
 
-	while ! curl --output /dev/null --silent --head --fail ${liferay_portal_url}
+	while ! curl --fail --output /dev/null --silent ${liferay_portal_url}
 	do
 		sleep 5
 	done
@@ -609,17 +631,32 @@ function start_client_extension_spring_boot_application {
 
 		cd ${client_extension_dir}
 
-		local portal_url_hostname=$(echo ${LIFERAY_PORTAL_URL} | awk -F:// '{print $2}')
+		#
+		# The portal's Kubernetes agent rewrites the routes in its home
+		# directory to the company virtual host, which does not resolve from
+		# here. The application reads its routes once at boot, so give it a
+		# private home that only this script writes.
+		#
 
-		echo "${portal_url_hostname}" > ${LIFERAY_HOME}/routes/default/dxp/com.liferay.lxc.dxp.domains
-		echo "${portal_url_hostname}" > ${LIFERAY_HOME}/routes/default/dxp/com.liferay.lxc.dxp.main.domain
-		echo "${portal_url_hostname}" > ${LIFERAY_HOME}/routes/default/dxp/com.liferay.lxc.dxp.mainDomain
+		local routes_home=$(mktemp -d)
 
-		local portal_url_scheme=$(echo ${LIFERAY_PORTAL_URL} | awk -F:// '{print $1}')
+		write_client_extension_dxp_routes ${routes_home}
 
-		echo "${portal_url_scheme}" > ${LIFERAY_HOME}/routes/default/dxp/com.liferay.lxc.dxp.server.protocol
+		if ! curl --fail --output /dev/null --retry 12 --retry-all-errors --retry-delay 5 --silent ${LIFERAY_PORTAL_URL}/o/oauth2/jwks
+		then
+			echo "The portal's JWKS endpoint does not answer at ${LIFERAY_PORTAL_URL}."
 
-		$(get_gradlew) bootRun -Pliferay.workspace.home.dir=${LIFERAY_HOME} &
+			exit 1
+		fi
+
+		#
+		# Run "classes" first so the readiness wait below does not spend its
+		# budget on a cold wrapper downloading Gradle and starting a daemon.
+		#
+
+		$(get_gradlew) classes -Pliferay.workspace.home.dir=${routes_home}
+
+		$(get_gradlew) bootRun -Pliferay.workspace.home.dir=${routes_home} &
 
 		local sleep_duration=60
 		local sleep_interval=5
@@ -737,6 +774,31 @@ function stop_default_app_server {
 	stop_app_server ${LIFERAY_HOME} ${LIFERAY_PORTAL_URL}
 }
 
+function update_learn_resources_dir {
+	local learn_resources_dir=${_PORTAL_PROJECT_DIR}/learn-resources/data
+
+	if [[ ! -d ${learn_resources_dir} ]]
+	then
+		echo "Unable to find ${learn_resources_dir}."
+
+		exit 1
+	fi
+
+	local properties_files=$(get_tomcat_portal_ext_properties_file)
+
+	if [[ -z ${properties_files} ]]
+	then
+		properties_files=${LIFERAY_HOME}/portal-ext.properties
+	fi
+
+	local properties_file
+
+	for properties_file in ${properties_files}
+	do
+		echo "learn.resources.dir=${learn_resources_dir}" >> ${properties_file}
+	done
+}
+
 function update_portal_ext_properties {
 	combine_properties_files \
 		$(get_tomcat_portal_ext_properties_file) \
@@ -811,6 +873,22 @@ function wait_for_portal_log_inactivity {
 	done
 
 	echo "No portal activity detected in ${sleep_interval}s."
+}
+
+function write_client_extension_dxp_routes {
+	local routes_dir=${1}/routes/default/dxp
+
+	mkdir -p ${routes_dir}
+
+	local portal_url_hostname=$(echo ${LIFERAY_PORTAL_URL} | awk -F:// '{print $2}')
+
+	echo "${portal_url_hostname}" > ${routes_dir}/com.liferay.lxc.dxp.domains
+	echo "${portal_url_hostname}" > ${routes_dir}/com.liferay.lxc.dxp.main.domain
+	echo "${portal_url_hostname}" > ${routes_dir}/com.liferay.lxc.dxp.mainDomain
+
+	local portal_url_scheme=$(echo ${LIFERAY_PORTAL_URL} | awk -F:// '{print $1}')
+
+	echo "${portal_url_scheme}" > ${routes_dir}/com.liferay.lxc.dxp.server.protocol
 }
 
 main "${@}"

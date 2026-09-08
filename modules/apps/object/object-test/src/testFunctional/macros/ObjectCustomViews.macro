@@ -17,7 +17,7 @@ definition {
 				locator1 = "ObjectCustomViews#CHECKBOX_COLUMN_OPTION");
 		}
 
-		PortletEntry.save();
+		ObjectCustomViews.clickSave();
 
 		SelectFrame(locator1 = "IFrame#IFRAME");
 	}
@@ -127,7 +127,7 @@ definition {
 			locator1 = "ObjectCustomViews#ADD_VIEW_NAME",
 			value1 = ${viewName});
 
-		PortletEntry.save();
+		ObjectCustomViews.clickSave();
 	}
 
 	@summary = "Default summary"
@@ -194,6 +194,15 @@ definition {
 	}
 
 	@summary = "Default summary"
+	macro clickSave() {
+		Click(
+			key_text = "Save",
+			locator1 = "Button#ANY");
+
+		WaitForLiferayEvent.initializeLiferayEventLog();
+	}
+
+	@summary = "Default summary"
 	macro clickSaveOnModal() {
 		Click(
 			key_name = "Save",
@@ -213,7 +222,7 @@ definition {
 			locator1 = "FormViewBuilder#OBJECT_FIELD_BUTTON_DROPDOWN");
 
 		Type(
-			key_fieldName = "yyyy-mm-dd",
+			key_fieldName = "mm/dd/yyyy",
 			locator1 = "ObjectCustomViews#FROM_DATE_INPUT",
 			value1 = ${displayDate});
 

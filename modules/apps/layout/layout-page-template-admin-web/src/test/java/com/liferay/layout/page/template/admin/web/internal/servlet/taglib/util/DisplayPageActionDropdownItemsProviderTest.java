@@ -13,11 +13,11 @@ import com.liferay.layout.page.template.admin.web.internal.configuration.LayoutP
 import com.liferay.layout.page.template.admin.web.internal.constants.LayoutPageTemplateAdminWebKeys;
 import com.liferay.layout.page.template.admin.web.internal.security.permission.resource.LayoutPageTemplateEntryPermission;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.portlet.url.builder.RenderURLBuilder;
 import com.liferay.portal.kernel.portlet.url.builder.ResourceURLBuilder;
@@ -87,6 +87,25 @@ public class DisplayPageActionDropdownItemsProviderTest {
 		_resourceURLBuilderMockedStatic.close();
 		_portletURLBuilderMockedStatic.close();
 		_uploadServletRequestConfigurationProviderUtilMockedStatic.close();
+	}
+
+	@Test
+	public void testGetActionDropdownItemsWithExportDisplayPageURL()
+		throws Exception {
+
+		DisplayPageActionDropdownItemsProvider
+			displayPageActionDropdownItemsProvider =
+				new DisplayPageActionDropdownItemsProvider(
+					false, false, _layoutPageTemplateEntry, _renderRequest,
+					_renderResponse);
+
+		displayPageActionDropdownItemsProvider.getActionDropdownItems();
+
+		Mockito.verify(
+			_exportDisplayPageURL
+		).setCopyCurrentRenderParameters(
+			false
+		);
 	}
 
 	@Test
@@ -319,9 +338,9 @@ public class DisplayPageActionDropdownItemsProviderTest {
 		);
 
 		Mockito.when(
-			afterResourceIDStep.buildString()
+			afterResourceIDStep.buildResourceURL()
 		).thenReturn(
-			StringPool.BLANK
+			_exportDisplayPageURL
 		);
 	}
 
@@ -361,6 +380,8 @@ public class DisplayPageActionDropdownItemsProviderTest {
 		_assetDisplayPageEntryServiceUtilMockedStatic = Mockito.mockStatic(
 			AssetDisplayPageEntryServiceUtil.class);
 	private final Layout _draftLayout = Mockito.mock(Layout.class);
+	private final LiferayPortletURL _exportDisplayPageURL = Mockito.mock(
+		LiferayPortletURL.class);
 	private final HttpServletRequest _httpServletRequest = Mockito.mock(
 		HttpServletRequest.class);
 	private final InfoItemServiceRegistry _infoItemServiceRegistry =

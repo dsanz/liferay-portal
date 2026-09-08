@@ -5,14 +5,14 @@
 
 package com.liferay.xstream.configurator;
 
-import com.liferay.exportimport.kernel.xstream.XStreamAliasRegistryUtil;
+import com.liferay.exportimport.kernel.xstream.XStreamAlias;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.util.AggregateClassLoader;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -40,12 +40,10 @@ public class XStreamConfiguratorRegistryUtil {
 
 		// Temporary code to fetch class loaders from the old framework too
 
-		Map<Class<?>, String> aliases = XStreamAliasRegistryUtil.getAliases();
+		for (XStreamAlias xStreamAlias : _xStreamAliases) {
+			Class<?> clazz = xStreamAlias.getClazz();
 
-		if (!aliases.isEmpty()) {
-			for (Class<?> clazz : aliases.keySet()) {
-				classLoaders.add(clazz.getClassLoader());
-			}
+			classLoaders.add(clazz.getClassLoader());
 		}
 
 		return AggregateClassLoader.getAggregateClassLoader(
@@ -60,7 +58,11 @@ public class XStreamConfiguratorRegistryUtil {
 		return _xStreamConfigurators.toList();
 	}
 
+	private static final BundleContext _bundleContext =
+		SystemBundleUtil.getBundleContext();
 	private static final AtomicLong _modifiedCount = new AtomicLong(0);
+	private static final ServiceTrackerList<XStreamAlias> _xStreamAliases =
+		ServiceTrackerListFactory.open(_bundleContext, XStreamAlias.class);
 	private static final ServiceTrackerList<XStreamConfigurator>
 		_xStreamConfigurators;
 

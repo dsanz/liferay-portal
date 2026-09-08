@@ -9,7 +9,15 @@ import React from 'react';
 
 import RoomShare from './RoomShare';
 
-function RoomShareButton({roomId}: {roomId: number}) {
+function RoomShareButton({
+	canAssignAllRoles,
+	readOnly = false,
+	roomId,
+}: {
+	canAssignAllRoles: boolean;
+	readOnly?: boolean;
+	roomId: number;
+}) {
 	return (
 		<ClayButtonWithIcon
 			aria-label={Liferay.Language.get('share')}
@@ -23,7 +31,13 @@ function RoomShareButton({roomId}: {roomId: number}) {
 						closeModal,
 					}: {
 						closeModal: () => void;
-					}) => RoomShare({closeModal, roomId}),
+					}) =>
+						RoomShare({
+							canAssignAllRoles,
+							closeModal,
+							readOnly,
+							roomId,
+						}),
 					size: 'lg',
 				})
 			}

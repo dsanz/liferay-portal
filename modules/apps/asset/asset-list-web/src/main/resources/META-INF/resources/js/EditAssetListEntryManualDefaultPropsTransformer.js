@@ -3,61 +3,45 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {openSelectionModal} from 'frontend-js-components-web';
+import {openItemSelectorModal} from '@liferay/frontend-js-item-selector-web';
+import {getAssetEntriesItemSelectorProps} from 'asset-taglib';
 
 export default function propsTransformer({
-	actions,
-	items,
+	additionalProps,
 	portletNamespace,
 	...props
 }) {
-	const updateItem = (item) => {
-		const newItem = {
-			...item,
-			onClick(event) {
-				event.preventDefault();
-
-				openSelectionModal({
-					customSelectEvent: true,
-					multiple: true,
-					onSelect(data) {
-						if (data.value && data.value.length) {
-							const selectedItems = data.value;
-
-							Liferay.Util.postForm(
-								document[`${portletNamespace}fm`],
-								{
-									data: {
-										assetEntryIds: Array.from(selectedItems)
-											.map((selectedItem) => {
-												const assetEntry =
-													JSON.parse(selectedItem);
-
-												return assetEntry.assetEntryId;
-											})
-											.join(','),
-									},
-								}
-							);
-						}
-					},
-					selectEventName: `${portletNamespace}selectAsset`,
-					title: item.data.title,
-					url: item.data.href,
-				});
-			},
-		};
-
-		if (Array.isArray(item.items)) {
-			newItem.items = item.items.map(updateItem);
-		}
-
-		return newItem;
-	};
+	const {assetEntryTypes = [], groupIds} = additionalProps;
 
 	return {
 		...props,
-		actions: actions?.map(updateItem),
-		items: items?.map(updateItem),
+		onClick(event) {
+			event.preventDefault();
+
+			openItemSelectorModal({
+				...getAssetEntriesItemSelectorProps({
+					assetEntryTypes,
+					groupIds,
+					portletNamespace,
+				}),
+				items: [],
+				onItemsChange(selectedAssetEntries) {
+					if (!selectedAssetEntries || !selectedAssetEntries.length) {
+						return;
+					}
+
+					Liferay.Util.postForm(document[`${portletNamespace}fm`], {
+						data: {
+							assetEntryIds: selectedAssetEntries
+								.map(
+									(selectedAssetEntry) =>
+										selectedAssetEntry.assetEntryId
+								)
+								.join(','),
+						},
+					});
+				},
+			});
+		},
 	};
 }

@@ -8,7 +8,6 @@ package com.liferay.jenkins.results.parser;
 import com.google.common.collect.Lists;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -72,14 +71,7 @@ public abstract class BaseParentBuild extends BaseBuild implements ParentBuild {
 		for (Map.Entry<String, String> urlEntry : urlAxisNames.entrySet()) {
 			String url = urlEntry.getKey();
 
-			try {
-				url = JenkinsResultsParserUtil.getLocalURL(
-					JenkinsResultsParserUtil.decode(url));
-			}
-			catch (UnsupportedEncodingException unsupportedEncodingException) {
-				throw new IllegalArgumentException(
-					"Unable to decode " + url, unsupportedEncodingException);
-			}
+			url = JenkinsResultsParserUtil.getLocalURL(url);
 
 			if (!hasBuildURL(url)) {
 				final String axisName = urlEntry.getValue();
@@ -528,11 +520,8 @@ public abstract class BaseParentBuild extends BaseBuild implements ParentBuild {
 
 			String jenkinsMasterName = jenkinsMaster.getName();
 
-			if (!callableGroupCounter.containsKey(jenkinsMasterName)) {
-				callableGroupCounter.put(jenkinsMasterName, 0);
-			}
-
-			Integer buildCounter = callableGroupCounter.get(jenkinsMasterName);
+			Integer buildCounter = callableGroupCounter.computeIfAbsent(
+				jenkinsMasterName, key -> 0);
 
 			String sequentialCallableGroupName = jenkinsMasterName;
 

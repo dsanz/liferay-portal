@@ -12,6 +12,7 @@ import com.liferay.exportimport.kernel.exception.ExportImportContentProcessorExc
 import com.liferay.exportimport.kernel.exception.ExportImportContentValidationException;
 import com.liferay.exportimport.kernel.lar.ExportImportClassedModelUtil;
 import com.liferay.exportimport.kernel.lar.PortletDataContext;
+import com.liferay.exportimport.report.constants.ExportImportReportEntryConstants;
 import com.liferay.exportimport.report.service.ExportImportReportEntryLocalService;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -231,15 +232,8 @@ public class LayoutReferencesExportImportContentProcessor
 						url = urlWithoutLocale;
 					}
 					else {
-						Layout layout =
-							_layoutLocalService.fetchLayoutByFriendlyURL(
-								group.getGroupId(), false, urlWithoutLocale);
-
-						if (layout == null) {
-							layout =
-								_layoutLocalService.fetchLayoutByFriendlyURL(
-									group.getGroupId(), true, urlWithoutLocale);
-						}
+						Layout layout = _fetchLayoutByFriendlyURL(
+							group.getGroupId(), false, urlWithoutLocale);
 
 						if (layout != null) {
 							urlSB.append(localePath);
@@ -696,7 +690,7 @@ public class LayoutReferencesExportImportContentProcessor
 					Class<?> modelClass = stagedModel.getModelClass();
 
 					_exportImportReportEntryLocalService.
-						getOrAddErrorExportImportReportEntry(
+						getOrAddExportImportReportEntry(
 							group.getGroupId(),
 							portletDataContext.getCompanyId(),
 							externalReferenceCode,
@@ -706,6 +700,7 @@ public class LayoutReferencesExportImportContentProcessor
 								stagedModel),
 							GetterUtil.getLong(
 								portletDataContext.getExportImportProcessId()),
+							ExportImportReportEntryConstants.TYPE_ERROR,
 							StringBundler.concat(
 								"Warning: The referenced Layout group ",
 								"reference ('", groupReference,
@@ -1032,14 +1027,8 @@ public class LayoutReferencesExportImportContentProcessor
 					url = urlWithoutLocale;
 				}
 				else {
-					Layout layout =
-						_layoutLocalService.fetchLayoutByFriendlyURL(
-							group.getGroupId(), false, urlWithoutLocale);
-
-					if (layout == null) {
-						layout = _layoutLocalService.fetchLayoutByFriendlyURL(
-							group.getGroupId(), true, urlWithoutLocale);
-					}
+					Layout layout = _fetchLayoutByFriendlyURL(
+						group.getGroupId(), false, urlWithoutLocale);
 
 					if (layout != null) {
 						urlSB.append(localePath);
@@ -1117,7 +1106,7 @@ public class LayoutReferencesExportImportContentProcessor
 				privateLayout = layoutSet.isPrivateLayout();
 			}
 
-			Layout layout = _layoutLocalService.fetchLayoutByFriendlyURL(
+			Layout layout = _fetchLayoutByFriendlyURL(
 				groupId, privateLayout, url);
 
 			if (layout != null) {
@@ -1189,6 +1178,20 @@ public class LayoutReferencesExportImportContentProcessor
 				throw exportImportContentValidationException;
 			}
 		}
+	}
+
+	private Layout _fetchLayoutByFriendlyURL(
+		long groupId, boolean privateLayout, String friendlyURL) {
+
+		Layout layout = _layoutLocalService.fetchLayoutByFriendlyURL(
+			groupId, privateLayout, friendlyURL);
+
+		if (layout != null) {
+			return layout;
+		}
+
+		return _layoutLocalService.fetchLayoutByFriendlyURL(
+			groupId, !privateLayout, friendlyURL);
 	}
 
 	private String _getPortalURL(String url, String portalURL)

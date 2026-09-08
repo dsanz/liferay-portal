@@ -6,7 +6,9 @@
 package com.liferay.portal.search.rest.internal.odata.entity.v1_0;
 
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.odata.entity.BooleanEntityField;
 import com.liferay.portal.odata.entity.CollectionEntityField;
 import com.liferay.portal.odata.entity.DateTimeEntityField;
@@ -25,8 +27,31 @@ public class SearchResultEntityModel implements EntityModel {
 	public SearchResultEntityModel() {
 		_entityFieldsMap = EntityModel.toEntityFieldsMap(
 			new BooleanEntityField("cmsRoot", locale -> "cms_root"),
+			new BooleanEntityField("completed", locale -> "completed"),
+			new BooleanEntityField(
+				"rootDescendantNode", locale -> "rootDescendantNode"),
+			new CollectionEntityField(
+				new IntegerEntityField(
+					"cmpFunnelStageCategoryIds",
+					locale -> Field.ASSET_INTERNAL_CATEGORY_IDS)),
+			new CollectionEntityField(
+				new IntegerEntityField(
+					"cmpPersonaCategoryIds",
+					locale -> Field.ASSET_INTERNAL_CATEGORY_IDS)),
+			new CollectionEntityField(
+				new IntegerEntityField(
+					"cmpProjectObjectEntryIds",
+					locale -> "cmpProjectObjectEntryIds")),
+			new CollectionEntityField(
+				new IntegerEntityField(
+					"cmpTaskObjectEntryIds",
+					locale -> "cmpTaskObjectEntryIds")),
 			new CollectionEntityField(
 				new IntegerEntityField("groupIds", locale -> Field.GROUP_ID)),
+			new CollectionEntityField(
+				new IntegerEntityField(
+					"internalTaxonomyCategoryIds",
+					locale -> Field.ASSET_INTERNAL_CATEGORY_IDS)),
 			new CollectionEntityField(
 				new IntegerEntityField(
 					"taxonomyCategoryIds", locale -> "assetCategoryIds")),
@@ -37,6 +62,8 @@ public class SearchResultEntityModel implements EntityModel {
 				new StringEntityField(
 					"objectFolderExternalReferenceCode",
 					locale -> "objectFolderExternalReferenceCode")),
+			new CollectionEntityField(
+				new StringEntityField("treePath", locale -> Field.TREE_PATH)),
 			new DateTimeEntityField(
 				"cmpDueDate", locale -> "cmpDueDate", locale -> "cmpDueDate"),
 			new DateTimeEntityField(
@@ -63,6 +90,14 @@ public class SearchResultEntityModel implements EntityModel {
 				"dateReview",
 				locale -> Field.getSortableFieldName("reviewDate"),
 				locale -> "reviewDate"),
+			new DateTimeEntityField(
+				"dueDate", locale -> Field.getSortableFieldName("dueDate"),
+				locale -> "dueDate"),
+			new EntityField(
+				"classNameId", EntityField.Type.INTEGER,
+				locale -> Field.ENTRY_CLASS_NAME,
+				locale -> Field.ENTRY_CLASS_NAME,
+				value -> PortalUtil.getClassName(GetterUtil.getLong(value))),
 			new IntegerEntityField(
 				"cmpProjectManagerUserId", locale -> "cmpProjectManagerUserId"),
 			new IntegerEntityField(
@@ -70,6 +105,8 @@ public class SearchResultEntityModel implements EntityModel {
 			new IntegerEntityField(
 				"cmpTaskCMPProjectId", locale -> "cmpTaskCMPProjectId"),
 			new IntegerEntityField("creatorId", locale -> Field.USER_ID),
+			new IntegerEntityField(
+				"entryClassPK", locale -> Field.ENTRY_CLASS_PK),
 			new IntegerEntityField("folderId", locale -> Field.FOLDER_ID),
 			new IntegerEntityField(
 				"objectDefinitionId", locale -> "objectDefinitionId"),
@@ -77,7 +114,6 @@ public class SearchResultEntityModel implements EntityModel {
 			new IntegerEntityField("status", locale -> Field.STATUS),
 			new StringEntityField("cmpAssignTo", locale -> "cmpAssignTo"),
 			new StringEntityField("cmpState", locale -> "cmpState"),
-			new StringEntityField("cmsKind", locale -> "cms_kind"),
 			new StringEntityField("cmsSection", locale -> "cms_section"),
 			new StringEntityField("extension", locale -> "extension"),
 			new StringEntityField(

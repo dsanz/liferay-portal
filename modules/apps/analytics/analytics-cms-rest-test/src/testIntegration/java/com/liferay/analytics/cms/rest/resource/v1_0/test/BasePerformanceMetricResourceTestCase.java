@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -84,6 +85,8 @@ public abstract class BasePerformanceMetricResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -181,6 +184,11 @@ public abstract class BasePerformanceMetricResourceTestCase {
 
 	@Test
 	public void testGetPerformanceMetric() throws Exception {
+		Assert.assertTrue(false);
+	}
+
+	@Test
+	public void testGetPerformanceMetricExport() throws Exception {
 		Assert.assertTrue(false);
 	}
 
@@ -864,4 +872,4 @@ public abstract class BasePerformanceMetricResourceTestCase {
 			_performanceMetricResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-548735459
+// LIFERAY-REST-BUILDER-HASH:818500898

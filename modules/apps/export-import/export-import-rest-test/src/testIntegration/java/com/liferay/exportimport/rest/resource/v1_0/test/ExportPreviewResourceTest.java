@@ -6,46 +6,78 @@
 package com.liferay.exportimport.rest.resource.v1_0.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.exportimport.constants.ExportImportConstants;
+import com.liferay.exportimport.rest.client.dto.v1_0.Choice;
 import com.liferay.exportimport.rest.client.dto.v1_0.ExportPreview;
 import com.liferay.exportimport.rest.client.dto.v1_0.PreviewPortletDataHandler;
+import com.liferay.exportimport.rest.client.dto.v1_0.PreviewPortletDataHandlerBoolean;
+import com.liferay.exportimport.rest.client.dto.v1_0.PreviewPortletDataHandlerChoice;
+import com.liferay.exportimport.rest.client.dto.v1_0.PreviewPortletDataHandlerControl;
 import com.liferay.exportimport.rest.client.dto.v1_0.PreviewPortletDataHandlerSection;
 import com.liferay.exportimport.rest.client.resource.v1_0.ExportPreviewResource;
+import com.liferay.layout.page.template.admin.constants.LayoutPageTemplateAdminPortletKeys;
+import com.liferay.layout.page.template.constants.LayoutPageTemplateCollectionTypeConstants;
+import com.liferay.layout.page.template.constants.LayoutPageTemplateConstants;
+import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
+import com.liferay.layout.page.template.model.LayoutPageTemplateCollection;
+import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
+import com.liferay.layout.page.template.service.LayoutPageTemplateCollectionLocalService;
+import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
+import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectDefinitionSettingConstants;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
 import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectDefinitionSettingLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
-import com.liferay.petra.function.UnsafeFunction;
+import com.liferay.petra.function.UnsafeBiFunction;
+import com.liferay.petra.function.UnsafeSupplier;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.test.TestInfo;
+import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.Time;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
+import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 
 import java.io.Serializable;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -56,19 +88,26 @@ import org.junit.runner.RunWith;
 public class ExportPreviewResourceTest
 	extends BaseExportPreviewResourceTestCase {
 
+	@ClassRule
+	@Rule
+	public static final AggregateTestRule aggregateTestRule =
+		new AggregateTestRule(
+			new LiferayIntegrationTestRule(),
+			PermissionCheckerMethodTestRule.INSTANCE);
+
 	@Before
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
 
 		_companyObjectDefinition = _publishObjectDefinitionWithEntries(
-			ObjectDefinitionConstants.SCOPE_COMPANY,
-			GroupConstants.DEFAULT_PARENT_GROUP_ID);
+			GroupConstants.DEFAULT_PARENT_GROUP_ID,
+			ObjectDefinitionConstants.SCOPE_COMPANY);
 		_depotObjectDefinition = _publishObjectDefinitionWithEntries(
-			ObjectDefinitionConstants.SCOPE_DEPOT,
-			testDepotEntryGroup.getGroupId());
+			testDepotEntryGroup.getGroupId(),
+			ObjectDefinitionConstants.SCOPE_DEPOT);
 		_siteObjectDefinition = _publishObjectDefinitionWithEntries(
-			ObjectDefinitionConstants.SCOPE_SITE, testGroup.getGroupId());
+			testGroup.getGroupId(), ObjectDefinitionConstants.SCOPE_SITE);
 
 		String password = RandomTestUtil.randomString();
 
@@ -100,70 +139,163 @@ public class ExportPreviewResourceTest
 		_userLocalService.deleteUser(_user);
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Override
 	@Test
 	public void testGetAssetLibraryExportPreview() throws Exception {
+		String externalReferenceCode =
+			testDepotEntryGroup.getExternalReferenceCode();
+		String portletId = _depotObjectDefinition.getPortletId();
+
 		assertHttpResponseStatusCode(
 			404,
 			_exportPreviewResource.getAssetLibraryExportPreviewHttpResponse(
-				testDepotEntryGroup.getExternalReferenceCode(), null, null,
-				null, null));
+				externalReferenceCode, null, null, 0L, null, null));
 
 		_testGetExportPreviewWithDateFilter(
-			testDateFilter ->
+			_depotObjectDefinition,
+			(startDate, endDate) ->
 				exportPreviewResource.getAssetLibraryExportPreview(
-					testDepotEntryGroup.getExternalReferenceCode(),
-					testDateFilter.getEndDate(), testDateFilter.getLast(),
-					testDateFilter.getRange(), testDateFilter.getStartDate()),
-			_depotObjectDefinition);
+					externalReferenceCode, null, endDate, 0L, null, startDate));
+		_testGetExportPreviewWithDateFilter(
+			_depotObjectDefinition,
+			(startDate, endDate) ->
+				exportPreviewResource.getAssetLibraryExportPreview(
+					externalReferenceCode, null, endDate, 0L, portletId,
+					startDate));
 		_testGetExportPreviewWithDifferentScope(
 			exportPreviewResource.getAssetLibraryExportPreview(
-				testDepotEntryGroup.getExternalReferenceCode(), null, null,
-				null, null),
+				externalReferenceCode, null, null, 0L, null, null),
 			_companyObjectDefinition, _siteObjectDefinition);
+
+		long plid = _addLayoutWithPortlet(testDepotEntryGroup, portletId);
+
+		_testGetPortletExportPreview(
+			exportPreviewResource.getAssetLibraryExportPreview(
+				externalReferenceCode, null, null, plid, portletId, null),
+			portletId);
 	}
 
 	@Override
 	@Test
 	public void testGetExportPreview() throws Exception {
+		String portletId = _companyObjectDefinition.getPortletId();
+
 		assertHttpResponseStatusCode(
 			404,
 			_exportPreviewResource.getExportPreviewHttpResponse(
-				null, null, null, null));
+				null, null, 0L, null, null));
 
 		_testGetExportPreviewWithDateFilter(
-			testDateFilter -> exportPreviewResource.getExportPreview(
-				testDateFilter.getEndDate(), testDateFilter.getLast(),
-				testDateFilter.getRange(), testDateFilter.getStartDate()),
-			_companyObjectDefinition);
+			_companyObjectDefinition,
+			(startDate, endDate) -> exportPreviewResource.getExportPreview(
+				null, endDate, 0L, null, startDate));
+		_testGetExportPreviewWithDateFilter(
+			_companyObjectDefinition,
+			(startDate, endDate) -> exportPreviewResource.getExportPreview(
+				null, endDate, 0L, portletId, startDate));
+		_testGetExportPreviewWithDeletions(
+			GroupConstants.DEFAULT_PARENT_GROUP_ID,
+			ObjectDefinitionConstants.SCOPE_COMPANY,
+			() -> exportPreviewResource.getExportPreview(
+				null, null, 0L, null, null));
 		_testGetExportPreviewWithDifferentScope(
-			exportPreviewResource.getExportPreview(null, null, null, null),
+			exportPreviewResource.getExportPreview(null, null, 0L, null, null),
 			_depotObjectDefinition, _siteObjectDefinition);
+
+		long plid = _addLayoutWithPortlet(testGroup, portletId);
+
+		_testGetPortletExportPreview(
+			exportPreviewResource.getExportPreview(
+				null, null, plid, portletId, null),
+			portletId);
 	}
 
+	@FeatureFlag("LPD-38869")
 	@Override
 	@Test
 	public void testGetSiteExportPreview() throws Exception {
+		String externalReferenceCode = testGroup.getExternalReferenceCode();
+		String portletId = _siteObjectDefinition.getPortletId();
+
 		assertHttpResponseStatusCode(
 			404,
 			_exportPreviewResource.getSiteExportPreviewHttpResponse(
-				testGroup.getExternalReferenceCode(), null, null, null, null));
+				externalReferenceCode, null, null, 0L, null, null));
 
 		_testGetExportPreviewWithDateFilter(
-			testDateFilter -> exportPreviewResource.getSiteExportPreview(
-				testGroup.getExternalReferenceCode(),
-				testDateFilter.getEndDate(), testDateFilter.getLast(),
-				testDateFilter.getRange(), testDateFilter.getStartDate()),
-			_siteObjectDefinition);
+			_siteObjectDefinition,
+			(startDate, endDate) -> exportPreviewResource.getSiteExportPreview(
+				externalReferenceCode, null, endDate, 0L, null, startDate));
+		_testGetExportPreviewWithDateFilter(
+			_siteObjectDefinition,
+			(startDate, endDate) -> exportPreviewResource.getSiteExportPreview(
+				externalReferenceCode, null, endDate, 0L, portletId,
+				startDate));
+		_testGetExportPreviewWithDeletions(
+			testGroup.getGroupId(), ObjectDefinitionConstants.SCOPE_SITE,
+			() -> exportPreviewResource.getSiteExportPreview(
+				externalReferenceCode, null, null, 0L, null, null));
 		_testGetExportPreviewWithDifferentScope(
 			exportPreviewResource.getSiteExportPreview(
-				testGroup.getExternalReferenceCode(), null, null, null, null),
+				externalReferenceCode, null, null, 0L, null, null),
 			_companyObjectDefinition, _depotObjectDefinition);
+		_testGetExportPreviewWithLayoutSet(
+			(startDate, endDate) -> exportPreviewResource.getSiteExportPreview(
+				externalReferenceCode, null, endDate, 0L, null, startDate));
+		_testGetSiteExportPreviewWithLayoutPageTemplateEntries();
+
+		long plid = _addLayoutWithPortlet(testGroup, portletId);
+
+		_testGetPortletExportPreview(
+			exportPreviewResource.getSiteExportPreview(
+				externalReferenceCode, null, null, plid, portletId, null),
+			portletId);
+	}
+
+	private LayoutPageTemplateCollection _addBasicLayoutPageTemplateCollection()
+		throws Exception {
+
+		return _layoutPageTemplateCollectionLocalService.
+			addLayoutPageTemplateCollection(
+				null, TestPropsValues.getUserId(), testGroup.getGroupId(),
+				LayoutPageTemplateConstants.
+					PARENT_LAYOUT_PAGE_TEMPLATE_COLLECTION_ID_DEFAULT,
+				null, RandomTestUtil.randomString(), null,
+				LayoutPageTemplateCollectionTypeConstants.BASIC,
+				ServiceContextTestUtil.getServiceContext(
+					testGroup.getGroupId(), TestPropsValues.getUserId()));
+	}
+
+	private LayoutPageTemplateEntry _addLayoutPageTemplateEntry(
+			long layoutPageTemplateCollectionId, int type)
+		throws Exception {
+
+		return _layoutPageTemplateEntryLocalService.addLayoutPageTemplateEntry(
+			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
+			testGroup.getGroupId(), layoutPageTemplateCollectionId, null, 0,
+			null, RandomTestUtil.randomString(), type, 0, false, 0, 0, 0,
+			WorkflowConstants.STATUS_APPROVED,
+			ServiceContextTestUtil.getServiceContext(
+				testGroup.getGroupId(), TestPropsValues.getUserId()));
+	}
+
+	private long _addLayoutWithPortlet(Group group, String portletId)
+		throws Exception {
+
+		Layout layout = LayoutTestUtil.addTypePortletLayout(group);
+
+		LayoutTestUtil.addPortletToLayout(
+			layout, portletId,
+			HashMapBuilder.put(
+				RandomTestUtil.randomString(),
+				new String[] {RandomTestUtil.randomString()}
+			).build());
+
+		return layout.getPlid();
 	}
 
 	private void _addObjectEntry(
-			ObjectDefinition objectDefinition, long groupId, Date modifiedDate)
+			long groupId, Date modifiedDate, ObjectDefinition objectDefinition)
 		throws Exception {
 
 		ServiceContext serviceContext =
@@ -185,7 +317,46 @@ public class ExportPreviewResourceTest
 	private long _getAdditionCount(
 		ExportPreview exportPreview, String portletId) {
 
-		String name = "PORTLET_DATA_" + portletId;
+		PreviewPortletDataHandler previewPortletDataHandler =
+			_getPreviewPortletDataHandler(
+				exportPreview, "PORTLET_DATA_" + portletId);
+
+		if (previewPortletDataHandler == null) {
+			return 0L;
+		}
+
+		return previewPortletDataHandler.getAdditionCount();
+	}
+
+	private Choice _getChoice(
+		PreviewPortletDataHandler previewPortletDataHandler, String name) {
+
+		for (PreviewPortletDataHandlerControl previewPortletDataHandlerControl :
+				previewPortletDataHandler.
+					getPreviewPortletDataHandlerControls()) {
+
+			if (!(previewPortletDataHandlerControl instanceof
+					PreviewPortletDataHandlerChoice)) {
+
+				continue;
+			}
+
+			PreviewPortletDataHandlerChoice previewPortletDataHandlerChoice =
+				(PreviewPortletDataHandlerChoice)
+					previewPortletDataHandlerControl;
+
+			for (Choice choice : previewPortletDataHandlerChoice.getChoices()) {
+				if (name.equals(choice.getName())) {
+					return choice;
+				}
+			}
+		}
+
+		return null;
+	}
+
+	private PreviewPortletDataHandler _getPreviewPortletDataHandler(
+		ExportPreview exportPreview, String name) {
 
 		for (PreviewPortletDataHandlerSection previewPortletDataHandlerSection :
 				exportPreview.getPreviewPortletDataHandlerSections()) {
@@ -195,16 +366,48 @@ public class ExportPreviewResourceTest
 						getPreviewPortletDataHandlers()) {
 
 				if (name.equals(previewPortletDataHandler.getName())) {
-					return previewPortletDataHandler.getAdditionCount();
+					return previewPortletDataHandler;
 				}
 			}
 		}
 
-		return 0L;
+		return null;
+	}
+
+	private PreviewPortletDataHandlerBoolean
+		_getPreviewPortletDataHandlerBoolean(
+			PreviewPortletDataHandler previewPortletDataHandler, String name) {
+
+		for (PreviewPortletDataHandlerControl previewPortletDataHandlerControl :
+				previewPortletDataHandler.
+					getPreviewPortletDataHandlerControls()) {
+
+			if (name.equals(previewPortletDataHandlerControl.getName())) {
+				return (PreviewPortletDataHandlerBoolean)
+					previewPortletDataHandlerControl;
+			}
+		}
+
+		return null;
+	}
+
+	private PreviewPortletDataHandlerSection
+		_getPreviewPortletDataHandlerSection(
+			ExportPreview exportPreview, String name) {
+
+		for (PreviewPortletDataHandlerSection previewPortletDataHandlerSection :
+				exportPreview.getPreviewPortletDataHandlerSections()) {
+
+			if (name.equals(previewPortletDataHandlerSection.getName())) {
+				return previewPortletDataHandlerSection;
+			}
+		}
+
+		return null;
 	}
 
 	private ObjectDefinition _publishObjectDefinitionWithEntries(
-			String scope, long groupId)
+			long groupId, String scope)
 		throws Exception {
 
 		ObjectDefinition objectDefinition =
@@ -225,18 +428,18 @@ public class ExportPreviewResourceTest
 				StringPool.TRUE);
 		}
 
-		_addObjectEntry(objectDefinition, groupId, new Date());
+		_addObjectEntry(groupId, new Date(), objectDefinition);
 		_addObjectEntry(
-			objectDefinition, groupId,
-			new Date(System.currentTimeMillis() - (25 * Time.HOUR)));
+			groupId, new Date(System.currentTimeMillis() - (25 * Time.HOUR)),
+			objectDefinition);
 
 		return objectDefinition;
 	}
 
 	private void _testGetExportPreviewWithDateFilter(
-			UnsafeFunction<TestDateFilter, ExportPreview, Exception>
-				unsafeFunction,
-			ObjectDefinition objectDefinition)
+			ObjectDefinition objectDefinition,
+			UnsafeBiFunction<Date, Date, ExportPreview, Exception>
+				unsafeBiFunction)
 		throws Exception {
 
 		long now = System.currentTimeMillis();
@@ -245,55 +448,257 @@ public class ExportPreviewResourceTest
 
 		Assert.assertEquals(
 			2L,
-			_getAdditionCount(
-				unsafeFunction.apply(TestDateFilter.all()), portletId));
+			_getAdditionCount(unsafeBiFunction.apply(null, null), portletId));
 		Assert.assertEquals(
 			1L,
 			_getAdditionCount(
-				unsafeFunction.apply(TestDateFilter.last(24)), portletId));
-		Assert.assertEquals(
-			2L,
-			_getAdditionCount(
-				unsafeFunction.apply(TestDateFilter.last(48)), portletId));
-		Assert.assertEquals(
-			1L,
-			_getAdditionCount(
-				unsafeFunction.apply(
-					TestDateFilter.dateRange(
-						new Date(now - Time.HOUR), new Date(now))),
+				unsafeBiFunction.apply(new Date(now - (24 * Time.HOUR)), null),
 				portletId));
 		Assert.assertEquals(
 			1L,
 			_getAdditionCount(
-				unsafeFunction.apply(
-					TestDateFilter.dateRange(
-						new Date(now - (26 * Time.HOUR)),
-						new Date(now - (24 * Time.HOUR)))),
+				unsafeBiFunction.apply(null, new Date(now - (24 * Time.HOUR))),
+				portletId));
+		Assert.assertEquals(
+			1L,
+			_getAdditionCount(
+				unsafeBiFunction.apply(
+					new Date(now - (24 * Time.HOUR)), new Date(now)),
+				portletId));
+		Assert.assertEquals(
+			2L,
+			_getAdditionCount(
+				unsafeBiFunction.apply(
+					new Date(now - (48 * Time.HOUR)), new Date(now)),
+				portletId));
+		Assert.assertEquals(
+			1L,
+			_getAdditionCount(
+				unsafeBiFunction.apply(
+					new Date(now - (26 * Time.HOUR)),
+					new Date(now - (24 * Time.HOUR))),
 				portletId));
 		Assert.assertEquals(
 			0L,
 			_getAdditionCount(
-				unsafeFunction.apply(
-					TestDateFilter.dateRange(
-						new Date(now - (3 * Time.DAY)),
-						new Date(now - (2 * Time.DAY)))),
+				unsafeBiFunction.apply(
+					new Date(now - (3 * Time.DAY)),
+					new Date(now - (2 * Time.DAY))),
 				portletId));
+	}
+
+	@TestInfo({"LPD-37317", "LPD-90359"})
+	private void _testGetExportPreviewWithDeletions(
+			long groupId, String scope,
+			UnsafeSupplier<ExportPreview, Exception> unsafeSupplier)
+		throws Exception {
+
+		ObjectDefinition objectDefinition = _publishObjectDefinitionWithEntries(
+			groupId, scope);
+
+		List<ObjectEntry> objectEntries =
+			_objectEntryLocalService.getObjectEntries(
+				groupId, objectDefinition.getObjectDefinitionId(),
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		Assert.assertEquals(objectEntries.toString(), 2, objectEntries.size());
+
+		_objectEntryLocalService.deleteObjectEntry(objectEntries.get(0));
+
+		PreviewPortletDataHandler previewPortletDataHandler =
+			_getPreviewPortletDataHandler(
+				unsafeSupplier.get(),
+				"PORTLET_DATA_" + objectDefinition.getPortletId());
+
+		Assert.assertEquals(
+			Long.valueOf(1), previewPortletDataHandler.getAdditionCount());
+		Assert.assertEquals(
+			Long.valueOf(1), previewPortletDataHandler.getDeletionCount());
+
+		_objectDefinitionLocalService.deleteObjectDefinition(objectDefinition);
 	}
 
 	private void _testGetExportPreviewWithDifferentScope(
 		ExportPreview exportPreview, ObjectDefinition... objectDefinitions) {
 
 		for (ObjectDefinition objectDefinition : objectDefinitions) {
-			long additionCount = _getAdditionCount(
-				exportPreview, objectDefinition.getPortletId());
-
-			Assert.assertTrue(additionCount <= 0);
+			Assert.assertNull(
+				_getPreviewPortletDataHandler(
+					exportPreview,
+					"PORTLET_DATA_" + objectDefinition.getPortletId()));
 		}
+	}
+
+	private void _testGetExportPreviewWithLayoutSet(
+			UnsafeBiFunction<Date, Date, ExportPreview, Exception>
+				unsafeBiFunction)
+		throws Exception {
+
+		LayoutTestUtil.addTypeContentLayout(testGroup, false, false);
+		LayoutTestUtil.addTypeContentLayout(testGroup, true, false);
+		LayoutTestUtil.addTypeContentLayout(testGroup, true, false);
+
+		_layoutLocalService.deleteLayout(
+			LayoutTestUtil.addTypeContentLayout(testGroup, false, false),
+			ServiceContextTestUtil.getServiceContext());
+
+		PreviewPortletDataHandler previewPortletDataHandler =
+			_getPreviewPortletDataHandler(
+				unsafeBiFunction.apply(null, null),
+				"PORTLET_DATA_com_liferay_layout_admin_web_portlet_" +
+					"LayoutSetLayoutsPortlet");
+
+		Assert.assertNotNull(previewPortletDataHandler);
+
+		Choice choice = _getChoice(
+			previewPortletDataHandler, "publicLayoutPages");
+
+		Assert.assertEquals(1L, GetterUtil.getLong(choice.getAdditionCount()));
+		Assert.assertEquals(1L, GetterUtil.getLong(choice.getDeletionCount()));
+
+		choice = _getChoice(previewPortletDataHandler, "privateLayoutPages");
+
+		Assert.assertEquals(2L, GetterUtil.getLong(choice.getAdditionCount()));
+		Assert.assertEquals(0L, GetterUtil.getLong(choice.getDeletionCount()));
+	}
+
+	private void _testGetPortletExportPreview(
+		ExportPreview exportPreview, String portletId) {
+
+		PreviewPortletDataHandlerSection previewPortletDataHandlerSection =
+			_getPreviewPortletDataHandlerSection(
+				exportPreview, ExportImportConstants.SECTION_KEY_CONTENT);
+
+		PreviewPortletDataHandler[] previewPortletDataHandlers =
+			previewPortletDataHandlerSection.getPreviewPortletDataHandlers();
+
+		Assert.assertEquals(
+			Arrays.toString(previewPortletDataHandlers), 1,
+			previewPortletDataHandlers.length);
+		Assert.assertEquals(
+			"PORTLET_DATA_" + portletId,
+			previewPortletDataHandlers[0].getName());
+
+		previewPortletDataHandlerSection = _getPreviewPortletDataHandlerSection(
+			exportPreview, ExportImportConstants.SECTION_KEY_CONFIGURATION);
+
+		previewPortletDataHandlers =
+			previewPortletDataHandlerSection.getPreviewPortletDataHandlers();
+
+		Assert.assertEquals(
+			Arrays.toString(previewPortletDataHandlers), 1,
+			previewPortletDataHandlers.length);
+		Assert.assertEquals(
+			"PORTLET_CONFIGURATION_" + portletId,
+			previewPortletDataHandlers[0].getName());
+		Assert.assertTrue(
+			ArrayUtil.isNotEmpty(
+				previewPortletDataHandlers[0].
+					getPreviewPortletDataHandlerControls()));
+	}
+
+	@TestInfo({"LPD-67433", "LPD-90359"})
+	private void _testGetSiteExportPreviewWithLayoutPageTemplateEntries()
+		throws Exception {
+
+		LayoutPageTemplateCollection basicLayoutPageTemplateCollection =
+			_addBasicLayoutPageTemplateCollection();
+
+		long basicLayoutPageTemplateCollectionId =
+			basicLayoutPageTemplateCollection.
+				getLayoutPageTemplateCollectionId();
+
+		LayoutPageTemplateEntry basicLayoutPageTemplateEntry =
+			_addLayoutPageTemplateEntry(
+				basicLayoutPageTemplateCollectionId,
+				LayoutPageTemplateEntryTypeConstants.BASIC);
+
+		LayoutPageTemplateEntry masterLayoutPageTemplateEntry =
+			_addLayoutPageTemplateEntry(
+				LayoutPageTemplateConstants.
+					PARENT_LAYOUT_PAGE_TEMPLATE_COLLECTION_ID_DEFAULT,
+				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT);
+
+		_layoutPageTemplateEntryLocalService.deleteLayoutPageTemplateEntry(
+			_addLayoutPageTemplateEntry(
+				basicLayoutPageTemplateCollectionId,
+				LayoutPageTemplateEntryTypeConstants.BASIC));
+		_layoutPageTemplateEntryLocalService.deleteLayoutPageTemplateEntry(
+			_addLayoutPageTemplateEntry(
+				LayoutPageTemplateConstants.
+					PARENT_LAYOUT_PAGE_TEMPLATE_COLLECTION_ID_DEFAULT,
+				LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT));
+
+		PreviewPortletDataHandler previewPortletDataHandler =
+			_getPreviewPortletDataHandler(
+				exportPreviewResource.getSiteExportPreview(
+					testGroup.getExternalReferenceCode(), null, null, 0L, null,
+					null),
+				"PORTLET_DATA_" +
+					LayoutPageTemplateAdminPortletKeys.LAYOUT_PAGE_TEMPLATES);
+
+		Assert.assertEquals(
+			Long.valueOf(3), previewPortletDataHandler.getAdditionCount());
+		Assert.assertEquals(
+			Long.valueOf(2), previewPortletDataHandler.getDeletionCount());
+
+		PreviewPortletDataHandlerBoolean basicPreviewPortletDataHandlerBoolean =
+			_getPreviewPortletDataHandlerBoolean(
+				previewPortletDataHandler,
+				StringBundler.concat(
+					"_",
+					LayoutPageTemplateAdminPortletKeys.LAYOUT_PAGE_TEMPLATES,
+					"_", LayoutPageTemplateEntry.class.getName(), "-",
+					LayoutPageTemplateEntryTypeConstants.BASIC));
+
+		Assert.assertEquals(
+			Long.valueOf(1),
+			basicPreviewPortletDataHandlerBoolean.getAdditionCount());
+		Assert.assertEquals(
+			Long.valueOf(1),
+			basicPreviewPortletDataHandlerBoolean.getDeletionCount());
+
+		PreviewPortletDataHandlerBoolean
+			masterLayoutPreviewPortletDataHandlerBoolean =
+				_getPreviewPortletDataHandlerBoolean(
+					previewPortletDataHandler,
+					StringBundler.concat(
+						"_",
+						LayoutPageTemplateAdminPortletKeys.
+							LAYOUT_PAGE_TEMPLATES,
+						"_", LayoutPageTemplateEntry.class.getName(), "-",
+						LayoutPageTemplateEntryTypeConstants.MASTER_LAYOUT));
+
+		Assert.assertEquals(
+			Long.valueOf(1),
+			masterLayoutPreviewPortletDataHandlerBoolean.getAdditionCount());
+		Assert.assertEquals(
+			Long.valueOf(1),
+			masterLayoutPreviewPortletDataHandlerBoolean.getDeletionCount());
+
+		_layoutPageTemplateEntryLocalService.deleteLayoutPageTemplateEntry(
+			basicLayoutPageTemplateEntry);
+		_layoutPageTemplateEntryLocalService.deleteLayoutPageTemplateEntry(
+			masterLayoutPageTemplateEntry);
+		_layoutPageTemplateCollectionLocalService.
+			deleteLayoutPageTemplateCollection(
+				basicLayoutPageTemplateCollection);
 	}
 
 	private ObjectDefinition _companyObjectDefinition;
 	private ObjectDefinition _depotObjectDefinition;
 	private ExportPreviewResource _exportPreviewResource;
+
+	@Inject
+	private LayoutLocalService _layoutLocalService;
+
+	@Inject
+	private LayoutPageTemplateCollectionLocalService
+		_layoutPageTemplateCollectionLocalService;
+
+	@Inject
+	private LayoutPageTemplateEntryLocalService
+		_layoutPageTemplateEntryLocalService;
 
 	@Inject
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
@@ -310,51 +715,5 @@ public class ExportPreviewResourceTest
 
 	@Inject
 	private UserLocalService _userLocalService;
-
-	private static class TestDateFilter {
-
-		public static TestDateFilter all() {
-			return new TestDateFilter(null, null, null, null);
-		}
-
-		public static TestDateFilter dateRange(Date startDate, Date endDate) {
-			return new TestDateFilter(endDate, null, "dateRange", startDate);
-		}
-
-		public static TestDateFilter last(int hours) {
-			return new TestDateFilter(null, hours, "last", null);
-		}
-
-		public Date getEndDate() {
-			return _endDate;
-		}
-
-		public Integer getLast() {
-			return _last;
-		}
-
-		public String getRange() {
-			return _range;
-		}
-
-		public Date getStartDate() {
-			return _startDate;
-		}
-
-		private TestDateFilter(
-			Date endDate, Integer last, String range, Date startDate) {
-
-			_endDate = endDate;
-			_last = last;
-			_range = range;
-			_startDate = startDate;
-		}
-
-		private final Date _endDate;
-		private final Integer _last;
-		private final String _range;
-		private final Date _startDate;
-
-	}
 
 }

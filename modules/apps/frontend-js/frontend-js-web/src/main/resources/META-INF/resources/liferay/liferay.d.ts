@@ -139,6 +139,7 @@ declare module Liferay {
 	}
 
 	namespace PropsValues {
+		export const ENTERPRISE_PRODUCT_AI_HUB_ENABLED: boolean;
 		export const UPLOAD_SERVLET_REQUEST_IMPL_MAX_SIZE: number;
 	}
 
@@ -174,6 +175,24 @@ declare module Liferay {
 	}
 
 	namespace State {
+		interface Atom<T> {
+			readonly __type?: T;
+			readonly key: string;
+		}
+
+		interface Selector<T> {
+			readonly __type?: T;
+			readonly key: string;
+		}
+
+		type Getter = <T>(atomOrSelector: Atom<T> | Selector<T>) => T;
+
+		namespace __unsafe__ {
+			function getAtomOrSelectorKey(
+				key: string
+			): Atom<unknown> | Selector<unknown> | null;
+		}
+
 		type Primitive =
 			| bigint
 			| boolean

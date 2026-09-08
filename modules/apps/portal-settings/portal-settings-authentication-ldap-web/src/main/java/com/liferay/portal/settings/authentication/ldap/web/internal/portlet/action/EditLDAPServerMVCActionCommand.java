@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.ldap.DuplicateLDAPServerNameException;
+import com.liferay.portal.security.ldap.LDAPConfigurationModelListenerException;
 import com.liferay.portal.security.ldap.LDAPServerNameException;
 import com.liferay.portal.security.ldap.configuration.ConfigurationProvider;
 import com.liferay.portal.security.ldap.configuration.LDAPServerConfiguration;
@@ -32,7 +33,6 @@ import com.liferay.portal.security.ldap.validator.LDAPFilterValidator;
 import jakarta.portlet.ActionRequest;
 import jakarta.portlet.ActionResponse;
 import jakarta.portlet.PortletRequest;
-import jakarta.portlet.PortletURL;
 
 import java.util.Dictionary;
 import java.util.List;
@@ -75,28 +75,36 @@ public class EditLDAPServerMVCActionCommand extends BaseMVCActionCommand {
 			sendRedirect(actionRequest, actionResponse);
 		}
 		catch (Exception exception) {
-			if (exception instanceof DuplicateLDAPServerNameException ||
-				exception instanceof LDAPFilterException ||
-				exception instanceof LDAPServerNameException) {
+			Throwable throwable = exception.getCause();
 
-				SessionErrors.add(actionRequest, exception.getClass());
+			if (!(throwable instanceof
+					LDAPConfigurationModelListenerException)) {
 
-				PortletURL portletURL = PortletURLBuilder.create(
-					PortletURLFactoryUtil.create(
-						actionRequest,
-						ConfigurationAdminPortletKeys.INSTANCE_SETTINGS,
-						PortletRequest.RENDER_PHASE)
-				).setMVCRenderCommandName(
-					"/portal_settings_authentication_ldap" +
-						"/portal_settings_edit_ldap_server"
-				).buildPortletURL();
+				throwable = exception;
+			}
 
-				String redirect = ParamUtil.getString(
-					actionRequest, "redirect");
+			if (throwable instanceof DuplicateLDAPServerNameException ||
+				throwable instanceof LDAPConfigurationModelListenerException ||
+				throwable instanceof LDAPFilterException ||
+				throwable instanceof LDAPServerNameException) {
 
-				portletURL.setParameter("redirect", redirect);
+				SessionErrors.add(
+					actionRequest, throwable.getClass(), throwable);
 
-				actionResponse.sendRedirect(portletURL.toString());
+				actionResponse.sendRedirect(
+					PortletURLBuilder.create(
+						PortletURLFactoryUtil.create(
+							actionRequest, _portal.getPortletId(actionRequest),
+							PortletRequest.RENDER_PHASE)
+					).setMVCRenderCommandName(
+						"/portal_settings_authentication_ldap/edit_ldap_server"
+					).setRedirect(
+						ParamUtil.getString(actionRequest, "redirect")
+					).setParameter(
+						LDAPConstants.LDAP_SERVER_ID,
+						ParamUtil.getLong(
+							actionRequest, LDAPConstants.LDAP_SERVER_ID)
+					).buildString());
 
 				return;
 			}
@@ -239,5 +247,8 @@ public class EditLDAPServerMVCActionCommand extends BaseMVCActionCommand {
 	)
 	private ConfigurationProvider<LDAPServerConfiguration>
 		_ldapServerConfigurationProvider;
+
+	@Reference
+	private Portal _portal;
 
 }

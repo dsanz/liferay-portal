@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -120,6 +121,8 @@ public abstract class BaseDataListViewResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -507,7 +510,8 @@ public abstract class BaseDataListViewResourceTestCase {
 				dataDefinitionId, randomDataListView());
 
 		page = dataListViewResource.getDataDefinitionDataListViewsPage(
-			dataDefinitionId, null, Pagination.of(1, 10), null);
+			dataDefinitionId, null, Pagination.of(1, (int)totalCount + 2),
+			null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -827,18 +831,9 @@ public abstract class BaseDataListViewResourceTestCase {
 		Long dataDefinitionId =
 			testGetDataDefinitionDataListViewsPage_getDataDefinitionId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"dataDefinitionDataListViews",
-			new HashMap<String, Object>() {
-				{
-					put("dataDefinitionId", dataDefinitionId);
-					put("keywords", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetDataDefinitionDataListViewsPageDataDefinitionDataListView_getGraphQLField(
+				dataDefinitionId);
 
 		// No namespace
 
@@ -899,6 +894,25 @@ public abstract class BaseDataListViewResourceTestCase {
 			Arrays.asList(
 				DataListViewSerDes.toDTOs(
 					dataDefinitionDataListViewsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetDataDefinitionDataListViewsPageDataDefinitionDataListView_getGraphQLField(
+				Long dataDefinitionId)
+		throws Exception {
+
+		return new GraphQLField(
+			"dataDefinitionDataListViews",
+			new HashMap<String, Object>() {
+				{
+					put("dataDefinitionId", dataDefinitionId);
+					put("keywords", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -2416,4 +2430,4 @@ public abstract class BaseDataListViewResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1930501298
+// LIFERAY-REST-BUILDER-HASH:-2129177568

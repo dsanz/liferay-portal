@@ -401,13 +401,15 @@ public class LayoutClassedModelUsagesDisplayContext {
 	private String _getLayoutClassedModelUsagesURL(
 		String className, long classPK) {
 
-		StringBundler sb = new StringBundler(6);
+		StringBundler sb = new StringBundler(8);
 
 		sb.append(
 			PortalUtil.getPortalURL(
 				PortalUtil.getHttpServletRequest(_renderRequest)));
 		sb.append(_themeDisplay.getPathMain());
-		sb.append("/portal/get_layout_classed_model_usages?className=");
+		sb.append("/portal/get_layout_classed_model_usages?p_l_id=");
+		sb.append(_themeDisplay.getPlid());
+		sb.append("&className=");
 		sb.append(className);
 		sb.append("&classPK=");
 		sb.append(String.valueOf(classPK));

@@ -1,0 +1,24 @@
+@import 'atlas-variables';
+
+.cms-dashboard__interactive-card {
+	border-color: $secondary-l2;
+	cursor: pointer;
+	transition:
+		background-color 0.15s ease-in-out,
+		border-color 0.15s ease-in-out;
+
+	&:after {
+		margin: 0;
+	}
+
+	&.active {
+		background-color: $primary-l3;
+		border-color: $primary;
+	}
+
+	&:focus-visible:not(.active),
+	&:hover:not(.active) {
+		background-color: $light-l1;
+		border-color: $secondary-l0;
+	}
+}

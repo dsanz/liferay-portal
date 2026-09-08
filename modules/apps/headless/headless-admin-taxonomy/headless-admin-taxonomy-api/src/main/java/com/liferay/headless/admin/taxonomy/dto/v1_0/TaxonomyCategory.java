@@ -452,6 +452,94 @@ public class TaxonomyCategory implements Serializable {
 	private Supplier<String> _externalReferenceCodeSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "The category's relative URL."
+	)
+	public String getFriendlyUrlPath() {
+		if (_friendlyUrlPathSupplier != null) {
+			friendlyUrlPath = _friendlyUrlPathSupplier.get();
+
+			_friendlyUrlPathSupplier = null;
+		}
+
+		return friendlyUrlPath;
+	}
+
+	public void setFriendlyUrlPath(String friendlyUrlPath) {
+		this.friendlyUrlPath = friendlyUrlPath;
+
+		_friendlyUrlPathSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setFriendlyUrlPath(
+		UnsafeSupplier<String, Exception> friendlyUrlPathUnsafeSupplier) {
+
+		_friendlyUrlPathSupplier = () -> {
+			try {
+				return friendlyUrlPathUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(description = "The category's relative URL.")
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String friendlyUrlPath;
+
+	@JsonIgnore
+	private Supplier<String> _friendlyUrlPathSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema
+	@Valid
+	public Map<String, String> getFriendlyUrlPath_i18n() {
+		if (_friendlyUrlPath_i18nSupplier != null) {
+			friendlyUrlPath_i18n = _friendlyUrlPath_i18nSupplier.get();
+
+			_friendlyUrlPath_i18nSupplier = null;
+		}
+
+		return friendlyUrlPath_i18n;
+	}
+
+	public void setFriendlyUrlPath_i18n(
+		Map<String, String> friendlyUrlPath_i18n) {
+
+		this.friendlyUrlPath_i18n = friendlyUrlPath_i18n;
+
+		_friendlyUrlPath_i18nSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setFriendlyUrlPath_i18n(
+		UnsafeSupplier<Map<String, String>, Exception>
+			friendlyUrlPath_i18nUnsafeSupplier) {
+
+		_friendlyUrlPath_i18nSupplier = () -> {
+			try {
+				return friendlyUrlPath_i18nUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Map<String, String> friendlyUrlPath_i18n;
+
+	@JsonIgnore
+	private Supplier<Map<String, String>> _friendlyUrlPath_i18nSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "The category's ID."
 	)
 	public String getId() {
@@ -904,6 +992,51 @@ public class TaxonomyCategory implements Serializable {
 	private Supplier<Long> _siteIdSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "Whether this is a system category, which cannot be renamed, modified, or deleted."
+	)
+	public Boolean getSystem() {
+		if (_systemSupplier != null) {
+			system = _systemSupplier.get();
+
+			_systemSupplier = null;
+		}
+
+		return system;
+	}
+
+	public void setSystem(Boolean system) {
+		this.system = system;
+
+		_systemSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setSystem(
+		UnsafeSupplier<Boolean, Exception> systemUnsafeSupplier) {
+
+		_systemSupplier = () -> {
+			try {
+				return systemUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(
+		description = "Whether this is a system category, which cannot be renamed, modified, or deleted."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Boolean system;
+
+	@JsonIgnore
+	private Supplier<Boolean> _systemSupplier;
+
+	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "The category's properties."
 	)
 	@Valid
@@ -1313,6 +1446,34 @@ public class TaxonomyCategory implements Serializable {
 			sb.append("\"");
 		}
 
+		String friendlyUrlPath = getFriendlyUrlPath();
+
+		if (friendlyUrlPath != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"friendlyUrlPath\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(friendlyUrlPath));
+
+			sb.append("\"");
+		}
+
+		Map<String, String> friendlyUrlPath_i18n = getFriendlyUrlPath_i18n();
+
+		if (friendlyUrlPath_i18n != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"friendlyUrlPath_i18n\": ");
+
+			sb.append(_toJSON(friendlyUrlPath_i18n));
+		}
+
 		String id = getId();
 
 		if (id != null) {
@@ -1460,6 +1621,18 @@ public class TaxonomyCategory implements Serializable {
 			sb.append("\"siteId\": ");
 
 			sb.append(siteId);
+		}
+
+		Boolean system = getSystem();
+
+		if (system != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"system\": ");
+
+			sb.append(system);
 		}
 
 		TaxonomyCategoryProperty[] taxonomyCategoryProperties =
@@ -1678,4 +1851,4 @@ public class TaxonomyCategory implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-512318802
+// LIFERAY-REST-BUILDER-HASH:-521559444

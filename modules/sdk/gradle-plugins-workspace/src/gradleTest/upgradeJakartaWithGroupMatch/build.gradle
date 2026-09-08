@@ -1,0 +1,13 @@
+task runGradleTest
+
+runGradleTest {
+	dependsOn upgradeJakarta
+
+	doLast {
+		Provider<RegularFile> regularFileProvider = project.layout.buildDirectory.file("upgradeJakarta/jakarta-transform-dependencies.txt")
+
+		RegularFile regularFile = regularFileProvider.get()
+
+		assert regularFile.asFile.exists()
+	}
+}

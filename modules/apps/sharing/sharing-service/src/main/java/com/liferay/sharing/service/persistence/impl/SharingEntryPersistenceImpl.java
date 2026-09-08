@@ -13,8 +13,6 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.sanitizer.Sanitizer;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
@@ -1708,7 +1706,8 @@ public class SharingEntryPersistenceImpl
 				new String[] {String.class.getName()}, new String[] {"uuid_"},
 				0, 1, false, null),
 			_SQL_SELECT_SHARINGENTRY_WHERE, _SQL_COUNT_SHARINGENTRY_WHERE,
-			SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"sharingEntry.", "uuid", "uuid_", FinderColumn.Type.STRING, "=",
 				true, true, SharingEntry::getUuid));
@@ -1750,6 +1749,7 @@ public class SharingEntryPersistenceImpl
 					new String[] {"uuid_", "companyId"}, 0, 1, false, null),
 				_SQL_SELECT_SHARINGENTRY_WHERE, _SQL_COUNT_SHARINGENTRY_WHERE,
 				SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"sharingEntry.", "uuid", "uuid_", FinderColumn.Type.STRING,
 					"=", true, true, SharingEntry::getUuid),
@@ -1778,6 +1778,7 @@ public class SharingEntryPersistenceImpl
 					new String[] {"groupId"}, false),
 				_SQL_SELECT_SHARINGENTRY_WHERE, _SQL_COUNT_SHARINGENTRY_WHERE,
 				SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"sharingEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					true, true, SharingEntry::getGroupId));
@@ -1803,6 +1804,7 @@ public class SharingEntryPersistenceImpl
 					new String[] {"userId"}, false),
 				_SQL_SELECT_SHARINGENTRY_WHERE, _SQL_COUNT_SHARINGENTRY_WHERE,
 				SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"sharingEntry.", "userId", FinderColumn.Type.LONG, "=",
 					true, true, SharingEntry::getUserId));
@@ -1828,6 +1830,7 @@ public class SharingEntryPersistenceImpl
 					new String[] {"toTicketId"}, false),
 				_SQL_SELECT_SHARINGENTRY_WHERE, _SQL_COUNT_SHARINGENTRY_WHERE,
 				SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"sharingEntry.", "toTicketId", FinderColumn.Type.LONG, "=",
 					true, true, SharingEntry::getToTicketId));
@@ -1854,6 +1857,7 @@ public class SharingEntryPersistenceImpl
 					new String[] {"toUserGroupId"}, false),
 				_SQL_SELECT_SHARINGENTRY_WHERE, _SQL_COUNT_SHARINGENTRY_WHERE,
 				SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"sharingEntry.", "toUserGroupId", FinderColumn.Type.LONG,
 					"=", true, true, SharingEntry::getToUserGroupId));
@@ -1879,6 +1883,7 @@ public class SharingEntryPersistenceImpl
 					new String[] {"toUserId"}, false),
 				_SQL_SELECT_SHARINGENTRY_WHERE, _SQL_COUNT_SHARINGENTRY_WHERE,
 				SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"sharingEntry.", "toUserId", FinderColumn.Type.LONG, "=",
 					true, true, SharingEntry::getToUserId));
@@ -1903,6 +1908,7 @@ public class SharingEntryPersistenceImpl
 					new String[] {"expirationDate"}, false),
 				_SQL_SELECT_SHARINGENTRY_WHERE, _SQL_COUNT_SHARINGENTRY_WHERE,
 				SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"sharingEntry.", "expirationDate", FinderColumn.Type.DATE,
 					"<", true, true, SharingEntry::getExpirationDate));
@@ -1926,7 +1932,8 @@ public class SharingEntryPersistenceImpl
 				new String[] {Long.class.getName(), Long.class.getName()},
 				new String[] {"companyId", "classNameId"}, false),
 			_SQL_SELECT_SHARINGENTRY_WHERE, _SQL_COUNT_SHARINGENTRY_WHERE,
-			SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"sharingEntry.", "companyId", FinderColumn.Type.LONG, "=", true,
 				true, SharingEntry::getCompanyId),
@@ -1953,7 +1960,8 @@ public class SharingEntryPersistenceImpl
 				new String[] {Long.class.getName(), Long.class.getName()},
 				new String[] {"userId", "classNameId"}, false),
 			_SQL_SELECT_SHARINGENTRY_WHERE, _SQL_COUNT_SHARINGENTRY_WHERE,
-			SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"sharingEntry.", "userId", FinderColumn.Type.LONG, "=", true,
 				true, SharingEntry::getUserId),
@@ -1980,7 +1988,8 @@ public class SharingEntryPersistenceImpl
 				new String[] {Long.class.getName(), Long.class.getName()},
 				new String[] {"toUserId", "classNameId"}, false),
 			_SQL_SELECT_SHARINGENTRY_WHERE, _SQL_COUNT_SHARINGENTRY_WHERE,
-			SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"sharingEntry.", "toUserId", FinderColumn.Type.LONG, "=", true,
 				true, SharingEntry::getToUserId),
@@ -2007,7 +2016,8 @@ public class SharingEntryPersistenceImpl
 				new String[] {Long.class.getName(), Long.class.getName()},
 				new String[] {"classNameId", "classPK"}, false),
 			_SQL_SELECT_SHARINGENTRY_WHERE, _SQL_COUNT_SHARINGENTRY_WHERE,
-			SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			SharingEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"sharingEntry.", "classNameId", FinderColumn.Type.LONG, "=",
 				true, true, SharingEntry::getClassNameId),
@@ -2119,12 +2129,6 @@ public class SharingEntryPersistenceImpl
 	private static final String _SQL_COUNT_SHARINGENTRY_WHERE =
 		"SELECT COUNT(sharingEntry) FROM SharingEntry sharingEntry WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No SharingEntry exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		SharingEntryPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid"});
 
@@ -2134,4 +2138,4 @@ public class SharingEntryPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1460462191
+// LIFERAY-SERVICE-BUILDER-HASH:1910546403

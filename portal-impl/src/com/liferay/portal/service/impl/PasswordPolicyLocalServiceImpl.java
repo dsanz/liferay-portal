@@ -9,6 +9,7 @@ import com.liferay.petra.string.CharPool;
 import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.cache.thread.local.ThreadLocalCachable;
 import com.liferay.portal.kernel.exception.DuplicatePasswordPolicyException;
+import com.liferay.portal.kernel.exception.NoSuchPasswordPolicyException;
 import com.liferay.portal.kernel.exception.PasswordPolicyNameException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.RequiredPasswordPolicyException;
@@ -216,47 +217,18 @@ public class PasswordPolicyLocalServiceImpl
 	}
 
 	@Override
-	public PasswordPolicy fetchPasswordPolicy(long companyId, String name) {
-		return passwordPolicyPersistence.fetchByC_N(companyId, name);
-	}
-
-	@Override
-	public PasswordPolicy getDefaultPasswordPolicy(long companyId)
-		throws PortalException {
-
+	public PasswordPolicy fetchDefaultPasswordPolicy(long companyId) {
 		return passwordPolicyPersistence.fetchByC_N(
 			companyId, PropsValues.PASSWORDS_DEFAULT_POLICY_NAME);
 	}
 
 	@Override
-	public PasswordPolicy getPasswordPolicy(
-			long companyId, long[] organizationIds)
-		throws PortalException {
-
-		if (ArrayUtil.isEmpty(organizationIds)) {
-			return getDefaultPasswordPolicy(companyId);
-		}
-
-		long classNameId = _classNameLocalService.getClassNameId(
-			Organization.class.getName());
-
-		PasswordPolicyRel passwordPolicyRel = null;
-
-		for (long organizationId : organizationIds) {
-			passwordPolicyRel = _passwordPolicyRelPersistence.fetchByC_C(
-				classNameId, organizationId);
-
-			if (passwordPolicyRel != null) {
-				return passwordPolicyPersistence.findByPrimaryKey(
-					passwordPolicyRel.getPasswordPolicyId());
-			}
-		}
-
-		return getDefaultPasswordPolicy(companyId);
+	public PasswordPolicy fetchPasswordPolicy(long companyId, String name) {
+		return passwordPolicyPersistence.fetchByC_N(companyId, name);
 	}
 
 	@Override
-	public PasswordPolicy getPasswordPolicyByUser(User user)
+	public PasswordPolicy fetchPasswordPolicyByUser(User user)
 		throws PortalException {
 
 		if (LDAPSettingsUtil.isPasswordPolicyEnabled(
@@ -291,6 +263,69 @@ public class PasswordPolicyLocalServiceImpl
 		}
 
 		return getPasswordPolicy(user.getCompanyId(), organizationIds);
+	}
+
+	@Override
+	@ThreadLocalCachable
+	public PasswordPolicy fetchPasswordPolicyByUserId(long userId)
+		throws PortalException {
+
+		User user = _userPersistence.fetchByPrimaryKey(userId);
+
+		if (user == null) {
+			return null;
+		}
+
+		return fetchPasswordPolicyByUser(user);
+	}
+
+	@Override
+	public PasswordPolicy getDefaultPasswordPolicy(long companyId)
+		throws PortalException {
+
+		return passwordPolicyPersistence.findByC_N(
+			companyId, PropsValues.PASSWORDS_DEFAULT_POLICY_NAME);
+	}
+
+	@Override
+	public PasswordPolicy getPasswordPolicy(
+			long companyId, long[] organizationIds)
+		throws PortalException {
+
+		if (ArrayUtil.isEmpty(organizationIds)) {
+			return getDefaultPasswordPolicy(companyId);
+		}
+
+		long classNameId = _classNameLocalService.getClassNameId(
+			Organization.class.getName());
+
+		PasswordPolicyRel passwordPolicyRel = null;
+
+		for (long organizationId : organizationIds) {
+			passwordPolicyRel = _passwordPolicyRelPersistence.fetchByC_C(
+				classNameId, organizationId);
+
+			if (passwordPolicyRel != null) {
+				return passwordPolicyPersistence.findByPrimaryKey(
+					passwordPolicyRel.getPasswordPolicyId());
+			}
+		}
+
+		return getDefaultPasswordPolicy(companyId);
+	}
+
+	@Override
+	public PasswordPolicy getPasswordPolicyByUser(User user)
+		throws PortalException {
+
+		PasswordPolicy passwordPolicy = fetchPasswordPolicyByUser(user);
+
+		if (passwordPolicy == null) {
+			throw new NoSuchPasswordPolicyException(
+				"No password policy exists for user " + user.getUserId());
+		}
+
+		return passwordPolicy;
 	}
 
 	@Override

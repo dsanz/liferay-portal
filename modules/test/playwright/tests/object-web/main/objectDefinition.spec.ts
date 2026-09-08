@@ -36,6 +36,7 @@ import getFragmentDefinition from '../../layout-content-page-editor-web/main/uti
 import getPageDefinition from '../../layout-content-page-editor-web/main/utils/getPageDefinition';
 import {localizationPagesTest} from '../../site-admin-web/main/fixtures/localizationPagesTest';
 import {generateObjectFields} from '../utils/generateObjectFields';
+import {getFreshObjectRelationshipName} from '../utils/getFreshObjectRelationshipName';
 
 const test = mergeTests(
 	collectionsPagesTest,
@@ -57,7 +58,6 @@ const test = mergeTests(
 const cmsTest = mergeTests(
 	test,
 	featureFlagsTest({
-		'LPD-17564': {enabled: true},
 		'LPS-178052': {enabled: true},
 	})
 );
@@ -133,7 +133,16 @@ test.describe('Manage object definitions through Model Builder', () => {
 			const objectDefinitionLabel =
 				'ObjectDefinitionLabel' + getRandomInt();
 
-			modelBuilderLeftSidebarPage.createNewObjectDefinitionButton.click();
+			await modelBuilderLeftSidebarPage.createNewObjectDefinitionButton.click();
+
+			const objectDefinitionResponsePromise =
+				modelBuilderDiagramPage.page.waitForResponse((response) =>
+					response
+						.url()
+						.includes(
+							'/object-definitions/by-external-reference-code/'
+						)
+				);
 
 			const objectDefinition =
 				await modalAddObjectDefinitionPage.createObjectDefinition(
@@ -144,6 +153,8 @@ test.describe('Manage object definitions through Model Builder', () => {
 				id: objectDefinition.id,
 				type: 'objectDefinition',
 			});
+
+			await objectDefinitionResponsePromise;
 
 			const rightSidebar =
 				modelBuilderRightSidebarPage.getRightSidebarLocator(
@@ -598,8 +609,13 @@ test.describe('Manage object definitions through Model Builder', () => {
 
 		const objectRelationshipLabel =
 			'objectRelationshipLabel' + getRandomInt();
-		const objectRelationshipName =
-			'objectRelationshipName' + Math.floor(Math.random() * 99);
+		const objectRelationshipName = await getFreshObjectRelationshipName(
+			apiHelpers,
+			[
+				objectDefinition1.externalReferenceCode!,
+				objectDefinition2.externalReferenceCode!,
+			]
+		);
 
 		const objectRelationshipAPIClient = await apiHelpers.buildRestClient(
 			ObjectRelationshipAPI
@@ -880,7 +896,7 @@ test.describe('Manage object definitions through Model Builder', () => {
 
 			await page
 				.getByRole('option', {name: 'en_US language: Default'})
-				.click();
+				.dispatchEvent('click');
 
 			await expect(
 				modelBuilderRightSidebarPage.objectDefinitionPluralLabel
@@ -1120,7 +1136,10 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 					label: {
 						en_US: 'objectRelationshipLabel' + getRandomInt(),
 					},
-					name: 'objectRelationshipName' + getRandomInt(),
+					name: await getFreshObjectRelationshipName(apiHelpers, [
+						'L_ACCOUNT',
+						objectDefinition.externalReferenceCode!,
+					]),
 					objectDefinitionExternalReferenceCode1: 'L_ACCOUNT',
 					objectDefinitionExternalReferenceCode2:
 						objectDefinition.externalReferenceCode,
@@ -1178,6 +1197,8 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 
 		await editObjectDetailsPage.goToDetailsTab();
 
+		await editObjectDetailsPage.waitForDetailsFormLoaded();
+
 		await editObjectDetailsPage.labelInput.fill(label);
 
 		await editObjectDetailsPage.publishButton.click();
@@ -1212,6 +1233,8 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 		await editObjectDetailsPage.goto(objectDefinition.label['en_US']);
 
 		await editObjectDetailsPage.goToDetailsTab();
+
+		await editObjectDetailsPage.waitForDetailsFormLoaded();
 
 		await editObjectDetailsPage.selectLabelLanguage('pt_BR');
 
@@ -1248,10 +1271,20 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 
 			await editObjectDetailsPage.goToDetailsTab();
 
+			const originalEntryTitleField =
+				(
+					await editObjectDetailsPage.entryTitleField.textContent()
+				)?.trim() ?? '';
+
+			const entryTitleFieldName =
+				originalEntryTitleField === 'Screen Name'
+					? 'Email Address'
+					: 'Screen Name';
+
 			await editObjectDetailsPage.entryTitleField.click();
 
 			await page
-				.getByRole('option', {exact: true, name: 'Screen Name'})
+				.getByRole('option', {exact: true, name: entryTitleFieldName})
 				.click();
 
 			await editObjectDetailsPage.saveObjectDefinition();
@@ -1261,8 +1294,19 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 			await editObjectDetailsPage.goToDetailsTab();
 
 			await expect(editObjectDetailsPage.entryTitleField).toContainText(
-				'Screen Name'
+				entryTitleFieldName
 			);
+
+			await editObjectDetailsPage.entryTitleField.click();
+
+			await page
+				.getByRole('option', {
+					exact: true,
+					name: originalEntryTitleField,
+				})
+				.click();
+
+			await editObjectDetailsPage.saveObjectDefinition();
 		}
 	);
 
@@ -1293,6 +1337,8 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 		await editObjectDetailsPage.goto(objectDefinition.label['en_US']);
 
 		await editObjectDetailsPage.goToDetailsTab();
+
+		await editObjectDetailsPage.waitForDetailsFormLoaded();
 
 		await expect(editObjectDetailsPage.nameInput).toBeDisabled();
 		await expect(editObjectDetailsPage.scopeCombobox).toBeDisabled();
@@ -1351,6 +1397,8 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 		await editObjectDetailsPage.goto(objectDefinition.label['en_US']);
 
 		await editObjectDetailsPage.goToDetailsTab();
+
+		await editObjectDetailsPage.waitForDetailsFormLoaded();
 
 		await editObjectDetailsPage.labelInput.fill(label);
 		await editObjectDetailsPage.pluralLabelInput.fill(pluralLabel);
@@ -1486,6 +1534,8 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 		await editObjectDetailsPage.goto(objectDefinition.label['en_US']);
 
 		await editObjectDetailsPage.goToDetailsTab();
+
+		await editObjectDetailsPage.waitForDetailsFormLoaded();
 
 		const label = 'UpdatedLabel' + getRandomInt();
 
@@ -1876,7 +1926,11 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 					await apiHelpers.buildRestClient(ObjectRelationshipAPI);
 
 				relationshipLabel = 'Relationship';
-				relationshipName = 'relationship' + getRandomInt();
+				relationshipName = await getFreshObjectRelationshipName(
+					apiHelpers,
+					['L_ACCOUNT', objectDefinition.externalReferenceCode!],
+					'relationship'
+				);
 
 				await objectRelationshipAPIClient.postObjectDefinitionByExternalReferenceCodeObjectRelationship(
 					'L_ACCOUNT',
@@ -1992,6 +2046,8 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 			await editObjectDetailsPage.goto(objectDefinition.label['en_US']);
 
 			await editObjectDetailsPage.goToDetailsTab();
+
+			await editObjectDetailsPage.waitForDetailsFormLoaded();
 
 			await editObjectDetailsPage.labelInput.fill(newLabel);
 			await editObjectDetailsPage.pluralLabelInput.fill(newPluralLabel);
@@ -2391,7 +2447,7 @@ test.describe('Manage object definitions through View Object Definitions', () =>
 				objectDefinition.name
 			);
 
-			expect(
+			await expect(
 				page.getByRole('switch', {name: 'Activate Object'})
 			).not.toBeChecked();
 
@@ -2787,6 +2843,19 @@ test.describe('Manage object definitions through Page Templates', () => {
 				type: 'objectDefinition',
 			});
 
+			await collectionsPage.goto(site.friendlyUrlPath);
+
+			await page.goto(
+				(await page
+					.getByRole('link', {name: 'Collection Providers'})
+					.getAttribute('href')) +
+					'&_com_liferay_asset_list_web_portlet_AssetListPortlet_delta=200'
+			);
+
+			await expect(
+				page.getByText(objectDefinition.name).first()
+			).toBeVisible();
+
 			await viewObjectDefinitionsPage.goto();
 
 			await viewObjectDefinitionsPage.changeObjectActivateStatus(
@@ -2795,9 +2864,12 @@ test.describe('Manage object definitions through Page Templates', () => {
 
 			await collectionsPage.goto(site.friendlyUrlPath);
 
-			await page
-				.getByRole('link', {name: 'Collection Providers'})
-				.click();
+			await page.goto(
+				(await page
+					.getByRole('link', {name: 'Collection Providers'})
+					.getAttribute('href')) +
+					'&_com_liferay_asset_list_web_portlet_AssetListPortlet_delta=200'
+			);
 
 			await expect(
 				page.getByText(objectDefinition.name).first()
@@ -2811,9 +2883,12 @@ test.describe('Manage object definitions through Page Templates', () => {
 
 			await collectionsPage.goto(site.friendlyUrlPath);
 
-			await page
-				.getByRole('link', {name: 'Collection Providers'})
-				.click();
+			await page.goto(
+				(await page
+					.getByRole('link', {name: 'Collection Providers'})
+					.getAttribute('href')) +
+					'&_com_liferay_asset_list_web_portlet_AssetListPortlet_delta=200'
+			);
 
 			await expect(
 				page.getByText(objectDefinition.name).first()

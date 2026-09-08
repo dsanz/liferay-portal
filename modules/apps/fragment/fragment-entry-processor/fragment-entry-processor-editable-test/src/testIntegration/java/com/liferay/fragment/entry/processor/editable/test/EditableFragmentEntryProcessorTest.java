@@ -11,6 +11,9 @@ import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.test.util.AssetTestUtil;
 import com.liferay.data.engine.rest.resource.v2_0.DataDefinitionResource;
+import com.liferay.depot.constants.DepotConstants;
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.util.DLURLHelper;
 import com.liferay.dynamic.data.mapping.constants.DDMStructureConstants;
@@ -59,8 +62,11 @@ import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.object.constants.ObjectActionExecutorConstants;
 import com.liferay.object.constants.ObjectActionTriggerConstants;
 import com.liferay.object.constants.ObjectDefinitionConstants;
+import com.liferay.object.constants.ObjectDefinitionSettingConstants;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
+import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.constants.ObjectFolderConstants;
+import com.liferay.object.definition.setting.builder.ObjectDefinitionSettingBuilder;
 import com.liferay.object.field.builder.TextObjectFieldBuilder;
 import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.model.ObjectAction;
@@ -1021,6 +1027,108 @@ public class EditableFragmentEntryProcessorTest {
 	}
 
 	@Test
+	@TestInfo("LPD-100992")
+	public void testFragmentEntryProcessorEditableAssertAnalyticsAttributesWithMappedDownloadURLInViewMode()
+		throws Exception {
+
+		FileEntry fileEntry = _addImageFileEntry(RandomTestUtil.randomString());
+
+		Element element = _getElement(
+			"data-lfr-editable-id", "link",
+			_getEditableFieldValues(
+				_portal.getClassNameId(FileEntry.class),
+				fileEntry.getFileEntryId(), "FileEntry_downloadURL",
+				"link/fragment_entry_link_mapped_asset_field.json"),
+			"link/fragment_entry_link_button.html", LocaleUtil.US,
+			FragmentEntryLinkConstants.VIEW);
+
+		Assert.assertEquals(
+			AnalyticsAttributesUtil.ACTION_DOWNLOAD,
+			element.attr("data-analytics-asset-action"));
+		Assert.assertEquals(
+			"FileEntry_downloadURL",
+			element.attr("data-analytics-asset-field"));
+		Assert.assertEquals(
+			String.valueOf(fileEntry.getFileEntryId()),
+			element.attr("data-analytics-asset-id"));
+		Assert.assertEquals(
+			fileEntry.getTitle(), element.attr("data-analytics-asset-title"));
+		Assert.assertEquals(
+			FileEntry.class.getName(),
+			element.attr("data-analytics-asset-type"));
+
+		String href = element.attr("href");
+
+		Assert.assertTrue(href.contains("download=true"));
+	}
+
+	@Test
+	@TestInfo("LPD-100992")
+	public void testFragmentEntryProcessorEditableAssertAnalyticsAttributesWithMappedFileEntryFieldInViewMode()
+		throws Exception {
+
+		FileEntry fileEntry = _addImageFileEntry(RandomTestUtil.randomString());
+
+		Element element = _getElement(
+			"data-lfr-editable-id", "link",
+			_getEditableFieldValues(
+				_portal.getClassNameId(FileEntry.class),
+				fileEntry.getFileEntryId(), "FileEntry_previewURL",
+				"link/fragment_entry_link_mapped_asset_field.json"),
+			"link/fragment_entry_link_button.html", LocaleUtil.US,
+			FragmentEntryLinkConstants.VIEW);
+
+		Assert.assertEquals(
+			AnalyticsAttributesUtil.ACTION_IMPRESSION,
+			element.attr("data-analytics-asset-action"));
+		Assert.assertEquals(
+			"FileEntry_previewURL", element.attr("data-analytics-asset-field"));
+		Assert.assertEquals(
+			String.valueOf(fileEntry.getFileEntryId()),
+			element.attr("data-analytics-asset-id"));
+		Assert.assertEquals(
+			fileEntry.getTitle(), element.attr("data-analytics-asset-title"));
+		Assert.assertEquals(
+			FileEntry.class.getName(),
+			element.attr("data-analytics-asset-type"));
+	}
+
+	@Test
+	@TestInfo("LPD-100990")
+	public void testFragmentEntryProcessorEditableAssertAnalyticsAttributesWithMappedFileEntryImageInViewMode()
+		throws Exception {
+
+		FileEntry fileEntry = _addImageFileEntry(RandomTestUtil.randomString());
+
+		Element element = _getElement(
+			"data-lfr-editable-id", "image-square",
+			_getEditableFieldValues(
+				_portal.getClassNameId(FileEntry.class),
+				fileEntry.getFileEntryId(), "FileEntry_previewImage",
+				"fragment_entry_link_mapped_asset_field_image.json"),
+			"fragment_entry_image.html", LocaleUtil.US,
+			FragmentEntryLinkConstants.VIEW);
+
+		Assert.assertEquals(
+			AnalyticsAttributesUtil.ACTION_VIEW,
+			element.attr("data-analytics-asset-action"));
+		Assert.assertEquals(
+			"FileEntry_previewImage",
+			element.attr("data-analytics-asset-field"));
+		Assert.assertEquals(
+			String.valueOf(fileEntry.getFileEntryId()),
+			element.attr("data-analytics-asset-id"));
+		Assert.assertEquals(
+			fileEntry.getMimeType(),
+			element.attr("data-analytics-asset-mime-type"));
+		Assert.assertEquals(
+			fileEntry.getTitle(), element.attr("data-analytics-asset-title"));
+		Assert.assertEquals(
+			FileEntry.class.getName(),
+			element.attr("data-analytics-asset-type"));
+	}
+
+	@Test
 	public void testFragmentEntryProcessorEditableAssertAnalyticsAttributesWithMappedImageInViewMode()
 		throws Exception {
 
@@ -1135,7 +1243,8 @@ public class EditableFragmentEntryProcessorTest {
 			ObjectDefinitionTestUtil.publishObjectDefinition(
 				Collections.singletonList(
 					ObjectFieldUtil.createObjectField(
-						"Text", "String", true, true, null,
+						ObjectFieldConstants.BUSINESS_TYPE_TEXT,
+						ObjectFieldConstants.DB_TYPE_STRING, true, true, null,
 						RandomTestUtil.randomString(), "title", false)),
 				false);
 
@@ -2378,18 +2487,44 @@ public class EditableFragmentEntryProcessorTest {
 		}
 
 		ObjectDefinition objectDefinition =
-			ObjectDefinitionTestUtil.publishObjectDefinition(
-				ObjectDefinitionTestUtil.getRandomName(),
+			_objectDefinitionLocalService.addCustomObjectDefinition(
+				null, TestPropsValues.getUserId(),
+				objectFolder.getObjectFolderId(), null, true, false, true,
+				false, true, false, false, false, false, null,
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				ObjectDefinitionTestUtil.getRandomName(), null, null,
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				true, ObjectDefinitionConstants.SCOPE_DEPOT,
+				ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT,
+				Collections.singletonList(
+					new ObjectDefinitionSettingBuilder(
+					).name(
+						ObjectDefinitionSettingConstants.NAME_ACCEPT_ALL_GROUPS
+					).value(
+						StringPool.TRUE
+					).build()),
 				Collections.singletonList(
 					ObjectFieldUtil.createObjectField(
-						"Text", "String", true, true, null,
+						ObjectFieldConstants.BUSINESS_TYPE_TEXT,
+						ObjectFieldConstants.DB_TYPE_STRING, true, true, null,
 						RandomTestUtil.randomString(), "title", false)),
-				objectFolder.getObjectFolderId(),
-				ObjectDefinitionConstants.SCOPE_COMPANY,
-				TestPropsValues.getUserId());
+				Collections.emptyList(), new ServiceContext());
+
+		objectDefinition =
+			_objectDefinitionLocalService.publishCustomObjectDefinition(
+				TestPropsValues.getUserId(),
+				objectDefinition.getObjectDefinitionId());
+
+		DepotEntry depotEntry = _depotEntryLocalService.addDepotEntry(
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			Collections.emptyMap(), DepotConstants.TYPE_SPACE,
+			ServiceContextTestUtil.getServiceContext());
 
 		ObjectEntry objectEntry = ObjectEntryTestUtil.addObjectEntry(
-			objectDefinition, "title", "titleValue");
+			depotEntry.getGroupId(), objectDefinition,
+			HashMapBuilder.<String, Serializable>put(
+				"title", RandomTestUtil.randomString()
+			).build());
 
 		FragmentEntryLink fragmentEntryLink =
 			_fragmentEntryLinkLocalService.addFragmentEntryLink(
@@ -2758,6 +2893,9 @@ public class EditableFragmentEntryProcessorTest {
 
 	@Inject
 	private DDMFormValuesToFieldsConverter _ddmFormValuesToFieldsConverter;
+
+	@Inject
+	private DepotEntryLocalService _depotEntryLocalService;
 
 	@Inject
 	private DLURLHelper _dlURLHelper;

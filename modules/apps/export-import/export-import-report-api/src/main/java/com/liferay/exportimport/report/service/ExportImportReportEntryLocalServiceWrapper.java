@@ -31,34 +31,6 @@ public class ExportImportReportEntryLocalServiceWrapper
 			exportImportReportEntryLocalService;
 	}
 
-	@Override
-	public com.liferay.exportimport.report.model.ExportImportReportEntry
-		addEmptyExportImportReportEntry(
-			long groupId, long companyId, String classExternalReferenceCode,
-			long classNameId, long exportImportConfigurationId,
-			String modelNameLanguageKey) {
-
-		return _exportImportReportEntryLocalService.
-			addEmptyExportImportReportEntry(
-				groupId, companyId, classExternalReferenceCode, classNameId,
-				exportImportConfigurationId, modelNameLanguageKey);
-	}
-
-	@Override
-	public com.liferay.exportimport.report.model.ExportImportReportEntry
-		addErrorExportImportReportEntry(
-			long groupId, long companyId, String classExternalReferenceCode,
-			long classNameId, long classPK, long exportImportConfigurationId,
-			String errorMessage, String errorStacktrace,
-			String modelNameLanguageKey) {
-
-		return _exportImportReportEntryLocalService.
-			addErrorExportImportReportEntry(
-				groupId, companyId, classExternalReferenceCode, classNameId,
-				classPK, exportImportConfigurationId, errorMessage,
-				errorStacktrace, modelNameLanguageKey);
-	}
-
 	/**
 	 * Adds the export import report entry to the database. Also notifies the appropriate model listeners.
 	 *
@@ -81,15 +53,16 @@ public class ExportImportReportEntryLocalServiceWrapper
 
 	@Override
 	public com.liferay.exportimport.report.model.ExportImportReportEntry
-		addMissingReferenceExportImportReportEntry(
+		addExportImportReportEntry(
 			long groupId, long companyId, String classExternalReferenceCode,
-			long classNameId, long exportImportConfigurationId,
+			long classNameId, long classPK, long exportImportConfigurationId,
+			int type, String message, String errorStacktrace,
 			String modelNameLanguageKey) {
 
-		return _exportImportReportEntryLocalService.
-			addMissingReferenceExportImportReportEntry(
-				groupId, companyId, classExternalReferenceCode, classNameId,
-				exportImportConfigurationId, modelNameLanguageKey);
+		return _exportImportReportEntryLocalService.addExportImportReportEntry(
+			groupId, companyId, classExternalReferenceCode, classNameId,
+			classPK, exportImportConfigurationId, type, message,
+			errorStacktrace, modelNameLanguageKey);
 	}
 
 	/**
@@ -366,43 +339,17 @@ public class ExportImportReportEntryLocalServiceWrapper
 
 	@Override
 	public com.liferay.exportimport.report.model.ExportImportReportEntry
-		getOrAddEmptyExportImportReportEntry(
-			long groupId, long companyId, String classExternalReferenceCode,
-			long classNameId, long exportImportConfigurationId,
-			String modelNameLanguageKey) {
-
-		return _exportImportReportEntryLocalService.
-			getOrAddEmptyExportImportReportEntry(
-				groupId, companyId, classExternalReferenceCode, classNameId,
-				exportImportConfigurationId, modelNameLanguageKey);
-	}
-
-	@Override
-	public com.liferay.exportimport.report.model.ExportImportReportEntry
-		getOrAddErrorExportImportReportEntry(
+		getOrAddExportImportReportEntry(
 			long groupId, long companyId, String classExternalReferenceCode,
 			long classNameId, long classPK, long exportImportConfigurationId,
-			String errorMessage, String errorStacktrace,
+			int type, String message, String errorStacktrace,
 			String modelNameLanguageKey) {
 
 		return _exportImportReportEntryLocalService.
-			getOrAddErrorExportImportReportEntry(
+			getOrAddExportImportReportEntry(
 				groupId, companyId, classExternalReferenceCode, classNameId,
-				classPK, exportImportConfigurationId, errorMessage,
+				classPK, exportImportConfigurationId, type, message,
 				errorStacktrace, modelNameLanguageKey);
-	}
-
-	@Override
-	public com.liferay.exportimport.report.model.ExportImportReportEntry
-		getOrAddMissingReferenceExportImportReportEntry(
-			long groupId, long companyId, String classExternalReferenceCode,
-			long classNameId, long exportImportConfigurationId,
-			String modelNameLanguageKey) {
-
-		return _exportImportReportEntryLocalService.
-			getOrAddMissingReferenceExportImportReportEntry(
-				groupId, companyId, classExternalReferenceCode, classNameId,
-				exportImportConfigurationId, modelNameLanguageKey);
 	}
 
 	/**
@@ -481,4 +428,4 @@ public class ExportImportReportEntryLocalServiceWrapper
 		_exportImportReportEntryLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-624051149
+// LIFERAY-SERVICE-BUILDER-HASH:-1963424591

@@ -6,6 +6,8 @@
 package com.liferay.portal.security.ldap.internal.authenticator;
 
 import com.liferay.petra.lang.CentralizedThreadLocal;
+import com.liferay.petra.lang.SafeCloseable;
+import com.liferay.petra.lang.ThreadContextClassLoaderUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PasswordExpiredException;
@@ -16,6 +18,7 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auth.AuthException;
 import com.liferay.portal.kernel.security.auth.Authenticator;
 import com.liferay.portal.kernel.security.auth.PasswordModificationThreadLocal;
+import com.liferay.portal.kernel.security.fips.FIPSModeValidator;
 import com.liferay.portal.kernel.security.ldap.LDAPSettings;
 import com.liferay.portal.kernel.security.pwd.PasswordEncryptor;
 import com.liferay.portal.kernel.security.pwd.PasswordEncryptorUtil;
@@ -24,6 +27,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.ldap.SafeLdapContext;
@@ -37,6 +41,8 @@ import com.liferay.portal.security.ldap.configuration.SystemLDAPConfiguration;
 import com.liferay.portal.security.ldap.constants.LDAPConstants;
 import com.liferay.portal.security.ldap.exportimport.LDAPUserImporter;
 import com.liferay.portal.security.ldap.exportimport.configuration.LDAPImportConfiguration;
+import com.liferay.portal.security.ldap.internal.ssl.LDAPSSLSocketFactory;
+import com.liferay.portal.security.ldap.internal.util.SafeLdapReferralUtil;
 import com.liferay.portal.security.ldap.util.LDAPUtil;
 import com.liferay.portal.security.ldap.validator.LDAPFilterValidator;
 import com.liferay.portlet.admin.util.OmniadminUtil;
@@ -159,7 +165,8 @@ public class LDAPAuth implements Authenticator {
 			SystemLDAPConfiguration systemLDAPConfiguration =
 				_systemLDAPConfigurationProvider.getConfiguration(companyId);
 
-			env.put(Context.REFERRAL, systemLDAPConfiguration.referral());
+			SafeLdapReferralUtil.setProperties(
+				env, systemLDAPConfiguration.referral());
 
 			env.put(Context.SECURITY_CREDENTIALS, password);
 			env.put(Context.SECURITY_PRINCIPAL, userDN);
@@ -179,7 +186,17 @@ public class LDAPAuth implements Authenticator {
 			InitialLdapContext initialLdapContext = null;
 
 			try {
-				initialLdapContext = new InitialLdapContext(env, null);
+				if (PropsValues.FIPS_ENABLED) {
+					try (SafeCloseable safeCloseable =
+							ThreadContextClassLoaderUtil.swap(
+								LDAPSSLSocketFactory.class.getClassLoader())) {
+
+						initialLdapContext = new InitialLdapContext(env, null);
+					}
+				}
+				else {
+					initialLdapContext = new InitialLdapContext(env, null);
+				}
 
 				// Get LDAP bind results
 
@@ -235,20 +252,29 @@ public class LDAPAuth implements Authenticator {
 			Attribute userPassword = attributes.get("userPassword");
 
 			if (userPassword != null) {
+				String algorithm =
+					ldapAuthConfiguration.passwordEncryptionAlgorithm();
+
+				if (FIPSModeValidator.isNotAllowedAlgorithm(algorithm)) {
+					_log.error(
+						"Algorithm \"" + algorithm +
+							"\" is not allowed in FIPS mode");
+
+					ldapAuthResult.setAuthenticated(false);
+
+					return ldapAuthResult;
+				}
+
 				String encryptedPassword = password;
 				String ldapPassword = new String((byte[])userPassword.get());
 
-				if (Validator.isNotNull(
-						ldapAuthConfiguration.passwordEncryptionAlgorithm()) &&
-					!Objects.equals(
-						ldapAuthConfiguration.passwordEncryptionAlgorithm(),
-						PasswordEncryptor.TYPE_NONE)) {
+				if (Validator.isNotNull(algorithm) &&
+					!Objects.equals(algorithm, PasswordEncryptor.TYPE_NONE)) {
 
 					ldapPassword = _removeEncryptionAlgorithm(ldapPassword);
 
 					encryptedPassword = PasswordEncryptorUtil.encrypt(
-						ldapAuthConfiguration.passwordEncryptionAlgorithm(),
-						password, ldapPassword);
+						algorithm, password, ldapPassword);
 				}
 
 				if (ldapPassword.equals(encryptedPassword)) {

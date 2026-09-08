@@ -1,0 +1,58 @@
+$c-operating-system: '.analytics-operating-system-chart';
+$c-web-browser: '.analytics-web-browser-chart';
+
+$operating-system-bar-height: 80px;
+$operating-system-bar-radius: 4px;
+$operating-system-icon-font-size: 1.4rem;
+
+$type-size: 100px;
+
+#{$c-operating-system},
+#{$c-web-browser} {
+	height: 370px;
+}
+
+#{$c-web-browser} {
+	display: flex;
+
+	$donut-width: 60%;
+
+	#{$c-web-browser}-donut {
+		width: calc(#{$donut-width} - 2rem);
+	}
+
+	.bb-tooltip-container {
+		max-width: none !important;
+	}
+
+	.empty-chart-text {
+		width: 10em;
+	}
+
+	.recharts-legend-item {
+		align-items: center;
+		display: flex !important;
+		margin-bottom: 10px;
+
+		&:last-child {
+			margin-bottom: 0;
+		}
+
+		.recharts-legend-item-text {
+			color: $mainLighten28;
+			display: flex;
+			font-size: $fontSizeSmall;
+			font-weight: $fontWeightRegular;
+			justify-content: space-between;
+			width: 100%;
+
+			.legend-percentage {
+				font-weight: $fontWeightSemiBold;
+			}
+
+			.text-truncate {
+				margin-right: 8px;
+			}
+		}
+	}
+}

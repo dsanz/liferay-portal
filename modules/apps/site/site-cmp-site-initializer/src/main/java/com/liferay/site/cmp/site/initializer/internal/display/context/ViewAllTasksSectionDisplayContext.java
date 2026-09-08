@@ -7,6 +7,7 @@ package com.liferay.site.cmp.site.initializer.internal.display.context;
 
 import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.depot.service.DepotEntryLocalService;
+import com.liferay.frontend.data.set.filter.FDSFilter;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItemBuilder;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItemList;
@@ -23,6 +24,7 @@ import com.liferay.portal.kernel.service.RoleService;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.workflow.kaleo.model.KaleoTaskInstanceToken;
+import com.liferay.site.cmp.site.initializer.internal.frontend.data.set.filter.TaskTypeSelectionFDSFilter;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -37,6 +39,8 @@ public class ViewAllTasksSectionDisplayContext
 	public ViewAllTasksSectionDisplayContext(
 		AssetTagLocalService assetTagLocalService,
 		ClassNameLocalService classNameLocalService,
+		ObjectDefinition cmpProjectObjectDefinition,
+		ObjectDefinition cmpTaskObjectDefinition,
 		DepotEntryLocalService depotEntryLocalService,
 		HttpServletRequest httpServletRequest,
 		ListTypeEntryLocalService listTypeEntryLocalService,
@@ -44,20 +48,20 @@ public class ViewAllTasksSectionDisplayContext
 		ObjectFieldLocalService objectFieldLocalService,
 		ObjectStateFlowLocalService objectStateFlowLocalService,
 		ObjectStateLocalService objectStateLocalService,
-		ObjectDefinition projectObjectDefinition, RoleService roleService,
-		ObjectDefinition taskObjectDefinition) {
+		RoleService roleService) {
 
 		super(
-			assetTagLocalService, classNameLocalService, depotEntryLocalService,
-			httpServletRequest, listTypeEntryLocalService, objectEntryService,
+			assetTagLocalService, classNameLocalService,
+			cmpProjectObjectDefinition, cmpTaskObjectDefinition,
+			depotEntryLocalService, httpServletRequest,
+			listTypeEntryLocalService, objectEntryService,
 			objectFieldLocalService, objectStateFlowLocalService,
-			objectStateLocalService, projectObjectDefinition, roleService,
-			taskObjectDefinition);
+			objectStateLocalService, roleService);
 	}
 
 	@Override
 	public String getAPIURL() {
-		StringBundler sb = new StringBundler(9);
+		StringBundler sb = new StringBundler(8);
 
 		sb.append("/o/search/v1.0/search?emptySearch=true&entryClassNames=");
 		sb.append(HtmlUtil.escapeURL(objectDefinition.getClassName()));
@@ -65,9 +69,8 @@ public class ViewAllTasksSectionDisplayContext
 		sb.append(KaleoTaskInstanceToken.class.getName());
 		sb.append("&filter=(objectDefinitionId eq ");
 		sb.append(objectDefinition.getObjectDefinitionId());
-		sb.append(" or keywords/any(k:startswith(k, '");
-		sb.append(objectDefinition.getExternalReferenceCode());
-		sb.append("')))&nestedFields=cmpProjectToCMPTasks,embedded");
+		sb.append(" or cmpTaskObjectEntryIds/any(x:x gt 0))");
+		sb.append(getNestedFieldsAPIURLParameters("cmpProjectToCMPTasks"));
 
 		return sb.toString();
 	}
@@ -88,6 +91,17 @@ public class ViewAllTasksSectionDisplayContext
 			).build(
 				"other-actions"
 			));
+	}
+
+	@Override
+	public List<FDSFilter> getFDSFilters() {
+		List<FDSFilter> fdsFilters = super.getFDSFilters();
+
+		fdsFilters.add(
+			new TaskTypeSelectionFDSFilter(
+				classNameLocalService, objectDefinition));
+
+		return fdsFilters;
 	}
 
 }

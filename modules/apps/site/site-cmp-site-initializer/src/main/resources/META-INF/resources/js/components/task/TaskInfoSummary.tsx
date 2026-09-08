@@ -23,21 +23,25 @@ import '../AssigneeTrigger.scss';
 
 interface TaskInfoSummaryProps {
 	assignTo: AssigneeValue;
+	cmpProjectObjectEntryId?: number;
+	cmpTaskObjectEntryId: string;
 	dueDate: string;
+	hasUpdatePermission: boolean;
 	initialState: string;
 	states: State[];
 	tags: string[];
-	taskId: string;
 	title: string;
 }
 
 export default function TaskInfoSummary({
 	assignTo,
+	cmpProjectObjectEntryId,
+	cmpTaskObjectEntryId,
 	dueDate,
+	hasUpdatePermission,
 	initialState,
 	states,
 	tags,
-	taskId,
 	title,
 }: TaskInfoSummaryProps) {
 	const [selectedStateKey, setSelectedStateKey] = useState(initialState);
@@ -48,16 +52,18 @@ export default function TaskInfoSummary({
 			defaultOpen={true}
 			items={[
 				{
-					label: 'State',
+					label: Liferay.Language.get('state'),
 					value: (
 						<StateSelector
-							disabled={stateSelectorDisabled}
+							disabled={
+								!hasUpdatePermission || stateSelectorDisabled
+							}
 							onChange={async (key: string) => {
 								setStateSelectorDisabled(true);
 
 								const {error} = await patchTaskById({
 									body: {state: key},
-									taskId,
+									taskId: cmpTaskObjectEntryId,
 								});
 
 								if (!error) {
@@ -80,13 +86,14 @@ export default function TaskInfoSummary({
 					),
 				},
 				{
-					label: 'Assignee',
+					label: Liferay.Language.get('assignee'),
 					value: (
 						<CustomAssignee
+							cmpProjectObjectEntryId={cmpProjectObjectEntryId}
 							onChange={async (value: AssigneeValue | {}) => {
 								const {error} = await patchTaskById({
 									body: {assignTo: value},
-									taskId,
+									taskId: cmpTaskObjectEntryId,
 								});
 
 								if (!error) {
@@ -101,17 +108,18 @@ export default function TaskInfoSummary({
 									displayErrorToast(error);
 								}
 							}}
+							readOnly={!hasUpdatePermission}
 							showLabel={false}
 							value={assignTo}
 						/>
 					),
 				},
 				{
-					label: 'Due Date',
+					label: Liferay.Language.get('due-date'),
 					value: DateRenderer({value: dueDate}) ?? '',
 				},
 				{
-					label: 'Tags',
+					label: Liferay.Language.get('tags'),
 					value: (
 						<div>
 							{tags.map((tag) => (

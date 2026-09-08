@@ -5,8 +5,10 @@
 
 package com.liferay.site.dsr.site.initializer.internal.object.deployer.test;
 
+import com.liferay.account.constants.AccountConstants;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.service.AccountEntryLocalService;
+import com.liferay.account.service.AccountEntryUserRelLocalService;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.fragment.model.FragmentEntryModel;
@@ -37,16 +39,19 @@ import com.liferay.portal.kernel.service.LayoutSetPrototypeLocalService;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.context.ContextUserReplace;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortletKeys;
-import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -68,7 +73,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Stefano Motta
  */
-@FeatureFlag("LPD-66359")
 @RunWith(Arquillian.class)
 public class ObjectDefinitionDeployerImplTest {
 
@@ -87,7 +91,9 @@ public class ObjectDefinitionDeployerImplTest {
 			StringPool.BLANK, TestPropsValues.getUserId(), 0,
 			RandomTestUtil.randomString(), RandomTestUtil.randomString(), null,
 			RandomTestUtil.randomString() + "@liferay.com", null, null,
-			"business", 1, ServiceContextTestUtil.getServiceContext());
+			AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS,
+			WorkflowConstants.STATUS_APPROVED,
+			ServiceContextTestUtil.getServiceContext());
 
 		_objectDefinition =
 			_objectDefinitionLocalService.
@@ -110,6 +116,9 @@ public class ObjectDefinitionDeployerImplTest {
 			_classNameLocalService.getClassNameId(
 				_objectDefinition.getClassName()),
 			_objectEntry.getObjectEntryId());
+
+		_objectEntry = _objectEntryLocalService.getObjectEntry(
+			_group.getClassPK());
 	}
 
 	@Test
@@ -146,7 +155,7 @@ public class ObjectDefinitionDeployerImplTest {
 
 		Assert.assertNotNull(
 			_roleLocalService.fetchRoleByExternalReferenceCode(
-				"L_DSR_CONTRIBUTOR", TestPropsValues.getCompanyId()));
+				"L_DSR_CONTENT_CONTRIBUTOR", TestPropsValues.getCompanyId()));
 
 		Role role = _roleLocalService.fetchRoleByExternalReferenceCode(
 			"L_DSR_SELLER", TestPropsValues.getCompanyId());
@@ -203,7 +212,7 @@ public class ObjectDefinitionDeployerImplTest {
 			List.of(ActionKeys.VIEW), role.getRoleId());
 
 		role = _roleLocalService.fetchRole(
-			TestPropsValues.getCompanyId(), "DSR Contributor");
+			TestPropsValues.getCompanyId(), "DSR Content Contributor");
 
 		_assertHasResourcePermissions(
 			actionIds, layoutSetPrototype.getGroupId(),
@@ -246,6 +255,55 @@ public class ObjectDefinitionDeployerImplTest {
 				modelResourcePermission.contains(
 					permissionChecker, _objectEntry, ActionKeys.VIEW));
 		}
+
+		role = _roleLocalService.fetchRoleByExternalReferenceCode(
+			"L_DSR_SELLER", TestPropsValues.getCompanyId());
+		user = UserTestUtil.addUser();
+
+		_userLocalService.addRoleUsers(
+			role.getRoleId(), new long[] {user.getUserId()});
+
+		role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		_userLocalService.addRoleUsers(
+			role.getRoleId(), new long[] {user.getUserId()});
+
+		_resourcePermissionLocalService.addResourcePermission(
+			TestPropsValues.getCompanyId(), _objectDefinition.getClassName(),
+			ResourceConstants.SCOPE_COMPANY,
+			String.valueOf(TestPropsValues.getCompanyId()), role.getRoleId(),
+			ActionKeys.UPDATE);
+
+		permissionChecker = PermissionCheckerFactoryUtil.create(user);
+
+		try (ContextUserReplace contextUserReplace = new ContextUserReplace(
+				user, permissionChecker)) {
+
+			Assert.assertFalse(
+				modelResourcePermission.contains(
+					permissionChecker, _objectEntry, ActionKeys.UPDATE));
+			Assert.assertFalse(
+				modelResourcePermission.contains(
+					permissionChecker, _objectEntry, ActionKeys.VIEW));
+		}
+
+		_accountEntryUserRelLocalService.addAccountEntryUserRel(
+			MapUtil.getLong(
+				_objectEntry.getValues(), "r_accountToDSRRooms_accountEntryId"),
+			user.getUserId());
+
+		permissionChecker = PermissionCheckerFactoryUtil.create(user);
+
+		try (ContextUserReplace contextUserReplace = new ContextUserReplace(
+				user, permissionChecker)) {
+
+			Assert.assertFalse(
+				modelResourcePermission.contains(
+					permissionChecker, _objectEntry, ActionKeys.UPDATE));
+			Assert.assertTrue(
+				modelResourcePermission.contains(
+					permissionChecker, _objectEntry, ActionKeys.VIEW));
+		}
 	}
 
 	private void _assertHasResourcePermissions(
@@ -277,6 +335,9 @@ public class ObjectDefinitionDeployerImplTest {
 	private AccountEntryLocalService _accountEntryLocalService;
 
 	@Inject
+	private AccountEntryUserRelLocalService _accountEntryUserRelLocalService;
+
+	@Inject
 	private ClassNameLocalService _classNameLocalService;
 
 	private Group _group;
@@ -305,5 +366,8 @@ public class ObjectDefinitionDeployerImplTest {
 
 	@Inject
 	private RoleLocalService _roleLocalService;
+
+	@Inject
+	private UserLocalService _userLocalService;
 
 }

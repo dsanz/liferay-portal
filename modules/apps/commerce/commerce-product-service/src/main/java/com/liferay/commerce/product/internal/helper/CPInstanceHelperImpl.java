@@ -770,37 +770,20 @@ public class CPInstanceHelperImpl implements CPInstanceHelper {
 		for (CPInstanceOptionValueRel cpInstanceOptionValueRel :
 				cpDefinitionCPInstanceOptionValueRels) {
 
-			if (!cpDefinitionOptionRelCPDefinitionOptionValueRelIds.containsKey(
-					cpInstanceOptionValueRel.getCPDefinitionOptionRelId())) {
-
-				continue;
-			}
-
 			List<Long> cpDefinitionOptionValueIds =
 				cpDefinitionOptionRelCPDefinitionOptionValueRelIds.get(
 					cpInstanceOptionValueRel.getCPDefinitionOptionRelId());
 
-			if (!cpDefinitionOptionValueIds.contains(
+			if ((cpDefinitionOptionValueIds == null) ||
+				!cpDefinitionOptionValueIds.contains(
 					cpInstanceOptionValueRel.
 						getCPDefinitionOptionValueRelId())) {
 
 				continue;
 			}
 
-			if (cpInstanceCPInstanceOptionValueHits.containsKey(
-					cpInstanceOptionValueRel.getCPInstanceId())) {
-
-				int value = cpInstanceCPInstanceOptionValueHits.get(
-					cpInstanceOptionValueRel.getCPInstanceId());
-
-				cpInstanceCPInstanceOptionValueHits.put(
-					cpInstanceOptionValueRel.getCPInstanceId(), value + 1);
-
-				continue;
-			}
-
-			cpInstanceCPInstanceOptionValueHits.put(
-				cpInstanceOptionValueRel.getCPInstanceId(), 1);
+			cpInstanceCPInstanceOptionValueHits.merge(
+				cpInstanceOptionValueRel.getCPInstanceId(), 1, Integer::sum);
 		}
 
 		if (cpInstanceCPInstanceOptionValueHits.isEmpty()) {
@@ -852,37 +835,20 @@ public class CPInstanceHelperImpl implements CPInstanceHelper {
 		for (CPInstanceOptionValueRel cpInstanceOptionValueRel :
 				cpDefinitionCPInstanceOptionValueRels) {
 
-			if (!cpDefinitionOptionRelCPDefinitionOptionValueRelIds.containsKey(
-					cpInstanceOptionValueRel.getCPDefinitionOptionRelId())) {
-
-				continue;
-			}
-
 			List<Long> cpDefinitionOptionValueIds =
 				cpDefinitionOptionRelCPDefinitionOptionValueRelIds.get(
 					cpInstanceOptionValueRel.getCPDefinitionOptionRelId());
 
-			if (!cpDefinitionOptionValueIds.contains(
+			if ((cpDefinitionOptionValueIds == null) ||
+				!cpDefinitionOptionValueIds.contains(
 					cpInstanceOptionValueRel.
 						getCPDefinitionOptionValueRelId())) {
 
 				continue;
 			}
 
-			if (cpInstanceCPInstanceOptionValueHits.containsKey(
-					cpInstanceOptionValueRel.getCPInstanceId())) {
-
-				int value = cpInstanceCPInstanceOptionValueHits.get(
-					cpInstanceOptionValueRel.getCPInstanceId());
-
-				cpInstanceCPInstanceOptionValueHits.put(
-					cpInstanceOptionValueRel.getCPInstanceId(), value + 1);
-
-				continue;
-			}
-
-			cpInstanceCPInstanceOptionValueHits.put(
-				cpInstanceOptionValueRel.getCPInstanceId(), 1);
+			cpInstanceCPInstanceOptionValueHits.merge(
+				cpInstanceOptionValueRel.getCPInstanceId(), 1, Integer::sum);
 		}
 
 		if (cpInstanceCPInstanceOptionValueHits.isEmpty()) {

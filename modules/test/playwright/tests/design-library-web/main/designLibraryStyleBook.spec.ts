@@ -7,7 +7,10 @@ import {expect, mergeTests} from '@playwright/test';
 
 import {apiHelpersTest} from '../../../fixtures/apiHelpersTest';
 import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
+import {isolatedSiteTest} from '../../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../../fixtures/loginTest';
+import {pagesAdminPagesTest} from '../../../fixtures/pagesAdminPagesTest';
+import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
 import getRandomString from '../../../utils/getRandomString';
 import {
 	performLoginViaApi,
@@ -21,8 +24,6 @@ const test = mergeTests(
 	designLibrariesPageTest,
 	featureFlagsTest({
 		'LPD-11235': {enabled: true},
-		'LPD-17564': {enabled: true},
-		'LPD-34594': {enabled: true},
 		'LPD-35443': {enabled: true},
 		'LPD-57283': {enabled: true},
 		'LPD-76864': {enabled: true},
@@ -48,20 +49,18 @@ test(
 			});
 
 		try {
-			const newStyleBookButton = page.getByRole('button', {
-				name: 'New Style Book',
-			});
-
 			await test.step('Open the design library resources view', async () => {
 				await designLibrariesPage.goToDesignLibrary(designLibraryName);
 
-				await expect(newStyleBookButton).toBeVisible();
+				await expect(
+					page.getByRole('button', {exact: true, name: 'New'})
+				).toBeVisible();
 			});
 
 			const modal = page.getByRole('dialog');
 
 			await test.step('Cancelling the modal does not create an entry', async () => {
-				await newStyleBookButton.click();
+				await designLibrariesPage.clickNewStyleBook();
 
 				await expect(modal).toBeVisible();
 				await expect(
@@ -74,7 +73,7 @@ test(
 			});
 
 			await test.step('Submitting the modal redirects to the style book editor', async () => {
-				await newStyleBookButton.click();
+				await designLibrariesPage.clickNewStyleBook();
 
 				await expect(modal).toBeVisible();
 
@@ -116,7 +115,7 @@ test(
 );
 
 test(
-	'New Style Book button is not visible without permissions',
+	'New button is not visible without permissions',
 	{tag: '@LPD-88092'},
 	async ({apiHelpers, designLibrariesPage, page}) => {
 		const designLibraryName = getRandomString();
@@ -147,8 +146,8 @@ test(
 			});
 
 		try {
-			const newStyleBookButton = page.getByRole('button', {
-				name: 'New Style Book',
+			const newButton = page.getByRole('button', {
+				name: 'New',
 			});
 
 			const designLibraryURL =
@@ -157,7 +156,7 @@ test(
 						designLibraryName
 					);
 
-					await expect(newStyleBookButton).toBeVisible();
+					await expect(newButton).toBeVisible();
 
 					return page.url();
 				});
@@ -174,7 +173,7 @@ test(
 			await test.step('New Style Book button is not visible without permissions', async () => {
 				await page.goto(designLibraryURL);
 
-				await expect(newStyleBookButton).toBeHidden();
+				await expect(newButton).toBeHidden();
 			});
 		}
 		finally {
@@ -385,7 +384,7 @@ test(
 				.getByRole('link', {name: designLibraryName})
 				.click();
 
-			await expect(page).toHaveURL(/design_library_resources/);
+			await expect(page).toHaveURL(/view_resources_design_library/);
 
 			await expect(
 				page
@@ -403,5 +402,162 @@ test(
 				connectedSite.externalReferenceCode
 			);
 		});
+	}
+);
+
+const testWithSite = mergeTests(test, isolatedSiteTest, pagesAdminPagesTest);
+
+testWithSite(
+	'Design library style books are filtered by page theme in the style book selector',
+	{tag: '@LPD-83671'},
+	async ({apiHelpers, designLibrariesPage, page, pagesAdminPage, site}) => {
+		const classicStyleBookName = getRandomString();
+		const cmsStyleBookName = getRandomString();
+		const designLibraryName = getRandomString();
+		const pageName = getRandomString();
+
+		const createdDesignLibrary = await testWithSite.step(
+			'Create a design library via headless',
+			async () => {
+				return await apiHelpers.headlessAssetLibrary.createAssetLibrary(
+					{
+						name: designLibraryName,
+						settings: {},
+						type: 'DesignLibrary',
+					}
+				);
+			}
+		);
+
+		try {
+			await testWithSite.step(
+				'Create a widget page in the site',
+				async () => {
+					await apiHelpers.jsonWebServicesLayout.addLayout({
+						groupId: String(site.id),
+						options: {type: 'portlet'},
+						title: pageName,
+					});
+				}
+			);
+
+			await testWithSite.step(
+				'Create a Classic Theme style book in the design library',
+				async () => {
+					await designLibrariesPage.createStyleBook(
+						designLibraryName,
+						classicStyleBookName,
+						'Classic Theme'
+					);
+				}
+			);
+
+			await testWithSite.step(
+				'Create a CMS Theme style book in the design library',
+				async () => {
+					await designLibrariesPage.createStyleBook(
+						designLibraryName,
+						cmsStyleBookName,
+						'CMS Theme'
+					);
+				}
+			);
+
+			await testWithSite.step(
+				'Assert no design library style books are visible when not connected to the site',
+				async () => {
+					await pagesAdminPage.goto(site.friendlyUrlPath);
+
+					await pagesAdminPage.goToDesignTabConfiguration(pageName);
+
+					const styleBookTextbox = page.getByRole('textbox', {
+						name: 'Style Book',
+					});
+
+					const selectStyleBookDialog = page.getByRole('dialog', {
+						name: 'Select Style Book',
+					});
+
+					await clickAndExpectToBeVisible({
+						target: selectStyleBookDialog,
+						trigger: styleBookTextbox,
+					});
+
+					await expect(
+						selectStyleBookDialog.getByText(
+							'Styles from Classic Theme',
+							{exact: true}
+						)
+					).toBeVisible();
+
+					await expect(
+						selectStyleBookDialog.getByText(classicStyleBookName, {
+							exact: true,
+						})
+					).toBeHidden();
+
+					await expect(
+						selectStyleBookDialog.getByText(cmsStyleBookName, {
+							exact: true,
+						})
+					).toBeHidden();
+
+					await selectStyleBookDialog.getByLabel('Close').click();
+				}
+			);
+
+			await testWithSite.step(
+				'Connect the design library to the site',
+				async () => {
+					await apiHelpers.jsonWebServicesDepotGroupRel.addDepotEntryGroupRel(
+						createdDesignLibrary.id,
+						site.id
+					);
+				}
+			);
+
+			await testWithSite.step(
+				'Assert only the Classic Theme style book is visible in the selector after connecting',
+				async () => {
+					await pagesAdminPage.goto(site.friendlyUrlPath);
+
+					await pagesAdminPage.goToDesignTabConfiguration(pageName);
+
+					const styleBookTextbox = page.getByRole('textbox', {
+						name: 'Style Book',
+					});
+
+					const selectStyleBookDialog = page.getByRole('dialog', {
+						name: 'Select Style Book',
+					});
+
+					await clickAndExpectToBeVisible({
+						target: selectStyleBookDialog,
+						trigger: styleBookTextbox,
+					});
+
+					await expect(
+						selectStyleBookDialog.getByText(classicStyleBookName, {
+							exact: true,
+						})
+					).toBeVisible();
+
+					await expect(
+						selectStyleBookDialog.getByText(cmsStyleBookName, {
+							exact: true,
+						})
+					).toBeHidden();
+
+					await selectStyleBookDialog.getByLabel('Close').click();
+				}
+			);
+		}
+		finally {
+			await testWithSite.step('Remove the design library', async () => {
+				await apiHelpers.headlessAssetLibrary.deleteAssetLibrary(
+					createdDesignLibrary.externalReferenceCode
+				);
+			});
+		}
 	}
 );

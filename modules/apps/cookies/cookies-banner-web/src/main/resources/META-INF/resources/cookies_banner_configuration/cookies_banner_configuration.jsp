@@ -29,13 +29,13 @@ if (!portletName.equals(UsersAdminPortletKeys.MY_ACCOUNT)) {
 	String alertMessage = ParamUtil.getString(request, "alertMessage");
 	%>
 
-	<c:if test="<%= alertMessage != StringPool.BLANK %>">
+	<c:if test="<%= Validator.isNotNull(alertMessage) %>">
 		<clay:col
 			size="12"
 		>
 			<clay:alert
-				displayType='<%= ParamUtil.getString(request, "alertDisplayType", "info") %>'
-				message="<%= alertMessage %>"
+				displayType='<%= HtmlUtil.escapeAttribute(ParamUtil.getString(request, "alertDisplayType", "info")) %>'
+				message="<%= HtmlUtil.escape(alertMessage) %>"
 			/>
 		</clay:col>
 	</c:if>
@@ -48,7 +48,7 @@ if (!portletName.equals(UsersAdminPortletKeys.MY_ACCOUNT)) {
 			<%= HtmlUtil.escape(cookiesBannerConfigurationDisplayContext.getDescription(locale)) %>
 
 			<clay:link
-				href="<%= HtmlUtil.escape(cookiesBannerConfigurationDisplayContext.getCookiePolicyLink()) %>"
+				href="<%= HtmlUtil.escapeHREF(cookiesBannerConfigurationDisplayContext.getCookiePolicyLink()) %>"
 				label="<%= HtmlUtil.escape(cookiesBannerConfigurationDisplayContext.getLinkDisplayText(locale)) %>"
 				target="_blank"
 			/>

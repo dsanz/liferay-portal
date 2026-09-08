@@ -168,6 +168,10 @@
 			<category name="Styling" />
 			<description name="Sorts definition keys in `.config` files." />
 		</check>
+		<check name="ConfigStylingCheck">
+			<category name="Styling" />
+			<description name="Applies rules to enforce consistency in code style." />
+		</check>
 		<check name="ConfigWhitespaceCheck">
 			<category name="Styling" />
 			<description name="Finds missing and unnecessary whitespace." />
@@ -282,6 +286,11 @@
 		</check>
 	</source-processor>
 	<source-processor name="GradleSourceProcessor">
+		<check name="BouncyCastleFIPSCheck">
+			<category name="Bug Prevention" />
+			<description name="Finds non-FIPS BouncyCastle artifacts in `build.gradle` files." />
+			<property name="enabled" value="false" />
+		</check>
 		<check name="GradleBlockOrderCheck">
 			<category name="Styling" />
 			<description name="Sorts logic in gradle build files." />
@@ -472,6 +481,11 @@
 			<category name="Performance" />
 			<description name="Checks if performance can be improved by using different methods that can be used by collections." />
 		</check>
+		<check name="BouncyCastleFIPSCheck">
+			<category name="Bug Prevention" />
+			<description name="Finds imports of non-FIPS BouncyCastle packages." />
+			<property name="enabled" value="false" />
+		</check>
 		<check name="EmptyCollectionCheck">
 			<category name="Styling" />
 			<description name="Checks that there are no calls to `Collections.EMPTY_LIST`, `Collections.EMPTY_MAP` or `Collections.EMPTY_SET`." />
@@ -634,6 +648,11 @@
 			<description name="Checks for correct use of attributes `description` and `name` in annotation `@aQute.bnd.annotation.metatype.Meta`." />
 			<property name="checkConfigurationName" value="false" />
 		</check>
+		<check name="JavaMetaOCDSecretFieldCheck">
+			<category name="Bug Prevention" />
+			<description name="Finds missing `type = Meta.Type.Password` on secret-bearing fields." />
+			<property name="enabled" value="false" />
+		</check>
 		<check name="JavaModifiedServiceMethodCheck">
 			<category name="Bug Prevention" />
 			<description name="Finds missing empty lines before `removedService` or `addingService` calls." />
@@ -655,6 +674,11 @@
 		<check name="JavaRedundantConstructorCheck">
 			<category name="Bug Prevention" />
 			<description name="Finds unnecessary empty constructor." />
+		</check>
+		<check name="JavaRedundantContainsCheck">
+			<category name="Performance" />
+			<description name="Finds a `contains` or `containsKey` check that is immediately followed by a `get`, `remove`, `put`, or `add` on the same key or element, which should be combined into the single operation that already reports presence through its return value." />
+			<property name="enabled" value="false" />
 		</check>
 		<check name="JavaReturnStatementCheck">
 			<category name="Styling" />
@@ -800,6 +824,11 @@
 			<property name="checkSelfRegistration" value="false" />
 			<property name="checkUsesInternalService" value="false" />
 		</check>
+		<check name="JavaConnectionTransactionCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that `commit`, `rollback`, and `setAutoCommit` are not called on a `java.sql.Connection`, see LPD-98668." />
+			<property name="enabled" value="false" />
+		</check>
 		<check name="JavaConstantsFileCheck">
 			<category name="Naming Conventions" />
 			<description name="Checks if constants names follow naming conventions." />
@@ -900,6 +929,11 @@
 		<check name="JavaRunSQLCheck">
 			<category name="Styling" />
 			<description name="Applies rules to enforce consistency in code style." />
+		</check>
+		<check name="JavaServiceImplGetFetchCheck">
+			<category name="Bug Prevention" />
+			<description name="Flags a get-prefixed service method that returns a nullable fetch result, violating the non-null promise its name implies." />
+			<property name="enabled" value="false" />
 		</check>
 		<check name="JavaServiceObjectCheck">
 			<category name="Styling" />
@@ -1192,7 +1226,7 @@
 		</check>
 		<check name="JSONObjectDefinitionFileCheck">
 			<category name="Styling" />
-			<description name="Enforces consistent ordering of `objectFields` in `*-object-definition.json` and `*object-definition.batch-engine-data.json` files (non-relationship fields first, followed by relationship fields, both sorted alphabetically by `name`)." />
+			<description name="Applies rules to enforce consistency in code style." />
 		</check>
 		<check name="JSONPackageJSONBNDVersionCheck">
 			<category name="Bug Prevention" />
@@ -1588,6 +1622,11 @@
 			<category name="Bug Prevention" />
 			<description name="Finds legacy `packageinfo` files." />
 		</check>
+		<check name="PackageinfoBreakingChangeCommitMessageCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that commit message should contain the schematized breaking changes." />
+			<property name="enabled" value="false" />
+		</check>
 		<check name="WhitespaceCheck">
 			<category name="Styling" />
 			<description name="Finds missing and unnecessary whitespace." />
@@ -1766,6 +1805,14 @@
 
 		<!-- Liferay Source Checks -->
 
+		<check name="JDKDynamicAgentLoadingCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that dynamic loading of agents is not used." />
+		</check>
+		<check name="JDKPreviewFeaturesCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that preview features are not used." />
+		</check>
 		<check name="PropertiesBuildIncludeDirsCheck">
 			<category name="Bug Prevention" />
 			<description name="Verifies property value of `build.include.dirs` in `build.properties`." />
@@ -1820,6 +1867,17 @@
 		<check name="WhitespaceCheck">
 			<category name="Styling" />
 			<description name="Finds missing and unnecessary whitespace." />
+		</check>
+
+		<!-- Liferay Source Checks -->
+
+		<check name="JDKDynamicAgentLoadingCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that dynamic loading of agents is not used." />
+		</check>
+		<check name="JDKPreviewFeaturesCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that preview features are not used." />
 		</check>
 	</source-processor>
 	<source-processor name="SoySourceProcessor">
@@ -2210,6 +2268,10 @@
 			<description name="Checks that the `finder name` in `service.xml`." />
 			<property name="enabled" value="false" />
 		</check>
+		<check name="XMLServiceFinderWhereClauseCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that a `finder` `where` clause in `service.xml` uses the entity property name instead of the database column name." />
+		</check>
 		<check name="XMLServiceMissingCompanyIdCheck">
 			<category name="Bug Prevention" />
 			<description name="Finds missing `companyId` column in `service.xml`." />
@@ -2275,6 +2337,14 @@
 
 		<!-- Liferay Source Checks -->
 
+		<check name="JDKDynamicAgentLoadingCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that dynamic loading of agents is not used." />
+		</check>
+		<check name="JDKPreviewFeaturesCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that preview features are not used." />
+		</check>
 		<check name="XMLCheckstyleFileCheck">
 			<category name="Bug Prevention" />
 			<description name="Performs several checks on `checkstyle.xml` file." />
@@ -2361,6 +2431,17 @@
 			<category name="Styling" />
 			<description name="Finds missing and unnecessary whitespace in `.yml` files." />
 			<property name="allowLeadingSpaces" value="true" />
+		</check>
+
+		<!-- Liferay Source Checks -->
+
+		<check name="JDKDynamicAgentLoadingCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that dynamic loading of agents is not used." />
+		</check>
+		<check name="JDKPreviewFeaturesCheck">
+			<category name="Bug Prevention" />
+			<description name="Checks that preview features are not used." />
 		</check>
 	</source-processor>
 </source-formatter>

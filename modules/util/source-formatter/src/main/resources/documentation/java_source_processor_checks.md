@@ -16,6 +16,7 @@ AssignAsUsedCheck | [Performance](performance_checks.md#performance-checks) | Fi
 [AvoidNestedBlocksCheck](https://checkstyle.sourceforge.io/checks/blocks/avoidnestedblocks.html) | [Styling](styling_checks.md#styling-checks) | Finds nested blocks (blocks that are used freely in the code). |
 [AvoidStarImportCheck](https://checkstyle.sourceforge.io/checks/imports/avoidstarimport.html) | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks that there are no import statements that use the * notation. |
 [BatchableUpdateCheck](check/batchable_update_check.md#batchableupdatecheck) | [Performance](performance_checks.md#performance-checks) | Checks for cases where batch updates should be used inside a loop instead of individual executeUpdate calls. |
+BouncyCastleFIPSCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds non-FIPS BouncyCastle artifacts in `build.gradle` files. |
 BrandNameCheck | [Naming Conventions](naming_conventions_checks.md#naming-conventions-checks) | Checks the correct brand name. |
 [CamelCaseNameCheck](check/camel_case_name_check.md#camelcasenamecheck) | [Naming Conventions](naming_conventions_checks.md#naming-conventions-checks) | Checks variable names for correct use of `CamelCase`. |
 CapsNameCheck | [Naming Conventions](naming_conventions_checks.md#naming-conventions-checks) | Checks the correct caps name. |
@@ -26,6 +27,7 @@ CompatClassImportsCheck | [Bug Prevention](bug_prevention_checks.md#bug-preventi
 ComponentAnnotationCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Performs several checks on classes with @Component annotation. |
 [ComponentExposureCheck](check/component_exposure_check.md#componentexposurecheck) | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Avoid exposing static component. |
 ConcatCheck | [Performance](performance_checks.md#performance-checks) | Checks for correct use of `StringBundler.concat`. |
+ConfigurableCreateConfigurableCallCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks illegal call to `Configurable.createConfigurable`. |
 ConstantNameCheck | [Naming Conventions](naming_conventions_checks.md#naming-conventions-checks) | Checks that variable names of constants follow correct naming rules. |
 ConstructorGlobalVariableDeclarationCheck | [Performance](performance_checks.md#performance-checks) | Checks that initial values of global variables are not set in the constructor. |
 [ConstructorMissingEmptyLineCheck](check/constructor_missing_empty_line_check.md#constructormissingemptylinecheck) | [Styling](styling_checks.md#styling-checks) | Checks for line breaks when assigning variables in constructor. |
@@ -34,8 +36,10 @@ ContractionsCheck | [Styling](styling_checks.md#styling-checks) | Finds contract
 [CopyrightCheck](check/copyright_check.md#copyrightcheck) | [Styling](styling_checks.md#styling-checks) | Validates `copyright` header. |
 [CreatingThreadsForDBAccessCheck](check/creating_threads_for_db_access_check.md#creatingthreadsfordbaccesscheck) | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds cases where `CompanyInheritableThreadLocalCallable` should be used when creating threads for DB access. |
 [CreationMenuBuilderCheck](check/builder_check.md#buildercheck) | [Miscellaneous](miscellaneous_checks.md#miscellaneous-checks) | Checks that `CreationMenuBuilder` is used when possible. |
+CredentialBufferCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds buffers that are derived from a `String` and passed straight into a credential API, leaving no reference to clear. |
 DTOEnumCreationCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks the creation of DTO enum. |
 DatabaseMetaDataCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks usages of `java.sql.DatabaseMetaData`. |
+DatabaseMetaDataSupportsBatchUpdatesCallCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks illegal call to `DatabaseMetaData.supportsBatchUpdates`. |
 [DefaultComesLastCheck](https://checkstyle.sourceforge.io/checks/coding/defaultcomeslast.html) | [Styling](styling_checks.md#styling-checks) | Checks that the `default` is after all the cases in a `switch` statement. |
 DeprecatedAPICheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds calls to deprecated classes, constructors, fields or methods. |
 DeprecatedClassesCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Replaces deprecated classes. |
@@ -50,6 +54,7 @@ EqualClauseIfStatementsCheck | [Styling](styling_checks.md#styling-checks) | Fin
 ExceptionPrintStackTraceCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Avoid using printStackTrace. |
 ExceptionVariableNameCheck | [Naming Conventions](naming_conventions_checks.md#naming-conventions-checks) | Validates variable names that have type `*Exception`. |
 FactoryCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds cases where `*Factory` should be used when creating new instances of an object. |
+[FetchContractCatchCheck](check/fetch_contract_catch_check.md#fetchcontractcatchcheck) | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds code blocks that use `try-catch` to handle `NoSuch*Exception` or `PortalException` during entity lookups, which should be replaced by `fetch*` methods. |
 FilterStringWhitespaceCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds missing and unnecessary whitespace in the value of the filter string in `ServiceTrackerFactory.open` or `WaiterUtil.waitForFilter`. |
 [FrameworkBundleCheck](check/framework_bundle_check.md#frameworkbundlecheck) | [Performance](performance_checks.md#performance-checks) | Checks that `org.osgi.framework.Bundle.getHeaders()` is not used. |
 FullyQualifiedNameCheck | [Miscellaneous](miscellaneous_checks.md#miscellaneous-checks) | Finds cases where a Fully Qualified Name is used instead of importing a class. |
@@ -86,6 +91,7 @@ JavaCompanyThreadLocalCheck | [Bug Prevention](bug_prevention_checks.md#bug-prev
 JavaComponentAnnotationsCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Performs several checks on classes with `@Component` annotation. |
 [JavaConfigurationAdminCheck](check/java_configuration_admin_check.md#javaconfigurationadmincheck) | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks for correct use of `location == ?` when calling `org.osgi.service.cm.ConfigurationAdmin#createFactoryConfiguration`. |
 [JavaConfigurationCategoryCheck](check/java_configuration_category_check.md#javaconfigurationcategorycheck) | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks that the value of `category` in `@ExtendedObjectClassDefinition` matches the `categoryKey` of the corresponding class that implements `ConfigurationCategory`. |
+[JavaConnectionTransactionCheck](check/java_connection_transaction_check.md#javaconnectiontransactioncheck) | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks that `commit`, `rollback`, and `setAutoCommit` are not called on a `java.sql.Connection`, see LPD-98668. |
 JavaConstantsFileCheck | [Naming Conventions](naming_conventions_checks.md#naming-conventions-checks) | Checks if constants names follow naming conventions. |
 [JavaConstructorParametersCheck](check/java_constructor_parameters_check.md#javaconstructorparameterscheck) | [Styling](styling_checks.md#styling-checks) | Checks that the order of variable assignments matches the order of the parameters in the constructor signature. |
 JavaConstructorSuperCallCheck | [Styling](styling_checks.md#styling-checks) | Finds unnecessary call to no-argument constructor of the superclass. |
@@ -129,6 +135,7 @@ JavaLogClassNameCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention
 JavaLongLinesCheck | [Styling](styling_checks.md#styling-checks) | Finds lines that are longer than the specified maximum line length. |
 JavaMapBuilderGenericsCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds missing or unnecessary generics on `*MapBuilder.put` calls. |
 [JavaMetaAnnotationsCheck](check/java_meta_annotations_check.md#javametaannotationscheck) | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks for correct use of attributes `description` and `name` in annotation `@aQute.bnd.annotation.metatype.Meta`. |
+JavaMetaOCDSecretFieldCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds missing `type = Meta.Type.Password` on secret-bearing fields. |
 JavaMissingOverrideCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds missing @Override annotations. |
 JavaMissingXMLPublicIdsCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds missing public IDs for check XML files. |
 JavaModifiedServiceMethodCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds missing empty lines before `removedService` or `addingService` calls. |
@@ -151,6 +158,7 @@ JavaNewProblemInstantiationParametersCheck | [Bug Prevention](bug_prevention_che
 [JavaProcessCallableCheck](check/java_process_callable_check.md#javaprocesscallablecheck) | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks that a class implementing `ProcessCallable` assigns a `serialVersionUID`. |
 JavaProviderTypeAnnotationCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Performs several checks on classes with `@ProviderType` annotation. |
 JavaRedundantConstructorCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds unnecessary empty constructor. |
+[JavaRedundantContainsCheck](check/java_redundant_contains_check.md#javaredundantcontainscheck) | [Performance](performance_checks.md#performance-checks) | Finds a `contains` or `containsKey` check that is immediately followed by a `get`, `remove`, `put`, or `add` on the same key or element, which should be combined into the single operation that already reports presence through its return value. |
 JavaReferenceAnnotationsCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Performs several checks on classes with `@Reference` annotations. |
 JavaReleaseInfoCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Validates information in `ReleaseInfo.java`. |
 JavaReturnStatementCheck | [Styling](styling_checks.md#styling-checks) | Finds unnecessary `else` statement (when `if` and `else` statement both end with `return` statement). |
@@ -159,6 +167,7 @@ JavaSQLStatementCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention
 [JavaSeeAnnotationCheck](check/java_see_annotation_check.md#javaseeannotationcheck) | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks for nested annotations inside `@see`. |
 JavaServiceImplCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Ensures that `afterPropertiesSet` and `destroy` methods in `*ServiceImpl` always call the method with the same name in the superclass. |
 JavaServiceImplErcUsageCheck | [Productivity](productivity_checks.md#productivity-checks) | Automatically generates and ensures that `externalReferenceCode` is properly used in remote `*ServiceImpl` add method. |
+JavaServiceImplGetFetchCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Flags a get-prefixed service method that returns a nullable fetch result, violating the non-null promise its name implies. |
 JavaServiceObjectCheck | [Styling](styling_checks.md#styling-checks) | Checks for correct use of `*.is*` instead of `*.get*` when calling methods generated by ServiceBuilder. |
 [JavaServiceTrackerFactoryCheck](check/java_service_tracker_factory_check.md#javaservicetrackerfactorycheck) | [Performance](performance_checks.md#performance-checks) | Checks that there are no calls to deprecated method `ServiceTrackerFactory.open(java.lang.Class)`. |
 [JavaServiceUtilCheck](check/java_service_util_check.md#javaserviceutilcheck) | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks that there are no calls to `*ServiceImpl` from a `*ServiceUtil` class. |
@@ -236,6 +245,7 @@ MissingModifierCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-
 MissingParenthesesCheck | [Styling](styling_checks.md#styling-checks) | Finds missing parentheses in conditional statement. |
 [ModelSetCallWithCompanyIdCheck](check/model_set_call_with_company_id_check.md#modelsetcallwithcompanyidcheck) | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks for inserting the companyId as part of a varchar field in the database. |
 ModifiedMethodCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks for incorrect `modified` method with `@Modified` annotation. |
+ModifiedServiceMethodCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks for incorrect delegation to a sequence of `removedService()` and `addingService()` calls within `modifiedService()`. |
 [ModifierOrderCheck](https://checkstyle.sourceforge.io/checks/modifier/modifierorder.html) | [Styling](styling_checks.md#styling-checks) | Checks that the order of modifiers conforms to the suggestions in the Java Language specification, § 8.1.1, 8.3.1, 8.4.3 and 9.4. |
 [MultipleVariableDeclarationsCheck](https://checkstyle.sourceforge.io/checks/coding/multiplevariabledeclarations.html) | [Styling](styling_checks.md#styling-checks) | Checks that each variable declaration is in its own statement and on its own line. |
 [NeedBracesCheck](https://checkstyle.sourceforge.io/checks/blocks/needbraces.html) | [Styling](styling_checks.md#styling-checks) | Checks for braces around code blocks. |
@@ -283,6 +293,7 @@ SemiColonCheck | [Styling](styling_checks.md#styling-checks) | Finds cases of un
 ServiceImplAccessModifierCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks for cases where visibility of methods can be decreased. |
 [ServiceProxyFactoryCheck](check/service_proxy_factory_check.md#serviceproxyfactorycheck) | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds incorrect parameter in method call. |
 ServiceUpdateCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks that there are no stale references in service code from service updates. |
+ServletResponseUtilSendFileCallCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks illegal call to `ServletResponseUtil.sendFile`. |
 SessionKeysCheck | [Naming Conventions](naming_conventions_checks.md#naming-conventions-checks) | Checks that messages send to `SessionsErrors` or `SessionMessages` follow naming conventions. |
 SetUtilMethodsCheck | [Performance](performance_checks.md#performance-checks) | Finds cases of inefficient SetUtil operations. |
 SizeIsZeroCheck | [Styling](styling_checks.md#styling-checks) | Finds cases of calls like `list.size() == 0` (use `list.isEmpty()` instead). |
@@ -298,7 +309,7 @@ SystemEventCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-chec
 TernaryOperatorCheck | [Styling](styling_checks.md#styling-checks) | Finds use of ternary operator in `java` files (use if statement instead). |
 TestClassCheck | [Naming Conventions](naming_conventions_checks.md#naming-conventions-checks) | Checks that names of test classes follow naming conventions. |
 TestClassDBConnectionCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds cases of incorrect use of database connection. |
-TestClassHardcodedPortCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds cases where `PortalUtil.getPortalServerPort` should be used. |
+TestClassHardcodedPortCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks usages of `PortalUtil.getPortalServerPort()` in test classes. |
 TestClassMissingLiferayUnitTestRuleCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Finds missing LiferayUnitTestRule. |
 TestClassStaticVariableCheck | [Performance](performance_checks.md#performance-checks) | Finds unnecessary static modifiers in test classes. |
 TextBlockCheck | [Styling](styling_checks.md#styling-checks) | Finds usage of text block. |
@@ -328,5 +339,6 @@ UpgradeRemovedAPICheck | [Upgrade](upgrade_checks.md#upgrade-checks) | Finds cas
 ValidatorIsNullCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Ensures that only variable of type `Long`, `Serializable` or `String` is passed to method `com.liferay.portal.kernel.util.Validator.isNull`. |
 VariableDeclarationAsUsedCheck | [Performance](performance_checks.md#performance-checks) | Finds cases where a variable declaration can be inlined or moved closer to where it is used. |
 VariableNameCheck | [Naming Conventions](naming_conventions_checks.md#naming-conventions-checks) | Checks that variable names follow naming conventions. |
+VirtualThreadsCheck | [Bug Prevention](bug_prevention_checks.md#bug-prevention-checks) | Checks that virtual threads are not used (e.g., Executors.newVirtualThreadPerTaskExecutor(), Thread.ofVirtual(), Thread.startVirtualThread()). |
 [WhitespaceAfterCheck](https://checkstyle.sourceforge.io/checks/whitespace/whitespaceafter.html) | [Styling](styling_checks.md#styling-checks) | Checks that a token is followed by whitespace, with the exception that it does not check for whitespace after the semicolon of an empty for iterator. |
 [WhitespaceAroundCheck](https://checkstyle.sourceforge.io/checks/whitespace/whitespacearound.html) | [Styling](styling_checks.md#styling-checks) | Checks that a token is surrounded by whitespace. |

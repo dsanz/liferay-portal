@@ -65,10 +65,12 @@ function StatisticButton({
 }
 
 export default function TasksOverview({
-	projectId,
+	cmpProjectObjectEntryId,
+	hasAddTaskPermission,
 	redirect,
 }: {
-	projectId: string;
+	cmpProjectObjectEntryId: string;
+	hasAddTaskPermission: boolean;
 	redirect: string;
 }) {
 	const [blockedCount, setBlockedCount] = useState(0);
@@ -113,9 +115,9 @@ export default function TasksOverview({
 			fetch(url).then((response) => response.json());
 
 		const [projectData, taskStatisticsData] = await Promise.all([
-			fetchJSON(`/o/cmp/projects/${projectId}`),
+			fetchJSON(`/o/cmp/projects/${cmpProjectObjectEntryId}`),
 			fetchJSON(
-				`/o/headless-cmp/v1.0/projects/${projectId}/task-statistics/`
+				`/o/headless-cmp/v1.0/projects/${cmpProjectObjectEntryId}/task-statistics/`
 			),
 		]);
 
@@ -126,7 +128,7 @@ export default function TasksOverview({
 		setTotalCount(taskStatisticsData.totalCount);
 
 		setLoading(false);
-	}, [projectId]);
+	}, [cmpProjectObjectEntryId]);
 
 	useEffect(() => {
 		fetchCounts();
@@ -153,14 +155,16 @@ export default function TasksOverview({
 						imgSrc={`${Liferay.ThemeDisplay.getPathThemeImages()}/states/cmp_empty_state_tasks.svg`}
 						title={Liferay.Language.get('no-tasks')}
 					>
-						<ClayButton
-							displayType="secondary"
-							onClick={() => {
-								navigate(redirect);
-							}}
-						>
-							{Liferay.Language.get('new-task')}
-						</ClayButton>
+						{hasAddTaskPermission && (
+							<ClayButton
+								displayType="secondary"
+								onClick={() => {
+									navigate(redirect);
+								}}
+							>
+								{Liferay.Language.get('new-task')}
+							</ClayButton>
+						)}
 					</ClayEmptyState>
 				</div>
 			) : (
@@ -188,7 +192,7 @@ export default function TasksOverview({
 
 					<ClayLayout.ContainerFluid className="c-px-0" size={false}>
 						<ClayLayout.Row>
-							<ClayLayout.Col className="c-px-2" size={3}>
+							<ClayLayout.Col className="c-px-2" lg={3} size={6}>
 								<StatisticButton
 									count={totalCount}
 									displayType="unstyled"
@@ -202,7 +206,7 @@ export default function TasksOverview({
 								/>
 							</ClayLayout.Col>
 
-							<ClayLayout.Col className="c-px-2" size={3}>
+							<ClayLayout.Col className="c-px-2" lg={3} size={6}>
 								<StatisticButton
 									count={inProgressCount}
 									displayType="info"
@@ -216,7 +220,7 @@ export default function TasksOverview({
 								/>
 							</ClayLayout.Col>
 
-							<ClayLayout.Col className="c-px-2" size={3}>
+							<ClayLayout.Col className="c-px-2" lg={3} size={6}>
 								<StatisticButton
 									count={blockedCount}
 									displayType="danger"
@@ -230,7 +234,7 @@ export default function TasksOverview({
 								/>
 							</ClayLayout.Col>
 
-							<ClayLayout.Col className="c-px-2" size={3}>
+							<ClayLayout.Col className="c-px-2" lg={3} size={6}>
 								<StatisticButton
 									count={overdueCount}
 									displayType="warning"

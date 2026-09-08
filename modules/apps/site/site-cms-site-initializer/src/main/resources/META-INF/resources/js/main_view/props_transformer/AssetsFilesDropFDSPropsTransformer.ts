@@ -36,6 +36,20 @@ export default function AssetsFilesDropFDSPropsTransformer({
 
 	const isCreationMenuEmpty = !creationMenu?.primaryItems?.length;
 
+	const fileDropSettings = {
+		enabled: !isCreationMenuEmpty,
+		isDropTarget: ({item}: {item: any}) => {
+			return item.entryClassName.includes(OBJECT_ENTRY_FOLDER_CLASS_NAME);
+		},
+		onFileDrop: (droppedFiles: any, dropTarget?: any) => {
+			if (isCreationMenuEmpty) {
+				return;
+			}
+
+			return fileDropAction(additionalProps, droppedFiles, dropTarget);
+		},
+	};
+
 	return {
 		...assetsData,
 		atom: allFDSAtom,
@@ -61,25 +75,14 @@ export default function AssetsFilesDropFDSPropsTransformer({
 				};
 			}
 		),
-		fileDropSettings: {
-			enabled: !isCreationMenuEmpty,
-			isDropTarget: ({item}: {item: any}) => {
-				return item.entryClassName.includes(
-					OBJECT_ENTRY_FOLDER_CLASS_NAME
-				);
-			},
-			onFileDrop: (droppedFiles: any, dropTarget?: any) => {
-				if (isCreationMenuEmpty) {
-					return;
-				}
-
-				return fileDropAction(
-					additionalProps,
-					droppedFiles,
-					dropTarget
-				);
-			},
-		},
+		fileDropSettings,
 		snapshotsEnabled: true,
+
+		// Custom views do not receive the top-level drop settings, so they are
+		// attached to the gallery view.
+
+		views: (assetsData.views || []).map((view: IView) =>
+			view.name === 'gallery' ? {...view, fileDropSettings} : view
+		),
 	};
 }

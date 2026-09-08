@@ -30,7 +30,6 @@ const test = mergeTests(
 	dataApiHelpersTest,
 	featureFlagsTest({
 		'LPD-11235': {enabled: false},
-		'LPD-17564': {enabled: true},
 	}),
 	loginTest(),
 	structureBuilderPagesTest,
@@ -553,6 +552,59 @@ test(
 				applicationName,
 				String(objectEntry2.id)
 			);
+		}
+	}
+);
+
+test(
+	'Recent Assets shows at most the 16 most recent items',
+	{tag: '@LPD-95795'},
+	async ({apiHelpers, homePage, page}) => {
+		const applicationName = 'cms/basic-web-contents';
+		const spaceName = 'Default';
+
+		const objectEntries = [];
+
+		const oldestAssetTitle = `recent asset ${getRandomString()}`;
+
+		try {
+			for (let index = 0; index < 17; index++) {
+				objectEntries.push(
+					await apiHelpers.objectEntry.postObjectEntry(
+						{
+							objectEntryFolderExternalReferenceCode:
+								'L_CONTENTS',
+							title:
+								index === 0
+									? oldestAssetTitle
+									: `recent asset ${getRandomString()}`,
+						},
+						applicationName,
+						spaceName
+					)
+				);
+			}
+
+			await homePage.goto();
+
+			const recentAssets = page.locator('.recent-assets-fds');
+
+			await expect(recentAssets.locator('tbody tr')).toHaveCount(16);
+			await expect(
+				recentAssets.locator('.pagination-bar')
+			).not.toBeAttached();
+
+			await expect(
+				recentAssets.getByText(oldestAssetTitle, {exact: true})
+			).toHaveCount(0);
+		}
+		finally {
+			for (const objectEntry of objectEntries) {
+				await apiHelpers.objectEntry.deleteObjectEntry(
+					applicationName,
+					String(objectEntry.id)
+				);
+			}
 		}
 	}
 );

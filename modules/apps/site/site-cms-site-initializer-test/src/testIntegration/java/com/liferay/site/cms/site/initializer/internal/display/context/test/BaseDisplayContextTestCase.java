@@ -5,6 +5,8 @@
 
 package com.liferay.site.cms.site.initializer.internal.display.context.test;
 
+import com.liferay.fragment.renderer.DefaultFragmentRendererContext;
+import com.liferay.fragment.renderer.FragmentRendererContext;
 import com.liferay.info.constants.InfoDisplayWebKeys;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.object.constants.ObjectDefinitionConstants;
@@ -17,10 +19,12 @@ import com.liferay.object.service.ObjectFolderLocalService;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.CompanyLocalService;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -31,7 +35,6 @@ import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -49,7 +52,9 @@ public abstract class BaseDisplayContextTestCase {
 
 	@Before
 	public void setUp() throws Exception {
-		group = CMSTestUtil.getOrAddGroup(BaseDisplayContextTestCase.class);
+		fragmentRendererContext = new DefaultFragmentRendererContext(null);
+		group = _groupLocalService.getGroup(
+			TestPropsValues.getCompanyId(), GroupConstants.CMS);
 
 		mockHttpServletRequest = getMockHttpServletRequest();
 
@@ -226,6 +231,7 @@ public abstract class BaseDisplayContextTestCase {
 	@Inject
 	protected CompanyLocalService companyLocalService;
 
+	protected FragmentRendererContext fragmentRendererContext;
 	protected Group group;
 
 	@Inject
@@ -243,5 +249,8 @@ public abstract class BaseDisplayContextTestCase {
 	protected Portal portal;
 
 	protected ThemeDisplay themeDisplay;
+
+	@Inject
+	private GroupLocalService _groupLocalService;
 
 }

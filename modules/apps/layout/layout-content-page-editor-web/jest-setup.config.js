@@ -48,6 +48,7 @@ jest.mock('@ckeditor/ckeditor5-media-embed/dist/index', () => ({}));
 jest.mock('@ckeditor/ckeditor5-mention/dist/index', () => ({}));
 jest.mock('@ckeditor/ckeditor5-minimap/dist/index', () => ({}));
 jest.mock('@ckeditor/ckeditor5-page-break/dist/index', () => ({}));
+jest.mock('@ckeditor/ckeditor5-source-editing-enhanced/dist/index', () => ({}));
 jest.mock('@ckeditor/ckeditor5-special-characters/dist/index', () => ({}));
 jest.mock('@ckeditor/ckeditor5-style/dist/index', () => ({}));
 jest.mock('@ckeditor/ckeditor5-table/dist/index', () => ({}));
@@ -128,11 +129,13 @@ jest.mock(
 				browser: {label: 'Browser', sidebarPanelId: 'browser'},
 			},
 		},
+		initializeConfig: jest.fn(),
 	})
 );
 
-jest.mock(
-	'./src/main/resources/META-INF/resources/page_editor/app/utils/useIsSmallResolution',
-
-	() => jest.fn(() => false)
-);
+window.matchMedia = (query) => ({
+	addEventListener: () => {},
+	matches: false,
+	media: query,
+	removeEventListener: () => {},
+});

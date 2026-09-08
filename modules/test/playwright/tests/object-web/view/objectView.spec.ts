@@ -15,11 +15,13 @@ import {globalMenuPagesTest} from '../../../fixtures/globalMenuPagesTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {objectPagesTest} from '../../../fixtures/objectPagesTest';
 import {workflowPagesTest} from '../../../fixtures/workflowPagesTest';
+import {formatDateForUI} from '../../../utils/applyFDSDateTimeRangeFilter';
 import {getRandomInt} from '../../../utils/getRandomInt';
 import getRandomString from '../../../utils/getRandomString';
 import {waitForAlert} from '../../../utils/waitForAlert';
 import {generateObjectEntryValues} from '../utils/generateObjectEntry';
 import {generateObjectFields} from '../utils/generateObjectFields';
+import {getFreshObjectRelationshipName} from '../utils/getFreshObjectRelationshipName';
 
 export const test = mergeTests(
 	globalMenuPagesTest,
@@ -197,7 +199,7 @@ test('assert that the user is able to use the ERC field in Sort, on the Custom V
 		entry2
 	);
 
-	await page.getByTitle('Sortable Column').dblclick();
+	await page.getByTitle('Sortable Column').click();
 
 	await expect(page.locator('.cell-externalReferenceCode').nth(1)).toHaveText(
 		entry2
@@ -687,9 +689,10 @@ test(
 					label: {
 						en_US: 'objectRelationshipLabel' + getRandomInt(),
 					},
-					name:
-						'objectRelationshipName' +
-						Math.floor(Math.random() * 99),
+					name: await getFreshObjectRelationshipName(apiHelpers, [
+						'L_ACCOUNT',
+						objectDefinition.externalReferenceCode!,
+					]),
 					objectDefinitionExternalReferenceCode1: 'L_ACCOUNT',
 					objectDefinitionExternalReferenceCode2:
 						objectDefinition.externalReferenceCode,
@@ -785,9 +788,10 @@ test(
 					label: {
 						en_US: 'objectRelationshipLabel' + getRandomInt(),
 					},
-					name:
-						'objectRelationshipName' +
-						Math.floor(Math.random() * 99),
+					name: await getFreshObjectRelationshipName(apiHelpers, [
+						objectDefinition1.externalReferenceCode!,
+						objectDefinition2.externalReferenceCode!,
+					]),
 					objectDefinitionExternalReferenceCode1:
 						objectDefinition1.externalReferenceCode,
 					objectDefinitionExternalReferenceCode2:
@@ -874,7 +878,10 @@ test('can create an object custom view using object relationship entry', async (
 				label: {
 					en_US: 'objectRelationshipLabel' + getRandomInt(),
 				},
-				name: 'objectRelationshipName' + Math.floor(Math.random() * 99),
+				name: await getFreshObjectRelationshipName(apiHelpers, [
+					objectDefinition1.externalReferenceCode!,
+					objectDefinition2.externalReferenceCode!,
+				]),
 				objectDefinitionExternalReferenceCode1:
 					objectDefinition1.externalReferenceCode,
 				objectDefinitionExternalReferenceCode2:
@@ -1033,9 +1040,10 @@ test(
 					label: {
 						en_US: 'objectRelationshipLabel' + getRandomInt(),
 					},
-					name:
-						'objectRelationshipName' +
-						Math.floor(Math.random() * 99),
+					name: await getFreshObjectRelationshipName(apiHelpers, [
+						'L_USER',
+						objectDefinition.externalReferenceCode!,
+					]),
 					objectDefinitionExternalReferenceCode1: 'L_USER',
 					objectDefinitionExternalReferenceCode2:
 						objectDefinition.externalReferenceCode,
@@ -1260,9 +1268,10 @@ test(
 					label: {
 						en_US: 'objectRelationshipLabel' + getRandomInt(),
 					},
-					name:
-						'objectRelationshipName' +
-						Math.floor(Math.random() * 99),
+					name: await getFreshObjectRelationshipName(apiHelpers, [
+						'L_USER',
+						objectDefinition.externalReferenceCode!,
+					]),
 					objectDefinitionExternalReferenceCode1: 'L_USER',
 					objectDefinitionExternalReferenceCode2:
 						objectDefinition.externalReferenceCode,
@@ -1627,9 +1636,10 @@ test(
 					label: {
 						en_US: 'objectRelationshipLabel' + getRandomInt(),
 					},
-					name:
-						'objectRelationshipName' +
-						Math.floor(Math.random() * 99),
+					name: await getFreshObjectRelationshipName(apiHelpers, [
+						'L_USER',
+						objectDefinition.externalReferenceCode!,
+					]),
 					objectDefinitionExternalReferenceCode1: 'L_USER',
 					objectDefinitionExternalReferenceCode2:
 						objectDefinition.externalReferenceCode,
@@ -1782,25 +1792,21 @@ test(
 
 		yesterday.setDate(yesterday.getDate() - 1);
 
-		const formatDate = (d: Date) =>
-			`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-
 		await page
 			.getByRole('textbox', {name: 'From'})
-			.fill(formatDate(yesterday));
+			.fill(formatDateForUI(yesterday));
 
-		await page.getByRole('textbox', {name: 'To'}).fill(formatDate(today));
+		await page
+			.getByRole('textbox', {name: 'To'})
+			.fill(formatDateForUI(today));
 
 		await page.getByRole('button', {name: 'Add Filter'}).click();
-
-		const formatDisplayDate = (d: Date) =>
-			`${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
 
 		await expect(page.getByText('1 Result Found for:')).toBeVisible();
 
 		await expect(
 			page.getByRole('button', {
-				name: `Create Date: ${formatDisplayDate(yesterday)} - ${formatDisplayDate(today)}`,
+				name: `Create Date: ${formatDateForUI(yesterday)} - ${formatDateForUI(today)}`,
 			})
 		).toBeVisible();
 
@@ -1890,25 +1896,21 @@ test(
 
 		yesterday.setDate(yesterday.getDate() - 1);
 
-		const formatDate = (d: Date) =>
-			`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-
 		await page
 			.getByRole('textbox', {name: 'From'})
-			.fill(formatDate(yesterday));
+			.fill(formatDateForUI(yesterday));
 
-		await page.getByRole('textbox', {name: 'To'}).fill(formatDate(today));
+		await page
+			.getByRole('textbox', {name: 'To'})
+			.fill(formatDateForUI(today));
 
 		await page.getByRole('button', {name: 'Add Filter'}).click();
-
-		const formatDisplayDate = (d: Date) =>
-			`${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
 
 		await expect(page.getByText('1 Result Found for:')).toBeVisible();
 
 		await expect(
 			page.getByRole('button', {
-				name: `Modified Date: ${formatDisplayDate(yesterday)} - ${formatDisplayDate(today)}`,
+				name: `Modified Date: ${formatDateForUI(yesterday)} - ${formatDateForUI(today)}`,
 			})
 		).toBeVisible();
 
@@ -2041,9 +2043,10 @@ test(
 					label: {
 						en_US: 'objectRelationshipLabel' + getRandomInt(),
 					},
-					name:
-						'objectRelationshipName' +
-						Math.floor(Math.random() * 99),
+					name: await getFreshObjectRelationshipName(apiHelpers, [
+						objectDefinitionA.externalReferenceCode!,
+						objectDefinitionB.externalReferenceCode!,
+					]),
 					objectDefinitionExternalReferenceCode1:
 						objectDefinitionA.externalReferenceCode,
 					objectDefinitionExternalReferenceCode2:
@@ -2553,7 +2556,7 @@ test(
 		await page
 			.getByRole('columnheader', {name: 'textField'})
 			.getByRole('button')
-			.dblclick();
+			.click();
 
 		const descendingCells = page.getByRole('cell');
 
@@ -2933,7 +2936,14 @@ test(
 				objectDefinitionA.externalReferenceCode,
 				{
 					label: {en_US: 'Relationship A' + getRandomInt()},
-					name: 'relationshipA' + getRandomInt(),
+					name: await getFreshObjectRelationshipName(
+						apiHelpers,
+						[
+							objectDefinitionA.externalReferenceCode!,
+							objectDefinitionC.externalReferenceCode!,
+						],
+						'relationshipA'
+					),
 					objectDefinitionExternalReferenceCode1:
 						objectDefinitionA.externalReferenceCode,
 					objectDefinitionExternalReferenceCode2:
@@ -2955,7 +2965,14 @@ test(
 				objectDefinitionB.externalReferenceCode,
 				{
 					label: {en_US: 'Relationship B' + getRandomInt()},
-					name: 'relationshipB' + getRandomInt(),
+					name: await getFreshObjectRelationshipName(
+						apiHelpers,
+						[
+							objectDefinitionB.externalReferenceCode!,
+							objectDefinitionC.externalReferenceCode!,
+						],
+						'relationshipB'
+					),
 					objectDefinitionExternalReferenceCode1:
 						objectDefinitionB.externalReferenceCode,
 					objectDefinitionExternalReferenceCode2:

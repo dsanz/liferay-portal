@@ -72,7 +72,7 @@ public class FragmentCollectionServiceImpl
 		throws PortalException {
 
 		FragmentCollection fragmentCollection =
-			fragmentCollectionLocalService.getFragmentCollection(
+			fragmentCollectionPersistence.findByPrimaryKey(
 				fragmentCollectionId);
 
 		_portletResourcePermission.check(
@@ -107,7 +107,7 @@ public class FragmentCollectionServiceImpl
 
 		for (long fragmentCollectionId : fragmentCollectionIds) {
 			FragmentCollection fragmentCollection =
-				fragmentCollectionLocalService.getFragmentCollection(
+				fragmentCollectionPersistence.findByPrimaryKey(
 					fragmentCollectionId);
 
 			_portletResourcePermission.check(
@@ -178,9 +178,28 @@ public class FragmentCollectionServiceImpl
 	}
 
 	@Override
+	public FragmentCollection getFragmentCollection(long fragmentCollectionId)
+		throws PortalException {
+
+		FragmentCollection fragmentCollection =
+			fragmentCollectionPersistence.findByPrimaryKey(
+				fragmentCollectionId);
+
+		_portletResourcePermission.check(
+			getPermissionChecker(), fragmentCollection.getGroupId(),
+			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
+
+		return fragmentCollection;
+	}
+
+	@Override
 	public FragmentCollection getFragmentCollectionByExternalReferenceCode(
 			String externalReferenceCode, long groupId)
 		throws PortalException {
+
+		_portletResourcePermission.check(
+			getPermissionChecker(), groupId,
+			FragmentActionKeys.MANAGE_FRAGMENT_ENTRIES);
 
 		return fragmentCollectionLocalService.
 			getFragmentCollectionByExternalReferenceCode(
@@ -193,7 +212,7 @@ public class FragmentCollectionServiceImpl
 		throws PortalException {
 
 		FragmentCollection fragmentCollection =
-			fragmentCollectionLocalService.getFragmentCollection(
+			fragmentCollectionPersistence.findByPrimaryKey(
 				fragmentCollectionId);
 
 		_portletResourcePermission.check(
@@ -373,7 +392,7 @@ public class FragmentCollectionServiceImpl
 		throws PortalException {
 
 		FragmentCollection fragmentCollection =
-			fragmentCollectionLocalService.getFragmentCollection(
+			fragmentCollectionPersistence.findByPrimaryKey(
 				fragmentCollectionId);
 
 		_portletResourcePermission.check(

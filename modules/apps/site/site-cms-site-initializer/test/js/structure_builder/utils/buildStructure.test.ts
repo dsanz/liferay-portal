@@ -6,8 +6,10 @@
 import {
 	ObjectDefinition,
 	ObjectField,
+	ObjectRelationship,
 } from '../../../../src/main/resources/META-INF/resources/js/common/types/ObjectDefinition';
 import buildObjectDefinition from '../../../../src/main/resources/META-INF/resources/js/structure_builder/utils/buildObjectDefinition';
+import buildObjectRelationships from '../../../../src/main/resources/META-INF/resources/js/structure_builder/utils/buildObjectRelationships';
 import buildStructure from '../../../../src/main/resources/META-INF/resources/js/structure_builder/utils/buildStructure';
 import {Field} from '../../../../src/main/resources/META-INF/resources/js/structure_builder/utils/field';
 import getUuid from '../../../../src/main/resources/META-INF/resources/js/structure_builder/utils/getUuid';
@@ -82,6 +84,24 @@ const SAMPLE_STRUCTURE_FIELDS: Field[] = [
 		required: false,
 		settings: {},
 		type: 'decimal',
+		uuid: getUuid(),
+	},
+	{
+		erc: 'email-field',
+		indexableConfig: {indexed: false},
+		label: {en_US: 'email-field'},
+		localized: false,
+		locked: false,
+		name: 'email-field',
+		parent,
+		required: false,
+		settings: {
+			autocompleteDomains: '@liferay.com',
+			autocompleteEnabled: true,
+			blockedDomains: '@example.com',
+			uniqueValues: true,
+		},
+		type: 'email',
 		uuid: getUuid(),
 	},
 	{
@@ -247,6 +267,37 @@ describe('buildStructure', () => {
 		}
 	});
 
+	it('Restores email field settings from the EmailAddress business type', () => {
+		const objectDefinition = buildObjectDefinition({
+			children: getChildren(SAMPLE_STRUCTURE_FIELDS),
+			erc: 'main-structure-erc',
+			label: {en_US: 'Main Structure'},
+			name: 'mainStructure',
+			spaces: [],
+		});
+
+		const structure = buildStructure({
+			mainObjectDefinition: objectDefinition,
+			objectDefinitions: {},
+		});
+
+		const emailField = Array.from(structure.children.values()).find(
+			(child) => child.erc === 'email-field'
+		);
+
+		expect(emailField).toEqual(
+			expect.objectContaining({
+				settings: {
+					autocompleteDomains: '@liferay.com',
+					autocompleteEnabled: true,
+					blockedDomains: '@example.com',
+					uniqueValues: true,
+				},
+				type: 'email',
+			})
+		);
+	});
+
 	it('Includes allowed system fields for L_CMS_BLOG and filters unknown ones', () => {
 		const objectDefinition = createObjectDefinition({
 			externalReferenceCode: 'L_CMS_BLOG',
@@ -333,6 +384,109 @@ describe('buildStructure', () => {
 		expect(fieldNames).toContain('title');
 		expect(fieldNames).toContain('videoURL');
 		expect(fieldNames).not.toContain('content');
+	});
+
+	it('Restores a related content field referencing the same structure', () => {
+		const objectDefinition = createObjectDefinition({
+			externalReferenceCode: 'SELF_ERC',
+			objectRelationships: [
+				{
+					deletionType: 'disassociate',
+					externalReferenceCode: 'self-related-content',
+					label: {en_US: 'Self Related Content'},
+					name: 'selfRelatedContent',
+					objectDefinitionExternalReferenceCode1: 'SELF_ERC',
+					objectDefinitionExternalReferenceCode2: 'SELF_ERC',
+					type: 'oneToMany',
+				},
+			],
+		});
+
+		const structure = buildStructure({
+			mainObjectDefinition: objectDefinition,
+			objectDefinitions: {SELF_ERC: objectDefinition},
+		});
+
+		const relatedContents = Array.from(structure.children.values()).filter(
+			(child) => child.type === 'related-content'
+		);
+
+		expect(relatedContents).toEqual([
+			expect.objectContaining({
+				erc: 'self-related-content',
+				multiselection: false,
+				name: 'selfRelatedContent',
+				relatedStructureERC: 'SELF_ERC',
+			}),
+		]);
+	});
+
+	it('Round-trips a related content field referencing the same structure', () => {
+		const objectRelationship: ObjectRelationship = {
+			deletionType: 'disassociate',
+			externalReferenceCode: 'self-related-content',
+			label: {en_US: 'Self Related Content'},
+			name: 'selfRelatedContent',
+			objectDefinitionExternalReferenceCode1: 'SELF_ERC',
+			objectDefinitionExternalReferenceCode2: 'SELF_ERC',
+			type: 'oneToMany',
+		};
+
+		const objectDefinition = createObjectDefinition({
+			externalReferenceCode: 'SELF_ERC',
+			objectRelationships: [objectRelationship],
+		});
+
+		const structure = buildStructure({
+			mainObjectDefinition: objectDefinition,
+			objectDefinitions: {SELF_ERC: objectDefinition},
+		});
+
+		expect(
+			buildObjectRelationships({
+				children: structure.children,
+				structureERC: structure.erc,
+			})
+		).toEqual([objectRelationship]);
+	});
+
+	it('Builds a self-referencing repeatable group definition only as a repeatable group', () => {
+		const objectDefinition = createObjectDefinition({
+			externalReferenceCode: 'SELF_GROUP_ERC',
+			objectFolderExternalReferenceCode:
+				'L_CMS_STRUCTURE_REPEATABLE_GROUPS',
+			objectRelationships: [
+				{
+					deletionType: 'disassociate',
+					externalReferenceCode: 'self-group',
+					label: {en_US: 'Self Group'},
+					name: 'selfGroup',
+					objectDefinitionExternalReferenceCode1: 'SELF_GROUP_ERC',
+					objectDefinitionExternalReferenceCode2: 'SELF_GROUP_ERC',
+					type: 'oneToMany',
+				},
+			],
+		});
+
+		const structure = buildStructure({
+			mainObjectDefinition: objectDefinition,
+			objectDefinitions: {SELF_GROUP_ERC: objectDefinition},
+		});
+
+		const children = Array.from(structure.children.values());
+
+		expect(
+			children.filter((child) => child.type === 'related-content')
+		).toEqual([]);
+
+		expect(
+			children.filter((child) => child.type === 'repeatable-group')
+		).toEqual([
+			expect.objectContaining({
+				erc: 'SELF_GROUP_ERC',
+				relationshipERC: 'self-group',
+			}),
+		]);
 	});
 
 	it('Includes only title and file system fields for custom object definitions', () => {

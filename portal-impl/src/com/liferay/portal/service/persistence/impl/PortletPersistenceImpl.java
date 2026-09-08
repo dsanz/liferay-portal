@@ -12,8 +12,6 @@ import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.NoSuchPortletException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.PortletTable;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
@@ -384,6 +382,11 @@ public class PortletPersistenceImpl
 	}
 
 	@Override
+	protected String getPKFieldName() {
+		return "id";
+	}
+
+	@Override
 	protected String getSelectSQL() {
 		return _SQL_SELECT_PORTLET;
 	}
@@ -417,7 +420,8 @@ public class PortletPersistenceImpl
 					"countByCompanyId", new String[] {Long.class.getName()},
 					new String[] {"companyId"}, false),
 				_SQL_SELECT_PORTLET_WHERE, _SQL_COUNT_PORTLET_WHERE,
-				PortletModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				PortletModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"portlet.", "companyId", FinderColumn.Type.LONG, "=", true,
 					true, Portlet::getCompanyId));
@@ -459,12 +463,6 @@ public class PortletPersistenceImpl
 	private static final String _SQL_COUNT_PORTLET_WHERE =
 		"SELECT COUNT(portlet) FROM Portlet portlet WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No Portlet exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		PortletPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"id", "active"});
 
@@ -474,4 +472,4 @@ public class PortletPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1891217430
+// LIFERAY-SERVICE-BUILDER-HASH:-1104701137

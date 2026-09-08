@@ -22,6 +22,7 @@ import com.liferay.portal.kernel.util.WebKeys;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -137,12 +138,32 @@ public class FDSAPIURLBuilder {
 		}
 	}
 
+	private String _interpolateDefaultToken(
+		String text, String tokenName, String value) {
+
+		if ((_tokenResolutionsJSONObject != null) &&
+			_tokenResolutionsJSONObject.has(tokenName)) {
+
+			return text;
+		}
+
+		return StringUtil.replace(text, "{" + tokenName + "}", value);
+	}
+
 	private String _interpolateTokens(String text) {
 
 		// Interpolate using provided resolved tokens
 
+		List<String> nullifiedTokenNames = new ArrayList<>();
+
 		if (_tokenResolutionsJSONObject != null) {
 			for (String key : _tokenResolutionsJSONObject.keySet()) {
+				if (_tokenResolutionsJSONObject.getJSONObject(key) != null) {
+					nullifiedTokenNames.add(key);
+
+					continue;
+				}
+
 				text = StringUtil.replace(
 					text, "{" + key + "}",
 					_tokenResolutionsJSONObject.getString(key));
@@ -156,11 +177,25 @@ public class FDSAPIURLBuilder {
 				_restApplication, _restSchema);
 
 		if (fdsAPIURLResolver != null) {
+			for (String nullifiedTokenName : nullifiedTokenNames) {
+				text = StringUtil.replace(
+					text, "{" + nullifiedTokenName + "}",
+					StringUtil.quote(
+						nullifiedTokenName, _TOKEN_MASK_DELIMITER));
+			}
+
 			try {
 				text = fdsAPIURLResolver.resolve(text, _httpServletRequest);
 			}
 			catch (PortalException portalException) {
 				_log.error(portalException);
+			}
+
+			for (String nullifiedTokenName : nullifiedTokenNames) {
+				text = StringUtil.replace(
+					text,
+					StringUtil.quote(nullifiedTokenName, _TOKEN_MASK_DELIMITER),
+					"{" + nullifiedTokenName + "}");
 			}
 		}
 
@@ -170,18 +205,17 @@ public class FDSAPIURLBuilder {
 			(ThemeDisplay)_httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		text = StringUtil.replace(
-			text, "{scopeKey}", String.valueOf(themeDisplay.getScopeGroupId()));
-		text = StringUtil.replace(
-			text, "{siteId}", String.valueOf(themeDisplay.getScopeGroupId()));
+		text = _interpolateDefaultToken(
+			text, "scopeKey", String.valueOf(themeDisplay.getScopeGroupId()));
+		text = _interpolateDefaultToken(
+			text, "siteId", String.valueOf(themeDisplay.getScopeGroupId()));
 
 		User user = themeDisplay.getUser();
 
-		text = StringUtil.replace(
-			text, "{userExternalReferenceCode}",
-			user.getExternalReferenceCode());
-		text = StringUtil.replace(
-			text, "{userId}", String.valueOf(user.getUserId()));
+		text = _interpolateDefaultToken(
+			text, "userExternalReferenceCode", user.getExternalReferenceCode());
+		text = _interpolateDefaultToken(
+			text, "userId", String.valueOf(user.getUserId()));
 
 		if (StringUtil.contains(text, "{") && _log.isWarnEnabled()) {
 			_log.warn("Unresolved token in API URL: " + text);
@@ -189,6 +223,8 @@ public class FDSAPIURLBuilder {
 
 		return text;
 	}
+
+	private static final String _TOKEN_MASK_DELIMITER = "\u0001";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		FDSAPIURLBuilder.class);

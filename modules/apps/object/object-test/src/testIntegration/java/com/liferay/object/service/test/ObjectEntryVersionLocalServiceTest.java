@@ -51,7 +51,6 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowDefinition;
 import com.liferay.portal.kernel.workflow.WorkflowTask;
 import com.liferay.portal.kernel.workflow.WorkflowTaskManager;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -84,7 +83,6 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 /**
  * @author Feliphe Marinho
  */
-@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 public class ObjectEntryVersionLocalServiceTest {
 
@@ -1119,6 +1117,34 @@ public class ObjectEntryVersionLocalServiceTest {
 				).build(),
 				serviceContext);
 
+			Assert.assertEquals(2, objectEntry.getVersion());
+			Assert.assertEquals(status, objectEntry.getStatus());
+
+			_assertEquals(
+				Arrays.asList(
+					_createObjectEntryVersion(
+						objectEntry.getExternalReferenceCode(),
+						JSONUtil.put(
+							"textObjectFieldName", "textObjectFieldValue1"),
+						WorkflowConstants.STATUS_SCHEDULED, 1),
+					_createObjectEntryVersion(
+						objectEntry.getExternalReferenceCode(),
+						JSONUtil.put(
+							"textObjectFieldName", "textObjectFieldValue3"),
+						status, 2)),
+				_objectEntryVersionLocalService.getObjectEntryVersions(
+					objectEntry.getObjectEntryId()));
+
+			// Update object entry with null display date
+
+			objectEntry = _objectEntryLocalService.updateObjectEntry(
+				TestPropsValues.getUserId(), objectEntry.getObjectEntryId(),
+				objectEntry.getObjectEntryFolderId(),
+				HashMapBuilder.<String, Serializable>put(
+					"textObjectFieldName", "textObjectFieldValue4"
+				).build(),
+				serviceContext);
+
 			Assert.assertEquals(status, objectEntry.getStatus());
 
 			if (workflowAction == WorkflowConstants.ACTION_PUBLISH) {
@@ -1134,72 +1160,13 @@ public class ObjectEntryVersionLocalServiceTest {
 						_createObjectEntryVersion(
 							objectEntry.getExternalReferenceCode(),
 							JSONUtil.put(
-								"textObjectFieldName", "textObjectFieldValue2"),
-							WorkflowConstants.STATUS_SCHEDULED, 2),
-						_createObjectEntryVersion(
-							objectEntry.getExternalReferenceCode(),
-							JSONUtil.put(
 								"textObjectFieldName", "textObjectFieldValue3"),
-							WorkflowConstants.STATUS_APPROVED, 3)),
-					_objectEntryVersionLocalService.getObjectEntryVersions(
-						objectEntry.getObjectEntryId()));
-			}
-			else {
-				Assert.assertEquals(2, objectEntry.getVersion());
-
-				_assertEquals(
-					Arrays.asList(
-						_createObjectEntryVersion(
-							objectEntry.getExternalReferenceCode(),
-							JSONUtil.put(
-								"textObjectFieldName", "textObjectFieldValue1"),
-							WorkflowConstants.STATUS_SCHEDULED, 1),
-						_createObjectEntryVersion(
-							objectEntry.getExternalReferenceCode(),
-							JSONUtil.put(
-								"textObjectFieldName", "textObjectFieldValue3"),
-							WorkflowConstants.STATUS_DRAFT, 2)),
-					_objectEntryVersionLocalService.getObjectEntryVersions(
-						objectEntry.getObjectEntryId()));
-			}
-
-			// Update object entry with null display date
-
-			objectEntry = _objectEntryLocalService.updateObjectEntry(
-				TestPropsValues.getUserId(), objectEntry.getObjectEntryId(),
-				objectEntry.getObjectEntryFolderId(),
-				HashMapBuilder.<String, Serializable>put(
-					"textObjectFieldName", "textObjectFieldValue4"
-				).build(),
-				serviceContext);
-
-			Assert.assertEquals(status, objectEntry.getStatus());
-
-			if (workflowAction == WorkflowConstants.ACTION_PUBLISH) {
-				Assert.assertEquals(4, objectEntry.getVersion());
-
-				_assertEquals(
-					Arrays.asList(
-						_createObjectEntryVersion(
-							objectEntry.getExternalReferenceCode(),
-							JSONUtil.put(
-								"textObjectFieldName", "textObjectFieldValue1"),
-							WorkflowConstants.STATUS_SCHEDULED, 1),
-						_createObjectEntryVersion(
-							objectEntry.getExternalReferenceCode(),
-							JSONUtil.put(
-								"textObjectFieldName", "textObjectFieldValue2"),
-							WorkflowConstants.STATUS_SCHEDULED, 2),
-						_createObjectEntryVersion(
-							objectEntry.getExternalReferenceCode(),
-							JSONUtil.put(
-								"textObjectFieldName", "textObjectFieldValue3"),
-							WorkflowConstants.STATUS_APPROVED, 3),
+							WorkflowConstants.STATUS_APPROVED, 2),
 						_createObjectEntryVersion(
 							objectEntry.getExternalReferenceCode(),
 							JSONUtil.put(
 								"textObjectFieldName", "textObjectFieldValue4"),
-							WorkflowConstants.STATUS_APPROVED, 4)),
+							WorkflowConstants.STATUS_APPROVED, 3)),
 					_objectEntryVersionLocalService.getObjectEntryVersions(
 						objectEntry.getObjectEntryId()));
 			}

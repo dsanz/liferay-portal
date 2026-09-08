@@ -9,7 +9,11 @@ import com.liferay.analytics.cms.rest.dto.v1_0.ObjectEntryMetric;
 import com.liferay.analytics.cms.rest.internal.client.AnalyticsCloudClient;
 import com.liferay.analytics.cms.rest.resource.v1_0.ObjectEntryMetricResource;
 import com.liferay.analytics.settings.rest.manager.AnalyticsSettingsManager;
+import com.liferay.analytics.settings.rest.util.AnalyticsSettingsManagerUtil;
+import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.service.ObjectEntryService;
 import com.liferay.portal.kernel.license.util.LicenseManagerUtil;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.util.Http;
 
 import org.osgi.service.component.annotations.Component;
@@ -28,25 +32,44 @@ public class ObjectEntryMetricResourceImpl
 
 	@Override
 	public ObjectEntryMetric getObjectEntryMetric(
-			String externalReferenceCode, Long groupId, Integer rangeKey,
+			Long groupId, Long objectEntryId, Integer rangeKey,
 			String[] selectedMetrics)
 		throws Exception {
 
 		LicenseManagerUtil.checkFreeTier();
 
+		AnalyticsSettingsManagerUtil.checkAnalyticsEnabled(
+			_analyticsSettingsManager, contextCompany.getCompanyId());
+
+		if (groupId != null) {
+			AnalyticsSettingsManagerUtil.checkSiteIdSynced(
+				_analyticsSettingsManager,
+				_groupLocalService.getGroup(groupId));
+		}
+
 		AnalyticsCloudClient analyticsCloudClient = new AnalyticsCloudClient(
 			_http);
+
+		ObjectEntry objectEntry = _objectEntryService.getObjectEntry(
+			objectEntryId);
 
 		return analyticsCloudClient.getObjectEntryMetric(
 			_analyticsSettingsManager.getAnalyticsConfiguration(
 				contextCompany.getCompanyId()),
-			externalReferenceCode, groupId, rangeKey, selectedMetrics);
+			objectEntry.getExternalReferenceCode(), groupId, rangeKey,
+			selectedMetrics);
 	}
 
 	@Reference
 	private AnalyticsSettingsManager _analyticsSettingsManager;
 
 	@Reference
+	private GroupLocalService _groupLocalService;
+
+	@Reference
 	private Http _http;
+
+	@Reference
+	private ObjectEntryService _objectEntryService;
 
 }

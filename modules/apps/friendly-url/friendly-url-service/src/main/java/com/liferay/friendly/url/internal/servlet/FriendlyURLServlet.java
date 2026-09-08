@@ -26,7 +26,6 @@ import com.liferay.portal.kernel.exception.LayoutPermissionException;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
 import com.liferay.portal.kernel.exception.NoSuchLayoutException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -45,6 +44,7 @@ import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.portlet.LayoutFriendlyURLSeparatorComposite;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.security.ChecksumUtil;
+import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
@@ -342,12 +342,6 @@ public class FriendlyURLServlet extends HttpServlet {
 					}
 
 					if (group.isCMS()) {
-						if (!FeatureFlagManagerUtil.isEnabled(
-								layout.getCompanyId(), "LPD-17564")) {
-
-							throw new NoSuchLayoutException();
-						}
-
 						int depotEntriesCount =
 							depotEntryLocalService.getDepotEntriesCount(
 								group.getCompanyId(),
@@ -767,8 +761,21 @@ public class FriendlyURLServlet extends HttpServlet {
 							" to ", redirect.getPath()));
 				}
 
-				requestDispatcher.forward(
-					httpServletRequest, httpServletResponse);
+				String name = PrincipalThreadLocal.getName();
+
+				try {
+					long userId = portal.getUserId(httpServletRequest);
+
+					if (userId > 0) {
+						PrincipalThreadLocal.setName(userId);
+					}
+
+					requestDispatcher.forward(
+						httpServletRequest, httpServletResponse);
+				}
+				finally {
+					PrincipalThreadLocal.setName(name);
+				}
 			}
 		}
 		else {
@@ -1106,9 +1113,13 @@ public class FriendlyURLServlet extends HttpServlet {
 			layoutFriendlyURL = layout.getFriendlyURL(originalLocale);
 		}
 
-		if (requestURI.contains(layoutFriendlyURL)) {
+		String encodedLayoutFriendlyURL = HttpComponentsUtil.encodePath(
+			layoutFriendlyURL);
+
+		if (requestURI.contains(encodedLayoutFriendlyURL)) {
 			requestURI = StringUtil.replaceFirst(
-				requestURI, layoutFriendlyURL, layout.getFriendlyURL(locale));
+				requestURI, encodedLayoutFriendlyURL,
+				HttpComponentsUtil.encodePath(layout.getFriendlyURL(locale)));
 		}
 
 		boolean appendI18nPath = true;

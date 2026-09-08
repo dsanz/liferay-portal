@@ -15,6 +15,7 @@ import {
 	type SupportedBusinessType,
 	isFillableBusinessType,
 } from '../../../tests/object-web/utils/generateObjectEntry';
+import {gotoWithRetry} from '../../../utils/gotoWithRetry';
 import {PORTLET_URLS} from '../../../utils/portletUrls';
 
 export class ViewObjectEntriesPage {
@@ -40,6 +41,7 @@ export class ViewObjectEntriesPage {
 	readonly frontendDatasetViewAction: Locator;
 	readonly neverExpire: Locator;
 	readonly neverReview: Locator;
+	readonly noPermissionMessage: Locator;
 	readonly objectEntryButton: Locator;
 	readonly page: Page;
 	readonly publishDateInput: Locator;
@@ -113,6 +115,11 @@ export class ViewObjectEntriesPage {
 		});
 		this.neverExpire = page.getByLabel('Never Expire', {exact: true});
 		this.neverReview = page.getByLabel('Never Review', {exact: true});
+		this.noPermissionMessage = page
+			.getByText(
+				'You do not have the roles required to access this portlet.'
+			)
+			.first();
 		this.objectEntryButton = page.getByRole('link', {name: 'View'});
 		this.page = page;
 		this.publishDateInput = page.getByLabel('Publish Date' + 'Mandatory', {
@@ -264,7 +271,8 @@ export class ViewObjectEntriesPage {
 		const [_, objectDefinitionClassNameSuffix] =
 			objectDefinitionClassName.split('#');
 
-		await this.page.goto(
+		await gotoWithRetry(
+			this.page,
 			`/${regionalCode}/group${siteUrl ?? '/guest'}${
 				PORTLET_URLS.objects
 			}_${objectDefinitionClassNameSuffix}`,
@@ -296,7 +304,9 @@ export class ViewObjectEntriesPage {
 
 	async selectDropdownItem(fieldName: string, optionName: string) {
 		await this.page.getByLabel(fieldName).click();
-		await this.page.getByRole('option', {name: optionName}).click();
+		await this.page
+			.getByRole('option', {name: optionName})
+			.dispatchEvent('click');
 	}
 
 	async selectDropdownItemWithSearch(optionName: string) {

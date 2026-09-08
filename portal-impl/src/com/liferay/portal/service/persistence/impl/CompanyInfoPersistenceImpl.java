@@ -11,8 +11,6 @@ import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.NoSuchCompanyInfoException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.CompanyInfo;
 import com.liferay.portal.kernel.model.CompanyInfoTable;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
@@ -127,6 +125,8 @@ public class CompanyInfoPersistenceImpl
 		Map<String, String> dbColumnNames = new HashMap<String, String>();
 
 		dbColumnNames.put("key", "key_");
+		dbColumnNames.put("size", "size_");
+		dbColumnNames.put("type", "type_");
 
 		setDBColumnNames(dbColumnNames);
 
@@ -333,14 +333,8 @@ public class CompanyInfoPersistenceImpl
 	private static final String _SQL_SELECT_COMPANYINFO_WHERE =
 		"SELECT companyInfo FROM CompanyInfo companyInfo WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No CompanyInfo exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		CompanyInfoPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
-		new String[] {"key"});
+		new String[] {"key", "size", "type"});
 
 	@Override
 	protected FinderCache getFinderCache() {
@@ -348,4 +342,4 @@ public class CompanyInfoPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-2114441313
+// LIFERAY-SERVICE-BUILDER-HASH:-1807579771

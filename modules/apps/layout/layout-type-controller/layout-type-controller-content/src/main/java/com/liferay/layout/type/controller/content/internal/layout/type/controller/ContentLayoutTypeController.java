@@ -13,8 +13,10 @@ import com.liferay.layout.security.permission.resource.LayoutContentModelResourc
 import com.liferay.layout.type.controller.BaseLayoutTypeControllerImpl;
 import com.liferay.petra.io.unsync.UnsyncStringWriter;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.exception.NoSuchLayoutException;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
@@ -63,7 +65,8 @@ public class ContentLayoutTypeController extends BaseLayoutTypeControllerImpl {
 
 	@Override
 	public String getURL() {
-		return _URL;
+		return "${liferay:mainPath}/portal/layout?p_l_id=${liferay:plid}" +
+			"&p_v_l_s_g_id=${liferay:pvlsgid}";
 	}
 
 	@Override
@@ -153,6 +156,58 @@ public class ContentLayoutTypeController extends BaseLayoutTypeControllerImpl {
 					httpServletRequest, layout, themeDisplay);
 			}
 		}
+		else if (layoutMode.equals(Constants.HISTORY)) {
+			FeatureFlagManagerUtil.checkEnabled(
+				themeDisplay.getCompanyId(), "LPD-10622");
+
+			if (!CTCollectionThreadLocal.isProductionMode()) {
+				throw new NoSuchLayoutException();
+			}
+
+			if (hasUpdatePermissions == null) {
+				hasUpdatePermissions = _hasUpdatePermissions(
+					themeDisplay.getPermissionChecker(), layout);
+			}
+
+			boolean hasStrictUpdatePermission = false;
+
+			if (hasUpdatePermissions) {
+				try {
+					hasStrictUpdatePermission = _layoutPermission.contains(
+						themeDisplay.getPermissionChecker(), layout,
+						ActionKeys.UPDATE);
+				}
+				catch (PortalException portalException) {
+					if (_log.isDebugEnabled()) {
+						_log.debug(portalException);
+					}
+				}
+			}
+
+			if (!hasStrictUpdatePermission) {
+				throw new PrincipalException.MustHavePermission(
+					themeDisplay.getPermissionChecker(), Layout.class.getName(),
+					layout.getLayoutId(), ActionKeys.UPDATE);
+			}
+
+			if (!layout.isDraftLayout() || !layout.isLayoutUpdateable()) {
+				layoutMode = Constants.VIEW;
+			}
+			else {
+				try {
+					_layoutLockManager.getLock(
+						layout, themeDisplay.getUserId());
+				}
+				catch (PortalException portalException) {
+					if (_log.isDebugEnabled()) {
+						_log.debug(portalException);
+					}
+
+					redirect = _layoutLockManager.getLockedLayoutURL(
+						httpServletRequest);
+				}
+			}
+		}
 
 		if (!layout.isPublished()) {
 			if (hasUpdatePermissions == null) {
@@ -180,7 +235,10 @@ public class ContentLayoutTypeController extends BaseLayoutTypeControllerImpl {
 		String page = getViewPage();
 
 		if (layoutMode.equals(Constants.EDIT)) {
-			page = _EDIT_LAYOUT_PAGE;
+			page = "/layout/edit_layout/content.jsp";
+		}
+		else if (layoutMode.equals(Constants.HISTORY)) {
+			page = "/layout/history_layout/content.jsp";
 		}
 
 		RequestDispatcher requestDispatcher =
@@ -283,7 +341,7 @@ public class ContentLayoutTypeController extends BaseLayoutTypeControllerImpl {
 
 	@Override
 	protected String getViewPage() {
-		return _VIEW_PAGE;
+		return "/layout/view/content.jsp";
 	}
 
 	private void _addContentPageEditorAttributes(
@@ -426,15 +484,6 @@ public class ContentLayoutTypeController extends BaseLayoutTypeControllerImpl {
 
 		return false;
 	}
-
-	private static final String _EDIT_LAYOUT_PAGE =
-		"/layout/edit_layout/content.jsp";
-
-	private static final String _URL =
-		"${liferay:mainPath}/portal/layout?p_l_id=${liferay:plid}" +
-			"&p_v_l_s_g_id=${liferay:pvlsgid}";
-
-	private static final String _VIEW_PAGE = "/layout/view/content.jsp";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ContentLayoutTypeController.class);

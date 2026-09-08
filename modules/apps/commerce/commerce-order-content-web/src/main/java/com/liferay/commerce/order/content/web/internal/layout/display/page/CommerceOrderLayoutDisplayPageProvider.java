@@ -18,6 +18,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 
@@ -93,33 +94,39 @@ public class CommerceOrderLayoutDisplayPageProvider
 			return null;
 		}
 
+		ServiceContext serviceContext =
+			ServiceContextThreadLocal.getServiceContext();
+
+		if (serviceContext != null) {
+			groupId = serviceContext.getScopeGroupId();
+		}
+
 		if (infoItemIdentifier instanceof ClassPKInfoItemIdentifier) {
 			ClassPKInfoItemIdentifier classPKInfoItemIdentifier =
 				(ClassPKInfoItemIdentifier)
 					infoItemReference.getInfoItemIdentifier();
 
-			CommerceOrder commerceOrder =
-				_commerceOrderLocalService.fetchCommerceOrder(
-					classPKInfoItemIdentifier.getClassPK());
-
 			return new CommerceOrderLayoutDisplayPageObjectProvider(
-				commerceOrder, groupId);
+				_commerceOrderLocalService.fetchCommerceOrder(
+					classPKInfoItemIdentifier.getClassPK()),
+				groupId);
+		}
+
+		long companyId = CompanyThreadLocal.getCompanyId();
+
+		if (serviceContext != null) {
+			companyId = serviceContext.getCompanyId();
 		}
 
 		ERCInfoItemIdentifier ercInfoItemIdentifier =
 			(ERCInfoItemIdentifier)infoItemIdentifier;
 
-		ServiceContext serviceContext =
-			ServiceContextThreadLocal.getServiceContext();
-
-		CommerceOrder commerceOrder =
+		return new CommerceOrderLayoutDisplayPageObjectProvider(
 			_commerceOrderLocalService.
 				fetchCommerceOrderByExternalReferenceCode(
 					ercInfoItemIdentifier.getExternalReferenceCode(),
-					serviceContext.getCompanyId());
-
-		return new CommerceOrderLayoutDisplayPageObjectProvider(
-			commerceOrder, commerceOrder.getGroupId());
+					companyId),
+			groupId);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

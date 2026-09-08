@@ -25,7 +25,15 @@ public abstract class BasePersistenceFinder
 
 		for (int i = 0; i < finderColumns.length; i++) {
 			sb.append(finderColumns[i].getKeyFragment());
-			sb.append(values[i]);
+
+			Object value = values[i];
+
+			if (finderColumns[i] instanceof ArrayableFinderColumn) {
+				value = finderColumns[i].toFinderArg(value);
+			}
+
+			sb.append(value);
+
 			sb.append(", ");
 		}
 
@@ -37,7 +45,7 @@ public abstract class BasePersistenceFinder
 	@SafeVarargs
 	protected BasePersistenceFinder(
 		BasePersistenceImpl<T, E> basePersistenceImpl, String sqlSelectWhere,
-		String where, FinderColumn<T>... finderColumns) {
+		String where, String dbWhere, FinderColumn<T>... finderColumns) {
 
 		if (finderColumns.length == 0) {
 			throw new IllegalArgumentException("Missing finder columns");
@@ -46,6 +54,7 @@ public abstract class BasePersistenceFinder
 		this.basePersistenceImpl = basePersistenceImpl;
 		this.sqlSelectWhere = sqlSelectWhere;
 		this.where = where;
+		this.dbWhere = dbWhere;
 		this.finderColumns = finderColumns;
 	}
 
@@ -84,8 +93,10 @@ public abstract class BasePersistenceFinder
 			sb.append(" AND ");
 		}
 
-		if ((where != null) && !where.isEmpty()) {
-			sb.append(where);
+		String whereClause = sqlQuery ? dbWhere : where;
+
+		if (!whereClause.isEmpty()) {
+			sb.append(whereClause);
 		}
 		else if (sb.index() > 1) {
 			sb.setIndex(sb.index() - 1);
@@ -124,6 +135,7 @@ public abstract class BasePersistenceFinder
 	}
 
 	protected final BasePersistenceImpl<T, E> basePersistenceImpl;
+	protected final String dbWhere;
 	protected final FinderColumn<T>[] finderColumns;
 	protected final String sqlSelectWhere;
 	protected final String where;

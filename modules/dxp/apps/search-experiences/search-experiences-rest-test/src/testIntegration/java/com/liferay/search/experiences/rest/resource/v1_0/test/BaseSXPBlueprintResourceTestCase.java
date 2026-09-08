@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -122,6 +123,8 @@ public abstract class BaseSXPBlueprintResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -855,7 +858,7 @@ public abstract class BaseSXPBlueprintResourceTestCase {
 			randomSXPBlueprint());
 
 		page = sxpBlueprintResource.getSXPBlueprintsPage(
-			null, null, Pagination.of(1, 10), null);
+			null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1194,17 +1197,8 @@ public abstract class BaseSXPBlueprintResourceTestCase {
 
 	@Test
 	public void testGraphQLGetSXPBlueprintsPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"sXPBlueprints",
-			new HashMap<String, Object>() {
-				{
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetSXPBlueprintsPageSXPBlueprint_getGraphQLField();
 
 		// No namespace
 
@@ -1259,6 +1253,23 @@ public abstract class BaseSXPBlueprintResourceTestCase {
 			Arrays.asList(
 				SXPBlueprintSerDes.toDTOs(
 					sXPBlueprintsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetSXPBlueprintsPageSXPBlueprint_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"sXPBlueprints",
+			new HashMap<String, Object>() {
+				{
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -3049,4 +3060,4 @@ public abstract class BaseSXPBlueprintResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1951086847
+// LIFERAY-REST-BUILDER-HASH:2138345443

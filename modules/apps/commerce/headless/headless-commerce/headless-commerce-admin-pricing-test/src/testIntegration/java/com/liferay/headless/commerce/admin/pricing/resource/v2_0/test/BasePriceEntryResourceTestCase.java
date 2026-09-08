@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -118,6 +119,8 @@ public abstract class BasePriceEntryResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -1038,8 +1041,8 @@ public abstract class BasePriceEntryResourceTestCase {
 		page =
 			priceEntryResource.
 				getPriceListByExternalReferenceCodePriceEntriesPage(
-					externalReferenceCode, null, null, Pagination.of(1, 10),
-					null);
+					externalReferenceCode, null, null,
+					Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1488,7 +1491,7 @@ public abstract class BasePriceEntryResourceTestCase {
 				id, randomPriceEntry());
 
 		page = priceEntryResource.getPriceListIdPriceEntriesPage(
-			id, null, null, Pagination.of(1, 10), null);
+			id, null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1966,6 +1969,61 @@ public abstract class BasePriceEntryResourceTestCase {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testPutPriceEntryByExternalReferenceCode() throws Exception {
+		PriceEntry postPriceEntry =
+			testPutPriceEntryByExternalReferenceCode_addPriceEntry();
+
+		PriceEntry randomPriceEntry = randomPriceEntry();
+
+		PriceEntry putPriceEntry =
+			priceEntryResource.putPriceEntryByExternalReferenceCode(
+				postPriceEntry.getExternalReferenceCode(), randomPriceEntry);
+
+		assertEquals(randomPriceEntry, putPriceEntry);
+		assertValid(putPriceEntry);
+
+		PriceEntry getPriceEntry =
+			priceEntryResource.getPriceEntryByExternalReferenceCode(
+				putPriceEntry.getExternalReferenceCode());
+
+		assertEquals(randomPriceEntry, getPriceEntry);
+		assertValid(getPriceEntry);
+
+		PriceEntry newPriceEntry =
+			testPutPriceEntryByExternalReferenceCode_createPriceEntry();
+
+		putPriceEntry = priceEntryResource.putPriceEntryByExternalReferenceCode(
+			newPriceEntry.getExternalReferenceCode(), newPriceEntry);
+
+		assertEquals(newPriceEntry, putPriceEntry);
+		assertValid(putPriceEntry);
+
+		getPriceEntry = priceEntryResource.getPriceEntryByExternalReferenceCode(
+			putPriceEntry.getExternalReferenceCode());
+
+		assertEquals(newPriceEntry, getPriceEntry);
+
+		Assert.assertEquals(
+			newPriceEntry.getExternalReferenceCode(),
+			putPriceEntry.getExternalReferenceCode());
+	}
+
+	protected PriceEntry
+			testPutPriceEntryByExternalReferenceCode_addPriceEntry()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	protected PriceEntry
+			testPutPriceEntryByExternalReferenceCode_createPriceEntry()
+		throws Exception {
+
+		return randomPriceEntry();
 	}
 
 	@Test
@@ -3703,4 +3761,4 @@ public abstract class BasePriceEntryResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1627566968
+// LIFERAY-REST-BUILDER-HASH:-181939245

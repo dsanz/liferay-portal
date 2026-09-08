@@ -171,7 +171,7 @@ public class OIDCUserInfoProcessor {
 			}
 		}
 
-		ListType listType = _listTypeLocalService.getListType(
+		ListType listType = _listTypeLocalService.fetchListType(
 			user.getCompanyId(),
 			_getClaimString(
 				"addressType", addressMapperJSONObject, userInfoJSONObject),
@@ -420,7 +420,7 @@ public class OIDCUserInfoProcessor {
 			return;
 		}
 
-		ListType listType = _listTypeLocalService.getListType(
+		ListType listType = _listTypeLocalService.fetchListType(
 			user.getCompanyId(),
 			_getClaimString(
 				"phoneType", phoneMapperJSONObject, userInfoJSONObject),
@@ -753,7 +753,7 @@ public class OIDCUserInfoProcessor {
 				continue;
 			}
 
-			ExpandoValue expandoValue = _expandoValueLocalService.getValue(
+			ExpandoValue expandoValue = _expandoValueLocalService.fetchValue(
 				expandoColumn.getTableId(), expandoColumn.getColumnId(),
 				userGroup.getUserGroupId());
 

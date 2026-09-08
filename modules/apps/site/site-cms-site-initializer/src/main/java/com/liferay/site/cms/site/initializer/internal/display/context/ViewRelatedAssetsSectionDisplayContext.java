@@ -5,7 +5,6 @@
 
 package com.liferay.site.cms.site.initializer.internal.display.context;
 
-import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.document.library.configuration.DLConfiguration;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
@@ -13,6 +12,7 @@ import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemBuilder;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectDefinitionService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -30,7 +30,6 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Carolina Barbosa
@@ -39,31 +38,47 @@ public class ViewRelatedAssetsSectionDisplayContext
 	extends BaseRelatedAssetsSectionDisplayContext {
 
 	public ViewRelatedAssetsSectionDisplayContext(
-		AssetTagLocalService assetTagLocalService,
 		DepotEntryLocalService depotEntryLocalService,
 		DLConfiguration dlConfiguration, GroupLocalService groupLocalService,
 		HttpServletRequest httpServletRequest, Language language,
 		ObjectDefinition objectDefinition,
+		ObjectDefinitionLocalService objectDefinitionLocalService,
 		ObjectDefinitionService objectDefinitionService,
 		ObjectEntry objectEntry, Portal portal,
 		TranslationInfoItemFieldValuesExporterRegistry
 			translationInfoItemFieldValuesExporterRegistry) {
 
 		super(
-			assetTagLocalService, depotEntryLocalService, dlConfiguration,
-			groupLocalService, httpServletRequest, language, objectDefinition,
+			depotEntryLocalService, dlConfiguration, groupLocalService,
+			httpServletRequest, language, objectDefinition,
 			objectDefinitionService, objectEntry, portal,
 			translationInfoItemFieldValuesExporterRegistry);
 
-		Set<String> tagNames = getTagNames(objectDefinition, objectEntry);
+		_cmsBasicDocumentClassName = _getCMSBasicDocumentClassName(
+			objectDefinitionLocalService);
 
-		_keywords = tagNames.toArray(new String[0]);
+		if (StringUtil.equals(
+				objectDefinition.getExternalReferenceCode(), "L_CMP_PROJECT")) {
+
+			_relatedObjectEntriesFilterFieldName = "cmpProjectObjectEntryIds";
+			_relationshipObjectFieldName =
+				"r_cmpProjectToCMPProjectLinks_c_cmpProjectId";
+			_restContextPath = "/o/cmp/project-links";
+		}
+		else {
+			_relatedObjectEntriesFilterFieldName = "cmpTaskObjectEntryIds";
+			_relationshipObjectFieldName =
+				"r_cmpTaskToCMPTaskLinks_c_cmpTaskId";
+			_restContextPath = "/o/cmp/task-links";
+		}
 	}
 
 	@Override
 	public Map<String, Object> getAdditionalProps() {
 		return HashMapBuilder.<String, Object>put(
-			"keywords", StringUtil.merge(_keywords)
+			"documentClassName", _cmsBasicDocumentClassName
+		).put(
+			"objectEntryLinkProps", _getObjectEntryLinkProps()
 		).putAll(
 			super.getAdditionalProps()
 		).build();
@@ -78,9 +93,17 @@ public class ViewRelatedAssetsSectionDisplayContext
 				"baseAssetLibraryViewURL",
 				ActionUtil.getBaseSpaceURL(themeDisplay)
 			).putData(
-				"keywords", StringUtil.merge(_keywords)
+				"documentClassName", _cmsBasicDocumentClassName
+			).putData(
+				"objectEntryId", String.valueOf(objectEntry.getObjectEntryId())
 			).putData(
 				"parentObjectEntryFolderExternalReferenceCode", StringPool.BLANK
+			).putData(
+				"relationshipObjectFieldName", _relationshipObjectFieldName
+			).putData(
+				"restContextPath", _restContextPath
+			).putData(
+				"scopeGroupId", String.valueOf(objectEntry.getGroupId())
 			).setIcon(
 				"upload-multiple"
 			).setLabel(
@@ -89,7 +112,13 @@ public class ViewRelatedAssetsSectionDisplayContext
 			DropdownItemBuilder.putData(
 				"action", "selectAssets"
 			).putData(
-				"keywords", StringUtil.merge(_keywords)
+				"objectEntryId", String.valueOf(objectEntry.getObjectEntryId())
+			).putData(
+				"relationshipObjectFieldName", _relationshipObjectFieldName
+			).putData(
+				"restContextPath", _restContextPath
+			).putData(
+				"scopeGroupId", String.valueOf(objectEntry.getGroupId())
 			).putData(
 				"searchAPIURL",
 				() -> {
@@ -98,9 +127,10 @@ public class ViewRelatedAssetsSectionDisplayContext
 							appendStatus(
 								StringBundler.concat(
 									"(cmsSection eq 'contents' or cmsSection ",
-									"eq 'files') and not (keywords/any(k:k in ",
-									"(", getKeywordsFilterString(),
-									"))) and objectDefinitionId gt 0")),
+									"eq 'files') and not (",
+									getRelatedObjectEntriesFilterString(),
+									") and objectDefinitionId gt 0 and ",
+									"rootDescendantNode eq false")),
 							httpServletRequest, null);
 
 					return "/o/search/v1.0/search?" +
@@ -140,10 +170,42 @@ public class ViewRelatedAssetsSectionDisplayContext
 	}
 
 	@Override
-	protected String[] getKeywords() {
-		return _keywords;
+	protected String getRelatedObjectEntriesFilterString() {
+		return getRelatedObjectEntriesFilterString(
+			_relatedObjectEntriesFilterFieldName,
+			objectEntry.getObjectEntryId());
 	}
 
-	private final String[] _keywords;
+	private String _getCMSBasicDocumentClassName(
+		ObjectDefinitionLocalService objectDefinitionLocalService) {
+
+		ObjectDefinition cmsBasicDocumentObjectDefinition =
+			objectDefinitionLocalService.
+				fetchObjectDefinitionByExternalReferenceCode(
+					"L_CMS_BASIC_DOCUMENT", objectEntry.getCompanyId());
+
+		if (cmsBasicDocumentObjectDefinition == null) {
+			return StringPool.BLANK;
+		}
+
+		return cmsBasicDocumentObjectDefinition.getClassName();
+	}
+
+	private Map<String, Object> _getObjectEntryLinkProps() {
+		return HashMapBuilder.<String, Object>put(
+			"objectEntryId", String.valueOf(objectEntry.getObjectEntryId())
+		).put(
+			"relationshipObjectFieldName", _relationshipObjectFieldName
+		).put(
+			"restContextPath", _restContextPath
+		).put(
+			"scopeGroupId", String.valueOf(objectEntry.getGroupId())
+		).build();
+	}
+
+	private final String _cmsBasicDocumentClassName;
+	private final String _relatedObjectEntriesFilterFieldName;
+	private final String _relationshipObjectFieldName;
+	private final String _restContextPath;
 
 }

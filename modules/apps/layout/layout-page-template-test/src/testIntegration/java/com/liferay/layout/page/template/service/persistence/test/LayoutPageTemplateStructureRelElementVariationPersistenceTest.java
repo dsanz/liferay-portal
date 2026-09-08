@@ -155,8 +155,8 @@ public class LayoutPageTemplateStructureRelElementVariationPersistenceTest {
 		newLayoutPageTemplateStructureRelElementVariation.setModifiedDate(
 			RandomTestUtil.nextDate());
 
-		newLayoutPageTemplateStructureRelElementVariation.setAudienceEntryERC(
-			RandomTestUtil.randomString());
+		newLayoutPageTemplateStructureRelElementVariation.setActive(
+			RandomTestUtil.randomBoolean());
 
 		newLayoutPageTemplateStructureRelElementVariation.setHide(
 			RandomTestUtil.randomString());
@@ -179,9 +179,11 @@ public class LayoutPageTemplateStructureRelElementVariationPersistenceTest {
 		newLayoutPageTemplateStructureRelElementVariation.setTargetElement(
 			RandomTestUtil.randomString());
 
+		newLayoutPageTemplateStructureRelElementVariation = _persistence.update(
+			newLayoutPageTemplateStructureRelElementVariation);
+
 		_layoutPageTemplateStructureRelElementVariations.add(
-			_persistence.update(
-				newLayoutPageTemplateStructureRelElementVariation));
+			newLayoutPageTemplateStructureRelElementVariation);
 
 		LayoutPageTemplateStructureRelElementVariation
 			existingLayoutPageTemplateStructureRelElementVariation =
@@ -240,10 +242,8 @@ public class LayoutPageTemplateStructureRelElementVariationPersistenceTest {
 				newLayoutPageTemplateStructureRelElementVariation.
 					getModifiedDate()));
 		Assert.assertEquals(
-			existingLayoutPageTemplateStructureRelElementVariation.
-				getAudienceEntryERC(),
-			newLayoutPageTemplateStructureRelElementVariation.
-				getAudienceEntryERC());
+			existingLayoutPageTemplateStructureRelElementVariation.isActive(),
+			newLayoutPageTemplateStructureRelElementVariation.isActive());
 		Assert.assertEquals(
 			existingLayoutPageTemplateStructureRelElementVariation.getHide(),
 			newLayoutPageTemplateStructureRelElementVariation.getHide());
@@ -329,6 +329,13 @@ public class LayoutPageTemplateStructureRelElementVariationPersistenceTest {
 	}
 
 	@Test
+	public void testCountByPlid() throws Exception {
+		_persistence.countByPlid(RandomTestUtil.nextLong());
+
+		_persistence.countByPlid(0L);
+	}
+
+	@Test
 	public void testCountBySegmentsExperienceERC() throws Exception {
 		_persistence.countBySegmentsExperienceERC("");
 
@@ -344,6 +351,18 @@ public class LayoutPageTemplateStructureRelElementVariationPersistenceTest {
 		_persistence.countByP_SEERC(0L, "null");
 
 		_persistence.countByP_SEERC(0L, (String)null);
+	}
+
+	@Test
+	public void testCountByA_P_SEERC() throws Exception {
+		_persistence.countByA_P_SEERC(
+			RandomTestUtil.randomBoolean(), RandomTestUtil.nextLong(), "");
+
+		_persistence.countByA_P_SEERC(
+			RandomTestUtil.randomBoolean(), 0L, "null");
+
+		_persistence.countByA_P_SEERC(
+			RandomTestUtil.randomBoolean(), 0L, (String)null);
 	}
 
 	@Test
@@ -395,8 +414,8 @@ public class LayoutPageTemplateStructureRelElementVariationPersistenceTest {
 			true, "uuid", true, "externalReferenceCode", true,
 			"layoutPageTemplateStructureRelElementVariationId", true, "groupId",
 			true, "companyId", true, "userId", true, "userName", true,
-			"createDate", true, "modifiedDate", true, "audienceEntryERC", true,
-			"hide", true, "html", true, "js", true, "name", true, "plid", true,
+			"createDate", true, "modifiedDate", true, "active", true, "html",
+			true, "js", true, "name", true, "plid", true,
 			"segmentsExperienceERC", true, "targetElement", true);
 	}
 
@@ -815,8 +834,8 @@ public class LayoutPageTemplateStructureRelElementVariationPersistenceTest {
 		layoutPageTemplateStructureRelElementVariation.setModifiedDate(
 			RandomTestUtil.nextDate());
 
-		layoutPageTemplateStructureRelElementVariation.setAudienceEntryERC(
-			RandomTestUtil.randomString());
+		layoutPageTemplateStructureRelElementVariation.setActive(
+			RandomTestUtil.randomBoolean());
 
 		layoutPageTemplateStructureRelElementVariation.setHide(
 			RandomTestUtil.randomString());
@@ -854,4 +873,4 @@ public class LayoutPageTemplateStructureRelElementVariationPersistenceTest {
 	private ClassLoader _dynamicQueryClassLoader;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-277564997
+// LIFERAY-SERVICE-BUILDER-HASH:747214275

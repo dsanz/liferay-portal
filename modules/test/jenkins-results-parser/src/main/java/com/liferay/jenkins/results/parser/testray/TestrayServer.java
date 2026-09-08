@@ -57,7 +57,7 @@ public class TestrayServer {
 			JSONObject responseJSONObject = new JSONObject(
 				requestPost("/o/c/projects", requestJSONObject.toString()));
 
-			return getTestrayProjectByID(responseJSONObject.getLong("id"));
+			return getTestrayProjectById(responseJSONObject.getLong("id"));
 		}
 		catch (IOException ioException) {
 			throw new RuntimeException(
@@ -69,14 +69,16 @@ public class TestrayServer {
 		return _httpAuthorization;
 	}
 
-	public TestrayBuild getTestrayBuildByID(long buildID) {
-		if (_testrayBuilds.containsKey(buildID)) {
-			return _testrayBuilds.get(buildID);
+	public TestrayBuild getTestrayBuildById(long buildId) {
+		TestrayBuild testrayBuild = _testrayBuilds.get(buildId);
+
+		if (testrayBuild != null) {
+			return testrayBuild;
 		}
 
 		try {
 			Set<JSONObject> entityJSONObjects = requestGraphQL(
-				"builds", TestrayBuild.FIELD_NAMES, "id eq '" + buildID + "'",
+				"builds", TestrayBuild.FIELD_NAMES, "id eq '" + buildId + "'",
 				null, 1, 1);
 
 			if (entityJSONObjects.isEmpty()) {
@@ -90,20 +92,20 @@ public class TestrayServer {
 			JSONObject projectJSONObject = entityJSONObject.getJSONObject(
 				"projectToBuilds");
 
-			TestrayProject testrayProject = getTestrayProjectByID(
+			TestrayProject testrayProject = getTestrayProjectById(
 				projectJSONObject.getLong("id"));
 
 			JSONObject routineJSONObject = entityJSONObject.getJSONObject(
 				"routineToBuilds");
 
 			TestrayRoutine testrayRoutine =
-				testrayProject.getTestrayRoutineByID(
+				testrayProject.getTestrayRoutineById(
 					routineJSONObject.getLong("id"));
 
-			TestrayBuild testrayBuild = TestrayFactory.newTestrayBuild(
+			testrayBuild = TestrayFactory.newTestrayBuild(
 				testrayRoutine, entityJSONObject);
 
-			_testrayBuilds.put(testrayBuild.getID(), testrayBuild);
+			_testrayBuilds.put(testrayBuild.getId(), testrayBuild);
 
 			return testrayBuild;
 		}
@@ -112,10 +114,10 @@ public class TestrayServer {
 		}
 	}
 
-	public TestrayCaseType getTestrayCaseTypeByID(long testrayCaseTypeID) {
-		synchronized (_testrayCaseTypesID) {
-			TestrayCaseType testrayCaseType = _testrayCaseTypesID.get(
-				testrayCaseTypeID);
+	public TestrayCaseType getTestrayCaseTypeById(long testrayCaseTypeId) {
+		synchronized (_testrayCaseTypesId) {
+			TestrayCaseType testrayCaseType = _testrayCaseTypesId.get(
+				testrayCaseTypeId);
 
 			if (testrayCaseType != null) {
 				return testrayCaseType;
@@ -124,7 +126,7 @@ public class TestrayServer {
 			try {
 				Set<JSONObject> entityJSONObjects = requestGraphQL(
 					"caseTypes", TestrayCaseType.FIELD_NAMES,
-					"id eq '" + testrayCaseTypeID + "'", null, 1, 1);
+					"id eq '" + testrayCaseTypeId + "'", null, 1, 1);
 
 				if (entityJSONObjects.isEmpty()) {
 					return null;
@@ -135,8 +137,8 @@ public class TestrayServer {
 				testrayCaseType = TestrayFactory.newTestrayCaseType(
 					this, iterator.next());
 
-				_testrayCaseTypesID.put(
-					testrayCaseType.getID(), testrayCaseType);
+				_testrayCaseTypesId.put(
+					testrayCaseType.getId(), testrayCaseType);
 				_testrayCaseTypesName.put(
 					testrayCaseType.getName(), testrayCaseType);
 			}
@@ -155,7 +157,7 @@ public class TestrayServer {
 			return null;
 		}
 
-		synchronized (_testrayCaseTypesID) {
+		synchronized (_testrayCaseTypesId) {
 			TestrayCaseType testrayCaseType = _testrayCaseTypesName.get(
 				testrayCaseTypeName);
 
@@ -177,8 +179,8 @@ public class TestrayServer {
 				testrayCaseType = TestrayFactory.newTestrayCaseType(
 					this, iterator.next());
 
-				_testrayCaseTypesID.put(
-					testrayCaseType.getID(), testrayCaseType);
+				_testrayCaseTypesId.put(
+					testrayCaseType.getId(), testrayCaseType);
 				_testrayCaseTypesName.put(
 					testrayCaseType.getName(), testrayCaseType);
 			}
@@ -190,15 +192,17 @@ public class TestrayServer {
 		}
 	}
 
-	public TestrayProject getTestrayProjectByID(long projectID) {
-		if (_testrayProjects.containsKey(projectID)) {
-			return _testrayProjects.get(projectID);
+	public TestrayProject getTestrayProjectById(long projectId) {
+		TestrayProject testrayProject = _testrayProjects.get(projectId);
+
+		if (testrayProject != null) {
+			return testrayProject;
 		}
 
 		try {
 			Set<JSONObject> entityJSONObjects = requestGraphQL(
 				"projects", TestrayProject.FIELD_NAMES,
-				"id eq '" + projectID + "'", null, 1, 1);
+				"id eq '" + projectId + "'", null, 1, 1);
 
 			if (entityJSONObjects.isEmpty()) {
 				return null;
@@ -206,10 +210,10 @@ public class TestrayServer {
 
 			Iterator<JSONObject> iterator = entityJSONObjects.iterator();
 
-			TestrayProject testrayProject = TestrayFactory.newTestrayProject(
+			testrayProject = TestrayFactory.newTestrayProject(
 				this, iterator.next());
 
-			_testrayProjects.put(testrayProject.getID(), testrayProject);
+			_testrayProjects.put(testrayProject.getId(), testrayProject);
 
 			return testrayProject;
 		}
@@ -239,7 +243,7 @@ public class TestrayServer {
 			TestrayProject testrayProject = TestrayFactory.newTestrayProject(
 				this, iterator.next());
 
-			_testrayProjects.put(testrayProject.getID(), testrayProject);
+			_testrayProjects.put(testrayProject.getId(), testrayProject);
 
 			return testrayProject;
 		}
@@ -259,7 +263,7 @@ public class TestrayServer {
 				TestrayProject testrayProject =
 					TestrayFactory.newTestrayProject(this, entityJSONObject);
 
-				_testrayProjects.put(testrayProject.getID(), testrayProject);
+				_testrayProjects.put(testrayProject.getId(), testrayProject);
 
 				testrayProjects.add(testrayProject);
 			}
@@ -271,9 +275,11 @@ public class TestrayServer {
 		return testrayProjects;
 	}
 
-	public TestrayRoutine getTestrayRoutineByID(long routineId) {
-		if (_testrayRoutines.containsKey(routineId)) {
-			return _testrayRoutines.get(routineId);
+	public TestrayRoutine getTestrayRoutineById(long routineId) {
+		TestrayRoutine testrayRoutine = _testrayRoutines.get(routineId);
+
+		if (testrayRoutine != null) {
+			return testrayRoutine;
 		}
 
 		try {
@@ -292,13 +298,13 @@ public class TestrayServer {
 			JSONObject projectJSONObject = entityJSONObject.getJSONObject(
 				"routineToProjects");
 
-			TestrayProject testrayProject = getTestrayProjectByID(
+			TestrayProject testrayProject = getTestrayProjectById(
 				projectJSONObject.getLong("id"));
 
-			TestrayRoutine testrayRoutine = TestrayFactory.newTestrayRoutine(
+			testrayRoutine = TestrayFactory.newTestrayRoutine(
 				testrayProject, entityJSONObject);
 
-			_testrayRoutines.put(testrayRoutine.getID(), testrayRoutine);
+			_testrayRoutines.put(testrayRoutine.getId(), testrayRoutine);
 
 			return testrayRoutine;
 		}
@@ -671,7 +677,7 @@ public class TestrayServer {
 		"(?<url>https?://.*)/+");
 
 	private JenkinsResultsParserUtil.HTTPAuthorization _httpAuthorization;
-	private final Map<Long, TestrayCaseType> _testrayCaseTypesID =
+	private final Map<Long, TestrayCaseType> _testrayCaseTypesId =
 		new HashMap<>();
 	private final Map<String, TestrayCaseType> _testrayCaseTypesName =
 		new HashMap<>();

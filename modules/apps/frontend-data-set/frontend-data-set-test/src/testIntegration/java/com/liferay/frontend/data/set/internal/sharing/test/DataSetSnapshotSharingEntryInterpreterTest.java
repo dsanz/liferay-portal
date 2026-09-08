@@ -24,7 +24,6 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.FeatureFlag;
-import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -48,9 +47,7 @@ import org.junit.runner.RunWith;
 /**
  * @author Juanjo Fernandez
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-34594"), @FeatureFlag("LPS-164563")}
-)
+@FeatureFlag("LPS-164563")
 @RunWith(Arquillian.class)
 public class DataSetSnapshotSharingEntryInterpreterTest {
 
@@ -63,13 +60,20 @@ public class DataSetSnapshotSharingEntryInterpreterTest {
 
 	@Before
 	public void setUp() throws Exception {
-		FrontendDataSetTestUtil.initialize(
-			DataSetSnapshotSharingEntryInterpreterTest.class);
-
 		_objectDefinition =
 			_objectDefinitionLocalService.
 				fetchObjectDefinitionByExternalReferenceCode(
 					"L_DATA_SET_SNAPSHOT", TestPropsValues.getCompanyId());
+
+		if (_objectDefinition == null) {
+			FrontendDataSetTestUtil.initialize(
+				DataSetSnapshotSharingEntryInterpreterTest.class);
+
+			_objectDefinition =
+				_objectDefinitionLocalService.
+					fetchObjectDefinitionByExternalReferenceCode(
+						"L_DATA_SET_SNAPSHOT", TestPropsValues.getCompanyId());
+		}
 
 		Assert.assertNotNull(_objectDefinition);
 

@@ -27,7 +27,7 @@ const DocumentTitleCell = ({
 	itemData: any;
 	value: string;
 }) => (
-	<span className="align-items-center d-flex">
+	<span className="align-items-center d-flex text-secondary">
 		<ClayIcon
 			className="mr-2"
 			symbol={mimeTypeUtils.getIconFromMimeType(itemData.encodingFormat)}
@@ -74,16 +74,12 @@ function DuplicateRoom({
 				name: `${name} (Copy)`,
 			});
 
-			const room = await RoomService.getRoom(duplicatedRoom.id);
-
 			for (let i = 0; i < 10; i++) {
 				await new Promise((resolve) => setTimeout(resolve, 2000));
 
-				const sitePages = await RoomService.checkSitePages(
-					room.siteExternalReferenceCode
-				);
+				const room = await RoomService.getRoom(duplicatedRoom.id);
 
-				if (sitePages?.items.length) {
+				if (room.initialized) {
 					break;
 				}
 			}
@@ -110,7 +106,9 @@ function DuplicateRoom({
 
 			<ClayModal.Body>
 				<ClayAlert displayType="info">
-					{Liferay.Language.get('select-the-documents-to-copy')}
+					{Liferay.Language.get(
+						'if-you-also-want-to-duplicate-documents-select-which-ones-to-include'
+					)}
 				</ClayAlert>
 
 				{documentsFolderId !== null && (

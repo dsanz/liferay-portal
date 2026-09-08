@@ -129,6 +129,19 @@ describe('StructureBuilderToolbar', () => {
 		expect(saveButton).not.toBeInTheDocument();
 	});
 
+	it('Keeps the title and hides the Save button while a published structure is being published', async () => {
+		renderComponent({
+			operation: 'publishing',
+			structure: {
+				label: {en_US: 'Fruit'} as any,
+				status: 'published',
+			},
+		});
+
+		expect(screen.getByRole('heading')).toHaveTextContent('Fruit');
+		expect(screen.queryByText('save')).not.toBeInTheDocument();
+	});
+
 	it('Save button calls correct endpoint when status is new', async () => {
 		renderComponent({structure: {status: 'new'}});
 
@@ -206,6 +219,7 @@ describe('StructureBuilderToolbar', () => {
 				deletedGroupERCs: [],
 				deletedRelationships: [],
 				modifiedNames: new Set(),
+				modifiedSlugs: new Set(),
 			},
 			structure: {status: 'published'},
 		});
@@ -282,6 +296,7 @@ describe('StructureBuilderToolbar', () => {
 				deletedGroupERCs: [],
 				deletedRelationships: [],
 				modifiedNames: new Set(),
+				modifiedSlugs: new Set(),
 			},
 			structure: {status: 'published'},
 		});

@@ -53,10 +53,11 @@ public class AssetVocabularyGroupRelLocalServiceUtil {
 	}
 
 	public static AssetVocabularyGroupRel addAssetVocabularyGroupRel(
-			long groupId, long vocabularyId)
+			long groupId, long vocabularyId, int depotEntryType)
 		throws PortalException {
 
-		return getService().addAssetVocabularyGroupRel(groupId, vocabularyId);
+		return getService().addAssetVocabularyGroupRel(
+			groupId, vocabularyId, depotEntryType);
 	}
 
 	/**
@@ -306,6 +307,15 @@ public class AssetVocabularyGroupRelLocalServiceUtil {
 		return getService().getAssetVocabularyGroupRelsByGroupId(groupId);
 	}
 
+	public static List<AssetVocabularyGroupRel>
+		getAssetVocabularyGroupRelsByGroupIdAndDepotEntryType(
+			long groupId, int depotEntryType) {
+
+		return getService().
+			getAssetVocabularyGroupRelsByGroupIdAndDepotEntryType(
+				groupId, depotEntryType);
+	}
+
 	/**
 	 * Returns all the asset vocabulary group rels matching the UUID and company.
 	 *
@@ -347,6 +357,15 @@ public class AssetVocabularyGroupRelLocalServiceUtil {
 			vocabularyId);
 	}
 
+	public static List<AssetVocabularyGroupRel>
+		getAssetVocabularyGroupRelsByVocabularyIdAndDepotEntryType(
+			long vocabularyId, int depotEntryType) {
+
+		return getService().
+			getAssetVocabularyGroupRelsByVocabularyIdAndDepotEntryType(
+				vocabularyId, depotEntryType);
+	}
+
 	/**
 	 * Returns the number of asset vocabulary group rels.
 	 *
@@ -386,10 +405,11 @@ public class AssetVocabularyGroupRelLocalServiceUtil {
 	}
 
 	public static void setAssetVocabularyGroupRels(
-			long vocabularyId, long[] groupIds)
+			long vocabularyId, long[] groupIds, int depotEntryType)
 		throws PortalException {
 
-		getService().setAssetVocabularyGroupRels(vocabularyId, groupIds);
+		getService().setAssetVocabularyGroupRels(
+			vocabularyId, groupIds, depotEntryType);
 	}
 
 	/**
@@ -420,4 +440,4 @@ public class AssetVocabularyGroupRelLocalServiceUtil {
 	private static volatile AssetVocabularyGroupRelLocalService _service;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1546189820
+// LIFERAY-SERVICE-BUILDER-HASH:-1997192690

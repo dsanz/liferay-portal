@@ -5,13 +5,23 @@
 
 package com.liferay.portal.kernel.servlet;
 
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
+import com.liferay.portal.kernel.model.Portlet;
+import com.liferay.portal.kernel.model.PortletApp;
+import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.util.ObjectValuePair;
+import com.liferay.portal.kernel.util.Validator;
 
 import jakarta.servlet.ServletContext;
 
 import java.io.IOException;
 
 import java.net.URL;
+
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.ServiceReference;
+import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
  * @author Minhchau Dang
@@ -23,45 +33,61 @@ public class ResourceUtil {
 			ServletContext defaultServletContext)
 		throws IOException {
 
-		ServletContext servletContext = defaultServletContext;
-
-		URL resourceURL = servletContext.getResource(requestURI);
+		URL resourceURL = defaultServletContext.getResource(requestURI);
 
 		if (resourceURL != null) {
-			return new ObjectValuePair<>(servletContext, resourceURL);
+			return new ObjectValuePair<>(defaultServletContext, resourceURL);
 		}
 
-		servletContext = PortalWebResourcesUtil.getPathServletContext(
-			requestPath);
+		ObjectValuePair<ServletContext, URL> objectValuePair =
+			_getObjectValuePair(
+				requestPath,
+				PortalWebResourcesUtil.getPathServletContext(requestPath));
 
-		resourceURL = PortalWebResourcesUtil.getResource(
-			servletContext, requestPath);
-
-		if (resourceURL != null) {
-			return new ObjectValuePair<>(servletContext, resourceURL);
+		if (objectValuePair != null) {
+			return objectValuePair;
 		}
 
-		servletContext = PortletResourcesUtil.getPathServletContext(
-			requestPath);
+		for (ServletContext servletContext : _portletServiceTrackerList) {
+			if (requestPath.startsWith(servletContext.getContextPath())) {
+				objectValuePair = _getObjectValuePair(
+					requestPath, servletContext);
 
-		resourceURL = PortletResourcesUtil.getResource(
-			servletContext, requestPath);
+				if (objectValuePair != null) {
+					return objectValuePair;
+				}
 
-		if (resourceURL != null) {
-			return new ObjectValuePair<>(servletContext, resourceURL);
+				break;
+			}
 		}
 
-		servletContext = DynamicResourceIncludeUtil.getPathServletContext(
-			requestPath);
+		ServletContext servletContext = null;
 
-		resourceURL = DynamicResourceIncludeUtil.getResource(
-			servletContext, requestPath);
+		for (ServletContext curServletContext :
+				_servletContextServiceTrackerList) {
 
-		if (resourceURL != null) {
-			return new ObjectValuePair<>(servletContext, resourceURL);
+			String contextPath = curServletContext.getContextPath();
+
+			if (Validator.isNotNull(contextPath) &&
+				requestPath.startsWith(contextPath)) {
+
+				if (servletContext == null) {
+					servletContext = curServletContext;
+				}
+				else {
+					String servletContextContextPath =
+						servletContext.getContextPath();
+
+					if (contextPath.length() >
+							servletContextContextPath.length()) {
+
+						servletContext = curServletContext;
+					}
+				}
+			}
 		}
 
-		return null;
+		return _getObjectValuePair(requestPath, servletContext);
 	}
 
 	public static ServletContext getPathServletContext(
@@ -93,5 +119,64 @@ public class ResourceUtil {
 
 		return objectValuePair.getValue();
 	}
+
+	private static ObjectValuePair<ServletContext, URL> _getObjectValuePair(
+		String requestPath, ServletContext servletContext) {
+
+		URL resourceURL = PortalWebResourcesUtil.getResource(
+			servletContext, requestPath);
+
+		if (resourceURL != null) {
+			return new ObjectValuePair<>(servletContext, resourceURL);
+		}
+
+		return null;
+	}
+
+	private static final BundleContext _bundleContext =
+		SystemBundleUtil.getBundleContext();
+
+	private static final ServiceTrackerList<ServletContext>
+		_portletServiceTrackerList = ServiceTrackerListFactory.open(
+			_bundleContext, Portlet.class, null,
+			new ServiceTrackerCustomizer<Portlet, ServletContext>() {
+
+				@Override
+				public ServletContext addingService(
+					ServiceReference<Portlet> serviceReference) {
+
+					Portlet portlet = _bundleContext.getService(
+						serviceReference);
+
+					PortletApp portletApp = portlet.getPortletApp();
+
+					if (portletApp.isWARFile()) {
+						return portletApp.getServletContext();
+					}
+
+					_bundleContext.ungetService(serviceReference);
+
+					return null;
+				}
+
+				@Override
+				public void modifiedService(
+					ServiceReference<Portlet> serviceReference,
+					ServletContext servletContext) {
+				}
+
+				@Override
+				public void removedService(
+					ServiceReference<Portlet> serviceReference,
+					ServletContext servletContext) {
+
+					_bundleContext.ungetService(serviceReference);
+				}
+
+			});
+
+	private static final ServiceTrackerList<ServletContext>
+		_servletContextServiceTrackerList = ServiceTrackerListFactory.open(
+			_bundleContext, ServletContext.class);
 
 }

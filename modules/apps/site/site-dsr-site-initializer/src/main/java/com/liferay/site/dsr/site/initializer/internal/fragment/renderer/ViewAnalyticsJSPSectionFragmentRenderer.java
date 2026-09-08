@@ -33,6 +33,11 @@ public class ViewAnalyticsJSPSectionFragmentRenderer
 	}
 
 	@Override
+	public String getKey() {
+		return "dsr-view-analytics";
+	}
+
+	@Override
 	public String getLabel(Locale locale) {
 		return language.get(locale, "analytics");
 	}
@@ -42,6 +47,10 @@ public class ViewAnalyticsJSPSectionFragmentRenderer
 		FragmentRendererContext fragmentRendererContext,
 		HttpServletRequest httpServletRequest,
 		HttpServletResponse httpServletResponse) {
+
+		if (!fragmentRendererContext.isViewMode()) {
+			return;
+		}
 
 		try {
 			ThemeDisplay themeDisplay =

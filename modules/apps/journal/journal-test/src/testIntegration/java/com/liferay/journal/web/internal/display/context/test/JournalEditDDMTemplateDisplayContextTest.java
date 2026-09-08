@@ -119,7 +119,8 @@ public class JournalEditDDMTemplateDisplayContextTest {
 		mockLiferayPortletRenderRequest.setAttribute(
 			WebKeys.THEME_DISPLAY, themeDisplay);
 
-		mockLiferayPortletRenderRequest.setParameter("mvcPath", path);
+		mockLiferayPortletRenderRequest.setParameter(
+			"mvcRenderCommandName", "/journal/edit_ddm_template");
 
 		return mockLiferayPortletRenderRequest;
 	}

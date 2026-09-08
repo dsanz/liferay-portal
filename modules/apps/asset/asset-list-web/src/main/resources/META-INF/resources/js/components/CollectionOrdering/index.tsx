@@ -7,28 +7,25 @@ import ClayButton from '@clayui/button';
 import {Option, Picker} from '@clayui/core';
 import DropDown from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 
 import useTypeProperties from '../../hooks/useTypeProperties';
+import {getPropertyKey} from '../CollectionFilterBuilder/types';
 
 import type {
 	FilterProperty,
 	FilterPropertyGroup,
 } from '../CollectionFilterBuilder/types';
 
+const DEFAULT_ORDER_BY_COLUMN_1 = 'modified';
+const DEFAULT_ORDER_BY_COLUMN_2 = 'title';
+
 type OrderByType = 'ASC' | 'DESC';
 
-type OrderBySelection = Pick<
-	FilterProperty,
-	'classNameId' | 'classTypeId' | 'name'
->;
-
-function getPropertyKey(
-	classNameId: number | undefined,
-	classTypeId: number | undefined,
-	name: string | undefined
-): string {
-	return `${classNameId ?? ''}|${classTypeId ?? ''}|${name ?? ''}`;
+interface OrderBySelection {
+	classNameId?: number;
+	classTypeId?: number;
+	propertyName: string;
 }
 
 function isGroup(
@@ -37,8 +34,34 @@ function isGroup(
 	return 'items' in item;
 }
 
+function isTypeSpecificProperty(value: OrderBySelection): boolean {
+	return value.classNameId !== undefined && value.classTypeId !== undefined;
+}
+
+function resetOrderByColumn(defaultPropertyName: string): OrderBySelection {
+	return {
+		classNameId: undefined,
+		classTypeId: undefined,
+		propertyName: defaultPropertyName,
+	};
+}
+
+/**
+ * Common fields are offered for every item type, so a column set to one stays
+ * valid. A column set to a type specific field only exists for the item type it
+ * came from, so fall back to the default rather than submit a column the new
+ * item type does not have.
+ */
+function resetIfTypeSpecific(defaultPropertyName: string) {
+	return (orderByColumn: OrderBySelection): OrderBySelection =>
+		isTypeSpecificProperty(orderByColumn)
+			? resetOrderByColumn(defaultPropertyName)
+			: orderByColumn;
+}
+
 function parseInitialOrderByColumn(
-	value: string | null | undefined
+	value: string | null | undefined,
+	defaultPropertyName: string
 ): OrderBySelection {
 	if (value && value.startsWith('{')) {
 		try {
@@ -48,7 +71,7 @@ function parseInitialOrderByColumn(
 				return {
 					classNameId: parsed.classNameId,
 					classTypeId: parsed.classTypeId,
-					name: parsed.name,
+					propertyName: parsed.propertyName,
 				};
 			}
 		}
@@ -59,11 +82,7 @@ function parseInitialOrderByColumn(
 		}
 	}
 
-	return {
-		classNameId: undefined,
-		classTypeId: undefined,
-		name: value || '',
-	};
+	return resetOrderByColumn(value || defaultPropertyName);
 }
 
 interface OrderByFieldProps {
@@ -93,7 +112,7 @@ function OrderByField({
 	const selectedKey = getPropertyKey(
 		columnValue.classNameId,
 		columnValue.classTypeId,
-		columnValue.name
+		columnValue.propertyName
 	);
 
 	return (
@@ -150,9 +169,9 @@ function OrderByField({
 				name={columnName}
 				type="hidden"
 				value={
-					columnValue.classNameId !== undefined
+					isTypeSpecificProperty(columnValue)
 						? JSON.stringify(columnValue)
-						: columnValue.name
+						: columnValue.propertyName
 				}
 			/>
 
@@ -195,9 +214,9 @@ function OrderByField({
 								padding: 12,
 							}}
 						>
-							{columnValue.classNameId && columnValue.classTypeId
+							{isTypeSpecificProperty(columnValue)
 								? JSON.stringify(columnValue)
-								: columnValue.name}
+								: columnValue.propertyName}
 						</pre>
 					</div>
 
@@ -240,10 +259,16 @@ export default function CollectionOrdering({
 	properties: initialProperties,
 }: CollectionOrderingProps) {
 	const [orderByColumn1, setOrderByColumn1] = useState<OrderBySelection>(() =>
-		parseInitialOrderByColumn(initialOrderByColumn1)
+		parseInitialOrderByColumn(
+			initialOrderByColumn1,
+			DEFAULT_ORDER_BY_COLUMN_1
+		)
 	);
 	const [orderByColumn2, setOrderByColumn2] = useState<OrderBySelection>(() =>
-		parseInitialOrderByColumn(initialOrderByColumn2)
+		parseInitialOrderByColumn(
+			initialOrderByColumn2,
+			DEFAULT_ORDER_BY_COLUMN_2
+		)
 	);
 	const [orderByType1, setOrderByType1] =
 		useState<OrderByType>(initialOrderByType1);
@@ -251,6 +276,19 @@ export default function CollectionOrdering({
 		useState<OrderByType>(initialOrderByType2);
 
 	const properties = useTypeProperties(initialProperties);
+
+	useEffect(() => {
+		const handleSourceChange = () => {
+			setOrderByColumn1(resetIfTypeSpecific(DEFAULT_ORDER_BY_COLUMN_1));
+			setOrderByColumn2(resetIfTypeSpecific(DEFAULT_ORDER_BY_COLUMN_2));
+		};
+
+		Liferay.on(`${namespace}sourceChange`, handleSourceChange);
+
+		return () => {
+			Liferay.detach(`${namespace}sourceChange`, handleSourceChange);
+		};
+	}, [namespace]);
 
 	const items = useMemo<Array<FilterProperty | FilterPropertyGroup>>(() => {
 		return properties
@@ -272,7 +310,7 @@ export default function CollectionOrdering({
 				map.set(getPropertyKey(classNameId, classTypeId, name), {
 					classNameId,
 					classTypeId,
-					name,
+					propertyName: name,
 				});
 			});
 

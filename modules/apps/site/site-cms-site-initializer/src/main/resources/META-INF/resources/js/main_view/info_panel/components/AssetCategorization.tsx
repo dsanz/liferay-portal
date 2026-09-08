@@ -4,16 +4,25 @@
  */
 
 import {ClayInput} from '@clayui/form';
-import React, {ComponentProps, useEffect, useState} from 'react';
+import {openToast} from 'frontend-js-components-web';
+import {sub} from 'frontend-js-web';
+import React, {ComponentProps, useCallback, useEffect, useState} from 'react';
 
+import CategorizationSuggestionService from '../../../common/services/CategorizationSuggestionService';
 import CategoryService from '../../../common/services/CategoryService';
 import {
 	IAssetObjectEntry,
 	ITaxonomyCategoryBrief,
 } from '../../../common/types/AssetType';
 import ObjectEntryService from '../services/ObjectEntryService';
-import AssetCategories from './AssetCategories';
-import AssetTags from './AssetTags';
+import AssetCategorizationSections from './AssetCategorizationSections';
+import {
+	AUTO_CATEGORIZE_AGENT,
+	COMMIT_EVENT,
+	CategorizationCommitPayload,
+	CategorizationCommitSuggestion,
+	GENERATE_TAGS_AGENT,
+} from './categorizationAgentEvents';
 
 type Categorization = Pick<
 	IAssetObjectEntry,
@@ -29,6 +38,7 @@ export default function AssetCategorization({
 	categoriesErrorMessage,
 	categorization,
 	cmsGroupId,
+	getContent,
 	getObjectEntryURL,
 	hasUpdatePermission,
 	inputSize,
@@ -38,6 +48,9 @@ export default function AssetCategorization({
 	categoriesErrorMessage?: string;
 	categorization: Categorization;
 	cmsGroupId: number | string;
+	getContent?: (
+		objectDefinitionExternalReferenceCode?: string
+	) => Promise<string>;
 	getObjectEntryURL: string;
 	hasUpdatePermission: boolean;
 	inputSize?: CategorizationInputSize;
@@ -145,31 +158,118 @@ export default function AssetCategorization({
 		})();
 	}, [getObjectEntryURL, onUpdateCategorization]);
 
+	const addCategorySuggestions = useCallback(
+		async (suggestions: CategorizationCommitSuggestion[]) => {
+			const currentIds = objectEntry.taxonomyCategoryBriefs.map(
+				({taxonomyCategoryId}) => taxonomyCategoryId
+			);
+
+			const briefs =
+				await CategorizationSuggestionService.resolveNewCategoryBriefs(
+					suggestions,
+					currentIds
+				);
+
+			if (!briefs.length) {
+				return;
+			}
+
+			const newObjectEntry = {
+				...objectEntry,
+				taxonomyCategoryBriefs: [
+					...objectEntry.taxonomyCategoryBriefs,
+					...briefs,
+				],
+			};
+
+			onUpdateCategorization?.(newObjectEntry);
+
+			setObjectEntry(newObjectEntry);
+
+			openToast({
+				message: sub(
+					Liferay.Language.get(
+						'x-categories-have-been-successfully-added-to-the-selected-content'
+					),
+					`${briefs.length}`
+				),
+				type: 'success',
+			});
+		},
+		[objectEntry, onUpdateCategorization]
+	);
+
+	const addTagSuggestions = useCallback(
+		async (suggestions: CategorizationCommitSuggestion[]) => {
+			const scopeId =
+				(objectEntry as IAssetObjectEntry).scopeId ||
+				assetLibraryId ||
+				cmsGroupId;
+
+			const names = await CategorizationSuggestionService.createTagNames(
+				suggestions,
+				{assetLibraryId: scopeId, cmsGroupId}
+			);
+
+			const newObjectEntry = {
+				...objectEntry,
+				keywords: [
+					...new Set([...(objectEntry.keywords || []), ...names]),
+				],
+			};
+
+			onUpdateCategorization?.(newObjectEntry);
+
+			setObjectEntry(newObjectEntry);
+
+			openToast({
+				message: sub(
+					Liferay.Language.get(
+						'x-tags-have-been-successfully-added-to-the-selected-content'
+					),
+					`${names.length}`
+				),
+				type: 'success',
+			});
+		},
+		[assetLibraryId, cmsGroupId, objectEntry, onUpdateCategorization]
+	);
+
+	useEffect(() => {
+		const handleCommit = ({
+			agent,
+			suggestions,
+		}: CategorizationCommitPayload) => {
+			if (agent === AUTO_CATEGORIZE_AGENT) {
+				addCategorySuggestions(suggestions);
+			}
+			else if (agent === GENERATE_TAGS_AGENT) {
+				addTagSuggestions(suggestions);
+			}
+		};
+
+		Liferay.on(COMMIT_EVENT, handleCommit);
+
+		return () => {
+			Liferay.detach(COMMIT_EVENT, handleCommit);
+		};
+	}, [addCategorySuggestions, addTagSuggestions]);
+
 	if (!objectEntry) {
 		return null;
 	}
 
 	return (
-		<>
-			<AssetCategories
-				cmsGroupId={cmsGroupId}
-				errorMessage={categoriesErrorMessage}
-				hasUpdatePermission={hasUpdatePermission}
-				inputSize={inputSize}
-				objectEntry={objectEntry}
-				updateObjectEntry={updateObjectEntry}
-			/>
-
-			<AssetTags
-				assetLibraryId={assetLibraryId}
-				cmsGroupId={cmsGroupId}
-				hasUpdatePermission={hasUpdatePermission}
-				inputSize={inputSize}
-				key={objectEntry.keywords?.join(',') || 'tags'}
-				objectEntry={objectEntry}
-				updateObjectEntry={updateObjectEntry}
-			/>
-		</>
+		<AssetCategorizationSections
+			assetLibraryId={assetLibraryId}
+			cmsGroupId={cmsGroupId}
+			errorMessage={categoriesErrorMessage}
+			getContent={getContent}
+			hasUpdatePermission={hasUpdatePermission}
+			inputSize={inputSize}
+			objectEntry={objectEntry}
+			updateObjectEntry={updateObjectEntry}
+		/>
 	);
 }
 

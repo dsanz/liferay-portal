@@ -265,3 +265,137 @@ test('User can add, edit, delete properties in category.', async ({
 		await expect(page.getByLabel('value')).toHaveCount(2);
 	});
 });
+
+test(
+	'User can edit the friendly URL of a category',
+	{tag: '@LPD-99566'},
+	async ({
+		apiHelpers,
+		assetCategoriesAdminPage,
+		assetCategoriesEditPage,
+		page,
+		site,
+	}) => {
+		const categoryName = 'category-1';
+		const vocabularyName = 'vocabulary-1';
+
+		await createCategories({
+			apiHelpers,
+			categoryNames: [{name: categoryName}],
+			siteId: site.id,
+			vocabularyName,
+		});
+
+		await assetCategoriesAdminPage.goto(site.friendlyUrlPath);
+
+		await assetCategoriesEditPage.goToFriendlyURLTab(categoryName);
+
+		// The site URL holds the vocabulary, the Commerce one does not
+
+		await expect(
+			page.getByText(`/v/${vocabularyName}/${categoryName}`)
+		).toBeVisible();
+		await expect(page.getByText(`/g/${categoryName}`)).toBeVisible();
+
+		// Both URLs follow the field as it is edited, already normalized
+
+		await assetCategoriesEditPage.fillFriendlyURL('Winter Sports');
+
+		await expect(
+			page.getByText(`/v/${vocabularyName}/winter-sports`)
+		).toBeVisible();
+		await expect(page.getByText('/g/winter-sports')).toBeVisible();
+
+		// Switching language repoints the URLs at that language's friendly URL
+
+		await assetCategoriesEditPage.selectLanguage('es-ES');
+
+		await expect(assetCategoriesEditPage.friendlyURLInput).toBeEmpty();
+		await expect(page.locator('[id$=siteURLTitle]')).toBeEmpty();
+
+		await assetCategoriesEditPage.selectLanguage('en-US');
+
+		// The friendly URL is normalized and kept
+
+		await assetCategoriesEditPage.save();
+
+		await expect(assetCategoriesEditPage.friendlyURLInput).toHaveValue(
+			'winter-sports'
+		);
+	}
+);
+
+test(
+	'User sees the category ID in the site URL when the friendly URL is too long',
+	{tag: '@LPD-102334'},
+	async ({apiHelpers, assetCategoriesEditPage, page, site}) => {
+
+		// A friendly URL holds up to 255 characters, so only a deep chain of
+		// categories takes the site URL over its maximum length
+
+		const namePadding = 'x'.repeat(240);
+		const vocabularyName = 'vocabulary-1';
+
+		const {id: vocabularyId} =
+			await apiHelpers.headlessAdminTaxonomy.postSiteTaxonomyVocabulary({
+				name: vocabularyName,
+				siteId: site.id,
+			});
+
+		let categoryName = `1-${namePadding}`;
+
+		const {id: rootCategoryId} =
+			await apiHelpers.headlessAdminTaxonomy.postTaxonomyVocabularyTaxonomyCategory(
+				{
+					name: categoryName,
+					vocabularyId,
+				}
+			);
+
+		let categoryId = rootCategoryId;
+
+		for (let i = 2; i <= 9; i++) {
+			categoryName = `${i}-${namePadding}`;
+
+			const {id} =
+				await apiHelpers.headlessAdminTaxonomy.postTaxonomyCategoryTaxonomyCategory(
+					{
+						name: categoryName,
+						parentTaxonomyCategoryId: categoryId,
+					}
+				);
+
+			categoryId = id;
+		}
+
+		await assetCategoriesEditPage.gotoEditCategory({
+			categoryId,
+			siteUrl: site.friendlyUrlPath,
+			vocabularyId,
+		});
+
+		// Leaving the details screen before it finishes wiring leaves the
+		// localized input of the next screen without its language dropdown
+
+		await assetCategoriesEditPage.descriptionField.waitFor();
+		await assetCategoriesEditPage.friendlyURLTab.click();
+		await assetCategoriesEditPage.friendlyURLInput.waitFor();
+
+		// The site URL falls back to the category ID, the Commerce one keeps the
+		// friendly URL
+
+		await expect(page.getByText(`/v/${categoryId}`)).toBeVisible();
+		await expect(page.locator('[id$=siteURLTitle]')).toHaveCount(0);
+		await expect(page.locator('[id$=commerceURLTitle]')).toHaveText(
+			categoryName
+		);
+
+		// The site URL no longer holds the friendly URL, so it does not follow
+		// the field
+
+		await assetCategoriesEditPage.fillFriendlyURL('Winter Sports');
+
+		await expect(page.getByText(`/v/${categoryId}`)).toBeVisible();
+		await expect(page.getByText('/g/winter-sports')).toBeVisible();
+	}
+);

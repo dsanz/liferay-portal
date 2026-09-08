@@ -5,29 +5,46 @@
 
 package com.liferay.analytics.cms.rest.resource.v1_0.test;
 
-import com.liferay.analytics.cms.rest.dto.v1_0.Metric;
-import com.liferay.analytics.cms.rest.dto.v1_0.ObjectEntryMetric;
-import com.liferay.analytics.cms.rest.dto.v1_0.Trend;
-import com.liferay.analytics.cms.rest.resource.v1_0.ObjectEntryMetricResource;
-import com.liferay.analytics.settings.configuration.AnalyticsConfiguration;
+import com.liferay.analytics.cms.rest.client.dto.v1_0.Metric;
+import com.liferay.analytics.cms.rest.client.dto.v1_0.ObjectEntryMetric;
+import com.liferay.analytics.cms.rest.client.dto.v1_0.Trend;
+import com.liferay.analytics.cms.rest.client.resource.v1_0.ObjectEntryMetricResource;
+import com.liferay.analytics.test.util.AnalyticsCloudHttpServer;
+import com.liferay.analytics.test.util.AnalyticsCompanyConfigurationTemporarySwapper;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.portal.configuration.test.util.CompanyConfigurationTemporarySwapper;
+import com.liferay.depot.constants.DepotConstants;
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.service.DepotEntryLocalService;
+import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.rest.test.util.ObjectEntryTestUtil;
+import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.util.MockHttp;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
-import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
-import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.test.log.LogCapture;
+import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+
+import java.io.Serializable;
+
+import java.net.HttpURLConnection;
 
 import java.util.Arrays;
 import java.util.Collections;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,89 +64,111 @@ public class ObjectEntryMetricResourceTest
 			new LiferayIntegrationTestRule(),
 			PermissionCheckerMethodTestRule.INSTANCE);
 
+	@Before
+	@Override
+	public void setUp() throws Exception {
+		super.setUp();
+
+		_depotEntry = _depotEntryLocalService.addDepotEntry(
+			Collections.singletonMap(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+			Collections.singletonMap(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+			DepotConstants.TYPE_SPACE,
+			ServiceContextTestUtil.getServiceContext(
+				testGroup.getGroupId(), TestPropsValues.getUserId()));
+
+		_objectEntry = ObjectEntryTestUtil.addObjectEntry(
+			_depotEntry.getGroupId(),
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_CMS_BASIC_WEB_CONTENT", testCompany.getCompanyId()),
+			HashMapBuilder.<String, Serializable>put(
+				"title_i18n",
+				HashMapBuilder.put(
+					"en_US", RandomTestUtil.randomString()
+				).build()
+			).build());
+	}
+
 	@Override
 	@Test
 	public void testGetObjectEntryMetric() throws Exception {
-		long dataSourceId = RandomTestUtil.nextLong();
+		_testGetObjectEntryMetric();
+		_testGetObjectEntryMetricWithInvalidObjectEntryId();
+		_testGetObjectEntryMetricWithUnsyncedGroup();
+		_testGetObjectEntryMetricWithoutViewPermission();
+	}
 
-		try (CompanyConfigurationTemporarySwapper
-				companyConfigurationTemporarySwapper =
-					new CompanyConfigurationTemporarySwapper(
-						testCompany.getCompanyId(),
-						AnalyticsConfiguration.class.getName(),
-						HashMapDictionaryBuilder.<String, Object>put(
-							"liferayAnalyticsDataSourceId", dataSourceId
-						).put(
-							"liferayAnalyticsEnableAllGroupIds", true
-						).put(
-							"liferayAnalyticsFaroBackendSecuritySignature",
-							RandomTestUtil.randomString()
-						).put(
-							"liferayAnalyticsFaroBackendURL",
-							"http://" + RandomTestUtil.randomString()
-						).build())) {
+	private void _testGetObjectEntryMetric() throws Exception {
+		String dataSourceId = RandomTestUtil.randomString();
 
-			ReflectionTestUtil.setFieldValue(
-				_objectEntryMetricResource, "_http",
-				new MockHttp(
-					Collections.singletonMap(
-						"/api/1.0/asset-metric/objectEntry/overview",
-						() -> JSONUtil.put(
-							"dataSourceId", String.valueOf(dataSourceId)
+		try (AnalyticsCloudHttpServer analyticsCloudHttpServer =
+				new AnalyticsCloudHttpServer(
+					"/api/1.0/asset-metric/objectEntry/overview",
+					() -> JSONUtil.put(
+						"dataSourceId", String.valueOf(dataSourceId)
+					).put(
+						"defaultMetric",
+						JSONUtil.put(
+							"metricType", "IMPRESSIONS"
 						).put(
-							"defaultMetric",
+							"previousValue", 1
+						).put(
+							"trend",
 							JSONUtil.put(
-								"metricType", "IMPRESSIONS"
+								"percentage", 100
+							).put(
+								"trendClassification", "NEGATIVE"
+							)
+						).put(
+							"value", 0
+						)
+					).put(
+						"externalReferenceCode", "1"
+					).put(
+						"selectedMetrics",
+						JSONUtil.putAll(
+							JSONUtil.put(
+								"metricType", "DOWNLOADS"
 							).put(
 								"previousValue", 1
 							).put(
 								"trend",
 								JSONUtil.put(
-									"percentage", 100
+									"percentage", 50
 								).put(
-									"trendClassification", "NEGATIVE"
+									"trendClassification", "POSITIVE"
 								)
 							).put(
-								"value", 0
-							)
-						).put(
-							"externalReferenceCode", "1"
-						).put(
-							"selectedMetrics",
-							JSONUtil.putAll(
+								"value", 2
+							),
+							JSONUtil.put(
+								"metricType", "VIEWS"
+							).put(
+								"previousValue", 1
+							).put(
+								"trend",
 								JSONUtil.put(
-									"metricType", "DOWNLOADS"
+									"percentage", 0
 								).put(
-									"previousValue", 1
-								).put(
-									"trend",
-									JSONUtil.put(
-										"percentage", 50
-									).put(
-										"trendClassification", "POSITIVE"
-									)
-								).put(
-									"value", 2
-								),
-								JSONUtil.put(
-									"metricType", "VIEWS"
-								).put(
-									"previousValue", 1
-								).put(
-									"trend",
-									JSONUtil.put(
-										"percentage", 0
-									).put(
-										"trendClassification", "NEUTRAL"
-									)
-								).put(
-									"value", 1
-								))
-						).toString())));
+									"trendClassification", "NEUTRAL"
+								)
+							).put(
+								"value", 1
+							))
+					).toString());
+
+			AnalyticsCompanyConfigurationTemporarySwapper
+				analyticsCompanyConfigurationTemporarySwapper =
+					new AnalyticsCompanyConfigurationTemporarySwapper(
+						testCompany.getCompanyId(), dataSourceId, true,
+						analyticsCloudHttpServer.getURL())) {
 
 			ObjectEntryMetric objectEntryMetric =
-				_objectEntryMetricResource.getObjectEntryMetric(
-					"1", null, RandomTestUtil.nextInt(),
+				objectEntryMetricResource.getObjectEntryMetric(
+					null, _objectEntry.getObjectEntryId(),
+					RandomTestUtil.nextInt(),
 					new String[] {"downloadsMetric", "viewsMetric"});
 
 			Assert.assertEquals(
@@ -190,16 +229,88 @@ public class ObjectEntryMetricResourceTest
 				}
 			}
 		}
-		finally {
-			ReflectionTestUtil.setFieldValue(
-				_objectEntryMetricResource, "_http", _http);
+	}
+
+	private void _testGetObjectEntryMetricWithInvalidObjectEntryId()
+		throws Exception {
+
+		try (AnalyticsCompanyConfigurationTemporarySwapper
+				analyticsCompanyConfigurationTemporarySwapper =
+					new AnalyticsCompanyConfigurationTemporarySwapper(
+						testCompany.getCompanyId(),
+						RandomTestUtil.randomString(), false)) {
+
+			assertHttpResponseStatusCode(
+				HttpURLConnection.HTTP_NOT_FOUND,
+				objectEntryMetricResource.getObjectEntryMetricHttpResponse(
+					null, RandomTestUtil.nextLong(), RandomTestUtil.nextInt(),
+					new String[] {"downloadsMetric", "viewsMetric"}));
 		}
 	}
 
-	@Inject
-	private Http _http;
+	private void _testGetObjectEntryMetricWithoutViewPermission()
+		throws Exception {
+
+		try (AnalyticsCompanyConfigurationTemporarySwapper
+				analyticsCompanyConfigurationTemporarySwapper =
+					new AnalyticsCompanyConfigurationTemporarySwapper(
+						testCompany.getCompanyId(),
+						RandomTestUtil.randomString(), false)) {
+
+			String password = RandomTestUtil.randomString();
+
+			User user = UserTestUtil.addUser(testCompany, password);
+
+			ObjectEntryMetricResource objectEntryMetricResource =
+				ObjectEntryMetricResource.builder(
+				).authentication(
+					user.getEmailAddress(), password
+				).endpoint(
+					testCompany.getVirtualHostname(),
+					PortalUtil.getPortalServerPort(false), "http"
+				).locale(
+					LocaleUtil.getDefault()
+				).build();
+
+			assertHttpResponseStatusCode(
+				HttpURLConnection.HTTP_NOT_FOUND,
+				objectEntryMetricResource.getObjectEntryMetricHttpResponse(
+					null, _objectEntry.getObjectEntryId(),
+					RandomTestUtil.nextInt(),
+					new String[] {"downloadsMetric", "viewsMetric"}));
+		}
+	}
+
+	private void _testGetObjectEntryMetricWithUnsyncedGroup() throws Exception {
+		try (AnalyticsCompanyConfigurationTemporarySwapper
+				analyticsCompanyConfigurationTemporarySwapper =
+					new AnalyticsCompanyConfigurationTemporarySwapper(
+						testCompany.getCompanyId(),
+						RandomTestUtil.randomString(), false);
+			LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				"com.liferay.portal.vulcan.internal.jaxrs.exception.mapper." +
+					"WebApplicationExceptionMapper",
+				LoggerTestUtil.WARN)) {
+
+			assertHttpResponseStatusCode(
+				HttpURLConnection.HTTP_BAD_REQUEST,
+				objectEntryMetricResource.getObjectEntryMetricHttpResponse(
+					testGroup.getGroupId(), _objectEntry.getObjectEntryId(),
+					RandomTestUtil.nextInt(),
+					new String[] {"downloadsMetric", "viewsMetric"}));
+		}
+	}
+
+	@DeleteAfterTestRun
+	private DepotEntry _depotEntry;
 
 	@Inject
-	private ObjectEntryMetricResource _objectEntryMetricResource;
+	private DepotEntryLocalService _depotEntryLocalService;
+
+	@Inject
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@DeleteAfterTestRun
+	private ObjectEntry _objectEntry;
 
 }

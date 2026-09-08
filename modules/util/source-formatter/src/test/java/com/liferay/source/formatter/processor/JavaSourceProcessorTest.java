@@ -69,6 +69,18 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testBouncyCastleFIPS() throws Exception {
+		test(
+			SourceProcessorTestParameters.create(
+				"BouncyCastleFIPS.testjava"
+			).addExpectedMessage(
+				"Do not use non-FIPS BouncyCastle, see LPD-90318", 9
+			).addExpectedMessage(
+				"Do not use non-FIPS BouncyCastle, see LPD-90318", 10
+			));
+	}
+
+	@Test
 	public void testBuilder() throws Exception {
 		test(
 			SourceProcessorTestParameters.create(
@@ -122,6 +134,26 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	@Test
 	public void testConstructorParameterOrder() throws Exception {
 		test("ConstructorParameterOrder.testjava");
+	}
+
+	@Test
+	public void testCredentialBuffer() throws Exception {
+		test(
+			SourceProcessorTestParameters.create(
+				"CredentialBuffer.testjava"
+			).addExpectedMessage(
+				"Assign \"credential.toCharArray()\" to a local variable so " +
+					"that it can be cleared after use, see LPD-93280",
+				22
+			).addExpectedMessage(
+				"Assign \"credential.getBytes()\" to a local variable so " +
+					"that it can be cleared after use, see LPD-93280",
+				26
+			).addExpectedMessage(
+				"Assign \"credential.toCharArray()\" to a local variable so " +
+					"that it can be cleared after use, see LPD-93280",
+				33
+			));
 	}
 
 	@Test
@@ -247,6 +279,18 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testFetchContractCatch() throws Exception {
+		test(
+			"FetchContractCatch.testjava",
+			StringBundler.concat(
+				"Do not catch \"NoSuchUserNotificationEventException\" around ",
+				"the lookup \"userNotificationEventLocalService.getUser",
+				"NotificationEvent\" to signal a missing entity, call the ",
+				"null-tolerant fetch sibling and check for null instead"),
+			29);
+	}
+
+	@Test
 	public void testFormatAnnotations() throws Exception {
 		test("FormatAnnotations1.testjava");
 		test("FormatAnnotations2.testjava");
@@ -329,11 +373,11 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 			SourceProcessorTestParameters.create(
 				"IncorrectImports2.testjava"
 			).addExpectedMessage(
-				"Illegal import: edu.emory.mathcs.backport.java"
+				"Illegal import: edu.emory.mathcs.backport.java", 8
 			).addExpectedMessage(
-				"Illegal import: jodd.util.StringPool"
+				"Use ProxyUtil instead of java.lang.reflect.Proxy", 10
 			).addExpectedMessage(
-				"Use ProxyUtil instead of java.lang.reflect.Proxy"
+				"Illegal import: jodd.util.StringPool", 12
 			));
 	}
 
@@ -587,6 +631,29 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testMetaAnnotationMissingName() throws Exception {
+		test(
+			"MetaAnnotationMissingName.testjava",
+			"Missing attribute \"name\" in \"@Meta.AD\"", 20);
+	}
+
+	@Test
+	public void testMetaAnnotationMissingPasswordType() throws Exception {
+		test(
+			SourceProcessorTestParameters.create(
+				"MetaAnnotationMissingPasswordType.testjava"
+			).addExpectedMessage(
+				"Use \"type = Meta.Type.Password\" in \"@Meta.AD\" for " +
+					"\"apiKey\", which appears to hold a secret",
+				23
+			).addExpectedMessage(
+				"Use \"type = Meta.Type.Password\" in \"@Meta.AD\" for " +
+					"\"clientSecret\", which appears to hold a secret",
+				26
+			));
+	}
+
+	@Test
 	public void testMethodEquals() throws Exception {
 		test(
 			SourceProcessorTestParameters.create(
@@ -824,6 +891,41 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 	}
 
 	@Test
+	public void testRedundantContainsCalls() throws Exception {
+		test(
+			SourceProcessorTestParameters.create(
+				"RedundantContainsCalls.testjava"
+			).addExpectedMessage(
+				"Combine the \"containsKey\" check on \"map\" and the " +
+					"following \"put\" into a single \"putIfAbsent\" or \"" +
+						"computeIfAbsent\"",
+				20
+			).addExpectedMessage(
+				"Combine the \"containsKey\" check on \"map\" and the " +
+					"following \"get\" into a single \"get\" with a null check",
+				30
+			).addExpectedMessage(
+				"Combine the \"containsKey\" check on \"map\" and the " +
+					"following \"remove\" into a single \"remove\" with a " +
+						"null check",
+				38
+			).addExpectedMessage(
+				"Combine the \"contains\" check on \"set\" and the following " +
+					"\"add\" into the boolean result of a single \"add\"",
+				46
+			).addExpectedMessage(
+				"Combine the \"contains\" check on \"set\" and the following " +
+					"\"remove\" into the boolean result of a single \"remove\"",
+				52
+			).addExpectedMessage(
+				"Combine the \"contains\" check on \"list\" and the " +
+					"following \"remove\" into the boolean result of a " +
+						"single \"remove\"",
+				58
+			));
+	}
+
+	@Test
 	public void testRedundantLog() throws Exception {
 		test(
 			"RedundantLog.testjava",
@@ -896,6 +998,18 @@ public class JavaSourceProcessorTest extends BaseSourceProcessorTestCase {
 			"Use SecureRandomUtil or com.liferay.portal.kernel.security." +
 				"SecureRandom instead of java.security.SecureRandom, see " +
 					"LPS-39508");
+	}
+
+	@Test
+	public void testServiceImplGetFetch() throws Exception {
+		test(
+			"GetFetchServiceImpl.testjava",
+			StringBundler.concat(
+				"Method \"getDefaultPasswordPolicy\" returns a nullable fetch ",
+				"result, which its \"get\" name promises will never be null; ",
+				"return a throwing find (raising a NoSuch*Exception) or ",
+				"rename the method to \"fetch\""),
+			19);
 	}
 
 	@Test

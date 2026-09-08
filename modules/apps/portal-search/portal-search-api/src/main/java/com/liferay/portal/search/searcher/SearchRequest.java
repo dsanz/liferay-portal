@@ -116,6 +116,8 @@ public interface SearchRequest {
 
 	public String[] getStoredFields();
 
+	public Integer getTrackTotalHitsLimit();
+
 	public boolean isBasicFacetSelection();
 
 	public boolean isEmptySearchEnabled();

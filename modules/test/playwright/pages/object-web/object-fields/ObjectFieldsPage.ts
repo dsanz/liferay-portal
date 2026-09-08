@@ -252,6 +252,17 @@ export class ObjectFieldsPage {
 		await waitForPageToBeLoaded(this.page);
 	}
 
+	async saveObjectFieldReturningNavigation() {
+		const navigation = this.page.waitForNavigation({
+			timeout: 10000,
+			waitUntil: 'load',
+		});
+
+		await this.editFieldSaveButton.click();
+
+		return {navigation};
+	}
+
 	async selectDefaultValue(value: string) {
 		await this.selectOptionButton.click();
 

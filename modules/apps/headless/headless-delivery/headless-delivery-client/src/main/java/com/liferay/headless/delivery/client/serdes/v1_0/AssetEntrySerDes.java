@@ -10,6 +10,9 @@ import com.liferay.headless.delivery.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Objects;
@@ -43,6 +46,9 @@ public class AssetEntrySerDes {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("{");
+
+		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (assetEntry.getAssetEntryId() != null) {
 			if (sb.length() > 1) {
@@ -102,6 +108,31 @@ public class AssetEntrySerDes {
 			sb.append(assetEntry.getClassPK());
 		}
 
+		if (assetEntry.getCreator() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"creator\": ");
+
+			sb.append(String.valueOf(assetEntry.getCreator()));
+		}
+
+		if (assetEntry.getDateModified() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"dateModified\": ");
+
+			sb.append("\"");
+
+			sb.append(
+				liferayToJSONDateFormat.format(assetEntry.getDateModified()));
+
+			sb.append("\"");
+		}
+
 		if (assetEntry.getDescription() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -128,6 +159,36 @@ public class AssetEntrySerDes {
 			sb.append(_escape(assetEntry.getGroupDescriptiveName()));
 
 			sb.append("\"");
+		}
+
+		if (assetEntry.getPermissions() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"permissions\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < assetEntry.getPermissions().length; i++) {
+				sb.append(assetEntry.getPermissions()[i]);
+
+				if ((i + 1) < assetEntry.getPermissions().length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
+		if (assetEntry.getStatus() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"status\": ");
+
+			sb.append(assetEntry.getStatus());
 		}
 
 		if (assetEntry.getTitle() != null) {
@@ -161,6 +222,9 @@ public class AssetEntrySerDes {
 		}
 
 		Map<String, String> map = new TreeMap<>();
+
+		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
+			"yyyy-MM-dd'T'HH:mm:ssXX");
 
 		if (assetEntry.getAssetEntryId() == null) {
 			map.put("assetEntryId", null);
@@ -198,6 +262,22 @@ public class AssetEntrySerDes {
 			map.put("classPK", String.valueOf(assetEntry.getClassPK()));
 		}
 
+		if (assetEntry.getCreator() == null) {
+			map.put("creator", null);
+		}
+		else {
+			map.put("creator", String.valueOf(assetEntry.getCreator()));
+		}
+
+		if (assetEntry.getDateModified() == null) {
+			map.put("dateModified", null);
+		}
+		else {
+			map.put(
+				"dateModified",
+				liferayToJSONDateFormat.format(assetEntry.getDateModified()));
+		}
+
 		if (assetEntry.getDescription() == null) {
 			map.put("description", null);
 		}
@@ -212,6 +292,20 @@ public class AssetEntrySerDes {
 			map.put(
 				"groupDescriptiveName",
 				String.valueOf(assetEntry.getGroupDescriptiveName()));
+		}
+
+		if (assetEntry.getPermissions() == null) {
+			map.put("permissions", null);
+		}
+		else {
+			map.put("permissions", String.valueOf(assetEntry.getPermissions()));
+		}
+
+		if (assetEntry.getStatus() == null) {
+			map.put("status", null);
+		}
+		else {
+			map.put("status", String.valueOf(assetEntry.getStatus()));
 		}
 
 		if (assetEntry.getTitle() == null) {
@@ -254,12 +348,24 @@ public class AssetEntrySerDes {
 			else if (Objects.equals(jsonParserFieldName, "classPK")) {
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "creator")) {
+				return false;
+			}
+			else if (Objects.equals(jsonParserFieldName, "dateModified")) {
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "description")) {
 				return false;
 			}
 			else if (Objects.equals(
 						jsonParserFieldName, "groupDescriptiveName")) {
 
+				return false;
+			}
+			else if (Objects.equals(jsonParserFieldName, "permissions")) {
+				return false;
+			}
+			else if (Objects.equals(jsonParserFieldName, "status")) {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "title")) {
@@ -302,6 +408,18 @@ public class AssetEntrySerDes {
 						Long.valueOf((String)jsonParserFieldValue));
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "creator")) {
+				if (jsonParserFieldValue != null) {
+					assetEntry.setCreator(
+						CreatorSerDes.toDTO((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "dateModified")) {
+				if (jsonParserFieldValue != null) {
+					assetEntry.setDateModified(
+						toDate((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "description")) {
 				if (jsonParserFieldValue != null) {
 					assetEntry.setDescription((String)jsonParserFieldValue);
@@ -313,6 +431,32 @@ public class AssetEntrySerDes {
 				if (jsonParserFieldValue != null) {
 					assetEntry.setGroupDescriptiveName(
 						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "permissions")) {
+				if (jsonParserFieldValue != null) {
+					Object[] jsonParserFieldValues =
+						(Object[])jsonParserFieldValue;
+
+					com.liferay.headless.delivery.client.permission.Permission[]
+						permissionsArray = new
+						com.liferay.headless.delivery.client.permission.
+							Permission[jsonParserFieldValues.length];
+
+					for (int i = 0; i < permissionsArray.length; i++) {
+						permissionsArray[i] =
+							com.liferay.headless.delivery.client.permission.
+								Permission.toDTO(
+									(String)jsonParserFieldValues[i]);
+					}
+
+					assetEntry.setPermissions(permissionsArray);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "status")) {
+				if (jsonParserFieldValue != null) {
+					assetEntry.setStatus(
+						Integer.valueOf((String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "title")) {
@@ -401,4 +545,4 @@ public class AssetEntrySerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-953940785
+// LIFERAY-REST-BUILDER-HASH:-1196076573

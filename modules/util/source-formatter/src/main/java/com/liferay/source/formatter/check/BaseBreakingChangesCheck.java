@@ -13,11 +13,15 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.tools.GitUtil;
 import com.liferay.source.formatter.SourceFormatterArgs;
 import com.liferay.source.formatter.check.util.SourceUtil;
+import com.liferay.source.formatter.processor.SourceProcessor;
 
 import java.io.IOException;
 
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Alan Huang
@@ -109,51 +113,26 @@ public abstract class BaseBreakingChangesCheck extends BaseFileCheck {
 		}
 	}
 
-	protected void checkCommitMessages(
-			String fileName, String absolutePath,
-			SourceFormatterArgs sourceFormatterArgs, String additionalMessage)
+	protected void checkMajorVersionBump(
+			String fileName, String absolutePath, String content,
+			String additionalMessage)
 		throws Exception {
 
-		List<String> commitMessages = GitUtil.getCurrentBranchCommitMessages(
-			sourceFormatterArgs.getBaseDirName(),
-			sourceFormatterArgs.getGitWorkingBranchName());
+		String oldVersion = _getMajorVersion(
+			getPortalContent(fileName, absolutePath, true));
 
-		Iterator<String> iterator = commitMessages.iterator();
-
-		while (iterator.hasNext()) {
-			String commitMessage = iterator.next();
-
-			String[] parts = commitMessage.split(":", 2);
-
-			if (!parts[1].contains("# breaking")) {
-				iterator.remove();
-			}
-		}
-
-		if (commitMessages.isEmpty()) {
-			addMessage(
-				fileName,
-				"Incorrect commit message: Missing breaking change in commit " +
-					"messages when " + additionalMessage);
-
+		if (Validator.isBlank(oldVersion)) {
 			return;
 		}
 
-		for (String commitMessage : commitMessages) {
-			String[] parts = commitMessage.split(":", 2);
+		String version = _getMajorVersion(content);
 
-			if (!parts[1].contains("# breaking")) {
-				continue;
-			}
+		if (Validator.isBlank(version)) {
+			return;
+		}
 
-			String message =
-				"Incorrect commit message in SHA " + parts[0] + ": ";
-
-			checkMissingEmptyLinesAroundHeaders(fileName, parts[1], message);
-
-			checkBreakingChanges(
-				fileName, absolutePath, parts[1].split("\n----"), message,
-				true);
+		if (Integer.valueOf(version) > Integer.valueOf(oldVersion)) {
+			_checkCommitMessages(fileName, absolutePath, additionalMessage);
 		}
 	}
 
@@ -207,19 +186,70 @@ public abstract class BaseBreakingChangesCheck extends BaseFileCheck {
 		}
 	}
 
-	protected synchronized List<String> getCurrentBranchFileNames(
-			SourceFormatterArgs sourceFormatterArgs)
+	protected List<String> getCurrentBranchCommitMessages() throws Exception {
+
+		// The cache is static, so it is shared by every check that reads it and
+		// the lock has to be too. Hand back an unmodifiable view, since a
+		// caller that filters the cache in place corrupts it for everyone else.
+
+		synchronized (BaseBreakingChangesCheck.class) {
+			if (_currentBranchCommitMessages != null) {
+				return _currentBranchCommitMessages;
+			}
+
+			SourceProcessor sourceProcessor = getSourceProcessor();
+
+			SourceFormatterArgs sourceFormatterArgs =
+				sourceProcessor.getSourceFormatterArgs();
+
+			_currentBranchCommitMessages = Collections.unmodifiableList(
+				GitUtil.getCurrentBranchCommitMessages(
+					sourceFormatterArgs.getBaseDirName(),
+					sourceFormatterArgs.getGitWorkingBranchName()));
+
+			return _currentBranchCommitMessages;
+		}
+	}
+
+	protected Pattern getVersionPattern() {
+		return null;
+	}
+
+	private void _checkCommitMessages(
+			String fileName, String absolutePath, String additionalMessage)
 		throws Exception {
 
-		if (_currentBranchFileNames != null) {
-			return _currentBranchFileNames;
+		List<String> breakingChangeCommitMessages = new ArrayList<>();
+
+		for (String commitMessage : getCurrentBranchCommitMessages()) {
+			String[] parts = commitMessage.split(":", 2);
+
+			if (parts[1].contains("# breaking")) {
+				breakingChangeCommitMessages.add(commitMessage);
+			}
 		}
 
-		_currentBranchFileNames = GitUtil.getCurrentBranchFileNames(
-			sourceFormatterArgs.getBaseDirName(),
-			sourceFormatterArgs.getGitWorkingBranchName());
+		if (breakingChangeCommitMessages.isEmpty()) {
+			addMessage(
+				fileName,
+				"Incorrect commit message: Missing breaking change in commit " +
+					"messages when " + additionalMessage);
 
-		return _currentBranchFileNames;
+			return;
+		}
+
+		for (String commitMessage : breakingChangeCommitMessages) {
+			String[] parts = commitMessage.split(":", 2);
+
+			String message =
+				"Incorrect commit message in SHA " + parts[0] + ": ";
+
+			checkMissingEmptyLinesAroundHeaders(fileName, parts[1], message);
+
+			checkBreakingChanges(
+				fileName, absolutePath, parts[1].split("\n----"), message,
+				true);
+		}
 	}
 
 	private void _checkMissingExplanation(
@@ -252,6 +282,30 @@ public abstract class BaseBreakingChangesCheck extends BaseFileCheck {
 		}
 	}
 
+	private String _getMajorVersion(String content) {
+		if (Validator.isBlank(content)) {
+			return null;
+		}
+
+		Pattern versionPattern = getVersionPattern();
+
+		Matcher matcher = versionPattern.matcher(content);
+
+		if (!matcher.find()) {
+			return null;
+		}
+
+		String version = matcher.group(1);
+
+		int index = version.indexOf(".");
+
+		if (index == -1) {
+			return version;
+		}
+
+		return version.substring(0, index);
+	}
+
 	private static final String[] _BREAKING_CHANGE_HEADER_NAMES = {
 		"----", "## Alternatives", "# breaking", "## What", "## Why"
 	};
@@ -259,6 +313,6 @@ public abstract class BaseBreakingChangesCheck extends BaseFileCheck {
 	private static final String _LIFERAY_PORTAL_MASTER_URL =
 		"https://github.com/liferay/liferay-portal/blob/master/";
 
-	private static List<String> _currentBranchFileNames;
+	private static List<String> _currentBranchCommitMessages;
 
 }

@@ -30,6 +30,10 @@ public class BreadcrumbTag extends IncludeTag {
 		return _cssClass;
 	}
 
+	public boolean isSkipEntryContributors() {
+		return _skipEntryContributors;
+	}
+
 	public void setBreadcrumbEntries(List<BreadcrumbEntry> breadcrumbEntries) {
 		_breadcrumbEntries = breadcrumbEntries;
 	}
@@ -45,12 +49,17 @@ public class BreadcrumbTag extends IncludeTag {
 		setServletContext(ServletContextUtil.getServletContext());
 	}
 
+	public void setSkipEntryContributors(boolean skipEntryContributors) {
+		_skipEntryContributors = skipEntryContributors;
+	}
+
 	@Override
 	protected void cleanUp() {
 		super.cleanUp();
 
 		_breadcrumbEntries = new ArrayList<>();
 		_cssClass = StringPool.BLANK;
+		_skipEntryContributors = false;
 	}
 
 	@Override
@@ -60,10 +69,16 @@ public class BreadcrumbTag extends IncludeTag {
 
 	@Override
 	protected void setAttributes(HttpServletRequest httpServletRequest) {
+		List<BreadcrumbEntry> breadcrumbEntries = _breadcrumbEntries;
+
+		if (!_skipEntryContributors) {
+			breadcrumbEntries = BreadcrumbEntryContributorUtil.contribute(
+				_breadcrumbEntries, httpServletRequest);
+		}
+
 		httpServletRequest.setAttribute(
 			"liferay-site-navigation:breadcrumb:breadcrumbEntries",
-			BreadcrumbEntryContributorUtil.contribute(
-				_breadcrumbEntries, httpServletRequest));
+			breadcrumbEntries);
 		httpServletRequest.setAttribute(
 			"liferay-site-navigation:breadcrumb:cssClass", _cssClass);
 	}
@@ -72,5 +87,6 @@ public class BreadcrumbTag extends IncludeTag {
 
 	private List<BreadcrumbEntry> _breadcrumbEntries = new ArrayList<>();
 	private String _cssClass = StringPool.BLANK;
+	private boolean _skipEntryContributors;
 
 }

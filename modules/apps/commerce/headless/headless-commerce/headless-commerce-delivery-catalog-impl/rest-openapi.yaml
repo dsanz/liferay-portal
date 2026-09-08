@@ -91,6 +91,16 @@ components:
                 minLength: 1
                 type: string
             style: simple
+        nestedFieldsQueryParam:
+            in: query
+            description:
+                Comma-separated list of nested fields to embed in each returned resource. Each value names a relationship exposed on the resource; when omitted, those relationships are not expanded inline.
+            explode: true
+            name: nestedFields
+            required: false
+            schema:
+                type: string
+            style: form
         pageQueryParam:
             in: query
             description:
@@ -336,7 +346,7 @@ components:
                     type: string
                 dateModified:
                     description:
-                        Last-modification timestamp in ISO 8601 (UTC). Filterable and sortable via the OData query parameters. Read-only; updated on every save.
+                        Last modification timestamp in ISO 8601 (UTC). Filterable and sortable via the OData query parameters. Read-only; updated on every save.
                     example: 2017-08-21T19:30:00Z
                     format: date-time
                     readOnly: true
@@ -458,15 +468,15 @@ components:
                     type: array
                 displayDate:
                     description:
-                        Date from which the attachment becomes visible to storefront callers, in ISO 8601 (date only). Optional; absent means visible immediately.
-                    example: 2017-07-21
-                    format: date
+                        Date and time from which the attachment becomes visible to storefront callers, in ISO 8601. Optional; absent means visible immediately.
+                    example: 2017-07-21T19:30:00Z
+                    format: date-time
                     type: string
                 expirationDate:
                     description:
-                        Date after which the attachment is no longer visible to storefront callers, in ISO 8601 (date only). Ignored when neverExpire is true.
-                    example: 2017-08-21
-                    format: date
+                        Date and time after which the attachment is no longer visible to storefront callers, in ISO 8601. Ignored when neverExpire is true.
+                    example: 2017-08-21T19:30:00Z
+                    format: date-time
                     type: string
                 externalReferenceCode:
                     description:
@@ -1102,8 +1112,8 @@ components:
                 createDate:
                     description:
                         Product creation timestamp in ISO 8601 (UTC). Filterable and sortable via the OData query parameters.
-                    example: 2017-07-21
-                    format: date
+                    example: 2017-07-21T19:30:00Z
+                    format: date-time
                     type: string
                 customFields:
                     description:
@@ -1166,8 +1176,8 @@ components:
                 modifiedDate:
                     description:
                         Timestamp of the last product modification in ISO 8601 (UTC). Filterable and sortable via the OData query parameters.
-                    example: 2017-08-21
-                    format: date
+                    example: 2017-08-21T19:30:00Z
+                    format: date-time
                     type: string
                 multipleOrderQuantity:
                     description:
@@ -1727,15 +1737,15 @@ components:
                     type: boolean
                 discontinuedDate:
                     description:
-                        Date the SKU was marked discontinued, in ISO 8601 (date only).
-                    example: 2017-07-21
-                    format: date
+                        Date and time the SKU was marked discontinued, in ISO 8601.
+                    example: 2017-07-21T19:30:00Z
+                    format: date-time
                     type: string
                 displayDate:
                     description:
-                        Date from which the SKU becomes visible to buyers, in ISO 8601 (date only).
-                    example: 2017-07-21
-                    format: date
+                        Date and time from which the SKU becomes visible to buyers, in ISO 8601.
+                    example: 2017-07-21T19:30:00Z
+                    format: date-time
                     type: string
                 displayDiscountLevels:
                     description:
@@ -1744,9 +1754,9 @@ components:
                     type: boolean
                 expirationDate:
                     description:
-                        Date after which the SKU is no longer visible to buyers, in ISO 8601 (date only). Ignored when neverExpire is true.
-                    example: 2017-08-21
-                    format: date
+                        Date and time after which the SKU is no longer visible to buyers, in ISO 8601. Ignored when neverExpire is true.
+                    example: 2017-08-21T19:30:00Z
+                    format: date-time
                     type: string
                 externalReferenceCode:
                     description:
@@ -2125,7 +2135,7 @@ components:
                     type: integer
 info:
     description:
-        "Storefront REST API for the Liferay Commerce delivery (buyer-facing) catalog domain. Exposes channel-scoped read access to products, SKUs, prices, availability, attachments, categories, specifications, related and linked products, shop-by-diagram pins and mapped products, currencies, accounts, and wish lists, and supports write access for wish-list lifecycle and account creation under a channel. -- Primary entities: Channel, Account, Product, Sku, ProductOption, ProductOptionValue, ProductSpecification, RelatedProduct, LinkedProduct, MappedProduct, Pin, Attachment, Category, Currency, WishList, WishListItem. -- Perspective: buyer-facing (delivery) storefront. Every product, SKU, price, and availability response is computed under a CommerceContext keyed by the addressed channel, the resolved account (via AccountUtil) and the request locale. For the merchant-facing (admin) side of the same domain see headless-commerce-admin-catalog; for cart and checkout see headless-commerce-delivery-cart and headless-commerce-delivery-order. -- Common workflows: Browse the storefront catalog -- (1) GET /channels to enumerate CommerceChannel entries visible to the caller and pick a channelId; (2) GET /channels/<channelId>/products with `filter`, `search`, `sort`, `page`, and `pageSize` to page through the channel's published catalog; (3) GET /channels/<channelId>/products/<productId> (or /channels/<channelId>/products/by-friendly-url-path/<path>) for the product detail, then GET the product's attachments, images, categories, product-specifications, related products, linked products, and product-options to assemble the product page. -- Resolve a configurable product to a purchasable SKU -- (1) GET /channels/<channelId>/products/<productId>/product-options to enumerate the product's option groups and GET the product-option-values for each option; (2) POST /channels/<channelId>/products/<productId>/skus/by-sku-option with the selected option-value IDs to resolve the matching Sku, including channel- and account-scoped price and availability; (3) GET /channels/<channelId>/products/<productId>/skus/<skuId> to refetch the resolved SKU on demand. -- Browse a shop-by-diagram product -- (1) GET /channels/<channelId>/products/<productId>/pins to enumerate the diagram hotspots defined on a parent product; (2) GET /channels/<channelId>/products/<productId>/mapped-products to fetch the child products mapped behind each pin and feed them back into the product detail flow above. -- Onboard a buyer account under a channel -- (1) GET /channels/<channelId>/accounts to confirm the caller does not already have a matching account; (2) POST /channels/<channelId>/accounts with the buyer profile to create the Account that becomes the CommerceContext account on subsequent price and availability calls. -- Manage a buyer wish list -- (1) POST /channels/<channelId>/wishlists (or POST /channels/by-externalReferenceCode/<externalReferenceCode>/wishlists) to create a wish list under the channel; (2) POST /wishlists/<wishListId>/wishlist-items with a productId/skuId pair to add an item; (3) PATCH /wishlists/<wishListId> (JSON Merge Patch) to rename the list or toggle the default flag; (4) DELETE /wishlist-items/<wishListItemId> to remove a single item or DELETE /wishlists/<wishListId> to remove the entire list. A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.commerce.delivery.catalog.client', and version '4.0.66'."
+        "Storefront REST API for the Liferay Commerce delivery (buyer-facing) catalog domain. Exposes channel-scoped read access to products, SKUs, prices, availability, attachments, categories, specifications, related and linked products, shop-by-diagram pins and mapped products, currencies, accounts, and wish lists, and supports write access for wish-list lifecycle and account creation under a channel. -- Primary entities: Channel, Account, Product, Sku, ProductOption, ProductOptionValue, ProductSpecification, RelatedProduct, LinkedProduct, MappedProduct, Pin, Attachment, Category, Currency, WishList, WishListItem. -- Perspective: buyer-facing (delivery) storefront. Every product, SKU, price, and availability response is computed under a CommerceContext keyed by the addressed channel, the resolved account (via AccountUtil) and the request locale. For the merchant-facing (admin) side of the same domain see headless-commerce-admin-catalog; for cart and checkout see headless-commerce-delivery-cart and headless-commerce-delivery-order. -- Common workflows: Browse the storefront catalog -- (1) GET /channels to enumerate CommerceChannel entries visible to the caller and pick a channelId; (2) GET /channels/<channelId>/products with `filter`, `search`, `sort`, `page`, and `pageSize` to page through the channel's published catalog; (3) GET /channels/<channelId>/products/<productId> (or /channels/<channelId>/products/by-friendly-url-path/<path>) for the product detail, then GET the product's attachments, images, categories, product-specifications, related products, linked products, and product-options to assemble the product page. -- Resolve a configurable product to a purchasable SKU -- (1) GET /channels/<channelId>/products/<productId>/product-options to enumerate the product's option groups and GET the product-option-values for each option; (2) POST /channels/<channelId>/products/<productId>/skus/by-sku-option with the selected option-value IDs to resolve the matching Sku, including channel- and account-scoped price and availability; (3) GET /channels/<channelId>/products/<productId>/skus/<skuId> to refetch the resolved SKU on demand. -- Browse a shop-by-diagram product -- (1) GET /channels/<channelId>/products/<productId>/pins to enumerate the diagram hotspots defined on a parent product; (2) GET /channels/<channelId>/products/<productId>/mapped-products to fetch the child products mapped behind each pin and feed them back into the product detail flow above. -- Onboard a buyer account under a channel -- (1) GET /channels/<channelId>/accounts to confirm the caller does not already have a matching account; (2) POST /channels/<channelId>/accounts with the buyer profile to create the Account that becomes the CommerceContext account on subsequent price and availability calls. -- Manage a buyer wish list -- (1) POST /channels/<channelId>/wishlists (or POST /channels/by-externalReferenceCode/<externalReferenceCode>/wishlists) to create a wish list under the channel; (2) POST /wishlists/<wishListId>/wishlist-items with a productId/skuId pair to add an item; (3) PATCH /wishlists/<wishListId> (JSON Merge Patch) to rename the list or toggle the default flag; (4) DELETE /wishlist-items/<wishListItemId> to remove a single item or DELETE /wishlists/<wishListId> to remove the entire list. A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.commerce.delivery.catalog.client', and version '4.0.67'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -2898,6 +2908,7 @@ paths:
                 -   $ref: "#/components/parameters/externalReferenceCodePathParam"
                 -   $ref: "#/components/parameters/accountIdQueryParam"
                 -   $ref: "#/components/parameters/currencyCodeQueryParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
                 -   $ref: "#/components/parameters/pageQueryParam"
                 -   $ref: "#/components/parameters/pageSizeQueryParam"
             responses:
@@ -3242,6 +3253,7 @@ paths:
                 -   $ref: "#/components/parameters/channelIdPathParam"
                 -   $ref: "#/components/parameters/accountIdQueryParam"
                 -   $ref: "#/components/parameters/filterQueryParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
                 -   $ref: "#/components/parameters/pageQueryParam"
                 -   $ref: "#/components/parameters/pageSizeQueryParam"
                 -   $ref: "#/components/parameters/searchQueryParam"
@@ -3303,6 +3315,7 @@ paths:
                 -   $ref: "#/components/parameters/channelIdPathParam"
                 -   $ref: "#/components/parameters/friendlyUrlPathPathParam"
                 -   $ref: "#/components/parameters/accountIdQueryParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
             responses:
                 200:
                     content:
@@ -3366,6 +3379,7 @@ paths:
                 -   $ref: "#/components/parameters/channelIdPathParam"
                 -   $ref: "#/components/parameters/productIdPathParam"
                 -   $ref: "#/components/parameters/accountIdQueryParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
             responses:
                 200:
                     content:
@@ -4428,6 +4442,7 @@ paths:
                 -   $ref: "#/components/parameters/channelIdPathParam"
                 -   $ref: "#/components/parameters/accountIdQueryParam"
                 -   $ref: "#/components/parameters/currencyCodeQueryParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
                 -   $ref: "#/components/parameters/pageQueryParam"
                 -   $ref: "#/components/parameters/pageSizeQueryParam"
             responses:
@@ -4723,6 +4738,7 @@ paths:
             operationId: getWishList
             parameters:
                 -   $ref: "#/components/parameters/wishListIdPathParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
             responses:
                 200:
                     content:

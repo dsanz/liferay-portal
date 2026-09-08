@@ -5,8 +5,6 @@
 
 package com.liferay.commerce.machine.learning.forecast.alert.web.internal.display.context;
 
-import com.liferay.account.model.AccountEntry;
-import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.commerce.machine.learning.forecast.alert.constants.CommerceMLForecastAlertActionKeys;
 import com.liferay.commerce.machine.learning.forecast.alert.constants.CommerceMLForecastAlertConstants;
 import com.liferay.commerce.machine.learning.forecast.alert.model.CommerceMLForecastAlertEntry;
@@ -14,8 +12,6 @@ import com.liferay.commerce.machine.learning.forecast.alert.service.CommerceMLFo
 import com.liferay.commerce.machine.learning.forecast.alert.web.internal.display.context.helper.CommerceMLForecastAlertEntryRequestHelper;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
@@ -29,29 +25,16 @@ import jakarta.portlet.RenderRequest;
 public class CommerceMLForecastAlertEntryListDisplayContext {
 
 	public CommerceMLForecastAlertEntryListDisplayContext(
-		AccountEntryLocalService accountEntryLocalService,
 		CommerceMLForecastAlertEntryService commerceMLForecastAlertEntryService,
 		PortletResourcePermission portletResourcePermission,
 		RenderRequest renderRequest) {
 
-		_accountEntryLocalService = accountEntryLocalService;
 		_commerceMLForecastAlertEntryService =
 			commerceMLForecastAlertEntryService;
 		_portletResourcePermission = portletResourcePermission;
 
 		_commerceMLForecastAlertEntryRequestHelper =
 			new CommerceMLForecastAlertEntryRequestHelper(renderRequest);
-	}
-
-	public AccountEntry getAccountEntry(long accountEntryId) {
-		try {
-			return _accountEntryLocalService.getAccountEntry(accountEntryId);
-		}
-		catch (PortalException portalException) {
-			_log.error(portalException);
-
-			return null;
-		}
 	}
 
 	public PortletURL getPortletURL() {
@@ -107,10 +90,6 @@ public class CommerceMLForecastAlertEntryListDisplayContext {
 			CommerceMLForecastAlertActionKeys.VIEW_ALERTS);
 	}
 
-	private static final Log _log = LogFactoryUtil.getLog(
-		CommerceMLForecastAlertEntryListDisplayContext.class);
-
-	private final AccountEntryLocalService _accountEntryLocalService;
 	private final CommerceMLForecastAlertEntryRequestHelper
 		_commerceMLForecastAlertEntryRequestHelper;
 	private final CommerceMLForecastAlertEntryService

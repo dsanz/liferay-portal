@@ -11,6 +11,7 @@ export type ObjectField = {
 		| 'Decimal'
 		| 'Date'
 		| 'DateTime'
+		| 'EmailAddress'
 		| 'Integer'
 		| 'MultiselectPicklist'
 		| 'Long'
@@ -60,11 +61,15 @@ export type ObjectDefinition = {
 	enableObjectEntrySchedule: boolean;
 	enableObjectEntryVersioning: boolean;
 	externalReferenceCode: string;
+	friendlyURLSeparator?: string;
 	id?: number;
 	label: Liferay.Language.LocalizedValue<string>;
 	name?: string;
 	objectDefinitionSettings?: {
-		name: 'acceptedGroupExternalReferenceCodes' | 'acceptAllGroups';
+		name:
+			| 'acceptAllGroups'
+			| 'acceptedGroupExternalReferenceCodes'
+			| 'allowStandaloneObjectEntry';
 		value: string;
 	}[];
 	objectFields?: ObjectField[];

@@ -10,6 +10,7 @@ import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.depot.exception.DepotEntryGroupException;
 import com.liferay.depot.exception.DepotEntryNameException;
 import com.liferay.depot.exception.DepotEntryStagedException;
+import com.liferay.depot.internal.util.DepotRoleNameUtil;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.model.DepotEntryGroupRel;
 import com.liferay.depot.model.DepotEntryTable;
@@ -144,7 +145,10 @@ public class DepotEntryLocalServiceImpl extends DepotEntryLocalServiceBaseImpl {
 
 		if (!user.isGuestUser()) {
 			Role role = _roleLocalService.getRole(
-				group.getCompanyId(), DepotRolesConstants.ASSET_LIBRARY_OWNER);
+				group.getCompanyId(),
+				DepotRoleNameUtil.getOwnerRoleName(
+					group.getCompanyId(),
+					DepotRolesConstants.getSubtype(type)));
 
 			_userGroupRoleLocalService.addUserGroupRoles(
 				user.getUserId(), group.getGroupId(),
@@ -342,7 +346,7 @@ public class DepotEntryLocalServiceImpl extends DepotEntryLocalServiceBaseImpl {
 		return TransformUtil.transform(
 			_depotEntryGroupRelPersistence.findByDDMSA_TGI(
 				ddmStructuresAvailable, groupId, start, end),
-			depotEntryGroupRel -> depotEntryLocalService.getDepotEntry(
+			depotEntryGroupRel -> depotEntryPersistence.findByPrimaryKey(
 				depotEntryGroupRel.getDepotEntryId()));
 	}
 
@@ -353,7 +357,7 @@ public class DepotEntryLocalServiceImpl extends DepotEntryLocalServiceBaseImpl {
 
 		return TransformUtil.transform(
 			_getDepotEntryGroupRels(groupId, type, start, end),
-			depotEntryGroupRel -> depotEntryLocalService.getDepotEntry(
+			depotEntryGroupRel -> depotEntryPersistence.findByPrimaryKey(
 				depotEntryGroupRel.getDepotEntryId()));
 	}
 
@@ -375,7 +379,7 @@ public class DepotEntryLocalServiceImpl extends DepotEntryLocalServiceBaseImpl {
 	public DepotEntry updateDepotEntry(
 			long depotEntryId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap,
-			Map<String, Boolean> depotAppCustomizationMap,
+			Map<String, Boolean> depotAppCustomizationMap, String friendlyURL,
 			UnicodeProperties typeSettingsUnicodeProperties,
 			ServiceContext serviceContext)
 		throws PortalException {
@@ -432,10 +436,14 @@ public class DepotEntryLocalServiceImpl extends DepotEntryLocalServiceBaseImpl {
 			nameMap.put(locale, defaultName);
 		}
 
+		if (Validator.isNull(friendlyURL)) {
+			friendlyURL = group.getFriendlyURL();
+		}
+
 		group = _groupLocalService.updateGroup(
 			depotEntry.getGroupId(), group.getParentGroupId(), nameMap,
 			descriptionMap, group.getType(), null, group.isManualMembership(),
-			group.getMembershipRestriction(), group.getFriendlyURL(),
+			group.getMembershipRestriction(), friendlyURL,
 			group.isInheritContent(), group.isActive(), serviceContext);
 
 		_groupLocalService.updateGroup(

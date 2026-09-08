@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -121,6 +122,8 @@ public abstract class BaseAccountGroupResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -695,7 +698,7 @@ public abstract class BaseAccountGroupResourceTestCase {
 				accountId, randomAccountGroup());
 
 		page = accountGroupResource.getAccountAccountGroupsPage(
-			accountId, Pagination.of(1, 10));
+			accountId, Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -881,7 +884,8 @@ public abstract class BaseAccountGroupResourceTestCase {
 		page =
 			accountGroupResource.
 				getAccountByExternalReferenceCodeAccountExternalReferenceCodeAccountGroupsPage(
-					accountExternalReferenceCode, Pagination.of(1, 10));
+					accountExternalReferenceCode,
+					Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1495,7 +1499,7 @@ public abstract class BaseAccountGroupResourceTestCase {
 			randomAccountGroup());
 
 		page = accountGroupResource.getAccountGroupsPage(
-			null, null, Pagination.of(1, 10), null);
+			null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1834,17 +1838,8 @@ public abstract class BaseAccountGroupResourceTestCase {
 
 	@Test
 	public void testGraphQLGetAccountGroupsPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"accountGroups",
-			new HashMap<String, Object>() {
-				{
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetAccountGroupsPageAccountGroup_getGraphQLField();
 
 		// No namespace
 
@@ -1899,6 +1894,23 @@ public abstract class BaseAccountGroupResourceTestCase {
 			Arrays.asList(
 				AccountGroupSerDes.toDTOs(
 					accountGroupsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetAccountGroupsPageAccountGroup_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"accountGroups",
+			new HashMap<String, Object>() {
+				{
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -3389,4 +3401,4 @@ public abstract class BaseAccountGroupResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1271294540
+// LIFERAY-REST-BUILDER-HASH:-1471190772

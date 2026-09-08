@@ -172,11 +172,9 @@ Map<String, String> contextParams = HashMapBuilder.<String, String>put(
 						<aui:input checked="<%= commerceChannelDisplayContext.isRequestQuoteEnabled() %>" helpMessage="allow-buyers-to-request-a-quote-when-no-product-in-the-cart-is-priced-as-price-on-application" label="allow-request-a-quote-on-a-fully-priced-cart" labelOff="disabled" labelOn="enabled" name="orderSettings--requestQuoteEnabled--" type="toggle-switch" />
 					</div>
 
-					<c:if test='<%= FeatureFlagManagerUtil.isEnabled("LPD-20379") %>'>
-						<div class="col-lg-6">
-							<aui:input checked="<%= commerceChannelDisplayContext.isQuickCheckoutEnabled() %>" helpMessage="allow-customers-to-complete-purchases-with-a-single-click-if-all-required-information-is-provided-in-the-order-streamlining-the-checkout-process" label="quick-checkout" labelOff="disabled" labelOn="enabled" name="settings--quickCheckoutEnabled--" type="toggle-switch" />
-						</div>
-					</c:if>
+					<div class="col-lg-6">
+						<aui:input checked="<%= commerceChannelDisplayContext.isQuickCheckoutEnabled() %>" helpMessage="allow-customers-to-complete-purchases-with-a-single-click-if-all-required-information-is-provided-in-the-order-streamlining-the-checkout-process" label="quick-checkout" labelOff="disabled" labelOn="enabled" name="settings--quickCheckoutEnabled--" type="toggle-switch" />
+					</div>
 
 					<div class="col-lg-6">
 						<aui:input checked="<%= commerceChannelDisplayContext.isSlowConnectionOrderFlowEnabled() %>" helpMessage="allow-an-overlay-to-be-displayed-when-adding-items-to-the-cart,-helping-manage-slow-connections" label="slow-connection-order-flow-enabled" labelOff="disabled" labelOn="enabled" name="settings--slowConnectionOrderFlowEnabled--" type="toggle-switch" />
@@ -239,16 +237,36 @@ Map<String, String> contextParams = HashMapBuilder.<String, String>put(
 						<aui:input label="order-importer-date-format" labelOff="disabled" labelOn="enabled" name="format--orderImporterDateFormat--" type="text" value="<%= commerceChannelDisplayContext.getOrderImporterDateFormat() %>" />
 					</div>
 
-					<c:if test='<%= FeatureFlagManagerUtil.isEnabled("LPD-20379") %>'>
-						<div class="col-lg-6">
-							<aui:input checked="<%= commerceChannelDisplayContext.isMultishippingEnabled() %>" helpMessage="configures-whether-a-buyer-can-initiate-from-an-order-shipments-to-multiple-delivery-groups" label="allow-multishipping" labelOff="disabled" labelOn="enabled" name="settings--multishippingEnabled--" type="toggle-switch" />
-						</div>
-					</c:if>
+					<div class="col-lg-6">
+						<aui:input checked="<%= commerceChannelDisplayContext.isMultishippingEnabled() %>" helpMessage="configures-whether-a-buyer-can-initiate-from-an-order-shipments-to-multiple-delivery-groups" label="allow-multishipping" labelOff="disabled" labelOn="enabled" name="settings--multishippingEnabled--" type="toggle-switch" />
+					</div>
 
 					<div class="col-lg-6">
 						<aui:input checked="<%= commerceChannelDisplayContext.isShowSeparateOrderItems() %>" helpMessage="show-separate-order-items-help" label="show-separate-order-items" labelOff="disabled" labelOn="enabled" name="settings--showSeparateOrderItems--" type="toggle-switch" />
 					</div>
 				</div>
+
+				<c:if test='<%= FeatureFlagManagerUtil.isEnabled("LPD-89850") %>'>
+					<div class="row">
+						<div class="col-lg-6">
+							<aui:select helpMessage="account-entry-validation-help" label="account-entry-validation" name="accountEntryValidationSettings--validationMode--">
+
+								<%
+								String accountEntryValidationMode = commerceChannelDisplayContext.getAccountEntryValidationMode();
+
+								for (String validationMode : CommerceAccountEntryValidationConstants.VALIDATION_MODES) {
+								%>
+
+									<aui:option label="<%= validationMode %>" selected="<%= accountEntryValidationMode.equals(validationMode) %>" value="<%= validationMode %>" />
+
+								<%
+								}
+								%>
+
+							</aui:select>
+						</div>
+					</div>
+				</c:if>
 
 				<div class="row">
 					<div class="col-lg-6">

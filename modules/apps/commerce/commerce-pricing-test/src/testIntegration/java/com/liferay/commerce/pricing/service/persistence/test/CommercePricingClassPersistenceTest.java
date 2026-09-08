@@ -141,8 +141,11 @@ public class CommercePricingClassPersistenceTest {
 
 		newCommercePricingClass.setLastPublishDate(RandomTestUtil.nextDate());
 
-		_commercePricingClasses.add(
-			_persistence.update(newCommercePricingClass));
+		newCommercePricingClass.setStatus(RandomTestUtil.nextInt());
+
+		newCommercePricingClass = _persistence.update(newCommercePricingClass);
+
+		_commercePricingClasses.add(newCommercePricingClass);
 
 		CommercePricingClass existingCommercePricingClass =
 			_persistence.findByPrimaryKey(
@@ -191,6 +194,9 @@ public class CommercePricingClassPersistenceTest {
 				existingCommercePricingClass.getLastPublishDate()),
 			Time.getShortTimestamp(
 				newCommercePricingClass.getLastPublishDate()));
+		Assert.assertEquals(
+			existingCommercePricingClass.getStatus(),
+			newCommercePricingClass.getStatus());
 	}
 
 	@Test(
@@ -283,7 +289,7 @@ public class CommercePricingClassPersistenceTest {
 			"uuid", true, "externalReferenceCode", true,
 			"commercePricingClassId", true, "companyId", true, "userId", true,
 			"userName", true, "createDate", true, "modifiedDate", true, "title",
-			true, "description", true, "lastPublishDate", true);
+			true, "description", true, "lastPublishDate", true, "status", true);
 	}
 
 	@Test
@@ -619,6 +625,8 @@ public class CommercePricingClassPersistenceTest {
 
 		commercePricingClass.setLastPublishDate(RandomTestUtil.nextDate());
 
+		commercePricingClass.setStatus(RandomTestUtil.nextInt());
+
 		_commercePricingClasses.add(_persistence.update(commercePricingClass));
 
 		return commercePricingClass;
@@ -630,4 +638,4 @@ public class CommercePricingClassPersistenceTest {
 	private ClassLoader _dynamicQueryClassLoader;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:949080374
+// LIFERAY-SERVICE-BUILDER-HASH:-752994817

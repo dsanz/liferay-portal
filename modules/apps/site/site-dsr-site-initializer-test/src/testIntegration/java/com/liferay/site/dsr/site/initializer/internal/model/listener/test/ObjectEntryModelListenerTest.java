@@ -22,6 +22,7 @@ import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectEntryService;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.LayoutSet;
@@ -42,6 +43,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.constants.TestDataConstants;
 import com.liferay.portal.kernel.test.context.ContextUserReplace;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
@@ -54,7 +56,7 @@ import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -67,6 +69,7 @@ import java.io.ByteArrayInputStream;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -87,7 +90,6 @@ import org.osgi.framework.ServiceRegistration;
 /**
  * @author Stefano Motta
  */
-@FeatureFlag("LPD-66359")
 @RunWith(Arquillian.class)
 public class ObjectEntryModelListenerTest {
 
@@ -144,16 +146,8 @@ public class ObjectEntryModelListenerTest {
 
 	@Test
 	public void testOnAfterRemove() throws Exception {
-		ObjectEntry objectEntry = _objectEntryLocalService.addObjectEntry(
-			0, TestPropsValues.getUserId(),
-			_objectDefinition.getObjectDefinitionId(), 0, null,
-			HashMapBuilder.<String, Serializable>put(
-				"name", "A" + RandomTestUtil.randomString()
-			).put(
-				"r_accountToDSRRooms_accountEntryId",
-				_accountEntry.getAccountEntryId()
-			).build(),
-			ServiceContextTestUtil.getServiceContext());
+		ObjectEntry objectEntry = _addObjectEntry(
+			"A" + RandomTestUtil.randomString());
 
 		Assert.assertNotNull(
 			_groupLocalService.fetchGroup(
@@ -171,6 +165,74 @@ public class ObjectEntryModelListenerTest {
 				_classNameLocalService.getClassNameId(
 					_objectDefinition.getClassName()),
 				objectEntry.getObjectEntryId()));
+	}
+
+	@Test
+	@TestInfo("LPD-102253")
+	public void testOnBeforeCreate() throws Exception {
+		try {
+			_objectEntryLocalService.addObjectEntry(
+				0, TestPropsValues.getUserId(),
+				_objectDefinition.getObjectDefinitionId(), 0, null,
+				HashMapBuilder.<String, Serializable>put(
+					"expirationDate",
+					new Date(System.currentTimeMillis() + Time.DAY)
+				).put(
+					"name", "A" + RandomTestUtil.randomString()
+				).put(
+					"r_accountToDSRRooms_accountEntryId",
+					_accountEntry.getAccountEntryId()
+				).build(),
+				ServiceContextTestUtil.getServiceContext());
+
+			Assert.fail();
+		}
+		catch (ModelListenerException modelListenerException) {
+			Throwable throwable = modelListenerException.getCause();
+
+			Assert.assertEquals(
+				UnsupportedOperationException.class, throwable.getClass());
+		}
+	}
+
+	@Test
+	@TestInfo("LPD-102253")
+	public void testOnBeforeUpdate() throws Exception {
+		ObjectEntry objectEntry = _addObjectEntry(
+			"A" + RandomTestUtil.randomString());
+
+		try {
+			_objectEntryLocalService.partialUpdateObjectEntry(
+				TestPropsValues.getUserId(), objectEntry.getObjectEntryId(),
+				objectEntry.getObjectEntryFolderId(),
+				HashMapBuilder.<String, Serializable>put(
+					"expirationDate",
+					new Date(System.currentTimeMillis() + Time.DAY)
+				).build(),
+				ServiceContextTestUtil.getServiceContext());
+
+			Assert.fail();
+		}
+		catch (ModelListenerException modelListenerException) {
+			Throwable throwable = modelListenerException.getCause();
+
+			Assert.assertEquals(
+				UnsupportedOperationException.class, throwable.getClass());
+		}
+
+		try {
+			_objectEntryLocalService.expireObjectEntry(
+				TestPropsValues.getUserId(), objectEntry.getObjectEntryId(),
+				ServiceContextTestUtil.getServiceContext());
+
+			Assert.fail();
+		}
+		catch (ModelListenerException modelListenerException) {
+			Throwable throwable = modelListenerException.getCause();
+
+			Assert.assertEquals(
+				UnsupportedOperationException.class, throwable.getClass());
+		}
 	}
 
 	private DLFileEntry _addFileEntry(long folderId, Group group)
@@ -201,6 +263,19 @@ public class ObjectEntryModelListenerTest {
 		}
 	}
 
+	private ObjectEntry _addObjectEntry(String name) throws Exception {
+		return _objectEntryLocalService.addObjectEntry(
+			0, TestPropsValues.getUserId(),
+			_objectDefinition.getObjectDefinitionId(), 0, null,
+			HashMapBuilder.<String, Serializable>put(
+				"name", name
+			).put(
+				"r_accountToDSRRooms_accountEntryId",
+				_accountEntry.getAccountEntryId()
+			).build(),
+			ServiceContextTestUtil.getServiceContext());
+	}
+
 	private void _assertHasResourcePermission(
 			String actionId, ObjectEntry objectEntry, long roleId)
 		throws Exception {
@@ -217,16 +292,7 @@ public class ObjectEntryModelListenerTest {
 		String name = StringUtil.toLowerCase(
 			"A" + RandomTestUtil.randomString());
 
-		ObjectEntry objectEntry = _objectEntryLocalService.addObjectEntry(
-			0, TestPropsValues.getUserId(),
-			_objectDefinition.getObjectDefinitionId(), 0, null,
-			HashMapBuilder.<String, Serializable>put(
-				"name", name
-			).put(
-				"r_accountToDSRRooms_accountEntryId",
-				_accountEntry.getAccountEntryId()
-			).build(),
-			ServiceContextTestUtil.getServiceContext());
+		ObjectEntry objectEntry = _addObjectEntry(name);
 
 		Group group = _groupLocalService.fetchGroup(
 			TestPropsValues.getCompanyId(),
@@ -303,17 +369,8 @@ public class ObjectEntryModelListenerTest {
 	}
 
 	private void _testOnAfterCreateWithDSRRoomThreadLocal() throws Exception {
-		ObjectEntry sourceObjectEntry = _objectEntryLocalService.addObjectEntry(
-			0, TestPropsValues.getUserId(),
-			_objectDefinition.getObjectDefinitionId(), 0, null,
-			HashMapBuilder.<String, Serializable>put(
-				"name",
-				StringUtil.toLowerCase("A" + RandomTestUtil.randomString())
-			).put(
-				"r_accountToDSRRooms_accountEntryId",
-				_accountEntry.getAccountEntryId()
-			).build(),
-			ServiceContextTestUtil.getServiceContext());
+		ObjectEntry sourceObjectEntry = _addObjectEntry(
+			StringUtil.toLowerCase("A" + RandomTestUtil.randomString()));
 
 		Group sourceGroup = _groupLocalService.fetchGroup(
 			TestPropsValues.getCompanyId(),
@@ -339,17 +396,8 @@ public class ObjectEntryModelListenerTest {
 			sourceObjectEntry.getObjectEntryId());
 
 		try {
-			objectEntry = _objectEntryLocalService.addObjectEntry(
-				0, TestPropsValues.getUserId(),
-				_objectDefinition.getObjectDefinitionId(), 0, null,
-				HashMapBuilder.<String, Serializable>put(
-					"name",
-					StringUtil.toLowerCase("A" + RandomTestUtil.randomString())
-				).put(
-					"r_accountToDSRRooms_accountEntryId",
-					_accountEntry.getAccountEntryId()
-				).build(),
-				ServiceContextTestUtil.getServiceContext());
+			objectEntry = _addObjectEntry(
+				StringUtil.toLowerCase("A" + RandomTestUtil.randomString()));
 		}
 		finally {
 			DSRRoomThreadLocal.setFileEntryIds(new long[0]);
@@ -404,7 +452,7 @@ public class ObjectEntryModelListenerTest {
 
 		_userLocalService.addRoleUser(dsrSellerRole.getRoleId(), user);
 
-		String roomName = StringUtil.toLowerCase(
+		String name = StringUtil.toLowerCase(
 			"B" + RandomTestUtil.randomString());
 
 		ObjectEntry objectEntry;
@@ -415,7 +463,7 @@ public class ObjectEntryModelListenerTest {
 			objectEntry = _objectEntryService.addObjectEntry(
 				0, _objectDefinition.getObjectDefinitionId(), 0, null,
 				HashMapBuilder.<String, Serializable>put(
-					"name", roomName
+					"name", name
 				).put(
 					"r_accountToDSRRooms_accountEntryId",
 					_accountEntry.getAccountEntryId()
@@ -428,7 +476,7 @@ public class ObjectEntryModelListenerTest {
 					_objectDefinition.getClassName()),
 				objectEntry.getObjectEntryId());
 
-			Assert.assertEquals("/" + roomName, group.getFriendlyURL());
+			Assert.assertEquals("/" + name, group.getFriendlyURL());
 			Assert.assertEquals(
 				GroupConstants.TYPE_SITE_RESTRICTED, group.getType());
 			Assert.assertTrue(group.isSite());
@@ -535,10 +583,8 @@ public class ObjectEntryModelListenerTest {
 		}
 
 		@Override
-		public Long[] getCommerceChannelIds(
-			String analyticsChannelId, long companyId) {
-
-			return new Long[0];
+		public long[] getCommerceChannelIds(long companyId, long[] groupIds) {
+			return new long[0];
 		}
 
 		@Override
@@ -566,14 +612,6 @@ public class ObjectEntryModelListenerTest {
 		@Override
 		public boolean syncedContactSettingsEnabled(long companyId) {
 			return false;
-		}
-
-		@Override
-		public String[] updateCommerceChannelIds(
-			String analyticsChannelId, long companyId,
-			Long[] dataSourceCommerceChannelIds) {
-
-			return new String[0];
 		}
 
 		@Override

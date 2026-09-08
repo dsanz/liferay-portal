@@ -36,7 +36,7 @@ public class VocabulariesCMSTableFDSView extends BaseCMSTableFDSView {
 			fdsTableSchemaField -> fdsTableSchemaField.setActionId(
 				"edit"
 			).setContentRenderer(
-				"actionLink"
+				"simpleActionLinkTableCellRenderer"
 			).setSortable(
 				true
 			)
@@ -50,9 +50,9 @@ public class VocabulariesCMSTableFDSView extends BaseCMSTableFDSView {
 				true
 			)
 		).add(
-			"scopeKey", "space",
+			"scopeKey", "scope",
 			fdsTableSchemaField -> fdsTableSchemaField.setContentRenderer(
-				"spaceTableCellRenderer")
+				"scopeTableCellRenderer")
 		).add(
 			addDateFDSTableSchemaField("dateModified", "modified")
 		).build();

@@ -228,6 +228,7 @@ public class WorkflowDefinitionResourceImpl
 				GetterUtil.getString(
 					workflowDefinition.getScope(),
 					WorkflowDefinitionConstants.SCOPE_ALL),
+				GetterUtil.getBoolean(workflowDefinition.getSystem()),
 				_getTitle(workflowDefinition), contextUser.getUserId()));
 	}
 
@@ -247,6 +248,7 @@ public class WorkflowDefinitionResourceImpl
 				GetterUtil.getString(
 					workflowDefinition.getScope(),
 					WorkflowDefinitionConstants.SCOPE_ALL),
+				GetterUtil.getBoolean(workflowDefinition.getSystem()),
 				_getTitle(workflowDefinition), contextUser.getUserId()));
 	}
 
@@ -392,6 +394,7 @@ public class WorkflowDefinitionResourceImpl
 							workflowNode),
 						Node.class));
 				setScope(workflowDefinition::getScope);
+				setSystem(workflowDefinition::isSystem);
 				setTitle(
 					() -> workflowDefinition.getTitle(
 						_language.getLanguageId(

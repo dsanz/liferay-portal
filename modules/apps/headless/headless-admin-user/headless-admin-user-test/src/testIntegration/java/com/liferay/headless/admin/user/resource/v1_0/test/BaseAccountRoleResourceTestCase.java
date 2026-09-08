@@ -30,6 +30,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -92,6 +93,8 @@ public abstract class BaseAccountRoleResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -883,8 +886,8 @@ public abstract class BaseAccountRoleResourceTestCase {
 		page =
 			accountRoleResource.
 				getAccountAccountRolesByExternalReferenceCodePage(
-					externalReferenceCode, null, null, Pagination.of(1, 10),
-					null);
+					externalReferenceCode, null, null,
+					Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1302,20 +1305,9 @@ public abstract class BaseAccountRoleResourceTestCase {
 		String externalReferenceCode =
 			testGetAccountAccountRolesByExternalReferenceCodePage_getExternalReferenceCode();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"accountAccountRolesByExternalReferenceCode",
-			new HashMap<String, Object>() {
-				{
-					put(
-						"externalReferenceCode",
-						"\"" + externalReferenceCode + "\"");
-					put("keywords", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetAccountAccountRolesByExternalReferenceCodePageAccountAccountRole_getGraphQLField(
+				externalReferenceCode);
 
 		// No namespace
 
@@ -1387,6 +1379,27 @@ public abstract class BaseAccountRoleResourceTestCase {
 						getString("items"))));
 	}
 
+	protected GraphQLField
+			testGraphQLGetAccountAccountRolesByExternalReferenceCodePageAccountAccountRole_getGraphQLField(
+				String externalReferenceCode)
+		throws Exception {
+
+		return new GraphQLField(
+			"accountAccountRolesByExternalReferenceCode",
+			new HashMap<String, Object>() {
+				{
+					put(
+						"externalReferenceCode",
+						"\"" + externalReferenceCode + "\"");
+					put("keywords", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
+	}
+
 	protected AccountRole
 			testGraphQLGetAccountAccountRolesByExternalReferenceCodePageAccountAccountRole_addAccountRole(
 				String externalReferenceCode, AccountRole accountRole)
@@ -1435,7 +1448,7 @@ public abstract class BaseAccountRoleResourceTestCase {
 				accountId, randomAccountRole());
 
 		page = accountRoleResource.getAccountAccountRolesPage(
-			accountId, null, null, Pagination.of(1, 10), null);
+			accountId, null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1829,18 +1842,9 @@ public abstract class BaseAccountRoleResourceTestCase {
 	public void testGraphQLGetAccountAccountRolesPage() throws Exception {
 		Long accountId = testGetAccountAccountRolesPage_getAccountId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"accountAccountRoles",
-			new HashMap<String, Object>() {
-				{
-					put("accountId", accountId);
-					put("keywords", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetAccountAccountRolesPageAccountAccountRole_getGraphQLField(
+				accountId);
 
 		// No namespace
 
@@ -1898,6 +1902,25 @@ public abstract class BaseAccountRoleResourceTestCase {
 			Arrays.asList(
 				AccountRoleSerDes.toDTOs(
 					accountAccountRolesJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetAccountAccountRolesPageAccountAccountRole_getGraphQLField(
+				Long accountId)
+		throws Exception {
+
+		return new GraphQLField(
+			"accountAccountRoles",
+			new HashMap<String, Object>() {
+				{
+					put("accountId", accountId);
+					put("keywords", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -3544,4 +3567,4 @@ public abstract class BaseAccountRoleResourceTestCase {
 		_accountRoleResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:653556514
+// LIFERAY-REST-BUILDER-HASH:-1778758738

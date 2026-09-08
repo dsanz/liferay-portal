@@ -24,20 +24,20 @@ public class ClusterableAdvice extends ChainableMethodAdvice {
 
 	@Override
 	public Object createMethodContext(
-		Class<?> targetClass, Method method,
+		Object target, Method method,
 		Map<Class<? extends Annotation>, Annotation> annotations) {
 
 		return annotations.get(Clusterable.class);
 	}
 
 	@Override
-	protected void afterReturning(
+	protected Object afterReturning(
 			AopMethodInvocation aopMethodInvocation, Object[] arguments,
 			Object result)
 		throws Throwable {
 
 		if (!ClusterInvokeThreadLocal.isEnabled()) {
-			return;
+			return result;
 		}
 
 		Clusterable clusterable = aopMethodInvocation.getAdviceMethodContext();
@@ -45,6 +45,8 @@ public class ClusterableAdvice extends ChainableMethodAdvice {
 		ClusterableInvokerUtil.invokeOnCluster(
 			clusterable.acceptor(), aopMethodInvocation.getThis(),
 			aopMethodInvocation.getMethod(), arguments);
+
+		return result;
 	}
 
 	@Override

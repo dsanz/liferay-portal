@@ -21,8 +21,6 @@ import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.sanitizer.Sanitizer;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
@@ -731,11 +729,8 @@ public class BatchEngineImportTaskPersistenceImpl
 				session.save(batchEngineImportTask);
 			}
 			else {
-				session.evict(
-					BatchEngineImportTaskImpl.class,
-					batchEngineImportTask.getPrimaryKeyObj());
-
-				session.saveOrUpdate(batchEngineImportTask);
+				batchEngineImportTask = (BatchEngineImportTask)session.merge(
+					batchEngineImportTask);
 			}
 
 			session.flush();
@@ -836,7 +831,7 @@ public class BatchEngineImportTaskPersistenceImpl
 			_SQL_SELECT_BATCHENGINEIMPORTTASK_WHERE,
 			_SQL_COUNT_BATCHENGINEIMPORTTASK_WHERE,
 			BatchEngineImportTaskModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-			"",
+			"", "", null,
 			new FinderColumn<>(
 				"batchEngineImportTask.", "uuid", "uuid_",
 				FinderColumn.Type.STRING, "=", true, true,
@@ -864,7 +859,7 @@ public class BatchEngineImportTaskPersistenceImpl
 				_SQL_SELECT_BATCHENGINEIMPORTTASK_WHERE,
 				_SQL_COUNT_BATCHENGINEIMPORTTASK_WHERE,
 				BatchEngineImportTaskModelImpl.ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"batchEngineImportTask.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -896,7 +891,7 @@ public class BatchEngineImportTaskPersistenceImpl
 				_SQL_SELECT_BATCHENGINEIMPORTTASK_WHERE,
 				_SQL_COUNT_BATCHENGINEIMPORTTASK_WHERE,
 				BatchEngineImportTaskModelImpl.ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"batchEngineImportTask.", "companyId",
 					FinderColumn.Type.LONG, "=", true, true,
@@ -927,7 +922,7 @@ public class BatchEngineImportTaskPersistenceImpl
 				_SQL_SELECT_BATCHENGINEIMPORTTASK_WHERE,
 				_SQL_COUNT_BATCHENGINEIMPORTTASK_WHERE,
 				BatchEngineImportTaskModelImpl.ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"batchEngineImportTask.", "executeStatus",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -1006,12 +1001,6 @@ public class BatchEngineImportTaskPersistenceImpl
 	private static final String _SQL_COUNT_BATCHENGINEIMPORTTASK_WHERE =
 		"SELECT COUNT(batchEngineImportTask) FROM BatchEngineImportTask batchEngineImportTask WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No BatchEngineImportTask exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		BatchEngineImportTaskPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid"});
 
@@ -1021,4 +1010,4 @@ public class BatchEngineImportTaskPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1843698253
+// LIFERAY-SERVICE-BUILDER-HASH:1692949496

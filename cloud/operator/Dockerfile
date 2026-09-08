@@ -2,16 +2,19 @@ FROM golang:1.24 AS builder
 
 WORKDIR /workspace
 
-COPY resources .
+COPY go_build.sh .
+COPY resources resources
 
-RUN go mod download && \
-	go mod verify && \
-	CGO_ENABLED=0 go build -a -ldflags="-s -w" -o manager main.go
+RUN LIFERAY_GO_BUILD_SKIP_SOURCE_FORMATTER=true ./go_build.sh
+
+FROM gcr.io/distroless/static:debug-nonroot AS dev
+
+COPY --chown=65532:65532 manager /home/nonroot/manager
 
 FROM gcr.io/distroless/static:nonroot
 
 ENTRYPOINT ["/manager"]
 
-COPY --from=builder /workspace/manager /
+COPY --from=builder /workspace/resources/manager /
 
 USER 65532:65532

@@ -3,12 +3,13 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import UAParser from 'ua-parser-js';
+import {UAParser} from 'ua-parser-js';
 
 import {getBrowserName} from '../src/main/resources/META-INF/resources/main/detection/attributes/browser_name';
 import {getBrowserVersion} from '../src/main/resources/META-INF/resources/main/detection/attributes/browser_version';
 import {getCookies} from '../src/main/resources/META-INF/resources/main/detection/attributes/cookies';
 import {getCustom} from '../src/main/resources/META-INF/resources/main/detection/attributes/custom';
+import {getDeviceType} from '../src/main/resources/META-INF/resources/main/detection/attributes/device_type';
 import {getHostname} from '../src/main/resources/META-INF/resources/main/detection/attributes/hostname';
 import {getLanguage} from '../src/main/resources/META-INF/resources/main/detection/attributes/language';
 import {getLocalDate} from '../src/main/resources/META-INF/resources/main/detection/attributes/local_date';
@@ -16,7 +17,7 @@ import {getLocalHour} from '../src/main/resources/META-INF/resources/main/detect
 import {getPathname} from '../src/main/resources/META-INF/resources/main/detection/attributes/pathname';
 import {getReferrer} from '../src/main/resources/META-INF/resources/main/detection/attributes/referrer';
 import {getRequestParameters} from '../src/main/resources/META-INF/resources/main/detection/attributes/request_parameters';
-import {getSegments} from '../src/main/resources/META-INF/resources/main/detection/attributes/segments';
+import {getSegment} from '../src/main/resources/META-INF/resources/main/detection/attributes/segment';
 import {getTimezone} from '../src/main/resources/META-INF/resources/main/detection/attributes/timezone';
 import {getUrl} from '../src/main/resources/META-INF/resources/main/detection/attributes/url';
 import {getUserAgent} from '../src/main/resources/META-INF/resources/main/detection/attributes/user_agent';
@@ -32,9 +33,9 @@ describe('attributes', () => {
 		delete (document as any).cookie;
 		delete (document as any).referrer;
 
-		delete (global as any).Analytics;
-
 		delete (navigator as any).userAgent;
+
+		sessionStorage.clear();
 
 		window.history.replaceState({}, '', '/');
 	});
@@ -65,18 +66,6 @@ describe('attributes', () => {
 		Object.defineProperty(document, 'referrer', {
 			configurable: true,
 			value: 'https://www.wikipedia.org/',
-		});
-
-		Object.defineProperty(global, 'Analytics', {
-			configurable: true,
-			value: {
-				segment: {
-					getBatchSegmentExternalReferenceCodes: () =>
-						Promise.resolve(['SEGMENT_BATCH']),
-					getRealTimeSegmentExternalReferenceCodes: () =>
-						Promise.resolve(['SEGMENT_REAL_TIME']),
-				},
-			},
 		});
 
 		Object.defineProperty(navigator, 'userAgent', {
@@ -180,6 +169,27 @@ describe('attributes', () => {
 		});
 	});
 
+	describe('attribute device_type', () => {
+		it('works and returns a string', async () => {
+			const value = getDeviceType(
+				new UAParser(
+					'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) ' +
+						'AppleWebKit/605.1.15 (KHTML, like Gecko) ' +
+						'Version/17.0 Mobile/15E148 Safari/604.1'
+				)
+			);
+
+			expect(typeof value).toBe('string');
+			expect(value).toBe('mobile');
+		});
+
+		it('falls back to desktop when the user agent has no device type', async () => {
+			const value = getDeviceType(new UAParser(navigator.userAgent));
+
+			expect(value).toBe('desktop');
+		});
+	});
+
 	describe('attribute hostname', () => {
 		it('works and returns a string', async () => {
 			const value = getHostname();
@@ -245,9 +255,17 @@ describe('attributes', () => {
 		});
 	});
 
-	describe('attribute segments', () => {
-		it('works and returns a Set<string>', async () => {
-			const value = await getSegments();
+	describe('attribute segment', () => {
+		it('returns the segments cached for the current user', async () => {
+			sessionStorage.setItem(
+				'liferay.audiences.acSegments',
+				JSON.stringify({
+					segments: ['SEGMENT_BATCH', 'SEGMENT_REAL_TIME'],
+					userId: '20164',
+				})
+			);
+
+			const value = getSegment();
 
 			expect(value).toBeInstanceOf(Set);
 			expect(value).toEqual(

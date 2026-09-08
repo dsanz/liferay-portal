@@ -462,6 +462,11 @@ public class OAuth2ApplicationScopeAliasesPersistenceImpl
 	}
 
 	@Override
+	protected String getPKFieldName() {
+		return "oAuth2ApplicationScopeAliasesId";
+	}
+
+	@Override
 	protected String getSelectSQL() {
 		return _SQL_SELECT_OAUTH2APPLICATIONSCOPEALIASES;
 	}
@@ -498,7 +503,7 @@ public class OAuth2ApplicationScopeAliasesPersistenceImpl
 				_SQL_SELECT_OAUTH2APPLICATIONSCOPEALIASES_WHERE,
 				_SQL_COUNT_OAUTH2APPLICATIONSCOPEALIASES_WHERE,
 				OAuth2ApplicationScopeAliasesModelImpl.ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"oAuth2ApplicationScopeAliases.", "companyId",
 					FinderColumn.Type.LONG, "=", true, true,
@@ -529,7 +534,7 @@ public class OAuth2ApplicationScopeAliasesPersistenceImpl
 				_SQL_SELECT_OAUTH2APPLICATIONSCOPEALIASES_WHERE,
 				_SQL_COUNT_OAUTH2APPLICATIONSCOPEALIASES_WHERE,
 				OAuth2ApplicationScopeAliasesModelImpl.ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"oAuth2ApplicationScopeAliases.", "oAuth2ApplicationId",
 					FinderColumn.Type.LONG, "=", true, true,
@@ -591,9 +596,6 @@ public class OAuth2ApplicationScopeAliasesPersistenceImpl
 	private static final String _SQL_COUNT_OAUTH2APPLICATIONSCOPEALIASES_WHERE =
 		"SELECT COUNT(oAuth2ApplicationScopeAliases) FROM OAuth2ApplicationScopeAliases oAuth2ApplicationScopeAliases WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No OAuth2ApplicationScopeAliases exists with the key {";
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"oAuth2ApplicationScopeAliasesId"});
 
@@ -603,4 +605,4 @@ public class OAuth2ApplicationScopeAliasesPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:829250928
+// LIFERAY-SERVICE-BUILDER-HASH:1302873850

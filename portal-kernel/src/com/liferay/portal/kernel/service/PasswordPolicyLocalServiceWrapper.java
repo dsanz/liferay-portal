@@ -260,6 +260,14 @@ public class PasswordPolicyLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.portal.kernel.model.PasswordPolicy
+		fetchDefaultPasswordPolicy(long companyId) {
+
+		return _passwordPolicyLocalService.fetchDefaultPasswordPolicy(
+			companyId);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.model.PasswordPolicy fetchPasswordPolicy(
 		long passwordPolicyId) {
 
@@ -272,6 +280,22 @@ public class PasswordPolicyLocalServiceWrapper
 		long companyId, String name) {
 
 		return _passwordPolicyLocalService.fetchPasswordPolicy(companyId, name);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.model.PasswordPolicy
+			fetchPasswordPolicyByUser(com.liferay.portal.kernel.model.User user)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _passwordPolicyLocalService.fetchPasswordPolicyByUser(user);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.model.PasswordPolicy
+			fetchPasswordPolicyByUserId(long userId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _passwordPolicyLocalService.fetchPasswordPolicyByUserId(userId);
 	}
 
 	/**
@@ -503,4 +527,4 @@ public class PasswordPolicyLocalServiceWrapper
 	private PasswordPolicyLocalService _passwordPolicyLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-920056944
+// LIFERAY-SERVICE-BUILDER-HASH:282024609

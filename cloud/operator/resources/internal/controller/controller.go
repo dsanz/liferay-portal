@@ -1,42 +1,28 @@
 package controller
 
 import (
-	"context"
+	"fmt"
 
-	corev1 "k8s.io/api/core/v1"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	controllerruntime "sigs.k8s.io/controller-runtime"
 )
 
-func (r *Reconciler) Reconcile(
-	ctx context.Context,
-	req ctrl.Request,
-) (ctrl.Result, error) {
-	cm := &corev1.ConfigMap{}
+func SetupWithManager(
+	manager controllerruntime.Manager,
+	reconcilers ...reconciler,
+) error {
+	for _, reconciler := range reconcilers {
+		if error := reconciler.SetupWithManager(manager); error != nil {
+			return fmt.Errorf("unable to create %T controller: %w", reconciler, error)
+		}
 
-	if err := r.Get(ctx, req.NamespacedName, cm); err != nil {
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		SetupLog.Info("Created controller", "reconciler", fmt.Sprintf("%T", reconciler))
 	}
 
-	log := logf.FromContext(ctx)
-	log.Info("Hello, world! ConfigMap reconciled.", "name", cm.Name)
-
-	return ctrl.Result{}, nil
+	return nil
 }
 
-func (r *Reconciler) SetupWithManager(mgr ctrl.Manager) error {
-	return ctrl.NewControllerManagedBy(
-		mgr,
-	).For(
-		&corev1.ConfigMap{},
-	).Named(
-		"Controller",
-	).Complete(
-		r,
-	)
+type reconciler interface {
+	SetupWithManager(manager controllerruntime.Manager) error
 }
 
-type Reconciler struct {
-	client.Client
-}
+var SetupLog = controllerruntime.Log.WithName("setup")

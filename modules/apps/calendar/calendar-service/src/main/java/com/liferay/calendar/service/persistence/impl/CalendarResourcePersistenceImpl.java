@@ -13,7 +13,6 @@ import com.liferay.calendar.model.impl.CalendarResourceModelImpl;
 import com.liferay.calendar.service.persistence.CalendarResourcePersistence;
 import com.liferay.calendar.service.persistence.CalendarResourceUtil;
 import com.liferay.calendar.service.persistence.impl.constants.CalendarPersistenceConstants;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
@@ -22,8 +21,6 @@ import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -579,26 +576,9 @@ public class CalendarResourcePersistenceImpl
 			OrderByComparator<CalendarResource> orderByComparator)
 		throws NoSuchResourceException {
 
-		CalendarResource calendarResource = fetchByG_C_First(
-			groupId, code, orderByComparator);
-
-		if (calendarResource != null) {
-			return calendarResource;
-		}
-
-		StringBundler sb = new StringBundler(6);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append(", code=");
-		sb.append(code);
-
-		sb.append("}");
-
-		throw new NoSuchResourceException(sb.toString());
+		return _collectionPersistenceFinderByG_C.findFirst(
+			finderCache, new Object[] {new long[] {groupId}, code},
+			orderByComparator);
 	}
 
 	/**
@@ -1442,6 +1422,7 @@ public class CalendarResourcePersistenceImpl
 			_SQL_SELECT_CALENDARRESOURCE_WHERE,
 			_SQL_COUNT_CALENDARRESOURCE_WHERE,
 			CalendarResourceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
 			new FinderColumn<>(
 				"calendarResource.", "uuid", "uuid_", FinderColumn.Type.STRING,
 				"=", true, true, CalendarResource::getUuid));
@@ -1484,7 +1465,7 @@ public class CalendarResourcePersistenceImpl
 				_SQL_SELECT_CALENDARRESOURCE_WHERE,
 				_SQL_COUNT_CALENDARRESOURCE_WHERE,
 				CalendarResourceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"calendarResource.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -1515,7 +1496,7 @@ public class CalendarResourcePersistenceImpl
 				_SQL_SELECT_CALENDARRESOURCE_WHERE,
 				_SQL_COUNT_CALENDARRESOURCE_WHERE,
 				CalendarResourceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"calendarResource.", "groupId", FinderColumn.Type.LONG, "=",
 					true, true, CalendarResource::getGroupId));
@@ -1542,7 +1523,7 @@ public class CalendarResourcePersistenceImpl
 				_SQL_SELECT_CALENDARRESOURCE_WHERE,
 				_SQL_COUNT_CALENDARRESOURCE_WHERE,
 				CalendarResourceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"calendarResource.", "active", "active_",
 					FinderColumn.Type.BOOLEAN, "=", true, true,
@@ -1570,7 +1551,7 @@ public class CalendarResourcePersistenceImpl
 				_SQL_SELECT_CALENDARRESOURCE_WHERE,
 				_SQL_COUNT_CALENDARRESOURCE_WHERE,
 				CalendarResourceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new ArrayableFinderColumn<>(
 					"calendarResource.", "groupId", FinderColumn.Type.LONG, "=",
 					false, true, true, CalendarResource::getGroupId),
@@ -1605,7 +1586,7 @@ public class CalendarResourcePersistenceImpl
 				_SQL_SELECT_CALENDARRESOURCE_WHERE,
 				_SQL_COUNT_CALENDARRESOURCE_WHERE,
 				CalendarResourceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"calendarResource.", "groupId", FinderColumn.Type.LONG, "=",
 					true, true, CalendarResource::getGroupId),
@@ -1652,7 +1633,7 @@ public class CalendarResourcePersistenceImpl
 				_SQL_SELECT_CALENDARRESOURCE_WHERE,
 				_SQL_COUNT_CALENDARRESOURCE_WHERE,
 				CalendarResourceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"calendarResource.", "companyId", FinderColumn.Type.LONG,
 					"=", true, true, CalendarResource::getCompanyId),
@@ -1722,12 +1703,6 @@ public class CalendarResourcePersistenceImpl
 	private static final String _SQL_COUNT_CALENDARRESOURCE_WHERE =
 		"SELECT COUNT(calendarResource) FROM CalendarResource calendarResource WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No CalendarResource exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		CalendarResourcePersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid", "code", "active"});
 
@@ -1737,4 +1712,4 @@ public class CalendarResourcePersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1312892661
+// LIFERAY-SERVICE-BUILDER-HASH:-2934866

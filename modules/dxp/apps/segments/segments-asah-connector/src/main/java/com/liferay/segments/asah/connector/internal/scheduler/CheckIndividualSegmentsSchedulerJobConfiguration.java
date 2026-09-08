@@ -115,6 +115,7 @@ public class CheckIndividualSegmentsSchedulerJobConfiguration
 
 			if (segmentsEntry == null) {
 				_segmentsEntryLocalService.addSegmentsEntry(
+					individualSegment.getExternalReferenceCode(),
 					individualSegment.getId(), nameMap, Collections.emptyMap(),
 					true, null, SegmentsEntryConstants.SOURCE_ASAH_FARO_BACKEND,
 					serviceContext);
@@ -123,6 +124,7 @@ public class CheckIndividualSegmentsSchedulerJobConfiguration
 			}
 
 			_segmentsEntryLocalService.updateSegmentsEntry(
+				individualSegment.getExternalReferenceCode(),
 				segmentsEntry.getSegmentsEntryId(), individualSegment.getId(),
 				nameMap, null, true, null, serviceContext);
 		}

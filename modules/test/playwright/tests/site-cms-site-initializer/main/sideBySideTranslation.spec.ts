@@ -10,13 +10,15 @@ import {
 import {expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
-import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
-import {ApiHelpers} from '../../../helpers/ApiHelpers';
+import {systemSettingsPageTest} from '../../../fixtures/systemSettingsPageTest';
+import {ApiHelpers, DataApiHelpers} from '../../../helpers/ApiHelpers';
 import {LocalizationSelectPage} from '../../../pages/fragment-web/LocalizationSelectPage';
+import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
 import {getRandomInt} from '../../../utils/getRandomInt';
 import getRandomString from '../../../utils/getRandomString';
 import {cmsPagesTest} from './fixtures/cmsPagesTest';
+import {ContentsPage} from './pages/ContentsPage';
 
 async function getSampleStructureDefinition(apiHelpers: ApiHelpers) {
 	const assetLibraries =
@@ -154,10 +156,8 @@ async function getSampleStructureDefinition(apiHelpers: ApiHelpers) {
 const test = mergeTests(
 	cmsPagesTest,
 	dataApiHelpersTest,
-	featureFlagsTest({
-		'LPD-17564': {enabled: true},
-	}),
-	loginTest()
+	loginTest(),
+	systemSettingsPageTest
 );
 
 test(
@@ -291,5 +291,301 @@ test(
 		await expect(page.getByLabel('Title')).toHaveValue(spanishTitle);
 
 		await expect(page.getByLabel('Picklist')).toHaveValue('Apple');
+	}
+);
+
+async function createSampleStructureContent(
+	apiHelpers: DataApiHelpers,
+	contentsPage: ContentsPage,
+	contentTitle: string
+) {
+	const objectDefinitionAPIClient =
+		await apiHelpers.buildRestClient(ObjectDefinitionAPI);
+
+	const sampleStructureDefinition =
+		await getSampleStructureDefinition(apiHelpers);
+
+	const {
+		body: {id: structureId},
+	} = await objectDefinitionAPIClient.postObjectDefinition(
+		sampleStructureDefinition
+	);
+
+	apiHelpers.data.push({id: structureId, type: 'objectDefinition'});
+
+	await contentsPage.goto();
+
+	await contentsPage.createContent(sampleStructureDefinition.label.en_US);
+
+	// Every field carries a default language value, because Mark as Translated
+	// copies that value into the translation and a field left empty in the
+	// default language is never counted as translated.
+
+	await contentsPage.fillData([
+		{label: 'Title', value: contentTitle},
+		{label: 'Long Text', value: 'This is a fruit'},
+		{label: 'Date', value: '2026-08-08'},
+		{label: 'Boolean', type: 'Checkbox', value: true},
+		{label: 'Picklist', type: 'Picklist', value: 'Banana'},
+	]);
+
+	await contentsPage.saveContent();
+}
+
+test(
+	'Translating every field marks the language as translated',
+	{tag: '@LPD-103031'},
+	async ({apiHelpers, contentsPage, page}) => {
+		const contentTitle = getRandomString();
+
+		await createSampleStructureContent(
+			apiHelpers,
+			contentsPage,
+			contentTitle
+		);
+
+		await contentsPage.goto();
+
+		await contentsPage.translateContent(contentTitle);
+
+		const targetLocalizationSelectPage = new LocalizationSelectPage(
+			page,
+			1
+		);
+
+		await targetLocalizationSelectPage.switchLanguage('es-ES');
+
+		expect(
+			await targetLocalizationSelectPage.getLanguageStatus('es-ES')
+		).not.toBe('translated');
+
+		await contentsPage.fillData([
+			{label: 'Title', nth: 1, value: `Spanish ${contentTitle}`},
+			{label: 'Long Text', nth: 1, value: 'Esto es una fruta'},
+			{label: 'Date', nth: 1, value: '2026-08-15'},
+			{label: 'Boolean', nth: 1, type: 'Checkbox', value: false},
+			{label: 'Picklist', nth: 1, type: 'Picklist', value: 'Apple'},
+		]);
+
+		expect(
+			await targetLocalizationSelectPage.getLanguageStatus('es-ES')
+		).toBe('translated');
+
+		const markAsTranslatedMenuItem = page.getByRole('menuitem', {
+			name: 'Mark as Translated',
+		});
+
+		await clickAndExpectToBeVisible({
+			target: markAsTranslatedMenuItem,
+			trigger: targetLocalizationSelectPage.actionsDropdownTrigger,
+		});
+
+		await expect(markAsTranslatedMenuItem).toBeDisabled();
+	}
+);
+
+test(
+	'A language can be marked as translated and the translation reset',
+	{tag: '@LPD-103031'},
+	async ({apiHelpers, contentsPage, page}) => {
+		const contentTitle = getRandomString();
+
+		await createSampleStructureContent(
+			apiHelpers,
+			contentsPage,
+			contentTitle
+		);
+
+		await contentsPage.goto();
+
+		await contentsPage.translateContent(contentTitle);
+
+		const targetLocalizationSelectPage = new LocalizationSelectPage(
+			page,
+			1
+		);
+
+		// No field is translated, so this is the manual override, and the
+		// helper asserts the language ends up translated.
+
+		await targetLocalizationSelectPage.markAsTranslated('es-ES');
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('menuitem', {name: 'Reset Translation'}),
+			trigger: targetLocalizationSelectPage.actionsDropdownTrigger,
+		});
+
+		await expect(
+			page.getByText(
+				'translation will be deleted and content fields will be set to default language'
+			)
+		).toBeVisible();
+
+		await page
+			.locator('.modal-footer')
+			.getByRole('button', {exact: true, name: 'Delete'})
+			.click();
+
+		expect(
+			await targetLocalizationSelectPage.getLanguageStatus('es-ES')
+		).toBe('not-translated');
+	}
+);
+
+test(
+	'Auto translate fills the translation once a translator is configured',
+	{tag: '@LPD-103031'},
+	async ({apiHelpers, contentsPage, page, systemSettingsPage}) => {
+		const contentTitle = getRandomString();
+
+		await createSampleStructureContent(
+			apiHelpers,
+			contentsPage,
+			contentTitle
+		);
+
+		const setAutoTranslation = async ({
+			enabled,
+			key,
+		}: {
+			enabled: boolean;
+			key?: string;
+		}) => {
+			await systemSettingsPage.goToSystemSetting(
+				'Translation',
+				'Translator Using Google Cloud'
+			);
+
+			if (enabled) {
+				await page.getByLabel('Enabled').check();
+			}
+			else {
+				await page.getByLabel('Enabled').uncheck();
+			}
+
+			if (key) {
+				await page.getByLabel('Service Account Private Key').fill(key);
+			}
+
+			await systemSettingsPage.saveAndWaitForAlert();
+		};
+
+		const openTranslationSide = async () => {
+			await contentsPage.goto();
+
+			await contentsPage.translateContent(contentTitle);
+
+			const targetLocalizationSelectPage = new LocalizationSelectPage(
+				page,
+				1
+			);
+
+			await targetLocalizationSelectPage.switchLanguage('es-ES');
+
+			return targetLocalizationSelectPage;
+		};
+
+		const autoTranslateMenuItem = page.getByRole('menuitem', {
+			name: 'Auto Translate',
+		});
+
+		await test.step('Auto Translate is not offered while no translator is configured', async () => {
+			const targetLocalizationSelectPage = await openTranslationSide();
+
+			await clickAndExpectToBeVisible({
+				target: page.getByRole('menuitem', {
+					name: 'Mark as Translated',
+				}),
+				trigger: targetLocalizationSelectPage.actionsDropdownTrigger,
+			});
+
+			await expect(autoTranslateMenuItem).toHaveCount(0);
+		});
+
+		try {
+			await test.step('Auto Translate fills the translation side from the response', async () => {
+				await setAutoTranslation({
+					enabled: true,
+					key: '{"type": "service_account"}',
+				});
+
+				const targetLocalizationSelectPage =
+					await openTranslationSide();
+
+				// The response echoes the requested field names, so the stub
+				// stays valid whatever the structure carries.
+
+				await page.route(
+					'**/o/translation/auto_translate',
+					async (route) => {
+						const {fields} = route.request().postDataJSON();
+
+						await route.fulfill({
+							body: JSON.stringify({
+								fields: Object.fromEntries(
+									Object.keys(fields).map((name) => [
+										name,
+										'Traducido',
+									])
+								),
+							}),
+							contentType: 'application/json',
+							status: 200,
+						});
+					}
+				);
+
+				await targetLocalizationSelectPage.autoTranslate('es-ES');
+
+				await expect(page.getByLabel('Title').nth(1)).toHaveValue(
+					'Traducido'
+				);
+				await expect(page.getByLabel('Long Text').nth(1)).toHaveValue(
+					'Traducido'
+				);
+			});
+
+			await test.step('A failing auto translation reports the error', async () => {
+				await page.route(
+					'**/o/translation/auto_translate',
+					async (route) => {
+						await route.fulfill({
+							body: JSON.stringify({
+								error: {
+									message: 'The translation key is invalid',
+								},
+							}),
+							contentType: 'application/json',
+							status: 200,
+						});
+					}
+				);
+
+				await clickAndExpectToBeVisible({
+					autoClick: true,
+					target: autoTranslateMenuItem,
+					trigger: page.getByLabel('Localization Actions'),
+				});
+
+				// The previous step translated the language, so the content
+				// override confirmation is always raised here.
+
+				const continueButton = page
+					.locator('.modal-footer')
+					.getByText('Continue');
+
+				await expect(continueButton).toBeVisible();
+
+				await continueButton.click();
+
+				await expect(
+					page.getByText('The translation key is invalid')
+				).toBeVisible();
+			});
+		}
+		finally {
+			await setAutoTranslation({enabled: false});
+		}
 	}
 );

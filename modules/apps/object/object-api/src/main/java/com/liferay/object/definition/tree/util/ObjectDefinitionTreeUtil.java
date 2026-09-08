@@ -34,7 +34,6 @@ import com.liferay.portal.kernel.dao.orm.ActionableDynamicQuery;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -128,13 +127,8 @@ public class ObjectDefinitionTreeUtil {
 					objectDefinitionPersistence.findByPrimaryKey(
 						node.getPrimaryKey());
 
-				if (FeatureFlagManagerUtil.isEnabled(
-						nodeObjectDefinition.getCompanyId(), "LPD-69877")) {
-
-					_addAllowStandaloneObjectEntrySetting(
-						nodeObjectDefinition,
-						objectDefinitionSettingLocalService);
-				}
+				_addAllowStandaloneObjectEntrySetting(
+					nodeObjectDefinition, objectDefinitionSettingLocalService);
 
 				_setRootObjectDefinitionIds(
 					getRootObjectDefinitionIds(
@@ -152,6 +146,9 @@ public class ObjectDefinitionTreeUtil {
 			}
 		}
 		else {
+			_addAllowStandaloneObjectEntrySetting(
+				objectDefinition2, objectDefinitionSettingLocalService);
+
 			if (ArrayUtil.isNotEmpty(
 					getRootObjectDefinitionIds(
 						objectDefinition2.getObjectDefinitionId(),
@@ -320,14 +317,9 @@ public class ObjectDefinitionTreeUtil {
 			objectDefinitionPersistence.findByPrimaryKey(
 				objectRelationship.getObjectDefinitionId2());
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				objectRelationship.getCompanyId(), "LPD-69877")) {
-
-			_deleteAllowStandaloneObjectEntrySetting(
-				objectDefinition2.getObjectDefinitionId(),
-				objectDefinitionSettingLocalService,
-				objectRelationshipPersistence);
-		}
+		_deleteAllowStandaloneObjectEntrySetting(
+			objectDefinition2.getObjectDefinitionId(),
+			objectDefinitionSettingLocalService, objectRelationshipPersistence);
 
 		long[] addRootObjectDefinitionIds = new long[0];
 		long[] removeRootObjectDefinitionIds =
@@ -738,6 +730,9 @@ public class ObjectDefinitionTreeUtil {
 			return;
 		}
 
+		Indexer<ObjectEntry> indexer = IndexerRegistryUtil.nullSafeGetIndexer(
+			objectDefinition.getClassName());
+
 		_performActions(
 			true, objectDefinition, objectEntryLocalService, false,
 			objectEntry -> {
@@ -753,6 +748,8 @@ public class ObjectDefinitionTreeUtil {
 				}
 
 				objectEntryLocalService.updateObjectEntry(objectEntry);
+
+				indexer.reindex(objectEntry);
 			});
 	}
 

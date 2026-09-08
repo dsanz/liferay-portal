@@ -6,7 +6,6 @@
 package com.liferay.portal.workflow.kaleo.service.impl;
 
 import com.liferay.account.model.AccountEntry;
-import com.liferay.account.model.AccountEntryUserRel;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountEntryUserRelLocalService;
 import com.liferay.exportimport.kernel.staging.Staging;
@@ -26,6 +25,7 @@ import com.liferay.portal.kernel.workflow.WorkflowException;
 import com.liferay.portal.workflow.constants.WorkflowDefinitionConstants;
 import com.liferay.portal.workflow.kaleo.definition.util.WorkflowDefinitionContentUtil;
 import com.liferay.portal.workflow.kaleo.exception.KaleoDefinitionGroupIdException;
+import com.liferay.portal.workflow.kaleo.internal.util.KaleoDefinitionScopeUtil;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinition;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersion;
 import com.liferay.portal.workflow.kaleo.service.KaleoConditionLocalService;
@@ -126,8 +126,8 @@ public class KaleoDefinitionLocalServiceImpl
 	@Override
 	public KaleoDefinition addKaleoDefinition(
 			String externalReferenceCode, String name, String title,
-			String description, String content, String scope, int version,
-			ServiceContext serviceContext)
+			String description, String content, String scope, boolean system,
+			int version, ServiceContext serviceContext)
 		throws PortalException {
 
 		// Kaleo definition
@@ -166,6 +166,7 @@ public class KaleoDefinitionLocalServiceImpl
 		kaleoDefinition.setScope(scope);
 		kaleoDefinition.setVersion(version);
 		kaleoDefinition.setActive(false);
+		kaleoDefinition.setSystem(system);
 		kaleoDefinition.setStatus(WorkflowConstants.STATUS_DRAFT);
 
 		kaleoDefinition = kaleoDefinitionPersistence.update(kaleoDefinition);
@@ -334,8 +335,10 @@ public class KaleoDefinitionLocalServiceImpl
 		ServiceContext serviceContext) {
 
 		return kaleoDefinitionPersistence.findByG_C_S_A(
-			_getGroupId(scope, serviceContext), serviceContext.getCompanyId(),
-			scope, active, start, end, orderByComparator);
+			KaleoDefinitionScopeUtil.getGroupId(
+				scope, serviceContext, _accountEntryUserRelLocalService),
+			serviceContext.getCompanyId(), scope, active, start, end,
+			orderByComparator);
 	}
 
 	@Override
@@ -345,8 +348,10 @@ public class KaleoDefinitionLocalServiceImpl
 		ServiceContext serviceContext) {
 
 		return kaleoDefinitionPersistence.findByG_C_S(
-			_getGroupId(scope, serviceContext), serviceContext.getCompanyId(),
-			scope, start, end, orderByComparator);
+			KaleoDefinitionScopeUtil.getGroupId(
+				scope, serviceContext, _accountEntryUserRelLocalService),
+			serviceContext.getCompanyId(), scope, start, end,
+			orderByComparator);
 	}
 
 	@Override
@@ -354,8 +359,9 @@ public class KaleoDefinitionLocalServiceImpl
 		String scope, boolean active, ServiceContext serviceContext) {
 
 		return kaleoDefinitionPersistence.countByG_C_S_A(
-			_getGroupId(scope, serviceContext), serviceContext.getCompanyId(),
-			scope, active);
+			KaleoDefinitionScopeUtil.getGroupId(
+				scope, serviceContext, _accountEntryUserRelLocalService),
+			serviceContext.getCompanyId(), scope, active);
 	}
 
 	@Override
@@ -363,14 +369,16 @@ public class KaleoDefinitionLocalServiceImpl
 		String scope, ServiceContext serviceContext) {
 
 		return kaleoDefinitionPersistence.countByG_C_S(
-			_getGroupId(scope, serviceContext), serviceContext.getCompanyId(),
-			scope);
+			KaleoDefinitionScopeUtil.getGroupId(
+				scope, serviceContext, _accountEntryUserRelLocalService),
+			serviceContext.getCompanyId(), scope);
 	}
 
 	@Override
 	public KaleoDefinition updatedKaleoDefinition(
 			String externalReferenceCode, long kaleoDefinitionId, String title,
-			String description, String content, ServiceContext serviceContext)
+			String description, String content, boolean system,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		// Kaleo definition
@@ -404,6 +412,7 @@ public class KaleoDefinitionLocalServiceImpl
 		kaleoDefinition.setVersion(nextVersion);
 
 		kaleoDefinition.setActive(false);
+		kaleoDefinition.setSystem(system);
 
 		kaleoDefinition = kaleoDefinitionPersistence.update(kaleoDefinition);
 
@@ -414,41 +423,6 @@ public class KaleoDefinitionLocalServiceImpl
 			content, _getVersion(nextVersion), serviceContext);
 
 		return kaleoDefinition;
-	}
-
-	private long _getGroupId(String scope, ServiceContext serviceContext) {
-		if (!Objects.equals(WorkflowDefinitionConstants.SCOPE_AI, scope)) {
-			return 0L;
-		}
-
-		List<AccountEntryUserRel> accountEntryUserRels =
-			_accountEntryUserRelLocalService.
-				getAccountEntryUserRelsByAccountUserId(
-					serviceContext.getUserId());
-
-		if (accountEntryUserRels.size() != 2) {
-			return 0L;
-		}
-
-		try {
-			for (AccountEntryUserRel accountEntryUserRel :
-					accountEntryUserRels) {
-
-				AccountEntry accountEntry =
-					accountEntryUserRel.getAccountEntry();
-
-				if (!Objects.equals(
-						accountEntry.getExternalReferenceCode(), "L_AI_HUB")) {
-
-					return accountEntry.getAccountEntryGroupId();
-				}
-			}
-		}
-		catch (PortalException portalException) {
-			throw new RuntimeException(portalException);
-		}
-
-		return 0L;
 	}
 
 	private String _getVersion(int version) {

@@ -60,6 +60,20 @@ public abstract class BaseLocalGitCommit
 			return _patch;
 		}
 
+		if (!_gitWorkingDirectory.localSHAExists(getSHA() + "^")) {
+			_gitWorkingDirectory.fetchGitCommitParentFromUpstream(getSHA());
+
+			if (!_gitWorkingDirectory.localSHAExists(getSHA() + "^")) {
+				System.out.println(
+					JenkinsResultsParserUtil.combine(
+						"WARNING: Skipping patch for commit ", getSHA(),
+						" because its parent could not be fetched into the ",
+						"shallow clone"));
+
+				return null;
+			}
+		}
+
 		GitUtil.ExecutionResult executionResult =
 			_gitWorkingDirectory.executeBashCommands(
 				GitUtil.RETRIES_SIZE_MAX, GitUtil.MILLIS_RETRY_DELAY,
@@ -86,6 +100,21 @@ public abstract class BaseLocalGitCommit
 
 	@Override
 	public boolean isFileChanged(File file) {
+		if (!_gitWorkingDirectory.localSHAExists(getSHA() + "^")) {
+			_gitWorkingDirectory.fetchGitCommitParentFromUpstream(getSHA());
+
+			if (!_gitWorkingDirectory.localSHAExists(getSHA() + "^")) {
+				System.out.println(
+					JenkinsResultsParserUtil.combine(
+						"WARNING: Unable to determine if ", file.toString(),
+						" changed in commit ", getSHA(),
+						" because its parent could not be fetched into the ",
+						"shallow clone"));
+
+				return false;
+			}
+		}
+
 		GitUtil.ExecutionResult executionResult =
 			_gitWorkingDirectory.executeBashCommands(
 				GitUtil.RETRIES_SIZE_MAX, GitUtil.MILLIS_RETRY_DELAY,

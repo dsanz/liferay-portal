@@ -6,12 +6,20 @@
 package com.liferay.layout.page.template.internal.importer.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.depot.constants.DepotConstants;
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.service.DepotEntryGroupRelLocalService;
+import com.liferay.depot.service.DepotEntryLocalService;
+import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.contributor.FragmentCollectionContributor;
 import com.liferay.fragment.contributor.FragmentCollectionContributorRegistry;
 import com.liferay.fragment.entry.processor.constants.FragmentEntryProcessorConstants;
+import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
+import com.liferay.fragment.service.FragmentCollectionLocalService;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
+import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.fragment.service.FragmentEntryLocalServiceUtil;
 import com.liferay.layout.exporter.LayoutsExporter;
 import com.liferay.layout.importer.LayoutsImportStrategy;
@@ -38,17 +46,21 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Repository;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portletfilerepository.PortletFileRepositoryUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.FeatureFlagTestUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -62,6 +74,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.zip.ZipWriter;
 import com.liferay.portal.kernel.zip.ZipWriterFactory;
+import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -310,7 +323,7 @@ public class MasterLayoutsImporterTest {
 
 		_layoutLocalService.updateLookAndFeel(
 			_group.getGroupId(), layout.isPrivateLayout(), layout.getLayoutId(),
-			"dialect_WAR_dialecttheme", "01", StringPool.BLANK);
+			"cms_WAR_cmstheme", "01", StringPool.BLANK);
 
 		File file = _layoutsExporter.exportLayoutPageTemplateEntries(
 			new long[] {layoutPageTemplateEntry.getLayoutPageTemplateEntryId()},
@@ -332,7 +345,7 @@ public class MasterLayoutsImporterTest {
 		layout = _layoutLocalService.fetchLayout(
 			importedLayoutPageTemplateEntry.getPlid());
 
-		Assert.assertEquals("dialect_WAR_dialecttheme", layout.getThemeId());
+		Assert.assertEquals("cms_WAR_cmstheme", layout.getThemeId());
 	}
 
 	@Test
@@ -350,9 +363,21 @@ public class MasterLayoutsImporterTest {
 			new ArrayList<>(), true);
 	}
 
+	@FeatureFlag("LPD-57283")
 	@Test
+	@TestInfo("LPD-98690")
 	public void testImportMasterLayoutDropZoneAllowedFragments()
 		throws Exception {
+
+		Company company = _companyLocalService.getCompany(_user.getCompanyId());
+
+		FragmentEntry companyGroupFragmentEntry = _addFragmentEntry(
+			company.getGroupId(), "test-drop-zone-company-group-fragment");
+
+		DepotEntry depotEntry = _addConnectedDesignLibraryDepotEntry();
+
+		FragmentEntry depotFragmentEntry = _addFragmentEntry(
+			depotEntry.getGroupId(), "test-drop-zone-design-library-fragment");
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
 			_importLayoutPageTemplateEntry(
@@ -362,11 +387,23 @@ public class MasterLayoutsImporterTest {
 			"Master Page Drop Zone Allowed Fragments",
 			layoutPageTemplateEntry.getName());
 
+		FragmentCollection companyGroupFragmentCollection =
+			_fragmentCollectionLocalService.getFragmentCollection(
+				companyGroupFragmentEntry.getFragmentCollectionId());
+
+		FragmentCollection depotFragmentCollection =
+			_fragmentCollectionLocalService.getFragmentCollection(
+				depotFragmentEntry.getFragmentCollectionId());
+
 		_validateLayoutPageTemplateStructureDropZone(
 			_layoutPageTemplateStructureLocalService.
 				fetchLayoutPageTemplateStructure(
 					_group.getGroupId(), layoutPageTemplateEntry.getPlid()),
 			Arrays.asList(
+				companyGroupFragmentCollection.getFragmentCollectionKey(),
+				companyGroupFragmentEntry.getFragmentEntryKey(),
+				depotFragmentCollection.getFragmentCollectionKey(),
+				depotFragmentEntry.getFragmentEntryKey(),
 				TestMasterPageFragmentCollectionContributor.
 					TEST_MASTER_PAGE_FRAGMENT_COLLECTION_KEY,
 				TestMasterPageFragmentCollectionContributor.
@@ -603,6 +640,49 @@ public class MasterLayoutsImporterTest {
 				LocaleUtil.getSiteDefault()));
 	}
 
+	private DepotEntry _addConnectedDesignLibraryDepotEntry() throws Exception {
+		FeatureFlagTestUtil.invokeFeatureFlagListeners(
+			TestPropsValues.getCompanyId(), true, "LPD-57283");
+
+		DepotEntry depotEntry = _depotEntryLocalService.addDepotEntry(
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()
+			).build(),
+			Collections.emptyMap(), DepotConstants.TYPE_DESIGN_LIBRARY,
+			ServiceContextTestUtil.getServiceContext(
+				_group.getGroupId(), _user.getUserId()));
+
+		_depotEntryGroupRelLocalService.addDepotEntryGroupRel(
+			depotEntry.getDepotEntryId(), _group.getGroupId());
+
+		return depotEntry;
+	}
+
+	private FragmentEntry _addFragmentEntry(
+			long groupId, String fragmentEntryKey)
+		throws Exception {
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(
+				groupId, _user.getUserId());
+
+		FragmentCollection fragmentCollection =
+			_fragmentCollectionLocalService.addFragmentCollection(
+				null, _user.getUserId(), groupId, RandomTestUtil.randomString(),
+				StringPool.BLANK, serviceContext);
+
+		return _fragmentEntryLocalService.addFragmentEntry(
+			null, _user.getUserId(), groupId,
+			fragmentCollection.getFragmentCollectionId(), fragmentEntryKey,
+			RandomTestUtil.randomString(), StringPool.BLANK,
+			RandomTestUtil.randomString(), StringPool.BLANK, false,
+			StringPool.BLANK, null, 0, false, false,
+			FragmentConstants.TYPE_COMPONENT,
+			JSONUtil.toString(
+				JSONUtil.put("fieldTypes", Collections.emptySet())),
+			WorkflowConstants.STATUS_APPROVED, serviceContext);
+	}
+
 	private void _addZipWriterEntry(ZipWriter zipWriter, URL url)
 		throws IOException {
 
@@ -812,11 +892,26 @@ public class MasterLayoutsImporterTest {
 	private Bundle _bundle;
 
 	@Inject
+	private CompanyLocalService _companyLocalService;
+
+	@Inject
+	private DepotEntryGroupRelLocalService _depotEntryGroupRelLocalService;
+
+	@Inject
+	private DepotEntryLocalService _depotEntryLocalService;
+
+	@Inject
 	private FragmentCollectionContributorRegistry
 		_fragmentCollectionContributorRegistry;
 
 	@Inject
+	private FragmentCollectionLocalService _fragmentCollectionLocalService;
+
+	@Inject
 	private FragmentEntryLinkLocalService _fragmentEntryLinkLocalService;
+
+	@Inject
+	private FragmentEntryLocalService _fragmentEntryLocalService;
 
 	@DeleteAfterTestRun
 	private Group _group;

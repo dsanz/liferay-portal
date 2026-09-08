@@ -74,9 +74,6 @@ function AdvancedTabComponent({
 	const emailField = field as EmailField;
 
 	const dispatch = useStateDispatch();
-	const publishedChildren = useSelector(selectPublishedChildren);
-
-	const isPublished = publishedChildren.has(field.uuid);
 
 	const blockedDomainsId = useId();
 	const domainsId = useId();
@@ -114,12 +111,12 @@ function AdvancedTabComponent({
 
 						<ClayMultiSelect
 							aria-label={Liferay.Language.get('blocked-domains')}
-							disabled={disabled || isPublished}
+							disabled={disabled}
 							id={blockedDomainsId}
 							items={toItems(emailField.settings.blockedDomains)}
 							onItemsChange={(items: DomainItem[]) => {
 								updateSettings({
-									blockedDomains: fromItems(items),
+									blockedDomains: toDomains(items),
 								});
 							}}
 						/>
@@ -146,14 +143,15 @@ function AdvancedTabComponent({
 
 						<ClayMultiSelect
 							aria-label={Liferay.Language.get('domains')}
-							disabled={disabled || isPublished}
+							disabled={disabled}
 							id={domainsId}
 							items={toItems(
 								emailField.settings.autocompleteDomains
 							)}
 							onItemsChange={(items: DomainItem[]) => {
 								updateSettings({
-									autocompleteDomains: fromItems(items),
+									autocompleteDomains: toDomains(items),
+									autocompleteEnabled: Boolean(items.length),
 								});
 							}}
 						/>
@@ -164,10 +162,26 @@ function AdvancedTabComponent({
 	);
 }
 
-function toItems(values?: string[]): DomainItem[] {
-	return (values ?? []).map((value) => ({label: value, value}));
+function toItems(value?: string): DomainItem[] {
+	if (!value) {
+		return [];
+	}
+
+	return value.split(',').map((domain) => ({label: domain, value: domain}));
 }
 
-function fromItems(items: DomainItem[]): string[] {
-	return items.map((item) => item.value);
+function toDomains(items: DomainItem[]): string | undefined {
+	return (
+		items.map((item) => normalizeDomain(item.value)).join(',') || undefined
+	);
+}
+
+function normalizeDomain(value: string): string {
+	const domain = value.trim();
+
+	if (!domain || domain.startsWith('@')) {
+		return domain;
+	}
+
+	return `@${domain}`;
 }

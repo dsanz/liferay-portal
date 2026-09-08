@@ -5,12 +5,14 @@
 
 package com.liferay.layout.content.web.internal.portlet;
 
-import com.liferay.layout.content.web.internal.constants.LayoutContentVersionPortletKeys;
+import com.liferay.layout.content.constants.LayoutContentVersionPortletKeys;
 import com.liferay.layout.content.web.internal.constants.LayoutContentVersionWebKeys;
 import com.liferay.layout.content.web.internal.display.context.LayoutContentVersionDisplayContext;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCPortlet;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
 
 import jakarta.portlet.Portlet;
 import jakarta.portlet.PortletException;
@@ -56,29 +58,25 @@ public class LayoutContentVersionPortlet extends MVCPortlet {
 		HttpServletRequest httpServletRequest = _portal.getHttpServletRequest(
 			renderRequest);
 
-		LayoutContentVersionDisplayContext layoutContentVersionDisplayContext =
-			(LayoutContentVersionDisplayContext)httpServletRequest.getAttribute(
-				LayoutContentVersionWebKeys.
-					LAYOUT_CONTENT_VERSION_DISPLAY_CONTEXT);
-
-		if (layoutContentVersionDisplayContext == null) {
-			layoutContentVersionDisplayContext =
-				new LayoutContentVersionDisplayContext(
-					httpServletRequest, _layoutLocalService);
-
-			httpServletRequest.setAttribute(
-				LayoutContentVersionWebKeys.
-					LAYOUT_CONTENT_VERSION_DISPLAY_CONTEXT,
-				layoutContentVersionDisplayContext);
-		}
+		httpServletRequest.setAttribute(
+			LayoutContentVersionWebKeys.LAYOUT_CONTENT_VERSION_DISPLAY_CONTEXT,
+			new LayoutContentVersionDisplayContext(
+				httpServletRequest, _language, _layoutLocalService,
+				_segmentsExperienceLocalService));
 
 		super.doDispatch(renderRequest, renderResponse);
 	}
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;
 
 	@Reference
 	private Portal _portal;
+
+	@Reference
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 }

@@ -396,6 +396,27 @@ public class TaxonomyVocabulary implements Cloneable, Serializable {
 	protected com.liferay.headless.admin.taxonomy.client.permission.Permission[]
 		permissions;
 
+	public Project[] getProjects() {
+		return projects;
+	}
+
+	public void setProjects(Project[] projects) {
+		this.projects = projects;
+	}
+
+	public void setProjects(
+		UnsafeSupplier<Project[], Exception> projectsUnsafeSupplier) {
+
+		try {
+			projects = projectsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Project[] projects;
+
 	public String getSiteExternalReferenceCode() {
 		return siteExternalReferenceCode;
 	}
@@ -439,6 +460,27 @@ public class TaxonomyVocabulary implements Cloneable, Serializable {
 	}
 
 	protected Long siteId;
+
+	public Boolean getSystem() {
+		return system;
+	}
+
+	public void setSystem(Boolean system) {
+		this.system = system;
+	}
+
+	public void setSystem(
+		UnsafeSupplier<Boolean, Exception> systemUnsafeSupplier) {
+
+		try {
+			system = systemUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Boolean system;
 
 	public String getUuid() {
 		return uuid;
@@ -616,4 +658,4 @@ public class TaxonomyVocabulary implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:421988602
+// LIFERAY-REST-BUILDER-HASH:266360813

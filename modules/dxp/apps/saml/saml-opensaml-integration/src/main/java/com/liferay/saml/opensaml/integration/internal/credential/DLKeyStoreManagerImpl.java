@@ -11,17 +11,16 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.CompanyConstants;
-import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.saml.runtime.credential.KeyStoreManager;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import org.osgi.service.component.annotations.Activate;
@@ -48,7 +47,15 @@ public class DLKeyStoreManagerImpl extends BaseKeyStoreManagerImpl {
 
 			String samlKeyStorePassword = getSamlKeyStorePassword();
 
-			keyStore.load(inputStream, samlKeyStorePassword.toCharArray());
+			char[] samlKeyStorePasswordChars =
+				samlKeyStorePassword.toCharArray();
+
+			try {
+				keyStore.load(inputStream, samlKeyStorePasswordChars);
+			}
+			finally {
+				Arrays.fill(samlKeyStorePasswordChars, '\0');
+			}
 		}
 		catch (NoSuchFileException noSuchFileException) {
 
@@ -85,31 +92,32 @@ public class DLKeyStoreManagerImpl extends BaseKeyStoreManagerImpl {
 
 	@Override
 	public void saveKeyStore(KeyStore keyStore) throws Exception {
-		File tempFile = FileUtil.createTempFile("jks");
+		ByteArrayOutputStream byteArrayOutputStream =
+			new ByteArrayOutputStream();
+
+		String samlKeyStorePassword = getSamlKeyStorePassword();
+
+		char[] samlKeyStorePasswordChars = samlKeyStorePassword.toCharArray();
 
 		try {
-			String samlKeyStorePassword = getSamlKeyStorePassword();
-
-			keyStore.store(
-				new FileOutputStream(tempFile),
-				samlKeyStorePassword.toCharArray());
-
-			if (_store.hasFile(
-					getCompanyId(), CompanyConstants.SYSTEM,
-					_SAML_KEYSTORE_PATH, Store.VERSION_DEFAULT)) {
-
-				_store.deleteDirectory(
-					getCompanyId(), CompanyConstants.SYSTEM,
-					_SAML_KEYSTORE_PATH);
-			}
-
-			_store.addFile(
-				getCompanyId(), CompanyConstants.SYSTEM, _SAML_KEYSTORE_PATH,
-				Store.VERSION_DEFAULT, new FileInputStream(tempFile));
+			keyStore.store(byteArrayOutputStream, samlKeyStorePasswordChars);
 		}
 		finally {
-			tempFile.delete();
+			Arrays.fill(samlKeyStorePasswordChars, '\0');
 		}
+
+		if (_store.hasFile(
+				getCompanyId(), CompanyConstants.SYSTEM, _SAML_KEYSTORE_PATH,
+				Store.VERSION_DEFAULT)) {
+
+			_store.deleteDirectory(
+				getCompanyId(), CompanyConstants.SYSTEM, _SAML_KEYSTORE_PATH);
+		}
+
+		_store.addFile(
+			getCompanyId(), CompanyConstants.SYSTEM, _SAML_KEYSTORE_PATH,
+			Store.VERSION_DEFAULT,
+			new ByteArrayInputStream(byteArrayOutputStream.toByteArray()));
 	}
 
 	@Activate
@@ -118,7 +126,7 @@ public class DLKeyStoreManagerImpl extends BaseKeyStoreManagerImpl {
 		updateConfigurations(properties);
 	}
 
-	private static final String _SAML_KEYSTORE_PATH = "saml/keystore.jks";
+	private static final String _SAML_KEYSTORE_PATH = "saml/keystore.p12";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		DLKeyStoreManagerImpl.class);

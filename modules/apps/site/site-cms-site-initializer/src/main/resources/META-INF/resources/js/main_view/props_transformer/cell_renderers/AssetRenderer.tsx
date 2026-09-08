@@ -11,6 +11,7 @@ import classNames from 'classnames';
 import {dateUtils, sub} from 'frontend-js-web';
 import React from 'react';
 
+import {ISearchAssetObjectEntry} from '../../../common/types/AssetType';
 import {getFileMimeTypeObjectDefinitionStickerValue} from '../utils/transformViewsItemProps';
 
 interface ActionItem {
@@ -28,6 +29,7 @@ export default function AssetRenderer({
 	itemData,
 	onViewClick,
 	options,
+	renderSubtitle,
 	value,
 }: {
 	actions: ActionItem[];
@@ -40,6 +42,7 @@ export default function AssetRenderer({
 	itemData: any;
 	onViewClick?: (itemData: any) => void;
 	options: {actionId: string};
+	renderSubtitle?: (itemData: ISearchAssetObjectEntry) => React.ReactNode;
 	value: string;
 }) {
 	const {actionId} = options;
@@ -110,13 +113,15 @@ export default function AssetRenderer({
 					</ClayLink>
 				</div>
 
-				<div className="text-2 text-secondary">
-					{sub(
-						Liferay.Language.get('modified-at-x-by-x'),
-						formatDate(itemData.dateModified),
-						itemData.embedded?.modifiedBy?.name ??
-							itemData.embedded?.creator?.name
-					)}
+				<div className="text-3 text-secondary">
+					{renderSubtitle
+						? renderSubtitle(itemData)
+						: sub(
+								Liferay.Language.get('modified-at-x-by-x'),
+								formatDate(itemData.dateModified),
+								itemData.embedded?.modifiedBy?.name ??
+									itemData.embedded?.creator?.name
+							)}
 				</div>
 			</div>
 		</div>

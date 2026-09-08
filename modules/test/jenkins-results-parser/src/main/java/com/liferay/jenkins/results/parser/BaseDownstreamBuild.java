@@ -18,7 +18,7 @@ import com.liferay.jenkins.results.parser.failure.message.generator.ModulesCompi
 import com.liferay.jenkins.results.parser.failure.message.generator.PMDFailureMessageGenerator;
 import com.liferay.jenkins.results.parser.failure.message.generator.PlaywrightCompilationFailureMessageGenerator;
 import com.liferay.jenkins.results.parser.failure.message.generator.PlaywrightTimeoutFailureMessageGenerator;
-import com.liferay.jenkins.results.parser.failure.message.generator.PluginGitIDFailureMessageGenerator;
+import com.liferay.jenkins.results.parser.failure.message.generator.PluginGitIdFailureMessageGenerator;
 import com.liferay.jenkins.results.parser.failure.message.generator.RESTBuilderFailureMessageGenerator;
 import com.liferay.jenkins.results.parser.failure.message.generator.SemanticVersioningFailureMessageGenerator;
 import com.liferay.jenkins.results.parser.failure.message.generator.ServiceBuilderFailureMessageGenerator;
@@ -183,8 +183,17 @@ public class BaseDownstreamBuild extends BaseBuild implements DownstreamBuild {
 			return _axisName;
 		}
 
+		String axisVariable = getAxisVariable();
+		String jobVariant = getJobVariant();
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(axisVariable) ||
+			JenkinsResultsParserUtil.isNullOrEmpty(jobVariant)) {
+
+			return null;
+		}
+
 		_axisName = JenkinsResultsParserUtil.combine(
-			getJobVariant(), "/", getAxisVariable());
+			jobVariant, "/", axisVariable);
 
 		return _axisName;
 	}
@@ -235,7 +244,7 @@ public class BaseDownstreamBuild extends BaseBuild implements DownstreamBuild {
 
 	@Override
 	public String getBuildName() {
-		return getAxisName();
+		return getDisplayName();
 	}
 
 	@Override
@@ -269,7 +278,13 @@ public class BaseDownstreamBuild extends BaseBuild implements DownstreamBuild {
 
 	@Override
 	public String getDisplayName() {
-		return getAxisName();
+		String axisName = getAxisName();
+
+		if (axisName != null) {
+			return axisName;
+		}
+
+		return super.getDisplayName();
 	}
 
 	@Override
@@ -509,16 +524,11 @@ public class BaseDownstreamBuild extends BaseBuild implements DownstreamBuild {
 		for (TestResult testResult : testResults) {
 			String testResultClassName = testResult.getClassName();
 
-			if (untestedTestClassMethodNamesMap.containsKey(
-					testResultClassName)) {
+			List<String> testClassMethodNames =
+				untestedTestClassMethodNamesMap.get(testResultClassName);
 
-				List<String> testClassMethodNames =
-					untestedTestClassMethodNamesMap.get(testResultClassName);
-
+			if (testClassMethodNames != null) {
 				testClassMethodNames.remove(testResult.getTestName());
-
-				untestedTestClassMethodNamesMap.put(
-					testResultClassName, testClassMethodNames);
 			}
 		}
 
@@ -692,19 +702,31 @@ public class BaseDownstreamBuild extends BaseBuild implements DownstreamBuild {
 
 	@Override
 	public void saveBuildURLInBuildDatabase() {
+		String buildURL = getBuildURL();
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(buildURL)) {
+			return;
+		}
+
 		BuildDatabase buildDatabase = getBuildDatabase();
 
 		if (isBuildCached()) {
 			buildDatabase.putProperty(
-				CACHED_BUILD_URLS_PROPERTIES_KEY, getBuildURL(), "", false);
+				CACHED_BUILD_URLS_PROPERTIES_KEY, buildURL, "", false);
 
 			return;
 		}
 
-		buildDatabase.putProperty(
-			BUILD_URLS_PROPERTIES_KEY, getAxisName(), getBuildURL(), false);
+		String axisName = getAxisName();
 
-		_saveBadBuildURLsInBuildDatabase(getBadBuildURLs());
+		if (JenkinsResultsParserUtil.isNullOrEmpty(axisName)) {
+			return;
+		}
+
+		buildDatabase.putProperty(
+			BUILD_URLS_PROPERTIES_KEY, axisName, buildURL, false);
+
+		_saveBadBuildURLsInBuildDatabase();
 	}
 
 	protected BaseDownstreamBuild(
@@ -1197,9 +1219,17 @@ public class BaseDownstreamBuild extends BaseBuild implements DownstreamBuild {
 		return sb.toString();
 	}
 
-	private void _saveBadBuildURLsInBuildDatabase(List<String> badBuildURLs) {
-		if (badBuildURLs.isEmpty()) {
+	private void _saveBadBuildURLsInBuildDatabase() {
+		int badBuildCount = getBadBuildCount();
+
+		if (badBuildCount == 0) {
 			return;
+		}
+
+		List<String> badBuildURLs = new ArrayList<>(getBadBuildURLs());
+
+		while (badBuildURLs.size() < badBuildCount) {
+			badBuildURLs.add(_BAD_BUILD_URL_UNKNOWN);
 		}
 
 		BuildDatabase buildDatabase = getBuildDatabase();
@@ -1258,6 +1288,8 @@ public class BaseDownstreamBuild extends BaseBuild implements DownstreamBuild {
 		}
 	}
 
+	private static final String _BAD_BUILD_URL_UNKNOWN = "unknown";
+
 	private static final FailureMessageGenerator[] _FAILURE_MESSAGE_GENERATORS =
 	{
 		new ModulesCompilationFailureMessageGenerator(),
@@ -1268,7 +1300,7 @@ public class BaseDownstreamBuild extends BaseBuild implements DownstreamBuild {
 		new PMDFailureMessageGenerator(),
 		new PlaywrightCompilationFailureMessageGenerator(),
 		new PlaywrightTimeoutFailureMessageGenerator(),
-		new PluginGitIDFailureMessageGenerator(),
+		new PluginGitIdFailureMessageGenerator(),
 		new RESTBuilderFailureMessageGenerator(),
 		new SemanticVersioningFailureMessageGenerator(),
 		new ServiceBuilderFailureMessageGenerator(),

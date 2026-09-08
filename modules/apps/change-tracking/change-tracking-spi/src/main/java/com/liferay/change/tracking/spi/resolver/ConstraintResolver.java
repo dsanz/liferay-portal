@@ -64,6 +64,10 @@ public interface ConstraintResolver<T extends CTModel<T>> {
 	 */
 	public String[] getUniqueIndexColumnNames();
 
+	public default boolean isModificationConflictCheckEnabled() {
+		return false;
+	}
+
 	/**
 	 * Called when publishing would cause a constraint violation with both rows
 	 * involved accessible from the context.

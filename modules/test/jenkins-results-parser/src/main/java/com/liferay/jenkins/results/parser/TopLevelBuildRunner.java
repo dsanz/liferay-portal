@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -303,10 +302,10 @@ public abstract class TopLevelBuildRunner<T extends TopLevelBuildData>
 			return null;
 		}
 
-		String runID = downstreamBuild.getParameterValue("RUN_ID");
+		String runId = downstreamBuild.getParameterValue("RUN_ID");
 
 		for (BuildData downstreamBuildData : _downstreamBuildDataList) {
-			if (runID.equals(downstreamBuildData.getRunID())) {
+			if (runId.equals(downstreamBuildData.getRunId())) {
 				return downstreamBuildData;
 			}
 		}
@@ -318,15 +317,6 @@ public abstract class TopLevelBuildRunner<T extends TopLevelBuildData>
 		String cohortName, String jobName,
 		Map<String, String> invocationParameters) {
 
-		Properties buildProperties;
-
-		try {
-			buildProperties = JenkinsResultsParserUtil.getBuildProperties();
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
-		}
-
 		invocationParameters.put(
 			"PARENT_BUILD_URL", _topLevelBuild.getBuildURL());
 
@@ -335,19 +325,23 @@ public abstract class TopLevelBuildRunner<T extends TopLevelBuildData>
 		sb.append(getBaseInvocationURL(cohortName, jobName));
 		sb.append("/job/");
 		sb.append(jobName);
-		sb.append("/buildWithParameters?token=");
-		sb.append(buildProperties.getProperty("jenkins.authentication.token"));
+		sb.append("/buildWithParameters?");
 
 		for (Map.Entry<String, String> invocationParameter :
 				invocationParameters.entrySet()) {
 
-			sb.append("&");
 			sb.append(
-				JenkinsResultsParserUtil.fixURL(invocationParameter.getKey()));
+				JenkinsResultsParserUtil.encodeURLParameterPart(
+					invocationParameter.getKey()));
 			sb.append("=");
 			sb.append(
-				JenkinsResultsParserUtil.fixURL(
+				JenkinsResultsParserUtil.encodeURLParameterPart(
 					invocationParameter.getValue()));
+			sb.append("&");
+		}
+
+		if (sb.charAt(sb.length() - 1) == '&') {
+			sb.deleteCharAt(sb.length() - 1);
 		}
 
 		_topLevelBuild.addDownstreamBuilds(sb.toString());
@@ -366,11 +360,11 @@ public abstract class TopLevelBuildRunner<T extends TopLevelBuildData>
 		invocationParameters.put("DIST_PATH", topLevelBuildData.getDistPath());
 		invocationParameters.put(
 			"JENKINS_GITHUB_URL", topLevelBuildData.getJenkinsGitHubURL());
-		invocationParameters.put("RUN_ID", buildData.getRunID());
+		invocationParameters.put("RUN_ID", buildData.getRunId());
 		invocationParameters.put(
 			"S3_BUCKET_DIST_PATH", topLevelBuildData.getS3BucketDistPath());
 		invocationParameters.put(
-			"TOP_LEVEL_RUN_ID", topLevelBuildData.getRunID());
+			"TOP_LEVEL_RUN_ID", topLevelBuildData.getRunId());
 
 		buildData.setInvocationTime(
 			JenkinsResultsParserUtil.getCurrentTimeMillis());

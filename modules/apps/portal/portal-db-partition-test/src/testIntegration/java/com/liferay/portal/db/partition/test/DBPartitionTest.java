@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.upgrade.UpgradeProcess;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.InfrastructureUtil;
+import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.model.impl.ClassNameImpl;
 import com.liferay.portal.model.impl.ResourceActionImpl;
 import com.liferay.portal.service.impl.ClassNameLocalServiceImpl;
@@ -518,12 +519,8 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 	@Test
 	public void testDatabasePartitionSchemaNamePrefixes() throws Exception {
 		String[] databasePartitionSchemaNamePrefixes = {
-			ReflectionTestUtil.getFieldValue(
-				DBPartitionUtil.class,
-				"_DATABASE_EXPORTED_PARTITION_SCHEMA_NAME_PREFIX"),
-			ReflectionTestUtil.getFieldValue(
-				DBPartitionUtil.class,
-				"_DATABASE_EXPORTED_PARTITION_SCHEMA_NAME_PREFIX")
+			DBPartitionUtil.DATABASE_EXPORTED_PARTITION_SCHEMA_NAME_PREFIX,
+			PropsValues.DATABASE_PARTITION_SCHEMA_NAME_PREFIX
 		};
 
 		for (String databasePartitionSchemaNamePrefix :
@@ -848,7 +845,7 @@ public class DBPartitionTest extends BaseDBPartitionTestCase {
 					db.updateIndexes(
 						connection, "Company",
 						"create index " + TEST_INDEX_NAME +
-							" on Company (logoId, companyId);",
+							" on Company (userId, companyId);",
 						false);
 
 					List<LogEntry> logEntries = logCapture.getLogEntries();

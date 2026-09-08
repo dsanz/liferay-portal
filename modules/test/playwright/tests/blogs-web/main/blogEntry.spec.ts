@@ -726,7 +726,7 @@ test(
 			`${liferayConfig.environment.baseUrl}/o/blogs-web/blogs/entry_cover_image_caption.jsp?coverImageCaption=${encodeURIComponent(payload)}&coverImageURL=https://example.com/image.png`
 		);
 
-		await expect(page.getByRole('img')).toHaveCount(0);
+		await expect(page.locator('img')).toHaveCount(0);
 	}
 );
 
@@ -778,5 +778,32 @@ test(
 		);
 
 		await expect(page.locator('.cover-image')).toHaveCount(0);
+	}
+);
+
+test(
+	'Shows an icon beside every blog entry action',
+	{
+		tag: '@LPD-83769',
+	},
+	async ({apiHelpers, blogsPage, site}) => {
+		const headline = getRandomString();
+
+		await apiHelpers.headlessDelivery.postBlog(site.id, {
+			articleBody: 'Blogs Entry Content',
+			headline,
+		});
+
+		await blogsPage.goto(site.friendlyUrlPath);
+
+		await blogsPage.assertBlogEntryActionIcons(
+			[
+				{action: 'Edit', icon: 'pencil'},
+				{action: 'Share', icon: 'share'},
+				{action: 'Permissions', icon: 'password-policies'},
+				{action: 'Delete', icon: 'trash'},
+			],
+			headline
+		);
 	}
 );

@@ -23,6 +23,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -88,6 +89,8 @@ public abstract class BaseNodeResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -349,15 +352,9 @@ public abstract class BaseNodeResourceTestCase {
 	public void testGraphQLGetProcessNodesPage() throws Exception {
 		Long processId = testGetProcessNodesPage_getProcessId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"processNodes",
-			new HashMap<String, Object>() {
-				{
-					put("processId", processId);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetProcessNodesPageProcessNode_getGraphQLField(
+				processId);
 
 		// No namespace
 
@@ -406,6 +403,22 @@ public abstract class BaseNodeResourceTestCase {
 			node2,
 			Arrays.asList(
 				NodeSerDes.toDTOs(processNodesJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetProcessNodesPageProcessNode_getGraphQLField(
+				Long processId)
+		throws Exception {
+
+		return new GraphQLField(
+			"processNodes",
+			new HashMap<String, Object>() {
+				{
+					put("processId", processId);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -1568,4 +1581,4 @@ public abstract class BaseNodeResourceTestCase {
 		_nodeResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1151069399
+// LIFERAY-REST-BUILDER-HASH:-847438518

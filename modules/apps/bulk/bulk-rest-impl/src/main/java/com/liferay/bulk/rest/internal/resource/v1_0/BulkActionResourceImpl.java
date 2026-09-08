@@ -5,6 +5,7 @@
 
 package com.liferay.bulk.rest.internal.resource.v1_0;
 
+import com.liferay.bulk.rest.dto.v1_0.AddObjectToProjectBulkSelectionAction;
 import com.liferay.bulk.rest.dto.v1_0.AssignStructureDefaultWorkflowBulkSelectionAction;
 import com.liferay.bulk.rest.dto.v1_0.AssignToObjectBulkSelectionAction;
 import com.liferay.bulk.rest.dto.v1_0.BulkAction;
@@ -21,7 +22,9 @@ import com.liferay.bulk.rest.dto.v1_0.MoveObjectBulkSelectionAction;
 import com.liferay.bulk.rest.dto.v1_0.PermissionObjectBulkSelectionAction;
 import com.liferay.bulk.rest.dto.v1_0.SelectionScope;
 import com.liferay.bulk.rest.dto.v1_0.StatusObjectBulkSelectionAction;
+import com.liferay.bulk.rest.dto.v1_0.UpdateExpirationDateObjectBulkSelectionAction;
 import com.liferay.bulk.rest.dto.v1_0.UpdateObjectValuesBulkSelectionAction;
+import com.liferay.bulk.rest.dto.v1_0.UpdateReviewDateObjectBulkSelectionAction;
 import com.liferay.bulk.rest.internal.odata.entity.v1_0.BulkActionEntityModel;
 import com.liferay.bulk.rest.internal.selection.v1_0.BulkActionBulkSelectionFactory;
 import com.liferay.bulk.rest.resource.v1_0.BulkActionResource;
@@ -53,10 +56,10 @@ import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.model.ClassedModel;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.module.service.Snapshot;
@@ -85,6 +88,7 @@ import com.liferay.portal.search.rest.dto.v1_0.SearchResult;
 import com.liferay.portal.search.rest.resource.v1_0.SearchResultResource;
 import com.liferay.portal.search.searcher.SearchRequestBuilderFactory;
 import com.liferay.portal.search.searcher.Searcher;
+import com.liferay.portal.vulcan.fields.NestedFieldsSupplier;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.portal.vulcan.permission.Permission;
@@ -98,6 +102,7 @@ import jakarta.ws.rs.core.MultivaluedMap;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -132,14 +137,6 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			Pagination pagination, Sort[] sorts, BulkAction bulkAction)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564") &&
-			!BulkAction.Type.DELETE_OBJECT_ENTRY_BULK_SELECTION_ACTION.equals(
-				bulkAction.getType())) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		BulkActionBulkSelectionFactory bulkActionBulkSelectionFactory =
 			_getBulkActionBulkSelectionFactory(
 				blueprintExternalReferenceCode, bulkAction, emptySearch,
@@ -170,9 +167,7 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			Pagination pagination, Sort[] sorts, BulkAction bulkAction)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564") ||
-			!Objects.equals(
+		if (!Objects.equals(
 				bulkAction.getType(),
 				BulkAction.Type.DELETE_OBJECT_BULK_SELECTION_ACTION)) {
 
@@ -354,6 +349,8 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 
 		dynamicServletRequest.setParameter("nestedFields", "embedded");
 
+		NestedFieldsSupplier.addNestedField("embedded");
+
 		SearchResultResource searchResultResource =
 			_searchResultResourceFactory.create(
 			).httpServletRequest(
@@ -378,8 +375,10 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			null, true, null, null, search, filter, pagination,
 			new Sort[] {sort});
 
+		Collection<SearchResult> searchResults = searchPage.getItems();
+
 		List<BulkActionItem> bulkActionItems = transform(
-			searchPage.getItems(),
+			searchResults,
 			searchResult -> {
 				JSONObject jsonObject = _jsonFactory.createJSONObject(
 					String.valueOf(searchResult.getEmbedded()));
@@ -391,7 +390,11 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			bulkActionItems = _sortBulkActionItems(bulkActionItems, sort);
 		}
 
-		return Page.of(bulkActionItems, pagination, searchPage.getTotalCount());
+		int unresolvedCount = searchResults.size() - bulkActionItems.size();
+
+		return Page.of(
+			bulkActionItems, pagination,
+			searchPage.getTotalCount() - unresolvedCount);
 	}
 
 	private Page<BulkActionItem> _getBulkActionItemPreviewPage(
@@ -403,28 +406,29 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			bulkActionItem -> _toBulkActionItem(
 				GetterUtil.getLong(bulkActionItem.getClassPK())));
 
-		long totalCount = bulkActionItems1.size();
-
 		if (Validator.isNotNull(search)) {
 			bulkActionItems2 = ListUtil.filter(
 				bulkActionItems2,
 				bulkActionItem -> StringUtil.containsIgnoreCase(
 					bulkActionItem.getName(), search, StringPool.BLANK));
-
-			totalCount = bulkActionItems2.size();
 		}
 
 		return Page.of(
 			_sortBulkActionItems(bulkActionItems2, sort), pagination,
-			totalCount);
+			bulkActionItems2.size());
 	}
 
 	private BulkSelectionAction<Object> _getBulkSelectionAction(
 		BulkAction.Type type) {
 
-		if (BulkAction.Type.
-				ASSIGN_STRUCTURE_DEFAULT_WORKFLOW_BULK_SELECTION_ACTION.equals(
-					type)) {
+		if (BulkAction.Type.ADD_OBJECT_TO_PROJECT_BULK_SELECTION_ACTION.equals(
+				type)) {
+
+			return _addObjectToProjectBulkSelectionAction;
+		}
+		else if (BulkAction.Type.
+					ASSIGN_STRUCTURE_DEFAULT_WORKFLOW_BULK_SELECTION_ACTION.
+						equals(type)) {
 
 			return _assignStructureDefaultWorkflowBulkSelectionAction;
 		}
@@ -517,10 +521,22 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 
 			return _statusObjectBulkSelectionAction;
 		}
+		else if (BulkAction.Type.
+					UPDATE_EXPIRATION_DATE_OBJECT_BULK_SELECTION_ACTION.equals(
+						type)) {
+
+			return _updateExpirationDateObjectBulkSelectionAction;
+		}
 		else if (BulkAction.Type.UPDATE_OBJECT_VALUES_BULK_SELECTION_ACTION.
 					equals(type)) {
 
 			return _updateObjectValuesBulkSelectionAction;
+		}
+		else if (BulkAction.Type.
+					UPDATE_REVIEW_DATE_OBJECT_BULK_SELECTION_ACTION.equals(
+						type)) {
+
+			return _updateReviewDateObjectBulkSelectionAction;
 		}
 
 		throw new UnsupportedOperationException();
@@ -543,9 +559,21 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			HashMapBuilder.<String, Serializable>put(
 				"bulkActionTaskId", bulkActionTask.getId());
 
-		if (BulkAction.Type.
-				ASSIGN_STRUCTURE_DEFAULT_WORKFLOW_BULK_SELECTION_ACTION.equals(
-					type)) {
+		if (BulkAction.Type.ADD_OBJECT_TO_PROJECT_BULK_SELECTION_ACTION.equals(
+				type)) {
+
+			AddObjectToProjectBulkSelectionAction
+				addObjectToProjectBulkSelectionAction =
+					(AddObjectToProjectBulkSelectionAction)bulkAction;
+
+			return hashMapWrapper.put(
+				"projectScopeKeys",
+				addObjectToProjectBulkSelectionAction.getProjectScopeKeys()
+			).build();
+		}
+		else if (BulkAction.Type.
+					ASSIGN_STRUCTURE_DEFAULT_WORKFLOW_BULK_SELECTION_ACTION.
+						equals(type)) {
 
 			AssignStructureDefaultWorkflowBulkSelectionAction
 				assignStructureDefaultWorkflowBulkAction =
@@ -729,6 +757,31 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 
 			return hashMapWrapper.put(
 				"values", (Serializable)updateValuesBulkAction.getValues()
+			).build();
+		}
+		else if (BulkAction.Type.
+					UPDATE_EXPIRATION_DATE_OBJECT_BULK_SELECTION_ACTION.equals(
+						type)) {
+
+			UpdateExpirationDateObjectBulkSelectionAction
+				updateExpirationDateBulkAction =
+					(UpdateExpirationDateObjectBulkSelectionAction)bulkAction;
+
+			return hashMapWrapper.put(
+				"expirationDate",
+				updateExpirationDateBulkAction.getExpirationDate()
+			).build();
+		}
+		else if (BulkAction.Type.
+					UPDATE_REVIEW_DATE_OBJECT_BULK_SELECTION_ACTION.equals(
+						type)) {
+
+			UpdateReviewDateObjectBulkSelectionAction
+				updateReviewDateBulkAction =
+					(UpdateReviewDateObjectBulkSelectionAction)bulkAction;
+
+			return hashMapWrapper.put(
+				"reviewDate", updateReviewDateBulkAction.getReviewDate()
 			).build();
 		}
 
@@ -1029,8 +1082,14 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			return _toBulkActionItem(objectEntry);
 		}
 
-		return _toBulkActionItem(
-			_objectEntryFolderLocalService.fetchObjectEntryFolder(classPK));
+		ObjectEntryFolder objectEntryFolder =
+			_objectEntryFolderLocalService.fetchObjectEntryFolder(classPK);
+
+		if (objectEntryFolder == null) {
+			return null;
+		}
+
+		return _toBulkActionItem(objectEntryFolder);
 	}
 
 	private BulkActionItem _toBulkActionItem(ObjectEntry objectEntry) {
@@ -1099,7 +1158,8 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			).build());
 		bulkActionItem.setClassExternalReferenceCode(
 			objectEntryFolder::getExternalReferenceCode);
-		bulkActionItem.setClassName(objectEntryFolder::getModelClassName);
+		bulkActionItem.setClassName(
+			((ClassedModel)objectEntryFolder)::getModelClassName);
 		bulkActionItem.setClassPK(objectEntryFolder::getObjectEntryFolderId);
 		bulkActionItem.setName(objectEntryFolder::getName);
 
@@ -1112,6 +1172,9 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 			Snapshot.cast(BulkSelectionAction.class),
 			"(bulk.selection.action.key=assign.to.object)", true);
 	private static final EntityModel _entityModel = new BulkActionEntityModel();
+
+	@Reference(target = "(bulk.selection.action.key=add.object.to.project)")
+	private BulkSelectionAction<Object> _addObjectToProjectBulkSelectionAction;
 
 	@Reference(
 		target = "(bulk.selection.action.key=assign.structure.default.workflow.object.definition)"
@@ -1234,7 +1297,17 @@ public class BulkActionResourceImpl extends BaseBulkActionResourceImpl {
 	@Reference
 	private TrashHelper _trashHelper;
 
+	@Reference(
+		target = "(bulk.selection.action.key=update.expiration.date.object)"
+	)
+	private BulkSelectionAction<Object>
+		_updateExpirationDateObjectBulkSelectionAction;
+
 	@Reference(target = "(bulk.selection.action.key=update.object.values)")
 	private BulkSelectionAction<Object> _updateObjectValuesBulkSelectionAction;
+
+	@Reference(target = "(bulk.selection.action.key=update.review.date.object)")
+	private BulkSelectionAction<Object>
+		_updateReviewDateObjectBulkSelectionAction;
 
 }

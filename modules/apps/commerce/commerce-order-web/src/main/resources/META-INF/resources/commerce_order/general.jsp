@@ -68,6 +68,11 @@ boolean hasPermission = commerceOrderEditDisplayContext.hasModelPermission(comme
 						</c:choose>
 					</commerce-ui:info-box>
 
+					<liferay-portlet:renderURL var="viewAccountValidationsURL" windowState="<%= LiferayWindowState.POP_UP.toString() %>">
+						<portlet:param name="mvcRenderCommandName" value="/commerce_order/view_commerce_order_account_validations" />
+						<portlet:param name="commerceOrderId" value="<%= String.valueOf(commerceOrderEditDisplayContext.getCommerceOrderId()) %>" />
+					</liferay-portlet:renderURL>
+
 					<%
 					AccountEntry accountEntry = commerceOrder.getAccountEntry();
 					%>
@@ -83,7 +88,55 @@ boolean hasPermission = commerceOrderEditDisplayContext.hasModelPermission(comme
 								</span>
 							</c:when>
 							<c:otherwise>
-								<p class="mb-0" data-qa-id="commerceOrderAccountEntryName"><%= HtmlUtil.escape(accountEntry.getName()) %></p>
+								<div class="align-items-center d-flex">
+									<p class="mb-0" data-qa-id="commerceOrderAccountEntryName"><%= HtmlUtil.escape(accountEntry.getName()) %></p>
+
+									<c:if test="<%= commerceOrderEditDisplayContext.isValidationButtonVisible() %>">
+
+										<%
+										String validationButtonCssClass = commerceOrderEditDisplayContext.getValidationButtonCssClass();
+
+										String validationButtonIcon = "check-circle-full";
+										String validationButtonLabel = "all-account-validations-have-succeeded";
+
+										if (Objects.equals(validationButtonCssClass, "text-danger")) {
+											validationButtonIcon = "warning-full";
+											validationButtonLabel = "one-or-more-validations-have-failed-for-this-account";
+										}
+										else if (Objects.equals(validationButtonCssClass, "text-info")) {
+											validationButtonIcon = "info-circle";
+											validationButtonLabel = "account-validations-were-skipped-because-no-validator-is-active-for-the-account";
+										}
+										else if (Objects.equals(validationButtonCssClass, "text-secondary")) {
+											validationButtonIcon = "time";
+											validationButtonLabel = "one-or-more-account-validations-are-pending";
+										}
+										%>
+
+										<clay:button
+											aria-label="<%= LanguageUtil.get(request, validationButtonLabel) %>"
+											cssClass='<%= "ml-2 p-0 " + validationButtonCssClass %>'
+											displayType="unstyled"
+											icon="<%= validationButtonIcon %>"
+											id='<%= liferayPortletResponse.getNamespace() + "accountValidationsWarning" %>'
+											title="<%= LanguageUtil.get(request, validationButtonLabel) %>"
+										/>
+
+										<liferay-frontend:component
+											context='<%=
+												HashMapBuilder.<String, Object>put(
+													"title", LanguageUtil.get(request, "account-validation-results")
+												).put(
+													"url", viewAccountValidationsURL
+												).put(
+													"warningButtonId", liferayPortletResponse.getNamespace() + "accountValidationsWarning"
+												).build()
+											%>'
+											module="{accountValidations} from commerce-order-web"
+										/>
+									</c:if>
+								</div>
+
 								<p class="mb-0">#<%= accountEntry.getAccountEntryId() %></p>
 							</c:otherwise>
 						</c:choose>

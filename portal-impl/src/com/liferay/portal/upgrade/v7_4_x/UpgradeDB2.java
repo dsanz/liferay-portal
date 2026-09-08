@@ -22,44 +22,51 @@ import java.sql.ResultSet;
  */
 public class UpgradeDB2 extends UpgradeProcess {
 
-	protected void alterClobColumns() throws Exception {
-		try (LoggingTimer loggingTimer = new LoggingTimer();
-			PreparedStatement preparedStatement = connection.prepareStatement(
-				StringBundler.concat(
-					"select tabname, colname from syscat.columns where ",
-					"generated != 'N' and hidden != 'N' and length = 1048576 ",
-					"and typename = 'CLOB' and tabschema = ?"))) {
-
-			preparedStatement.setString(1, connection.getSchema());
-
-			try (ResultSet resultSet = preparedStatement.executeQuery()) {
-				while (resultSet.next()) {
-					String tableName = resultSet.getString("tabname");
-					String columnName = resultSet.getString("colname");
-
-					if (_log.isInfoEnabled()) {
-						_log.info(
-							StringBundler.concat(
-								"Alter column ", tableName, StringPool.PERIOD,
-								columnName, " type to clob(2G)"));
-					}
-
-					runSQL(
-						StringBundler.concat(
-							"alter table ", tableName, " alter column ",
-							columnName, " set data type clob(2G)"));
-				}
-			}
-		}
-	}
-
 	@Override
 	protected void doUpgrade() throws Exception {
 		if (DBManagerUtil.getDBType() != DBType.DB2) {
 			return;
 		}
 
-		alterClobColumns();
+		_alterColumnTypes("blob(2G)", "BLOB");
+		_alterColumnTypes("clob(2G)", "CLOB");
+	}
+
+	private void _alterColumnTypes(String newColumnType, String typeName)
+		throws Exception {
+
+		try (LoggingTimer loggingTimer = new LoggingTimer();
+			PreparedStatement preparedStatement = connection.prepareStatement(
+				StringBundler.concat(
+					"select columns.colname, columns.tabname from ",
+					"syscat.columns columns inner join syscat.tables tables ",
+					"on columns.tabname = tables.tabname and ",
+					"columns.tabschema = tables.tabschema where ",
+					"columns.length = 1048576 and columns.tabschema = ? and ",
+					"columns.typename = ? and tables.type = 'T'"))) {
+
+			preparedStatement.setString(1, connection.getSchema());
+			preparedStatement.setString(2, typeName);
+
+			try (ResultSet resultSet = preparedStatement.executeQuery()) {
+				while (resultSet.next()) {
+					String columnName = resultSet.getString("colname");
+					String tableName = resultSet.getString("tabname");
+
+					if (_log.isInfoEnabled()) {
+						_log.info(
+							StringBundler.concat(
+								"Alter column ", tableName, StringPool.PERIOD,
+								columnName, " type to ", newColumnType));
+					}
+
+					runSQL(
+						StringBundler.concat(
+							"alter table ", tableName, " alter column ",
+							columnName, " set data type ", newColumnType));
+				}
+			}
+		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(UpgradeDB2.class);

@@ -81,6 +81,11 @@ public class OrganizationSystemObjectDefinitionManager
 	}
 
 	@Override
+	public String getAdditionalAPIURLParameters() {
+		return "fields=id,name&flatten=true";
+	}
+
+	@Override
 	public BaseModel<?> getBaseModelByExternalReferenceCode(
 			String externalReferenceCode, long companyId)
 		throws PortalException {
@@ -93,10 +98,11 @@ public class OrganizationSystemObjectDefinitionManager
 	public String getBaseModelExternalReferenceCode(long primaryKey)
 		throws PortalException {
 
-		com.liferay.portal.kernel.model.Organization organization =
-			_organizationLocalService.getOrganization(primaryKey);
+		com.liferay.portal.kernel.model.Organization
+			serviceBuilderOrganization =
+				_organizationLocalService.getOrganization(primaryKey);
 
-		return organization.getExternalReferenceCode();
+		return serviceBuilderOrganization.getExternalReferenceCode();
 	}
 
 	@Override
@@ -160,6 +166,17 @@ public class OrganizationSystemObjectDefinitionManager
 	public BaseModel<?> getOrAddEmptyBaseModel(
 			String externalReferenceCode, User user)
 		throws PortalException {
+
+		com.liferay.portal.kernel.model.Organization organization =
+			_organizationLocalService.fetchOrganizationByExternalReferenceCode(
+				externalReferenceCode, user.getCompanyId());
+
+		if ((organization != null) &&
+			_organizationLocalService.hasUserOrganization(
+				user.getUserId(), organization.getOrganizationId())) {
+
+			return organization;
+		}
 
 		return _organizationService.getOrAddEmptyOrganization(
 			externalReferenceCode, StringPool.BLANK);

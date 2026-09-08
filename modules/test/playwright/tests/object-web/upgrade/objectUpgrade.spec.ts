@@ -88,6 +88,8 @@ test.describe.serial('View Custom Object1 after upgrade', () => {
 		});
 
 		await test.step('Edit object definition details', async () => {
+			await editObjectDetailsPage.waitForDetailsFormLoaded();
+
 			await editObjectDetailsPage.labelInput.fill(
 				'Custom Object1 Updated'
 			);
@@ -547,12 +549,14 @@ test.describe.serial('View Picklist after upgrade', () => {
 				);
 
 				await listTypeDefinitionPage.modalSaveButton.click();
-			}
 
-			for (const itemNumber of ['1', '2', '3']) {
+				await listTypeDefinitionPage.modalNameInput.waitFor({
+					state: 'hidden',
+				});
+
 				await expect(
 					listTypeDefinitionPage.frameLocator.getByRole('link', {
-						name: `Picklist Item ${itemNumber} Updated`,
+						name: `${itemName} Updated`,
 					})
 				).toBeVisible();
 			}

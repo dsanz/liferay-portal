@@ -25,7 +25,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.TreeSet;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,6 +38,17 @@ import java.util.regex.Pattern;
  * @author Adolfo Pérez
  */
 public class DBInspector {
+
+	public static void disableCache() {
+		_cacheEnabled = false;
+
+		_columnTypes.clear();
+		_tableNamesMap.clear();
+	}
+
+	public static void enableCache() {
+		_cacheEnabled = true;
+	}
 
 	public DBInspector(Connection connection) {
 		_connection = connection;
@@ -63,6 +78,25 @@ public class DBInspector {
 	public List<String> getTableNames(String tableNamePattern)
 		throws SQLException {
 
+		if (_cacheEnabled && (tableNamePattern == null)) {
+			String cacheKey = _getSchemaCacheKey();
+
+			Set<String> tableNames = _tableNamesMap.get(cacheKey);
+
+			if (tableNames != null) {
+				return new ArrayList<>(tableNames);
+			}
+
+			Set<String> schemaTableNames = new TreeSet<>(
+				String.CASE_INSENSITIVE_ORDER);
+
+			schemaTableNames.addAll(_getNames(null, "TABLE"));
+
+			_tableNamesMap.putIfAbsent(cacheKey, schemaTableNames);
+
+			return new ArrayList<>(schemaTableNames);
+		}
+
 		return _getNames(tableNamePattern, "TABLE");
 	}
 
@@ -76,6 +110,14 @@ public class DBInspector {
 		throws Exception {
 
 		if ((columnName == null) || (tableName == null)) {
+			return false;
+		}
+
+		if (_cacheEnabled) {
+			if (_getColumnType(tableName, columnName) != _COLUMN_TYPE_NONE) {
+				return true;
+			}
+
 			return false;
 		}
 
@@ -229,6 +271,22 @@ public class DBInspector {
 	}
 
 	public boolean hasTable(String tableName) throws Exception {
+		if (_cacheEnabled) {
+			String cacheKey = _getSchemaCacheKey();
+
+			Set<String> tableNames = _tableNamesMap.get(cacheKey);
+
+			if (tableNames == null) {
+				getTableNames(null);
+
+				tableNames = _tableNamesMap.get(cacheKey);
+			}
+
+			if (tableNames != null) {
+				return tableNames.contains(normalizeName(tableName));
+			}
+		}
+
 		return _hasElement(tableName, "TABLE");
 	}
 
@@ -284,6 +342,10 @@ public class DBInspector {
 			return false;
 		}
 
+		if (_cacheEnabled) {
+			return _isNumericType(_getColumnType(tableName, columnName));
+		}
+
 		try (ResultSet resultSet = _getColumnsResultSet(
 				tableName, columnName)) {
 
@@ -291,19 +353,7 @@ public class DBInspector {
 				return false;
 			}
 
-			int columnType = resultSet.getInt("DATA_TYPE");
-
-			if ((columnType == Types.BIGINT) || (columnType == Types.DECIMAL) ||
-				(columnType == Types.DOUBLE) || (columnType == Types.FLOAT) ||
-				(columnType == Types.INTEGER) ||
-				(columnType == Types.NUMERIC) || (columnType == Types.REAL) ||
-				(columnType == Types.SMALLINT) ||
-				(columnType == Types.TINYINT)) {
-
-				return true;
-			}
-
-			return false;
+			return _isNumericType(resultSet.getInt("DATA_TYPE"));
 		}
 	}
 
@@ -436,6 +486,40 @@ public class DBInspector {
 			normalizeName(tableName, databaseMetaData), columnName);
 	}
 
+	private int _getColumnType(String tableName, String columnName)
+		throws Exception {
+
+		DatabaseMetaData databaseMetaData = _connection.getMetaData();
+
+		String normalizedColumnName = normalizeName(
+			columnName, databaseMetaData);
+		String normalizedTableName = normalizeName(tableName, databaseMetaData);
+
+		String cacheKey = StringBundler.concat(
+			_getSchemaCacheKey(), ".", normalizedTableName, ".",
+			normalizedColumnName);
+
+		Integer columnType = _columnTypes.get(cacheKey);
+
+		if (columnType != null) {
+			return columnType;
+		}
+
+		columnType = _COLUMN_TYPE_NONE;
+
+		try (ResultSet resultSet = _getColumnsResultSet(
+				normalizedTableName, normalizedColumnName)) {
+
+			if (resultSet.next()) {
+				columnType = resultSet.getInt("DATA_TYPE");
+			}
+		}
+
+		_columnTypes.put(cacheKey, columnType);
+
+		return columnType;
+	}
+
 	private List<String> _getNames(String namePattern, String elementType)
 		throws SQLException {
 
@@ -453,6 +537,11 @@ public class DBInspector {
 		}
 
 		return names;
+	}
+
+	private String _getSchemaCacheKey() throws SQLException {
+		return Objects.toString(getCatalog(), StringPool.BLANK) + "." +
+			Objects.toString(getSchema(), StringPool.BLANK);
 	}
 
 	private boolean _hasElement(String elementName, String elementType)
@@ -486,19 +575,39 @@ public class DBInspector {
 		return !typeName.endsWith("not null");
 	}
 
+	private boolean _isNumericType(int columnType) {
+		if ((columnType == Types.BIGINT) || (columnType == Types.DECIMAL) ||
+			(columnType == Types.DOUBLE) || (columnType == Types.FLOAT) ||
+			(columnType == Types.INTEGER) || (columnType == Types.NUMERIC) ||
+			(columnType == Types.REAL) || (columnType == Types.SMALLINT) ||
+			(columnType == Types.TINYINT)) {
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private static final int _COLUMN_TYPE_NONE = Integer.MIN_VALUE;
+
 	private static final Log _log = LogFactoryUtil.getLog(DBInspector.class);
 
+	private static volatile boolean _cacheEnabled;
 	private static final Pattern _columnDefaultClausePattern = Pattern.compile(
 		".*DEFAULT ((?:'[^']+')|(?:\\S+)) NOT NULL", Pattern.CASE_INSENSITIVE);
 	private static final Pattern _columnSizePattern = Pattern.compile(
 		"^\\w+(?:\\((\\d+)\\))?.*", Pattern.CASE_INSENSITIVE);
 	private static final Pattern _columnTypePattern = Pattern.compile(
 		"(^\\w+)", Pattern.CASE_INSENSITIVE);
+	private static final Map<String, Integer> _columnTypes =
+		new ConcurrentHashMap<>();
 	private static final Set<String> _controlTableNames = new HashSet<>(
 		Arrays.asList(
 			"company", "release_", "servicecomponent", "virtualhost"));
 	private static final Set<String> _partitionedControlTableNames =
 		new HashSet<>(Arrays.asList("classname_", "counter", "resourceaction"));
+	private static final Map<String, Set<String>> _tableNamesMap =
+		new ConcurrentHashMap<>();
 
 	private final Connection _connection;
 

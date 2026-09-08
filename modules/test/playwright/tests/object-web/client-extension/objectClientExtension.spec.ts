@@ -139,9 +139,11 @@ test('Can create, read, update, and delete object entries that use the client ex
 
 	await editObjectDetailsPage.goToDetailsTab();
 
+	const publishReloadPromise = page.waitForEvent('domcontentloaded');
+
 	await editObjectDetailsPage.publishButton.click();
 
-	await page.waitForEvent('domcontentloaded');
+	await publishReloadPromise;
 
 	// Create
 
@@ -298,7 +300,7 @@ test('Can trigger object validation as a client extension', async ({
 
 	await editObjectValidationPage.saveObjectValidationButton.click();
 
-	await page.waitForEvent('domcontentloaded');
+	await page.waitForLoadState('domcontentloaded');
 
 	await viewObjectEntriesPage.goto(objectDefinition.className);
 

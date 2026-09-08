@@ -54,7 +54,10 @@ public class LiferayClientCredentialsAccessTokenGrantHandler
 	protected ServerAccessToken doCreateAccessToken(
 		Client client, MultivaluedMap<String, String> params) {
 
-		return _clientCredentialsGrantHandler.createAccessToken(client, params);
+		return createAccessTokenWithResources(
+			client, params,
+			() -> _clientCredentialsGrantHandler.createAccessToken(
+				client, params));
 	}
 
 	@Override

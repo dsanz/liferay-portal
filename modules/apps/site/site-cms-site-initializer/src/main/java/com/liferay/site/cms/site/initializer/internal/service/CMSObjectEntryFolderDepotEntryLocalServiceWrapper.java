@@ -26,7 +26,6 @@ import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Group;
@@ -62,10 +61,7 @@ public class CMSObjectEntryFolderDepotEntryLocalServiceWrapper
 
 		DepotEntry depotEntry = super.addDepotEntry(group, serviceContext);
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				depotEntry.getCompanyId(), "LPD-17564") &&
-			(depotEntry.getType() == DepotConstants.TYPE_SPACE)) {
-
+		if (depotEntry.getType() == DepotConstants.TYPE_SPACE) {
 			_addCMSDefaultPermissions(group);
 
 			ObjectEntryFolderUtil.addObjectEntryFolders(
@@ -84,10 +80,7 @@ public class CMSObjectEntryFolderDepotEntryLocalServiceWrapper
 		DepotEntry depotEntry = super.addDepotEntry(
 			nameMap, descriptionMap, type, serviceContext);
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				depotEntry.getCompanyId(), "LPD-17564") &&
-			(depotEntry.getType() == DepotConstants.TYPE_SPACE)) {
-
+		if (depotEntry.getType() == DepotConstants.TYPE_SPACE) {
 			_addCMSDefaultPermissions(depotEntry.getGroup());
 
 			ObjectEntryFolderUtil.addObjectEntryFolders(
@@ -101,13 +94,10 @@ public class CMSObjectEntryFolderDepotEntryLocalServiceWrapper
 	public DepotEntry deleteDepotEntry(DepotEntry depotEntry)
 		throws PortalException {
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				depotEntry.getCompanyId(), "LPD-17564") &&
-			(depotEntry.getType() == DepotConstants.TYPE_SPACE)) {
-
+		if (depotEntry.getType() == DepotConstants.TYPE_SPACE) {
 			ObjectEntryFolderUtil.deleteObjectEntryFolders(depotEntry);
 
-			_deleteCMSDefaultPermissions(depotEntry.getGroup());
+			_deleteCMSDefaultPermissions(depotEntry);
 		}
 
 		return super.deleteDepotEntry(depotEntry);
@@ -122,7 +112,7 @@ public class CMSObjectEntryFolderDepotEntryLocalServiceWrapper
 		if (depotEntry.getType() == DepotConstants.TYPE_SPACE) {
 			ObjectEntryFolderUtil.deleteObjectEntryFolders(depotEntry);
 
-			_deleteCMSDefaultPermissions(depotEntry.getGroup());
+			_deleteCMSDefaultPermissions(depotEntry);
 		}
 
 		return super.deleteDepotEntry(depotEntryId);
@@ -190,22 +180,23 @@ public class CMSObjectEntryFolderDepotEntryLocalServiceWrapper
 			group.getGroupId(), StringPool.BLANK);
 	}
 
-	private void _deleteCMSDefaultPermissions(Group group)
+	private void _deleteCMSDefaultPermissions(DepotEntry depotEntry)
 		throws PortalException {
 
 		ObjectDefinition cmsDefaultPermissionObjectDefinition =
 			_objectDefinitionLocalService.
 				fetchObjectDefinitionByExternalReferenceCode(
-					"L_CMS_DEFAULT_PERMISSION", group.getCompanyId());
+					"L_CMS_DEFAULT_PERMISSION", depotEntry.getCompanyId());
 
 		if (cmsDefaultPermissionObjectDefinition == null) {
 			return;
 		}
 
-		ObjectEntry objectEntry = CMSDefaultPermissionUtil.fetchObjectEntry(
-			group.getCompanyId(), group.getCreatorUserId(),
-			group.getExternalReferenceCode(), DepotEntry.class.getName(),
-			_filterFactory);
+		ObjectEntry objectEntry =
+			CMSDefaultPermissionUtil.fetchObjectEntryByDepotGroupId(
+				depotEntry.getCompanyId(), depotEntry.getUserId(),
+				depotEntry.getGroupId(), DepotEntry.class.getName(),
+				_filterFactory);
 
 		if (objectEntry == null) {
 			return;

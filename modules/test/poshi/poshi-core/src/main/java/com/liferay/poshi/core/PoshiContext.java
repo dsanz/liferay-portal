@@ -203,11 +203,7 @@ public class PoshiContext {
 
 		String functionLocatorCountKey = namespace + "." + className;
 
-		if (_functionLocatorCounts.containsKey(functionLocatorCountKey)) {
-			return _functionLocatorCounts.get(functionLocatorCountKey);
-		}
-
-		return 0;
+		return _functionLocatorCounts.getOrDefault(functionLocatorCountKey, 0);
 	}
 
 	public static int getFunctionMaxArgumentCount() {
@@ -295,20 +291,23 @@ public class PoshiContext {
 		String pathLocator = _pathLocators.get(
 			namespace + "." + pathLocatorKey);
 
-		String className =
-			PoshiGetterUtil.getClassNameFromNamespacedClassCommandName(
-				pathLocatorKey);
-
-		if ((pathLocator == null) &&
-			_pathExtensions.containsKey(namespace + "." + className)) {
+		if (pathLocator == null) {
+			String className =
+				PoshiGetterUtil.getClassNameFromNamespacedClassCommandName(
+					pathLocatorKey);
 
 			String pathExtension = _pathExtensions.get(
 				namespace + "." + className);
-			String commandName =
-				PoshiGetterUtil.getCommandNameFromNamespacedClassCommandName(
-					pathLocatorKey);
 
-			return getPathLocator(pathExtension + "#" + commandName, namespace);
+			if (pathExtension != null) {
+				String commandName =
+					PoshiGetterUtil.
+						getCommandNameFromNamespacedClassCommandName(
+							pathLocatorKey);
+
+				return getPathLocator(
+					pathExtension + "#" + commandName, namespace);
+			}
 		}
 
 		return pathLocator;
@@ -1969,10 +1968,9 @@ public class PoshiContext {
 
 				String namespacedFileName = _namespace + "." + fileName;
 
-				if (_filePaths.containsKey(namespacedFileName)) {
-					String duplicateFilePath = _filePaths.get(
-						namespacedFileName);
+				String duplicateFilePath = _filePaths.get(namespacedFileName);
 
+				if (duplicateFilePath != null) {
 					throw new RuntimeException(
 						StringUtil.combine(
 							"Duplicate file name '", fileName,

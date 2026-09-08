@@ -1,0 +1,125 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+import {
+	BarChart,
+	ChartState,
+	TrendIndicator,
+} from '@liferay/frontend-js-charts-web';
+import React from 'react';
+
+import {SampleContainer} from './SampleContainer';
+
+const BAR_DATA = [
+	{label: 'Search', value: 4200},
+	{label: 'Direct', value: 3100},
+	{label: 'Social', value: 2600},
+	{label: 'Email', value: 1500},
+	{label: 'Referral', value: 900},
+];
+
+const STACKED_DATA = [
+	{description: '17 assets pending', label: 'Pending', value: 17},
+	{description: '12 assets in review', label: 'In review', value: 12},
+	{description: '48 assets approved', label: 'Approved', value: 48},
+	{description: '22 assets published', label: 'Published', value: 22},
+	{description: '6 assets archived', label: 'Archived', value: 6},
+];
+
+export function BarChartSamples() {
+	return (
+		<>
+			<SampleContainer label="Vertical, categorical, list legend">
+				<BarChart
+					className="mx-auto"
+					data={BAR_DATA}
+					legend="list"
+					scheme="categorical"
+					title="Sessions by channel"
+				/>
+			</SampleContainer>
+
+			<SampleContainer label="Horizontal, table legend">
+				<BarChart
+					className="mx-auto"
+					data={BAR_DATA}
+					legend="table"
+					orientation="horizontal"
+					title="Sessions by channel"
+				/>
+			</SampleContainer>
+
+			<SampleContainer label="Inline (track and rounded)">
+				<BarChart
+					className="mx-auto"
+					data={BAR_DATA}
+					orientation="horizontal"
+					rounded
+					size="inline"
+					title="Sessions by channel"
+					track
+				/>
+			</SampleContainer>
+
+			<SampleContainer label="Inline stacked (segmented meter, list legend)">
+				<BarChart
+					data={STACKED_DATA}
+					height={48}
+					legend="list"
+					rounded
+					size="inline"
+					stacked
+					title="Content progress"
+				/>
+			</SampleContainer>
+
+			<SampleContainer label="List legend: raw value, borderless swatch, centered">
+				<BarChart
+					alignment="center"
+					data={BAR_DATA}
+					legend="list"
+					legendSwatchBorder={false}
+					legendValue="value"
+					scheme="categorical"
+					title="Sessions by channel"
+				/>
+			</SampleContainer>
+
+			<SampleContainer label="Trend indicator">
+				<div className="d-flex flex-wrap justify-content-center">
+					<TrendIndicator
+						className="mr-4"
+						direction="up"
+						label="versus last week"
+						value={22.5}
+					/>
+
+					<TrendIndicator
+						className="mr-4"
+						direction="down"
+						label="versus last week"
+						value={8.1}
+					/>
+
+					<TrendIndicator
+						direction="neutral"
+						label="versus last week"
+						value={0}
+					/>
+				</div>
+			</SampleContainer>
+
+			<SampleContainer label="Wrapped in ChartState">
+				<ChartState empty={!BAR_DATA.length}>
+					<BarChart
+						className="mx-auto"
+						data={BAR_DATA}
+						title="Sessions by channel"
+					/>
+				</ChartState>
+			</SampleContainer>
+		</>
+	);
+}

@@ -53,6 +53,7 @@ export interface IFrequencyChartProps {
 export interface IInvitedMember {
 	emailAddress: string;
 	id: number;
+	membershipExpirationDate?: string;
 	ownerId?: number;
 	roleKey?: string;
 }
@@ -115,6 +116,7 @@ export interface IRoomInitializerProps {
 
 export interface IRoomObjectEntry {
 	actions: any;
+	archiveDate: string;
 	creator: {
 		additionalName: string;
 		contentType: string;
@@ -128,7 +130,9 @@ export interface IRoomObjectEntry {
 	dateModified: string;
 	description: string;
 	externalReferenceCode: string;
+	friendlyURL: string;
 	id: number;
+	initialized: boolean;
 	name: string;
 	r_accountToDSRRooms_accountEntry: {
 		description: string;
@@ -139,6 +143,7 @@ export interface IRoomObjectEntry {
 		name: string;
 	};
 	r_accountToDSRRooms_accountEntryId: number;
+	roomStatus: number;
 	siteExternalReferenceCode: string;
 	siteId: number;
 	status: {
@@ -150,7 +155,9 @@ export interface IRoomObjectEntry {
 }
 
 export interface IRoomShareProps {
+	canAssignAllRoles?: boolean;
 	closeModal?: () => void;
+	readOnly?: boolean;
 	roomId: number;
 }
 
@@ -199,6 +206,7 @@ export interface IUserAccount {
 	id: number;
 	image?: string;
 	isInvitedMember?: boolean;
+	membershipExpirationDate?: string;
 	name: string;
 	ownerId?: number;
 	roleKey?: string;

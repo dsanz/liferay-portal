@@ -22,7 +22,6 @@ import com.bmuschko.gradle.docker.tasks.image.Dockerfile;
 import com.liferay.gradle.plugins.LiferayBasePlugin;
 import com.liferay.gradle.plugins.node.NodeExtension;
 import com.liferay.gradle.plugins.node.task.NpmInstallTask;
-import com.liferay.gradle.plugins.source.formatter.FormatSourceTask;
 import com.liferay.gradle.plugins.source.formatter.SourceFormatterPlugin;
 import com.liferay.gradle.plugins.workspace.LiferayWorkspaceYarnPlugin;
 import com.liferay.gradle.plugins.workspace.WorkspaceExtension;
@@ -33,6 +32,7 @@ import com.liferay.gradle.plugins.workspace.internal.util.GradleUtil;
 import com.liferay.gradle.plugins.workspace.internal.util.StringUtil;
 import com.liferay.gradle.plugins.workspace.task.CreateTokenTask;
 import com.liferay.gradle.plugins.workspace.task.InitBundleTask;
+import com.liferay.gradle.plugins.workspace.task.UpgradeJakartaTask;
 import com.liferay.gradle.plugins.workspace.task.UpgradeSourceCodeTask;
 import com.liferay.gradle.plugins.workspace.task.VerifyBundleTask;
 import com.liferay.gradle.plugins.workspace.task.VerifyProductTask;
@@ -74,13 +74,17 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.DependencySet;
+import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
@@ -88,6 +92,7 @@ import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Copy;
@@ -283,6 +288,10 @@ public class RootProjectConfigurator implements Plugin<Project> {
 
 		_configureTaskUpgradeSourceCode(
 			upgradeSourceCodeTask, workspaceExtension);
+
+		Task updateWorkspaceTask = _addTaskUpdateWorkspace(project);
+
+		_configureTaskUpdateWorkspace(updateWorkspaceTask);
 
 		_addTaskUpgradeJakarta(project);
 	}
@@ -769,10 +778,28 @@ public class RootProjectConfigurator implements Plugin<Project> {
 				}
 
 			});
+
+		ProjectLayout projectLayout = project.getLayout();
+
+		DirectoryProperty buildDirectoryProperty =
+			projectLayout.getBuildDirectory();
+
+		Provider<Directory> distBundleBuildDirProvider =
+			buildDirectoryProperty.dir(
+				"dist" + StringUtil.capitalize(environment));
+
 		initBundleTask.setDestinationDir(
-			new File(
-				project.getBuildDir(),
-				"dist" + StringUtil.capitalize(environment)));
+			new Callable<File>() {
+
+				@Override
+				public File call() throws Exception {
+					Directory directory = distBundleBuildDirProvider.get();
+
+					return directory.getAsFile();
+				}
+
+			});
+
 		initBundleTask.setGroup("hidden");
 
 		initBundleTask.doFirst(
@@ -848,7 +875,9 @@ public class RootProjectConfigurator implements Plugin<Project> {
 		DirectoryProperty destinationDirectoryProperty =
 			task.getDestinationDirectory();
 
-		destinationDirectoryProperty.set(project.getBuildDir());
+		ProjectLayout projectLayout = project.getLayout();
+
+		destinationDirectoryProperty.set(projectLayout.getBuildDirectory());
 
 		task.setGroup(BUNDLE_GROUP);
 
@@ -1525,18 +1554,27 @@ public class RootProjectConfigurator implements Plugin<Project> {
 		return dockerStopContainer;
 	}
 
-	private FormatSourceTask _addTaskUpgradeJakarta(Project project) {
-		FormatSourceTask formatSourceTask = GradleUtil.addTask(
-			project, UPGRADE_JAKARTA_TASK_NAME, FormatSourceTask.class);
+	private Task _addTaskUpdateWorkspace(Project project) {
+		Task task = GradleUtil.addTask(
+			project, _UPDATE_WORKSPACE_TASK_NAME, DefaultTask.class);
 
-		formatSourceTask.onlyIf(_skipIfExecutingParentTaskSpec);
-		formatSourceTask.setCheckCategoryNames("JakartaTransform");
-		formatSourceTask.setDescription(
+		task.setDescription(
+			"Updates Liferay Workspace and supporting files to the latest " +
+				"version.");
+
+		return task;
+	}
+
+	private void _addTaskUpgradeJakarta(Project project) {
+		UpgradeJakartaTask upgradeJakartaTask = GradleUtil.addTask(
+			project, UPGRADE_JAKARTA_TASK_NAME, UpgradeJakartaTask.class);
+
+		upgradeJakartaTask.onlyIf(_skipIfExecutingParentTaskSpec);
+		upgradeJakartaTask.setCheckCategoryNames("JakartaTransform");
+		upgradeJakartaTask.setDescription(
 			"Runs the Jakarta source code upgrade.");
-		formatSourceTask.setGroup("build");
-		formatSourceTask.setJavaParserEnabled(false);
-
-		return formatSourceTask;
+		upgradeJakartaTask.setGroup("build");
+		upgradeJakartaTask.setJavaParserEnabled(false);
 	}
 
 	private UpgradeSourceCodeTask _addTaskUpgradeSourceCode(Project project) {
@@ -1912,6 +1950,46 @@ public class RootProjectConfigurator implements Plugin<Project> {
 			});
 	}
 
+	private void _configureTaskUpdateWorkspace(Task task) {
+		final Project project = task.getProject();
+
+		task.doLast(
+			new Action<Task>() {
+
+				@Override
+				public void execute(Task task) {
+					ConfigurationContainer configurationContainer =
+						project.getConfigurations();
+
+					DependencyHandler dependencyHandler =
+						project.getDependencies();
+
+					Configuration configuration =
+						configurationContainer.detachedConfiguration(
+							dependencyHandler.create(
+								"com.liferay.workspace:" +
+									"com.liferay.sample.workspace.evergreen:" +
+										"latest.release"));
+
+					configuration.setTransitive(false);
+
+					project.copy(
+						new Action<CopySpec>() {
+
+							@Override
+							public void execute(CopySpec copySpec) {
+								copySpec.from(
+									project.zipTree(
+										configuration.getSingleFile()));
+								copySpec.into(project.getProjectDir());
+							}
+
+						});
+				}
+
+			});
+	}
+
 	private void _configureTaskUpgradeSourceCode(
 		UpgradeSourceCodeTask upgradeSourceCodeTask,
 		WorkspaceExtension workspaceExtension) {
@@ -2029,6 +2107,8 @@ public class RootProjectConfigurator implements Plugin<Project> {
 
 	private static final String _LIFERAY_IMAGE_SETUP_SCRIPT =
 		"100_liferay_image_setup.sh";
+
+	private static final String _UPDATE_WORKSPACE_TASK_NAME = "updateWorkspace";
 
 	private static final Spec<Task> _skipIfExecutingParentTaskSpec =
 		new Spec<Task>() {

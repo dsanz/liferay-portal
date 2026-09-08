@@ -8,15 +8,17 @@ import {ApiHelpers, DataApiHelpers} from './ApiHelpers';
 interface postSiteTaxonomyVocabularyProps {
 	assetLibraries?: AssetLibrary[];
 	assetTypes?: AssetType[];
+	externalReferenceCode?: string;
 	multiValued?: boolean;
 	name: string;
 	siteId: string;
+	system?: boolean;
 	visibilityType?: string;
 }
 
 export interface postTaxonomyCategoryTaxonomyCategory {
 	name: string;
-	name_i18n?: {['ES-es']: string};
+	name_i18n?: {[key: string]: string};
 	parentTaxonomyCategoryId: number;
 }
 
@@ -24,13 +26,14 @@ export interface postTaxonomyVocabularyProps {
 	assetLibraries?: AssetLibrary[];
 	assetTypes?: AssetType[];
 	name: string;
-	name_i18n?: {['ES-es']: string};
+	name_i18n?: {[key: string]: string};
 	visibilityType?: string;
 }
 
 export interface postTaxonomyVocabularyTaxonomyCategoryProps {
 	name: string;
-	name_i18n?: {['ES-es']: string};
+	name_i18n?: {[key: string]: string};
+	system?: boolean;
 	vocabularyId: number;
 }
 
@@ -41,8 +44,9 @@ export type TTaxonomyVocabulary = {
 };
 
 interface patchTaxonomyCategoryProps {
+	friendlyUrlPath?: string;
 	id: number;
-	name: string;
+	name?: string;
 }
 
 interface postAssetLibraryKeywordProps {
@@ -127,9 +131,11 @@ export class HeadlessAdminTaxonomyApiHelper {
 	async postSiteTaxonomyVocabulary({
 		assetLibraries,
 		assetTypes,
+		externalReferenceCode,
 		multiValued = true,
 		name,
 		siteId,
+		system,
 		visibilityType,
 	}: postSiteTaxonomyVocabularyProps): Promise<TTaxonomyVocabulary> {
 		const taxonomyVocabulary = await this.apiHelpers.post(
@@ -138,14 +144,20 @@ export class HeadlessAdminTaxonomyApiHelper {
 				data: {
 					assetLibraries,
 					assetTypes,
+					externalReferenceCode,
 					multiValued,
 					name,
+					system,
 					visibilityType,
 				},
 			}
 		);
 
-		if (this.apiHelpers instanceof DataApiHelpers) {
+		// A system vocabulary cannot be deleted while its feature flag is
+		// enabled, so it is not auto-tracked. Callers must clean it up
+		// explicitly (for example, by disabling the flag first).
+
+		if (!system && this.apiHelpers instanceof DataApiHelpers) {
 			this.apiHelpers.data.push({
 				id: taxonomyVocabulary.id,
 				type: 'taxonomyVocabulary',
@@ -183,6 +195,7 @@ export class HeadlessAdminTaxonomyApiHelper {
 	async postTaxonomyVocabularyTaxonomyCategory({
 		name,
 		name_i18n,
+		system,
 		vocabularyId,
 	}: postTaxonomyVocabularyTaxonomyCategoryProps): Promise<{
 		externalReferenceCode: string;
@@ -190,7 +203,7 @@ export class HeadlessAdminTaxonomyApiHelper {
 	}> {
 		return this.apiHelpers.post(
 			`${this.apiHelpers.baseUrl}${this.basePath}/taxonomy-vocabularies/${vocabularyId}/taxonomy-categories`,
-			{data: {name, name_i18n}}
+			{data: {name, name_i18n, system}}
 		);
 	}
 
@@ -202,12 +215,13 @@ export class HeadlessAdminTaxonomyApiHelper {
 	 */
 
 	async patchTaxonomyCategory({
+		friendlyUrlPath,
 		id,
 		name,
 	}: patchTaxonomyCategoryProps): Promise<{id: number}> {
 		return this.apiHelpers.patch(
 			`${this.apiHelpers.baseUrl}${this.basePath}/taxonomy-categories/${id}`,
-			{name}
+			{friendlyUrlPath, name}
 		);
 	}
 
@@ -224,7 +238,10 @@ export class HeadlessAdminTaxonomyApiHelper {
 		assetLibraries,
 		name,
 		siteId,
-	}: postSiteKeywordProps): Promise<{id: number}> {
+	}: postSiteKeywordProps): Promise<{
+		externalReferenceCode: string;
+		id: number;
+	}> {
 		const keyword = await this.apiHelpers.post(
 			`${this.apiHelpers.baseUrl}${this.basePath}/sites/${siteId}/keywords`,
 			{data: {assetLibraries, name}}

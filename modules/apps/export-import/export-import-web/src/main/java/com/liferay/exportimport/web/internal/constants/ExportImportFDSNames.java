@@ -6,16 +6,32 @@
 package com.liferay.exportimport.web.internal.constants;
 
 import com.liferay.exportimport.constants.ExportImportPortletKeys;
+import com.liferay.portal.kernel.util.PortletKeys;
 
 /**
  * @author Jorge González
  */
 public class ExportImportFDSNames {
 
+	public static final String COMPANY_EXPORT_PROCESSES =
+		PortletKeys.COMPANY_EXPORT + "-exportProcesses";
+
+	public static final String COMPANY_IMPORT_PROCESSES =
+		PortletKeys.COMPANY_IMPORT + "-importProcesses";
+
 	public static final String COMPANY_IMPORT_REPORT_ENTRIES =
-		ExportImportPortletKeys.COMPANY_IMPORT + "-importReportEntries";
+		PortletKeys.COMPANY_IMPORT + "-importReportEntries";
+
+	public static final String EXPORT_PROCESSES =
+		ExportImportPortletKeys.EXPORT + "-exportProcesses";
+
+	public static final String IMPORT_PROCESSES =
+		ExportImportPortletKeys.IMPORT + "-importProcesses";
 
 	public static final String IMPORT_REPORT_ENTRIES =
 		ExportImportPortletKeys.IMPORT + "-importReportEntries";
+
+	public static final String PUBLISH_REPORT_ENTRIES =
+		ExportImportPortletKeys.EXPORT_IMPORT + "-publishReportEntries";
 
 }

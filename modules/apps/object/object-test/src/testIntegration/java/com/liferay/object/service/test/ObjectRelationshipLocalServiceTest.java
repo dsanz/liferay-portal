@@ -88,8 +88,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.workflow.WorkflowInstanceManager;
 import com.liferay.portal.kernel.workflow.WorkflowTaskManager;
-import com.liferay.portal.test.rule.FeatureFlag;
-import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -126,11 +124,6 @@ import org.osgi.framework.ServiceRegistration;
 /**
  * @author Brian Wing Shun Chan
  */
-@FeatureFlags(
-	featureFlags = {
-		@FeatureFlag(value = "LPD-34594"), @FeatureFlag(value = "LPD-69877")
-	}
-)
 @RunWith(Arquillian.class)
 public class ObjectRelationshipLocalServiceTest {
 
@@ -481,8 +474,7 @@ public class ObjectRelationshipLocalServiceTest {
 			() -> _objectRelationshipLocalService.addObjectRelationship(
 				null, TestPropsValues.getUserId(),
 				_objectDefinition1.getObjectDefinitionId(),
-				_objectDefinition2.getObjectDefinitionId(),
-				RandomTestUtil.randomLong(),
+				_objectDefinition2.getObjectDefinitionId(), 0,
 				ObjectRelationshipConstants.DELETION_TYPE_PREVENT, false,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				StringUtil.randomId(), true,
@@ -827,7 +819,7 @@ public class ObjectRelationshipLocalServiceTest {
 		_objectRelationshipLocalService.deleteObjectRelationship(
 			objectRelationship);
 
-		_assertObjectLayoutTab(0, objectLayoutTabs.get(1));
+		_assertObjectLayoutTab(1, objectLayoutTabs.get(1));
 	}
 
 	@Test
@@ -893,6 +885,110 @@ public class ObjectRelationshipLocalServiceTest {
 		Assert.assertEquals(
 			objectDefinition2.getClassName(),
 			relatedInfoItemCollectionProvider.getSourceItemClassName());
+
+		ObjectRelationship systemObjectRelationship =
+			_objectRelationshipLocalService.addObjectRelationship(
+				null, TestPropsValues.getUserId(),
+				_unmodifiableSystemObjectDefinition2.getObjectDefinitionId(),
+				_objectDefinition1.getObjectDefinitionId(), 0,
+				ObjectRelationshipConstants.DELETION_TYPE_PREVENT, false,
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				StringUtil.randomId(), false,
+				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
+
+		relatedInfoItemCollectionProvider = serviceTrackerMap.getService(
+			_unmodifiableSystemObjectDefinition2.getClassName());
+
+		Assert.assertEquals(
+			_unmodifiableSystemObjectDefinition2.getClassName(),
+			relatedInfoItemCollectionProvider.getSourceItemClassName());
+
+		_objectRelationshipLocalService.deleteObjectRelationship(
+			systemObjectRelationship);
+
+		ObjectDefinition childObjectDefinition =
+			ObjectDefinitionTestUtil.addCustomObjectDefinition(
+				ObjectDefinitionTestUtil.getRandomName());
+
+		ObjectRelationship objectRelationship =
+			_objectRelationshipLocalService.addObjectRelationship(
+				null, TestPropsValues.getUserId(),
+				_unmodifiableSystemObjectDefinition2.getObjectDefinitionId(),
+				childObjectDefinition.getObjectDefinitionId(), 0,
+				ObjectRelationshipConstants.DELETION_TYPE_PREVENT, false,
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+				StringUtil.randomId(), false,
+				ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
+
+		Assert.assertNull(
+			serviceTrackerMap.getService(
+				_unmodifiableSystemObjectDefinition2.getClassName()));
+
+		childObjectDefinition =
+			_objectDefinitionLocalService.publishCustomObjectDefinition(
+				TestPropsValues.getUserId(),
+				childObjectDefinition.getObjectDefinitionId());
+
+		relatedInfoItemCollectionProvider = serviceTrackerMap.getService(
+			_unmodifiableSystemObjectDefinition2.getClassName());
+
+		Assert.assertEquals(
+			_unmodifiableSystemObjectDefinition2.getClassName(),
+			relatedInfoItemCollectionProvider.getSourceItemClassName());
+
+		_objectRelationshipLocalService.deleteObjectRelationship(
+			objectRelationship);
+
+		_objectDefinitionLocalService.deleteObjectDefinition(
+			childObjectDefinition);
+
+		childObjectDefinition =
+			ObjectDefinitionTestUtil.addCustomObjectDefinition(
+				ObjectDefinitionTestUtil.getRandomName());
+
+		ObjectDefinition parentObjectDefinition =
+			ObjectDefinitionTestUtil.addCustomObjectDefinition(
+				ObjectDefinitionTestUtil.getRandomName());
+
+		_objectRelationshipLocalService.addObjectRelationship(
+			null, TestPropsValues.getUserId(),
+			parentObjectDefinition.getObjectDefinitionId(),
+			childObjectDefinition.getObjectDefinitionId(), 0,
+			ObjectRelationshipConstants.DELETION_TYPE_PREVENT, false,
+			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
+			StringUtil.randomId(), false,
+			ObjectRelationshipConstants.TYPE_ONE_TO_MANY, null);
+
+		Assert.assertNull(
+			serviceTrackerMap.getService(
+				parentObjectDefinition.getClassName()));
+
+		parentObjectDefinition =
+			_objectDefinitionLocalService.publishCustomObjectDefinition(
+				TestPropsValues.getUserId(),
+				parentObjectDefinition.getObjectDefinitionId());
+
+		Assert.assertNull(
+			serviceTrackerMap.getService(
+				parentObjectDefinition.getClassName()));
+
+		childObjectDefinition =
+			_objectDefinitionLocalService.publishCustomObjectDefinition(
+				TestPropsValues.getUserId(),
+				childObjectDefinition.getObjectDefinitionId());
+
+		relatedInfoItemCollectionProvider = serviceTrackerMap.getService(
+			parentObjectDefinition.getClassName());
+
+		Assert.assertEquals(
+			parentObjectDefinition.getClassName(),
+			relatedInfoItemCollectionProvider.getSourceItemClassName());
+
+		_objectDefinitionLocalService.deleteObjectDefinition(
+			childObjectDefinition);
+
+		_objectDefinitionLocalService.deleteObjectDefinition(
+			parentObjectDefinition);
 
 		serviceTrackerMap.close();
 
@@ -1668,26 +1764,38 @@ public class ObjectRelationshipLocalServiceTest {
 				objectFieldNamePrefix +
 					objectDefinition1.getPKObjectFieldName()));
 
+		_testAddObjectRelationshipOneToManyWithObjectField(false);
+		_testAddObjectRelationshipOneToManyWithObjectField(true);
+	}
+
+	private void _testAddObjectRelationshipOneToManyWithObjectField(
+			boolean system)
+		throws Exception {
+
 		ObjectField expectedObjectField = new ObjectFieldBuilder(
 		).externalReferenceCode(
 			RandomTestUtil.randomString()
 		).labelMap(
-			LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString())
+			RandomTestUtil.randomLocaleStringMap()
+		).name(
+			"a_" + RandomTestUtil.randomString()
 		).readOnly(
 			ObjectFieldConstants.READ_ONLY_FALSE
 		).required(
 			RandomTestUtil.randomBoolean()
+		).system(
+			system
 		).build();
 
-		objectRelationship =
+		ObjectRelationship objectRelationship =
 			_objectRelationshipLocalService.addObjectRelationship(
 				null, TestPropsValues.getUserId(),
 				_objectDefinition1.getObjectDefinitionId(),
-				_objectDefinition2.getObjectDefinitionId(), 0,
-				ObjectRelationshipConstants.DELETION_TYPE_PREVENT, false,
-				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				"able", false, ObjectRelationshipConstants.TYPE_ONE_TO_MANY,
+				_objectDefinition2.getObjectDefinitionId(),
 				expectedObjectField);
+
+		Assert.assertEquals(
+			expectedObjectField.isSystem(), objectRelationship.isSystem());
 
 		ObjectField actualObjectField = _objectFieldLocalService.getObjectField(
 			objectRelationship.getObjectFieldId2());
@@ -1701,6 +1809,8 @@ public class ObjectRelationshipLocalServiceTest {
 			expectedObjectField.getReadOnly(), actualObjectField.getReadOnly());
 		Assert.assertEquals(
 			expectedObjectField.isRequired(), actualObjectField.isRequired());
+		Assert.assertEquals(
+			expectedObjectField.isSystem(), actualObjectField.isSystem());
 
 		_objectRelationshipLocalService.deleteObjectRelationship(
 			objectRelationship);

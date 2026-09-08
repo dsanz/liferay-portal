@@ -255,7 +255,7 @@ definition {
 
 				if (isSet(enableShowFiles)) {
 					Check.checkNotVisible(
-						key_toggleSwitchLabel = "Show Files in Documents and Media",
+						key_toggleSwitchLabel = "Show Uploaded Files in Library",
 						locator1 = "ToggleSwitch#ANY_TOGGLE_SWITCH");
 				}
 			}
@@ -618,14 +618,12 @@ definition {
 			locator1 = "ObjectAdmin#TAB_LABEL_NAME",
 			value1 = ${tabName});
 
-		Click(
-			key_labelName = "Relationship",
-			locator1 = "ObjectAdmin#CLAY_GENERIC_BUTTON");
+		Click(locator1 = "ObjectAdmin#RELATIONSHIP_AUTOCOMPLETE");
 
 		if (isSet(relationshipsLabelName)) {
 			Click(
 				key_optionName = ${relationshipsLabelName},
-				locator1 = "ObjectAdmin#CLAY_GENERIC_DROPDOWN_ITEM");
+				locator1 = "ObjectAdmin#RELATIONSHIP_AUTOCOMPLETE_ITEM");
 		}
 
 		Click(
@@ -1285,7 +1283,7 @@ definition {
 					checkboxName = ${fieldName},
 					locator1 = "Checkbox#ANY_CHECKBOX");
 
-				PortletEntry.save();
+				ObjectCustomViews.clickSave();
 
 				SelectFrame(locator1 = "ObjectAction#IFRAME_SIDE_PANEL");
 
@@ -1342,9 +1340,7 @@ definition {
 
 		if (isSet(click)) {
 			if ((${click} == "save") && (${notRefreshAttribute} == "true")) {
-				Button.clickSave();
-
-				WaitForElementNotPresent(locator1 = "ObjectAdmin#SIDE_PANEL");
+				ObjectAdmin.saveSidePanel();
 			}
 			else if (${click} == "cancel") {
 				Button.clickCancel();
@@ -1587,6 +1583,23 @@ definition {
 	}
 
 	@summary = "Default summary"
+	macro saveSidePanel() {
+		ExecuteJavaScript(value1 = "var markerElement = window.top.document.createElement('div'); markerElement.className = 'poshi-outgoing-document-marker'; window.top.document.body.appendChild(markerElement);");
+
+		Click(
+			key_text = "Save",
+			locator1 = "Button#ANY");
+
+		SelectFrame(value1 = "relative=top");
+
+		WaitForElementNotPresent(locator1 = "//div[@class='poshi-outgoing-document-marker']");
+
+		WaitForPageLoad();
+
+		WaitForLiferayEvent.initializeLiferayEventLog();
+	}
+
+	@summary = "Default summary"
 	macro searchInDefinePermissions(search = null) {
 		Type(
 			locator1 = "RolesPermissionsNavigation#SEARCH_FIELD",
@@ -1610,12 +1623,10 @@ definition {
 	}
 
 	@summary = "Default summary"
-	macro selectAttachmentFileInObjectEntryViaUI(fileName = null, objectName = null, objectEntryId = null) {
+	macro selectAttachmentFileInObjectEntryViaUI(externalReferenceCode = null, fileName = null, objectName = null) {
 		ObjectAdmin.goToCustomObject(objectName = ${objectName});
 
-		Click(
-			key_entry = ${objectEntryId},
-			locator1 = "ObjectPortlet#ENTRY_VALUE");
+		Click(locator1 = "xpath=//tbody//a[contains(@href,'externalReferenceCode=${externalReferenceCode}')]");
 
 		var filePath = TestCase.getDependenciesDirPath(fileName = ${fileName});
 

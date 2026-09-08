@@ -60,7 +60,7 @@ public class Attachment implements Serializable {
 	}
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "Map of HATEOAS actions available to the current user, keyed by action name (e.g., \"delete\", \"update\"). Each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only."
+		description = "Map of HATEOAS actions available to the current user, keyed by action name. Each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only."
 	)
 	@Valid
 	public Map<String, Map<String, String>> getActions() {
@@ -98,7 +98,7 @@ public class Attachment implements Serializable {
 	}
 
 	@GraphQLField(
-		description = "Map of HATEOAS actions available to the current user, keyed by action name (e.g., \"delete\", \"update\"). Each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only."
+		description = "Map of HATEOAS actions available to the current user, keyed by action name. Each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Map<String, Map<String, String>> actions;
@@ -153,7 +153,7 @@ public class Attachment implements Serializable {
 	private Supplier<String> _attachmentSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "Last-modification timestamp in ISO 8601 (UTC). Read-only; set by the service on each update.",
+		description = "Last modification date and time in ISO 8601 (UTC). Read-only; set by the service on each update.",
 		example = "2017-07-21"
 	)
 	public Date getDateModified() {
@@ -190,7 +190,7 @@ public class Attachment implements Serializable {
 	}
 
 	@GraphQLField(
-		description = "Last-modification timestamp in ISO 8601 (UTC). Read-only; set by the service on each update."
+		description = "Last modification date and time in ISO 8601 (UTC). Read-only; set by the service on each update."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date dateModified;
@@ -974,4 +974,4 @@ public class Attachment implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-713566049
+// LIFERAY-REST-BUILDER-HASH:837412401

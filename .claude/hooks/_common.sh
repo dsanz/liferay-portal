@@ -38,37 +38,6 @@ function _die {
 	exit 1
 }
 
-function _drop_database {
-	local worktree_path="${1}"
-	local bundles_dir="${2:-}"
-
-	command -v mysql >/dev/null 2>&1 || return 0
-
-	local db_name
-
-	db_name="$(_derive_db_name "$(basename "${worktree_path}")")"
-
-	[[ ${db_name} != lportal ]] || return 0
-
-	local user=root
-	local password=""
-
-	if [[ -n ${bundles_dir} ]]
-	then
-		user="$(_get_property_from_files "jdbc\.default\.username" root "${bundles_dir}/portal-ext.properties" "${bundles_dir}/portal-setup-wizard.properties")"
-		password="$(_get_property_from_files "jdbc\.default\.password" "" "${bundles_dir}/portal-ext.properties" "${bundles_dir}/portal-setup-wizard.properties")"
-	fi
-
-	local mysql_args=(--user "${user}")
-
-	if [[ -n ${password} ]]
-	then
-		mysql_args+=(--password="${password}")
-	fi
-
-	mysql "${mysql_args[@]}" --execute "DROP DATABASE IF EXISTS ${db_name};" >&2 || true
-}
-
 function _find_app_server_parent_dir {
 	local project_dir="${1}"
 
@@ -199,3 +168,31 @@ function _sed {
 		sed "${@}"
 	fi
 }
+
+function _source_database_brand {
+	local brand
+
+	brand="$(echo "${LIFERAY_PROVISION_DATABASE_BRAND:-mysql}" | tr "[:upper:]" "[:lower:]")"
+
+	if [[ ${brand} == *psql* || ${brand} == *postgres* ]]
+	then
+		brand=psql
+	elif [[ ${brand} == *mysql* ]]
+	then
+		brand=mysql
+	else
+		_die "The \"LIFERAY_PROVISION_DATABASE_BRAND\" value must contain one of \"mysql\", \"psql\", or \"postgres\" (got \"${brand}\")."
+	fi
+
+	source "_database_brand_${brand}.sh"
+
+	local function_name
+
+	for function_name in _drop_database _set_database
+	do
+		[[ $(type -t "${function_name}") == function ]] ||
+			_die "\"_database_brand_${brand}.sh\" must implement the \"${function_name}\" function."
+	done
+}
+
+_source_database_brand

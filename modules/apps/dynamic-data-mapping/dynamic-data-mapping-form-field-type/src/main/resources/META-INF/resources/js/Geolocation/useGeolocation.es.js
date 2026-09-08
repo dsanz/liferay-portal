@@ -25,7 +25,6 @@ const MAP_CONFIG = {
 		CONTROLS.ZOOM,
 	],
 	geolocation: true,
-	position: {location: {}},
 };
 
 const getMapName = (name) => {
@@ -44,9 +43,6 @@ const parseJSONValue = (value) => {
 };
 
 const setupMapOpenStreetMaps = (callback) => {
-	Leaflet.Icon.Default.imagePath =
-		'https://npmcdn.com/leaflet@1.7.1/dist/images/';
-
 	if (!window['L']) {
 		window['L'] = Leaflet;
 	}
@@ -62,29 +58,54 @@ const setupGoogleMaps = (googleMapsAPIKey, callback) => {
 		Liferay.Maps.gmapsReady
 	) {
 		callback();
+
+		return undefined;
 	}
-	else {
-		Liferay.namespace('Maps').onGMapsReady = function () {
-			Liferay.Maps.gmapsReady = true;
-			Liferay.fire('gmapsReady');
-		};
 
-		Liferay.once('gmapsReady', () => callback());
+	Liferay.namespace('Maps').onGMapsReady = function () {
+		Liferay.Maps.gmapsLoading = false;
+		Liferay.Maps.gmapsReady = true;
 
-		let apiURL = `${location.protocol}//maps.googleapis.com/maps/api/js?v=3.exp&libraries=places&callback=Liferay.Maps.onGMapsReady`;
+		Liferay.fire('gmapsReady');
+	};
 
-		if (googleMapsAPIKey) {
-			apiURL += '&key=' + googleMapsAPIKey;
-		}
+	Liferay.once('gmapsReady', callback);
 
-		let script = document.createElement('script');
+	const detachGMapsReadyListener = () =>
+		Liferay.detach('gmapsReady', callback);
 
-		script.setAttribute('src', apiURL);
-
-		document.head.appendChild(script);
-
-		script = null;
+	if (
+		Liferay.Maps.gmapsLoading ||
+		document.querySelector(
+			'script[src*="maps.googleapis.com/maps/api/js"][src*="callback=Liferay.Maps.onGMapsReady"]'
+		)
+	) {
+		return detachGMapsReadyListener;
 	}
+
+	Liferay.Maps.gmapsLoading = true;
+
+	let apiURL = `${location.protocol}//maps.googleapis.com/maps/api/js?v=3.exp&libraries=places&callback=Liferay.Maps.onGMapsReady`;
+
+	if (googleMapsAPIKey) {
+		apiURL += '&key=' + googleMapsAPIKey;
+	}
+
+	let script = document.createElement('script');
+
+	script.addEventListener('error', (event) => {
+		Liferay.Maps.gmapsLoading = false;
+
+		event.currentTarget.remove();
+	});
+
+	script.setAttribute('src', apiURL);
+
+	document.head.appendChild(script);
+
+	script = null;
+
+	return detachGMapsReadyListener;
 };
 
 export function useGeolocation({
@@ -99,20 +120,19 @@ export function useGeolocation({
 	viewMode,
 }) {
 	const mapRef = useRef(null);
+	const onPositionChangeRef = useRef(null);
 
 	useEffect(() => {
+		let detachGMapsReadyListener;
+
 		if (!disabled || viewMode) {
 			const mapConfig = {
 				...MAP_CONFIG,
 				boundingBox: `#map_${instanceId}`,
+				position: {
+					location: value ? parseJSONValue(value) : {lat: 0, lng: 0},
+				},
 			};
-
-			if (value) {
-				mapConfig.position.location = parseJSONValue(value);
-			}
-			else {
-				mapConfig.position.location = {lat: 0, lng: 0};
-			}
 
 			const registerMapBase = (MapProvider, mapConfig) => {
 				mapRef.current = new MapProvider(mapConfig);
@@ -123,9 +143,12 @@ export function useGeolocation({
 					`#map_${instanceId}`
 				);
 
-				mapRef.current.removeAllListeners('positionChange');
+				onPositionChangeRef.current?.removeListener();
 
-				mapRef.current.on('positionChange', onChange);
+				onPositionChangeRef.current = mapRef.current.on(
+					'positionChange',
+					onChange
+				);
 
 				if (value) {
 					mapRef.current.setCenter(parseJSONValue(value));
@@ -140,8 +163,9 @@ export function useGeolocation({
 					break;
 
 				case MAP_PROVIDER.googleMaps:
-					setupGoogleMaps(googleMapsAPIKey, () =>
-						registerMapBase(MapGoogleMaps, mapConfig)
+					detachGMapsReadyListener = setupGoogleMaps(
+						googleMapsAPIKey,
+						() => registerMapBase(MapGoogleMaps, mapConfig)
 					);
 					break;
 
@@ -151,6 +175,8 @@ export function useGeolocation({
 		}
 
 		return () => {
+			detachGMapsReadyListener?.();
+
 			if (mapRef.current) {
 				mapRef.current.dispose();
 			}
@@ -161,10 +187,18 @@ export function useGeolocation({
 
 	useEffect(() => {
 		if (mapRef.current) {
-			mapRef.current.removeAllListeners('positionChange');
+			onPositionChangeRef.current?.removeListener();
 
-			mapRef.current.on('positionChange', onChange);
+			onPositionChangeRef.current = mapRef.current.on(
+				'positionChange',
+				onChange
+			);
 		}
+
+		return () => {
+			onPositionChangeRef.current?.removeListener();
+			onPositionChangeRef.current = null;
+		};
 	}, [onChange]);
 
 	useEffect(() => {

@@ -483,6 +483,9 @@ public interface PropsKeys {
 	public static final String COMPANY_DEFAULT_WEB_ID =
 		"company.default.web.id";
 
+	public static final String COMPANY_DELETE_IN_PROCESS_MAX_TIME =
+		"company.delete.in.process.max.time";
+
 	public static final String COMPANY_ENCRYPTION_ALGORITHM =
 		"company.encryption.algorithm";
 
@@ -1015,6 +1018,9 @@ public interface PropsKeys {
 	public static final String EHCACHE_SINGLE_VM_CONFIG_LOCATION =
 		"ehcache.single.vm.config.location";
 
+	public static final String ENTERPRISE_PRODUCT_AI_HUB_ENABLED =
+		"enterprise.product.ai.hub.enabled";
+
 	public static final String ENTERPRISE_PRODUCT_NOTIFICATION_ENABLED =
 		"enterprise.product.notification.enabled";
 
@@ -1413,6 +1419,10 @@ public interface PropsKeys {
 
 	public static final String LAYOUT_SET_FORM_UPDATE =
 		"layout.set.form.update";
+
+	public static final String
+		LAYOUT_SET_PROTOTYPE_MERGE_DELETE_CACHE_FILE_ENABLED =
+			"layout.set.prototype.merge.delete.cache.file.enabled";
 
 	public static final String LAYOUT_SET_PROTOTYPE_MERGE_FAIL_THRESHOLD =
 		"layout.set.prototype.merge.fail.threshold";
@@ -2700,9 +2710,6 @@ public interface PropsKeys {
 
 	public static final String UPGRADE_CONCURRENT_FETCH_SIZE =
 		"upgrade.concurrent.fetch.size";
-
-	public static final String UPGRADE_CONCURRENT_PROCESS_FUTURE_LIST_MAX_SIZE =
-		"upgrade.concurrent.process.future.list.max.size";
 
 	public static final String UPGRADE_DATABASE_AUTO_RUN =
 		"upgrade.database.auto.run";

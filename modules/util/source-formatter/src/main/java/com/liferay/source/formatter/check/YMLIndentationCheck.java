@@ -99,18 +99,22 @@ public class YMLIndentationCheck extends BaseFileCheck {
 				sb1.append(StringUtil.trimLeading(firstLine));
 				sb1.append("\n");
 
-				if (lines.length == 1) {
-					continue;
-				}
+				leadingSpacesLength = -1;
 
 				for (int i = 1; i < lines.length; i++) {
 					String line = lines[i];
 
-					if (i == 1) {
+					if ((line.length() > 0) && !line.matches(" +")) {
 						leadingSpaces = SourceUtil.getLeadingSpaces(line);
 
 						leadingSpacesLength = leadingSpaces.length();
+
+						break;
 					}
+				}
+
+				for (int i = 1; i < lines.length; i++) {
+					String line = lines[i];
 
 					if ((line.length() == 0) || line.matches(" +")) {
 						sb1.append("\n");
@@ -119,16 +123,19 @@ public class YMLIndentationCheck extends BaseFileCheck {
 					}
 
 					sb1.append(StringPool.FOUR_SPACES);
-					sb1.append(line.substring(leadingSpacesLength));
+
+					if (leadingSpacesLength != -1) {
+						sb1.append(line.substring(leadingSpacesLength));
+					}
+					else {
+						sb1.append(StringUtil.trimLeading(line));
+					}
+
 					sb1.append("\n");
 				}
 
 				continue;
 			}
-
-			leadingSpaces = SourceUtil.getLeadingSpaces(firstLine);
-
-			leadingSpacesLength = leadingSpaces.length();
 
 			String subdefinition = definition.substring(firstLine.length() + 1);
 

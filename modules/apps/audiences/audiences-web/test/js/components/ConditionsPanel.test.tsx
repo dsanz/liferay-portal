@@ -1,0 +1,265 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+import {ScreenReaderAnnouncerContextProvider} from '@liferay/layout-js-components-web';
+
+// eslint-disable-next-line @liferay/portal/no-cross-module-deep-import
+import {checkAccessibility} from '@liferay/layout-js-components-web/test/__lib__/index';
+
+import '@testing-library/jest-dom';
+import {render, screen, within} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import React from 'react';
+import {DndProvider} from 'react-dnd';
+import {HTML5Backend} from 'react-dnd-html5-backend';
+
+import ConditionsPanel from '../../../src/main/resources/META-INF/resources/js/components/ConditionsPanel';
+import {
+	AudiencesCriteriaType,
+	CriteriaNode,
+} from '../../../src/main/resources/META-INF/resources/js/types';
+
+const DragAndDropProvider = DndProvider as unknown as React.FC<
+	React.PropsWithChildren<{backend: typeof HTML5Backend}>
+>;
+
+const AUDIENCES_CRITERIA_TYPES: AudiencesCriteriaType[] = [
+	{
+		audiencesCriterias: [
+			{
+				icon: 'user',
+				inputType: 'text',
+				key: 'age',
+				label: 'Age',
+				options: [],
+				type: 'number',
+			},
+			{
+				icon: 'user',
+				inputType: 'text',
+				key: 'city',
+				label: 'City',
+				options: [],
+				type: 'string',
+			},
+			{
+				icon: 'check',
+				inputType: 'boolean',
+				key: 'user_authentication',
+				label: 'User Authentication',
+				options: [],
+				type: 'boolean',
+			},
+		],
+		key: 'user',
+		label: 'User',
+	},
+];
+
+const RULES: CriteriaNode[] = [
+	{attribute: 'age', id: 'rule-age', operator: 'gt', value: '18'},
+];
+
+const RULES_WITH_REMOVED: CriteriaNode[] = [
+	{attribute: 'removed', id: 'rule-removed', operator: 'eq', value: ''},
+];
+
+const NESTED_GROUP: CriteriaNode[] = [
+	{
+		conjunction: 'OR',
+		id: 'group-nested',
+		items: [
+			{attribute: 'age', id: 'rule-age', operator: 'gt', value: '18'},
+			{
+				attribute: 'city',
+				id: 'rule-city',
+				operator: 'eq',
+				value: 'Madrid',
+			},
+		],
+	},
+];
+
+function renderConditionsPanel({
+	dispatch = jest.fn(),
+	items = [] as CriteriaNode[],
+} = {}) {
+	const {container} = render(
+		<DragAndDropProvider backend={HTML5Backend}>
+			<ScreenReaderAnnouncerContextProvider>
+				<ConditionsPanel
+					audiencesCriteriaTypes={AUDIENCES_CRITERIA_TYPES}
+					dispatch={dispatch}
+					root={{conjunction: 'AND', id: 'group-root', items}}
+				/>
+			</ScreenReaderAnnouncerContextProvider>
+		</DragAndDropProvider>
+	);
+
+	return {container, dispatch};
+}
+
+describe('ConditionsPanel', () => {
+	it('shows the empty state when there are no rules', () => {
+		renderConditionsPanel();
+
+		expect(screen.getByText('no-criteria-yet')).toBeTruthy();
+	});
+
+	it('renders the given rules', () => {
+		renderConditionsPanel({items: RULES});
+
+		expect(screen.getByText('Age')).toBeTruthy();
+		expect(screen.getByText('is-greater-than')).toBeTruthy();
+
+		expect(
+			screen.getByRole('listitem', {name: /Age.*is-greater-than.*18/})
+		).toBeTruthy();
+	});
+
+	it('dispatches a duplicate action with the rule path', async () => {
+		const {dispatch} = renderConditionsPanel({items: RULES});
+
+		await userEvent.click(screen.getByLabelText('duplicate'));
+
+		expect(dispatch).toHaveBeenCalledWith({
+			path: [0],
+			type: 'DUPLICATE_RULE',
+		});
+	});
+
+	it('dispatches the conjunction', async () => {
+		const {dispatch} = renderConditionsPanel({items: RULES});
+
+		await userEvent.click(
+			screen.getByLabelText('of-these-criteria-are-met')
+		);
+		await userEvent.click(screen.getByRole('option', {name: 'any'}));
+
+		expect(dispatch).toHaveBeenCalledWith({
+			conjunction: 'OR',
+			type: 'SET_CONJUNCTION',
+		});
+	});
+
+	it('dispatches a true or false value for a boolean rule', async () => {
+		const {dispatch} = renderConditionsPanel({
+			items: [
+				{
+					attribute: 'user_authentication',
+					id: 'rule-auth',
+					operator: 'eq',
+					value: 'true',
+				},
+			],
+		});
+
+		await userEvent.click(screen.getByLabelText('value'));
+		await userEvent.click(screen.getByRole('option', {name: 'false'}));
+
+		expect(dispatch).toHaveBeenCalledWith({
+			path: [0],
+			rule: {
+				attribute: 'user_authentication',
+				id: 'rule-auth',
+				operator: 'eq',
+				value: 'false',
+			},
+			type: 'UPDATE_RULE',
+		});
+	});
+
+	it('shows an error state for a removed criteria', () => {
+		renderConditionsPanel({items: RULES_WITH_REMOVED});
+
+		expect(
+			screen.getByText('the-criteria-is-no-longer-available')
+		).toBeTruthy();
+	});
+
+	it('renders a nested group with its own conjunction control', () => {
+		renderConditionsPanel({items: NESTED_GROUP});
+
+		expect(
+			screen.getByRole('listitem', {name: /of-these-criteria-are-met/})
+		).toBeTruthy();
+		expect(screen.getByText('Age')).toBeTruthy();
+		expect(screen.getByText('City')).toBeTruthy();
+		expect(
+			screen.getAllByRole('combobox', {
+				name: 'of-these-criteria-are-met',
+			})
+		).toHaveLength(2);
+	});
+
+	it('has no accessibility violations for nested groups', async () => {
+		const {container} = renderConditionsPanel({items: NESTED_GROUP});
+
+		await checkAccessibility({bestPractices: true, context: container});
+	});
+
+	it('dispatches a delete action for a rule nested in a group by path', async () => {
+		const {dispatch} = renderConditionsPanel({items: NESTED_GROUP});
+
+		const group = screen.getByRole('listitem', {
+			name: /of-these-criteria-are-met/,
+		});
+
+		await userEvent.click(within(group).getAllByLabelText('delete')[0]);
+
+		expect(dispatch).toHaveBeenCalledWith({
+			path: [0, 0],
+			type: 'DELETE_RULE',
+		});
+	});
+
+	it('keeps only the current row in the tab order', () => {
+		renderConditionsPanel({
+			items: [
+				{attribute: 'age', id: 'rule-age', operator: 'gt', value: '18'},
+				{
+					attribute: 'city',
+					id: 'rule-city',
+					operator: 'eq',
+					value: 'Madrid',
+				},
+			],
+		});
+
+		const deleteButtons = screen.getAllByLabelText('delete');
+
+		expect(deleteButtons[0]).toHaveAttribute('tabindex', '0');
+		expect(deleteButtons[1]).toHaveAttribute('tabindex', '-1');
+	});
+
+	it('navigates into a nested group with arrow keys', async () => {
+		renderConditionsPanel({
+			items: [
+				{attribute: 'age', id: 'rule-age', operator: 'gt', value: '18'},
+				{
+					conjunction: 'OR',
+					id: 'group-nested',
+					items: [
+						{
+							attribute: 'city',
+							id: 'rule-city',
+							operator: 'eq',
+							value: 'Madrid',
+						},
+					],
+				},
+			],
+		});
+
+		const ageRow = screen.getByRole('listitem', {name: /^Age/});
+		const cityRow = screen.getByRole('listitem', {name: /^City/});
+
+		ageRow.focus();
+
+		await userEvent.keyboard('{ArrowDown}');
+
+		expect(cityRow).toHaveFocus();
+	});
+});

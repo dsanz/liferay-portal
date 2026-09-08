@@ -6,18 +6,32 @@
 package com.liferay.client.extension.type.internal.manager.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.change.tracking.model.CTCollection;
+import com.liferay.change.tracking.service.CTCollectionLocalService;
+import com.liferay.client.extension.constants.ClientExtensionEntryConstants;
+import com.liferay.client.extension.model.ClientExtensionEntry;
+import com.liferay.client.extension.service.ClientExtensionEntryLocalService;
+import com.liferay.client.extension.type.CET;
+import com.liferay.client.extension.type.GlobalCSSCET;
 import com.liferay.client.extension.type.manager.CETManager;
-import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.petra.lang.SafeCloseable;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LogEntry;
 import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.portal.vulcan.pagination.Pagination;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import org.junit.Assert;
 import org.junit.Rule;
@@ -31,7 +45,142 @@ import org.junit.runner.RunWith;
 public class CETManagerImplTest {
 
 	@Test
-	public void testGetCET() throws PortalException {
+	public void testGetCET() throws Exception {
+		_testGetCETIsCached();
+		_testGetCETIsRebuiltAfterUpdate();
+		_testGetCETWithMissingExternalReferenceCode();
+		_testGetCETsReturnsOnlyRequestedType();
+	}
+
+	@Rule
+	public final AggregateTestRule aggregateTestRule =
+		new LiferayIntegrationTestRule();
+
+	private ClientExtensionEntry _addClientExtensionEntry(
+			String type, String url)
+		throws Exception {
+
+		return _clientExtensionEntryLocalService.addClientExtensionEntry(
+			RandomTestUtil.randomString(), TestPropsValues.getUserId(),
+			StringPool.BLANK,
+			Collections.singletonMap(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+			StringPool.BLANK, StringPool.BLANK, type,
+			UnicodePropertiesBuilder.create(
+				true
+			).put(
+				"url", url
+			).buildString());
+	}
+
+	private void _testGetCETIsCached() throws Exception {
+		String url = "http://" + RandomTestUtil.randomString();
+
+		ClientExtensionEntry clientExtensionEntry = _addClientExtensionEntry(
+			ClientExtensionEntryConstants.TYPE_GLOBAL_CSS, url);
+
+		CET cet1 = _cetManager.getCET(
+			TestPropsValues.getCompanyId(),
+			clientExtensionEntry.getExternalReferenceCode());
+
+		CET cet2 = _cetManager.getCET(
+			TestPropsValues.getCompanyId(),
+			clientExtensionEntry.getExternalReferenceCode());
+
+		Assert.assertNotNull(cet1);
+		Assert.assertSame(cet1, cet2);
+
+		GlobalCSSCET globalCSSCET = (GlobalCSSCET)cet1;
+
+		Assert.assertEquals(url, globalCSSCET.getURL());
+	}
+
+	private void _testGetCETIsRebuiltAfterUpdate() throws Exception {
+
+		// Run inside a change tracking collection to verify that the cached
+		// CET is rebuilt even when the entity cache writes to a change
+		// tracking scoped cache instead of the production cache
+
+		CTCollection ctCollection = _ctCollectionLocalService.addCTCollection(
+			null, TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
+			0, RandomTestUtil.randomString(), RandomTestUtil.randomString());
+
+		try (SafeCloseable safeCloseable =
+				CTCollectionThreadLocal.setCTCollectionIdWithSafeCloseable(
+					ctCollection.getCtCollectionId())) {
+
+			ClientExtensionEntry clientExtensionEntry =
+				_addClientExtensionEntry(
+					ClientExtensionEntryConstants.TYPE_GLOBAL_CSS,
+					"http://" + RandomTestUtil.randomString());
+
+			CET cet1 = _cetManager.getCET(
+				TestPropsValues.getCompanyId(),
+				clientExtensionEntry.getExternalReferenceCode());
+
+			String url = "http://" + RandomTestUtil.randomString();
+
+			clientExtensionEntry.setTypeSettings(
+				UnicodePropertiesBuilder.create(
+					true
+				).put(
+					"url", url
+				).buildString());
+
+			clientExtensionEntry =
+				_clientExtensionEntryLocalService.updateClientExtensionEntry(
+					clientExtensionEntry);
+
+			CET cet2 = _cetManager.getCET(
+				TestPropsValues.getCompanyId(),
+				clientExtensionEntry.getExternalReferenceCode());
+
+			Assert.assertNotSame(cet1, cet2);
+
+			GlobalCSSCET globalCSSCET = (GlobalCSSCET)cet2;
+
+			Assert.assertEquals(url, globalCSSCET.getURL());
+		}
+	}
+
+	private void _testGetCETsReturnsOnlyRequestedType() throws Exception {
+		boolean containsGlobalCSS = false;
+
+		ClientExtensionEntry globalCSSClientExtensionEntry =
+			_addClientExtensionEntry(
+				ClientExtensionEntryConstants.TYPE_GLOBAL_CSS,
+				"http://" + RandomTestUtil.randomString());
+		ClientExtensionEntry globalJSClientExtensionEntry =
+			_addClientExtensionEntry(
+				ClientExtensionEntryConstants.TYPE_GLOBAL_JS,
+				"http://" + RandomTestUtil.randomString());
+
+		List<CET> cets = _cetManager.getCETs(
+			TestPropsValues.getCompanyId(), null,
+			ClientExtensionEntryConstants.TYPE_GLOBAL_CSS,
+			Pagination.of(1, 200), null);
+
+		for (CET cet : cets) {
+			Assert.assertEquals(
+				ClientExtensionEntryConstants.TYPE_GLOBAL_CSS, cet.getType());
+			Assert.assertNotEquals(
+				globalJSClientExtensionEntry.getExternalReferenceCode(),
+				cet.getExternalReferenceCode());
+
+			if (Objects.equals(
+					globalCSSClientExtensionEntry.getExternalReferenceCode(),
+					cet.getExternalReferenceCode())) {
+
+				containsGlobalCSS = true;
+			}
+		}
+
+		Assert.assertTrue(containsGlobalCSS);
+	}
+
+	private void _testGetCETWithMissingExternalReferenceCode()
+		throws Exception {
+
 		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
 				"com.liferay.client.extension.type.internal.manager." +
 					"CETManagerImpl",
@@ -56,11 +205,13 @@ public class CETManagerImplTest {
 		}
 	}
 
-	@Rule
-	public final AggregateTestRule aggregateTestRule =
-		new LiferayIntegrationTestRule();
-
 	@Inject
 	private CETManager _cetManager;
+
+	@Inject
+	private ClientExtensionEntryLocalService _clientExtensionEntryLocalService;
+
+	@Inject
+	private CTCollectionLocalService _ctCollectionLocalService;
 
 }

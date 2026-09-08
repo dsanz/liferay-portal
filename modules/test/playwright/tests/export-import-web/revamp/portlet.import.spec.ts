@@ -10,6 +10,7 @@ import {documentLibraryPagesTest} from '../../../fixtures/documentLibraryPages.f
 import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {productMenuPageTest} from '../../../fixtures/productMenuPageTest';
+import getRandomString from '../../../utils/getRandomString';
 import {stagingPageTest} from '../main/fixtures/stagingPageTest';
 import {exportImportPagesTest} from './fixtures/exportImportPagesTest';
 
@@ -33,12 +34,12 @@ test('Can import using the new navigation buttons', async ({
 	await documentLibraryPage.openOptionsMenu();
 	await exportImportPage.importMenuItem.click();
 
-	await expect(exportImportPage.newImportTab).toBeVisible();
-	await expect(exportImportPage.currentAndPreviousTab).toBeVisible();
+	await exportImportPage.newButton.click();
 
-	await exportImportPage.import(
-		path.join(__dirname, '../main/dependencies', 'folder.portlet.lar')
-	);
+	await exportImportPage.import({
+		folderPath: path.join(__dirname, 'dependencies', 'folder.portlet.lar'),
+		name: `Test import-${getRandomString()}`,
+	});
 
 	await productMenuPage.backButton.click();
 

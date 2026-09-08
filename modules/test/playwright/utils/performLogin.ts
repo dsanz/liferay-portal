@@ -5,7 +5,7 @@
 
 import {Cookie, Page, expect} from '@playwright/test';
 
-import {getHeader} from '../helpers/ApiHelpers';
+import {clearAuthToken, getHeader, readAuthToken} from '../helpers/ApiHelpers';
 import {liferayConfig} from '../liferay.config';
 import {faroConfig} from '../tests/osb-faro-web/main/faro.config';
 
@@ -73,14 +73,21 @@ async function performLogin(
 
 	await emailAddressInput.fill(`${screenName}${domain}`);
 
+	await expect(emailAddressInput).toHaveValue(`${screenName}${domain}`);
+
 	await page.getByLabel('Password').fill(password);
 	await page.getByLabel('Remember Me').setChecked(rememberMe);
 
-	await page.getByRole('button', {name: 'Sign In'}).last().click();
+	await page
+		.locator('form.sign-in-form')
+		.getByRole('button', {name: 'Sign In'})
+		.click();
 
 	await expect(page.getByLabel(`${name} ${surname}`)).toBeVisible({
 		timeout: 30 * 1000,
 	});
+
+	await readAuthToken(page);
 
 	return await page.context().cookies();
 }
@@ -103,6 +110,8 @@ export async function performLoginViaApi({
 	try {
 		await page.goto(loginUrl);
 
+		clearAuthToken(page);
+
 		const url = `${loginUrl}/c/portal/login`;
 
 		await expect
@@ -120,6 +129,8 @@ export async function performLoginViaApi({
 			.toBe(200);
 
 		await page.goto(loginUrl);
+
+		await readAuthToken(page);
 	}
 	catch (error) {
 		error.message = `Login via API failed\n\n${error.message}`;
@@ -144,6 +155,8 @@ export async function performAnalyticsCloudLoginViaApi(
 	try {
 		await page.goto(loginUrl);
 
+		clearAuthToken(page);
+
 		const url = `${loginUrl}/c/portal/login`;
 
 		await expect
@@ -161,6 +174,8 @@ export async function performAnalyticsCloudLoginViaApi(
 			.toBe(200);
 
 		await page.goto(loginUrl);
+
+		await readAuthToken(page);
 	}
 	catch (error) {
 		error.message = `Analytics Cloud login via API failed\n\n${error.message}`;
@@ -172,19 +187,11 @@ export async function performAnalyticsCloudLoginViaApi(
 }
 
 export async function performLogout(page: Page) {
-	await page.goto('/');
+	await page.goto('/c/portal/logout');
 
-	await expect(async () => {
-		await page.getByTitle('User Profile Menu').click({timeout: 1000});
+	await page.waitForURL((url) => !url.pathname.endsWith('/c/portal/logout'));
 
-		await page
-			.getByRole('menuitem', {name: 'Sign Out'})
-			.click({timeout: 1000});
-
-		await expect(page.getByRole('button', {name: 'Sign In'})).toBeVisible({
-			timeout: 3000,
-		});
-	}).toPass();
+	clearAuthToken(page);
 }
 
 export async function performUserSwitch(

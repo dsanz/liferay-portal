@@ -1,0 +1,117 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+import ClayButton from '@clayui/button';
+import {ClayInput} from '@clayui/form';
+import ClayLayout from '@clayui/layout';
+import {FieldBase} from 'frontend-js-components-web';
+import React, {useEffect, useState} from 'react';
+
+import {Redaction, getRedaction} from '../services/getRedaction';
+
+interface DataMaskRegexTesterProps {
+	detectionRegex: string;
+	replacementRegex: string;
+	replacementValue: string;
+}
+
+export function DataMaskRegexTester({
+	detectionRegex,
+	replacementRegex,
+	replacementValue,
+}: DataMaskRegexTesterProps) {
+	const [redaction, setRedaction] = useState<Redaction | null>(null);
+	const [sampleText, setSampleText] = useState('');
+	const [testing, setTesting] = useState(false);
+
+	const canTest = Boolean(sampleText) && !testing;
+
+	useEffect(() => {
+		setRedaction(null);
+	}, [detectionRegex, replacementRegex, replacementValue, sampleText]);
+
+	const handleTest = async () => {
+		setTesting(true);
+
+		const {data, error} = await getRedaction({
+			detectionRegex,
+			replacementRegex,
+			replacementValue,
+			text: sampleText,
+		});
+
+		setRedaction(data ?? {error: error ?? '', output: ''});
+
+		setTesting(false);
+	};
+
+	return (
+		<div className="data-mask-test mt-4">
+			<h4 className="mb-2 sheet-subtitle">
+				{Liferay.Language.get('test-this-mask')}
+			</h4>
+
+			<p className="sheet-text">
+				{Liferay.Language.get(
+					'enter-a-sample-value-to-preview-how-this-mask-would-transform-it'
+				)}
+			</p>
+
+			<ClayLayout.Row className="align-items-end">
+				<ClayLayout.Col md size={12}>
+					<FieldBase
+						id="dataMaskSampleValue"
+						label={Liferay.Language.get('sample')}
+					>
+						<ClayInput
+							id="dataMaskSampleValue"
+							onChange={(event) =>
+								setSampleText(event.target.value)
+							}
+							placeholder={Liferay.Language.get(
+								'enter-a-sample-value'
+							)}
+							type="text"
+							value={sampleText}
+						/>
+					</FieldBase>
+				</ClayLayout.Col>
+
+				<ClayLayout.Col md="auto" size={12}>
+					<div className="form-group">
+						<ClayButton
+							block
+							disabled={!canTest}
+							displayType="secondary"
+							onClick={handleTest}
+							type="button"
+						>
+							{Liferay.Language.get('test')}
+						</ClayButton>
+					</div>
+				</ClayLayout.Col>
+
+				<ClayLayout.Col lg size={12}>
+					<FieldBase
+						errorMessage={redaction?.error}
+						id="dataMaskOutput"
+						label={Liferay.Language.get('output')}
+					>
+						<ClayInput
+							id="dataMaskOutput"
+							readOnly
+							type="text"
+							value={
+								redaction && !redaction.error
+									? redaction.output
+									: ''
+							}
+						/>
+					</FieldBase>
+				</ClayLayout.Col>
+			</ClayLayout.Row>
+		</div>
+	);
+}

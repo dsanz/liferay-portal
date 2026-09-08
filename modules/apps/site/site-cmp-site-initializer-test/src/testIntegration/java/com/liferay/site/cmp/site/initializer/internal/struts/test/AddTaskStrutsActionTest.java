@@ -6,7 +6,6 @@
 package com.liferay.site.cmp.site.initializer.internal.struts.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
@@ -45,9 +44,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Carolina Barbosa
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-58677")}
-)
+@FeatureFlags(featureFlags = @FeatureFlag("LPD-58677"))
 @RunWith(Arquillian.class)
 public class AddTaskStrutsActionTest {
 
@@ -62,8 +59,8 @@ public class AddTaskStrutsActionTest {
 	public void setUp() throws Exception {
 		CMPTestUtil.getOrAddGroup(AddTaskStrutsActionTest.class);
 
-		_projectObjectEntry = CMPTestUtil.addProjectObjectEntry();
-		_taskObjectDefinition =
+		_cmpProjectObjectEntry = CMPTestUtil.addCMPProjectObjectEntry();
+		_cmpTaskObjectDefinition =
 			_objectDefinitionLocalService.
 				getObjectDefinitionByExternalReferenceCode(
 					"L_CMP_TASK", TestPropsValues.getCompanyId());
@@ -86,12 +83,13 @@ public class AddTaskStrutsActionTest {
 
 		mockHttpServletRequest.setParameter(
 			"objectDefinitionId",
-			String.valueOf(_taskObjectDefinition.getObjectDefinitionId()));
+			String.valueOf(_cmpTaskObjectDefinition.getObjectDefinitionId()));
 		mockHttpServletRequest.setParameter(
-			"projectGroupId", String.valueOf(_projectObjectEntry.getGroupId()));
+			"projectGroupId",
+			String.valueOf(_cmpProjectObjectEntry.getGroupId()));
 		mockHttpServletRequest.setParameter(
 			"projectId",
-			String.valueOf(_projectObjectEntry.getObjectEntryId()));
+			String.valueOf(_cmpProjectObjectEntry.getObjectEntryId()));
 
 		MockHttpServletResponse mockHttpServletResponse =
 			new MockHttpServletResponse();
@@ -104,39 +102,33 @@ public class AddTaskStrutsActionTest {
 			StringBundler.concat(
 				themeDisplay.getPathFriendlyURLPublic(),
 				GroupConstants.CMS_FRIENDLY_URL, "/e/edit-task/",
-				_portal.getClassNameId(_taskObjectDefinition.getClassName()),
+				_portal.getClassNameId(_cmpTaskObjectDefinition.getClassName()),
 				StringPool.SLASH));
 
-		ObjectEntry taskObjectEntry = _objectEntryLocalService.fetchObjectEntry(
-			GetterUtil.getLong(objectEntryId));
+		ObjectEntry cmpTaskObjectEntry =
+			_objectEntryLocalService.fetchObjectEntry(
+				GetterUtil.getLong(objectEntryId));
 
 		Assert.assertEquals(
-			_projectObjectEntry.getGroupId(), taskObjectEntry.getGroupId());
+			_cmpProjectObjectEntry.getGroupId(),
+			cmpTaskObjectEntry.getGroupId());
 		Assert.assertEquals(
-			_taskObjectDefinition.getObjectDefinitionId(),
-			taskObjectEntry.getObjectDefinitionId());
+			_cmpTaskObjectDefinition.getObjectDefinitionId(),
+			cmpTaskObjectEntry.getObjectDefinitionId());
 		Assert.assertEquals(
-			WorkflowConstants.STATUS_DRAFT, taskObjectEntry.getStatus());
+			WorkflowConstants.STATUS_DRAFT, cmpTaskObjectEntry.getStatus());
 		Assert.assertEquals(
-			_projectObjectEntry.getObjectEntryId(),
+			_cmpProjectObjectEntry.getObjectEntryId(),
 			MapUtil.getLong(
-				taskObjectEntry.getValues(),
+				cmpTaskObjectEntry.getValues(),
 				"r_cmpProjectToCMPTasks_c_cmpProjectId"));
-
-		String[] tagNames = _assetTagLocalService.getTagNames(
-			_taskObjectDefinition.getClassName(),
-			taskObjectEntry.getObjectEntryId());
-
-		Assert.assertTrue(
-			StringUtil.startsWith(
-				tagNames[0], _taskObjectDefinition.getExternalReferenceCode()));
 	}
 
 	@Inject(filter = "path=/cms/add_task")
 	private StrutsAction _addTaskStrutsAction;
 
-	@Inject
-	private AssetTagLocalService _assetTagLocalService;
+	private ObjectEntry _cmpProjectObjectEntry;
+	private ObjectDefinition _cmpTaskObjectDefinition;
 
 	@Inject
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
@@ -146,8 +138,5 @@ public class AddTaskStrutsActionTest {
 
 	@Inject
 	private Portal _portal;
-
-	private ObjectEntry _projectObjectEntry;
-	private ObjectDefinition _taskObjectDefinition;
 
 }

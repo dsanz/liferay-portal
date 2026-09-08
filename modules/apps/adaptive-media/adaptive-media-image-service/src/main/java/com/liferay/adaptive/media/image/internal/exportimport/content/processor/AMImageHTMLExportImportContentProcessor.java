@@ -100,19 +100,6 @@ public class AMImageHTMLExportImportContentProcessor
 		}
 	}
 
-	private FileEntry _getFileEntry(long fileEntryId) {
-		try {
-			return _dlAppLocalService.getFileEntry(fileEntryId);
-		}
-		catch (PortalException portalException) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(portalException);
-			}
-
-			return null;
-		}
-	}
-
 	private Document _parseDocument(String html) {
 		Document document = Jsoup.parseBodyFragment(html);
 
@@ -152,7 +139,8 @@ public class AMImageHTMLExportImportContentProcessor
 
 			long fileEntryId = amEmbeddedReferenceSet.importReference(path);
 
-			FileEntry fileEntry = _getFileEntry(fileEntryId);
+			FileEntry fileEntry = _dlAppLocalService.fetchFileEntry(
+				fileEntryId);
 
 			if (fileEntry == null) {
 				continue;

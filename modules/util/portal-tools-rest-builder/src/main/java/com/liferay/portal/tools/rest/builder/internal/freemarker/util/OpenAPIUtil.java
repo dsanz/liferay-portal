@@ -6,6 +6,7 @@
 package com.liferay.portal.tools.rest.builder.internal.freemarker.util;
 
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.tools.rest.builder.internal.freemarker.tool.java.parser.util.OpenAPIParserUtil;
 import com.liferay.portal.tools.rest.builder.internal.yaml.config.ConfigYAML;
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,35 +51,20 @@ public class OpenAPIUtil {
 		return "v" + matcher.replaceFirst("");
 	}
 
+	public static String formatPlural(ConfigYAML configYAML, String s) {
+		if (!ConfigUtil.isVersionCompatible(configYAML, 16)) {
+			return TextFormatter.formatPlural(s);
+		}
+
+		return _format(s, TextFormatter::formatPlural);
+	}
+
 	public static String formatSingular(ConfigYAML configYAML, String s) {
-		if (s.endsWith("ases")) {
-
-			// bases to base
-
-			s = s.substring(0, s.length() - 1);
-		}
-		else if (s.endsWith("auses")) {
-
-			// clauses to clause
-
-			s = s.substring(0, s.length() - 1);
-		}
-		else if (s.endsWith("ses") || s.endsWith("xes")) {
-			s = s.substring(0, s.length() - 2);
-		}
-		else if (s.endsWith("ies")) {
-			s = s.substring(0, s.length() - 3) + "y";
-		}
-		else if (s.endsWith("s") &&
-				 (!s.endsWith("ss") ||
-				  !ConfigUtil.isVersionCompatible(configYAML, 6)) &&
-				 (!s.endsWith("tus") ||
-				  !ConfigUtil.isVersionCompatible(configYAML, 11))) {
-
-			s = s.substring(0, s.length() - 1);
+		if (!ConfigUtil.isVersionCompatible(configYAML, 16)) {
+			return _formatSingular(configYAML, s);
 		}
 
-		return s;
+		return _format(s, string -> _formatSingular(configYAML, string));
 	}
 
 	public static Map<String, Schema> getAllExternalSchemas(
@@ -263,9 +250,10 @@ public class OpenAPIUtil {
 						String schemaKey = StringUtil.upperCaseFirstLetter(
 							iterator.next());
 
-						if (!allSchemas.containsKey(schemaKey)) {
-							allSchemas.put(schemaKey, oneOfSchema);
+						Schema curSchema = allSchemas.putIfAbsent(
+							schemaKey, oneOfSchema);
 
+						if (curSchema == null) {
 							queue.add(schemas);
 						}
 					}
@@ -344,6 +332,64 @@ public class OpenAPIUtil {
 			allExternalSchemas.putAll(externalSchemaMap);
 			queue.add(externalSchemaMap);
 		}
+	}
+
+	private static String _format(String s, Function<String, String> function) {
+		if (Validator.isNull(s)) {
+			return s;
+		}
+
+		int pos = s.length();
+
+		while ((pos > 0) && Character.isDigit(s.charAt(pos - 1))) {
+			pos--;
+		}
+
+		if (pos == s.length()) {
+			return function.apply(s);
+		}
+
+		String prefix = s.substring(0, pos);
+
+		return function.apply(prefix) + s.substring(pos);
+	}
+
+	private static String _formatSingular(ConfigYAML configYAML, String s) {
+		if (s.endsWith("ases")) {
+
+			// bases to base
+
+			s = s.substring(0, s.length() - 1);
+		}
+		else if (s.endsWith("auses")) {
+
+			// clauses to clause
+
+			s = s.substring(0, s.length() - 1);
+		}
+		else if (s.endsWith("ouses") &&
+				 ConfigUtil.isVersionCompatible(configYAML, 16)) {
+
+			// warehouses to warehouse
+
+			s = s.substring(0, s.length() - 1);
+		}
+		else if (s.endsWith("ses") || s.endsWith("xes")) {
+			s = s.substring(0, s.length() - 2);
+		}
+		else if (s.endsWith("ies")) {
+			s = s.substring(0, s.length() - 3) + "y";
+		}
+		else if (s.endsWith("s") &&
+				 (!s.endsWith("ss") ||
+				  !ConfigUtil.isVersionCompatible(configYAML, 6)) &&
+				 (!s.endsWith("tus") ||
+				  !ConfigUtil.isVersionCompatible(configYAML, 11))) {
+
+			s = s.substring(0, s.length() - 1);
+		}
+
+		return s;
 	}
 
 	private static boolean _isAnyAllOfSchemasMissing(

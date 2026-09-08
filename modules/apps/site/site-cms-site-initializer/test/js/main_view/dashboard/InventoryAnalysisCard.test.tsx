@@ -8,12 +8,12 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import ApiHelper from '../../../../src/main/resources/META-INF/resources/js/common/services/ApiHelper';
+import {Item} from '../../../../src/main/resources/META-INF/resources/js/main_view/dashboard/common/filters/FilterDropdown';
 import {
+	InventoryContext,
 	State,
-	ViewDashboardContext,
-} from '../../../../src/main/resources/META-INF/resources/js/main_view/dashboard/ViewDashboardContext';
-import {Item} from '../../../../src/main/resources/META-INF/resources/js/main_view/dashboard/components/FilterDropdown';
-import {InventoryAnalysisCard} from '../../../../src/main/resources/META-INF/resources/js/main_view/dashboard/components/InventoryAnalysisCard';
+} from '../../../../src/main/resources/META-INF/resources/js/main_view/dashboard/inventory/InventoryContext';
+import {InventoryAnalysisCard} from '../../../../src/main/resources/META-INF/resources/js/main_view/dashboard/inventory/components/InventoryAnalysisCard';
 
 const mockContextValue: State = {
 	changeLanguage: jest.fn(),
@@ -36,18 +36,27 @@ const mockData = {
 	error: null,
 };
 
+const mockApiHelperGet = (inventoryAnalysisData: any) =>
+	jest
+		.spyOn(ApiHelper, 'get')
+		.mockImplementation((url: string) =>
+			url.includes('inventory-analysis')
+				? Promise.resolve(inventoryAnalysisData)
+				: Promise.resolve({data: {items: []}, error: null})
+		);
+
 describe('[CMS Dashboard] InventoryAnalysisCard', () => {
 	afterEach(() => {
 		jest.restoreAllMocks();
 	});
 
 	it('renders inventory analysis data inside a PaginatedTable', async () => {
-		jest.spyOn(ApiHelper, 'get').mockResolvedValue(mockData);
+		mockApiHelperGet(mockData);
 
 		render(
-			<ViewDashboardContext.Provider value={mockContextValue}>
+			<InventoryContext.Provider value={mockContextValue}>
 				<InventoryAnalysisCard />
-			</ViewDashboardContext.Provider>
+			</InventoryContext.Provider>
 		);
 
 		await waitFor(() =>
@@ -61,37 +70,39 @@ describe('[CMS Dashboard] InventoryAnalysisCard', () => {
 	});
 
 	it('allows user to switch preferences between chart and table', async () => {
-		jest.spyOn(ApiHelper, 'get').mockResolvedValue(mockData);
+		mockApiHelperGet(mockData);
 
 		render(
-			<ViewDashboardContext.Provider value={mockContextValue}>
+			<InventoryContext.Provider value={mockContextValue}>
 				<InventoryAnalysisCard />
-			</ViewDashboardContext.Provider>
+			</InventoryContext.Provider>
 		);
 
 		await waitFor(() =>
 			expect(screen.getByText('Articles')).toBeInTheDocument()
 		);
 
-		const preferencesButton = screen.getByRole('button', {
-			name: 'chart',
+		const preferencesButton = screen.getByRole('combobox', {
+			name: 'chart[noun]',
 		});
 
 		fireEvent.click(preferencesButton);
 
-		const tableOption = screen.getByText('table');
+		const tableOption = await screen.findByRole('option', {name: 'table'});
 		fireEvent.click(tableOption);
 
-		expect(screen.getByRole('button', {name: 'table'})).toBeInTheDocument();
+		expect(
+			screen.getByRole('combobox', {name: 'table'})
+		).toBeInTheDocument();
 	});
 
 	it('renders filters (group by and filter by) when data is available', async () => {
-		jest.spyOn(ApiHelper, 'get').mockResolvedValue(mockData);
+		mockApiHelperGet(mockData);
 
 		render(
-			<ViewDashboardContext.Provider value={mockContextValue}>
+			<InventoryContext.Provider value={mockContextValue}>
 				<InventoryAnalysisCard />
-			</ViewDashboardContext.Provider>
+			</InventoryContext.Provider>
 		);
 
 		await waitFor(() =>
@@ -103,7 +114,7 @@ describe('[CMS Dashboard] InventoryAnalysisCard', () => {
 	});
 
 	it('renders EmptyStateCard when no inventory analysis data is available', async () => {
-		jest.spyOn(ApiHelper, 'get').mockResolvedValue({
+		mockApiHelperGet({
 			data: {
 				inventoryAnalysisItems: [],
 				totalCount: 0,
@@ -112,9 +123,9 @@ describe('[CMS Dashboard] InventoryAnalysisCard', () => {
 		});
 
 		render(
-			<ViewDashboardContext.Provider value={mockContextValue}>
+			<InventoryContext.Provider value={mockContextValue}>
 				<InventoryAnalysisCard />
-			</ViewDashboardContext.Provider>
+			</InventoryContext.Provider>
 		);
 
 		await waitFor(() =>

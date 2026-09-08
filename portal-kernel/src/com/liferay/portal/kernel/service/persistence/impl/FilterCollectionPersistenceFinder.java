@@ -33,12 +33,14 @@ public class FilterCollectionPersistenceFinder
 		FinderPath paginatedFindPath, FinderPath unpaginatedFindPath,
 		FinderPath countFinderPath, String sqlSelectWhere, String sqlCountWhere,
 		String defaultOrderByJpql, String orderByEntityAlias, String where,
+		String dbWhere, UniquePersistenceFinder<T, E> uniquePersistenceFinder,
 		FinderColumn<T>... finderColumns) {
 
 		super(
 			basePersistenceImpl, paginatedFindPath, unpaginatedFindPath,
 			countFinderPath, sqlSelectWhere, sqlCountWhere, defaultOrderByJpql,
-			orderByEntityAlias, where, finderColumns);
+			orderByEntityAlias, where, dbWhere, uniquePersistenceFinder,
+			finderColumns);
 
 		String entityAlias = basePersistenceImpl.getEntityAlias();
 
@@ -196,8 +198,8 @@ public class FilterCollectionPersistenceFinder
 			sb.append(" AND ");
 		}
 
-		if ((where != null) && !where.isEmpty()) {
-			sb.append(where);
+		if (!dbWhere.isEmpty()) {
+			sb.append(dbWhere);
 		}
 		else if (sb.index() > 1) {
 			sb.setIndex(sb.index() - 1);

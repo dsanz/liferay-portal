@@ -11,7 +11,10 @@ import {
 	SingleSelect,
 	stringUtils,
 } from '@liferay/object-js-components-web';
-import {ILearnResourceContext} from 'frontend-js-components-web';
+import {
+	ILearnResourceContext,
+	InputLocalized,
+} from 'frontend-js-components-web';
 import {createResourceURL} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
@@ -20,9 +23,12 @@ import {ObjectRelationshipInheritanceCheckbox} from './ObjectRelationshipInherit
 import SelectObjectDefinition from './SelectObjectDefinition';
 
 interface ObjectRelationshipFormBaseProps {
+	autoSave?: boolean;
 	baseResourceURL: string;
 	children?: JSX.Element;
 	className?: string;
+	descriptionDisabled?: boolean;
+	editingObjectRelationship?: boolean;
 	errors: FormError<ObjectRelationship>;
 	handleChange: React.ChangeEventHandler<HTMLInputElement>;
 	hasDefinedObjectDefinitionTarget?: boolean;
@@ -87,9 +93,12 @@ export const OBJECT_RELATIONSHIP_TYPES = [
 ];
 
 export function ObjectRelationshipFormBase({
+	autoSave,
 	baseResourceURL,
 	children,
 	className,
+	descriptionDisabled,
+	editingObjectRelationship,
 	errors,
 	handleChange,
 	hasDefinedObjectDefinitionTarget,
@@ -98,6 +107,7 @@ export function ObjectRelationshipFormBase({
 	objectDefinitionExternalReferenceCode1,
 	objectDefinitionExternalReferenceCode2,
 	onChangeInheritanceCheckbox,
+	onSubmit,
 	readonly,
 	setValues,
 	submitError,
@@ -239,6 +249,30 @@ export function ObjectRelationshipFormBase({
 				required
 				value={values.name}
 			/>
+
+			{Liferay.FeatureFlags['LPD-80279'] &&
+				editingObjectRelationship &&
+				!values.system && (
+					<InputLocalized
+						component="textarea"
+						disabled={descriptionDisabled}
+						error={errors.description}
+						id="lfr-objects__object-relationship-form-base-description"
+						label={Liferay.Language.get('description')}
+						onBlur={async (event) => {
+							event.stopPropagation();
+
+							if (autoSave && onSubmit) {
+								await onSubmit();
+							}
+						}}
+						onChange={(description) => setValues({description})}
+						placeholder=""
+						translations={
+							(values.description ?? {}) as LocalizedValue<string>
+						}
+					/>
+				)}
 
 			<SingleSelect
 				className={className}
@@ -385,16 +419,14 @@ export function ObjectRelationshipFormBase({
 
 			{children}
 
-			{onChangeInheritanceCheckbox &&
-				values.type === 'oneToMany' &&
-				Liferay.FeatureFlags['LPD-34594'] && (
-					<ObjectRelationshipInheritanceCheckbox
-						disabled={inheritanceCheckboxDisabled}
-						learnResources={learnResources}
-						onChange={onChangeInheritanceCheckbox}
-						values={values}
-					/>
-				)}
+			{onChangeInheritanceCheckbox && values.type === 'oneToMany' && (
+				<ObjectRelationshipInheritanceCheckbox
+					disabled={inheritanceCheckboxDisabled}
+					learnResources={learnResources}
+					onChange={onChangeInheritanceCheckbox}
+					values={values}
+				/>
+			)}
 
 			{submitError && (
 				<ClayAlert

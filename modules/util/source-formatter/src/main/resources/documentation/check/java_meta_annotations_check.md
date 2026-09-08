@@ -7,6 +7,10 @@ values of the `id` of the attribute, we use `.` as the delimiter.
 The reason for this is that for `description` and `name` we retrieve translated
 values from `language.properties`.
 
+A `@Meta.AD` in a configuration that generates UI also requires an explicit
+`name`. Without one, bnd derives the name from the method name, which is not a
+language key, so the configuration fails localization at runtime.
+
 ### Example
 
 ```java
@@ -16,8 +20,13 @@ values from `language.properties`.
     name = "cmis-repository-configuration-name"
 )
 
-@Meta.AD(
-    deflt = "1", description = "delete-depth-description",
-    name = "delete-depth-name", required = false
-)
+public interface ScriptManagementConfiguration {
+
+    @Meta.AD(
+        deflt = "1", description = "delete-depth-description",
+        name = "delete-depth-name", required = false
+    )
+    public int deleteDepth();
+
+}
 ```

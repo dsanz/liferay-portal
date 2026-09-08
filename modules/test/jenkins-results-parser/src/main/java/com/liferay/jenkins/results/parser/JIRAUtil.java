@@ -64,9 +64,9 @@ public class JIRAUtil {
 			return null;
 		}
 
-		if (_cachedIssues.containsKey(issueKey)) {
-			CachedIssue cachedIssue = _cachedIssues.get(issueKey);
+		CachedIssue cachedIssue = _cachedIssues.get(issueKey);
 
+		if (cachedIssue != null) {
 			if (!cachedIssue.isExpired()) {
 				return cachedIssue.issue;
 			}
@@ -103,11 +103,17 @@ public class JIRAUtil {
 	}
 
 	public static Map<String, Transition> getTransitions(Issue issue) {
-		if (!_transitionsMap.containsKey(issue.getKey())) {
-			_initTransitions(issue);
+		String issueKey = issue.getKey();
+
+		Map<String, Transition> transitions = _transitionsMap.get(issueKey);
+
+		if (transitions != null) {
+			return transitions;
 		}
 
-		return _transitionsMap.get(issue.getKey());
+		_initTransitions(issue);
+
+		return _transitionsMap.get(issueKey);
 	}
 
 	private static IssueRestClient _initIssueRestClient() {

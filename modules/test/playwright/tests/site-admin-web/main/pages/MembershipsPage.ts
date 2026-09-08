@@ -3,17 +3,19 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {Page, expect} from '@playwright/test';
+import {Locator, Page, expect} from '@playwright/test';
 
 import {ProductMenuPage} from '../../../../pages/product-navigation-control-menu-web/ProductMenuPage';
 import {clickAndExpectToBeVisible} from '../../../../utils/clickAndExpectToBeVisible';
 import {waitForAlert} from '../../../../utils/waitForAlert';
 
 export class MembershipsPage {
+	readonly inheritanceSourceLabel: Locator;
 	readonly page: Page;
 	readonly productMenuPage: ProductMenuPage;
 
 	constructor(page: Page) {
+		this.inheritanceSourceLabel = page.getByText('(Inherited)');
 		this.page = page;
 		this.productMenuPage = new ProductMenuPage(page);
 	}
@@ -49,21 +51,15 @@ export class MembershipsPage {
 	}
 
 	async assignSiteAdministratorRole() {
-		await clickAndExpectToBeVisible({
-			autoClick: true,
-			target: this.page.getByRole('button', {name: 'Assign Roles'}),
-			timeout: 500,
-			trigger: this.page.getByLabel('Select All Items on the Page'),
-		});
+		await this.page.getByLabel('Select All Items on the Page').check();
+
+		await this.page.getByRole('button', {name: 'Assign Roles'}).click();
 
 		await this.page
 			.frameLocator('iframe[title="Assign Roles"]')
-			.locator(
-				'[id="_com_liferay_site_memberships_web_portlet_SiteMembershipsPortlet_roles_1"] svg'
-			)
-			.click();
-
-		await this.page.waitForTimeout(500);
+			.locator('.file-card', {hasText: 'Site Administrator'})
+			.getByRole('checkbox')
+			.check();
 
 		await this.page.getByRole('button', {name: 'Done'}).click();
 
@@ -88,6 +84,10 @@ export class MembershipsPage {
 				this.page.getByRole('heading', {name: 'Search Results'})
 			).toBeVisible({timeout: 1000});
 		}).toPass();
+
+		await expect(
+			this.page.getByLabel('Select All Items on the Page')
+		).toBeVisible();
 	}
 
 	async goto() {
@@ -114,6 +114,30 @@ export class MembershipsPage {
 	}
 
 	async removeSiteMembershipFromUser(userName: String) {
+		this.page.once('dialog', (dialog) => {
+			dialog.accept();
+		});
+
+		await this.triggerRemoveMembership(userName);
+
+		await waitForAlert(this.page);
+	}
+
+	async removeSiteAdministratorRole() {
+		this.page.once('dialog', (dialog) => {
+			dialog.accept();
+		});
+
+		await this.page.getByLabel('Select All Items on the Page').check();
+
+		await this.page
+			.getByRole('button', {name: 'Remove Role: Site Administrator'})
+			.click();
+
+		await waitForAlert(this.page);
+	}
+
+	async triggerRemoveMembership(userName: String) {
 		await clickAndExpectToBeVisible({
 			autoClick: true,
 			target: this.page.getByRole('menuitem', {
@@ -129,25 +153,6 @@ export class MembershipsPage {
 				)
 				.getByLabel('More actions'),
 		});
-
-		await waitForAlert(this.page);
-	}
-
-	async removeSiteAdministratorRole() {
-		this.page.once('dialog', (dialog) => {
-			dialog.accept();
-		});
-
-		await clickAndExpectToBeVisible({
-			autoClick: true,
-			target: this.page.getByRole('button', {
-				name: 'Remove Role: Site Administrator',
-			}),
-			timeout: 500,
-			trigger: this.page.getByLabel('Select All Items on the Page'),
-		});
-
-		await waitForAlert(this.page);
 	}
 
 	async unassignAllRolesFromUser(userName: String) {

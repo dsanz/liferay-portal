@@ -144,6 +144,21 @@ definition {
 				value1 = "Category: Stage 1");
 		}
 
+		task ("Let only one filter active and assert elements") {
+			ContentDashboard.deleteSecondCategoryFilter();
+
+			AssertTextEquals(
+				categoryName = "Audience 1",
+				locator1 = "ContentDashboard#FILTER_CATEGORY_NAME",
+				value1 = "Category: Audience 1");
+
+			AssertElementNotPresent(
+				categoryName = "Stage 1",
+				locator1 = "ContentDashboard#FILTER_CATEGORY_NAME");
+
+			AssertElementNotPresent(locator1 = "ContentDashboard#BAR_SELECTED_MESSAGE");
+		}
+
 		task ("Clear filters") {
 			ContentDashboard.clearFilters();
 
@@ -159,125 +174,59 @@ definition {
 		}
 	}
 
-	@description = "When a user clicks on one of the colored bars of the audit graph, the filters corresponding to the categories in that bar are applied, they are shown as filter labels in the management tool bar and the list of contents is filtered by them"
-	@priority = 5
-	test AuditGraphClickOnBarDeleteOneFilter {
+	@description = "LPS-119966 A document is counted as an asset in the audit graph only when it has at least one category in a vocabulary featured in the graph"
+	@priority = 4
+	test AuditGraphDocumentCountedByCategory {
 		property portal.acceptance = "true";
 
-		task ("Add two more categories") {
-			var audienceId2 = JSONCategory.addCategory(
-				groupName = "Global",
-				title = "Audience 2",
-				vocabularyName = "Audience");
-			var stageId2 = JSONCategory.addCategory(
-				groupName = "Global",
-				title = "Stage 2",
-				vocabularyName = "Stage");
-		}
-
-		task ("Add a first Web Content using categories1 via JSON") {
-			JSONWebcontent.addWebContent(
-				assetCategoryIds = "${audienceId1},${stageId1}",
-				content = "Web Content Content",
-				groupName = "Test Site Name",
-				title = "WC Title 1");
-		}
-
-		task ("Add a second Web Content using categories2 via JSON") {
-			JSONWebcontent.addWebContent(
-				assetCategoryIds = "${audienceId2},${stageId2}",
-				content = "Web Content Content",
-				groupName = "Test Site Name",
-				title = "WC Title 2");
+		task ("Create a new Document without categories") {
+			JSONDocument.addFile(
+				dmDocumentDescription = "DM Document Description",
+				dmDocumentTitle = "DM Document Title",
+				groupName = "Test Site Name");
 		}
 
 		task ("Navigate Content Dashboard") {
 			ContentDashboard.goToContentDashboard();
 		}
 
-		task ("Click on first bar and assert elements") {
-			ContentDashboard.clickOnFirstBar();
-
+		task ("Assert the document without categories is not counted in the Audit Graph") {
 			AssertTextEquals(
-				locator1 = "ContentDashboard#BAR_SELECTED_MESSAGE",
-				value1 = "Press escape to remove the bar's category filters.");
-
-			AssertTextEquals(
-				categoryName = "Audience 1",
-				locator1 = "ContentDashboard#FILTER_CATEGORY_NAME",
-				value1 = "Category: Audience 1");
-
-			AssertTextEquals(
-				categoryName = "Stage 1",
-				locator1 = "ContentDashboard#FILTER_CATEGORY_NAME",
-				value1 = "Category: Stage 1");
+				locator1 = "ContentDashboard#EMPTY_AUDIT_GRAPH_TEXT",
+				value1 = "There is no data.");
 		}
 
-		task ("Let only one filter active and assert elements") {
-			ContentDashboard.deleteSecondCategoryFilter();
-
-			AssertTextEquals(
-				categoryName = "Audience 1",
-				locator1 = "ContentDashboard#FILTER_CATEGORY_NAME",
-				value1 = "Category: Audience 1");
-
-			AssertElementNotPresent(
-				categoryName = "Stage 1",
-				locator1 = "ContentDashboard#FILTER_CATEGORY_NAME");
-
-			AssertElementNotPresent(locator1 = "ContentDashboard#BAR_SELECTED_MESSAGE");
-		}
-	}
-
-	@description = "LPS-120676 When a user clicks on a gray bar of the audit graph, the filter corresponding to the category in that bar is applied, it is shown as a filter label in the management tool bar and the list of contents is filtered by it"
-	@priority = 3
-	test AuditGraphFilterByGrayBar {
-		task ("Create a web content with Category1") {
-			JSONWebcontent.addWebContent(
+		task ("Create a new Document with a category") {
+			JSONDocument.addFile(
 				assetCategoryIds = ${audienceId1},
-				content = "Web Content Content",
-				groupName = "Test Site Name",
-				title = "Web Content Title 1");
+				dmDocumentDescription = "DM Document Description 2",
+				dmDocumentTitle = "DM Document Title 2",
+				groupName = "Test Site Name");
 		}
 
-		task ("Create a web content with Category2") {
-			JSONWebcontent.addWebContent(
-				assetCategoryIds = ${stageId1},
-				content = "Web Content Content",
-				groupName = "Test Site Name",
-				title = "Web Content Title 2");
-		}
-
-		task ("Navigate to content dashboard") {
+		task ("Navigate Content Dashboard") {
 			ContentDashboard.goToContentDashboard();
 		}
 
-		task ("Click on the gray bar corresponding to 'Audience 1' to apply filter") {
-			ContentDashboard.clickOnFirstBar(fillColor = "#CDCED9");
-		}
-
-		task ("Assert if filter was applied") {
-			AssertVisible(
-				categoryName = "Audience 1",
-				locator1 = "ContentDashboard#FILTER_CATEGORY_NAME");
-		}
-
-		task ("Assert if only one asset is displayed") {
-			AssertTextEquals(
-				key_tableEntry = "Web Content Title 1",
-				locator1 = "LexiconTable#TABLE_ENTRY_TITLE",
-				value1 = "Web Content Title 1");
-
-			AssertElementNotPresent(
-				key_tableEntry = "Web Content Title 2",
-				locator1 = "LexiconTable#TABLE_ENTRY");
+		task ("Assert the document with a category is counted as an asset") {
+			AssertElementPresent(
+				locator1 = "ContentDashboard#X_AXIS_VOCABULARY_NAME",
+				xAxisCategoryName = "Audience 1");
 		}
 	}
 
-	@description = "When the user clicks on the Flip axes button, the vocabularies will be exchanged, the vocabulary represented in the X (the first in the list in the "In use" box) is sent to the Y, and the other way around"
+	@description = "When there are no contents associated to the categories the Flip axes button is disabled; when the user clicks the enabled Flip axes button, the vocabularies will be exchanged, the vocabulary represented in the X (the first in the list in the "In use" box) is sent to the Y, and the other way around"
 	@priority = 5
 	test AuditGraphFlipAxes {
 		property portal.acceptance = "true";
+
+		task ("Navigate to Content Dashboard without content") {
+			ContentDashboard.goToContentDashboard();
+		}
+
+		task ("Assert the flip axes button is disabled when there is no content") {
+			AssertVisible(locator1 = "Icon#FLIP_DISABLED");
+		}
 
 		task ("Add a Web Content using categories via JSONWS") {
 			JSONWebcontent.addWebContent(
@@ -301,20 +250,6 @@ definition {
 			AssertElementPresent(
 				locator1 = "ContentDashboard#X_AXIS_VOCABULARY_NAME",
 				xAxisCategoryName = "Stage 1");
-		}
-	}
-
-	@description = "When there are not web content associated to the categories, the Flip axes button will be disabled"
-	@priority = 5
-	test AuditGraphFlipAxesDisabled {
-		property portal.acceptance = "true";
-
-		task ("Navigate to Content Dashboard") {
-			ContentDashboard.goToContentDashboard();
-		}
-
-		task ("Check if flip axes button is disabaled") {
-			AssertVisible(locator1 = "Icon#FLIP_DISABLED");
 		}
 	}
 
@@ -564,6 +499,52 @@ definition {
 		}
 	}
 
+	@description = "LPS-134606 When there's a vocabulary in the "In use" box is in the top position of the list and user clicks on Save, the graph will feature that vocabulary in the X axis"
+	@priority = 5
+	test AuditGraphVocabularyPositionSetsXAxis {
+		property portal.acceptance = "true";
+
+		task ("Add a Web Content using categories via JSONWS") {
+			JSONWebcontent.addWebContent(
+				assetCategoryIds = "${audienceId1},${stageId1}",
+				content = "Web Content Content",
+				groupName = "Test Site Name",
+				title = "WC Title");
+		}
+
+		task ("Navigate to Content Dashboard > Audic Graph configuration") {
+			ContentDashboard.goToContentDashboard();
+		}
+
+		task ("Check the x-axis vocabulary when a vocabulary is in the top position") {
+			ContentDashboard.setVocabularyInUseTopPosition(key_vocabularyName = "Stage");
+
+			AssertElementPresent(
+				locator1 = "ContentDashboard#X_AXIS_VOCABULARY_NAME",
+				xAxisCategoryName = "Stage 1");
+
+			ContentDashboard.setVocabularyInUseTopPosition(key_vocabularyName = "Audience");
+
+			AssertElementPresent(
+				locator1 = "ContentDashboard#X_AXIS_VOCABULARY_NAME",
+				xAxisCategoryName = "Audience 1");
+		}
+
+		task ("Check the x-axis vocabulary when a vocabulary is in the second position") {
+			ContentDashboard.setVocabularyInUseSecondPosition(key_vocabularyName = "Stage");
+
+			AssertElementPresent(
+				locator1 = "ContentDashboard#X_AXIS_VOCABULARY_NAME",
+				xAxisCategoryName = "Audience 1");
+
+			ContentDashboard.setVocabularyInUseSecondPosition(key_vocabularyName = "Audience");
+
+			AssertElementPresent(
+				locator1 = "ContentDashboard#X_AXIS_VOCABULARY_NAME",
+				xAxisCategoryName = "Stage 1");
+		}
+	}
+
 	@description = "LPS-128990 Given the graph's configuration panel When the user selects a global vocabulary + a site vocabulary Then the vocabularies appear as selected and they will be shown in the Audit graph"
 	@priority = 5
 	test AuditVocabulariesFromGlobalAndSite {
@@ -651,117 +632,6 @@ definition {
 					groupName = "Global",
 					vocabularyName = "Vocabulary Name ${vocabularyNumber}");
 			}
-		}
-	}
-
-	@description = "LPS-134606 When there's a vocabulary in the "In use" box is in the second position of the list and user clicks on Save, the graph will feature that vocabulary in the checkbox legend above"
-	@priority = 5
-	test CheckSecondPositionVocabularyCheckbox {
-		property portal.acceptance = "true";
-
-		task ("Add a Web Content using categories via JSONWS") {
-			JSONWebcontent.addWebContent(
-				assetCategoryIds = "${audienceId1},${stageId1}",
-				content = "Web Content Content",
-				groupName = "Test Site Name",
-				title = "WC Title");
-		}
-
-		task ("Navigate to Content Dashboard > Audic Graph configuration") {
-			ContentDashboard.goToContentDashboard();
-		}
-
-		task ("Check which vocabulary is displayed in x-axis") {
-			ContentDashboard.setVocabularyInUseSecondPosition(key_vocabularyName = "Stage");
-
-			AssertElementPresent(
-				locator1 = "ContentDashboard#X_AXIS_VOCABULARY_NAME",
-				xAxisCategoryName = "Audience 1");
-
-			ContentDashboard.setVocabularyInUseSecondPosition(key_vocabularyName = "Audience");
-
-			AssertElementPresent(
-				locator1 = "ContentDashboard#X_AXIS_VOCABULARY_NAME",
-				xAxisCategoryName = "Stage 1");
-		}
-	}
-
-	@description = "LPS-134606 When there's a vocabulary in the "In use" box is in the top position of the list and user clicks on Save, the graph will feature that vocabulary in the X axis"
-	@priority = 5
-	test CheckTopPositionVocabularyXAxis {
-		property portal.acceptance = "true";
-
-		task ("Add a Web Content using categories via JSONWS") {
-			JSONWebcontent.addWebContent(
-				assetCategoryIds = "${audienceId1},${stageId1}",
-				content = "Web Content Content",
-				groupName = "Test Site Name",
-				title = "WC Title");
-		}
-
-		task ("Navigate to Content Dashboard > Audic Graph configuration") {
-			ContentDashboard.goToContentDashboard();
-		}
-
-		task ("Check which vocabulary is displayed in x-axis") {
-			ContentDashboard.setVocabularyInUseTopPosition(key_vocabularyName = "Stage");
-
-			AssertElementPresent(
-				locator1 = "ContentDashboard#X_AXIS_VOCABULARY_NAME",
-				xAxisCategoryName = "Stage 1");
-
-			ContentDashboard.setVocabularyInUseTopPosition(key_vocabularyName = "Audience");
-
-			AssertElementPresent(
-				locator1 = "ContentDashboard#X_AXIS_VOCABULARY_NAME",
-				xAxisCategoryName = "Audience 1");
-		}
-	}
-
-	@description = "LPS-119966 Given a document with no categories in any of the vocabularies featured in the graph then the document is NOT counted as an asset in the graph"
-	@priority = 4
-	test DocumentWithNoCategories {
-		property portal.acceptance = "true";
-
-		task ("Create a new Document") {
-			JSONDocument.addFile(
-				dmDocumentDescription = "DM Document Description",
-				dmDocumentTitle = "DM Document Title",
-				groupName = "Test Site Name");
-		}
-
-		task ("Navigate Content Dashboard") {
-			ContentDashboard.goToContentDashboard();
-		}
-
-		task ("Assert the are no info in the Audit Graph") {
-			AssertTextEquals(
-				locator1 = "ContentDashboard#EMPTY_AUDIT_GRAPH_TEXT",
-				value1 = "There is no data.");
-		}
-	}
-
-	@description = "LPS-119966 Given a document with at least one category in one of the vocabularies featured in the graph then the document is counted as an asset in the graph"
-	@priority = 4
-	test DocumentWithOneCategory {
-		property portal.acceptance = "true";
-
-		task ("Create a new Document") {
-			JSONDocument.addFile(
-				assetCategoryIds = ${audienceId1},
-				dmDocumentDescription = "DM Document Description",
-				dmDocumentTitle = "DM Document Title",
-				groupName = "Test Site Name");
-		}
-
-		task ("Navigate Content Dashboard") {
-			ContentDashboard.goToContentDashboard();
-		}
-
-		task ("Assert the document is counted as an asset") {
-			AssertElementPresent(
-				locator1 = "ContentDashboard#X_AXIS_VOCABULARY_NAME",
-				xAxisCategoryName = "Audience 1");
 		}
 	}
 

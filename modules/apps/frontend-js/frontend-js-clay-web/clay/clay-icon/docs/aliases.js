@@ -338,6 +338,10 @@ export const iconsData = [
 		name: 'adjust',
 	},
 	{
+		aliases: ['actions', 'ai', 'autonomous'],
+		name: 'agent',
+	},
+	{
 		aliases: ['texts', 'lines', 'editor'],
 		name: 'align-center',
 	},
@@ -740,6 +744,10 @@ export const iconsData = [
 		name: 'chart-pie',
 	},
 	{
+		aliases: ['agent', 'ai', 'chatbot'],
+		name: 'chat-spark',
+	},
+	{
 		aliases: ['chat', 'bot'],
 		name: 'chatbot',
 	},
@@ -1100,6 +1108,14 @@ export const iconsData = [
 		name: 'flag-full',
 	},
 	{
+		aliases: ['mirror', 'reflection', 'symmetry'],
+		name: 'flip-horizontal',
+	},
+	{
+		aliases: ['mirror', 'symmetry', 'vertically'],
+		name: 'flip-vertical',
+	},
+	{
 		aliases: ['closed', 'locked', 'permissions', 'private'],
 		name: 'folder-lock-line',
 	},
@@ -1358,6 +1374,10 @@ export const iconsData = [
 	{
 		aliases: ['shop', 'store'],
 		name: 'marketplace',
+	},
+	{
+		aliases: ['ai', 'connector', 'plugin', 'server'],
+		name: 'mcp',
 	},
 	{
 		aliases: ['approval', 'ranking', 'reward'],

@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -35,6 +36,7 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.EntityModel;
 import com.liferay.portal.test.rule.Inject;
@@ -84,6 +86,8 @@ public abstract class BaseInvitedMemberResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -373,6 +377,16 @@ public abstract class BaseInvitedMemberResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"membershipExpirationDate", additionalAssertFieldName)) {
+
+				if (invitedMember.getMembershipExpirationDate() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("ownerId", additionalAssertFieldName)) {
 				if (invitedMember.getOwnerId() == null) {
 					valid = false;
@@ -523,6 +537,19 @@ public abstract class BaseInvitedMemberResourceTestCase {
 			if (Objects.equals("id", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						invitedMember1.getId(), invitedMember2.getId())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"membershipExpirationDate", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						invitedMember1.getMembershipExpirationDate(),
+						invitedMember2.getMembershipExpirationDate())) {
 
 					return false;
 				}
@@ -710,6 +737,37 @@ public abstract class BaseInvitedMemberResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("membershipExpirationDate")) {
+			if (operator.equals("between")) {
+				Date date = invitedMember.getMembershipExpirationDate();
+
+				sb = new StringBundler();
+
+				sb.append("(");
+				sb.append(entityFieldName);
+				sb.append(" gt ");
+				sb.append(_format.format(date.getTime() - (2 * Time.SECOND)));
+				sb.append(" and ");
+				sb.append(entityFieldName);
+				sb.append(" lt ");
+				sb.append(_format.format(date.getTime() + (2 * Time.SECOND)));
+				sb.append(")");
+			}
+			else {
+				sb.append(entityFieldName);
+
+				sb.append(" ");
+				sb.append(operator);
+				sb.append(" ");
+
+				sb.append(
+					_format.format(
+						invitedMember.getMembershipExpirationDate()));
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("ownerId")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -812,6 +870,7 @@ public abstract class BaseInvitedMemberResourceTestCase {
 					StringUtil.toLowerCase(RandomTestUtil.randomString()) +
 						"@liferay.com";
 				id = RandomTestUtil.randomLong();
+				membershipExpirationDate = RandomTestUtil.nextDate();
 				ownerId = RandomTestUtil.randomLong();
 				roleKey = StringUtil.toLowerCase(RandomTestUtil.randomString());
 			}
@@ -1038,4 +1097,4 @@ public abstract class BaseInvitedMemberResourceTestCase {
 		_invitedMemberResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1389357218
+// LIFERAY-REST-BUILDER-HASH:-455330471

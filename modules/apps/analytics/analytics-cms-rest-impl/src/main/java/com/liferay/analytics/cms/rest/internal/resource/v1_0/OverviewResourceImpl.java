@@ -8,6 +8,7 @@ package com.liferay.analytics.cms.rest.internal.resource.v1_0;
 import com.liferay.analytics.cms.rest.dto.v1_0.Overview;
 import com.liferay.analytics.cms.rest.dto.v1_0.Trend;
 import com.liferay.analytics.cms.rest.internal.depot.entry.util.DepotEntryUtil;
+import com.liferay.analytics.cms.rest.internal.resource.v1_0.util.DateRangeUtil;
 import com.liferay.analytics.cms.rest.internal.resource.v1_0.util.ObjectEntryVersionTitleExpressionUtil;
 import com.liferay.analytics.cms.rest.resource.v1_0.OverviewResource;
 import com.liferay.asset.entry.rel.model.AssetEntryAssetCategoryRelTable;
@@ -29,19 +30,12 @@ import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.portal.kernel.license.util.LicenseManagerUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
-import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
-import java.text.DateFormat;
-import java.text.ParseException;
-
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -67,7 +61,7 @@ public class OverviewResourceImpl extends BaseOverviewResourceImpl {
 		LicenseManagerUtil.checkFreeTier();
 
 		List<DepotEntry> depotEntries = DepotEntryUtil.getDepotEntries(
-			contextCompany.getCompanyId(), depotEntryId);
+			ActionKeys.VIEW, contextCompany.getCompanyId(), depotEntryId);
 
 		if (depotEntries.isEmpty()) {
 			return _toOverview(0, Trend.Classification.NEUTRAL, 0.0, 0, 0, 0);
@@ -93,7 +87,7 @@ public class OverviewResourceImpl extends BaseOverviewResourceImpl {
 		LicenseManagerUtil.checkFreeTier();
 
 		List<DepotEntry> depotEntries = DepotEntryUtil.getDepotEntries(
-			contextCompany.getCompanyId(), depotEntryId);
+			ActionKeys.VIEW, contextCompany.getCompanyId(), depotEntryId);
 
 		if (depotEntries.isEmpty()) {
 			return _toOverview(0, Trend.Classification.NEUTRAL, 0.0, 0, 0, 0);
@@ -108,34 +102,6 @@ public class OverviewResourceImpl extends BaseOverviewResourceImpl {
 			_getPreviousTotalCount(
 				"L_CMS_FILE_TYPES", groupIds, languageId, rangeEnd, rangeKey,
 				rangeStart));
-	}
-
-	private DateFormat _getDateFormat() {
-		return DateFormatFactoryUtil.getSimpleDateFormat("yyyy-MM-dd");
-	}
-
-	private Date _getEndDate(String rangeEnd) {
-		try {
-			Calendar calendar = Calendar.getInstance();
-
-			DateFormat dateFormat = _getDateFormat();
-
-			calendar.setTime(dateFormat.parse(rangeEnd));
-
-			calendar.set(Calendar.HOUR_OF_DAY, 23);
-			calendar.set(Calendar.MILLISECOND, 59);
-			calendar.set(Calendar.MINUTE, 59);
-			calendar.set(Calendar.SECOND, 59);
-
-			return calendar.getTime();
-		}
-		catch (ParseException parseException) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(parseException);
-			}
-		}
-
-		return null;
 	}
 
 	private Object[] _getOverviewObjects(
@@ -285,62 +251,34 @@ public class OverviewResourceImpl extends BaseOverviewResourceImpl {
 				).isNotNull());
 		}
 
+		Date startDate = DateRangeUtil.getStartDate(
+			rangeEnd, rangeKey, rangeStart);
+
+		if (startDate == null) {
+			return predicate;
+		}
+
 		if (!previous) {
 			predicate = predicate.and(
-				ObjectEntryTable.INSTANCE.createDate.gte(
-					_getStartDate(rangeKey, rangeStart)));
+				ObjectEntryTable.INSTANCE.createDate.gte(startDate));
 
 			if (Validator.isNotNull(rangeEnd)) {
 				predicate = predicate.and(
 					ObjectEntryTable.INSTANCE.createDate.lte(
-						_getEndDate(rangeEnd)));
+						DateRangeUtil.getEndDate(rangeEnd)));
 			}
 		}
 		else {
 			predicate = predicate.and(
 				ObjectEntryTable.INSTANCE.createDate.gte(
-					_getPreviousStartDate(rangeEnd, rangeKey, rangeStart))
+					DateRangeUtil.getPreviousStartDate(
+						rangeEnd, rangeKey, rangeStart))
 			).and(
-				ObjectEntryTable.INSTANCE.createDate.lt(
-					_getStartDate(rangeKey, rangeStart))
+				ObjectEntryTable.INSTANCE.createDate.lt(startDate)
 			);
 		}
 
 		return predicate;
-	}
-
-	private Date _getPreviousStartDate(
-		String rangeEnd, Integer rangeKey, String rangeStart) {
-
-		Calendar calendar = Calendar.getInstance();
-
-		if (Validator.isNotNull(rangeEnd) && Validator.isNotNull(rangeStart)) {
-			try {
-				calendar.setTime(_getStartDate(null, rangeStart));
-
-				DateFormat dateFormat = _getDateFormat();
-
-				int delta = DateUtil.getDaysBetween(
-					dateFormat.parse(rangeStart), dateFormat.parse(rangeEnd));
-
-				calendar.add(Calendar.DAY_OF_MONTH, -delta);
-			}
-			catch (ParseException parseException) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(parseException);
-				}
-			}
-		}
-		else {
-			calendar.add(Calendar.DAY_OF_MONTH, -(rangeKey * 2));
-		}
-
-		calendar.set(Calendar.HOUR_OF_DAY, 0);
-		calendar.set(Calendar.MILLISECOND, 0);
-		calendar.set(Calendar.MINUTE, 0);
-		calendar.set(Calendar.SECOND, 0);
-
-		return calendar.getTime();
 	}
 
 	private long _getPreviousTotalCount(
@@ -399,33 +337,6 @@ public class OverviewResourceImpl extends BaseOverviewResourceImpl {
 		return GetterUtil.getLong(results.get(0));
 	}
 
-	private Date _getStartDate(Integer rangeKey, String rangeStart) {
-		Calendar calendar = Calendar.getInstance();
-
-		if (Validator.isNotNull(rangeStart)) {
-			try {
-				DateFormat dateFormat = _getDateFormat();
-
-				calendar.setTime(dateFormat.parse(rangeStart));
-			}
-			catch (ParseException parseException) {
-				if (_log.isDebugEnabled()) {
-					_log.debug(parseException);
-				}
-			}
-		}
-		else {
-			calendar.add(Calendar.DAY_OF_MONTH, -rangeKey);
-		}
-
-		calendar.set(Calendar.HOUR_OF_DAY, 0);
-		calendar.set(Calendar.MILLISECOND, 0);
-		calendar.set(Calendar.MINUTE, 0);
-		calendar.set(Calendar.SECOND, 0);
-
-		return calendar.getTime();
-	}
-
 	private Overview _toOverview(
 		long categoriesCount, Trend.Classification classification,
 		double percentage, long tagsCount, long totalCount,
@@ -479,9 +390,6 @@ public class OverviewResourceImpl extends BaseOverviewResourceImpl {
 			categoriesCount, classification, percentage, tagsCount, totalCount,
 			vocabulariesCount);
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		OverviewResourceImpl.class);
 
 	@Reference
 	private ObjectEntryLocalService _objectEntryLocalService;

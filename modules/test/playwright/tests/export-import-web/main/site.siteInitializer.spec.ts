@@ -8,32 +8,28 @@ import {
 	ObjectRelationship,
 	ObjectRelationshipAPI,
 } from '@liferay/object-admin-rest-client-js';
-import {Page, expect, mergeTests} from '@playwright/test';
-import fs from 'fs/promises';
-import * as path from 'path';
-import {getComparator} from 'playwright-core/lib/utils';
+import {expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
 import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {styleBookPageTest} from '../../../fixtures/styleBookPageTest';
 import {uiElementsPageTest} from '../../../fixtures/uiElementsTest';
+import {compareScreenshots} from '../../../utils/compareScreenshots';
 import {getRandomInt} from '../../../utils/getRandomInt';
 import getRandomString from '../../../utils/getRandomString';
 import {getSiteHomePageScreenshot} from '../../../utils/getSiteHomePageScreenshot';
-import {getTempDir} from '../../../utils/temp';
 import {pagesPagesTest} from '../../layout-admin-web/main/fixtures/pagesPagesTest';
-import {companyExportImportPageTest} from './fixtures/companyExportImportPagesTest';
 import {exportImportPagesTest} from './fixtures/exportImportPagesTest';
 import {stagingPageTest} from './fixtures/stagingPageTest';
 
 const test = mergeTests(
-	companyExportImportPageTest,
 	dataApiHelpersTest,
 	exportImportPagesTest,
 	featureFlagsTest({
 		'LPD-35443': {enabled: false},
 		'LPD-45276': {enabled: true},
+		'LPD-57655': {enabled: false},
 	}),
 	loginTest(),
 	pagesPagesTest,
@@ -47,6 +43,7 @@ const testWithClaritySiteInitializerFF = mergeTests(
 	featureFlagsTest({
 		'LPD-35443': {enabled: false},
 		'LPD-45276': {enabled: true},
+		'LPD-57655': {enabled: false},
 	})
 );
 
@@ -71,9 +68,7 @@ const testWithClaritySiteInitializerFF = mergeTests(
 
 		await stagingPage.enableLocalStaging();
 
-		const comparator = getComparator('image/png');
-
-		const buffer = comparator(
+		compareScreenshots(
 			await getSiteHomePageScreenshot(page, site.name, {
 				mask: page.getByTestId('notificationsCount'),
 				staging: false,
@@ -81,106 +76,12 @@ const testWithClaritySiteInitializerFF = mergeTests(
 			await getSiteHomePageScreenshot(page, site.name, {
 				mask: page.getByTestId('notificationsCount'),
 				staging: true,
-			})
-		);
-
-		if (buffer !== null && buffer.diff !== undefined) {
-			const diffPath = path.join(getTempDir(), `${site.name}-diff.png`);
-			await fs.writeFile(diffPath, buffer.diff);
-			throw new Error(
-				`The live and staging pages differ. Check the screenshot diff at "${diffPath}".`
-			);
-		}
-	});
-});
-
-[
-	{name: 'com.liferay.site.initializer.masterclass'},
-	{
-		mask: (page: Page) => page.locator('.user-personal-bar'),
-		name: 'com.liferay.site.initializer.welcome',
-	},
-].forEach(({mask, name}) => {
-	test(`Can export and import a site created with the ${name} site initializer`, async ({
-		apiHelpers,
-		exportImportPage,
-		page,
-		utilityPagesPage,
-	}) => {
-		let exportFilePath: string;
-		let exportableItems1: Map<string, number>;
-		let exportableItems2: Map<string, number>;
-		let site1: Site;
-		let site2: Site;
-
-		await test.step('Create the site 1 from the template', async () => {
-			site1 = await apiHelpers.headlessAdminSite.postSite({
-				name: getRandomString(),
-				templateKey: name,
-				templateType: 'site-initializer',
-			});
-		});
-
-		await test.step('Export the site 1', async () => {
-			await exportImportPage.goToExport(site1.friendlyUrlPath);
-
-			exportableItems1 = await exportImportPage.getExportableItems();
-
-			exportFilePath = await exportImportPage.export();
-		});
-
-		await test.step('Create the site 2', async () => {
-			site2 = await apiHelpers.headlessAdminSite.postSite({
-				name: getRandomString(),
-			});
-		});
-
-		await test.step('Delete the existing utility pages on site 2', async () => {
-			await utilityPagesPage.goto(site2.friendlyUrlPath);
-
-			await utilityPagesPage.deleteAllPages();
-		});
-
-		await test.step('Import the site 1 into site 2', async () => {
-			await exportImportPage.goToImport(site2.friendlyUrlPath);
-
-			await exportImportPage.import({
-				filePath: exportFilePath,
-				timeout: 60000,
-			});
-		});
-
-		await test.step('Assert the exportable items from site 1 and site 2 are equal', async () => {
-			await exportImportPage.goToExport(site2.friendlyUrlPath);
-
-			exportableItems2 = await exportImportPage.getExportableItems();
-
-			expect(exportableItems1).toEqual(exportableItems2);
-		});
-
-		await test.step('Assert the home page screenshots from site 1 and site 2 are equal', async () => {
-			const comparator = getComparator('image/png');
-
-			const buffer = comparator(
-				await getSiteHomePageScreenshot(page, site1.name, {
-					mask: mask?.(page),
-				}),
-				await getSiteHomePageScreenshot(page, site2.name, {
-					mask: mask?.(page),
-				})
-			);
-
-			if (buffer !== null && buffer.diff !== undefined) {
-				const diffPath = path.join(
-					getTempDir(),
-					`${site1.name}-diff.png`
-				);
-				await fs.writeFile(diffPath, buffer.diff);
-				throw new Error(
-					`The site 1 and site 2 home pages differ. Check the screenshot diff at "${diffPath}".`
-				);
+			}),
+			{
+				errorMessage: 'The live and staging pages differ.',
+				writeDiff: true,
 			}
-		});
+		);
 	});
 });
 
@@ -397,23 +298,15 @@ testWithClaritySiteInitializerFF(
 			);
 
 			await test.step('Assert the home page screenshots from site 1 and site 2 are equal', async () => {
-				const comparator = getComparator('image/png');
-
-				const buffer = comparator(
+				compareScreenshots(
 					await getSiteHomePageScreenshot(page, site1.name),
-					await getSiteHomePageScreenshot(page, site2.name)
+					await getSiteHomePageScreenshot(page, site2.name),
+					{
+						errorMessage:
+							'The site 1 and site 2 home pages differ.',
+						writeDiff: true,
+					}
 				);
-
-				if (buffer !== null && buffer.diff !== undefined) {
-					const diffPath = path.join(
-						getTempDir(),
-						`${site1.name}-diff.png`
-					);
-					await fs.writeFile(diffPath, buffer.diff);
-					throw new Error(
-						`The site 1 and site 2 home pages differ. Check the screenshot diff at "${diffPath}".`
-					);
-				}
 			});
 		}
 		finally {

@@ -476,6 +476,10 @@ test.describe('General', () => {
 			template: pageTemplateName,
 		});
 
+		// Publish the page so it can be reached through its live friendly URL
+
+		await pageEditorPage.publishPage();
+
 		// Assert new content page in view mode
 
 		await page.goto(`/web${site.friendlyUrlPath}/${layoutTitle}`);
@@ -502,7 +506,7 @@ test.describe('Import page templates', () => {
 				autoClick: true,
 				target: page
 					.locator('.dropdown-menu')
-					.getByRole('menuitem', {name: 'Import'}),
+					.getByRole('menuitem', {exact: true, name: 'Import'}),
 				trigger: page
 					.locator('.control-menu-nav-item')
 					.getByLabel('Options', {exact: true}),

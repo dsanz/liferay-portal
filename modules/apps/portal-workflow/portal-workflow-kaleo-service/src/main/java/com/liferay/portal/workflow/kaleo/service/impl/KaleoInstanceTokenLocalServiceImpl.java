@@ -27,10 +27,10 @@ import com.liferay.portal.workflow.kaleo.constants.KaleoInstanceTokenConstants;
 import com.liferay.portal.workflow.kaleo.model.KaleoInstance;
 import com.liferay.portal.workflow.kaleo.model.KaleoInstanceToken;
 import com.liferay.portal.workflow.kaleo.model.KaleoNode;
-import com.liferay.portal.workflow.kaleo.service.KaleoNodeLocalService;
 import com.liferay.portal.workflow.kaleo.service.base.KaleoInstanceTokenLocalServiceBaseImpl;
 import com.liferay.portal.workflow.kaleo.service.persistence.KaleoInstancePersistence;
 import com.liferay.portal.workflow.kaleo.service.persistence.KaleoInstanceTokenQuery;
+import com.liferay.portal.workflow.kaleo.service.persistence.KaleoNodePersistence;
 
 import java.io.Serializable;
 
@@ -92,13 +92,12 @@ public class KaleoInstanceTokenLocalServiceImpl
 			(String)workflowContext.get(
 				WorkflowConstants.CONTEXT_ENTRY_CLASS_NAME));
 
-		if (workflowContext.containsKey(
-				WorkflowConstants.CONTEXT_ENTRY_CLASS_PK)) {
+		if (
+				workflowContext.get(
+					WorkflowConstants.CONTEXT_ENTRY_CLASS_PK) instanceof
+						String classPK) {
 
-			kaleoInstanceToken.setClassPK(
-				GetterUtil.getLong(
-					(String)workflowContext.get(
-						WorkflowConstants.CONTEXT_ENTRY_CLASS_PK)));
+			kaleoInstanceToken.setClassPK(GetterUtil.getLong(classPK));
 		}
 
 		kaleoInstanceToken.setCompleted(false);
@@ -380,7 +379,7 @@ public class KaleoInstanceTokenLocalServiceImpl
 
 		kaleoInstanceToken.setCurrentKaleoNodeId(currentKaleoNodeId);
 
-		KaleoNode currentKaleoNode = _kaleoNodeLocalService.getKaleoNode(
+		KaleoNode currentKaleoNode = _kaleoNodePersistence.findByPrimaryKey(
 			currentKaleoNodeId);
 
 		kaleoInstanceToken.setCurrentKaleoNodeName(currentKaleoNode.getName());
@@ -390,7 +389,7 @@ public class KaleoInstanceTokenLocalServiceImpl
 	private KaleoInstancePersistence _kaleoInstancePersistence;
 
 	@Reference
-	private KaleoNodeLocalService _kaleoNodeLocalService;
+	private KaleoNodePersistence _kaleoNodePersistence;
 
 	@Reference
 	private Staging _staging;

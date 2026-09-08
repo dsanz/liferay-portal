@@ -21,23 +21,42 @@ components:
                 creator:
                     $ref: ../../headless/headless-delivery/headless-delivery-impl/rest-openapi.yaml#Creator
                     readOnly: true
+                dateCompleted:
+                    format: date-time
+                    readOnly: true
+                    type: string
                 dateCreated:
+                    description:
+                        The export process's creation date.
                     format: date-time
                     readOnly: true
                     type: string
                 dateModified:
+                    description:
+                        The export process's last modification date.
                     format: date-time
                     readOnly: true
                     type: string
+                errorMessage:
+                    description:
+                        The export process's error message when it did not end successfully.
+                    readOnly: true
+                    type: string
                 id:
+                    description:
+                        The export process's ID.
                     format: int64
                     readOnly: true
                     type: integer
                 name:
+                    description:
+                        The export process's name.
                     readOnly: true
                     type: string
                 status:
                     $ref: "#/components/schemas/Status"
+                    description:
+                        The export process's end status.
                     readOnly: true
             type: object
         ExportProcessRequest:
@@ -45,15 +64,17 @@ components:
                 comments:
                     default: false
                     type: boolean
+                dateRangeType:
+                    description:
+                        The recipe used to resolve the export window at every run. ALL exports everything, DATE_RANGE exports the window between the start and end dates, resolving a missing end date as the run time, and LAST exports a window of whole hours ending at the run time, derived from the start date. When absent, the type is inferred from the given dates.
+                    enum: [ALL, DATE_RANGE, LAST]
+                    type: string
                 deletions:
                     default: false
                     type: boolean
                 endDate:
                     format: date-time
                     type: string
-                last:
-                    format: int32
-                    type: integer
                 logo:
                     default: false
                     type: boolean
@@ -62,10 +83,6 @@ components:
                 permissions:
                     default: false
                     type: boolean
-                range:
-                    default: all
-                    enum: [all, dateRange, last]
-                    type: string
                 ratings:
                     default: false
                     type: boolean
@@ -123,6 +140,10 @@ components:
                 creator:
                     $ref: ../../headless/headless-delivery/headless-delivery-impl/rest-openapi.yaml#Creator
                     readOnly: true
+                dateCompleted:
+                    format: date-time
+                    readOnly: true
+                    type: string
                 dateCreated:
                     description:
                         The import process's creation date.
@@ -133,6 +154,11 @@ components:
                     description:
                         The import process's last modification date.
                     format: date-time
+                    readOnly: true
+                    type: string
+                errorMessage:
+                    description:
+                        The import process's error message when it did not end successfully.
                     readOnly: true
                     type: string
                 id:
@@ -259,6 +285,14 @@ components:
                         choices:
                             items:
                                 properties:
+                                    additionCount:
+                                        format: int64
+                                        readOnly: true
+                                        type: integer
+                                    deletionCount:
+                                        format: int64
+                                        readOnly: true
+                                        type: integer
                                     label:
                                         readOnly: true
                                         type: string
@@ -331,6 +365,144 @@ components:
                             readOnly: true
                             type: array
             type: object
+        ProcessProgress:
+            properties:
+                percentage:
+                    description:
+                        The completion percentage of the process.
+                    format: int32
+                    readOnly: true
+                    type: integer
+            type: object
+        PublishPreview:
+            properties:
+                additionCount:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                deletionCount:
+                    format: int64
+                    readOnly: true
+                    type: integer
+                previewPortletDataHandlerSections:
+                    items:
+                        $ref: "#/components/schemas/PreviewPortletDataHandlerSection"
+                    readOnly: true
+                    type: array
+            type: object
+        PublishProcess:
+            properties:
+                creator:
+                    $ref: ../../headless/headless-delivery/headless-delivery-impl/rest-openapi.yaml#Creator
+                    readOnly: true
+                dateCompleted:
+                    format: date-time
+                    readOnly: true
+                    type: string
+                dateCreated:
+                    description:
+                        The publish process's creation date.
+                    format: date-time
+                    readOnly: true
+                    type: string
+                dateModified:
+                    description:
+                        The publish process's last modification date.
+                    format: date-time
+                    readOnly: true
+                    type: string
+                errorMessage:
+                    description:
+                        The publish process's error message when it did not end successfully.
+                    readOnly: true
+                    type: string
+                id:
+                    description:
+                        The publish process's ID.
+                    format: int64
+                    readOnly: true
+                    type: integer
+                name:
+                    description:
+                        The publish process's name.
+                    readOnly: true
+                    type: string
+                status:
+                    $ref: "#/components/schemas/Status"
+                    description:
+                        The publish process's end status.
+                    readOnly: true
+                type:
+                    description:
+                        How the publish process was started, either manually or by a schedule.
+                    enum: [MANUAL, SCHEDULED]
+                    readOnly: true
+                    type: string
+            type: object
+        PublishProcessRequest:
+            properties:
+                comments:
+                    default: false
+                    type: boolean
+                cronExpression:
+                    description:
+                        A cron expression. When set, the publish is scheduled to recur instead of running immediately.
+                    type: string
+                dateRangeType:
+                    description:
+                        The recipe used to resolve the publish window at every run, relaunch, and scheduled occurrence. ALL publishes everything, DATE_RANGE publishes the window between the start and end dates, resolving a missing end date as the run time, LAST publishes a window of whole hours ending at the run time, derived from the start date, and FROM_LAST_PUBLISH_DATE publishes the changes recorded since each entity's own last publish. When absent, the type is inferred from the given dates.
+                    enum: [ALL, DATE_RANGE, FROM_LAST_PUBLISH_DATE, LAST]
+                    type: string
+                deletions:
+                    default: false
+                    type: boolean
+                endDate:
+                    format: date-time
+                    type: string
+                logo:
+                    default: false
+                    type: boolean
+                name:
+                    type: string
+                permissions:
+                    default: false
+                    type: boolean
+                ratings:
+                    default: false
+                    type: boolean
+                requestPortletDataHandlers:
+                    items:
+                        $ref: "#/components/schemas/RequestPortletDataHandler"
+                    type: array
+                scheduleEndDate:
+                    description:
+                        When the scheduled publish stops recurring. Applies only when a cron expression is given.
+                    format: date-time
+                    type: string
+                scheduleStartDate:
+                    description:
+                        When the scheduled publish starts. Applies only when a cron expression is given. Defaults to now.
+                    format: date-time
+                    type: string
+                sitePagesSettings:
+                    default: false
+                    type: boolean
+                siteTemplateSettings:
+                    default: false
+                    type: boolean
+                startDate:
+                    format: date-time
+                    type: string
+                themeSettings:
+                    default: false
+                    type: boolean
+                timeZoneId:
+                    description:
+                        The time zone the cron expression is evaluated in. Defaults to the server time zone.
+                    type: string
+            required:
+                -   name
+            type: object
         ReportEntry:
             properties:
                 classExternalReferenceCode:
@@ -341,7 +513,7 @@ components:
                         string
                 classNameId:
                     description:
-                        The reported item's class name id.
+                        The reported item's class name ID.
                     format: int64
                     readOnly: true
                     type: integer
@@ -379,7 +551,7 @@ components:
                     type: string
                 errorStacktrace:
                     description:
-                        Optional field with the full stack trace of the error, can be embedded with nestedFields.
+                        The full stack trace of the error. It is an optional field that can be embedded with nested fields.
                     readOnly: true
                     type: string
                 id:
@@ -406,7 +578,7 @@ components:
                 status:
                     $ref: "#/components/schemas/Status"
                     description:
-                        The report entry's 's status.
+                        The report entry's status.
                     readOnly: true
                 type:
                     $ref: "#/components/schemas/Type"
@@ -438,6 +610,61 @@ components:
                         type: string
                     type: array
             type: object
+        ScheduledPublishProcess:
+            properties:
+                creator:
+                    $ref: ../../headless/headless-delivery/headless-delivery-impl/rest-openapi.yaml#Creator
+                    readOnly: true
+                cronExpression:
+                    description:
+                        The cron expression that fires the scheduled publication.
+                    readOnly: true
+                    type: string
+                dateCreated:
+                    description:
+                        The scheduled publish process's creation date.
+                    format: date-time
+                    readOnly: true
+                    type: string
+                id:
+                    description:
+                        The scheduled publish process's ID.
+                    format: int64
+                    readOnly: true
+                    type: integer
+                name:
+                    description:
+                        The scheduled publish process's name.
+                    readOnly: true
+                    type: string
+                nextFireDate:
+                    description:
+                        The next date the scheduled publication fires.
+                    format: date-time
+                    readOnly: true
+                    type: string
+                publishParameters:
+                    additionalProperties:
+                        items:
+                            type: string
+                        type: array
+                    description:
+                        The raw export import parameters the scheduled publication was created with.
+                    readOnly: true
+                    type: object
+                scheduleEndDate:
+                    description:
+                        The date the scheduled publication stops firing.
+                    format: date-time
+                    readOnly: true
+                    type: string
+                scheduleStartDate:
+                    description:
+                        The date the scheduled publication starts firing.
+                    format: date-time
+                    readOnly: true
+                    type: string
+            type: object
         Status:
             properties:
                 code:
@@ -455,11 +682,11 @@ components:
             type: object
 info:
     description:
-        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.exportimport.report.rest', and version '1.0.0'.. A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.exportimport.rest.client', and version '1.0.8'."
+        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.exportimport.rest.client', and version '1.0.10'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html
-    title: ""
+    title: Export Import
     version: v1.0
 openapi: 3.0.1
 paths:
@@ -473,20 +700,23 @@ paths:
                     schema:
                         type: string
                 -   in: query
+                    name: dateRangeType
+                    schema:
+                        enum: [ALL, DATE_RANGE, LAST]
+                        type: string
+                -   in: query
                     name: endDate
                     schema:
                         format: date-time
                         type: string
                 -   in: query
-                    name: last
+                    name: plid
                     schema:
-                        format: int32
+                        format: int64
                         type: integer
                 -   in: query
-                    name: range
+                    name: portletId
                     schema:
-                        default: all
-                        enum: [all, dateRange, last]
                         type: string
                 -   in: query
                     name: startDate
@@ -504,12 +734,86 @@ paths:
                                 $ref: "#/components/schemas/ExportPreview"
             tags: ["ExportPreview"]
     "/asset-libraries/{assetLibraryExternalReferenceCode}/export-processes":
+        get:
+            description:
+                Retrieves the layout export process entries of the specified asset library, or the export process entries of one of its portlets when a portlet ID is given.
+            operationId: getAssetLibraryExportProcessesPage
+            parameters:
+                -   in: path
+                    name: assetLibraryExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: creatorId
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: nestedFields
+                    schema:
+                        type: string
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: portletId
+                    schema:
+                        type: string
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+                -   in: query
+                    name: search
+                    schema:
+                        type: string
+                -   in: query
+                    name: sort
+                    schema:
+                        type: string
+                -   in: query
+                    name: status
+                    schema:
+                        type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ExportProcess"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ExportProcess"
+                                type: array
+            tags: ["ExportProcess"]
         post:
             operationId: postAssetLibraryExportProcess
             parameters:
                 -   in: path
                     name: assetLibraryExternalReferenceCode
                     required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: plid
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: portletId
                     schema:
                         type: string
             requestBody:
@@ -539,6 +843,15 @@ paths:
                     required: true
                     schema:
                         type: string
+                -   in: query
+                    name: plid
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: portletId
+                    schema:
+                        type: string
             requestBody:
                 content:
                     multipart/form-data:
@@ -559,44 +872,16 @@ paths:
                                 $ref: "#/components/schemas/ImportPreview"
             tags: ["ImportPreview"]
     "/asset-libraries/{assetLibraryExternalReferenceCode}/import-processes":
-        post:
-            operationId: postAssetLibraryImportProcess
+        get:
+            description:
+                Retrieves the layout import process entries of the specified asset library, or the import process entries of one of its portlets when a portlet ID is given.
+            operationId: getAssetLibraryImportProcessesPage
             parameters:
                 -   in: path
                     name: assetLibraryExternalReferenceCode
                     required: true
                     schema:
                         type: string
-            requestBody:
-                content:
-                    application/json:
-                        schema:
-                            $ref: "#/components/schemas/ImportProcessRequest"
-                    application/xml:
-                        schema:
-                            $ref: "#/components/schemas/ImportProcessRequest"
-            responses:
-                200:
-                    content:
-                        application/json:
-                            schema:
-                                $ref: "#/components/schemas/ImportProcess"
-                        application/xml:
-                            schema:
-                                $ref: "#/components/schemas/ImportProcess"
-            tags: ["ImportProcess"]
-    "/asset-libraries/{assetLibraryId}/import-processes":
-        description:
-            Retrieves the import process entries for the specified asset library.
-        get:
-            operationId: getAssetLibraryImportProcessesPage
-            parameters:
-                -   in: path
-                    name: assetLibraryId
-                    required: true
-                    schema:
-                        format: int64
-                        type: integer
                 -   in: query
                     name: creatorId
                     schema:
@@ -618,6 +903,10 @@ paths:
                     name: pageSize
                     schema:
                         type: integer
+                -   in: query
+                    name: portletId
+                    schema:
+                        type: string
                 -   in: query
                     name: restrictFields
                     schema:
@@ -648,25 +937,63 @@ paths:
                                     $ref: "#/components/schemas/ImportProcess"
                                 type: array
             tags: ["ImportProcess"]
+        post:
+            operationId: postAssetLibraryImportProcess
+            parameters:
+                -   in: path
+                    name: assetLibraryExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: plid
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: portletId
+                    schema:
+                        type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ImportProcessRequest"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ImportProcessRequest"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ImportProcess"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ImportProcess"
+            tags: ["ImportProcess"]
     "/export-preview":
         get:
             operationId: getExportPreview
             parameters:
+                -   in: query
+                    name: dateRangeType
+                    schema:
+                        enum: [ALL, DATE_RANGE, LAST]
+                        type: string
                 -   in: query
                     name: endDate
                     schema:
                         format: date-time
                         type: string
                 -   in: query
-                    name: last
+                    name: plid
                     schema:
-                        format: int32
+                        format: int64
                         type: integer
                 -   in: query
-                    name: range
+                    name: portletId
                     schema:
-                        default: all
-                        enum: [all, dateRange, last]
                         type: string
                 -   in: query
                     name: startDate
@@ -684,8 +1011,78 @@ paths:
                                 $ref: "#/components/schemas/ExportPreview"
             tags: ["ExportPreview"]
     "/export-processes":
+        get:
+            description:
+                Retrieves the layout export process entries of the instance, or the export process entries of one of its portlets when a portlet ID is given.
+            operationId: getExportProcessesPage
+            parameters:
+                -   in: query
+                    name: creatorId
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: nestedFields
+                    schema:
+                        type: string
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: portletId
+                    schema:
+                        type: string
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+                -   in: query
+                    name: search
+                    schema:
+                        type: string
+                -   in: query
+                    name: sort
+                    schema:
+                        type: string
+                -   in: query
+                    name: status
+                    schema:
+                        type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ExportProcess"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ExportProcess"
+                                type: array
+            tags: ["ExportProcess"]
         post:
             operationId: postExportProcess
+            parameters:
+                -   in: query
+                    name: plid
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: portletId
+                    schema:
+                        type: string
             requestBody:
                 content:
                     application/json:
@@ -704,9 +1101,134 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/ExportProcess"
             tags: ["ExportProcess"]
+    "/export-processes/{exportProcessId}":
+        delete:
+            description:
+                Deletes the export process with the specified ID.
+            operationId: deleteExportProcess
+            parameters:
+                -   in: path
+                    name: exportProcessId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["ExportProcess"]
+        get:
+            description:
+                Retrieves the export process with the specified ID.
+            operationId: getExportProcess
+            parameters:
+                -   in: path
+                    name: exportProcessId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: nestedFields
+                    schema:
+                        type: string
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ExportProcess"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ExportProcess"
+            tags: ["ExportProcess"]
+    "/export-processes/{exportProcessId}/content":
+        get:
+            description:
+                Downloads the LAR file produced by the export process with the specified ID.
+            operationId: getExportProcessContent
+            parameters:
+                -   in: path
+                    name: exportProcessId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            responses:
+                200:
+                    content:
+                        application/octet-stream:
+                            schema:
+                                format: binary
+                                type: string
+            tags: ["ExportProcess"]
+    "/export-processes/{exportProcessId}/progress":
+        get:
+            description:
+                Retrieves the live progress of the export process with the specified ID.
+            operationId: getExportProcessProgress
+            parameters:
+                -   in: path
+                    name: exportProcessId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ProcessProgress"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ProcessProgress"
+            tags: ["ExportProcess"]
+    "/export-processes/{exportProcessId}/relaunch":
+        post:
+            description:
+                Relaunches the export process with the specified ID. The process's date selection is resolved again when it runs.
+            operationId: postExportProcessRelaunch
+            parameters:
+                -   in: path
+                    name: exportProcessId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ExportProcess"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ExportProcess"
+            tags: ["ExportProcess"]
     "/import-preview":
         post:
             operationId: postImportPreview
+            parameters:
+                -   in: query
+                    name: plid
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: portletId
+                    schema:
+                        type: string
             requestBody:
                 content:
                     multipart/form-data:
@@ -727,9 +1249,9 @@ paths:
                                 $ref: "#/components/schemas/ImportPreview"
             tags: ["ImportPreview"]
     "/import-processes":
-        description:
-            Retrieves all the import process entries.
         get:
+            description:
+                Retrieves the layout import process entries of the instance, or the import process entries of one of its portlets when a portlet ID is given.
             operationId: getImportProcessesPage
             parameters:
                 -   in: query
@@ -753,6 +1275,10 @@ paths:
                     name: pageSize
                     schema:
                         type: integer
+                -   in: query
+                    name: portletId
+                    schema:
+                        type: string
                 -   in: query
                     name: restrictFields
                     schema:
@@ -785,6 +1311,16 @@ paths:
             tags: ["ImportProcess"]
         post:
             operationId: postImportProcess
+            parameters:
+                -   in: query
+                    name: plid
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: portletId
+                    schema:
+                        type: string
             requestBody:
                 content:
                     application/json:
@@ -804,6 +1340,23 @@ paths:
                                 $ref: "#/components/schemas/ImportProcess"
             tags: ["ImportProcess"]
     "/import-processes/{importProcessId}":
+        delete:
+            description:
+                Deletes the import process with the specified ID.
+            operationId: deleteImportProcess
+            parameters:
+                -   in: path
+                    name: importProcessId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["ImportProcess"]
         get:
             description:
                 Retrieves the import process entry with the specified ID.
@@ -837,6 +1390,28 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/ImportProcess"
             tags: ["ImportProcess"]
+    "/import-processes/{importProcessId}/progress":
+        get:
+            description:
+                Retrieves the live progress of the import process with the specified ID.
+            operationId: getImportProcessProgress
+            parameters:
+                -   in: path
+                    name: importProcessId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ProcessProgress"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ProcessProgress"
+            tags: ["ImportProcess"]
     "/import-processes/{importProcessId}/report-entries":
         get:
             description:
@@ -845,6 +1420,159 @@ paths:
             parameters:
                 -   in: path
                     name: importProcessId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: filter
+                    schema:
+                        type: string
+                -   in: query
+                    name: nestedFields
+                    schema:
+                        type: string
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+                -   in: query
+                    name: search
+                    schema:
+                        type: string
+                -   in: query
+                    name: sort
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ReportEntry"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ReportEntry"
+                                type: array
+            tags: ["ReportEntry"]
+    "/publish-processes/{publishProcessId}":
+        delete:
+            description:
+                Deletes the publish process with the specified ID.
+            operationId: deletePublishProcess
+            parameters:
+                -   in: path
+                    name: publishProcessId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["PublishProcess"]
+        get:
+            description:
+                Retrieves the publish process with the specified ID.
+            operationId: getPublishProcess
+            parameters:
+                -   in: path
+                    name: publishProcessId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: nestedFields
+                    schema:
+                        type: string
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PublishProcess"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/PublishProcess"
+            tags: ["PublishProcess"]
+    "/publish-processes/{publishProcessId}/progress":
+        get:
+            description:
+                Retrieves the live progress of the publish process with the specified ID.
+            operationId: getPublishProcessProgress
+            parameters:
+                -   in: path
+                    name: publishProcessId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ProcessProgress"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ProcessProgress"
+            tags: ["PublishProcess"]
+    "/publish-processes/{publishProcessId}/relaunch":
+        post:
+            description:
+                Relaunches the publish process with the specified ID. The process's date selection is resolved again when it runs.
+            operationId: postPublishProcessRelaunch
+            parameters:
+                -   in: path
+                    name: publishProcessId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PublishProcess"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/PublishProcess"
+            tags: ["PublishProcess"]
+    "/publish-processes/{publishProcessId}/report-entries":
+        get:
+            description:
+                Retrieves the report entries associated with the specified publish process ID.
+            operationId: getPublishProcessReportEntriesPage
+            parameters:
+                -   in: path
+                    name: publishProcessId
                     required: true
                     schema:
                         format: int64
@@ -939,20 +1667,23 @@ paths:
                     schema:
                         type: string
                 -   in: query
+                    name: dateRangeType
+                    schema:
+                        enum: [ALL, DATE_RANGE, LAST]
+                        type: string
+                -   in: query
                     name: endDate
                     schema:
                         format: date-time
                         type: string
                 -   in: query
-                    name: last
+                    name: plid
                     schema:
-                        format: int32
+                        format: int64
                         type: integer
                 -   in: query
-                    name: range
+                    name: portletId
                     schema:
-                        default: all
-                        enum: [all, dateRange, last]
                         type: string
                 -   in: query
                     name: startDate
@@ -970,12 +1701,88 @@ paths:
                                 $ref: "#/components/schemas/ExportPreview"
             tags: ["ExportPreview"]
     "/sites/{siteExternalReferenceCode}/export-processes":
+        get:
+            description:
+                Retrieves the layout export process entries of the specified site, or the export process entries of one of its portlets when a portlet ID is given.
+            operationId: getSiteExportProcessesPage
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: creatorId
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: nestedFields
+                    schema:
+                        type: string
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: portletId
+                    schema:
+                        type: string
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+                -   in: query
+                    name: search
+                    schema:
+                        type: string
+                -   in: query
+                    name: sort
+                    schema:
+                        type: string
+                -   in: query
+                    name: status
+                    schema:
+                        type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ExportProcess"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ExportProcess"
+                                type: array
+            tags: ["ExportProcess"]
         post:
+            description:
+                Starts an export process on the specified site. The date range type and dates select the content and are resolved every time the process runs, including relaunches. When no type is given, it is inferred from the dates - no dates cover all content, both dates cover that fixed date range, and a start date alone covers the window from the start date until each run.
             operationId: postSiteExportProcess
             parameters:
                 -   in: path
                     name: siteExternalReferenceCode
                     required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: plid
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: portletId
                     schema:
                         type: string
             requestBody:
@@ -1005,6 +1812,15 @@ paths:
                     required: true
                     schema:
                         type: string
+                -   in: query
+                    name: plid
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: portletId
+                    schema:
+                        type: string
             requestBody:
                 content:
                     multipart/form-data:
@@ -1025,12 +1841,86 @@ paths:
                                 $ref: "#/components/schemas/ImportPreview"
             tags: ["ImportPreview"]
     "/sites/{siteExternalReferenceCode}/import-processes":
+        get:
+            description:
+                Retrieves the layout import process entries of the specified site, or the import process entries of one of its portlets when a portlet ID is given.
+            operationId: getSiteImportProcessesPage
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: creatorId
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: nestedFields
+                    schema:
+                        type: string
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: portletId
+                    schema:
+                        type: string
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+                -   in: query
+                    name: search
+                    schema:
+                        type: string
+                -   in: query
+                    name: sort
+                    schema:
+                        type: string
+                -   in: query
+                    name: status
+                    schema:
+                        type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ImportProcess"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ImportProcess"
+                                type: array
+            tags: ["ImportProcess"]
         post:
             operationId: postSiteImportProcess
             parameters:
                 -   in: path
                     name: siteExternalReferenceCode
                     required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: plid
+                    schema:
+                        format: int64
+                        type: integer
+                -   in: query
+                    name: portletId
                     schema:
                         type: string
             requestBody:
@@ -1051,18 +1941,53 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/ImportProcess"
             tags: ["ImportProcess"]
-    "/sites/{siteId}/import-processes":
-        description:
-            Retrieves the import process entries for the specified site.
+    "/sites/{siteExternalReferenceCode}/publish-preview":
         get:
-            operationId: getSiteImportProcessesPage
+            description:
+                Retrieves the portlet data handlers and change counts a Publish to Live on the specified site would cover. The date range type selects the counting window like it does on the publish process, defaulting to the type inferred from the given dates.
+            operationId: getSitePublishPreview
             parameters:
                 -   in: path
-                    name: siteId
+                    name: siteExternalReferenceCode
                     required: true
                     schema:
-                        format: int64
-                        type: integer
+                        type: string
+                -   in: query
+                    name: dateRangeType
+                    schema:
+                        enum: [ALL, DATE_RANGE, FROM_LAST_PUBLISH_DATE, LAST]
+                        type: string
+                -   in: query
+                    name: endDate
+                    schema:
+                        format: date-time
+                        type: string
+                -   in: query
+                    name: startDate
+                    schema:
+                        format: date-time
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PublishPreview"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/PublishPreview"
+            tags: ["PublishPreview"]
+    "/sites/{siteExternalReferenceCode}/publish-processes":
+        get:
+            description:
+                Retrieves the Publish to Live process entries for the specified site.
+            operationId: getSitePublishProcessesPage
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
                 -   in: query
                     name: creatorId
                     schema:
@@ -1106,11 +2031,129 @@ paths:
                         application/json:
                             schema:
                                 items:
-                                    $ref: "#/components/schemas/ImportProcess"
+                                    $ref: "#/components/schemas/PublishProcess"
                                 type: array
                         application/xml:
                             schema:
                                 items:
-                                    $ref: "#/components/schemas/ImportProcess"
+                                    $ref: "#/components/schemas/PublishProcess"
                                 type: array
-            tags: ["ImportProcess"]
+            tags: ["PublishProcess"]
+        post:
+            description:
+                Starts a Publish to Live process on the specified site. The date range type and dates select the content and are resolved every time the process runs, including relaunches and scheduled occurrences. When no type is given, it is inferred from the dates - no dates cover all content, both dates cover that fixed date range, and a start date alone covers the window from the start date until each run. When a cron expression is given, the publish is scheduled to recur instead of running immediately.
+            operationId: postSitePublishProcess
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/PublishProcessRequest"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/PublishProcessRequest"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PublishProcess"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/PublishProcess"
+            tags: ["PublishProcess"]
+    "/sites/{siteExternalReferenceCode}/scheduled-publish-processes":
+        get:
+            description:
+                Retrieves the scheduled Publish to Live process entries for the specified site.
+            operationId: getSiteScheduledPublishProcessesPage
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: search
+                    schema:
+                        type: string
+                -   in: query
+                    name: sort
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ScheduledPublishProcess"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ScheduledPublishProcess"
+                                type: array
+            tags: ["ScheduledPublishProcess"]
+    "/sites/{siteExternalReferenceCode}/scheduled-publish-processes/{scheduledPublishProcessId}":
+        delete:
+            description:
+                Unschedules the scheduled Publish to Live process with the given ID and deletes its draft configuration.
+            operationId: deleteSiteScheduledPublishProcess
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: scheduledPublishProcessId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["ScheduledPublishProcess"]
+        get:
+            description:
+                Retrieves the scheduled Publish to Live process with the given ID.
+            operationId: getSiteScheduledPublishProcess
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: scheduledPublishProcessId
+                    required: true
+                    schema:
+                        format: int64
+                        type: integer
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ScheduledPublishProcess"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ScheduledPublishProcess"
+            tags: ["ScheduledPublishProcess"]

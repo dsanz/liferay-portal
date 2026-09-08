@@ -62,6 +62,9 @@ public class ObjectDefinitionUpgradeProcessTest {
 
 		_assertObjectDefinitionPKObjectFieldPrefix(objectDefinition2, "c_");
 
+		String name =
+			ObjectDefinitionTestUtil.
+				getRandomModifiableSystemObjectDefinitionName();
 		String pkObjectFieldDBColumnName = StringUtil.randomId();
 		String pkObjectFieldName = StringUtil.randomId();
 
@@ -69,7 +72,7 @@ public class ObjectDefinitionUpgradeProcessTest {
 			ObjectDefinitionTestUtil.addModifiableSystemObjectDefinition(
 				TestPropsValues.getUserId(), null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				"FDSEntry", pkObjectFieldDBColumnName, pkObjectFieldName,
+				name, pkObjectFieldDBColumnName, pkObjectFieldName,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionConstants.SCOPE_COMPANY, null, 1,
 				List.of(
@@ -121,8 +124,9 @@ public class ObjectDefinitionUpgradeProcessTest {
 			ObjectDefinitionTestUtil.addModifiableSystemObjectDefinition(
 				TestPropsValues.getUserId(), null,
 				RandomTestUtil.randomLocaleStringMap(),
-				"Test" + RandomTestUtil.randomString(), null, null,
-				RandomTestUtil.randomLocaleStringMap(),
+				ObjectDefinitionTestUtil.
+					getRandomModifiableSystemObjectDefinitionName(),
+				null, null, RandomTestUtil.randomLocaleStringMap(),
 				ObjectDefinitionConstants.SCOPE_SITE, null, 1,
 				Collections.singletonList(
 					ObjectFieldUtil.createObjectField(

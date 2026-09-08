@@ -1,0 +1,33 @@
+{{- $repoURLs := list
+    (include "liferay-platform.infrastructureRepositoryURL" .)
+    .Values.infrastructure.repoURL
+    .Values.infrastructureProvider.repoURL
+    .Values.observability.repoURL
+-}}
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-wave: "-110"
+    labels:
+        {{- include "liferay-platform.labels" . | nindent 8 }}
+        app.kubernetes.io/name: infrastructure-appproject
+    name: liferay-infrastructure
+    namespace: {{ .Release.Namespace }}
+spec:
+    clusterResourceWhitelist:
+        -   group: "*"
+            kind: "*"
+    description:
+        ArgoCD project for Liferay cloud native infrastructure.
+    destinations:
+        -   namespace: liferay-*
+            server: https://kubernetes.default.svc
+        -   namespace: {{ .Values.operatorApplications.crossplane.namespace }}
+            server: https://kubernetes.default.svc
+        -   namespace: {{ .Values.operatorApplications.envoyGateway.namespace }}
+            server: https://kubernetes.default.svc
+        -   namespace: {{ .Values.observability.namespace }}
+            server: https://kubernetes.default.svc
+    sourceRepos:
+        {{- include "liferay-platform.sourceRepos" $repoURLs | nindent 8 }}

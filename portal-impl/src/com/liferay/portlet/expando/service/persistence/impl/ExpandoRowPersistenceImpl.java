@@ -17,8 +17,6 @@ import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -505,6 +503,11 @@ public class ExpandoRowPersistenceImpl
 	}
 
 	@Override
+	protected String getPKFieldName() {
+		return "rowId";
+	}
+
+	@Override
 	protected String getSelectSQL() {
 		return _SQL_SELECT_EXPANDOROW;
 	}
@@ -593,7 +596,8 @@ public class ExpandoRowPersistenceImpl
 					new String[] {Long.class.getName()},
 					new String[] {"tableId"}, false),
 				_SQL_SELECT_EXPANDOROW_WHERE, _SQL_COUNT_EXPANDOROW_WHERE,
-				ExpandoRowModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				ExpandoRowModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"expandoRow.", "tableId", FinderColumn.Type.LONG, "=", true,
 					true, ExpandoRow::getTableId));
@@ -618,7 +622,8 @@ public class ExpandoRowPersistenceImpl
 					new String[] {Long.class.getName()},
 					new String[] {"classPK"}, false),
 				_SQL_SELECT_EXPANDOROW_WHERE, _SQL_COUNT_EXPANDOROW_WHERE,
-				ExpandoRowModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				ExpandoRowModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"expandoRow.", "classPK", FinderColumn.Type.LONG, "=", true,
 					true, ExpandoRow::getClassPK));
@@ -659,12 +664,6 @@ public class ExpandoRowPersistenceImpl
 	private static final String _SQL_COUNT_EXPANDOROW_WHERE =
 		"SELECT COUNT(expandoRow) FROM ExpandoRow expandoRow WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No ExpandoRow exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		ExpandoRowPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"rowId"});
 
@@ -674,4 +673,4 @@ public class ExpandoRowPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-961612123
+// LIFERAY-SERVICE-BUILDER-HASH:-1773015827

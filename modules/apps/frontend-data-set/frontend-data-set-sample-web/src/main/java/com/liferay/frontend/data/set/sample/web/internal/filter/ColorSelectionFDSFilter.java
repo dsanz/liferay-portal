@@ -22,7 +22,11 @@ import org.osgi.service.component.annotations.Component;
  * @author Marko Cikos
  */
 @Component(
-	property = "frontend.data.set.name=" + FDSSampleFDSNames.ADVANCED,
+	property = {
+		"frontend.data.set.name=" + FDSSampleFDSNames.ADVANCED,
+		"frontend.data.set.name=" + FDSSampleFDSNames.DELEGATED_FILTERS,
+		"frontend.data.set.name=" + FDSSampleFDSNames.HIDDEN_EXCLUDE_TOGGLE
+	},
 	service = FDSFilter.class
 )
 public class ColorSelectionFDSFilter extends BaseSelectionFDSFilter {

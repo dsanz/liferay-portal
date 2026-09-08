@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -119,6 +120,8 @@ public abstract class BaseReplenishmentItemResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -1059,7 +1062,7 @@ public abstract class BaseReplenishmentItemResourceTestCase {
 				sku, randomReplenishmentItem());
 
 		page = replenishmentItemResource.getReplenishmentItemsPage(
-			sku, Pagination.of(1, 10));
+			sku, Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1206,17 +1209,9 @@ public abstract class BaseReplenishmentItemResourceTestCase {
 	public void testGraphQLGetReplenishmentItemsPage() throws Exception {
 		String sku = testGetReplenishmentItemsPage_getSku();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"replenishmentItems",
-			new HashMap<String, Object>() {
-				{
-					put("sku", "\"" + sku + "\"");
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetReplenishmentItemsPageReplenishmentItem_getGraphQLField(
+				sku);
 
 		// No namespace
 
@@ -1276,6 +1271,24 @@ public abstract class BaseReplenishmentItemResourceTestCase {
 					replenishmentItemsJSONObject.getString("items"))));
 	}
 
+	protected GraphQLField
+			testGraphQLGetReplenishmentItemsPageReplenishmentItem_getGraphQLField(
+				String sku)
+		throws Exception {
+
+		return new GraphQLField(
+			"replenishmentItems",
+			new HashMap<String, Object>() {
+				{
+					put("sku", "\"" + sku + "\"");
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
+	}
+
 	protected ReplenishmentItem
 			testGraphQLGetReplenishmentItemsPageReplenishmentItem_addReplenishmentItem(
 				String sku, ReplenishmentItem replenishmentItem)
@@ -1328,7 +1341,7 @@ public abstract class BaseReplenishmentItemResourceTestCase {
 				warehouseId, randomReplenishmentItem());
 
 		page = replenishmentItemResource.getWarehouseIdReplenishmentItemsPage(
-			warehouseId, Pagination.of(1, 10));
+			warehouseId, Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1488,17 +1501,9 @@ public abstract class BaseReplenishmentItemResourceTestCase {
 		Long warehouseId =
 			testGetWarehouseIdReplenishmentItemsPage_getWarehouseId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"warehouseIdReplenishmentItems",
-			new HashMap<String, Object>() {
-				{
-					put("warehouseId", warehouseId);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetWarehouseIdReplenishmentItemsPageReplenishmentItem_getGraphQLField(
+				warehouseId);
 
 		// No namespace
 
@@ -1564,6 +1569,24 @@ public abstract class BaseReplenishmentItemResourceTestCase {
 				ReplenishmentItemSerDes.toDTOs(
 					warehouseIdReplenishmentItemsJSONObject.getString(
 						"items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetWarehouseIdReplenishmentItemsPageReplenishmentItem_getGraphQLField(
+				Long warehouseId)
+		throws Exception {
+
+		return new GraphQLField(
+			"warehouseIdReplenishmentItems",
+			new HashMap<String, Object>() {
+				{
+					put("warehouseId", warehouseId);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	protected ReplenishmentItem
@@ -2964,4 +2987,4 @@ public abstract class BaseReplenishmentItemResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-250795444
+// LIFERAY-REST-BUILDER-HASH:61516798

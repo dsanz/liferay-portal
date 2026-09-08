@@ -53,7 +53,7 @@ public class LayoutPageTemplateStructureRelElementVariationWrapper
 		attributes.put("userName", getUserName());
 		attributes.put("createDate", getCreateDate());
 		attributes.put("modifiedDate", getModifiedDate());
-		attributes.put("audienceEntryERC", getAudienceEntryERC());
+		attributes.put("active", isActive());
 		attributes.put("hide", getHide());
 		attributes.put("html", getHtml());
 		attributes.put("js", getJs());
@@ -137,10 +137,10 @@ public class LayoutPageTemplateStructureRelElementVariationWrapper
 			setModifiedDate(modifiedDate);
 		}
 
-		String audienceEntryERC = (String)attributes.get("audienceEntryERC");
+		Boolean active = (Boolean)attributes.get("active");
 
-		if (audienceEntryERC != null) {
-			setAudienceEntryERC(audienceEntryERC);
+		if (active != null) {
+			setActive(active);
 		}
 
 		String hide = (String)attributes.get("hide");
@@ -195,13 +195,18 @@ public class LayoutPageTemplateStructureRelElementVariationWrapper
 	}
 
 	/**
-	 * Returns the audience entry erc of this layout page template structure rel element variation.
+	 * Returns the active of this layout page template structure rel element variation.
 	 *
-	 * @return the audience entry erc of this layout page template structure rel element variation
+	 * @return the active of this layout page template structure rel element variation
 	 */
 	@Override
-	public String getAudienceEntryERC() {
-		return model.getAudienceEntryERC();
+	public boolean getActive() {
+		return model.getActive();
+	}
+
+	@Override
+	public java.util.List<String> getAudienceEntryERCs() {
+		return model.getAudienceEntryERCs();
 	}
 
 	@Override
@@ -272,72 +277,6 @@ public class LayoutPageTemplateStructureRelElementVariationWrapper
 	@Override
 	public String getHide() {
 		return model.getHide();
-	}
-
-	/**
-	 * Returns the localized hide of this layout page template structure rel element variation in the language. Uses the default language if no localization exists for the requested language.
-	 *
-	 * @param locale the locale of the language
-	 * @return the localized hide of this layout page template structure rel element variation
-	 */
-	@Override
-	public String getHide(java.util.Locale locale) {
-		return model.getHide(locale);
-	}
-
-	/**
-	 * Returns the localized hide of this layout page template structure rel element variation in the language, optionally using the default language if no localization exists for the requested language.
-	 *
-	 * @param locale the local of the language
-	 * @param useDefault whether to use the default language if no localization exists for the requested language
-	 * @return the localized hide of this layout page template structure rel element variation. If <code>useDefault</code> is <code>false</code> and no localization exists for the requested language, an empty string will be returned.
-	 */
-	@Override
-	public String getHide(java.util.Locale locale, boolean useDefault) {
-		return model.getHide(locale, useDefault);
-	}
-
-	/**
-	 * Returns the localized hide of this layout page template structure rel element variation in the language. Uses the default language if no localization exists for the requested language.
-	 *
-	 * @param languageId the ID of the language
-	 * @return the localized hide of this layout page template structure rel element variation
-	 */
-	@Override
-	public String getHide(String languageId) {
-		return model.getHide(languageId);
-	}
-
-	/**
-	 * Returns the localized hide of this layout page template structure rel element variation in the language, optionally using the default language if no localization exists for the requested language.
-	 *
-	 * @param languageId the ID of the language
-	 * @param useDefault whether to use the default language if no localization exists for the requested language
-	 * @return the localized hide of this layout page template structure rel element variation
-	 */
-	@Override
-	public String getHide(String languageId, boolean useDefault) {
-		return model.getHide(languageId, useDefault);
-	}
-
-	@Override
-	public String getHideCurrentLanguageId() {
-		return model.getHideCurrentLanguageId();
-	}
-
-	@Override
-	public String getHideCurrentValue() {
-		return model.getHideCurrentValue();
-	}
-
-	/**
-	 * Returns a map of the locales and localized hides of this layout page template structure rel element variation.
-	 *
-	 * @return the locales and localized hides of this layout page template structure rel element variation
-	 */
-	@Override
-	public Map<java.util.Locale, String> getHideMap() {
-		return model.getHideMap();
 	}
 
 	/**
@@ -612,6 +551,16 @@ public class LayoutPageTemplateStructureRelElementVariationWrapper
 		return model.getUuid();
 	}
 
+	/**
+	 * Returns <code>true</code> if this layout page template structure rel element variation is active.
+	 *
+	 * @return <code>true</code> if this layout page template structure rel element variation is active; <code>false</code> otherwise
+	 */
+	@Override
+	public boolean isActive() {
+		return model.isActive();
+	}
+
 	@Override
 	public void persist() {
 		model.persist();
@@ -633,13 +582,13 @@ public class LayoutPageTemplateStructureRelElementVariationWrapper
 	}
 
 	/**
-	 * Sets the audience entry erc of this layout page template structure rel element variation.
+	 * Sets whether this layout page template structure rel element variation is active.
 	 *
-	 * @param audienceEntryERC the audience entry erc of this layout page template structure rel element variation
+	 * @param active the active of this layout page template structure rel element variation
 	 */
 	@Override
-	public void setAudienceEntryERC(String audienceEntryERC) {
-		model.setAudienceEntryERC(audienceEntryERC);
+	public void setActive(boolean active) {
+		model.setActive(active);
 	}
 
 	/**
@@ -700,59 +649,6 @@ public class LayoutPageTemplateStructureRelElementVariationWrapper
 	@Override
 	public void setHide(String hide) {
 		model.setHide(hide);
-	}
-
-	/**
-	 * Sets the localized hide of this layout page template structure rel element variation in the language.
-	 *
-	 * @param hide the localized hide of this layout page template structure rel element variation
-	 * @param locale the locale of the language
-	 */
-	@Override
-	public void setHide(String hide, java.util.Locale locale) {
-		model.setHide(hide, locale);
-	}
-
-	/**
-	 * Sets the localized hide of this layout page template structure rel element variation in the language, and sets the default locale.
-	 *
-	 * @param hide the localized hide of this layout page template structure rel element variation
-	 * @param locale the locale of the language
-	 * @param defaultLocale the default locale
-	 */
-	@Override
-	public void setHide(
-		String hide, java.util.Locale locale, java.util.Locale defaultLocale) {
-
-		model.setHide(hide, locale, defaultLocale);
-	}
-
-	@Override
-	public void setHideCurrentLanguageId(String languageId) {
-		model.setHideCurrentLanguageId(languageId);
-	}
-
-	/**
-	 * Sets the localized hides of this layout page template structure rel element variation from the map of locales and localized hides.
-	 *
-	 * @param hideMap the locales and localized hides of this layout page template structure rel element variation
-	 */
-	@Override
-	public void setHideMap(Map<java.util.Locale, String> hideMap) {
-		model.setHideMap(hideMap);
-	}
-
-	/**
-	 * Sets the localized hides of this layout page template structure rel element variation from the map of locales and localized hides, and sets the default locale.
-	 *
-	 * @param hideMap the locales and localized hides of this layout page template structure rel element variation
-	 * @param defaultLocale the default locale
-	 */
-	@Override
-	public void setHideMap(
-		Map<java.util.Locale, String> hideMap, java.util.Locale defaultLocale) {
-
-		model.setHideMap(hideMap, defaultLocale);
 	}
 
 	/**
@@ -1042,4 +938,4 @@ public class LayoutPageTemplateStructureRelElementVariationWrapper
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1318191918
+// LIFERAY-SERVICE-BUILDER-HASH:1474912710

@@ -14,9 +14,11 @@ import AssigneeTrigger from './AssigneeTrigger';
 import './AssigneeTrigger.scss';
 
 interface ICustomAssignee {
+	cmpProjectObjectEntryId?: number;
 	label?: string;
 	name?: string;
 	onChange?: (value: AssigneeValue | {}) => void;
+	readOnly?: boolean;
 	searchURL?: string;
 	showLabel?: boolean;
 	triggerClassName?: string;
@@ -25,9 +27,11 @@ interface ICustomAssignee {
 }
 
 export default function CustomAssignee({
+	cmpProjectObjectEntryId,
 	label,
 	name,
 	onChange,
+	readOnly,
 	searchURL,
 	showLabel = true,
 	triggerClassName,
@@ -62,10 +66,13 @@ export default function CustomAssignee({
 					setValue(event.target.value);
 					onChange?.(event.target.value);
 				}}
+				readOnly={readOnly}
 				searchURL={
 					searchURL ??
 					Liferay.ThemeDisplay.getPortalURL() +
-						'/o/headless-cmp/v1.0/task-assignees/'
+						(cmpProjectObjectEntryId
+							? `/o/headless-cmp/v1.0/projects/${cmpProjectObjectEntryId}/task-assignees/`
+							: '/o/headless-cmp/v1.0/task-assignees/')
 				}
 				showLabel={showLabel}
 				triggerClassName={triggerClassName}

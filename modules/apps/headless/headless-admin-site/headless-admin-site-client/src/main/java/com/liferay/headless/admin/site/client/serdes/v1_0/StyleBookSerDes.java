@@ -50,6 +50,16 @@ public class StyleBookSerDes {
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ssXX");
 
+		if (styleBook.getActions() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"actions\": ");
+
+			sb.append(_toJSON(styleBook.getActions()));
+		}
+
 		if (styleBook.getCreator() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -128,6 +138,16 @@ public class StyleBookSerDes {
 			sb.append("\"");
 		}
 
+		if (styleBook.getId() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"id\": ");
+
+			sb.append(styleBook.getId());
+		}
+
 		if (styleBook.getKey() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -171,6 +191,16 @@ public class StyleBookSerDes {
 			sb.append("\"");
 		}
 
+		if (styleBook.getScope() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"scope\": ");
+
+			sb.append(styleBook.getScope());
+		}
+
 		if (styleBook.getThemeId() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -205,6 +235,13 @@ public class StyleBookSerDes {
 
 		DateFormat liferayToJSONDateFormat = new SimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ssXX");
+
+		if (styleBook.getActions() == null) {
+			map.put("actions", null);
+		}
+		else {
+			map.put("actions", String.valueOf(styleBook.getActions()));
+		}
 
 		if (styleBook.getCreator() == null) {
 			map.put("creator", null);
@@ -258,6 +295,13 @@ public class StyleBookSerDes {
 				String.valueOf(styleBook.getFrontendTokensValues()));
 		}
 
+		if (styleBook.getId() == null) {
+			map.put("id", null);
+		}
+		else {
+			map.put("id", String.valueOf(styleBook.getId()));
+		}
+
 		if (styleBook.getKey() == null) {
 			map.put("key", null);
 		}
@@ -280,6 +324,13 @@ public class StyleBookSerDes {
 				"previewFileEntryExternalReferenceCode",
 				String.valueOf(
 					styleBook.getPreviewFileEntryExternalReferenceCode()));
+		}
+
+		if (styleBook.getScope() == null) {
+			map.put("scope", null);
+		}
+		else {
+			map.put("scope", String.valueOf(styleBook.getScope()));
 		}
 
 		if (styleBook.getThemeId() == null) {
@@ -306,7 +357,10 @@ public class StyleBookSerDes {
 
 		@Override
 		protected boolean parseMaps(String jsonParserFieldName) {
-			if (Objects.equals(jsonParserFieldName, "creator")) {
+			if (Objects.equals(jsonParserFieldName, "actions")) {
+				return true;
+			}
+			else if (Objects.equals(jsonParserFieldName, "creator")) {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "dateCreated")) {
@@ -328,6 +382,9 @@ public class StyleBookSerDes {
 
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "id")) {
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "key")) {
 				return false;
 			}
@@ -338,6 +395,9 @@ public class StyleBookSerDes {
 						jsonParserFieldName,
 						"previewFileEntryExternalReferenceCode")) {
 
+				return false;
+			}
+			else if (Objects.equals(jsonParserFieldName, "scope")) {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "themeId")) {
@@ -352,7 +412,13 @@ public class StyleBookSerDes {
 			StyleBook styleBook, String jsonParserFieldName,
 			Object jsonParserFieldValue) {
 
-			if (Objects.equals(jsonParserFieldName, "creator")) {
+			if (Objects.equals(jsonParserFieldName, "actions")) {
+				if (jsonParserFieldValue != null) {
+					styleBook.setActions(
+						(Map<String, Map<String, String>>)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "creator")) {
 				if (jsonParserFieldValue != null) {
 					styleBook.setCreator(
 						CreatorSerDes.toDTO((String)jsonParserFieldValue));
@@ -392,6 +458,11 @@ public class StyleBookSerDes {
 						(String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "id")) {
+				if (jsonParserFieldValue != null) {
+					styleBook.setId(Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "key")) {
 				if (jsonParserFieldValue != null) {
 					styleBook.setKey((String)jsonParserFieldValue);
@@ -409,6 +480,13 @@ public class StyleBookSerDes {
 				if (jsonParserFieldValue != null) {
 					styleBook.setPreviewFileEntryExternalReferenceCode(
 						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "scope")) {
+				if (jsonParserFieldValue != null) {
+					styleBook.setScope(
+						com.liferay.headless.admin.site.client.scope.Scope.
+							toDTO((String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "themeId")) {
@@ -497,4 +575,4 @@ public class StyleBookSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:57398793
+// LIFERAY-REST-BUILDER-HASH:-1179295824

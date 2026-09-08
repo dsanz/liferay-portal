@@ -22,11 +22,9 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.SetUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 import com.liferay.site.cms.site.initializer.util.CMSUserUtil;
 
 import java.util.Arrays;
@@ -42,7 +40,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Pedro Leite
  */
-@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 public class CMSUserUtilTest {
 
@@ -55,8 +52,6 @@ public class CMSUserUtilTest {
 
 	@Before
 	public void setUp() throws Exception {
-		CMSTestUtil.getOrAddGroup(CMSDefaultPermissionUtilTest.class);
-
 		_originalPermissionChecker =
 			PermissionThreadLocal.getPermissionChecker();
 		_originalName = PrincipalThreadLocal.getName();

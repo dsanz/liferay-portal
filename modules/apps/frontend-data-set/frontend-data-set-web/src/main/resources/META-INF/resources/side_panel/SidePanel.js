@@ -127,9 +127,12 @@ export default class SidePanel extends React.Component {
 	}
 
 	handleKeyupEvent(even) {
+		const eventDocument = even.view?.document ?? even.target?.ownerDocument;
+
 		if (
 			even.keyCode !== 27 ||
-			window.top.document.querySelector('.modal-content')
+			window.top.document.querySelector('.modal-content') ||
+			eventDocument?.querySelector('.modal-content')
 		) {
 			return;
 		}

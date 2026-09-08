@@ -34,12 +34,14 @@ import com.liferay.portal.kernel.service.ImageLocalService;
 import com.liferay.portal.kernel.service.LayoutBranchLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutRevisionLocalService;
-import com.liferay.portal.kernel.service.LayoutSetLocalService;
 import com.liferay.portal.kernel.service.RecentLayoutSetBranchLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.persistence.ImagePersistence;
 import com.liferay.portal.kernel.service.persistence.LayoutBranchPersistence;
 import com.liferay.portal.kernel.service.persistence.LayoutPersistence;
+import com.liferay.portal.kernel.service.persistence.LayoutRevisionPersistence;
+import com.liferay.portal.kernel.service.persistence.LayoutSetPersistence;
 import com.liferay.portal.kernel.service.persistence.UserPersistence;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -95,7 +97,7 @@ public class LayoutSetBranchLocalServiceImpl
 			settings = copyLayoutSetBranch.getSettings();
 		}
 		else {
-			LayoutSet layoutSet = _layoutSetLocalService.getLayoutSet(
+			LayoutSet layoutSet = _layoutSetPersistence.findByG_P(
 				groupId, privateLayout);
 
 			logo = layoutSet.getLogo();
@@ -122,7 +124,7 @@ public class LayoutSetBranchLocalServiceImpl
 		layoutSetBranch.setLogoId(logoId);
 
 		if (logo) {
-			Image logoImage = _imageLocalService.getImage(logoId);
+			Image logoImage = _imagePersistence.findByPrimaryKey(logoId);
 
 			long layoutSetBranchLogoId = counterLocalService.increment();
 
@@ -300,7 +302,7 @@ public class LayoutSetBranchLocalServiceImpl
 			}
 
 			for (long plid : deletablePlids) {
-				Layout layout = _layoutLocalService.fetchLayout(plid);
+				Layout layout = _layoutPersistence.fetchByPrimaryKey(plid);
 
 				if (layout != null) {
 					_layoutLocalService.deleteLayout(layout);
@@ -428,7 +430,7 @@ public class LayoutSetBranchLocalServiceImpl
 			User user = _userPersistence.findByPrimaryKey(userId);
 
 			if (layoutSetId <= 0) {
-				LayoutSet layoutSet = _layoutSetLocalService.getLayoutSet(
+				LayoutSet layoutSet = _layoutSetPersistence.findByG_P(
 					groupId, privateLayout);
 
 				layoutSetId = layoutSet.getLayoutSetId();
@@ -633,7 +635,7 @@ public class LayoutSetBranchLocalServiceImpl
 			boolean deletableLayout = true;
 
 			List<LayoutRevision> layoutRevisions =
-				_layoutRevisionLocalService.getLayoutRevisions(plid);
+				_layoutRevisionPersistence.findByPlid(plid);
 
 			for (LayoutRevision layoutRevision : layoutRevisions) {
 				if ((layoutRevision.getStatus() !=
@@ -657,8 +659,7 @@ public class LayoutSetBranchLocalServiceImpl
 
 	private List<Long> _getRelatedPlids(long layoutSetBranchId) {
 		return TransformUtil.transform(
-			_layoutBranchLocalService.getLayoutSetBranchLayoutBranches(
-				layoutSetBranchId),
+			_layoutBranchPersistence.findByLayoutSetBranchId(layoutSetBranchId),
 			layoutBranch -> layoutBranch.getPlid());
 	}
 
@@ -667,6 +668,9 @@ public class LayoutSetBranchLocalServiceImpl
 
 	@BeanReference(type = ImageLocalService.class)
 	private ImageLocalService _imageLocalService;
+
+	@BeanReference(type = ImagePersistence.class)
+	private ImagePersistence _imagePersistence;
 
 	@BeanReference(type = LayoutBranchLocalService.class)
 	private LayoutBranchLocalService _layoutBranchLocalService;
@@ -683,8 +687,11 @@ public class LayoutSetBranchLocalServiceImpl
 	@BeanReference(type = LayoutRevisionLocalService.class)
 	private LayoutRevisionLocalService _layoutRevisionLocalService;
 
-	@BeanReference(type = LayoutSetLocalService.class)
-	private LayoutSetLocalService _layoutSetLocalService;
+	@BeanReference(type = LayoutRevisionPersistence.class)
+	private LayoutRevisionPersistence _layoutRevisionPersistence;
+
+	@BeanReference(type = LayoutSetPersistence.class)
+	private LayoutSetPersistence _layoutSetPersistence;
 
 	@BeanReference(type = RecentLayoutSetBranchLocalService.class)
 	private RecentLayoutSetBranchLocalService

@@ -12,6 +12,9 @@ import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.User;
@@ -21,7 +24,9 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import java.io.Serializable;
 
 import java.util.Date;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.osgi.service.component.annotations.Reference;
@@ -49,6 +54,7 @@ public abstract class BaseObjectBulkSelectionAction
 		String executionStatus = BulkSelectionActionStatusConstants.COMPLETED;
 		AtomicInteger numberOfFailedItems = new AtomicInteger(0);
 		AtomicInteger numberOfSuccessfulItems = new AtomicInteger(0);
+		Set<String> failureReasons = new LinkedHashSet<>();
 
 		try {
 			values.put(
@@ -72,6 +78,8 @@ public abstract class BaseObjectBulkSelectionAction
 						}
 
 						numberOfFailedItems.getAndIncrement();
+
+						failureReasons.add(getTaskResult(exception));
 					}
 				});
 		}
@@ -88,6 +96,7 @@ public abstract class BaseObjectBulkSelectionAction
 			values.put("numberOfFailedItems", numberOfFailedItems.get());
 			values.put(
 				"numberOfSuccessfulItems", numberOfSuccessfulItems.get());
+			values.put("taskResult", _getTaskResultJSON(failureReasons));
 
 			partialUpdateObjectEntry(user.getUserId(), objectEntry, values);
 		}
@@ -96,6 +105,12 @@ public abstract class BaseObjectBulkSelectionAction
 	protected abstract void doExecute(
 			User user, Map<String, Serializable> inputMap, Object object)
 		throws Exception;
+
+	protected String getTaskResult(Exception exception) {
+		Class<?> exceptionClass = exception.getClass();
+
+		return exceptionClass.getSimpleName();
+	}
 
 	protected ObjectEntry partialUpdateObjectEntry(
 			long userId, ObjectEntry objectEntry,
@@ -112,6 +127,25 @@ public abstract class BaseObjectBulkSelectionAction
 
 	@Reference
 	protected ObjectEntryLocalService objectEntryLocalService;
+
+	private String _getTaskResultJSON(Set<String> failureReasons) {
+		if (failureReasons.isEmpty()) {
+			return null;
+		}
+
+		JSONArray taskResultJSONArray = JSONFactoryUtil.createJSONArray();
+
+		for (String reason : failureReasons) {
+			taskResultJSONArray.put(
+				JSONUtil.put(
+					"id", reason
+				).put(
+					"type", "simpleError"
+				));
+		}
+
+		return taskResultJSONArray.toString();
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BaseObjectBulkSelectionAction.class);

@@ -40,6 +40,8 @@ import com.liferay.journal.test.util.JournalTestUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -55,11 +57,9 @@ import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.ScopeUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -170,7 +170,6 @@ public class AssetEntryInfoItemFieldSetProviderTest {
 			assetVocabulary.getName(), infoFieldSetEntry.getName());
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	@TestInfo("LPD-90753")
 	public void testGetInfoFieldSetAssetVocabularyGroupRel() throws Exception {
@@ -180,8 +179,8 @@ public class AssetEntryInfoItemFieldSetProviderTest {
 		_depotEntryGroupRelLocalService.addDepotEntryGroupRel(
 			depotEntry1.getDepotEntryId(), _group.getGroupId());
 
-		Group cmsGroup = CMSTestUtil.getOrAddGroup(
-			AssetEntryInfoItemFieldSetProviderTest.class);
+		Group cmsGroup = _groupLocalService.getGroup(
+			TestPropsValues.getCompanyId(), GroupConstants.CMS);
 
 		long classNameId = _portal.getClassNameId(
 			JournalArticle.class.getName());
@@ -192,14 +191,14 @@ public class AssetEntryInfoItemFieldSetProviderTest {
 
 		_assetVocabularyGroupRelLocalService.setAssetVocabularyGroupRels(
 			assetVocabulary1.getVocabularyId(),
-			new long[] {depotEntry1.getGroupId()});
+			new long[] {depotEntry1.getGroupId()}, depotEntry1.getType());
 
 		AssetVocabulary assetVocabulary2 = AssetTestUtil.addVocabulary(
 			cmsGroup.getGroupId(), classNameId, classTypeId, false);
 
 		_assetVocabularyGroupRelLocalService.setAssetVocabularyGroupRels(
 			assetVocabulary2.getVocabularyId(),
-			new long[] {depotEntry2.getGroupId()});
+			new long[] {depotEntry2.getGroupId()}, depotEntry2.getType());
 
 		InfoFieldSet infoFieldSet =
 			_assetEntryInfoItemFieldSetProvider.getInfoFieldSet(
@@ -418,7 +417,7 @@ public class AssetEntryInfoItemFieldSetProviderTest {
 			HashMapBuilder.put(
 				LocaleUtil.US, RandomTestUtil.randomString()
 			).build(),
-			null, assetVocabulary.getVocabularyId(), null,
+			null, assetVocabulary.getVocabularyId(), false, null,
 			new ServiceContext());
 	}
 
@@ -624,6 +623,9 @@ public class AssetEntryInfoItemFieldSetProviderTest {
 
 	@DeleteAfterTestRun
 	private Group _group;
+
+	@Inject
+	private GroupLocalService _groupLocalService;
 
 	@Inject
 	private InfoItemServiceRegistry _infoItemServiceRegistry;

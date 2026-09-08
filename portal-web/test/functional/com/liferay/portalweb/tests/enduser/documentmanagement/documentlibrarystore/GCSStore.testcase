@@ -1,6 +1,7 @@
 @component-name = "portal-core-infra"
 definition {
 
+	property custom.properties = "feature.flag.LPD-57655=false";
 	property gcs.store.enabled = "true";
 	property portal.release = "true";
 	property portal.upstream = "true";
@@ -105,7 +106,7 @@ definition {
 		task ("And the user cannot migrate data to GCS store without setting up a connection configuration") {
 			ServerAdministration.openServerAdmin();
 
-			Navigator.gotoNavItem(navItem = "Data Migration");
+			Navigator.gotoNavItem(navItem = "Document Migration");
 
 			AssertElementNotPresent(
 				key_fieldLabel = "dl.store.impl",

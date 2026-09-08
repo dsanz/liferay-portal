@@ -20,6 +20,7 @@ import com.liferay.object.service.ObjectDefinitionSettingLocalService;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
@@ -32,12 +33,10 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.UnicodeProperties;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.site.cms.site.initializer.internal.service.test.util.CMSObjectEntryTestUtil;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 import com.liferay.trash.TrashHelper;
 import com.liferay.trash.model.TrashEntry;
 import com.liferay.trash.service.TrashEntryLocalService;
@@ -56,7 +55,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Attila Bakay
  */
-@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 @Sync(cleanTransaction = true)
 public class TrashEntryLocalServiceTest {
@@ -70,13 +68,14 @@ public class TrashEntryLocalServiceTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_cmsGroup = CMSTestUtil.getOrAddGroup(TrashEntryLocalServiceTest.class);
+		Group cmsGroup = _groupLocalService.getGroup(
+			TestPropsValues.getCompanyId(), GroupConstants.CMS);
 
 		_depotEntry = _depotEntryLocalService.addDepotEntry(
 			Collections.singletonMap(
 				LocaleUtil.getDefault(), RandomTestUtil.randomString()),
 			null, DepotConstants.TYPE_SPACE,
-			ServiceContextTestUtil.getServiceContext(_cmsGroup.getGroupId()));
+			ServiceContextTestUtil.getServiceContext(cmsGroup.getGroupId()));
 
 		_updateTrashEntriesMaxAge(_depotEntry.getGroup(), 5);
 
@@ -191,8 +190,6 @@ public class TrashEntryLocalServiceTest {
 
 		_groupLocalService.updateGroup(group);
 	}
-
-	private Group _cmsGroup;
 
 	@DeleteAfterTestRun
 	private DepotEntry _depotEntry;

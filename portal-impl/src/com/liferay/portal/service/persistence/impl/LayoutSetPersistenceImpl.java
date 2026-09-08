@@ -13,8 +13,6 @@ import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.NoSuchLayoutSetException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.LayoutSet;
 import com.liferay.portal.kernel.model.LayoutSetTable;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
@@ -812,7 +810,8 @@ public class LayoutSetPersistenceImpl
 					new String[] {Long.class.getName()},
 					new String[] {"groupId"}, false),
 				_SQL_SELECT_LAYOUTSET_WHERE, _SQL_COUNT_LAYOUTSET_WHERE,
-				LayoutSetModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				LayoutSetModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"layoutSet.", "groupId", FinderColumn.Type.LONG, "=", true,
 					true, LayoutSet::getGroupId));
@@ -840,7 +839,8 @@ public class LayoutSetPersistenceImpl
 					new String[] {String.class.getName()},
 					new String[] {"layoutSetPrototypeUuid"}, 0, 1, false, null),
 				_SQL_SELECT_LAYOUTSET_WHERE, _SQL_COUNT_LAYOUTSET_WHERE,
-				LayoutSetModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				LayoutSetModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"layoutSet.", "layoutSetPrototypeUuid",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -882,7 +882,8 @@ public class LayoutSetPersistenceImpl
 				new String[] {"companyId", "layoutSetPrototypeUuid"}, 0, 2,
 				false, null),
 			_SQL_SELECT_LAYOUTSET_WHERE, _SQL_COUNT_LAYOUTSET_WHERE,
-			LayoutSetModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			LayoutSetModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"layoutSet.", "companyId", FinderColumn.Type.LONG, "=", true,
 				true, LayoutSet::getCompanyId),
@@ -910,7 +911,8 @@ public class LayoutSetPersistenceImpl
 				new String[] {Boolean.class.getName(), Long.class.getName()},
 				new String[] {"privateLayout", "logoId"}, false),
 			_SQL_SELECT_LAYOUTSET_WHERE, _SQL_COUNT_LAYOUTSET_WHERE,
-			LayoutSetModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			LayoutSetModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"layoutSet.", "privateLayout", FinderColumn.Type.BOOLEAN, "=",
 				true, true, LayoutSet::isPrivateLayout),
@@ -939,12 +941,6 @@ public class LayoutSetPersistenceImpl
 	private static final String _SQL_COUNT_LAYOUTSET_WHERE =
 		"SELECT COUNT(layoutSet) FROM LayoutSet layoutSet WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No LayoutSet exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		LayoutSetPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"settings"});
 
@@ -954,4 +950,4 @@ public class LayoutSetPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1825025600
+// LIFERAY-SERVICE-BUILDER-HASH:-33452015

@@ -20,6 +20,7 @@ import com.liferay.layout.admin.web.internal.item.selector.MasterLayoutPageTempl
 import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServiceUtil;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -45,7 +46,9 @@ import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.style.book.item.selector.StyleBookEntryItemSelectorCriterion;
+import com.liferay.style.book.model.StyleBookEntry;
 import com.liferay.style.book.util.DefaultStyleBookEntryUtil;
+import com.liferay.style.book.util.StyleBookEntryProviderUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -244,10 +247,58 @@ public class LayoutLookAndFeelDisplayContext {
 			}
 		).put(
 			"styleBookEntryName", getStyleBookEntryName()
+		).put(
+			"styleBookEntryScope",
+			() -> {
+				StyleBookEntry styleBookEntry = _getStyleBookEntry();
+
+				if ((styleBookEntry == null) ||
+					(styleBookEntry.getStyleBookEntryId() <= 0) ||
+					(styleBookEntry.getGroupId() ==
+						_themeDisplay.getSiteGroupId())) {
+
+					return null;
+				}
+
+				Group group = GroupLocalServiceUtil.fetchGroup(
+					styleBookEntry.getGroupId());
+
+				if (group == null) {
+					return null;
+				}
+
+				return JSONUtil.put(
+					"externalReferenceCode", group.getExternalReferenceCode()
+				).put(
+					"label", group.getDescriptiveName(_themeDisplay.getLocale())
+				);
+			}
+		).put(
+			"styleBooksApiURL",
+			() -> {
+				Group group = _themeDisplay.getSiteGroup();
+
+				Layout selLayout = _layoutsAdminDisplayContext.getSelLayout();
+
+				return StringBundler.concat(
+					_themeDisplay.getPortalURL(),
+					"/o/headless-admin-site/v1.0/sites/",
+					group.getExternalReferenceCode(), "/page-specifications/",
+					selLayout.getExternalReferenceCode(),
+					"/style-books?nestedFields=scope.label");
+			}
 		).build();
 	}
 
 	public String getStyleBookEntryName() {
+		StyleBookEntry styleBookEntry = _getStyleBookEntry();
+
+		if ((styleBookEntry != null) &&
+			(styleBookEntry.getStyleBookEntryId() > 0)) {
+
+			return styleBookEntry.getName();
+		}
+
 		Layout selLayout = _layoutsAdminDisplayContext.getSelLayout();
 
 		return DefaultStyleBookEntryUtil.getStyleBookEntryName(
@@ -515,6 +566,17 @@ public class LayoutLookAndFeelDisplayContext {
 			layoutSet.isPrivateLayout(), _themeDisplay.getLocale());
 	}
 
+	private StyleBookEntry _getStyleBookEntry() {
+		if (_styleBookEntry != null) {
+			return _styleBookEntry;
+		}
+
+		_styleBookEntry = StyleBookEntryProviderUtil.getStyleBookEntry(
+			_layoutsAdminDisplayContext.getSelLayout());
+
+		return _styleBookEntry;
+	}
+
 	private Boolean _hasEditableMasterLayout;
 	private Boolean _hasMasterLayout;
 	private final HttpServletRequest _httpServletRequest;
@@ -522,6 +584,7 @@ public class LayoutLookAndFeelDisplayContext {
 	private final LayoutsAdminDisplayContext _layoutsAdminDisplayContext;
 	private final LiferayPortletResponse _liferayPortletResponse;
 	private String _masterLayoutName;
+	private StyleBookEntry _styleBookEntry;
 	private final ThemeDisplay _themeDisplay;
 
 }

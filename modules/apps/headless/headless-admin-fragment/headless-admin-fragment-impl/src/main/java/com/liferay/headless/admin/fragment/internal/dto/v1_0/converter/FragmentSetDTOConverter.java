@@ -7,14 +7,11 @@ package com.liferay.headless.admin.fragment.internal.dto.v1_0.converter;
 
 import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.headless.admin.fragment.dto.v1_0.FragmentSet;
-import com.liferay.headless.admin.user.dto.v1_0.Creator;
-import com.liferay.portal.kernel.model.User;
-import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.headless.admin.fragment.internal.dto.v1_0.util.CreatorUtil;
 import com.liferay.portal.vulcan.dto.converter.DTOConverter;
 import com.liferay.portal.vulcan.dto.converter.DTOConverterContext;
 
 import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Rubén Pulido
@@ -39,22 +36,17 @@ public class FragmentSetDTOConverter
 
 		return new FragmentSet() {
 			{
-				setCreator(
+				setActions(
 					() -> {
-						User user = _userLocalService.fetchUser(
-							fragmentCollection.getUserId());
-
-						if (user == null) {
+						if (dtoConverterContext == null) {
 							return null;
 						}
 
-						return new Creator() {
-							{
-								setExternalReferenceCode(
-									user::getExternalReferenceCode);
-							}
-						};
+						return dtoConverterContext.getActions();
 					});
+				setCreator(
+					() -> CreatorUtil.toCreator(
+						fragmentCollection.getUserId()));
 				setDateCreated(fragmentCollection::getCreateDate);
 				setDateModified(fragmentCollection::getModifiedDate);
 				setDescription(fragmentCollection::getDescription);
@@ -66,8 +58,5 @@ public class FragmentSetDTOConverter
 			}
 		};
 	}
-
-	@Reference
-	private UserLocalService _userLocalService;
 
 }

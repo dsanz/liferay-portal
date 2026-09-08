@@ -53,7 +53,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -165,17 +164,24 @@ public class DataGuardTestRuleUtil {
 			}
 		}
 
+		BaseModel<?> persistedBaseModel = (BaseModel<?>)persistedModel;
+
+		PersistedModel refetchedPersistedModel =
+			persistedModelLocalService.fetchPersistedModel(
+				persistedBaseModel.getPrimaryKeyObj());
+
+		if (refetchedPersistedModel == null) {
+			return;
+		}
+
 		try {
 			if (deleteMethod == null) {
-				persistedModelLocalService.deletePersistedModel(persistedModel);
+				persistedModelLocalService.deletePersistedModel(
+					refetchedPersistedModel);
 			}
 			else {
-				BaseModel<?> baseModel = (BaseModel<?>)persistedModel;
-
 				deleteMethod.invoke(
-					persistedModelLocalService,
-					persistedModelLocalService.getPersistedModel(
-						baseModel.getPrimaryKeyObj()));
+					persistedModelLocalService, refetchedPersistedModel);
 			}
 		}
 		catch (Throwable throwable1) {
@@ -404,7 +410,7 @@ public class DataGuardTestRuleUtil {
 		Map<String, PersistedModelLocalService> persistedModelLocalServices =
 			_getPersistedModelLocalServices();
 
-		Map<String, List<BaseModel<?>>> dataMap = new HashMap<>();
+		Map<String, List<BaseModel<?>>> dataMap = new LinkedHashMap<>();
 
 		for (Map.Entry<String, PersistedModelLocalService> entry :
 				persistedModelLocalServices.entrySet()) {
@@ -662,6 +668,8 @@ public class DataGuardTestRuleUtil {
 
 	private static final Set<String> _blacklistedModelClassNames =
 		SetUtil.fromArray(
+			"com.liferay.dispatch.model.DispatchLog",
+			"com.liferay.portal.kernel.model.ClassName",
 			"com.liferay.portal.security.audit.storage.model.AuditEvent");
 	private static final ThreadLocal<Map<String, Map<Serializable, String>>>
 		_records = new ThreadLocal<>();
@@ -709,13 +717,6 @@ public class DataGuardTestRuleUtil {
 			_record(object);
 
 			return super.save(object);
-		}
-
-		@Override
-		public void saveOrUpdate(Object object) throws ORMException {
-			_record(object);
-
-			super.saveOrUpdate(object);
 		}
 
 		private RecordingSessionWrapper(

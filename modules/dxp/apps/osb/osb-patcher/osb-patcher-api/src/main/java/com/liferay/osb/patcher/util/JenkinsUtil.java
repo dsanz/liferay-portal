@@ -168,7 +168,10 @@ public class JenkinsUtil {
 			"osb.patcher.tickets",
 			() -> {
 				if (patcherFix.getType() == PatcherFixConstants.TYPE_AUTO_FIX) {
-					return patcherFix.getName();
+					return StringUtil.merge(
+						JiraTicketResolverUtil.resolveTickets(
+							patcherConfiguration, patcherFix.getName()),
+						StringPool.COMMA);
 				}
 
 				return null;
@@ -694,7 +697,6 @@ public class JenkinsUtil {
 		}
 
 		options.addPart("patcher.user.id", String.valueOf(user.getUserId()));
-		options.addPart("token", patcherConfiguration.jenkinsToken());
 
 		String jenkinsURL = getJenkinsURL(user.getCompanyId());
 
@@ -752,11 +754,6 @@ public class JenkinsUtil {
 
 			return "the-build-cannot-send-request-because-the-jenkins-build-" +
 				"with-parameters-path-is-not-set";
-		}
-
-		if (Validator.isNull(patcherConfiguration.jenkinsToken())) {
-			return "the-build-cannot-send-request-because-the-jenkins-token-" +
-				"is-not-set";
 		}
 
 		if (Validator.isNull(patcherConfiguration.jenkinsURL())) {

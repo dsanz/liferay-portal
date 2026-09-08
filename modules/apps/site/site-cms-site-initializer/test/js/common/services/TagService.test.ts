@@ -14,6 +14,33 @@ describe('TagService.createTag', () => {
 		jest.restoreAllMocks();
 	});
 
+	it('PATCHes the existing tag when the same-case tag already exists in an asset library', async () => {
+		jest.spyOn(ApiHelper, 'get').mockResolvedValue({
+			data: {items: [{name: 'hola'}, {name: 'Hola'}]},
+			error: null,
+		} as any);
+
+		const patchSpy = jest
+			.spyOn(ApiHelper, 'patch')
+			.mockResolvedValue({data: {name: 'Hola'}} as any);
+		const postSpy = jest.spyOn(ApiHelper, 'post');
+
+		await TagService.createTag({
+			assetLibraryId,
+			cmsGroupId,
+			name: 'Hola',
+		});
+
+		expect(postSpy).not.toHaveBeenCalled();
+		expect(patchSpy).toHaveBeenCalledWith(
+			{
+				assetLibraries: [{id: assetLibraryId}],
+				name: 'Hola',
+			},
+			`/o/headless-admin-taxonomy/v1.0/sites/${cmsGroupId}/keywords`
+		);
+	});
+
 	it('POSTs a new tag when no case-insensitive match exists', async () => {
 		jest.spyOn(ApiHelper, 'get').mockResolvedValue({
 			data: {items: []},
@@ -72,30 +99,25 @@ describe('TagService.createTag', () => {
 		);
 	});
 
-	it('PATCHes the existing tag when the same-case tag already exists in an asset library', async () => {
+	it('POSTs to the CMS group scope when no asset library is given', async () => {
 		jest.spyOn(ApiHelper, 'get').mockResolvedValue({
-			data: {items: [{name: 'hola'}, {name: 'Hola'}]},
+			data: {items: []},
 			error: null,
 		} as any);
 
-		const patchSpy = jest
-			.spyOn(ApiHelper, 'patch')
+		const postSpy = jest
+			.spyOn(ApiHelper, 'post')
 			.mockResolvedValue({data: {name: 'Hola'}} as any);
-		const postSpy = jest.spyOn(ApiHelper, 'post');
 
 		await TagService.createTag({
-			assetLibraryId,
+			assetLibraryId: null,
 			cmsGroupId,
 			name: 'Hola',
 		});
 
-		expect(postSpy).not.toHaveBeenCalled();
-		expect(patchSpy).toHaveBeenCalledWith(
-			{
-				assetLibraries: [{id: assetLibraryId}],
-				name: 'Hola',
-			},
-			`/o/headless-admin-taxonomy/v1.0/sites/${cmsGroupId}/keywords`
+		expect(postSpy).toHaveBeenCalledWith(
+			`/o/headless-admin-taxonomy/v1.0/sites/${cmsGroupId}/keywords`,
+			{name: 'Hola'}
 		);
 	});
 

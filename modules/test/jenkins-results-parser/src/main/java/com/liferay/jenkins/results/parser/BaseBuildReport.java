@@ -135,7 +135,7 @@ public abstract class BaseBuildReport implements BuildReport {
 	}
 
 	@Override
-	public JenkinsMaster getJenkinsMaster() {
+	public synchronized JenkinsMaster getJenkinsMaster() {
 		if (_jenkinsMaster != null) {
 			return _jenkinsMaster;
 		}
@@ -199,9 +199,11 @@ public abstract class BaseBuildReport implements BuildReport {
 	}
 
 	@Override
-	public URL getTestrayAttachmentURLBySuffix(String suffix) {
-		if (_testrayAttachmentURLsBySuffix.containsKey(suffix)) {
-			return _testrayAttachmentURLsBySuffix.get(suffix);
+	public synchronized URL getTestrayAttachmentURLBySuffix(String suffix) {
+		URL url = _testrayAttachmentURLsBySuffix.get(suffix);
+
+		if (url != null) {
+			return url;
 		}
 
 		URL matchedURL = null;
@@ -223,7 +225,7 @@ public abstract class BaseBuildReport implements BuildReport {
 	}
 
 	@Override
-	public List<URL> getTestrayAttachmentURLs() {
+	public synchronized List<URL> getTestrayAttachmentURLs() {
 		if (_testrayAttachmentURLs != null) {
 			return _testrayAttachmentURLs;
 		}
@@ -301,7 +303,7 @@ public abstract class BaseBuildReport implements BuildReport {
 		}
 	}
 
-	protected void clearTestrayAttachmentURLCaches() {
+	protected synchronized void clearTestrayAttachmentURLCaches() {
 		_testrayAttachmentURLs = null;
 
 		_testrayAttachmentURLsBySuffix.clear();

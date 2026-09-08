@@ -1,0 +1,33 @@
+{
+	"dependencies": {
+		"@clayui/button": "^3.166.0",
+		"@clayui/core": "^3.166.0",
+		"@clayui/empty-state": "^3.166.0",
+		"@clayui/form": "^3.166.0",
+		"@clayui/icon": "^3.166.0",
+		"@clayui/layout": "^3.166.0",
+		"@clayui/link": "^3.166.0",
+		"@clayui/list": "^3.166.0",
+		"@clayui/panel": "^3.166.0",
+		"@clayui/toolbar": "^3.166.0",
+		"@liferay/layout-js-components-web": "*",
+		"classnames": "2.3.1",
+		"frontend-js-web": "*",
+		"react": "18.2.0",
+		"react-dnd": "11.1.1",
+		"react-dnd-html5-backend": "11.1.1",
+		"uuid": "9.0.0"
+	},
+	"description": "",
+	"main": "js/index.ts",
+	"name": "@liferay/audiences-web",
+	"private": true,
+	"scripts": {
+		"build": "node-scripts build",
+		"checkFormat": "node-scripts format --check",
+		"format": "node-scripts format",
+		"test": "node-scripts test",
+		"test:watch": "node-scripts test --watch"
+	},
+	"version": "1.0.3"
+}

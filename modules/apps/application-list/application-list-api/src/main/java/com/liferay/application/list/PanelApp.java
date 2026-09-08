@@ -16,6 +16,9 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * Provides an interface that defines applications to be used by a
  * <code>liferay-application-list:panel-app</code> tag instance to render a new
@@ -36,6 +39,13 @@ public interface PanelApp extends PanelEntry {
 	 * @return the number of notifications for the user
 	 */
 	public int getNotificationsCount(User user);
+
+	public default List<PanelAppNavigationItem> getPanelAppNavigationItems(
+			HttpServletRequest httpServletRequest)
+		throws PortalException {
+
+		return Collections.emptyList();
+	}
 
 	/**
 	 * Returns the portlet associated with the application.

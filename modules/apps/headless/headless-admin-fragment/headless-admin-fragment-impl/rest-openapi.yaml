@@ -1,8 +1,50 @@
 components:
     schemas:
+        BasicFragment:
+            allOf:
+                -   $ref: "#/components/schemas/Fragment"
+            description:
+                A basic fragment entry.
+            type: object
+        FieldType:
+            description:
+                A form fragment's input field type.
+            enum: [Boolean, CAPTCHA, Date, DateTime, Email, File, FormButton, FriendlyURL, HTML, LocalizationSelect, LongText, Multiselect, Number, PhoneNumber, Relationship, Select, Stepper, Text]
+            type: string
+        FileURLReference:
+            description:
+                A reference to a file's binary content. On read, `url` is populated from the underlying file entry, while `fileBase64` is populated only when requested via `nestedFields=fileURLReference.fileBase64`; during a staging export, `url` is a `lar://` URL pointing at bytes embedded in the LAR archive. On write, the content is decoded from `fileBase64`, or downloaded from `url` when `fileBase64` is absent.
+            properties:
+                fileBase64:
+                    description:
+                        The Base64 encoded file content. On read, returned only when requested via `nestedFields=fileURLReference.fileBase64`.
+                    type: string
+                url:
+                    description:
+                        A URL the file can be fetched from. On read, the canonical URL of the stored file. On write, used to download bytes (supports `http://`, `https://` and `lar://`) when `fileBase64` is absent.
+                    type: string
+            type: object
+        FormFragment:
+            allOf:
+                -   $ref: "#/components/schemas/Fragment"
+                -   properties:
+                        fieldTypes:
+                            description:
+                                The input field types the form fragment supports.
+                            items:
+                                $ref: "#/components/schemas/FieldType"
+                            type: array
+            description:
+                A form fragment entry.
+            type: object
         Fragment:
             description:
                 A fragment entry.
+            discriminator:
+                mapping:
+                    BasicFragment: "#/components/schemas/BasicFragment"
+                    FormFragment: "#/components/schemas/FormFragment"
+                propertyName: type
             properties:
                 cacheable:
                     description:
@@ -30,7 +72,11 @@ components:
                 fragmentSet:
                     $ref: "#/components/schemas/FragmentSet"
                     description:
-                        The fragment's set.
+                        The fragment's fragment set. On read, returned only when `nestedFields=fragmentSet` is requested. On write, used only during LAR import, where it is created if it does not exist.
+                fragmentSetExternalReferenceCode:
+                    description:
+                        The external reference code of the fragment's fragment set, used to reference an existing fragment set. Takes precedence over `fragmentSet` when both are set.
+                    type: string
                 fragmentVersions:
                     description:
                         The fragment's versions. A fragment can have up to 2 versions, one draft and one published (approved).
@@ -64,13 +110,26 @@ components:
                 type:
                     description:
                         The fragment's type.
-                    enum: [Component]
+                    enum: [BasicFragment, FormFragment]
                     type: string
             type: object
         FragmentSet:
             description:
                 A fragment set (also known as fragment collection).
             properties:
+                actions:
+                    additionalProperties:
+                        additionalProperties:
+                            description:
+                                The action's properties.
+                            type: string
+                        description:
+                            The action's name.
+                        type: object
+                    description:
+                        Block of actions allowed by the user making the request.
+                    readOnly: true
+                    type: object
                 creator:
                     $ref: ../../headless-admin-user/headless-admin-user-impl/rest-openapi.yaml#Creator
                     description:
@@ -133,9 +192,101 @@ components:
                     enum: [Approved, Draft]
                     type: string
             type: object
+        ResourceFile:
+            description:
+                A resource file of a fragment set.
+            properties:
+                creator:
+                    $ref: ../../headless-admin-user/headless-admin-user-impl/rest-openapi.yaml#Creator
+                    description:
+                        The resource file's creator.
+                    readOnly: true
+                dateCreated:
+                    description:
+                        The resource file's creation date.
+                    format: date-time
+                    type: string
+                dateModified:
+                    description:
+                        The last time the resource file changed.
+                    format: date-time
+                    type: string
+                externalReferenceCode:
+                    description:
+                        The resource file's external reference code.
+                    type: string
+                fileURLReference:
+                    $ref: "#/components/schemas/FileURLReference"
+                    description:
+                        The resource file's binary content.
+                fragmentSet:
+                    $ref: "#/components/schemas/FragmentSet"
+                    description:
+                        The resource file's fragment set. On read, returned only when `nestedFields=fragmentSet` is requested. On write, used only during LAR import, where it is created if it does not exist.
+                fragmentSetExternalReferenceCode:
+                    description:
+                        The external reference code of the resource file's fragment set, used to reference an existing fragment set. Takes precedence over `fragmentSet` when both are set.
+                    type: string
+                name:
+                    description:
+                        The resource file's name.
+                    type: string
+                resourceFolder:
+                    $ref: "#/components/schemas/ResourceFolder"
+                    description:
+                        The resource file's resource folder. On read, returned only when `nestedFields=resourceFolder` is requested. On write, used only during LAR import, where it is created if it does not exist.
+                resourceFolderExternalReferenceCode:
+                    description:
+                        The external reference code of the resource file's resource folder, used to reference an existing resource folder. Takes precedence over `resourceFolder` when both are set.
+                    type: string
+            type: object
+        ResourceFolder:
+            description:
+                A folder that organizes a fragment set's resources (such as files and other folders).
+            properties:
+                creator:
+                    $ref: ../../headless-admin-user/headless-admin-user-impl/rest-openapi.yaml#Creator
+                    description:
+                        The resource folder's creator.
+                    readOnly: true
+                dateCreated:
+                    description:
+                        The resource folder's creation date.
+                    format: date-time
+                    type: string
+                dateModified:
+                    description:
+                        The last time the resource folder changed.
+                    format: date-time
+                    type: string
+                externalReferenceCode:
+                    description:
+                        The resource folder's external reference code.
+                    type: string
+                fragmentSet:
+                    $ref: "#/components/schemas/FragmentSet"
+                    description:
+                        The resource folder's fragment set. On read, returned only when `nestedFields=fragmentSet` is requested. On write, used only during LAR import, where it is created if it does not exist.
+                fragmentSetExternalReferenceCode:
+                    description:
+                        The external reference code of the resource folder's fragment set, used to reference an existing fragment set. Takes precedence over `fragmentSet` when both are set.
+                    type: string
+                name:
+                    description:
+                        The resource folder's name.
+                    type: string
+                parentResourceFolder:
+                    $ref: "#/components/schemas/ResourceFolder"
+                    description:
+                        The resource folder's parent resource folder. On read, returned only when `nestedFields=parentResourceFolder` is requested. On write, used only during LAR import, where it is created if it does not exist.
+                parentResourceFolderExternalReferenceCode:
+                    description:
+                        The external reference code of the resource folder's parent resource folder, used to reference an existing parent. Takes precedence over `parentResourceFolder` when both are set.
+                    type: string
+            type: object
 info:
     description:
-        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.admin.fragment.client', and version '1.0.3'."
+        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.admin.fragment.client', and version '1.0.5'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -143,6 +294,106 @@ info:
     version: v1.0
 openapi: 3.0.1
 paths:
+    "/design-libraries/{designLibraryExternalReferenceCode}/fragment-sets":
+        get:
+            description:
+                Retrieves the fragment sets of the design library.
+            operationId: getDesignLibraryFragmentSetsPage
+            parameters:
+                -   in: path
+                    name: designLibraryExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: filter
+                    schema:
+                        type: string
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/FragmentSet"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/FragmentSet"
+                                type: array
+            tags: ["FragmentSet"]
+    "/design-libraries/{designLibraryExternalReferenceCode}/fragment-sets/{fragmentSetExternalReferenceCode}":
+        delete:
+            description:
+                Deletes a specific fragment set of a design library.
+            operationId: deleteDesignLibraryFragmentSet
+            parameters:
+                -   in: path
+                    name: designLibraryExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: fragmentSetExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["FragmentSet"]
+        get:
+            description:
+                Retrieves a specific fragment set of a design library.
+            operationId: getDesignLibraryFragmentSet
+            parameters:
+                -   in: path
+                    name: designLibraryExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: fragmentSetExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/FragmentSet"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/FragmentSet"
+            tags: ["FragmentSet"]
     "/sites/{siteExternalReferenceCode}/fragment-sets":
         get:
             description:
@@ -273,7 +524,7 @@ paths:
             tags: ["FragmentSet"]
         put:
             description:
-                Updates the fragment set with the given external reference code, or creates it if it does not exist. On update, only `name` and `description` are honored; `externalReferenceCode`, `key`, and `marketplace` are immutable and any values sent for them in the request body are ignored.
+                Updates the fragment set with the given external reference code, or creates it if it does not exist. On update, `dateModified`, `description`, and `name` are honored; any values sent for `dateCreated`, `externalReferenceCode`, `key`, and `marketplace` are ignored.
             operationId: putSiteFragmentSet
             parameters:
                 -   in: path
@@ -391,6 +642,164 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Fragment"
             tags: ["Fragment"]
+    "/sites/{siteExternalReferenceCode}/fragment-sets/{fragmentSetExternalReferenceCode}/resource-files":
+        get:
+            description:
+                Retrieves the direct child resource files of a fragment set.
+            operationId: getSiteFragmentSetResourceFilesPage
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: fragmentSetExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ResourceFile"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ResourceFile"
+                                type: array
+            tags: ["ResourceFile"]
+        post:
+            description:
+                Adds a new resource file to a fragment set.
+            operationId: postSiteFragmentSetResourceFile
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: fragmentSetExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ResourceFile"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ResourceFile"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFile"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFile"
+            tags: ["ResourceFile"]
+    "/sites/{siteExternalReferenceCode}/fragment-sets/{fragmentSetExternalReferenceCode}/resource-folders":
+        get:
+            description:
+                Retrieves the direct child resource folders of a fragment set.
+            operationId: getSiteFragmentSetResourceFoldersPage
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: fragmentSetExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ResourceFolder"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ResourceFolder"
+                                type: array
+            tags: ["ResourceFolder"]
+        post:
+            description:
+                Adds a new resource folder to a fragment set.
+            operationId: postSiteFragmentSetResourceFolder
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: fragmentSetExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ResourceFolder"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ResourceFolder"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFolder"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFolder"
+            tags: ["ResourceFolder"]
     "/sites/{siteExternalReferenceCode}/fragments":
         get:
             description:
@@ -560,3 +969,433 @@ paths:
                             schema:
                                 $ref: "#/components/schemas/Fragment"
             tags: ["Fragment"]
+    "/sites/{siteExternalReferenceCode}/resource-files":
+        get:
+            description:
+                Retrieves the resource files of the site.
+            operationId: getSiteResourceFilesPage
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: filter
+                    schema:
+                        type: string
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ResourceFile"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ResourceFile"
+                                type: array
+            tags: ["ResourceFile"]
+        post:
+            description:
+                Adds a new resource file to the site.
+            operationId: postSiteResourceFile
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ResourceFile"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ResourceFile"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFile"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFile"
+            tags: ["ResourceFile"]
+    "/sites/{siteExternalReferenceCode}/resource-files/{resourceFileExternalReferenceCode}":
+        delete:
+            description:
+                Deletes a specific resource file of a site.
+            operationId: deleteSiteResourceFile
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: resourceFileExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["ResourceFile"]
+        get:
+            description:
+                Retrieves a specific resource file of a site.
+            operationId: getSiteResourceFile
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: resourceFileExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFile"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFile"
+            tags: ["ResourceFile"]
+        put:
+            description:
+                Updates the resource file with the given external reference code, or creates it if it does not exist. On update, `fileURLReference` and `name` are required, `dateModified` is honored, and any values sent for `dateCreated`, `externalReferenceCode`, `fragmentSet`, `fragmentSetExternalReferenceCode`, `resourceFolder`, and `resourceFolderExternalReferenceCode` are ignored.
+            operationId: putSiteResourceFile
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: resourceFileExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ResourceFile"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ResourceFile"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFile"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFile"
+            tags: ["ResourceFile"]
+    "/sites/{siteExternalReferenceCode}/resource-folders":
+        get:
+            description:
+                Retrieves the resource folders of the site.
+            operationId: getSiteResourceFoldersPage
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: filter
+                    schema:
+                        type: string
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ResourceFolder"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ResourceFolder"
+                                type: array
+            tags: ["ResourceFolder"]
+        post:
+            description:
+                Adds a new resource folder to the site.
+            operationId: postSiteResourceFolder
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ResourceFolder"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ResourceFolder"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFolder"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFolder"
+            tags: ["ResourceFolder"]
+    "/sites/{siteExternalReferenceCode}/resource-folders/{resourceFolderExternalReferenceCode}":
+        delete:
+            description:
+                Deletes a specific resource folder of a site.
+            operationId: deleteSiteResourceFolder
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: resourceFolderExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+            responses:
+                204:
+                    content:
+                        application/json: {}
+                        application/xml: {}
+            tags: ["ResourceFolder"]
+        get:
+            description:
+                Retrieves a specific resource folder of a site.
+            operationId: getSiteResourceFolder
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: resourceFolderExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFolder"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFolder"
+            tags: ["ResourceFolder"]
+        put:
+            description:
+                Updates the resource folder with the given external reference code, or creates it if it does not exist. On update, `dateModified` and `name` are honored; any values sent for `dateCreated`, `externalReferenceCode`, `fragmentSet`, `fragmentSetExternalReferenceCode`, `parentResourceFolder`, and `parentResourceFolderExternalReferenceCode` are ignored.
+            operationId: putSiteResourceFolder
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: resourceFolderExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/ResourceFolder"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/ResourceFolder"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFolder"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/ResourceFolder"
+            tags: ["ResourceFolder"]
+    "/sites/{siteExternalReferenceCode}/resource-folders/{resourceFolderExternalReferenceCode}/resource-files":
+        get:
+            description:
+                Retrieves the direct child resource files of the resource folder with the given external reference code.
+            operationId: getSiteResourceFolderResourceFilesPage
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: resourceFolderExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ResourceFile"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ResourceFile"
+                                type: array
+            tags: ["ResourceFile"]
+    "/sites/{siteExternalReferenceCode}/resource-folders/{resourceFolderExternalReferenceCode}/resource-folders":
+        get:
+            description:
+                Retrieves the direct child resource folders of the resource folder with the given external reference code.
+            operationId: getSiteResourceFolderResourceFoldersPage
+            parameters:
+                -   in: path
+                    name: siteExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: path
+                    name: resourceFolderExternalReferenceCode
+                    required: true
+                    schema:
+                        type: string
+                -   in: query
+                    name: fields
+                    schema:
+                        type: string
+                -   in: query
+                    name: page
+                    schema:
+                        type: integer
+                -   in: query
+                    name: pageSize
+                    schema:
+                        type: integer
+                -   in: query
+                    name: restrictFields
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ResourceFolder"
+                                type: array
+                        application/xml:
+                            schema:
+                                items:
+                                    $ref: "#/components/schemas/ResourceFolder"
+                                type: array
+            tags: ["ResourceFolder"]

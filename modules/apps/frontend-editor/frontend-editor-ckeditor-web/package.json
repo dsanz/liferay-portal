@@ -72,10 +72,10 @@
 		"@ckeditor/ckeditor5-watchdog": "46.0.3",
 		"@ckeditor/ckeditor5-widget": "46.0.3",
 		"@ckeditor/ckeditor5-word-count": "46.0.3",
-		"@clayui/drop-down": "^3.165.0",
-		"@clayui/icon": "^3.165.0",
-		"@clayui/loading-indicator": "^3.165.0",
-		"@clayui/shared": "^3.165.0",
+		"@clayui/drop-down": "^3.166.0",
+		"@clayui/icon": "^3.166.0",
+		"@clayui/loading-indicator": "^3.166.0",
+		"@clayui/shared": "^3.166.0",
 		"@liferay/ai-hub-cell-js-components-web": "*",
 		"@liferay/cookies-banner-web": "*",
 		"@liferay/frontend-data-set-web": "*",
@@ -86,7 +86,7 @@
 		"ckeditor5": "46.0.3",
 		"ckeditor5-premium-features": "46.0.3",
 		"classnames": "2.3.1",
-		"eventsource": "^4.0.0",
+		"eventsource": "4.0.0",
 		"frontend-js-components-web": "*",
 		"frontend-js-web": "*",
 		"liferay-ckeditor": "4.21.0-liferay.14",
@@ -101,5 +101,5 @@
 		"checkFormat": "node-scripts format --check",
 		"format": "node-scripts format"
 	},
-	"version": "5.0.132"
+	"version": "5.0.135"
 }

@@ -43,6 +43,7 @@ import com.liferay.commerce.product.model.CommerceChannelRelTable;
 import com.liferay.commerce.product.service.CPDefinitionLocalService;
 import com.liferay.commerce.product.service.CommerceChannelAccountEntryRelLocalService;
 import com.liferay.expando.kernel.service.ExpandoRowLocalService;
+import com.liferay.exportimport.kernel.empty.model.EmptyModelManager;
 import com.liferay.petra.sql.dsl.DSLFunctionFactoryUtil;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.petra.sql.dsl.expression.Expression;
@@ -171,9 +172,11 @@ public class CommercePriceListLocalServiceImpl
 
 		User user = _userLocalService.getUser(userId);
 
-		_validate(
-			groupId, user.getCompanyId(), 0, parentCommercePriceListId,
-			catalogBasePriceList, commerceCurrencyCode, neverExpire, type);
+		if (!_emptyModelManager.isEmptyModel()) {
+			_validate(
+				groupId, user.getCompanyId(), 0, parentCommercePriceListId,
+				catalogBasePriceList, commerceCurrencyCode, neverExpire, type);
+		}
 
 		Date expirationDate = null;
 		Date date = new Date();
@@ -211,15 +214,20 @@ public class CommercePriceListLocalServiceImpl
 		commercePriceList.setPriority(priority);
 		commercePriceList.setType(type);
 
-		if ((expirationDate == null) || expirationDate.after(date)) {
-			commercePriceList.setStatus(WorkflowConstants.STATUS_DRAFT);
+		if (_emptyModelManager.isEmptyModel()) {
+			commercePriceList.setStatus(WorkflowConstants.STATUS_EMPTY);
 		}
 		else {
-			commercePriceList.setStatus(WorkflowConstants.STATUS_EXPIRED);
-		}
+			if ((expirationDate == null) || expirationDate.after(date)) {
+				commercePriceList.setStatus(WorkflowConstants.STATUS_DRAFT);
+			}
+			else {
+				commercePriceList.setStatus(WorkflowConstants.STATUS_EXPIRED);
+			}
 
-		if (catalogBasePriceList) {
-			commercePriceList.setStatus(WorkflowConstants.STATUS_APPROVED);
+			if (catalogBasePriceList) {
+				commercePriceList.setStatus(WorkflowConstants.STATUS_APPROVED);
+			}
 		}
 
 		commercePriceList.setStatusByUserId(user.getUserId());
@@ -231,8 +239,10 @@ public class CommercePriceListLocalServiceImpl
 
 		// Workflow
 
-		commercePriceList = _startWorkflowInstance(
-			user.getUserId(), commercePriceList, serviceContext);
+		if (!_emptyModelManager.isEmptyModel()) {
+			commercePriceList = _startWorkflowInstance(
+				user.getUserId(), commercePriceList, serviceContext);
+		}
 
 		// Resources
 
@@ -349,7 +359,7 @@ public class CommercePriceListLocalServiceImpl
 		throws PortalException {
 
 		List<CommercePriceList> commercePriceLists =
-			commercePriceListLocalService.getCommercePriceLists(
+			commercePriceListPersistence.findByCompanyId(
 				companyId, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 		for (CommercePriceList commercePriceList : commercePriceLists) {
@@ -674,7 +684,7 @@ public class CommercePriceListLocalServiceImpl
 						groupId, currencyCode, type);
 
 			if (commercePromoPriceLists.size() <= 1) {
-				return commercePriceListLocalService.getCommercePriceList(
+				return commercePriceListPersistence.findByPrimaryKey(
 					commercePriceListId);
 			}
 
@@ -699,7 +709,7 @@ public class CommercePriceListLocalServiceImpl
 							CommercePriceListConstants.TYPE_PRICE_LIST);
 
 				if (commercePriceLists.isEmpty()) {
-					return commercePriceListLocalService.getCommercePriceList(
+					return commercePriceListPersistence.findByPrimaryKey(
 						commercePriceListId);
 				}
 
@@ -712,7 +722,7 @@ public class CommercePriceListLocalServiceImpl
 			}
 
 			if (commercePriceEntry == null) {
-				return commercePriceListLocalService.getCommercePriceList(
+				return commercePriceListPersistence.findByPrimaryKey(
 					commercePriceListId);
 			}
 
@@ -768,7 +778,7 @@ public class CommercePriceListLocalServiceImpl
 			}
 		}
 
-		return commercePriceListLocalService.getCommercePriceList(
+		return commercePriceListPersistence.findByPrimaryKey(
 			commercePriceListId);
 	}
 
@@ -1038,6 +1048,35 @@ public class CommercePriceListLocalServiceImpl
 	}
 
 	@Override
+	public CommercePriceList getOrAddEmptyCommercePriceList(
+			String externalReferenceCode, long groupId, long companyId,
+			long userId)
+		throws PortalException {
+
+		Calendar calendar = CalendarFactoryUtil.getCalendar();
+
+		ServiceContext serviceContext = new ServiceContext();
+
+		serviceContext.setCompanyId(companyId);
+		serviceContext.setUserId(userId);
+
+		return _emptyModelManager.getOrAddEmptyModel(
+			CommercePriceList.class, companyId,
+			() -> commercePriceListLocalService.addCommercePriceList(
+				externalReferenceCode, userId, groupId, 0, false,
+				externalReferenceCode, calendar.get(Calendar.DATE),
+				calendar.get(Calendar.HOUR_OF_DAY),
+				calendar.get(Calendar.MINUTE), calendar.get(Calendar.MONTH),
+				calendar.get(Calendar.YEAR), 0, 0, 0, 0, 0,
+				externalReferenceCode, false, true, 0,
+				CommercePriceListConstants.TYPE_PRICE_LIST, serviceContext),
+			externalReferenceCode,
+			this::fetchCommercePriceListByExternalReferenceCode,
+			this::getCommercePriceListByExternalReferenceCode,
+			CommercePriceList.class.getName());
+	}
+
+	@Override
 	public Hits search(SearchContext searchContext) {
 		try {
 			Indexer<CommercePriceList> indexer =
@@ -1165,7 +1204,17 @@ public class CommercePriceListLocalServiceImpl
 		commercePriceList.setPriority(priority);
 		commercePriceList.setType(type);
 
-		if ((expirationDate == null) || expirationDate.after(date)) {
+		if (commercePriceList.getStatus() == WorkflowConstants.STATUS_EMPTY) {
+			commercePriceList.setStatus(
+				_emptyModelManager.solveEmptyModel(
+					commercePriceList.getExternalReferenceCode(),
+					commercePriceList.getModelClassName(),
+					commercePriceList.getCompanyId(),
+					commercePriceList.getGroupId(),
+					commercePriceList.getStatus(),
+					() -> WorkflowConstants.STATUS_DRAFT));
+		}
+		else if ((expirationDate == null) || expirationDate.after(date)) {
 			commercePriceList.setStatus(WorkflowConstants.STATUS_DRAFT);
 		}
 		else {
@@ -1790,7 +1839,7 @@ public class CommercePriceListLocalServiceImpl
 			}
 
 			CommercePriceList commercePriceList =
-				commercePriceListLocalService.fetchCommercePriceList(
+				commercePriceListPersistence.fetchByPrimaryKey(
 					parentCommercePriceListId);
 
 			if ((commercePriceList != null) &&
@@ -1866,6 +1915,9 @@ public class CommercePriceListLocalServiceImpl
 
 	@Reference
 	private CPDefinitionLocalService _cpDefinitionLocalService;
+
+	@Reference
+	private EmptyModelManager _emptyModelManager;
 
 	@Reference
 	private ExpandoRowLocalService _expandoRowLocalService;

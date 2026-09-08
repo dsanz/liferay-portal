@@ -30,9 +30,9 @@ describe('EditAssigneeModalContent', () => {
 		const {getByText} = render(
 			<EditAssigneeModalContent
 				closeModal={mockCloseModal}
+				cmpTaskObjectEntryId="123"
+				cmpTaskObjectEntryTitle="Task Title"
 				loadData={mockLoadData}
-				taskId="123"
-				taskTitle="Task Title"
 				value={{name: 'New Assignee'}}
 			/>
 		);
@@ -50,5 +50,33 @@ describe('EditAssigneeModalContent', () => {
 
 		expect(mockCloseModal).toHaveBeenCalled();
 		expect(mockLoadData).toHaveBeenCalled();
+	});
+
+	it('hands the updated task to onTaskUpdated instead of reloading', async () => {
+		const updatedTask = {assignTo: {name: 'New Assignee'}, id: 123};
+
+		mockPatchTaskById.mockResolvedValue({data: updatedTask, error: null});
+
+		const onTaskUpdated = jest.fn();
+
+		const {getByText} = render(
+			<EditAssigneeModalContent
+				closeModal={mockCloseModal}
+				cmpTaskObjectEntryId="123"
+				cmpTaskObjectEntryTitle="Task Title"
+				loadData={mockLoadData}
+				onTaskUpdated={onTaskUpdated}
+				value={{name: 'New Assignee'}}
+			/>
+		);
+
+		fireEvent.click(getByText('save'));
+
+		await waitFor(() => {
+			expect(onTaskUpdated).toHaveBeenCalledWith(updatedTask);
+		});
+
+		expect(mockCloseModal).toHaveBeenCalled();
+		expect(mockLoadData).not.toHaveBeenCalled();
 	});
 });

@@ -10,18 +10,21 @@
  */
 
 module.exports = {
-	hash: 'bbe163195b8e26a750c27d0870829988501c9c6aef0caf6d2900240d2330b409',
+	hash: 'ee914417e4b44910ada1c38e4763e5939ab7ea4ba990988483cc49c61360c4d1',
 	imports: {
 		'@liferay/accessibility-menu-web': [],
 		'@liferay/accessibility-settings-state-web': [],
+		'@liferay/account-validator-vies-web': [],
 		'@liferay/address-web': [],
 		'@liferay/ai-creator-openai-web': [],
-		'@liferay/ai-hub-cell-js-components-web': [],
-		'@liferay/ai-hub-web': [],
+		'@liferay/ai-hub-cell-js-components-web': [
+			'./renderAIAssistantTrigger',
+		],
 		'@liferay/analytics-reports-js-components-web': [],
 		'@liferay/analytics-settings-web': [],
 		'@liferay/application-list-taglib': [],
 		'@liferay/asset-categories-item-selector-web': [],
+		'@liferay/audiences-web': [],
 		'@liferay/batch-planner-web': [],
 		'@liferay/captcha-taglib': [],
 		'@liferay/change-tracking-rest-client-js': [],
@@ -90,12 +93,14 @@ module.exports = {
 		'@liferay/frontend-data-set-fragment-web': [],
 		'@liferay/frontend-data-set-sample-web': [],
 		'@liferay/frontend-data-set-taglib': [],
-		'@liferay/frontend-data-set-web': [],
+		'@liferay/frontend-data-set-web': ['./api'],
 		'@liferay/frontend-editor-ckeditor4-sample-web': [],
 		'@liferay/frontend-editor-ckeditor5-sample-web': [],
 		'@liferay/frontend-icons-web': [],
 		'@liferay/frontend-js-audiences-web': ['./custom-attributes'],
 		'@liferay/frontend-js-bootstrap-support-web': [],
+		'@liferay/frontend-js-charts-sample-web': [],
+		'@liferay/frontend-js-charts-web': [],
 		'@liferay/frontend-js-clay-web': [
 			'@clayui/alert',
 			'@clayui/autocomplete',
@@ -216,6 +221,7 @@ module.exports = {
 		'@liferay/journal-taglib': [],
 		'@liferay/launch-web': [],
 		'@liferay/layout-content-page-editor-web': [],
+		'@liferay/layout-content-web': [],
 		'@liferay/layout-js-components-web': [],
 		'@liferay/layout-locked-layouts-web': [],
 		'@liferay/layout-page-template-admin-web': [],
@@ -224,6 +230,7 @@ module.exports = {
 		'@liferay/layout-type-controller-panel': [],
 		'@liferay/layout-utility-page-terms-of-use': [],
 		'@liferay/liferay-cms-theme': [],
+		'@liferay/liferay-prism-theme': [],
 		'@liferay/locked-items-web': [],
 		'@liferay/login-web': [],
 		'@liferay/map-common': [],
@@ -231,6 +238,7 @@ module.exports = {
 		'@liferay/map-openstreetmap': [],
 		'@liferay/marketplace-js-components-web': [],
 		'@liferay/marketplace-settings-web': [],
+		'@liferay/mcp-server-web': [],
 		'@liferay/microblogs-web': [],
 		'@liferay/monitoring-web': [],
 		'@liferay/multi-factor-authentication-fido2-web': [],
@@ -262,13 +270,14 @@ module.exports = {
 		'@liferay/saved-content-web': [],
 		'@liferay/scim-configuration-web': [],
 		'@liferay/search-experiences-web': [],
-		'@liferay/seo-studio-web': [],
 		'@liferay/site-cmp-site-initializer': [],
 		'@liferay/site-cms-site-initializer': [],
+		'@liferay/site-cms-standalone-site-initializer': [],
 		'@liferay/site-dsr-site-initializer': [],
 		'@liferay/site-navigation-menu-item-display-page': [],
 		'@liferay/site-navigation-menu-item-vocabulary': [],
 		'@liferay/site-navigation-taglib': [],
+		'@liferay/site-pim-site-initializer': [],
 		'@liferay/site-sitemap-web': [],
 		'@liferay/social-activities-taglib': [],
 		'@liferay/social-bookmark-facebook': [],
@@ -401,9 +410,18 @@ module.exports = {
 			'@ckeditor/ckeditor5-watchdog/dist/index.js',
 			'@ckeditor/ckeditor5-widget/dist/index.js',
 			'@ckeditor/ckeditor5-word-count/dist/index.js',
+			'@codemirror/autocomplete',
+			'@codemirror/commands',
+			'@codemirror/lang-html',
+			'@codemirror/lang-markdown',
+			'@codemirror/language',
+			'@codemirror/state',
+			'@codemirror/theme-one-dark',
+			'@codemirror/view',
 			'ckeditor5/ckeditor5.css',
 			'ckeditor5-premium-features/ckeditor5-premium-features.css',
 			'eventsource',
+			'frontend-editor-ckeditor-web/plugins/DocumentLinkSelector',
 		],
 		'frontend-js-aui-web': [],
 		'frontend-js-clay-sample-web': [],
@@ -501,13 +519,17 @@ module.exports = {
 	// 1. The build cannot infer the exported symbols because the package cannot be required from
 	//    Node.js (eg: if it references `window` or any other browser API not available).
 	// 2. The inferred exported symbols are wrong (eg: polymorphic packages).
-	// 3. The package must re-export everything as `default` so that it can be directly imported
-	//    using ES syntax (eg: `react` since it can be imported as `import React from 'react';` even
-	//    though it is a CJS package that doesn't really export any `default` symbol).
+	// 3. The package needs a `default` export that the build cannot infer, or the entry replaces an
+	//    inferred set that already contained one. Overrides are exhaustive, so `default` must be
+	//    listed explicitly whenever the package should have it.
 	//
-	// For number 3 note that tools like `webpack` sometimes rely on the `__esModule` symbol to
-	// mimic that behavior. However we prefer to make it explicit in this file due to how much
-	// headaches the `__esModule` inferences usually cause when they don't work correctly.
+	// For number 3 note that CJS packages not tagged with `__esModule` don't need an entry just to
+	// get a `default` export: the build infers one for them pointing to the exported object, which
+	// is what tools like `babel` and `webpack` do, so that they can be directly imported using ES
+	// syntax (eg: `import React from 'react';`).
+	//
+	// Also note that listing `__esModule` here has no effect, since the generated bridges always
+	// drop that symbol.
 	//
 	// The way to obtain these symbols is different for each package but it usually starts with a
 	// runtime error in the browser and a following investigation on what the package is really
@@ -556,30 +578,19 @@ module.exports = {
 			'__UNSTABLE_DataClient',
 			'useProvider',
 		],
-		'axe-core': ['*', 'default'],
-		'clipboard': ['*', 'default'],
-		'cropperjs': ['*', 'default'],
-		'dagre': ['*', 'default'],
-		'date-fns': ['*'],
-		'fuzzy': ['*', 'default'],
-		'graphql-hooks-memcache': ['*', 'default'],
-		'highlight.js': ['*', 'default'],
-		'highlight.js/lib/core': ['*', 'default'],
-		'highlight.js/lib/languages/java': ['*', 'default'],
-		'highlight.js/lib/languages/javascript': ['*', 'default'],
-		'highlight.js/lib/languages/plaintext': ['*', 'default'],
-		'liferay-ckeditor': [],
-		'moment': ['*', 'default'],
-		'moment/min/moment-with-locales': ['*', 'default'],
-		'numeral': ['*', 'default'],
-		'object-hash': ['*', 'default'],
+		'@codemirror/autocomplete': ['*'],
+		'@codemirror/commands': ['*'],
+		'@codemirror/lang-html': ['*'],
+		'@codemirror/lang-markdown': ['*'],
+		'@codemirror/language': ['*'],
+		'@codemirror/state': ['*'],
+		'@codemirror/theme-one-dark': ['*'],
+		'@codemirror/view': ['*'],
+		'frontend-editor-ckeditor-web/plugins/DocumentLinkSelector': [
+			'default',
+		],
 		'prop-types': ['*', 'bigint', 'default'],
 		'qrcode': ['create', 'toCanvas', 'toString', 'toDataURL'],
-		'qs': ['*', 'default'],
-		'react': ['*', 'default'],
-		'react-dnd': ['*'],
-		'react-dom': ['*', 'default'],
-		'text-mask-addons': ['*', 'default'],
-		'text-mask-core': ['*', 'default'],
+		'ua-parser-js': ['UAParser'],
 	},
 };

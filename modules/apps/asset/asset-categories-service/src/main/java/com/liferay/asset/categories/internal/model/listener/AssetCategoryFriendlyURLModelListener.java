@@ -8,14 +8,18 @@ package com.liferay.asset.categories.internal.model.listener;
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetCategoryConstants;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
+import com.liferay.friendly.url.model.FriendlyURLEntry;
+import com.liferay.friendly.url.model.FriendlyURLEntryLocalization;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -30,12 +34,6 @@ public class AssetCategoryFriendlyURLModelListener
 	@Override
 	public void onAfterCreate(AssetCategory assetCategory)
 		throws ModelListenerException {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				assetCategory.getCompanyId(), "LPD-70396")) {
-
-			return;
-		}
 
 		try {
 			if (ExportImportThreadLocal.isImportInProcess() ||
@@ -63,14 +61,66 @@ public class AssetCategoryFriendlyURLModelListener
 	}
 
 	@Override
-	public void onBeforeRemove(AssetCategory assetCategory)
+	public void onAfterUpdate(
+			AssetCategory originalAssetCategory, AssetCategory assetCategory)
 		throws ModelListenerException {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				assetCategory.getCompanyId(), "LPD-70396")) {
+		try {
+			if (ExportImportThreadLocal.isImportInProcess() ||
+				ExportImportThreadLocal.isStagingInProcess()) {
 
-			return;
+				return;
+			}
+
+			long parentClassPK = _getAssetCategoryParentClassPK(assetCategory);
+
+			if (parentClassPK == _getAssetCategoryParentClassPK(
+					originalAssetCategory)) {
+
+				return;
+			}
+
+			long classNameId = _classNameLocalService.getClassNameId(
+				AssetCategory.class);
+
+			FriendlyURLEntry friendlyURLEntry =
+				_friendlyURLEntryLocalService.fetchMainFriendlyURLEntry(
+					classNameId, assetCategory.getCategoryId());
+
+			if (friendlyURLEntry == null) {
+				return;
+			}
+
+			Map<String, String> urlTitleMap = new HashMap<>();
+
+			for (FriendlyURLEntryLocalization friendlyURLEntryLocalization :
+					_friendlyURLEntryLocalService.
+						getFriendlyURLEntryLocalizations(
+							friendlyURLEntry.getFriendlyURLEntryId())) {
+
+				urlTitleMap.put(
+					friendlyURLEntryLocalization.getLanguageId(),
+					_friendlyURLEntryLocalService.getUniqueUrlTitle(
+						assetCategory.getGroupId(), classNameId, parentClassPK,
+						assetCategory.getCategoryId(),
+						friendlyURLEntryLocalization.getUrlTitle(),
+						friendlyURLEntryLocalization.getLanguageId()));
+			}
+
+			_friendlyURLEntryLocalService.updateFriendlyURLEntry(
+				friendlyURLEntry.getFriendlyURLEntryId(), classNameId,
+				parentClassPK, assetCategory.getCategoryId(),
+				friendlyURLEntry.getDefaultLanguageId(), urlTitleMap,
+				new ServiceContext());
 		}
+		catch (PortalException portalException) {
+			throw new ModelListenerException(portalException);
+		}
+	}
+
+	@Override
+	public void onBeforeRemove(AssetCategory assetCategory)
+		throws ModelListenerException {
 
 		_friendlyURLEntryLocalService.deleteFriendlyURLEntry(
 			assetCategory.getGroupId(),

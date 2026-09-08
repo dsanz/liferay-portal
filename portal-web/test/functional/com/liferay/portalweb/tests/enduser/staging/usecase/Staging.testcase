@@ -3,7 +3,7 @@ definition {
 
 	property browser.chrome.version = "139.0";
 	property ci.retries.disabled = "true";
-	property custom.properties = "feature.flag.LPD-35013=false";
+	property custom.properties = "feature.flag.LPD-35013=false${line.separator}feature.flag.LPD-57655=false";
 	property osgi.modules.includes = "wiki";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -253,7 +253,7 @@ definition {
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "Infrastructure",
 				configurationName = "Export/Import, Staging",
-				configurationScope = "Virtual Instance Scope");
+				configurationScope = "System Scope");
 
 			AssertNotChecked.assertNotCheckedNotVisible(
 				key_settingFieldName = "Show Advanced Staging Configuration by Default",
@@ -385,7 +385,7 @@ definition {
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "Infrastructure",
 				configurationName = "Export/Import, Staging",
-				configurationScope = "Virtual Instance Scope");
+				configurationScope = "System Scope");
 		}
 
 		task ("When: Enable advanced staging configuration checkbox") {
@@ -618,6 +618,8 @@ definition {
 
 	@priority = 3
 	test DeletePublishTemplate {
+		Staging.enablePublishTemplatesFeatureFlag();
+
 		Site.openSiteSettingsAdmin(siteURLKey = "site-name");
 
 		Site.disableRecycleBinCP();
@@ -654,7 +656,7 @@ definition {
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "Infrastructure",
 				configurationName = "Export/Import, Staging",
-				configurationScope = "Virtual Instance Scope");
+				configurationScope = "System Scope");
 
 			SystemSettings.configureSystemSetting(
 				enableSetting = "true",
@@ -873,17 +875,6 @@ definition {
 		JSONGroup.deleteGroupByName(groupName = "Site Name");
 
 		JSONStaging.enableLocalStaging(groupName = "Site B");
-	}
-
-	@priority = 3
-	test ImportLarFrom70ToCurrent {
-		WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-		LAR.importPortlet(
-			importSchemaVersionMismatching = "true",
-			larFileName = "7.0.10.14_webcontent.lar",
-			portletName = "Web Content",
-			uploadFrom = "dependencies");
 	}
 
 	@description = "This is a use case for LPS-189191. TC-2 and TC-4: Verify that the instance setting can overwrite the system setting via OSGi file to ignore previews and thumbnails during the local staging publish process."
@@ -1645,6 +1636,10 @@ definition {
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
 
+		task ("Given: Publish Templates feature flag is enabled") {
+			Staging.enablePublishTemplatesFeatureFlag();
+		}
+
 		task ("Enable private pages") {
 			PagesAdmin.enablePrivatePages();
 		}
@@ -1857,6 +1852,8 @@ definition {
 	test PublishWebContentWithUnchangedReferencedContent {
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
+
+		Staging.enablePublishTemplatesFeatureFlag();
 
 		JSONLayout.addWidgetToPublicLayout(
 			groupName = "Site Name",
@@ -2290,6 +2287,8 @@ definition {
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
 
+		Staging.enablePublishTemplatesFeatureFlag();
+
 		JSONLayout.addPublicLayout(
 			groupName = "Site Name",
 			layoutName = "Test Page 1");
@@ -2449,7 +2448,7 @@ definition {
 		SystemSettings.gotoConfiguration(
 			configurationCategory = "Infrastructure",
 			configurationName = "Export/Import, Staging",
-			configurationScope = "Virtual Instance Scope");
+			configurationScope = "System Scope");
 
 		SystemSettings.configureSystemSetting(
 			enableSetting = "true",

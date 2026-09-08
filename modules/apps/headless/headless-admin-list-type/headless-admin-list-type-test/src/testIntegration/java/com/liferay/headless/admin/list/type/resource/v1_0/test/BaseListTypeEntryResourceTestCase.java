@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -121,6 +122,8 @@ public abstract class BaseListTypeEntryResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -431,7 +434,7 @@ public abstract class BaseListTypeEntryResourceTestCase {
 			listTypeEntryResource.
 				getListTypeDefinitionByExternalReferenceCodeListTypeEntriesPage(
 					externalReferenceCode, null, null, null,
-					Pagination.of(1, 10), null);
+					Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -863,20 +866,9 @@ public abstract class BaseListTypeEntryResourceTestCase {
 		String externalReferenceCode =
 			testGetListTypeDefinitionByExternalReferenceCodeListTypeEntriesPage_getExternalReferenceCode();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"listTypeDefinitionByExternalReferenceCodeListTypeEntries",
-			new HashMap<String, Object>() {
-				{
-					put(
-						"externalReferenceCode",
-						"\"" + externalReferenceCode + "\"");
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetListTypeDefinitionByExternalReferenceCodeListTypeEntriesPageListTypeDefinitionListTypeEntry_getGraphQLField(
+				externalReferenceCode);
 
 		// No namespace
 
@@ -950,6 +942,27 @@ public abstract class BaseListTypeEntryResourceTestCase {
 						getString("items"))));
 	}
 
+	protected GraphQLField
+			testGraphQLGetListTypeDefinitionByExternalReferenceCodeListTypeEntriesPageListTypeDefinitionListTypeEntry_getGraphQLField(
+				String externalReferenceCode)
+		throws Exception {
+
+		return new GraphQLField(
+			"listTypeDefinitionByExternalReferenceCodeListTypeEntries",
+			new HashMap<String, Object>() {
+				{
+					put(
+						"externalReferenceCode",
+						"\"" + externalReferenceCode + "\"");
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
+	}
+
 	protected ListTypeEntry
 			testGraphQLGetListTypeDefinitionByExternalReferenceCodeListTypeEntriesPageListTypeDefinitionListTypeEntry_addListTypeEntry(
 				String externalReferenceCode, ListTypeEntry listTypeEntry)
@@ -1005,7 +1018,8 @@ public abstract class BaseListTypeEntryResourceTestCase {
 				listTypeDefinitionId, randomListTypeEntry());
 
 		page = listTypeEntryResource.getListTypeDefinitionListTypeEntriesPage(
-			listTypeDefinitionId, null, null, null, Pagination.of(1, 10), null);
+			listTypeDefinitionId, null, null, null,
+			Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1435,18 +1449,9 @@ public abstract class BaseListTypeEntryResourceTestCase {
 		Long listTypeDefinitionId =
 			testGetListTypeDefinitionListTypeEntriesPage_getListTypeDefinitionId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"listTypeDefinitionListTypeEntries",
-			new HashMap<String, Object>() {
-				{
-					put("listTypeDefinitionId", listTypeDefinitionId);
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetListTypeDefinitionListTypeEntriesPageListTypeDefinitionListTypeEntry_getGraphQLField(
+				listTypeDefinitionId);
 
 		// No namespace
 
@@ -1514,6 +1519,25 @@ public abstract class BaseListTypeEntryResourceTestCase {
 				ListTypeEntrySerDes.toDTOs(
 					listTypeDefinitionListTypeEntriesJSONObject.getString(
 						"items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetListTypeDefinitionListTypeEntriesPageListTypeDefinitionListTypeEntry_getGraphQLField(
+				Long listTypeDefinitionId)
+		throws Exception {
+
+		return new GraphQLField(
+			"listTypeDefinitionListTypeEntries",
+			new HashMap<String, Object>() {
+				{
+					put("listTypeDefinitionId", listTypeDefinitionId);
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -3274,4 +3298,4 @@ public abstract class BaseListTypeEntryResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-881414567
+// LIFERAY-REST-BUILDER-HASH:-1083116375

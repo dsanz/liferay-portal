@@ -39,10 +39,8 @@ import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -75,7 +73,6 @@ public class ObjectEntryFolderServiceTest {
 		_setUser(_adminUser);
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testAddObjectEntryFolder() throws Exception {
 		_setUser(_adminUser);
@@ -84,8 +81,6 @@ public class ObjectEntryFolderServiceTest {
 			_group.getGroupId(),
 			ObjectEntryFolderConstants.PARENT_OBJECT_ENTRY_FOLDER_ID_DEFAULT,
 			_adminUser.getUserId());
-
-		CMSTestUtil.getOrAddGroup(ObjectEntryFolderServiceTest.class);
 
 		DepotEntry depotEntry = _depotEntryLocalService.addDepotEntry(
 			HashMapBuilder.put(
@@ -208,7 +203,6 @@ public class ObjectEntryFolderServiceTest {
 		}
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testMoveObjectEntryFolderTrash() throws Exception {
 		try {
@@ -228,7 +222,6 @@ public class ObjectEntryFolderServiceTest {
 		_testMoveObjectEntryFolderTrash(_user, _user);
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testRestoreObjectEntryFolderFromTrash() throws Exception {
 		try {

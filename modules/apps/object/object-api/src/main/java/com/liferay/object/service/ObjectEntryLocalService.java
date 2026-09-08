@@ -291,7 +291,7 @@ public interface ObjectEntryLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public Map<Object, Long> getAggregationCounts(
 			long groupId, long objectDefinitionId, String aggregationTerm,
-			Predicate predicate, boolean preferApproved, int start, int end)
+			Predicate predicate, boolean preferApproved)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -436,8 +436,7 @@ public interface ObjectEntryLocalService
 	public Map<Object, Long> getOneToManyAggregationCounts(
 			long groupId, long objectDefinitionId, long objectEntryId,
 			long objectRelationshipId, String aggregationTerm,
-			Predicate predicate, boolean related, String search, int start,
-			int end)
+			Predicate predicate, boolean related, String search)
 		throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
@@ -453,7 +452,6 @@ public interface ObjectEntryLocalService
 			long primaryKey, boolean related, String search)
 		throws PortalException;
 
-	@Indexable(type = IndexableType.REINDEX)
 	@Transactional(propagation = Propagation.REQUIRED)
 	public ObjectEntry getOrAddEmptyObjectEntry(
 			String externalReferenceCode, long groupId, long userId,
@@ -539,7 +537,6 @@ public interface ObjectEntryLocalService
 			Map<String, Serializable> values, ServiceContext serviceContext)
 		throws PortalException;
 
-	@Indexable(type = IndexableType.REINDEX)
 	public ObjectEntry moveObjectEntryToTrash(
 			long userId, ObjectEntry objectEntry, ServiceContext serviceContext)
 		throws PortalException;
@@ -558,7 +555,6 @@ public interface ObjectEntryLocalService
 			ServiceContext serviceContext)
 		throws PortalException;
 
-	@Indexable(type = IndexableType.REINDEX)
 	public ObjectEntry restoreObjectEntryFromTrash(
 			long userId, ObjectEntry objectEntry, ServiceContext serviceContext)
 		throws PortalException;
@@ -581,7 +577,6 @@ public interface ObjectEntryLocalService
 			String[] assetTagNames, long[] assetLinkEntryIds, Double priority)
 		throws PortalException;
 
-	@Indexable(type = IndexableType.REINDEX)
 	public ObjectEntry updateModifiedDate(long objectEntryId, Date modifiedDate)
 		throws PortalException;
 
@@ -626,4 +621,4 @@ public interface ObjectEntryLocalService
 		throws PortalException;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-404821026
+// LIFERAY-SERVICE-BUILDER-HASH:-1438134472

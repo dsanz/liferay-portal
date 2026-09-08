@@ -13,7 +13,7 @@ import {datetimeUtils} from '@liferay/object-js-components-web';
 import {LiferayEditorConfig} from 'frontend-editor-ckeditor-web';
 import {openToast} from 'frontend-js-components-web';
 import {fetch, objectToFormData} from 'frontend-js-web';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
 import VocabularyService from '../../common/services/VocabularyService';
 import {IAssetObjectEntry} from '../../common/types/AssetType';
@@ -25,12 +25,17 @@ import {dateConfig, toMomentDate, toServerISOFormat} from './ScheduleField';
 import CategorizationPanel from './panels/CategorizationPanel';
 import CommentsPanel from './panels/CommentsPanel';
 import GeneralPanel from './panels/GeneralPanel';
+import ProjectsPanel from './panels/ProjectsPanel';
 import SchedulePanel from './panels/SchedulePanel';
+import useAssistantCategorization from './useAssistantCategorization';
 
 type Props = {
 	addCommentURL: string;
 	assetLibraryId: string;
 	assetType: number;
+	cmpProjectLinkObjectDefinitionId?: number | null;
+	cmpProjectObjectDefinitionId?: number | null;
+	cmpProjectViewURL?: string;
 	cmsGroupId: string;
 	comments: Comment[];
 	contentAPIURL: string;
@@ -38,6 +43,8 @@ type Props = {
 	editCommentURL: string;
 	editorConfig: LiferayEditorConfig;
 	entryClassName: string;
+	entryExternalReferenceCode?: string;
+	entryGroupExternalReferenceCode?: string;
 	expirationDate: string;
 	getCommentsURL: string;
 	hasUpdatePermission: boolean;
@@ -101,7 +108,7 @@ export type UpdateScheduleProps = BaseScheduleData & {
 	name: keyof ScheduleFields;
 };
 
-const items: Item[] = [
+const DEFAULT_ITEMS: Item[] = [
 	{
 		component: GeneralPanel,
 		icon: 'info-circle',
@@ -112,7 +119,7 @@ const items: Item[] = [
 		component: SchedulePanel,
 		icon: 'date-time',
 		id: 'schedule',
-		title: Liferay.Language.get('schedule'),
+		title: Liferay.Language.get('schedule[noun]'),
 	},
 	{
 		component: CategorizationPanel,
@@ -127,6 +134,13 @@ const items: Item[] = [
 		title: Liferay.Language.get('comments'),
 	},
 ];
+
+const PROJECTS_ITEM: Item = {
+	component: ProjectsPanel,
+	icon: 'archive',
+	id: 'projects',
+	title: Liferay.Language.get('projects'),
+};
 
 export default function ContentEditorSidePanel(props: Props) {
 	const [formId, setFormId] = useState<string | undefined>();
@@ -317,10 +331,29 @@ function SidePanel(props: SidePanelProps) {
 	const [hasError, setHasError] = useState<boolean>(false);
 	const [panel, setPanel] = useState<React.Key | null>(null);
 
+	const items = useMemo(
+		() =>
+			Liferay.FeatureFlags['LPD-58677']
+				? [...DEFAULT_ITEMS, PROJECTS_ITEM]
+				: DEFAULT_ITEMS,
+		[]
+	);
+
 	const showErrorInPanel = useCallback((panelId: React.Key) => {
 		setPanel(panelId);
 		setHasError(true);
 	}, []);
+
+	const {onUpdateCategorization} = props;
+
+	useAssistantCategorization({
+		assetLibraryId: props.assetLibraryId,
+		categorizationFields: props.categorizationFields,
+		cmsGroupId: props.cmsGroupId,
+		contentAPIURL: props.contentAPIURL,
+		onUpdateCategorization,
+		panel,
+	});
 
 	useEffect(() => {
 		const validateScheduleFields = ({event}: {event: MouseEvent}) => {
@@ -341,8 +374,6 @@ function SidePanel(props: SidePanelProps) {
 			Liferay.detach(EVENT_VALIDATE_FORM, validateScheduleFields);
 		};
 	}, [props.scheduleFields, showErrorInPanel]);
-
-	const {onUpdateCategorization} = props;
 
 	useEffect(() => {
 		if (

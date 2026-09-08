@@ -54,11 +54,11 @@ public class AssetVocabularyGroupRelLocalServiceWrapper
 
 	@Override
 	public AssetVocabularyGroupRel addAssetVocabularyGroupRel(
-			long groupId, long vocabularyId)
+			long groupId, long vocabularyId, int depotEntryType)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _assetVocabularyGroupRelLocalService.addAssetVocabularyGroupRel(
-			groupId, vocabularyId);
+			groupId, vocabularyId, depotEntryType);
 	}
 
 	/**
@@ -345,6 +345,16 @@ public class AssetVocabularyGroupRelLocalServiceWrapper
 			getAssetVocabularyGroupRelsByGroupId(groupId);
 	}
 
+	@Override
+	public java.util.List<AssetVocabularyGroupRel>
+		getAssetVocabularyGroupRelsByGroupIdAndDepotEntryType(
+			long groupId, int depotEntryType) {
+
+		return _assetVocabularyGroupRelLocalService.
+			getAssetVocabularyGroupRelsByGroupIdAndDepotEntryType(
+				groupId, depotEntryType);
+	}
+
 	/**
 	 * Returns all the asset vocabulary group rels matching the UUID and company.
 	 *
@@ -389,6 +399,16 @@ public class AssetVocabularyGroupRelLocalServiceWrapper
 
 		return _assetVocabularyGroupRelLocalService.
 			getAssetVocabularyGroupRelsByVocabularyId(vocabularyId);
+	}
+
+	@Override
+	public java.util.List<AssetVocabularyGroupRel>
+		getAssetVocabularyGroupRelsByVocabularyIdAndDepotEntryType(
+			long vocabularyId, int depotEntryType) {
+
+		return _assetVocabularyGroupRelLocalService.
+			getAssetVocabularyGroupRelsByVocabularyIdAndDepotEntryType(
+				vocabularyId, depotEntryType);
 	}
 
 	/**
@@ -439,11 +459,12 @@ public class AssetVocabularyGroupRelLocalServiceWrapper
 	}
 
 	@Override
-	public void setAssetVocabularyGroupRels(long vocabularyId, long[] groupIds)
+	public void setAssetVocabularyGroupRels(
+			long vocabularyId, long[] groupIds, int depotEntryType)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		_assetVocabularyGroupRelLocalService.setAssetVocabularyGroupRels(
-			vocabularyId, groupIds);
+			vocabularyId, groupIds, depotEntryType);
 	}
 
 	/**
@@ -507,4 +528,4 @@ public class AssetVocabularyGroupRelLocalServiceWrapper
 		_assetVocabularyGroupRelLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1836138432
+// LIFERAY-SERVICE-BUILDER-HASH:763903606

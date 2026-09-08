@@ -6,8 +6,8 @@ components:
             required: false
             schema:
                 description:
-                    Ending date of the timespan for which to retrieve updated warehouse items, in ISO 8601 date format (YYYY-MM-DD). When omitted, defaults to today; when start is also omitted, the implementation uses today as the window end.
-                format: date
+                    Ending date of the timespan for which to retrieve updated warehouse items, in ISO 8601 date-time format. When omitted, defaults to today; when start is also omitted, the implementation uses today as the window end.
+                format: date-time
                 type: string
         externalReferenceCodePathParam:
             in: path
@@ -38,6 +38,14 @@ components:
                 format: int64
                 minimum: 0
                 type: integer
+        nestedFieldsQueryParam:
+            in: query
+            name: nestedFields
+            required: false
+            schema:
+                description:
+                    Comma separated list of nested fields to embed in each returned resource. Each value names a relationship exposed on the resource; when omitted, those relationships are not expanded inline.
+                type: string
         pageQueryParam:
             in: query
             name: page
@@ -88,7 +96,7 @@ components:
             required: false
             schema:
                 description:
-                    Comma-separated list of fields with optional :asc or :desc suffix. Sortable fields on Warehouse -- active, latitude, longitude, city, countryISOCode, name, regionISOCode, street1. Other list endpoints in this module ignore the sort parameter.
+                    Comma separated list of fields with optional :asc or :desc suffix. Sortable fields on Warehouse -- active, latitude, longitude, city, countryISOCode, name, regionISOCode, street1. Other list endpoints in this module ignore the sort parameter.
                 type: string
         startQueryParam:
             in: query
@@ -96,8 +104,8 @@ components:
             required: false
             schema:
                 description:
-                    Starting date of the timespan for which to retrieve updated warehouse items, in ISO 8601 date format (YYYY-MM-DD). When omitted but end is supplied, the implementation rewinds 30 days from end; when both are omitted, the window is the trailing 30 days.
-                format: date
+                    Starting date of the timespan for which to retrieve updated warehouse items, in ISO 8601 date-time format. When omitted but end is supplied, the implementation rewinds 30 days from end; when both are omitted, the window is the trailing 30 days.
+                format: date-time
                 type: string
         warehouseAccountGroupIdPathParam:
             in: path
@@ -297,9 +305,9 @@ components:
             properties:
                 availabilityDate:
                     description:
-                        Date the planned restock becomes available, in ISO 8601 date format (YYYY-MM-DD). Optional -- a missing value is allowed.
-                    example: 2017-07-21
-                    format: date
+                        Date the planned restock becomes available, in ISO 8601 date-time format. Optional -- a missing value is allowed.
+                    example: 2017-07-21T19:30:00Z
+                    format: date-time
                     type: string
                 externalReferenceCode:
                     description:
@@ -345,7 +353,7 @@ components:
                             type: string
                         type: object
                     description:
-                        Map of HATEOAS actions available to the current user, keyed by action name; each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only.
+                        Map of HATEOAS actions available to the current user, keyed by action name. Each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only.
                     readOnly: true
                     type: object
                 active:
@@ -469,7 +477,7 @@ components:
                             type: string
                         type: object
                     description:
-                        Map of HATEOAS actions available to the current user, keyed by action name; each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only.
+                        Map of HATEOAS actions available to the current user, keyed by action name. Each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only.
                     readOnly: true
                     type: object
                 warehouseAccountId:
@@ -521,7 +529,7 @@ components:
                             type: string
                         type: object
                     description:
-                        Map of HATEOAS actions available to the current user, keyed by action name; each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only.
+                        Map of HATEOAS actions available to the current user, keyed by action name. Each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only.
                     readOnly: true
                     type: object
                 warehouseAccountGroupId:
@@ -558,7 +566,7 @@ components:
                             type: string
                         type: object
                     description:
-                        Map of HATEOAS actions available to the current user, keyed by action name; each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only.
+                        Map of HATEOAS actions available to the current user, keyed by action name. Each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only.
                     readOnly: true
                     type: object
                 channel:
@@ -618,9 +626,9 @@ components:
                     type: integer
                 modifiedDate:
                     description:
-                        Last-modified timestamp of the warehouse-item row, in ISO 8601 date format. Maintained automatically by the persistence layer and surfaces only through the dedicated /warehouseItems/updated listing; not populated on the standard read paths.
-                    example: 2017-07-21
-                    format: date
+                        Last modified timestamp of the warehouse item row, in ISO 8601 date-time format. Maintained automatically by the persistence layer and surfaces only through the dedicated /warehouseItems/updated listing; not populated on the standard read paths.
+                    example: 2017-07-21T19:30:00Z
+                    format: date-time
                     type: string
                 quantity:
                     description:
@@ -669,7 +677,7 @@ components:
                             type: string
                         type: object
                     description:
-                        Map of HATEOAS actions available to the current user, keyed by action name; each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only.
+                        Map of HATEOAS actions available to the current user, keyed by action name. Each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only.
                     readOnly: true
                     type: object
                 orderType:
@@ -2216,6 +2224,7 @@ paths:
             operationId: getWarehousesPage
             parameters:
                 -   $ref: "#/components/parameters/filterQueryParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
                 -   $ref: "#/components/parameters/pageQueryParam"
                 -   $ref: "#/components/parameters/pageSizeQueryParam"
                 -   $ref: "#/components/parameters/searchQueryParam"
@@ -2388,6 +2397,7 @@ paths:
             operationId: getWarehouseByExternalReferenceCode
             parameters:
                 -   $ref: "#/components/parameters/externalReferenceCodePathParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
             responses:
                 200:
                     content:
@@ -2773,6 +2783,7 @@ paths:
             operationId: getWarehouseByExternalReferenceCodeWarehouseAccountsPage
             parameters:
                 -   $ref: "#/components/parameters/externalReferenceCodePathParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
                 -   $ref: "#/components/parameters/pageQueryParam"
                 -   $ref: "#/components/parameters/pageSizeQueryParam"
             responses:
@@ -2928,6 +2939,7 @@ paths:
             operationId: getWarehouseByExternalReferenceCodeWarehouseChannelsPage
             parameters:
                 -   $ref: "#/components/parameters/externalReferenceCodePathParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
                 -   $ref: "#/components/parameters/pageQueryParam"
                 -   $ref: "#/components/parameters/pageSizeQueryParam"
             responses:
@@ -3093,6 +3105,7 @@ paths:
             operationId: getWarehouseByExternalReferenceCodeWarehouseOrderTypesPage
             parameters:
                 -   $ref: "#/components/parameters/externalReferenceCodePathParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
                 -   $ref: "#/components/parameters/pageQueryParam"
                 -   $ref: "#/components/parameters/pageSizeQueryParam"
             responses:
@@ -3440,6 +3453,7 @@ paths:
             operationId: getWarehouseId
             parameters:
                 -   $ref: "#/components/parameters/idPathParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
             responses:
                 200:
                     content:
@@ -3741,6 +3755,7 @@ paths:
             parameters:
                 -   $ref: "#/components/parameters/idPathParam"
                 -   $ref: "#/components/parameters/filterQueryParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
                 -   $ref: "#/components/parameters/pageQueryParam"
                 -   $ref: "#/components/parameters/pageSizeQueryParam"
                 -   $ref: "#/components/parameters/searchQueryParam"
@@ -3899,6 +3914,7 @@ paths:
             parameters:
                 -   $ref: "#/components/parameters/idPathParam"
                 -   $ref: "#/components/parameters/filterQueryParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
                 -   $ref: "#/components/parameters/pageQueryParam"
                 -   $ref: "#/components/parameters/pageSizeQueryParam"
                 -   $ref: "#/components/parameters/searchQueryParam"
@@ -4067,6 +4083,7 @@ paths:
             parameters:
                 -   $ref: "#/components/parameters/idPathParam"
                 -   $ref: "#/components/parameters/filterQueryParam"
+                -   $ref: "#/components/parameters/nestedFieldsQueryParam"
                 -   $ref: "#/components/parameters/pageQueryParam"
                 -   $ref: "#/components/parameters/pageSizeQueryParam"
                 -   $ref: "#/components/parameters/searchQueryParam"

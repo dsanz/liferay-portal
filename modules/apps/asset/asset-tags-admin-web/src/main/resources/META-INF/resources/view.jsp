@@ -46,7 +46,7 @@
 						colspan="<%= 2 %>"
 					>
 						<h2 class="h5">
-							<%= tag.getName() %>
+							<%= HtmlUtil.escape(tag.getName()) %>
 						</h2>
 
 						<span class="text-default">
@@ -66,7 +66,7 @@
 					<liferay-ui:search-container-column-text
 						cssClass="table-cell-expand table-cell-minw-200 table-title"
 						name="name"
-						value="<%= tag.getName() %>"
+						value="<%= HtmlUtil.escape(tag.getName()) %>"
 					/>
 
 					<liferay-ui:search-container-column-text

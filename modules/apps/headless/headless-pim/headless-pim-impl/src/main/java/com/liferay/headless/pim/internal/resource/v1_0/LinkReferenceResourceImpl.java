@@ -1,0 +1,241 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.headless.pim.internal.resource.v1_0;
+
+import com.liferay.headless.pim.dto.v1_0.LinkReference;
+import com.liferay.headless.pim.dto.v1_0.Status;
+import com.liferay.headless.pim.resource.v1_0.LinkReferenceResource;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectEntryLocalService;
+import com.liferay.object.service.ObjectEntryService;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.exception.NoSuchGroupException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.URLCodec;
+import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.vulcan.pagination.Page;
+import com.liferay.portal.vulcan.pagination.Pagination;
+import com.liferay.portal.vulcan.util.GroupUtil;
+import com.liferay.site.pim.site.initializer.engine.PIMLinkEngine;
+import com.liferay.site.pim.site.initializer.link.PIMLinkRelatedEntry;
+import com.liferay.site.pim.site.initializer.link.PIMLinkType;
+import com.liferay.site.pim.site.initializer.link.PIMLinkTypeRegistry;
+
+import jakarta.ws.rs.core.MultivaluedMap;
+
+import java.io.Serializable;
+
+import java.util.List;
+import java.util.Map;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ServiceScope;
+
+/**
+ * @author Stefano Motta
+ */
+@Component(
+	properties = "OSGI-INF/liferay/rest/v1_0/link-reference.properties",
+	scope = ServiceScope.PROTOTYPE, service = LinkReferenceResource.class
+)
+public class LinkReferenceResourceImpl extends BaseLinkReferenceResourceImpl {
+
+	@Override
+	public Page<LinkReference> getScopeScopeKeyLinksPage(
+			String scopeKey, String className, String externalReferenceCode,
+			String search, Pagination pagination)
+		throws Exception {
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				contextCompany.getCompanyId(), "LPD-96666")) {
+
+			throw new UnsupportedOperationException();
+		}
+
+		List<PIMLinkRelatedEntry> pimLinkRelatedEntries =
+			_pimLinkEngine.getPIMLinkRelatedEntries(
+				_getFilterString(),
+				_getObjectEntry(
+					className, externalReferenceCode, _getGroupId(scopeKey)));
+
+		if (Validator.isNotNull(search)) {
+			pimLinkRelatedEntries = transform(
+				pimLinkRelatedEntries,
+				pimLinkRelatedEntry -> {
+					Map<String, Serializable> values =
+						_objectEntryLocalService.getValues(
+							pimLinkRelatedEntry.getObjectEntry());
+
+					String code = StringUtil.toLowerCase(
+						MapUtil.getString(values, "code"));
+					String name = StringUtil.toLowerCase(
+						MapUtil.getString(values, "name"));
+
+					if (code.contains(StringUtil.toLowerCase(search)) ||
+						name.contains(StringUtil.toLowerCase(search))) {
+
+						return pimLinkRelatedEntry;
+					}
+
+					return null;
+				});
+		}
+
+		return Page.of(
+			transform(
+				ListUtil.subList(
+					pimLinkRelatedEntries, pagination.getStartPosition(),
+					pagination.getEndPosition()),
+				pimLinkRelatedEntry -> _toLinkReference(
+					pimLinkRelatedEntry.getType(),
+					pimLinkRelatedEntry.getObjectEntry())),
+			pagination, pimLinkRelatedEntries.size());
+	}
+
+	private Map<String, Map<String, String>> _getActions(
+			ObjectEntry objectEntry, String type)
+		throws Exception {
+
+		if (!_hasUpdatePermission(objectEntry)) {
+			return null;
+		}
+
+		return HashMapBuilder.<String, Map<String, String>>put(
+			"delete",
+			HashMapBuilder.put(
+				"href",
+				StringBundler.concat(
+					"/o/headless-pim/v1.0/scopes/", objectEntry.getGroupId(),
+					"/links?className=",
+					URLCodec.encodeURL(objectEntry.getModelClassName()),
+					"&externalReferenceCode=",
+					URLCodec.encodeURL(objectEntry.getExternalReferenceCode()),
+					"&type=", URLCodec.encodeURL(type))
+			).put(
+				"method", "DELETE"
+			).build()
+		).build();
+	}
+
+	private String _getFilterString() {
+		if (contextUriInfo == null) {
+			return null;
+		}
+
+		MultivaluedMap<String, String> queryParameters =
+			contextUriInfo.getQueryParameters();
+
+		return queryParameters.getFirst("filter");
+	}
+
+	private long _getGroupId(String scopeKey) throws Exception {
+		Long groupId = GroupUtil.getGroupId(
+			contextCompany.getCompanyId(), scopeKey, groupLocalService);
+
+		if (groupId == null) {
+			throw new NoSuchGroupException();
+		}
+
+		return groupId;
+	}
+
+	private ObjectEntry _getObjectEntry(
+			String className, String externalReferenceCode, long groupId)
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			_objectDefinitionLocalService.getObjectDefinitionByClassName(
+				contextCompany.getCompanyId(), className);
+
+		return _objectEntryLocalService.getObjectEntry(
+			externalReferenceCode, groupId,
+			objectDefinition.getObjectDefinitionId());
+	}
+
+	private String _getTypeLabel(String linkType) {
+		PIMLinkType pimLinkType = _pimLinkTypeRegistry.getPIMLinkType(linkType);
+
+		if (pimLinkType == null) {
+			return linkType;
+		}
+
+		return pimLinkType.getLabel(contextAcceptLanguage.getPreferredLocale());
+	}
+
+	private boolean _hasUpdatePermission(ObjectEntry objectEntry)
+		throws Exception {
+
+		ModelResourcePermission<ObjectEntry> modelResourcePermission =
+			_objectEntryService.getModelResourcePermission(
+				objectEntry.getObjectDefinitionId());
+
+		return modelResourcePermission.contains(
+			PermissionThreadLocal.getPermissionChecker(),
+			objectEntry.getObjectEntryId(), ActionKeys.UPDATE);
+	}
+
+	private LinkReference _toLinkReference(
+			String linkType, ObjectEntry objectEntry)
+		throws Exception {
+
+		Map<String, Serializable> values = _objectEntryLocalService.getValues(
+			objectEntry);
+
+		return new LinkReference() {
+			{
+				setActions(() -> _getActions(objectEntry, linkType));
+				setClassName(objectEntry::getModelClassName);
+				setCode(() -> MapUtil.getString(values, "code"));
+				setExternalReferenceCode(objectEntry::getExternalReferenceCode);
+				setId(objectEntry::getObjectEntryId);
+				setName(() -> MapUtil.getString(values, "name"));
+				setStatus(
+					() -> new Status() {
+						{
+							setCode(objectEntry::getStatus);
+							setLabel(
+								() -> WorkflowConstants.getStatusLabel(
+									objectEntry.getStatus()));
+							setLabel_i18n(
+								() -> LanguageUtil.get(
+									contextAcceptLanguage.getPreferredLocale(),
+									WorkflowConstants.getStatusLabel(
+										objectEntry.getStatus())));
+						}
+					});
+				setType(() -> _getTypeLabel(linkType));
+			}
+		};
+	}
+
+	@Reference
+	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private ObjectEntryLocalService _objectEntryLocalService;
+
+	@Reference
+	private ObjectEntryService _objectEntryService;
+
+	@Reference
+	private PIMLinkEngine _pimLinkEngine;
+
+	@Reference
+	private PIMLinkTypeRegistry _pimLinkTypeRegistry;
+
+}

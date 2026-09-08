@@ -326,6 +326,14 @@ public class FragmentEntryLinkLocalServiceImpl
 	}
 
 	@Override
+	public FragmentEntryLink fetchFragmentEntryLink(
+		long groupId, String originalFragmentEntryLinkERC, long plid) {
+
+		return fragmentEntryLinkPersistence.fetchByG_OFELERC_P_First(
+			groupId, originalFragmentEntryLinkERC, plid, null);
+	}
+
+	@Override
 	public List<FragmentEntryLink> getAllFragmentEntryLinksByFragmentEntry(
 			FragmentEntry fragmentEntry, int start, int end,
 			OrderByComparator<FragmentEntryLink> orderByComparator)
@@ -383,9 +391,10 @@ public class FragmentEntryLinkLocalServiceImpl
 
 	@Override
 	public FragmentEntryLink getFragmentEntryLink(
-		long groupId, String originalFragmentEntryLinkERC, long plid) {
+			long groupId, String originalFragmentEntryLinkERC, long plid)
+		throws PortalException {
 
-		return fragmentEntryLinkPersistence.fetchByG_OFELERC_P_First(
+		return fragmentEntryLinkPersistence.findByG_OFELERC_P_First(
 			groupId, originalFragmentEntryLinkERC, plid, null);
 	}
 
@@ -609,8 +618,8 @@ public class FragmentEntryLinkLocalServiceImpl
 			boolean updateClassedModel)
 		throws PortalException {
 
-		FragmentEntryLink fragmentEntryLink = fetchFragmentEntryLink(
-			fragmentEntryLinkId);
+		FragmentEntryLink fragmentEntryLink =
+			fragmentEntryLinkPersistence.findByPrimaryKey(fragmentEntryLinkId);
 
 		_checkUnlockedLayout(fragmentEntryLink.getPlid(), userId);
 
@@ -637,8 +646,8 @@ public class FragmentEntryLinkLocalServiceImpl
 
 		_checkUnlockedLayout(plid, userId);
 
-		FragmentEntryLink fragmentEntryLink = fetchFragmentEntryLink(
-			fragmentEntryLinkId);
+		FragmentEntryLink fragmentEntryLink =
+			fragmentEntryLinkPersistence.findByPrimaryKey(fragmentEntryLinkId);
 
 		fragmentEntryLink.setUserId(user.getUserId());
 		fragmentEntryLink.setUserName(user.getFullName());
@@ -737,9 +746,12 @@ public class FragmentEntryLinkLocalServiceImpl
 			fragmentEntryLink);
 
 		if (modified) {
-			try (SafeCloseable safeCloseable =
+			try (SafeCloseable safeCloseable1 =
 					CheckNoninstanceablePortletThreadLocal.
-						setCheckNoninstanceablePortletWithSafeCloseable(true)) {
+						setCheckNoninstanceablePortletWithSafeCloseable(true);
+				SafeCloseable safeCloseable2 =
+					UpdateLayoutStatusThreadLocal.
+						setUpdateLayoutStatusWithSafeCloseable(false)) {
 
 				_updateFragmentEntryLinkLayout(fragmentEntryLink);
 

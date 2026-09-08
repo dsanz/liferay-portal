@@ -68,8 +68,10 @@ public class SuggestionResourceTest extends BaseSuggestionResourceTestCase {
 	public void testPostSuggestionsPage() throws Exception {
 		_testPostSuggestionsPageWithBasicSuggestionsContributor();
 		_testPostSuggestionsPageWithBasicSuggestionsContributorWithAssetSearchSummary();
+		_testPostSuggestionsPageWithBasicSuggestionsContributorWithDestinationLayout();
 		_testPostSuggestionsPageWithBasicSuggestionsContributorWithEverythingScope();
 		_testPostSuggestionsPageWithBasicSuggestionsContributorWithGroupERCScope();
+		_testPostSuggestionsPageWithBasicSuggestionsContributorWithSearchResultsPortlet();
 		_testPostSuggestionsPageWithBasicSuggestionsContributorWithThisSiteScope();
 		_testPostSuggestionsPageWithSXPBlueprintSuggestionsContributor();
 		_testPostSuggestionsPageWithSXPBlueprintSuggestionsContributorWithGroupERCScope();
@@ -201,6 +203,44 @@ public class SuggestionResourceTest extends BaseSuggestionResourceTestCase {
 			suggestionAttributesJSONObject.get("assetSearchSummary"));
 	}
 
+	private void _testPostSuggestionsPageWithBasicSuggestionsContributorWithDestinationLayout()
+		throws Exception {
+
+		Layout destinationLayout = LayoutTestUtil.addTypePortletLayout(
+			testGroup);
+
+		Page<SuggestionsContributorResults> page = _postSuggestionsPage(
+			"http://localhost:" + PortalUtil.getPortalServerPort(false) +
+				"/web/guest/home",
+			destinationLayout.getFriendlyURL(), null, "q", _layout.getPlid(),
+			null, _journalArticle.getArticleId(),
+			new SuggestionsContributorConfiguration[] {
+				new SuggestionsContributorConfiguration() {
+					{
+						contributorName = "basic";
+						displayGroupName = "Suggestions";
+					}
+				}
+			});
+
+		SuggestionsContributorResults suggestionsContributorResults =
+			page.fetchFirstItem();
+
+		Suggestion[] suggestions =
+			suggestionsContributorResults.getSuggestions();
+
+		JSONObject suggestionAttributesJSONObject =
+			JSONFactoryUtil.createJSONObject(
+				String.valueOf(suggestions[0].getAttributes()));
+
+		String assetURL = suggestionAttributesJSONObject.getString("assetURL");
+
+		Assert.assertTrue(
+			assetURL,
+			assetURL.contains(destinationLayout.getFriendlyURL()) ||
+			assetURL.contains("p_l_id=" + destinationLayout.getPlid()));
+	}
+
 	private void _testPostSuggestionsPageWithBasicSuggestionsContributorWithEverythingScope()
 		throws Exception {
 
@@ -235,6 +275,46 @@ public class SuggestionResourceTest extends BaseSuggestionResourceTestCase {
 
 		_assertSuggestionTexts(
 			page.fetchFirstItem(), _journalArticle.getTitle(_locale));
+	}
+
+	private void _testPostSuggestionsPageWithBasicSuggestionsContributorWithSearchResultsPortlet()
+		throws Exception {
+
+		Layout destinationLayout = LayoutTestUtil.addTypePortletLayout(
+			testGroup);
+
+		String searchResultsPortletId = LayoutTestUtil.addPortletToLayout(
+			destinationLayout,
+			"com_liferay_portal_search_web_search_results_portlet_" +
+				"SearchResultsPortlet");
+
+		Page<SuggestionsContributorResults> page = _postSuggestionsPage(
+			"http://localhost:" + PortalUtil.getPortalServerPort(false) +
+				"/web/guest/home",
+			destinationLayout.getFriendlyURL(), null, "q", _layout.getPlid(),
+			null, _journalArticle.getArticleId(),
+			new SuggestionsContributorConfiguration[] {
+				new SuggestionsContributorConfiguration() {
+					{
+						contributorName = "basic";
+						displayGroupName = "Suggestions";
+					}
+				}
+			});
+
+		SuggestionsContributorResults suggestionsContributorResults =
+			page.fetchFirstItem();
+
+		Suggestion[] suggestions =
+			suggestionsContributorResults.getSuggestions();
+
+		JSONObject suggestionAttributesJSONObject =
+			JSONFactoryUtil.createJSONObject(
+				String.valueOf(suggestions[0].getAttributes()));
+
+		String assetURL = suggestionAttributesJSONObject.getString("assetURL");
+
+		Assert.assertTrue(assetURL, assetURL.contains(searchResultsPortletId));
 	}
 
 	private void _testPostSuggestionsPageWithBasicSuggestionsContributorWithThisSiteScope()

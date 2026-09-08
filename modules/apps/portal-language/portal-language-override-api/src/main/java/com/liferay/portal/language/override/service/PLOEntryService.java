@@ -13,6 +13,7 @@ import com.liferay.portal.kernel.service.BaseService;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
 import com.liferay.portal.kernel.transaction.Transactional;
+import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.language.override.model.PLOEntry;
 
 import java.io.IOException;
@@ -48,12 +49,17 @@ public interface PLOEntryService extends BaseService {
 	 * Never modify this interface directly. Add custom service methods to <code>com.liferay.portal.language.override.service.impl.PLOEntryServiceImpl</code> and rerun ServiceBuilder to automatically copy the method declarations to this interface. Consume the plo entry remote service via injection or a <code>org.osgi.util.tracker.ServiceTracker</code>. Use {@link PLOEntryServiceUtil} if injection and service tracking are not available.
 	 */
 	public PLOEntry addOrUpdatePLOEntry(
-			String key, String languageId, String value)
+			String externalReferenceCode, String key, String languageId,
+			String value)
 		throws PortalException;
 
 	public void deletePLOEntries(String key) throws PortalException;
 
 	public PLOEntry deletePLOEntry(String key, String languageId)
+		throws PortalException;
+
+	public PLOEntry deletePLOEntryByExternalReferenceCode(
+			String externalReferenceCode)
 		throws PortalException;
 
 	/**
@@ -64,10 +70,29 @@ public interface PLOEntryService extends BaseService {
 	public String getOSGiServiceIdentifier();
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public List<PLOEntry> getPLOEntries(long companyId) throws PortalException;
+	public List<PLOEntry> getPLOEntries() throws PortalException;
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
-	public int getPLOEntriesCount(long companyId) throws PortalException;
+	public List<PLOEntry> getPLOEntries(
+			int start, int end, OrderByComparator<PLOEntry> orderByComparator)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<PLOEntry> getPLOEntries(
+			String keywords, int start, int end,
+			OrderByComparator<PLOEntry> orderByComparator)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getPLOEntriesCount() throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getPLOEntriesCount(String keywords) throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public PLOEntry getPLOEntryByExternalReferenceCode(
+			String externalReferenceCode)
+		throws PortalException;
 
 	public void importPLOEntries(String languageId, Properties properties)
 		throws IOException, PortalException;
@@ -76,4 +101,4 @@ public interface PLOEntryService extends BaseService {
 		throws PortalException;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:598504023
+// LIFERAY-SERVICE-BUILDER-HASH:-585008555

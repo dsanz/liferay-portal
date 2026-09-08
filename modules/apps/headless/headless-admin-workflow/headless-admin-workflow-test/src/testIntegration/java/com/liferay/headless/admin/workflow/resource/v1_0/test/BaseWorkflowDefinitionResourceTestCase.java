@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -120,6 +121,8 @@ public abstract class BaseWorkflowDefinitionResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -893,7 +896,7 @@ public abstract class BaseWorkflowDefinitionResourceTestCase {
 				randomWorkflowDefinition());
 
 		page = workflowDefinitionResource.getWorkflowDefinitionsPage(
-			null, null, Pagination.of(1, 10), null);
+			null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1191,19 +1194,8 @@ public abstract class BaseWorkflowDefinitionResourceTestCase {
 
 	@Test
 	public void testGraphQLGetWorkflowDefinitionsPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"workflowDefinitions",
-			new HashMap<String, Object>() {
-				{
-					put(
-						"scope",
-						getGraphQLValue(RandomTestUtil.randomString()));
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetWorkflowDefinitionsPageWorkflowDefinition_getGraphQLField();
 
 		// No namespace
 
@@ -1263,6 +1255,25 @@ public abstract class BaseWorkflowDefinitionResourceTestCase {
 			Arrays.asList(
 				WorkflowDefinitionSerDes.toDTOs(
 					workflowDefinitionsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetWorkflowDefinitionsPageWorkflowDefinition_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"workflowDefinitions",
+			new HashMap<String, Object>() {
+				{
+					put(
+						"scope",
+						getGraphQLValue(RandomTestUtil.randomString()));
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -1803,6 +1814,14 @@ public abstract class BaseWorkflowDefinitionResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("system", additionalAssertFieldName)) {
+				if (workflowDefinition.getSystem() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("title", additionalAssertFieldName)) {
 				if (workflowDefinition.getTitle() == null) {
 					valid = false;
@@ -2100,6 +2119,17 @@ public abstract class BaseWorkflowDefinitionResourceTestCase {
 				if (!Objects.deepEquals(
 						workflowDefinition1.getScope(),
 						workflowDefinition2.getScope())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("system", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						workflowDefinition1.getSystem(),
+						workflowDefinition2.getSystem())) {
 
 					return false;
 				}
@@ -2618,6 +2648,11 @@ public abstract class BaseWorkflowDefinitionResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("system")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("title")) {
 			Object object = workflowDefinition.getTitle();
 
@@ -2780,6 +2815,7 @@ public abstract class BaseWorkflowDefinitionResourceTestCase {
 				id = RandomTestUtil.randomLong();
 				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
 				scope = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				system = RandomTestUtil.randomBoolean();
 				title = StringUtil.toLowerCase(RandomTestUtil.randomString());
 				version = StringUtil.toLowerCase(RandomTestUtil.randomString());
 			}
@@ -3057,4 +3093,4 @@ public abstract class BaseWorkflowDefinitionResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1681011371
+// LIFERAY-REST-BUILDER-HASH:-877794647

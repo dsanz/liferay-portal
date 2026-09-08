@@ -8,6 +8,7 @@ import {Locator, Page} from '@playwright/test';
 export class DigitalSalesRoomSettingsPage {
 	readonly externalReferenceCodeInput: Locator;
 	readonly friendlyURLInput: Locator;
+	readonly headerTitle: Locator;
 	readonly nameInput: Locator;
 	readonly page: Page;
 	readonly saveButton: Locator;
@@ -15,15 +16,14 @@ export class DigitalSalesRoomSettingsPage {
 
 	constructor(page: Page) {
 		this.externalReferenceCodeInput = page.locator(
-			'[name="ObjectEntry_externalReferenceCode"]'
+			'[name="externalReferenceCode"]'
 		);
-		this.friendlyURLInput = page.locator(
-			'[name="ObjectField_friendlyURL"]'
-		);
-		this.nameInput = page.locator('[name="ObjectField_name"]');
+		this.friendlyURLInput = page.locator('[name="friendlyURL"]');
+		this.headerTitle = page.locator('.top-bar h1');
+		this.nameInput = page.locator('[name="name"]');
 		this.page = page;
 		this.saveButton = page.getByRole('button', {name: 'Save'});
-		this.siteIdValue = page.getByText(/^\d+$/);
+		this.siteIdValue = page.locator('[name="siteId"]');
 	}
 
 	async updateRoomSettings({

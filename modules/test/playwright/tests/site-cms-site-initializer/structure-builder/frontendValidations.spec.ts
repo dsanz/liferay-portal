@@ -5,7 +5,6 @@
 
 import {expect, mergeTests} from '@playwright/test';
 
-import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {pageEditorPagesTest} from '../../../fixtures/pageEditorPagesTest';
 import {clickAndExpectToBeHidden} from '../../../utils/clickAndExpectToBeHidden';
@@ -18,9 +17,6 @@ import {structureBuilderPagesTest} from './fixtures/structureBuilderPagesTest';
 
 const test = mergeTests(
 	cmsPagesTest,
-	featureFlagsTest({
-		'LPD-17564': {enabled: true},
-	}),
 	loginTest(),
 	pageEditorPagesTest,
 	structureBuilderPagesTest
@@ -500,7 +496,7 @@ test(
 );
 
 test(
-	'Shows an inline "name in use" error when the backend reports a friendly URL separator conflict',
+	'Shows an inline slug error when the backend reports a friendly URL separator conflict',
 	{tag: '@LPD-86255'},
 	async ({page, structureBuilderPage}) => {
 		await page.route(
@@ -541,7 +537,9 @@ test(
 		await structureBuilderPage.publishButton.click();
 
 		await expect(
-			page.getByText('This name is already in use. Try another one.')
+			page.getByText(
+				'The friendly URL is already in use. Please enter a unique friendly URL.'
+			)
 		).toBeVisible();
 
 		await expect(
@@ -551,7 +549,7 @@ test(
 );
 
 test(
-	'Shows an inline "name in use" error when updating a structure and the backend reports a friendly URL separator conflict',
+	'Shows an inline slug error when updating a structure and the backend reports a friendly URL separator conflict',
 	{tag: '@LPD-86255'},
 	async ({page, structureBuilderPage, structuresPage}) => {
 		const label = `Structure${getRandomInt()}`;
@@ -579,7 +577,9 @@ test(
 		await structureBuilderPage.publishButton.click();
 
 		await expect(
-			page.getByText('This name is already in use. Try another one.')
+			page.getByText(
+				'The friendly URL is already in use. Please enter a unique friendly URL.'
+			)
 		).toBeVisible();
 
 		await expect(

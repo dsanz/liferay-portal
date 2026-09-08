@@ -5,6 +5,7 @@
 
 package com.liferay.portal.workflow.kaleo.service.impl;
 
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
@@ -14,11 +15,12 @@ import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
+import com.liferay.portal.kernel.transaction.TransactionCallbackUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowException;
+import com.liferay.portal.kernel.workflow.WorkflowThreadLocal;
 import com.liferay.portal.workflow.constants.WorkflowDefinitionConstants;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinition;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinitionVersion;
@@ -27,10 +29,10 @@ import com.liferay.portal.workflow.kaleo.model.KaleoInstanceToken;
 import com.liferay.portal.workflow.kaleo.model.KaleoNode;
 import com.liferay.portal.workflow.kaleo.runtime.ExecutionContext;
 import com.liferay.portal.workflow.kaleo.runtime.KaleoSignaler;
-import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionLocalService;
-import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionVersionLocalService;
 import com.liferay.portal.workflow.kaleo.service.KaleoLogLocalService;
 import com.liferay.portal.workflow.kaleo.service.base.KaleoInstanceServiceBaseImpl;
+import com.liferay.portal.workflow.kaleo.service.persistence.KaleoDefinitionPersistence;
+import com.liferay.portal.workflow.kaleo.service.persistence.KaleoDefinitionVersionPersistence;
 
 import java.io.Serializable;
 
@@ -59,9 +61,8 @@ public class KaleoInstanceServiceImpl extends KaleoInstanceServiceBaseImpl {
 			ServiceContext serviceContext, boolean waitForCompletion)
 		throws PortalException {
 
-		KaleoDefinition kaleoDefinition =
-			_kaleoDefinitionLocalService.getKaleoDefinition(
-				kaleoDefinitionName, serviceContext);
+		KaleoDefinition kaleoDefinition = _kaleoDefinitionPersistence.findByC_N(
+			serviceContext.getCompanyId(), kaleoDefinitionName);
 
 		if (Objects.equals(
 				kaleoDefinition.getScope(),
@@ -81,7 +82,7 @@ public class KaleoInstanceServiceImpl extends KaleoInstanceServiceBaseImpl {
 		}
 
 		KaleoDefinitionVersion serviceBuilderKaleoDefinitionVersion =
-			_kaleoDefinitionVersionLocalService.getKaleoDefinitionVersion(
+			_kaleoDefinitionVersionPersistence.findByC_N_V(
 				serviceContext.getCompanyId(), kaleoDefinitionName,
 				_getVersion(kaleoDefinitionVersion));
 
@@ -129,9 +130,13 @@ public class KaleoInstanceServiceImpl extends KaleoInstanceServiceBaseImpl {
 		ExecutionContext executionContext = new ExecutionContext(
 			rootKaleoInstanceToken, workflowContext, serviceContext);
 
-		TransactionCommitCallbackUtil.registerCallback(
+		TransactionCallbackUtil.registerCommitCallback(
 			() -> {
-				try {
+				try (SafeCloseable safeCloseable =
+						WorkflowThreadLocal.
+							setWaitForCompletionWithSafeCloseable(
+								waitForCompletion)) {
+
 					_kaleoSignaler.signalEntry(
 						transitionName, executionContext, waitForCompletion);
 				}
@@ -160,11 +165,11 @@ public class KaleoInstanceServiceImpl extends KaleoInstanceServiceBaseImpl {
 	private GroupLocalService _groupLocalService;
 
 	@Reference
-	private KaleoDefinitionLocalService _kaleoDefinitionLocalService;
+	private KaleoDefinitionPersistence _kaleoDefinitionPersistence;
 
 	@Reference
-	private KaleoDefinitionVersionLocalService
-		_kaleoDefinitionVersionLocalService;
+	private KaleoDefinitionVersionPersistence
+		_kaleoDefinitionVersionPersistence;
 
 	@Reference
 	private KaleoLogLocalService _kaleoLogLocalService;

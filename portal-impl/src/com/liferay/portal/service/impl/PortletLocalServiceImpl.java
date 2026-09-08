@@ -73,10 +73,14 @@ import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.PortletPreferencesLocalService;
 import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
-import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.permission.PortletPermissionUtil;
+import com.liferay.portal.kernel.service.persistence.CompanyPersistence;
+import com.liferay.portal.kernel.service.persistence.LayoutPersistence;
+import com.liferay.portal.kernel.service.persistence.LayoutRevisionPersistence;
+import com.liferay.portal.kernel.service.persistence.PortletPreferencesPersistence;
+import com.liferay.portal.kernel.service.persistence.RolePersistence;
 import com.liferay.portal.kernel.servlet.ServletContextClassLoaderPool;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -306,8 +310,10 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 			PortletPermissionUtil.getPrimaryKey(plid, portletId));
 
 		List<PortletPreferences> portletPreferencesList =
-			_portletPreferencesLocalService.getPortletPreferences(
-				plid, portletId);
+			_portletPreferencesPersistence.findByP_P(
+				PortletPreferencesPlidUtil.swapPlidForPortletPreferences(
+					plid, _layoutRevisionPersistence, _layoutPersistence),
+				portletId);
 
 		Portlet portlet = getPortletById(companyId, portletId);
 
@@ -436,7 +442,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 		throws PortalException {
 
 		long[] companyIds = ListUtil.toLongArray(
-			_companyLocalService.getCompanies(), Company::getCompanyId);
+			_companyPersistence.findAll(), Company::getCompanyId);
 
 		deployRemotePortlet(
 			companyIds, portlet, categoryNames, eagerDestroy, true);
@@ -502,6 +508,26 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 			portlet = new PortletWrapper(portlet) {
 
 				@Override
+				public int compareTo(Portlet portlet) {
+					return finalPortletId.compareTo(portlet.getPortletId());
+				}
+
+				@Override
+				public boolean equals(Object object) {
+					if (this == object) {
+						return true;
+					}
+
+					if (!(object instanceof Portlet)) {
+						return false;
+					}
+
+					Portlet portlet = (Portlet)object;
+
+					return finalPortletId.equals(portlet.getPortletId());
+				}
+
+				@Override
 				public String getInstanceId() {
 					return PortletIdCodec.decodeInstanceId(finalPortletId);
 				}
@@ -517,8 +543,33 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 				}
 
 				@Override
+				public boolean getStaticEnd() {
+					return !_staticPortletStart;
+				}
+
+				@Override
+				public boolean getStaticStart() {
+					return _staticPortletStart;
+				}
+
+				@Override
+				public long getUserId() {
+					return PortletIdCodec.decodeUserId(finalPortletId);
+				}
+
+				@Override
+				public int hashCode() {
+					return finalPortletId.hashCode();
+				}
+
+				@Override
 				public boolean isStatic() {
 					return _staticPortlet;
+				}
+
+				@Override
+				public boolean isStaticEnd() {
+					return !_staticPortletStart;
 				}
 
 				@Override
@@ -1402,7 +1453,7 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 					continue;
 				}
 
-				Role role = _roleLocalService.fetchRole(
+				Role role = _rolePersistence.fetchByC_N(
 					portlet.getCompanyId(), roleName);
 
 				if (role == null) {
@@ -2979,11 +3030,20 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 	@BeanReference(type = CompanyLocalService.class)
 	private CompanyLocalService _companyLocalService;
 
+	@BeanReference(type = CompanyPersistence.class)
+	private CompanyPersistence _companyPersistence;
+
 	private final AtomicReference<String[]> _friendlyURLMapperRootPortletIds =
 		new AtomicReference<>(new String[0]);
 
 	@BeanReference(type = LayoutLocalService.class)
 	private LayoutLocalService _layoutLocalService;
+
+	@BeanReference(type = LayoutPersistence.class)
+	private LayoutPersistence _layoutPersistence;
+
+	@BeanReference(type = LayoutRevisionPersistence.class)
+	private LayoutRevisionPersistence _layoutRevisionPersistence;
 
 	private PortalCache<String, PortletFriendlyURLMapperMatch>
 		_portletFriendlyURLMapperMatchPortalCache;
@@ -2991,14 +3051,17 @@ public class PortletLocalServiceImpl extends PortletLocalServiceBaseImpl {
 	@BeanReference(type = PortletPreferencesLocalService.class)
 	private PortletPreferencesLocalService _portletPreferencesLocalService;
 
+	@BeanReference(type = PortletPreferencesPersistence.class)
+	private PortletPreferencesPersistence _portletPreferencesPersistence;
+
 	@BeanReference(type = ResourceLocalService.class)
 	private ResourceLocalService _resourceLocalService;
 
 	@BeanReference(type = ResourcePermissionLocalService.class)
 	private ResourcePermissionLocalService _resourcePermissionLocalService;
 
-	@BeanReference(type = RoleLocalService.class)
-	private RoleLocalService _roleLocalService;
+	@BeanReference(type = RolePersistence.class)
+	private RolePersistence _rolePersistence;
 
 	private ServiceTracker<FriendlyURLMapper, String[]> _serviceTracker;
 	private ServiceTrackerList<Consumer<Long>> _serviceTrackerList;

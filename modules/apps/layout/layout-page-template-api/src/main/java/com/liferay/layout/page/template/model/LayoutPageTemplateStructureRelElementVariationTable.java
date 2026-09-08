@@ -8,6 +8,7 @@ package com.liferay.layout.page.template.model;
 import com.liferay.petra.sql.dsl.Column;
 import com.liferay.petra.sql.dsl.base.BaseTable;
 
+import java.sql.Clob;
 import java.sql.Types;
 
 import java.util.Date;
@@ -74,14 +75,12 @@ public class LayoutPageTemplateStructureRelElementVariationTable
 				"modifiedDate", Date.class, Types.TIMESTAMP,
 				Column.FLAG_DEFAULT);
 	public final Column
-		<LayoutPageTemplateStructureRelElementVariationTable, String>
-			audienceEntryERC = createColumn(
-				"audienceEntryERC", String.class, Types.VARCHAR,
-				Column.FLAG_DEFAULT);
-	public final Column
-		<LayoutPageTemplateStructureRelElementVariationTable, String> hide =
+		<LayoutPageTemplateStructureRelElementVariationTable, Boolean> active =
 			createColumn(
-				"hide", String.class, Types.VARCHAR, Column.FLAG_DEFAULT);
+				"active_", Boolean.class, Types.BOOLEAN, Column.FLAG_DEFAULT);
+	public final Column
+		<LayoutPageTemplateStructureRelElementVariationTable, Clob> hide =
+			createColumn("hide", Clob.class, Types.CLOB, Column.FLAG_DEFAULT);
 	public final Column
 		<LayoutPageTemplateStructureRelElementVariationTable, String> html =
 			createColumn(
@@ -115,4 +114,4 @@ public class LayoutPageTemplateStructureRelElementVariationTable
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1881588054
+// LIFERAY-SERVICE-BUILDER-HASH:-1922794387

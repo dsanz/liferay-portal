@@ -9,20 +9,25 @@ import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalServiceUtil;
 import com.liferay.depot.service.DepotEntryServiceUtil;
+import com.liferay.document.library.configuration.DLConfiguration;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItemBuilder;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItemList;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.CreationMenu;
 import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
 import com.liferay.info.constants.InfoDisplayWebKeys;
+import com.liferay.info.localized.InfoLocalizedValue;
 import com.liferay.object.constants.ObjectActionKeys;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
+import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntryFolder;
+import com.liferay.object.service.ObjectDefinitionService;
 import com.liferay.object.service.ObjectEntryFolderLocalServiceUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -32,6 +37,7 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
@@ -41,31 +47,53 @@ import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermi
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.site.cms.site.initializer.constants.CMSWorkflowConstants;
 import com.liferay.site.cms.site.initializer.internal.util.ActionUtil;
 import com.liferay.translation.constants.TranslationPortletKeys;
+import com.liferay.translation.exporter.TranslationInfoItemFieldValuesExporter;
 
 import jakarta.portlet.ActionRequest;
 
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.time.Instant;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimeZone;
 
 /**
  * @author Daniel Sanz
  */
 public class SectionDisplayContextUtil {
+
+	public static void addScheduleDateFDSActionDropdownItems(
+		List<FDSActionDropdownItem> fdsActionDropdownItems,
+		HttpServletRequest httpServletRequest) {
+
+		fdsActionDropdownItems.add(
+			getScheduleDateFDSActionDropdownItem(
+				"update-expiration-date", httpServletRequest));
+		fdsActionDropdownItems.add(
+			getScheduleDateFDSActionDropdownItem(
+				"update-review-date", httpServletRequest));
+	}
 
 	public static String appendGroupIds(
 		String filterString, HttpServletRequest httpServletRequest) {
@@ -117,13 +145,14 @@ public class SectionDisplayContextUtil {
 			httpServletRequest.getAttribute(InfoDisplayWebKeys.INFO_ITEM),
 			rootObjectEntryFolderExternalReferenceCode);
 
-		StringBundler sb = new StringBundler(13);
+		StringBundler sb = new StringBundler(14);
 
 		sb.append("emptySearch=true&filter=");
 
 		if (objectEntryFolder != null) {
 			sb.append("folderId eq ");
 			sb.append(objectEntryFolder.getObjectEntryFolderId());
+			sb.append(" and rootDescendantNode eq false");
 
 			if (objectEntryFolder.getStatus() ==
 					WorkflowConstants.STATUS_IN_TRASH) {
@@ -184,6 +213,9 @@ public class SectionDisplayContextUtil {
 		_addEditCategoriesAndTagsBulkActions(
 			bulkActionDropdownItems, httpServletRequest);
 
+		_addAddAssetsToProjectBulkAction(
+			bulkActionDropdownItems, httpServletRequest);
+
 		bulkActionDropdownItems.add(
 			FDSActionDropdownItemBuilder.setHighlighted(
 				true
@@ -196,6 +228,9 @@ public class SectionDisplayContextUtil {
 			).build(
 				"find-and-replace"
 			));
+
+		_addScheduleDateBulkActionDropdownItems(
+			bulkActionDropdownItems, httpServletRequest);
 
 		_addPermissionsBulkActions(bulkActionDropdownItems, httpServletRequest);
 
@@ -225,7 +260,50 @@ public class SectionDisplayContextUtil {
 				"download"
 			));
 
+		addScheduleDateFDSActionDropdownItems(
+			fdsActionDropdownItems, httpServletRequest);
+
 		return fdsActionDropdownItems;
+	}
+
+	public static String getAutocompleteURL() {
+		return StringBundler.concat(
+			"/o/search/v1.0/search?emptySearch=true&entryClassNames=",
+			"com.liferay.portal.kernel.model.User,",
+			"com.liferay.portal.kernel.model.UserGroup&nestedFields=",
+			"embedded");
+	}
+
+	public static Map<String, String> getCollaboratorURLs(
+		long companyId, ObjectDefinitionService objectDefinitionService,
+		String[] objectFolderExternalReferenceCodes) {
+
+		Map<String, String> collaboratorURLs = new HashMap<>();
+
+		for (ObjectDefinition objectDefinition :
+				objectDefinitionService.getCMSObjectDefinitions(
+					companyId, objectFolderExternalReferenceCodes)) {
+
+			collaboratorURLs.put(
+				objectDefinition.getClassName(),
+				StringBundler.concat(
+					"/o", objectDefinition.getRESTContextPath(),
+					"/{objectEntryId}/collaborators"));
+		}
+
+		collaboratorURLs.put(
+			ObjectEntryFolder.class.getName(),
+			"/o/headless-object/v1.0/object-entry-folders" +
+				"/{objectEntryFolderId}/collaborators");
+
+		return collaboratorURLs;
+	}
+
+	public static String getContentProgressFilterString(
+		HttpServletRequest httpServletRequest) {
+
+		return appendGroupIds(
+			appendStatus(_CMS_CONTENT_FILTER_STRING), httpServletRequest);
 	}
 
 	public static List<DropdownItem> getContentsBulkActionDropdownItems(
@@ -249,6 +327,13 @@ public class SectionDisplayContextUtil {
 
 		_addEditCategoriesAndTagsBulkActions(
 			bulkActionDropdownItems, httpServletRequest);
+
+		_addAddAssetsToProjectBulkAction(
+			bulkActionDropdownItems, httpServletRequest);
+
+		_addScheduleDateBulkActionDropdownItems(
+			bulkActionDropdownItems, httpServletRequest);
+
 		_addPermissionsBulkActions(bulkActionDropdownItems, httpServletRequest);
 
 		return bulkActionDropdownItems;
@@ -257,7 +342,24 @@ public class SectionDisplayContextUtil {
 	public static List<FDSActionDropdownItem> getContentsFDSActionDropdownItems(
 		HttpServletRequest httpServletRequest) {
 
-		return getFDSActionDropdownItems(httpServletRequest);
+		List<FDSActionDropdownItem> fdsActionDropdownItems =
+			getFDSActionDropdownItems(httpServletRequest);
+
+		_addAddToLaunchAction(fdsActionDropdownItems, httpServletRequest);
+
+		addScheduleDateFDSActionDropdownItems(
+			fdsActionDropdownItems, httpServletRequest);
+
+		return fdsActionDropdownItems;
+	}
+
+	public static String getContentViewURL(ThemeDisplay themeDisplay) {
+		return StringBundler.concat(
+			themeDisplay.getPortalURL(), themeDisplay.getPathMain(),
+			GroupConstants.CMS_FRIENDLY_URL,
+			"/edit_content_item?p_l_mode=read&p_p_state=",
+			LiferayWindowState.POP_UP, "&redirect=",
+			themeDisplay.getURLCurrent(), "&objectEntryId={embedded.id}");
 	}
 
 	public static CreationMenu getCreationMenu(
@@ -410,6 +512,38 @@ public class SectionDisplayContextUtil {
 		}
 
 		return depotEntryGroupIds;
+	}
+
+	public static String getExpiringSoonFilterString(
+		HttpServletRequest httpServletRequest) {
+
+		return appendGroupIds(
+			StringBundler.concat(
+				"dateExpiration gt now() and dateExpiration le ",
+				_getExpirationThresholdDateString(), " and status eq ",
+				WorkflowConstants.STATUS_APPROVED, " and ",
+				_CMS_CONTENT_FILTER_STRING),
+			httpServletRequest);
+	}
+
+	public static JSONObject getExportFileFormatJSONObject(
+		ThemeDisplay themeDisplay,
+		TranslationInfoItemFieldValuesExporter
+			translationInfoItemFieldValuesExporter) {
+
+		return JSONUtil.put(
+			"displayName",
+			() -> {
+				InfoLocalizedValue<String> labelInfoLocalizedValue =
+					translationInfoItemFieldValuesExporter.
+						getLabelInfoLocalizedValue();
+
+				return labelInfoLocalizedValue.getValue(
+					themeDisplay.getLocale());
+			}
+		).put(
+			"mimeType", translationInfoItemFieldValuesExporter.getMimeType()
+		);
 	}
 
 	public static List<FDSActionDropdownItem> getFDSActionDropdownItems(
@@ -639,6 +773,74 @@ public class SectionDisplayContextUtil {
 			));
 	}
 
+	public static Map<String, String> getFileMimeTypeCssClasses(
+		DLConfiguration dlConfiguration) {
+
+		return HashMapBuilder.put(
+			"default", "file-icon-color-0"
+		).putAll(
+			_getFileMimeTypeValues(
+				dlConfiguration.codeFileMimeTypes(), "file-icon-color-7")
+		).putAll(
+			_getFileMimeTypeValues(
+				dlConfiguration.compressedFileMimeTypes(), "file-icon-color-1")
+		).putAll(
+			_getFileMimeTypeValues(
+				ArrayUtil.append(
+					dlConfiguration.multimediaFileMimeTypes(),
+					ContentTypes.
+						APPLICATION_VND_LIFERAY_VIDEO_EXTERNAL_SHORTCUT_HTML),
+				"file-icon-color-3")
+		).putAll(
+			_getFileMimeTypeValues(
+				dlConfiguration.presentationFileMimeTypes(),
+				"file-icon-color-4")
+		).putAll(
+			_getFileMimeTypeValues(
+				dlConfiguration.spreadSheetFileMimeTypes(), "file-icon-color-2")
+		).putAll(
+			_getFileMimeTypeValues(
+				dlConfiguration.textFileMimeTypes(), "file-icon-color-6")
+		).putAll(
+			_getFileMimeTypeValues(
+				dlConfiguration.vectorialFileMimeTypes(), "file-icon-color-5")
+		).build();
+	}
+
+	public static Map<String, String> getFileMimeTypeIcons(
+		DLConfiguration dlConfiguration) {
+
+		return HashMapBuilder.put(
+			"default", "document-default"
+		).putAll(
+			_getFileMimeTypeValues(
+				dlConfiguration.codeFileMimeTypes(), "document-code")
+		).putAll(
+			_getFileMimeTypeValues(
+				dlConfiguration.compressedFileMimeTypes(),
+				"document-compressed")
+		).putAll(
+			_getFileMimeTypeValues(
+				dlConfiguration.presentationFileMimeTypes(),
+				"document-presentation")
+		).putAll(
+			_getFileMimeTypeValues(
+				dlConfiguration.spreadSheetFileMimeTypes(), "document-table")
+		).putAll(
+			_getFileMimeTypeValues(
+				dlConfiguration.textFileMimeTypes(), "document-text")
+		).putAll(
+			_getFileMimeTypeValues(
+				dlConfiguration.vectorialFileMimeTypes(), "document-vector")
+		).putAll(
+			_getFileMimeTypeMultimediaCssClasses(
+				ArrayUtil.append(
+					dlConfiguration.multimediaFileMimeTypes(),
+					ContentTypes.
+						APPLICATION_VND_LIFERAY_VIDEO_EXTERNAL_SHORTCUT_HTML))
+		).build();
+	}
+
 	public static List<DropdownItem> getFilesBulkActionDropdownItems(
 		HttpServletRequest httpServletRequest) {
 
@@ -658,6 +860,13 @@ public class SectionDisplayContextUtil {
 
 		_addEditCategoriesAndTagsBulkActions(
 			bulkActionDropdownItems, httpServletRequest);
+
+		_addAddAssetsToProjectBulkAction(
+			bulkActionDropdownItems, httpServletRequest);
+
+		_addScheduleDateBulkActionDropdownItems(
+			bulkActionDropdownItems, httpServletRequest);
+
 		_addPermissionsBulkActions(bulkActionDropdownItems, httpServletRequest);
 
 		return bulkActionDropdownItems;
@@ -707,7 +916,86 @@ public class SectionDisplayContextUtil {
 				"download-folder"
 			));
 
+		addScheduleDateFDSActionDropdownItems(
+			fdsActionDropdownItems, httpServletRequest);
+
 		return fdsActionDropdownItems;
+	}
+
+	public static String getLayoutName(ThemeDisplay themeDisplay) {
+		Layout layout = themeDisplay.getLayout();
+
+		if (layout == null) {
+			return null;
+		}
+
+		return layout.getName(themeDisplay.getLocale(), true);
+	}
+
+	public static JSONArray getLocalesJSONArray(
+		Locale locale, Collection<Locale> locales) {
+
+		return JSONUtil.toJSONArray(
+			locales,
+			currentLocale -> {
+				String w3cLanguageId = LocaleUtil.toW3cLanguageId(
+					currentLocale);
+
+				return JSONUtil.put(
+					"displayName",
+					LocaleUtil.getLocaleDisplayName(currentLocale, locale)
+				).put(
+					"id", LocaleUtil.toLanguageId(currentLocale)
+				).put(
+					"label", w3cLanguageId
+				).put(
+					"languageId", LocaleUtil.toLanguageId(currentLocale)
+				).put(
+					"name", currentLocale.getDisplayName()
+				).put(
+					"symbol",
+					com.liferay.portal.kernel.util.StringUtil.toLowerCase(
+						w3cLanguageId)
+				);
+			},
+			_log);
+	}
+
+	public static List<FDSActionDropdownItem>
+		getNeedsReviewFDSActionDropdownItems(
+			HttpServletRequest httpServletRequest) {
+
+		List<FDSActionDropdownItem> fdsActionDropdownItems =
+			getFDSActionDropdownItems(httpServletRequest);
+
+		addScheduleDateFDSActionDropdownItems(
+			fdsActionDropdownItems, httpServletRequest);
+
+		return fdsActionDropdownItems;
+	}
+
+	public static Map<String, String> getObjectDefinitionCssClasses() {
+		return HashMapBuilder.put(
+			"default", "content-icon-custom-structure"
+		).put(
+			"L_CMS_BASIC_WEB_CONTENT", "content-icon-basic-content"
+		).put(
+			"L_CMS_BLOG", "content-icon-blog"
+		).put(
+			"L_CMS_EXTERNAL_VIDEO", "file-icon-color-3"
+		).build();
+	}
+
+	public static Map<String, String> getObjectDefinitionIcons() {
+		return HashMapBuilder.put(
+			"default", "web-content"
+		).put(
+			"L_CMS_BASIC_WEB_CONTENT", "forms"
+		).put(
+			"L_CMS_BLOG", "blogs"
+		).put(
+			"L_CMS_EXTERNAL_VIDEO", "document-multimedia"
+		).build();
 	}
 
 	public static Map<Long, List<Long>> getObjectEntryFolderIdsMap(
@@ -742,6 +1030,94 @@ public class SectionDisplayContextUtil {
 		}
 
 		return objectEntryFolderIdsMap;
+	}
+
+	public static FDSActionDropdownItem getScheduleDateFDSActionDropdownItem(
+		String actionId, HttpServletRequest httpServletRequest) {
+
+		return FDSActionDropdownItemBuilder.setHref(
+			StringPool.POUND
+		).setIcon(
+			"date-time"
+		).setLabel(
+			LanguageUtil.get(httpServletRequest, actionId)
+		).setPermissionKey(
+			"update"
+		).build(
+			actionId
+		);
+	}
+
+	public static String getUpcomingReviewsFilterString(
+		HttpServletRequest httpServletRequest) {
+
+		return appendGroupIds(
+			appendStatus(
+				StringBundler.concat(
+					"dateReview gt now() and dateReview le ",
+					_getReviewThresholdDateString(httpServletRequest), " and ",
+					_CMS_CONTENT_FILTER_STRING)),
+			httpServletRequest);
+	}
+
+	private static void _addAddAssetsToProjectBulkAction(
+		List<DropdownItem> bulkActionDropdownItems,
+		HttpServletRequest httpServletRequest) {
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				themeDisplay.getCompanyId(), "LPD-58677")) {
+
+			return;
+		}
+
+		bulkActionDropdownItems.add(
+			FDSActionDropdownItemBuilder.setHref(
+				"#"
+			).setIcon(
+				"archive"
+			).setLabel(
+				LanguageUtil.get(httpServletRequest, "add-assets-to-project")
+			).setMethod(
+				"post"
+			).setPermissionKey(
+				"update"
+			).build(
+				"add-assets-to-project"
+			));
+	}
+
+	private static void _addAddToLaunchAction(
+		List<FDSActionDropdownItem> fdsActionDropdownItems,
+		HttpServletRequest httpServletRequest) {
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				themeDisplay.getCompanyId(), "LPD-72278")) {
+
+			return;
+		}
+
+		fdsActionDropdownItems.add(
+			FDSActionDropdownItemBuilder.setHref(
+				"{actions.addToLaunch.href}"
+			).setIcon(
+				"rocket"
+			).setLabel(
+				LanguageUtil.get(httpServletRequest, "add-to-launch")
+			).setMethod(
+				"get"
+			).setPermissionKey(
+				"addToLaunch"
+			).build(
+				"addToLaunch"
+			));
 	}
 
 	private static void _addEditCategoriesAndTagsBulkActions(
@@ -829,6 +1205,32 @@ public class SectionDisplayContextUtil {
 					httpServletRequest, "reset-to-default-permissions")
 			).build(
 				"reset-to-default-permissions"
+			));
+	}
+
+	private static void _addScheduleDateBulkActionDropdownItems(
+		List<DropdownItem> bulkActionDropdownItems,
+		HttpServletRequest httpServletRequest) {
+
+		bulkActionDropdownItems.add(
+			FDSActionDropdownItemBuilder.setHref(
+				StringPool.POUND
+			).setIcon(
+				"date-time"
+			).setLabel(
+				LanguageUtil.get(httpServletRequest, "update-expiration-date")
+			).build(
+				"update-expiration-date"
+			));
+		bulkActionDropdownItems.add(
+			FDSActionDropdownItemBuilder.setHref(
+				StringPool.POUND
+			).setIcon(
+				"date-time"
+			).setLabel(
+				LanguageUtil.get(httpServletRequest, "update-review-date")
+			).build(
+				"update-review-date"
 			));
 	}
 
@@ -990,6 +1392,46 @@ public class SectionDisplayContextUtil {
 		return jsonArray;
 	}
 
+	private static String _getExpirationThresholdDateString() {
+		return Instant.now(
+		).plus(
+			7, ChronoUnit.DAYS
+		).truncatedTo(
+			ChronoUnit.SECONDS
+		).toString();
+	}
+
+	private static Map<String, String> _getFileMimeTypeMultimediaCssClasses(
+		String[] mimeTypes) {
+
+		Map<String, String> fileMimeTypeMultimediaCssClasses = new HashMap<>();
+
+		for (String mimeType : mimeTypes) {
+			if (mimeType.startsWith("image")) {
+				fileMimeTypeMultimediaCssClasses.put(
+					mimeType, "document-image");
+			}
+			else {
+				fileMimeTypeMultimediaCssClasses.put(
+					mimeType, "document-multimedia");
+			}
+		}
+
+		return fileMimeTypeMultimediaCssClasses;
+	}
+
+	private static Map<String, String> _getFileMimeTypeValues(
+		String[] mimeTypes, String value) {
+
+		Map<String, String> fileMimeTypeValues = new HashMap<>();
+
+		for (String mimeType : mimeTypes) {
+			fileMimeTypeValues.put(mimeType, value);
+		}
+
+		return fileMimeTypeValues;
+	}
+
 	private static JSONObject _getJSONObject(long groupId, Locale locale) {
 		Group group = GroupLocalServiceUtil.fetchGroup(groupId);
 
@@ -1122,6 +1564,26 @@ public class SectionDisplayContextUtil {
 		);
 	}
 
+	private static String _getReviewThresholdDateString(
+		HttpServletRequest httpServletRequest) {
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		TimeZone timeZone = themeDisplay.getTimeZone();
+
+		ZonedDateTime zonedDateTime = ZonedDateTime.now(timeZone.toZoneId());
+
+		ZonedDateTime thresholdZonedDateTime = zonedDateTime.plusMonths(1);
+
+		Instant instant = thresholdZonedDateTime.toInstant();
+
+		return instant.truncatedTo(
+			ChronoUnit.SECONDS
+		).toString();
+	}
+
 	private static String[] _getRootObjectEntryFolderExternalReferenceCodes(
 		String rootObjectEntryFolderExternalReferenceCode) {
 
@@ -1134,6 +1596,14 @@ public class SectionDisplayContextUtil {
 
 		return new String[] {rootObjectEntryFolderExternalReferenceCode};
 	}
+
+	private static final String _CMS_CONTENT_FILTER_STRING =
+		StringBundler.concat(
+			"(cmsSection eq 'contents' or cmsSection eq 'files') and ",
+			"objectDefinitionExternalReferenceCode ne '",
+			ObjectEntryFolderConstants.
+				EXTERNAL_REFERENCE_CODE_OBJECT_ENTRY_FOLDER,
+			"' and rootDescendantNode eq false");
 
 	private static final String _CMS_WORKFLOW_STATUSES_STRING =
 		StringUtil.merge(CMSWorkflowConstants.STATUSES, ", ");

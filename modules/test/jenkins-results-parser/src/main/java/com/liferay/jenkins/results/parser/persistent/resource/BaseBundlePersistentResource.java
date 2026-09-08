@@ -13,6 +13,8 @@ import com.liferay.jenkins.results.parser.JenkinsAPIUtil;
 import com.liferay.jenkins.results.parser.JenkinsCohort;
 import com.liferay.jenkins.results.parser.JenkinsMaster;
 import com.liferay.jenkins.results.parser.JenkinsResultsParserUtil;
+import com.liferay.jenkins.results.parser.ReinvokeRule;
+import com.liferay.jenkins.results.parser.SlaveOfflineRule;
 import com.liferay.jenkins.results.parser.SubrepositoryWorkspace;
 import com.liferay.jenkins.results.parser.TopLevelBuild;
 import com.liferay.jenkins.results.parser.Workspace;
@@ -239,13 +241,31 @@ public abstract class BaseBundlePersistentResource
 				_redispatchHistoryJSONArray = new JSONArray();
 			}
 
-			if (getStatus() == Status.FAILED) {
-				if (_redispatchAttempts < _MAX_REDISPATCH_ATTEMPTS) {
+			Status status = getStatus();
+
+			if (status == Status.FAILED) {
+				if (_isTransientFailure(_build) ||
+					(_redispatchAttempts < _MAX_REDISPATCH_ATTEMPTS)) {
+
 					_redispatchBuild(dataJSONObject);
 				}
 				else {
 					print("No redispatch attempts remaining");
 				}
+
+				return;
+			}
+
+			if (((status == Status.NOT_STARTED) ||
+				 (status == Status.IN_QUEUE) ||
+				 (status == Status.IN_PROGRESS)) &&
+				_isControllerBuildFinished()) {
+
+				print(
+					"Redispatching bundles after controller build completed " +
+						"at " + getControllerBuildURL());
+
+				_redispatchBuild(dataJSONObject);
 
 				return;
 			}
@@ -266,6 +286,21 @@ public abstract class BaseBundlePersistentResource
 		}
 
 		Status status = getStatus();
+
+		if (status == Status.NOT_STARTED) {
+			if (_transientReinvocationCount <
+					_MAX_TRANSIENT_REINVOCATION_COUNT) {
+
+				_transientReinvocationCount++;
+
+				start();
+			}
+			else {
+				print("No transient reinvocation attempts remaining");
+			}
+
+			return;
+		}
 
 		if (status == Status.IN_QUEUE) {
 			JenkinsMaster producerJenkinsMaster = getProducerJenkinsMaster();
@@ -350,7 +385,18 @@ public abstract class BaseBundlePersistentResource
 					return;
 				}
 
-				setStatus(Status.FAILED);
+				if (_isTransientFailure(_build)) {
+					print(
+						"Resetting bundles after transient failure in " +
+							getProducerBuildURL());
+
+					_failCount = 0;
+
+					setStatus(Status.NOT_STARTED);
+				}
+				else {
+					setStatus(Status.FAILED);
+				}
 			}
 
 			save();
@@ -410,6 +456,48 @@ public abstract class BaseBundlePersistentResource
 		return producerJenkinsMaster.getRemoteURL() + "job/" + _JOB_NAME;
 	}
 
+	private Map<String, String> _getTopLevelJenkinsBuildParameters() {
+		Map<String, String> jenkinsBuildParameters = new HashMap<>();
+
+		String currentTopLevelBuildURL = getCurrentTopLevelBuildURL();
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(currentTopLevelBuildURL)) {
+			return jenkinsBuildParameters;
+		}
+
+		Map<String, String> buildParameters;
+
+		try {
+			buildParameters = JenkinsResultsParserUtil.getBuildParameters(
+				currentTopLevelBuildURL);
+		}
+		catch (RuntimeException runtimeException) {
+			print(
+				"WARNING: Unable to get build parameters from " +
+					currentTopLevelBuildURL);
+
+			return jenkinsBuildParameters;
+		}
+
+		for (Map.Entry<String, String> entry : buildParameters.entrySet()) {
+			String name = entry.getKey();
+
+			if (!name.startsWith("JENKINS_GITHUB_")) {
+				continue;
+			}
+
+			String value = entry.getValue();
+
+			if (JenkinsResultsParserUtil.isNullOrEmpty(value)) {
+				continue;
+			}
+
+			jenkinsBuildParameters.put(name, value);
+		}
+
+		return jenkinsBuildParameters;
+	}
+
 	private void _invokeBuild() {
 		setControllerBuildURL(getCurrentTopLevelBuildURL());
 
@@ -446,6 +534,8 @@ public abstract class BaseBundlePersistentResource
 			buildParameters.put(startPropertyName, startPropertyValue);
 		}
 
+		buildParameters.putAll(_getTopLevelJenkinsBuildParameters());
+
 		buildParameters.put("AXIS_VARIABLE", _getAxisVariable());
 		buildParameters.put("BUILD_PRIORITY", _BUILD_PRIORITY);
 		buildParameters.put("JOB_VARIANT", _JOB_VARIANT);
@@ -459,6 +549,42 @@ public abstract class BaseBundlePersistentResource
 		setStatus(Status.IN_QUEUE);
 
 		save();
+	}
+
+	private boolean _isControllerBuildFinished() {
+		String controllerBuildURL = getControllerBuildURL();
+
+		if (!JenkinsResultsParserUtil.isURL(controllerBuildURL)) {
+			return false;
+		}
+
+		JSONObject apiJSONObject = JenkinsAPIUtil.getAPIJSONObject(
+			controllerBuildURL, "result");
+
+		return !JenkinsResultsParserUtil.isNullOrEmpty(
+			apiJSONObject.optString("result"));
+	}
+
+	private boolean _isTransientFailure(Build build) {
+		if (build == null) {
+			return false;
+		}
+
+		for (ReinvokeRule reinvokeRule : ReinvokeRule.getReinvokeRules()) {
+			if (reinvokeRule.matches(build)) {
+				return true;
+			}
+		}
+
+		for (SlaveOfflineRule slaveOfflineRule :
+				SlaveOfflineRule.getSlaveOfflineRules()) {
+
+			if (slaveOfflineRule.matches(build)) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	private void _redispatchBuild(JSONObject cachedDataJSONObject) {
@@ -563,6 +689,9 @@ public abstract class BaseBundlePersistentResource
 		else if (Objects.equals(producerBuildURL, _build.getBuildURL())) {
 			return;
 		}
+		else {
+			_build.reset();
+		}
 
 		_build.setBuildURL(producerBuildURL);
 
@@ -598,6 +727,8 @@ public abstract class BaseBundlePersistentResource
 
 	private static final int _MAX_REDISPATCH_ATTEMPTS = 1;
 
+	private static final int _MAX_TRANSIENT_REINVOCATION_COUNT = 2;
+
 	private static final long _REDISPATCH_VERIFY_TIME = 1000 * 10;
 
 	private static final Pattern _baseInvocationURLPattern = Pattern.compile(
@@ -609,6 +740,7 @@ public abstract class BaseBundlePersistentResource
 	private int _redispatchAttempts;
 	private JSONArray _redispatchHistoryJSONArray = new JSONArray();
 	private final TopLevelBuild _topLevelBuild;
+	private int _transientReinvocationCount;
 	private Workspace _workspace;
 
 }

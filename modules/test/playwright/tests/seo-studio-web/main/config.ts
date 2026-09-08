@@ -4,6 +4,7 @@
  */
 
 export const config = {
+	dependencies: ['seo-studio-site.main'],
 	name: 'seo-studio-web.main',
 	testDir: 'tests/seo-studio-web/main',
 };

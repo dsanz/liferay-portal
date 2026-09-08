@@ -1,0 +1,150 @@
+release:
+    name: my-release
+    namespace: argocd-system
+set:
+    clusterSecretStore:
+        name: liferay-test-secret-store
+suite: Helm Parameters
+templates:
+    -   templates/application-infrastructure-provider.yaml
+    -   templates/application-observability.yaml
+    -   templates/applicationset-infrastructure.yaml
+    -   templates/applicationset-liferay.yaml
+    -   templates/applicationset-resources.yaml
+tests:
+    -   asserts:
+            -   contains:
+                    content:
+                        name: global.azure.prometheusWorkspaceEndpoint
+                        value: https://prometheus.example.test
+                    path: spec.template.spec.sources[0].helm.parameters
+                template: templates/applicationset-liferay.yaml
+        it: Appends the injected parameters to the Liferay applications
+        set:
+            gitops:
+                repository:
+                    url: https://github.com/example/liferay-gitops.git
+            liferay:
+                parameters:
+                    -   name: global.azure.prometheusWorkspaceEndpoint
+                        value: https://prometheus.example.test
+                repoURL: oci://example-registry/liferay-aws
+    -   asserts:
+            -   contains:
+                    content:
+                        name: cloudProvider
+                        value: aws
+                    path: spec.sources[0].helm.parameters
+                template: templates/application-observability.yaml
+            -   contains:
+                    content:
+                        name: namespaceOverride
+                        value: observability
+                    path: spec.sources[0].helm.parameters
+                template: templates/application-observability.yaml
+        it: Appends the injected parameters to the observability application
+        set:
+            observability:
+                enabled: true
+                parameters:
+                    -   name: cloudProvider
+                        value: aws
+    -   asserts:
+            -   contains:
+                    content:
+                        name: global.projectId
+                        value: "{{path[2]}}"
+                    path: spec.template.spec.sources[0].helm.parameters
+                template: templates/applicationset-liferay.yaml
+            -   contains:
+                    content:
+                        name: liferay-default.environmentId
+                        value: "{{path[4]}}"
+                    path: spec.template.spec.sources[0].helm.parameters
+                template: templates/applicationset-liferay.yaml
+        it: Computes parameters for the Liferay applications
+        set:
+            gitops:
+                repository:
+                    url: https://github.com/example/liferay-gitops.git
+            liferay:
+                repoURL: oci://example-registry/liferay-aws
+    -   asserts:
+            -   contains:
+                    content:
+                        name: clusterSecretStoreName
+                        value: liferay-test-secret-store
+                    path: spec.template.spec.sources[0].helm.parameters
+                template: templates/applicationset-infrastructure.yaml
+            -   contains:
+                    content:
+                        name: projectId
+                        value: "{{path[2]}}"
+                    path: spec.template.spec.sources[0].helm.parameters
+                template: templates/applicationset-resources.yaml
+        it: Computes parameters for the infrastructure applications
+        set:
+            deploymentContext:
+                deploymentName: liferay-test
+            infrastructure:
+                repoURL: oci://example-registry/liferay-azure-infrastructure
+    -   asserts:
+            -   contains:
+                    content:
+                        name: deploymentContext.deploymentName
+                        value: liferay-test
+                    path: spec.sources[0].helm.parameters
+                template: templates/application-infrastructure-provider.yaml
+            -   contains:
+                    content:
+                        name: deploymentName
+                        value: liferay-test
+                    path: spec.sources[0].helm.parameters
+                template: templates/application-infrastructure-provider.yaml
+        it: Computes parameters for the infrastructure provider application
+        set:
+            deploymentContext:
+                deploymentName: liferay-test
+            infrastructureProvider:
+                repoURL: oci://example-registry/liferay-aws-infrastructure-provider
+    -   asserts:
+            -   contains:
+                    content:
+                        name: centralHub.argocdURL
+                        value: https://argocd.liferay.test
+                    path: spec.sources[0].helm.parameters
+                template: templates/application-observability.yaml
+        it: Derives the observability ArgoCD URL from a TLS gateway
+        set:
+            argocd:
+                gateway:
+                    enabled: true
+                    hostname: argocd.liferay.test
+                    tls:
+                        externalSecretKey: liferay-certificates-argocd
+            observability:
+                enabled: true
+    -   asserts:
+            -   contains:
+                    content:
+                        name: centralHub.argocdURL
+                        value: http://argocd.liferay.test
+                    path: spec.sources[0].helm.parameters
+                template: templates/application-observability.yaml
+        it: Derives the observability ArgoCD URL from a plain HTTP gateway
+        set:
+            argocd:
+                gateway:
+                    enabled: true
+                    hostname: argocd.liferay.test
+            observability:
+                enabled: true
+    -   asserts:
+            -   equal:
+                    path: spec.sources[0].helm.parameters[0].name
+                    value: centralHub.gitURL
+                template: templates/application-observability.yaml
+        it: Omits the ArgoCD URL from the observability application when the gateway is disabled
+        set:
+            observability:
+                enabled: true

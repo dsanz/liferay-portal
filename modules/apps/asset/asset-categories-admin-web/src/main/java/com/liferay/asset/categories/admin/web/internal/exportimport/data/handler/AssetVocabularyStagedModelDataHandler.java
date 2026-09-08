@@ -11,6 +11,7 @@ import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.model.AssetVocabularyGroupRel;
 import com.liferay.asset.kernel.service.AssetVocabularyGroupRelLocalService;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
+import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryService;
 import com.liferay.exportimport.data.handler.base.BaseStagedModelDataHandler;
@@ -21,7 +22,6 @@ import com.liferay.exportimport.kernel.lar.StagedModelModifiedDateComparator;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.Group;
@@ -177,10 +177,7 @@ public class AssetVocabularyStagedModelDataHandler
 		Group group = _groupLocalService.getGroup(
 			portletDataContext.getScopeGroupId());
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				group.getCompanyId(), "LPD-17564") &&
-			group.isCMS()) {
-
+		if (group.isCMS()) {
 			_exportAssetVocabularyGroupRel(portletDataContext, vocabulary);
 		}
 
@@ -266,16 +263,9 @@ public class AssetVocabularyStagedModelDataHandler
 		importedVocabulary = _assetVocabularyLocalService.updateAssetVocabulary(
 			importedVocabulary);
 
-		Group group = _groupLocalService.getGroup(
-			portletDataContext.getScopeGroupId());
-
-		if (FeatureFlagManagerUtil.isEnabled(
-				group.getCompanyId(), "LPD-17564")) {
-
-			_importAssetVocabularyGroupRel(
-				portletDataContext, vocabulary,
-				importedVocabulary.getVocabularyId());
-		}
+		_importAssetVocabularyGroupRel(
+			portletDataContext, vocabulary,
+			importedVocabulary.getVocabularyId());
 
 		Map<Long, Long> vocabularyIds =
 			(Map<Long, Long>)portletDataContext.getNewPrimaryKeysMap(
@@ -473,7 +463,8 @@ public class AssetVocabularyStagedModelDataHandler
 
 		_assetVocabularyGroupRelLocalService.setAssetVocabularyGroupRels(
 			importedVocabularyId,
-			ListUtil.toLongArray(groupIds, Long::longValue));
+			ListUtil.toLongArray(groupIds, Long::longValue),
+			DepotConstants.TYPE_SPACE);
 	}
 
 	private boolean _validateMissingReference(

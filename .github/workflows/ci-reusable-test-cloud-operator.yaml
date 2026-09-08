@@ -1,0 +1,77 @@
+defaults:
+    run:
+        shell: bash
+        working-directory: cloud/operator/resources
+jobs:
+    test-cloud-operator:
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v4
+            -   name: Set up Go
+                uses: actions/setup-go@v5
+                with:
+                    go-version-file: cloud/operator/resources/go.mod
+            -   name: Set up Java
+                uses: actions/setup-java@v4
+                with:
+                    distribution: temurin
+                    java-version: 21
+            -   name: Check formatting
+                run: |
+                    set -o errexit
+                    set -o nounset
+                    set -o pipefail
+
+                    function main {
+                        local unformatted
+
+                        unformatted=$(gofmt -l .)
+
+                        if [[ -n "${unformatted}" ]]
+                        then
+                            echo "These files are not gofmt formatted:"
+
+                            echo "${unformatted}"
+
+                            exit 1
+                        fi
+                    }
+
+                    main "${@}"
+            -   name: Check generated files are up to date
+                run: |
+                    set -o errexit
+                    set -o nounset
+                    set -o pipefail
+
+                    function main {
+                        "${GITHUB_WORKSPACE}/cloud/operator/go_build.sh" generate
+
+                        local changed
+
+                        changed=$(git -C "${GITHUB_WORKSPACE}" status --porcelain)
+
+                        if [[ -n "${changed}" ]]
+                        then
+                            echo "Generated files are stale. Run './go_build.sh generate' and commit them:"
+
+                            echo "${changed}"
+
+                            git -C "${GITHUB_WORKSPACE}" diff
+
+                            exit 1
+                        fi
+                    }
+
+                    main "${@}"
+            -   name: Test
+                run: |
+                    "${GITHUB_WORKSPACE}/cloud/operator/go_build.sh" test
+            -   name: Vet
+                run: go vet ./...
+on:
+    workflow_call:
+permissions:
+    checks: write
+    contents: read

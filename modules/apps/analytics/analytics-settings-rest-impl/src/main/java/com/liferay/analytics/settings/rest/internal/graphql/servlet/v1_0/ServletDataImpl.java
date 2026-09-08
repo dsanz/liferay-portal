@@ -8,7 +8,6 @@ package com.liferay.analytics.settings.rest.internal.graphql.servlet.v1_0;
 import com.liferay.analytics.settings.rest.internal.graphql.mutation.v1_0.Mutation;
 import com.liferay.analytics.settings.rest.internal.graphql.query.v1_0.Query;
 import com.liferay.analytics.settings.rest.internal.resource.v1_0.ChannelResourceImpl;
-import com.liferay.analytics.settings.rest.internal.resource.v1_0.CommerceChannelResourceImpl;
 import com.liferay.analytics.settings.rest.internal.resource.v1_0.ContactAccountGroupResourceImpl;
 import com.liferay.analytics.settings.rest.internal.resource.v1_0.ContactConfigurationResourceImpl;
 import com.liferay.analytics.settings.rest.internal.resource.v1_0.ContactOrganizationResourceImpl;
@@ -19,7 +18,6 @@ import com.liferay.analytics.settings.rest.internal.resource.v1_0.FieldSummaryRe
 import com.liferay.analytics.settings.rest.internal.resource.v1_0.RecommendationConfigurationResourceImpl;
 import com.liferay.analytics.settings.rest.internal.resource.v1_0.SiteResourceImpl;
 import com.liferay.analytics.settings.rest.resource.v1_0.ChannelResource;
-import com.liferay.analytics.settings.rest.resource.v1_0.CommerceChannelResource;
 import com.liferay.analytics.settings.rest.resource.v1_0.ContactAccountGroupResource;
 import com.liferay.analytics.settings.rest.resource.v1_0.ContactConfigurationResource;
 import com.liferay.analytics.settings.rest.resource.v1_0.ContactOrganizationResource;
@@ -67,8 +65,6 @@ public class ServletDataImpl implements ServletData {
 
 		Query.setChannelResourceComponentServiceObjects(
 			_channelResourceComponentServiceObjects);
-		Query.setCommerceChannelResourceComponentServiceObjects(
-			_commerceChannelResourceComponentServiceObjects);
 		Query.setContactAccountGroupResourceComponentServiceObjects(
 			_contactAccountGroupResourceComponentServiceObjects);
 		Query.setContactConfigurationResourceComponentServiceObjects(
@@ -147,17 +143,9 @@ public class ServletDataImpl implements ServletData {
 						new ObjectValuePair<>(
 							FieldResourceImpl.class, "patchFieldAccount"));
 					put(
-						"mutation#patchFieldOrder",
-						new ObjectValuePair<>(
-							FieldResourceImpl.class, "patchFieldOrder"));
-					put(
 						"mutation#patchFieldPeople",
 						new ObjectValuePair<>(
 							FieldResourceImpl.class, "patchFieldPeople"));
-					put(
-						"mutation#patchFieldProduct",
-						new ObjectValuePair<>(
-							FieldResourceImpl.class, "patchFieldProduct"));
 					put(
 						"mutation#updateRecommendationConfiguration",
 						new ObjectValuePair<>(
@@ -168,11 +156,6 @@ public class ServletDataImpl implements ServletData {
 						"query#channels",
 						new ObjectValuePair<>(
 							ChannelResourceImpl.class, "getChannelsPage"));
-					put(
-						"query#commerceChannels",
-						new ObjectValuePair<>(
-							CommerceChannelResourceImpl.class,
-							"getCommerceChannelsPage"));
 					put(
 						"query#contactAccountGroups",
 						new ObjectValuePair<>(
@@ -198,17 +181,9 @@ public class ServletDataImpl implements ServletData {
 						new ObjectValuePair<>(
 							FieldResourceImpl.class, "getFieldsAccountsPage"));
 					put(
-						"query#fieldsOrders",
-						new ObjectValuePair<>(
-							FieldResourceImpl.class, "getFieldsOrdersPage"));
-					put(
 						"query#fieldsPeople",
 						new ObjectValuePair<>(
 							FieldResourceImpl.class, "getFieldsPeoplePage"));
-					put(
-						"query#fieldsProducts",
-						new ObjectValuePair<>(
-							FieldResourceImpl.class, "getFieldsProductsPage"));
 					put(
 						"query#field",
 						new ObjectValuePair<>(
@@ -246,10 +221,6 @@ public class ServletDataImpl implements ServletData {
 		_recommendationConfigurationResourceComponentServiceObjects;
 
 	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
-	private ComponentServiceObjects<CommerceChannelResource>
-		_commerceChannelResourceComponentServiceObjects;
-
-	@Reference(scope = ReferenceScope.PROTOTYPE_REQUIRED)
 	private ComponentServiceObjects<ContactAccountGroupResource>
 		_contactAccountGroupResourceComponentServiceObjects;
 
@@ -270,4 +241,4 @@ public class ServletDataImpl implements ServletData {
 		_siteResourceComponentServiceObjects;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1063422500
+// LIFERAY-REST-BUILDER-HASH:-1344593850

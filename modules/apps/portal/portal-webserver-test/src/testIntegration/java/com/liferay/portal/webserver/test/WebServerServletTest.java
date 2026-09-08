@@ -1,6 +1,6 @@
 /**
  * SPDX-FileCopyrightText: (c) 2024 Liferay, Inc. https://liferay.com
- * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2024-09
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
 package com.liferay.portal.webserver.test;
@@ -158,7 +158,12 @@ public class WebServerServletTest {
 						"promptEnabled", false
 					).build())) {
 
-			_testGetStatus(HttpServletResponse.SC_NOT_FOUND);
+			MockHttpServletResponse mockHttpServletResponse =
+				_serviceRestrictedDocumentRequest();
+
+			Assert.assertEquals(
+				HttpServletResponse.SC_NOT_FOUND,
+				mockHttpServletResponse.getStatus());
 		}
 
 		try (ConfigurationTemporarySwapper configurationTemporarySwapper =
@@ -169,7 +174,15 @@ public class WebServerServletTest {
 						"promptEnabled", true
 					).build())) {
 
-			_testGetStatus(HttpServletResponse.SC_MOVED_TEMPORARILY);
+			MockHttpServletResponse mockHttpServletResponse =
+				_serviceRestrictedDocumentRequest();
+
+			Assert.assertEquals(
+				HttpHeaders.CACHE_CONTROL_NO_CACHE_VALUE,
+				mockHttpServletResponse.getHeader(HttpHeaders.CACHE_CONTROL));
+			Assert.assertEquals(
+				HttpServletResponse.SC_MOVED_TEMPORARILY,
+				mockHttpServletResponse.getStatus());
 		}
 	}
 
@@ -410,7 +423,9 @@ public class WebServerServletTest {
 		return mockHttpServletResponse;
 	}
 
-	private void _testGetStatus(int status) throws Exception {
+	private MockHttpServletResponse _serviceRestrictedDocumentRequest()
+		throws Exception {
+
 		MockHttpServletRequest mockHttpServletRequest =
 			new MockHttpServletRequest();
 
@@ -462,7 +477,7 @@ public class WebServerServletTest {
 		_webServerServlet.service(
 			mockHttpServletRequest, mockHttpServletResponse);
 
-		Assert.assertEquals(status, mockHttpServletResponse.getStatus());
+		return mockHttpServletResponse;
 	}
 
 	private void _testService(String requestURI) throws Exception {
@@ -479,14 +494,15 @@ public class WebServerServletTest {
 		_webServerServlet.service(
 			mockHttpServletRequest, mockHttpServletResponse);
 
+		String contentDisposition = mockHttpServletResponse.getHeader(
+			HttpHeaders.CONTENT_DISPOSITION);
+
+		Assert.assertTrue(
+			contentDisposition.startsWith(
+				HttpHeaders.CONTENT_DISPOSITION_ATTACHMENT));
+
 		Assert.assertEquals(
 			HttpServletResponse.SC_OK, mockHttpServletResponse.getStatus());
-		Assert.assertTrue(
-			mockHttpServletResponse.getHeader(
-				HttpHeaders.CONTENT_DISPOSITION
-			).startsWith(
-				HttpHeaders.CONTENT_DISPOSITION_ATTACHMENT
-			));
 	}
 
 	private void _testServiceGroupIdUUID() throws Exception {

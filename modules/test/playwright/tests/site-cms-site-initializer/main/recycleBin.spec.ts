@@ -6,27 +6,26 @@
 import {expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
-import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {addCMSAdministrator} from '../../../utils/addCMSAdministrator';
 import {checkAccessibility} from '../../../utils/checkAccessibility';
 import getRandomString from '../../../utils/getRandomString';
-import performLoginViaApi, {
+import {
+	performLoginViaApi,
 	performUserSwitchViaApi,
 	userData,
 } from '../../../utils/performLogin';
+import {PORTLET_URLS} from '../../../utils/portletUrls';
 import {waitForAlert} from '../../../utils/waitForAlert';
 import {cmsPagesTest} from './fixtures/cmsPagesTest';
+import {spaceSettingsPagesTest} from './fixtures/spaceSettingsPagesTest';
 import {RecycleBinPage} from './pages/RecycleBinPage';
 
 const test = mergeTests(
 	cmsPagesTest,
 	dataApiHelpersTest,
-	featureFlagsTest({
-		'LPD-17564': {enabled: true},
-		'LPD-34594': {enabled: true},
-	}),
-	loginTest()
+	loginTest(),
+	spaceSettingsPagesTest
 );
 
 test.beforeAll(async ({browser}) => {
@@ -34,7 +33,7 @@ test.beforeAll(async ({browser}) => {
 
 	const recycleBinPage = new RecycleBinPage(newPage);
 
-	await performLoginViaApi(newPage, 'test');
+	await performLoginViaApi({page: newPage, screenName: 'test'});
 
 	await recycleBinPage.goto();
 
@@ -278,7 +277,12 @@ test(
 				{first: true}
 			);
 
-			await expect(page.getByText('No Assets Yet')).toBeVisible();
+			await expect(
+				page.getByRole('cell', {name: contentName1})
+			).toBeHidden();
+			await expect(
+				page.getByRole('cell', {name: contentName2})
+			).toBeHidden();
 		});
 	}
 );
@@ -344,11 +348,6 @@ test(
 					'This will permanently delete all items in the recycle bin.'
 				)
 			).toBeVisible();
-
-			await checkAccessibility({
-				page,
-				selectors: ['.modal-content'],
-			});
 
 			await page.getByRole('button', {name: 'Empty Bin'}).click();
 
@@ -1069,9 +1068,114 @@ test(
 );
 
 test(
-	'Space General Settings Recycle Bin panel honors trashEnabled and max age validation',
-	{tag: '@LPD-89104'},
-	async ({apiHelpers, page}) => {
+	'The Recycle Bin filter menu does not offer the extension filter',
+	{tag: '@LPD-95408'},
+	async ({apiHelpers, contentsPage, page, recycleBinPage}) => {
+		const contentName = getRandomString();
+		const spaceName = getRandomString();
+
+		await apiHelpers.headlessAssetLibrary.createAssetLibrary({
+			name: spaceName,
+			settings: {trashEnabled: true},
+			type: 'Space',
+		});
+
+		await apiHelpers.objectEntry.postObjectEntry(
+			{
+				objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+				title: contentName,
+			},
+			'cms/basic-web-contents',
+			spaceName
+		);
+
+		await test.step('Trash the content', async () => {
+			await contentsPage.goto();
+
+			await contentsPage.deleteContent(contentName);
+		});
+
+		await test.step('The filter menu offers Space but not Extension', async () => {
+			await recycleBinPage.goto();
+
+			await expect(
+				page.getByRole('row', {name: contentName})
+			).toBeVisible();
+
+			await page.getByRole('button', {name: 'Filter'}).click();
+
+			await expect(
+				page.getByRole('menuitem', {name: 'Space'})
+			).toBeVisible();
+
+			await expect(
+				page.getByRole('menuitem', {name: 'Extension'})
+			).toBeHidden();
+		});
+	}
+);
+
+test(
+	'The Recycle Bin filter menu groups the filters by type',
+	{tag: '@LPD-95407'},
+	async ({apiHelpers, contentsPage, page, recycleBinPage}) => {
+		const contentName = getRandomString();
+		const spaceName = getRandomString();
+
+		await apiHelpers.headlessAssetLibrary.createAssetLibrary({
+			name: spaceName,
+			settings: {trashEnabled: true},
+			type: 'Space',
+		});
+
+		await apiHelpers.objectEntry.postObjectEntry(
+			{
+				objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+				title: contentName,
+			},
+			'cms/basic-web-contents',
+			spaceName
+		);
+
+		await test.step('Trash the content', async () => {
+			await contentsPage.goto();
+
+			await contentsPage.deleteContent(contentName);
+		});
+
+		await test.step('The filter menu shows the filters grouped', async () => {
+			await recycleBinPage.goto();
+
+			await expect(
+				page.getByRole('row', {name: contentName})
+			).toBeVisible();
+
+			await page.getByRole('button', {name: 'Filter'}).click();
+
+			await expect(
+				page
+					.getByRole('group', {exact: true, name: 'Filter By'})
+					.getByRole('menuitem', {name: 'Space'})
+			).toBeVisible();
+
+			await expect(
+				page
+					.getByRole('group', {name: 'Filter by Date'})
+					.getByRole('menuitem', {name: 'Create Date'})
+			).toBeVisible();
+		});
+	}
+);
+
+test(
+	'The Recycle Bin section is hidden while no Space enables the Recycle Bin',
+	{tag: '@LPD-100081'},
+	async ({
+		apiHelpers,
+		disableOtherSpacesRecycleBin,
+		page,
+		spaceSettingsPage,
+	}) => {
 		const spaceName = getRandomString();
 
 		const space = await apiHelpers.headlessAssetLibrary.createAssetLibrary({
@@ -1080,48 +1184,99 @@ test(
 			type: 'Space',
 		});
 
-		const {classNameId} =
-			await apiHelpers.jsonWebServicesClassName.fetchClassName(
-				'com.liferay.depot.model.DepotEntry'
+		await disableOtherSpacesRecycleBin(space.externalReferenceCode);
+
+		const recycleBinMenuItem = page.getByRole('menuitem', {
+			name: 'Recycle Bin',
+		});
+
+		await test.step('Disabling the Recycle Bin hides the section from the navigation', async () => {
+			await spaceSettingsPage.goto(space.id);
+
+			await spaceSettingsPage.enableRecycleBinCheckbox.uncheck();
+
+			await spaceSettingsPage.saveButton.click();
+
+			await waitForAlert(
+				page,
+				`Success:${spaceName} was saved successfully`
 			);
 
-		await page.goto(`/web/cms/e/space-settings/${classNameId}/${space.id}`);
+			await page.goto(PORTLET_URLS.cmsHome);
 
-		const enableCheckbox = page.getByRole('checkbox', {
-			name: 'Enable Recycle Bin',
+			await expect(recycleBinMenuItem).toBeHidden();
 		});
-		const maxAgeField = page.getByRole('spinbutton', {
-			name: 'Trash Entries Max Age',
+
+		await test.step('Enabling the Recycle Bin turns it visible again in the navigation', async () => {
+			await spaceSettingsPage.goto(space.id);
+
+			await spaceSettingsPage.enableRecycleBinCheckbox.check();
+
+			await spaceSettingsPage.saveButton.click();
+
+			await waitForAlert(
+				page,
+				`Success:${spaceName} was saved successfully`
+			);
+
+			await page.goto(PORTLET_URLS.cmsHome);
+
+			await expect(recycleBinMenuItem).toBeVisible();
 		});
-		const saveButton = page.getByRole('button', {name: 'Save'});
+	}
+);
+
+test(
+	'Space General Settings Recycle Bin panel honors trashEnabled and max age validation',
+	{tag: '@LPD-89104'},
+	async ({apiHelpers, page, spaceSettingsPage}) => {
+		const spaceName = getRandomString();
+
+		const space = await apiHelpers.headlessAssetLibrary.createAssetLibrary({
+			name: spaceName,
+			settings: {},
+			type: 'Space',
+		});
+
+		await spaceSettingsPage.goto(space.id);
 
 		await test.step('Panel renders with the checkbox checked and the max age field visible by default', async () => {
-			await expect(enableCheckbox).toBeChecked();
-			await expect(maxAgeField).toBeVisible();
+			await expect(
+				spaceSettingsPage.enableRecycleBinCheckbox
+			).toBeChecked();
+			await expect(
+				spaceSettingsPage.trashEntriesMaxAgeField
+			).toBeVisible();
 		});
 
 		await test.step('Disabling the bin hides the max age field', async () => {
-			await enableCheckbox.uncheck();
-			await expect(maxAgeField).toBeHidden();
+			await spaceSettingsPage.enableRecycleBinCheckbox.uncheck();
+			await expect(
+				spaceSettingsPage.trashEntriesMaxAgeField
+			).toBeHidden();
 		});
 
 		await test.step('Re-enabling the bin shows the max age field again', async () => {
-			await enableCheckbox.check();
-			await expect(maxAgeField).toBeVisible();
+			await spaceSettingsPage.enableRecycleBinCheckbox.check();
+			await expect(
+				spaceSettingsPage.trashEntriesMaxAgeField
+			).toBeVisible();
 		});
 
 		await test.step('Max age is required when the bin is enabled', async () => {
-			await maxAgeField.fill('');
-			await saveButton.click();
+			await spaceSettingsPage.trashEntriesMaxAgeField.fill('');
+			await spaceSettingsPage.saveButton.click();
 			await expect(
 				page.getByText('This field is required.')
 			).toBeVisible();
 		});
 
 		await test.step('Save succeeds when the bin is disabled with no max age', async () => {
-			await enableCheckbox.uncheck();
-			await expect(maxAgeField).toBeHidden();
-			await saveButton.click();
+			await spaceSettingsPage.enableRecycleBinCheckbox.uncheck();
+			await expect(
+				spaceSettingsPage.trashEntriesMaxAgeField
+			).toBeHidden();
+			await spaceSettingsPage.saveButton.click();
 			await waitForAlert(
 				page,
 				`Success:${spaceName} was saved successfully`

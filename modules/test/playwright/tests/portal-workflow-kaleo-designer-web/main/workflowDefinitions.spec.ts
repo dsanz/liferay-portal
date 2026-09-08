@@ -12,7 +12,7 @@ import {workflowPagesTest} from '../../../fixtures/workflowPagesTest';
 import {clickAndExpectToBeHidden} from '../../../utils/clickAndExpectToBeHidden';
 import getRandomString from '../../../utils/getRandomString';
 import getBasicWebContentStructureId from '../../../utils/structured-content/getBasicWebContentStructureId';
-import {clientExtensionsPageTest} from '../../client-extension-web/main/fixtures/clientExtensionsPageTest';
+import {clientExtensionsPageTest} from '../../client-extension-web/fixtures/clientExtensionsPageTest';
 import {journalPagesTest} from '../../journal-web/main/fixtures/journalPagesTest';
 import {getWorkflowDefinition} from './utils/getWorkflowDefinition';
 
@@ -149,7 +149,7 @@ test('LPD-49034 Custom Workflow Action Client Extension not working when the ass
 		.locator('.list-group-item', {hasText: journalArticleTitle1});
 
 	await expect(async () => {
-		await journalEditArticlePage.openRelatedAsset('Basic Web Content');
+		await journalEditArticlePage.openRelatedAsset();
 
 		await expect(page.getByText('Select Basic Web Content')).toBeVisible({
 			timeout: 3000,

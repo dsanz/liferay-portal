@@ -57,9 +57,6 @@ public class ExportImportToolbarDisplayContext {
 
 		_portletNamespace = PortalUtil.getPortletNamespace(
 			portlet.getRootPortletId());
-
-		_themeDisplay = (ThemeDisplay)httpServletRequest.getAttribute(
-			WebKeys.THEME_DISPLAY);
 	}
 
 	public List<DropdownItem> getActionDropdownItems() {
@@ -90,28 +87,12 @@ public class ExportImportToolbarDisplayContext {
 
 					cmd = Constants.EXPORT;
 					label = "custom-export";
-
-					if (FeatureFlagManagerUtil.isEnabled(
-							_themeDisplay.getCompanyId(), "LPD-57655")) {
-
-						mvcPath = "/revamp/export/new_export.jsp";
-					}
-					else {
-						mvcPath = "/export/new_export/export_layouts.jsp";
-					}
+					mvcPath = "/export/new_export/export_layouts.jsp";
 				}
 				else {
 					cmd = Constants.IMPORT;
 					label = "import";
-
-					if (FeatureFlagManagerUtil.isEnabled(
-							_themeDisplay.getCompanyId(), "LPD-57655")) {
-
-						mvcPath = "/revamp/import/new_import.jsp";
-					}
-					else {
-						mvcPath = "/import/new_import/import_layouts.jsp";
-					}
+					mvcPath = "/import/new_import/import_layouts.jsp";
 				}
 
 				addPrimaryDropdownItem(
@@ -137,7 +118,14 @@ public class ExportImportToolbarDisplayContext {
 							LanguageUtil.get(_httpServletRequest, label));
 					});
 
-				if (Objects.equals(cmd, Constants.EXPORT)) {
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)_httpServletRequest.getAttribute(
+						WebKeys.THEME_DISPLAY);
+
+				if (Objects.equals(cmd, Constants.EXPORT) &&
+					FeatureFlagManagerUtil.isEnabled(
+						themeDisplay.getCompanyId(), "LPD-96546")) {
+
 					List<ExportImportConfiguration> exportImportConfigurations =
 						ExportImportConfigurationLocalServiceUtil.
 							getExportImportConfigurations(
@@ -437,6 +425,5 @@ public class ExportImportToolbarDisplayContext {
 	private final LiferayPortletResponse _liferayPortletResponse;
 	private String _orderByType;
 	private final String _portletNamespace;
-	private final ThemeDisplay _themeDisplay;
 
 }

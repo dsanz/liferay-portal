@@ -1,0 +1,21 @@
+task runGradleTest
+
+repositories {
+	maven {
+		url "repo"
+	}
+}
+
+runGradleTest {
+	dependsOn updateWorkspace
+
+	doLast {
+		File file = new File(projectDir, "evergreen-marker.txt")
+
+		assert file.exists()
+
+		File nestedFile = new File(projectDir, "nested/evergreen-marker.txt")
+
+		assert nestedFile.exists()
+	}
+}

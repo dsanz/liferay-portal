@@ -6,38 +6,66 @@
 package com.liferay.headless.admin.fragment.resource.v1_0.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.depot.constants.DepotConstants;
+import com.liferay.depot.constants.DepotRolesConstants;
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.fragment.exception.DuplicateFragmentCollectionKeyException;
 import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.fragment.service.FragmentCollectionLocalService;
 import com.liferay.headless.admin.fragment.client.dto.v1_0.FragmentSet;
 import com.liferay.headless.admin.fragment.client.pagination.Page;
+import com.liferay.headless.admin.fragment.client.pagination.Pagination;
 import com.liferay.headless.admin.fragment.client.problem.Problem;
+import com.liferay.headless.admin.fragment.client.resource.v1_0.FragmentSetResource;
 import com.liferay.petra.function.UnsafeRunnable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.feature.flag.constants.FeatureFlagConstants;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.servlet.HttpHeaders;
+import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
+import com.liferay.portal.kernel.test.util.FeatureFlagTestUtil;
 import com.liferay.portal.kernel.test.util.HTTPTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.props.test.util.PropsTemporarySwapper;
 import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LogEntry;
 import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.FeatureFlag;
+import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 
 import java.io.InputStream;
 
+import java.text.DateFormat;
+
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -45,6 +73,7 @@ import java.util.Map;
 import java.util.zip.ZipInputStream;
 
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,7 +82,9 @@ import org.junit.runner.RunWith;
 /**
  * @author Rubén Pulido
  */
-@FeatureFlag("LPD-39244")
+@FeatureFlags(
+	featureFlags = {@FeatureFlag("LPD-39244"), @FeatureFlag("LPD-57283")}
+)
 @RunWith(Arquillian.class)
 public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 
@@ -63,6 +94,21 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 		new AggregateTestRule(
 			new LiferayIntegrationTestRule(),
 			PermissionCheckerMethodTestRule.INSTANCE);
+
+	@Before
+	@Override
+	public void setUp() throws Exception {
+		super.setUp();
+
+		FeatureFlagTestUtil.invokeFeatureFlagListeners(
+			TestPropsValues.getCompanyId(), true, "LPD-57283");
+
+		_depotEntry = _addDepotEntry(DepotConstants.TYPE_DESIGN_LIBRARY);
+		_designLibraryOwnerFragmentSetResource =
+			_getDesignLibraryOwnerFragmentSetResource();
+		_userWithoutPermissionsFragmentSetResource =
+			_getUserWithoutPermissionsFragmentSetResource();
+	}
 
 	@Override
 	@Test
@@ -74,6 +120,18 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 
 	@Override
 	@Test
+	@TestInfo("LPD-97408")
+	public void testDeleteDesignLibraryFragmentSet() throws Exception {
+		super.testDeleteDesignLibraryFragmentSet();
+
+		_testDeleteDesignLibraryFragmentSetWithAssetLibraryExternalReferenceCodeProblemException();
+		_testDeleteDesignLibraryFragmentSetWithFeatureFlagDisabledProblemException();
+		_testDeleteDesignLibraryFragmentSetWithSiteExternalReferenceCodeProblemException();
+	}
+
+	@Override
+	@Test
+	@TestInfo("LPD-88395")
 	public void testDeleteSiteFragmentSet() throws Exception {
 		super.testDeleteSiteFragmentSet();
 
@@ -89,37 +147,51 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 				fetchFragmentCollectionByExternalReferenceCode(
 					fragmentSet.getExternalReferenceCode(),
 					testGroup.getGroupId()));
+
+		_testDeleteSiteFragmentSetWithoutPermissionsProblemException();
 	}
 
 	@Override
 	@Test
+	public void testGetDesignLibraryFragmentSet() throws Exception {
+		super.testGetDesignLibraryFragmentSet();
+
+		_testGetDesignLibraryFragmentSetActions();
+	}
+
+	@Override
+	@Test
+	@TestInfo("LPD-88395")
+	public void testGetDesignLibraryFragmentSetsPage() throws Exception {
+		super.testGetDesignLibraryFragmentSetsPage();
+
+		_testGetDesignLibraryFragmentSetsPageAsDesignLibraryOwner();
+		_testGetDesignLibraryFragmentSetsPageWithoutPermissions();
+	}
+
+	@Override
+	@Test
+	@TestInfo("LPD-88395")
+	public void testGetSiteFragmentSet() throws Exception {
+		super.testGetSiteFragmentSet();
+
+		_testGetSiteFragmentSetActions();
+		_testGetSiteFragmentSetWithoutPermissions();
+	}
+
+	@Override
+	@Test
+	@TestInfo("LPD-88395")
 	public void testGetSiteFragmentSetsPage() throws Exception {
 		super.testGetSiteFragmentSetsPage();
 
-		FragmentSet nonmarketplaceFragmentSet = randomFragmentSet();
-
-		nonmarketplaceFragmentSet.setMarketplace(false);
-
-		nonmarketplaceFragmentSet = testGetSiteFragmentSetsPage_addFragmentSet(
-			testGroup.getExternalReferenceCode(), nonmarketplaceFragmentSet);
-
-		FragmentSet marketplaceFragmentSet = randomFragmentSet();
-
-		marketplaceFragmentSet.setMarketplace(true);
-
-		marketplaceFragmentSet = testGetSiteFragmentSetsPage_addFragmentSet(
-			testGroup.getExternalReferenceCode(), marketplaceFragmentSet);
-
-		_assertGetSiteFragmentSetsPageWithFilter(
-			nonmarketplaceFragmentSet, "marketplace eq false",
-			marketplaceFragmentSet);
-		_assertGetSiteFragmentSetsPageWithFilter(
-			marketplaceFragmentSet, "marketplace eq true",
-			nonmarketplaceFragmentSet);
+		_testGetSiteFragmentSetsPage();
+		_testGetSiteFragmentSetsPageWithoutPermissions();
 	}
 
 	@Override
 	@Test
+	@TestInfo("LPD-88395")
 	public void testPostSiteFragmentSet() throws Exception {
 		FragmentSet randomFragmentSet = randomFragmentSet();
 
@@ -135,7 +207,10 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 			postFragmentSet.getExternalReferenceCode());
 
 		_assertProblemException(
-			"BAD_REQUEST", "this-external-reference-code-is-already-in-use",
+			"CONFLICT",
+			_language.get(
+				LocaleUtil.getDefault(),
+				"this-external-reference-code-is-already-in-use"),
 			() -> fragmentSetResource.postSiteFragmentSet(
 				testGroup.getExternalReferenceCode(), duplicateERCFragmentSet));
 
@@ -144,10 +219,13 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 		duplicateKeyFragmentSet.setKey(postFragmentSet.getKey());
 
 		_assertProblemException(
-			"CONFLICT", "a-fragment-set-with-the-key-x-already-exists",
+			"CONFLICT",
+			_language.format(
+				LocaleUtil.getDefault(),
+				"a-fragment-set-with-the-key-x-already-exists",
+				duplicateKeyFragmentSet.getKey()),
 			() -> fragmentSetResource.postSiteFragmentSet(
-				testGroup.getExternalReferenceCode(), duplicateKeyFragmentSet),
-			duplicateKeyFragmentSet.getKey());
+				testGroup.getExternalReferenceCode(), duplicateKeyFragmentSet));
 
 		FragmentSet invalidNameFragmentSet = randomFragmentSet();
 
@@ -156,15 +234,18 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 				RandomTestUtil.randomString());
 
 		_assertProblemException(
-			"BAD_REQUEST", "name-is-invalid",
+			"BAD_REQUEST",
+			_language.get(LocaleUtil.getDefault(), "name-is-invalid"),
 			() -> fragmentSetResource.postSiteFragmentSet(
 				testGroup.getExternalReferenceCode(), invalidNameFragmentSet));
 
 		_testPostSiteFragmentSetBatch();
+		_testPostSiteFragmentSetWithoutPermissionsProblemException();
 	}
 
 	@Override
 	@Test
+	@TestInfo("LPD-88395")
 	public void testPutSiteFragmentSet() throws Exception {
 		FragmentSet fragmentSet = randomFragmentSet();
 
@@ -227,12 +308,15 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 		duplicateKeyFragmentSet.setKey(originalKey);
 
 		_assertProblemException(
-			"CONFLICT", "a-fragment-set-with-the-key-x-already-exists",
+			"CONFLICT",
+			_language.format(
+				LocaleUtil.getDefault(),
+				"a-fragment-set-with-the-key-x-already-exists",
+				duplicateKeyFragmentSet.getKey()),
 			() -> fragmentSetResource.putSiteFragmentSet(
 				testGroup.getExternalReferenceCode(),
 				duplicateKeyFragmentSet.getExternalReferenceCode(),
-				duplicateKeyFragmentSet),
-			duplicateKeyFragmentSet.getKey());
+				duplicateKeyFragmentSet));
 
 		FragmentSet nullNameFragmentSet =
 			testPutSiteFragmentSet_addFragmentSet();
@@ -240,13 +324,16 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 		nullNameFragmentSet.setName((String)null);
 
 		_assertProblemException(
-			"BAD_REQUEST", "name-is-invalid",
+			"BAD_REQUEST",
+			_language.get(LocaleUtil.getDefault(), "name-is-invalid"),
 			() -> fragmentSetResource.putSiteFragmentSet(
 				testGroup.getExternalReferenceCode(),
 				nullNameFragmentSet.getExternalReferenceCode(),
 				nullNameFragmentSet));
 
 		_testPutSiteFragmentSetBatch();
+		_testPutSiteFragmentSetWithDates();
+		_testPutSiteFragmentSetWithoutPermissionsProblemException();
 	}
 
 	@Override
@@ -267,6 +354,71 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 	}
 
 	@Override
+	protected FragmentSet testDeleteDesignLibraryFragmentSet_addFragmentSet()
+		throws Exception {
+
+		FragmentCollection fragmentCollection = _addFragmentCollection(
+			_depotEntry.getGroup());
+
+		return new FragmentSet() {
+			{
+				setExternalReferenceCode(
+					fragmentCollection::getExternalReferenceCode);
+			}
+		};
+	}
+
+	@Override
+	protected String
+			testDeleteDesignLibraryFragmentSet_getDesignLibraryExternalReferenceCode()
+		throws Exception {
+
+		Group group = _depotEntry.getGroup();
+
+		return group.getExternalReferenceCode();
+	}
+
+	@Override
+	protected FragmentSet testGetDesignLibraryFragmentSet_addFragmentSet()
+		throws Exception {
+
+		return _addDesignLibraryFragmentSet(
+			randomFragmentSet(), _depotEntry.getGroup());
+	}
+
+	@Override
+	protected String
+			testGetDesignLibraryFragmentSet_getDesignLibraryExternalReferenceCode()
+		throws Exception {
+
+		Group group = _depotEntry.getGroup();
+
+		return group.getExternalReferenceCode();
+	}
+
+	@Override
+	protected FragmentSet testGetDesignLibraryFragmentSetsPage_addFragmentSet(
+			String designLibraryExternalReferenceCode, FragmentSet fragmentSet)
+		throws Exception {
+
+		return _addDesignLibraryFragmentSet(
+			fragmentSet,
+			_groupLocalService.getGroupByExternalReferenceCode(
+				designLibraryExternalReferenceCode,
+				TestPropsValues.getCompanyId()));
+	}
+
+	@Override
+	protected String
+			testGetDesignLibraryFragmentSetsPage_getDesignLibraryExternalReferenceCode()
+		throws Exception {
+
+		Group group = _depotEntry.getGroup();
+
+		return group.getExternalReferenceCode();
+	}
+
+	@Override
 	protected Map<String, Map<String, String>>
 			testGetSiteFragmentSetsPage_getExpectedActions(
 				String siteExternalReferenceCode)
@@ -282,6 +434,57 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 
 		return fragmentSetResource.postSiteFragmentSet(
 			testGroup.getExternalReferenceCode(), fragmentSet);
+	}
+
+	private DepotEntry _addDepotEntry(int type) throws Exception {
+		return _depotEntryLocalService.addDepotEntry(
+			Collections.singletonMap(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+			null, type,
+			ServiceContextTestUtil.getServiceContext(
+				testGroup.getGroupId(), TestPropsValues.getUserId()));
+	}
+
+	private FragmentSet _addDesignLibraryFragmentSet(
+			FragmentSet fragmentSet, Group group)
+		throws Exception {
+
+		FragmentCollection fragmentCollection =
+			_fragmentCollectionLocalService.addFragmentCollection(
+				fragmentSet.getExternalReferenceCode(),
+				TestPropsValues.getUserId(), group.getGroupId(),
+				fragmentSet.getKey(), fragmentSet.getName(),
+				fragmentSet.getDescription(),
+				GetterUtil.getBoolean(fragmentSet.getMarketplace()),
+				ServiceContextTestUtil.getServiceContext(
+					group.getGroupId(), TestPropsValues.getUserId()));
+
+		return fragmentSetResource.getDesignLibraryFragmentSet(
+			group.getExternalReferenceCode(),
+			fragmentCollection.getExternalReferenceCode());
+	}
+
+	private FragmentCollection _addFragmentCollection(Group group)
+		throws Exception {
+
+		return _fragmentCollectionLocalService.addFragmentCollection(
+			null, TestPropsValues.getUserId(), group.getGroupId(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			ServiceContextTestUtil.getServiceContext(
+				group.getGroupId(), TestPropsValues.getUserId()));
+	}
+
+	private void _assertActionHref(
+		Map<String, Map<String, String>> actions, String content,
+		String... keys) {
+
+		for (String key : keys) {
+			Map<String, String> action = actions.get(key);
+
+			String href = action.get("href");
+
+			Assert.assertTrue(key, href.contains(content));
+		}
 	}
 
 	private void _assertFragmentCollection(FragmentSet fragmentSet, Group group)
@@ -318,8 +521,8 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 	}
 
 	private void _assertProblemException(
-			String status, String titleKey,
-			UnsafeRunnable<Exception> unsafeRunnable, Object... titleArguments)
+			String status, String title,
+			UnsafeRunnable<Exception> unsafeRunnable)
 		throws Exception {
 
 		try {
@@ -331,11 +534,19 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 			Problem problem = problemException.getProblem();
 
 			Assert.assertEquals(status, problem.getStatus());
-			Assert.assertEquals(
-				_language.format(
-					LocaleUtil.getDefault(), titleKey, titleArguments),
-				problem.getTitle());
+			Assert.assertEquals(title, problem.getTitle());
 		}
+	}
+
+	private void _assertProblemExceptionProblemStatus(
+		String status, UnsafeRunnable<Exception> unsafeRunnable) {
+
+		Problem.ProblemException problemException = Assert.assertThrows(
+			Problem.ProblemException.class, unsafeRunnable::run);
+
+		Problem problem = problemException.getProblem();
+
+		Assert.assertEquals(status, problem.getStatus());
 	}
 
 	private String _exportFragmentSetsToJSON(String siteExternalReferenceCode)
@@ -370,6 +581,57 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 		}
 	}
 
+	private FragmentSetResource _getDesignLibraryOwnerFragmentSetResource()
+		throws Exception {
+
+		String password = RandomTestUtil.randomString();
+
+		User user = UserTestUtil.addUser(testCompany, password);
+
+		Group group = _depotEntry.getGroup();
+
+		_userLocalService.addGroupUser(group.getGroupId(), user.getUserId());
+
+		Role role = _roleLocalService.getRole(
+			testCompany.getCompanyId(),
+			DepotRolesConstants.DESIGN_LIBRARY_OWNER);
+
+		_userGroupRoleLocalService.addUserGroupRoles(
+			user.getUserId(), group.getGroupId(),
+			new long[] {role.getRoleId()});
+
+		return FragmentSetResource.builder(
+		).authentication(
+			user.getEmailAddress(), password
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
+		).locale(
+			LocaleUtil.getDefault()
+		).build();
+	}
+
+	private FragmentSetResource _getUserWithoutPermissionsFragmentSetResource()
+		throws Exception {
+
+		String password = RandomTestUtil.randomString();
+
+		User user = UserTestUtil.addUser(testCompany, password);
+
+		_userLocalService.addGroupUser(
+			testGroup.getGroupId(), user.getUserId());
+
+		return FragmentSetResource.builder(
+		).authentication(
+			user.getEmailAddress(), password
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
+		).locale(
+			LocaleUtil.getDefault()
+		).build();
+	}
+
 	private void _testBatchEngineDeleteImportTask() throws Exception {
 		FragmentSet fragmentSet1 = testPostSiteFragmentSet_addFragmentSet(
 			randomFragmentSet());
@@ -397,6 +659,184 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 				fetchFragmentCollectionByExternalReferenceCode(
 					fragmentSet2.getExternalReferenceCode(),
 					irrelevantGroup.getGroupId()));
+	}
+
+	private void _testDeleteDesignLibraryFragmentSetWithAssetLibraryExternalReferenceCodeProblemException()
+		throws Exception {
+
+		DepotEntry assetLibraryDepotEntry = _addDepotEntry(
+			DepotConstants.TYPE_ASSET_LIBRARY);
+
+		Group group = assetLibraryDepotEntry.getGroup();
+
+		_assertProblemException(
+			"BAD_REQUEST", null,
+			() -> fragmentSetResource.deleteDesignLibraryFragmentSet(
+				group.getExternalReferenceCode(),
+				RandomTestUtil.randomString()));
+	}
+
+	private void _testDeleteDesignLibraryFragmentSetWithFeatureFlagDisabledProblemException()
+		throws Exception {
+
+		try (PropsTemporarySwapper propsTemporarySwapper =
+				new PropsTemporarySwapper(
+					FeatureFlagConstants.getKey("LPD-57283"),
+					Boolean.FALSE.toString())) {
+
+			Group group = _depotEntry.getGroup();
+
+			FragmentCollection fragmentCollection = _addFragmentCollection(
+				group);
+
+			_assertProblemException(
+				"BAD_REQUEST",
+				"Feature flag LPD-57283 is disabled for company " +
+					testCompany.getCompanyId(),
+				() -> fragmentSetResource.deleteDesignLibraryFragmentSet(
+					group.getExternalReferenceCode(),
+					fragmentCollection.getExternalReferenceCode()));
+		}
+	}
+
+	private void _testDeleteDesignLibraryFragmentSetWithSiteExternalReferenceCodeProblemException()
+		throws Exception {
+
+		_assertProblemException(
+			"BAD_REQUEST", null,
+			() -> fragmentSetResource.deleteDesignLibraryFragmentSet(
+				testGroup.getExternalReferenceCode(),
+				RandomTestUtil.randomString()));
+	}
+
+	private void _testDeleteSiteFragmentSetWithoutPermissionsProblemException()
+		throws Exception {
+
+		FragmentSet fragmentSet = testGetSiteFragmentSetsPage_addFragmentSet(
+			testGroup.getExternalReferenceCode(), randomFragmentSet());
+
+		_assertProblemExceptionProblemStatus(
+			"FORBIDDEN",
+			() ->
+				_userWithoutPermissionsFragmentSetResource.
+					deleteSiteFragmentSet(
+						testGroup.getExternalReferenceCode(),
+						fragmentSet.getExternalReferenceCode()));
+	}
+
+	private void _testGetDesignLibraryFragmentSetActions() throws Exception {
+		Group group = _depotEntry.getGroup();
+
+		FragmentSet fragmentSet = _addDesignLibraryFragmentSet(
+			randomFragmentSet(), group);
+
+		FragmentSet getFragmentSet =
+			fragmentSetResource.getDesignLibraryFragmentSet(
+				group.getExternalReferenceCode(),
+				fragmentSet.getExternalReferenceCode());
+
+		_assertActionHref(
+			getFragmentSet.getActions(),
+			StringBundler.concat(
+				"/design-libraries/", group.getExternalReferenceCode(),
+				"/fragment-sets/", fragmentSet.getExternalReferenceCode()),
+			"delete", "get");
+	}
+
+	private void _testGetDesignLibraryFragmentSetsPageAsDesignLibraryOwner()
+		throws Exception {
+
+		Group group = _depotEntry.getGroup();
+
+		FragmentSet fragmentSet = _addDesignLibraryFragmentSet(
+			randomFragmentSet(), group);
+
+		Page<FragmentSet> page =
+			_designLibraryOwnerFragmentSetResource.
+				getDesignLibraryFragmentSetsPage(
+					group.getExternalReferenceCode(), null,
+					Pagination.of(1, 10));
+
+		assertContains(fragmentSet, (List<FragmentSet>)page.getItems());
+	}
+
+	private void _testGetDesignLibraryFragmentSetsPageWithoutPermissions()
+		throws Exception {
+
+		Group group = _depotEntry.getGroup();
+
+		_addDesignLibraryFragmentSet(randomFragmentSet(), group);
+
+		Page<FragmentSet> page =
+			_userWithoutPermissionsFragmentSetResource.
+				getDesignLibraryFragmentSetsPage(
+					group.getExternalReferenceCode(), null,
+					Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
+	}
+
+	private void _testGetSiteFragmentSetActions() throws Exception {
+		FragmentSet postFragmentSet = testGetSiteFragmentSet_addFragmentSet();
+
+		FragmentSet getFragmentSet = fragmentSetResource.getSiteFragmentSet(
+			testGetSiteFragmentSet_getSiteExternalReferenceCode(),
+			postFragmentSet.getExternalReferenceCode());
+
+		_assertActionHref(
+			getFragmentSet.getActions(),
+			StringBundler.concat(
+				"/sites/", testGroup.getExternalReferenceCode(),
+				"/fragment-sets/", postFragmentSet.getExternalReferenceCode()),
+			"delete", "get", "replace");
+	}
+
+	private void _testGetSiteFragmentSetsPage() throws Exception {
+		FragmentSet nonmarketplaceFragmentSet = randomFragmentSet();
+
+		nonmarketplaceFragmentSet.setMarketplace(false);
+
+		nonmarketplaceFragmentSet = testGetSiteFragmentSetsPage_addFragmentSet(
+			testGroup.getExternalReferenceCode(), nonmarketplaceFragmentSet);
+
+		FragmentSet marketplaceFragmentSet = randomFragmentSet();
+
+		marketplaceFragmentSet.setMarketplace(true);
+
+		marketplaceFragmentSet = testGetSiteFragmentSetsPage_addFragmentSet(
+			testGroup.getExternalReferenceCode(), marketplaceFragmentSet);
+
+		_assertGetSiteFragmentSetsPageWithFilter(
+			nonmarketplaceFragmentSet, "marketplace eq false",
+			marketplaceFragmentSet);
+		_assertGetSiteFragmentSetsPageWithFilter(
+			marketplaceFragmentSet, "marketplace eq true",
+			nonmarketplaceFragmentSet);
+	}
+
+	private void _testGetSiteFragmentSetsPageWithoutPermissions()
+		throws Exception {
+
+		testGetSiteFragmentSetsPage_addFragmentSet(
+			testGroup.getExternalReferenceCode(), randomFragmentSet());
+
+		Page<FragmentSet> page =
+			_userWithoutPermissionsFragmentSetResource.getSiteFragmentSetsPage(
+				testGroup.getExternalReferenceCode(), null,
+				Pagination.of(1, 10));
+
+		Assert.assertEquals(0, page.getTotalCount());
+	}
+
+	private void _testGetSiteFragmentSetWithoutPermissions() throws Exception {
+		FragmentSet fragmentSet = testGetSiteFragmentSetsPage_addFragmentSet(
+			testGroup.getExternalReferenceCode(), randomFragmentSet());
+
+		_assertProblemExceptionProblemStatus(
+			"NOT_FOUND",
+			() -> _userWithoutPermissionsFragmentSetResource.getSiteFragmentSet(
+				testGroup.getExternalReferenceCode(),
+				fragmentSet.getExternalReferenceCode()));
 	}
 
 	private void _testPostSiteFragmentSetBatch() throws Exception {
@@ -451,6 +891,16 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 		_assertFragmentCollection(fragmentSet2, irrelevantGroup);
 	}
 
+	private void _testPostSiteFragmentSetWithoutPermissionsProblemException()
+		throws Exception {
+
+		_assertProblemExceptionProblemStatus(
+			"FORBIDDEN",
+			() ->
+				_userWithoutPermissionsFragmentSetResource.postSiteFragmentSet(
+					testGroup.getExternalReferenceCode(), randomFragmentSet()));
+	}
+
 	private void _testPutSiteFragmentSetBatch() throws Exception {
 		FragmentSet fragmentSet1 = testPutSiteFragmentSet_addFragmentSet();
 		FragmentSet fragmentSet2 = testPutSiteFragmentSet_addFragmentSet();
@@ -482,6 +932,48 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 
 		_assertFragmentCollection(fragmentSet1, irrelevantGroup);
 		_assertFragmentCollection(putFragmentSet, irrelevantGroup);
+	}
+
+	private void _testPutSiteFragmentSetWithDates() throws Exception {
+		FragmentSet fragmentSet = randomFragmentSet();
+
+		DateFormat dateFormat = DateFormatFactoryUtil.getSimpleDateFormat(
+			"yyyy-MM-dd");
+
+		Date date = dateFormat.parse("2023-01-01");
+
+		fragmentSet.setDateCreated(date);
+		fragmentSet.setDateModified(date);
+
+		FragmentSet putFragmentSet = fragmentSetResource.putSiteFragmentSet(
+			testGroup.getExternalReferenceCode(),
+			fragmentSet.getExternalReferenceCode(), fragmentSet);
+
+		Assert.assertEquals(
+			fragmentSet.getDateCreated(), putFragmentSet.getDateCreated());
+		Assert.assertEquals(
+			fragmentSet.getDateModified(), putFragmentSet.getDateModified());
+
+		fragmentSet.setDateCreated(RandomTestUtil.nextDate());
+		fragmentSet.setDateModified(new Date(date.getTime() + Time.SECOND));
+
+		putFragmentSet = fragmentSetResource.putSiteFragmentSet(
+			testGroup.getExternalReferenceCode(),
+			fragmentSet.getExternalReferenceCode(), fragmentSet);
+
+		Assert.assertEquals(date, putFragmentSet.getDateCreated());
+		Assert.assertEquals(
+			fragmentSet.getDateModified(), putFragmentSet.getDateModified());
+	}
+
+	private void _testPutSiteFragmentSetWithoutPermissionsProblemException()
+		throws Exception {
+
+		_assertProblemExceptionProblemStatus(
+			"FORBIDDEN",
+			() -> _userWithoutPermissionsFragmentSetResource.putSiteFragmentSet(
+				testGroup.getExternalReferenceCode(),
+				RandomTestUtil.randomString(), randomFragmentSet()));
 	}
 
 	private JSONObject _waitForExportFinish(
@@ -525,10 +1017,32 @@ public class FragmentSetResourceTest extends BaseFragmentSetResourceTestCase {
 
 	private static final long _EXPORT_TIMEOUT = 60000;
 
+	@DeleteAfterTestRun
+	private DepotEntry _depotEntry;
+
+	@Inject
+	private DepotEntryLocalService _depotEntryLocalService;
+
+	private FragmentSetResource _designLibraryOwnerFragmentSetResource;
+
 	@Inject
 	private FragmentCollectionLocalService _fragmentCollectionLocalService;
 
 	@Inject
+	private GroupLocalService _groupLocalService;
+
+	@Inject
 	private Language _language;
+
+	@Inject
+	private RoleLocalService _roleLocalService;
+
+	@Inject
+	private UserGroupRoleLocalService _userGroupRoleLocalService;
+
+	@Inject
+	private UserLocalService _userLocalService;
+
+	private FragmentSetResource _userWithoutPermissionsFragmentSetResource;
 
 }

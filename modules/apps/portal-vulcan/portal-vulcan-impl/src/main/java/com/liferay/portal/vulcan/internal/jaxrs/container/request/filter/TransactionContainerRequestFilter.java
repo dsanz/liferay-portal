@@ -9,8 +9,10 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.bean.PortalBeanLocatorUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.transaction.Isolation;
+import com.liferay.portal.kernel.transaction.Propagation;
+import com.liferay.portal.kernel.transaction.TransactionDefinition;
 import com.liferay.portal.kernel.transaction.Transactional;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.spring.transaction.TransactionAttributeAdapter;
 import com.liferay.portal.spring.transaction.TransactionAttributeBuilder;
 import com.liferay.portal.spring.transaction.TransactionExecutor;
@@ -49,39 +51,45 @@ public class TransactionContainerRequestFilter
 	public void filter(ContainerRequestContext containerRequestContext)
 		throws IOException {
 
-		if (GetterUtil.getBoolean(
-				containerRequestContext.getHeaderString(
-					"X-Liferay-Transaction-Disabled"))) {
+		// Without a published transaction executor the persistence layer
+		// cannot open a session, so publish one for every method that can
+		// reach the database
 
-			if (_log.isDebugEnabled()) {
-				_log.debug("Transaction management is disabled");
-			}
+		String method = containerRequestContext.getMethod();
 
+		TransactionAttributeAdapter transactionAttributeAdapter = null;
+
+		if (_writeMethodNames.contains(method)) {
+			transactionAttributeAdapter = _writeTransactionAttributeAdapter;
+		}
+		else if (_readMethodNames.contains(method)) {
+
+			// Read only keeps the session in manual flush mode, so a read
+			// never flushes a dirtied entity, and it lets the read data
+			// source serve the request
+
+			transactionAttributeAdapter = _readTransactionAttributeAdapter;
+		}
+		else {
 			return;
 		}
 
-		if (_transactionRequiredMethodNames.contains(
-				containerRequestContext.getMethod())) {
+		Message message = PhaseInterceptorChain.getCurrentMessage();
 
-			Message message = PhaseInterceptorChain.getCurrentMessage();
+		InterceptorChain interceptorChain = message.getInterceptorChain();
 
-			InterceptorChain interceptorChain = message.getInterceptorChain();
+		TransactionCleanUpMessageObserver transactionCleanUpMessageObserver =
+			new TransactionCleanUpMessageObserver(
+				interceptorChain.getFaultObserver(),
+				transactionAttributeAdapter,
+				_transactionExecutor.start(transactionAttributeAdapter));
 
-			TransactionCleanUpMessageObserver
-				transactionCleanUpMessageObserver =
-					new TransactionCleanUpMessageObserver(
-						interceptorChain.getFaultObserver(),
-						_transactionExecutor.start(
-							_transactionAttributeAdapter));
+		containerRequestContext.setProperty(
+			VulcanConstants.TRANSACTION_CLEAN_UP_MESSAGE_OBSERVER,
+			transactionCleanUpMessageObserver);
 
-			containerRequestContext.setProperty(
-				VulcanConstants.TRANSACTION_CLEAN_UP_MESSAGE_OBSERVER,
-				transactionCleanUpMessageObserver);
-
-			interceptorChain.add(transactionCleanUpMessageObserver);
-			interceptorChain.setFaultObserver(
-				transactionCleanUpMessageObserver);
-		}
+		interceptorChain.add(transactionCleanUpMessageObserver);
+		interceptorChain.setFaultObserver(transactionCleanUpMessageObserver);
 	}
 
 	@Override
@@ -116,16 +124,25 @@ public class TransactionContainerRequestFilter
 	private static final Log _log = LogFactoryUtil.getLog(
 		TransactionContainerRequestFilter.class);
 
+	private static final Set<String> _readMethodNames = new HashSet<>(
+		Arrays.asList("GET", "HEAD"));
 	private static final TransactionAttributeAdapter
-		_transactionAttributeAdapter = new TransactionAttributeAdapter(
+		_readTransactionAttributeAdapter = new TransactionAttributeAdapter(
 			TransactionAttributeBuilder.build(
-				TransactionContainerRequestFilter.class.getAnnotation(
-					Transactional.class)));
+				true, Isolation.DEFAULT, Propagation.SUPPORTS, true,
+				TransactionDefinition.TIMEOUT_DEFAULT,
+				new Class<?>[] {Exception.class}, new String[0],
+				new Class<?>[0], new String[0]));
 	private static final TransactionExecutor _transactionExecutor =
 		(TransactionExecutor)PortalBeanLocatorUtil.locate(
 			"transactionExecutor");
-	private static final Set<String> _transactionRequiredMethodNames =
-		new HashSet<>(Arrays.asList("DELETE", "PATCH", "POST", "PUT"));
+	private static final Set<String> _writeMethodNames = new HashSet<>(
+		Arrays.asList("DELETE", "PATCH", "POST", "PUT"));
+	private static final TransactionAttributeAdapter
+		_writeTransactionAttributeAdapter = new TransactionAttributeAdapter(
+			TransactionAttributeBuilder.build(
+				TransactionContainerRequestFilter.class.getAnnotation(
+					Transactional.class)));
 
 	private static class TransactionCleanUpMessageObserver
 		extends AbstractPhaseInterceptor implements MessageObserver {
@@ -184,16 +201,19 @@ public class TransactionContainerRequestFilter
 
 		private TransactionCleanUpMessageObserver(
 			MessageObserver messageObserver,
+			TransactionAttributeAdapter transactionAttributeAdapter,
 			TransactionStatusAdapter transactionStatusAdapter) {
 
 			super(Phase.POST_INVOKE);
 
 			_messageObserver = messageObserver;
+			_transactionAttributeAdapter = transactionAttributeAdapter;
 			_transactionStatusAdapter = transactionStatusAdapter;
 		}
 
 		private boolean _complete;
 		private final MessageObserver _messageObserver;
+		private final TransactionAttributeAdapter _transactionAttributeAdapter;
 		private final TransactionStatusAdapter _transactionStatusAdapter;
 
 	}

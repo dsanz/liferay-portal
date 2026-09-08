@@ -13,6 +13,7 @@ spec:
         region: {{ .Values.backup.region | quote }}
         retentionDays: {{ .Values.backup.retentionDays }}
         storageClass: {{ .Values.backup.storageClass | quote }}
+        vaultTags: {{ .Values.backup.vaultTags | default dict | toYaml | nindent 12 }}
     cmk: {{ .Values.cmk | toYaml | nindent 8 }}
     commonTags:
         environment_id: {{ .Values.environmentId }}
@@ -24,8 +25,8 @@ spec:
     environmentId: {{ .Values.environmentId }}
     forceDestroy: {{ .Values.forceDestroy }}
     orphanOnDelete: {{ .Values.orphanOnDelete }}
-    overlay:
-        enabled: {{ .Values.overlay.enabled }}
+    overlayAccess:
+        enabled: {{ .Values.overlayAccess.enabled }}
     projectId: {{ .Values.projectId }}
     region: {{ .Values.region }}
     storage: {{ .Values.storage | toYaml | nindent 8 }}

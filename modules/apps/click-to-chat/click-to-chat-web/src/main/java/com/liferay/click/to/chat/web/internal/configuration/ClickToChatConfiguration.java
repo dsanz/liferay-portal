@@ -28,6 +28,7 @@ public interface ClickToChatConfiguration {
 
 	public String chatProviderKeyId();
 
+	@Meta.AD(required = false, type = Meta.Type.Password)
 	public String chatProviderSecretKey();
 
 	public boolean enabled();

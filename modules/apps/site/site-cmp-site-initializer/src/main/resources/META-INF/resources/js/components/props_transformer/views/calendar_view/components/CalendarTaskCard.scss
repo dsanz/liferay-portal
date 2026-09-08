@@ -1,0 +1,137 @@
+@import 'atlas-variables';
+
+.lfr__cmp-calendar-task-card {
+	align-items: center;
+	border: 1px solid $border-color;
+	border-radius: 0.5rem;
+	color: $body-color;
+	display: flex;
+	gap: 0.25rem;
+	height: 2rem;
+	padding: 0.25rem 0.5rem;
+	width: 100%;
+
+	// Hidden by default so it reserves no space. The doubled class outspecifies
+	// Clay's `.btn-monospaced { display: inline-flex }`. It stays in the DOM (not
+	// removed) so it remains focusable: tabbing to the card reveals it through
+	// `:focus-within`, which puts it in the tab order as the next stop.
+
+	& &-actions {
+		display: none;
+		flex-shrink: 0;
+	}
+
+	& &-actions[aria-expanded='true'],
+	&:focus-within &-actions,
+	&:hover &-actions {
+		display: inline-flex;
+	}
+
+	&-assignee {
+		flex-shrink: 0;
+	}
+
+	&-clickable {
+		cursor: pointer;
+
+		&:hover {
+			border-color: $secondary-l0;
+			box-shadow: $card-hover-box-shadow;
+		}
+	}
+
+	.fc-event-dragging & {
+		border-color: $primary-l1;
+	}
+
+	&-expanded {
+		align-items: stretch;
+		flex-direction: column;
+		gap: 0.5rem;
+		height: auto;
+		padding: 0.5rem;
+	}
+
+	&-footer,
+	&-header {
+		align-items: center;
+		display: flex;
+		gap: 0.25rem;
+	}
+
+	&-header {
+		min-height: 2rem;
+	}
+
+	&-header &-title {
+		flex-grow: 1;
+	}
+
+	&-footer {
+		align-items: flex-start;
+		justify-content: space-between;
+	}
+
+	&-footer > div:first-child {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem;
+		min-width: 0;
+	}
+
+	&-footer .label-item {
+		display: block;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	&-footer-end {
+		align-items: center;
+		display: flex;
+		flex-shrink: 0;
+		gap: 0.25rem;
+	}
+
+	&-icon {
+		flex-shrink: 0;
+		font-size: 1rem;
+		margin-top: 0;
+	}
+
+	&-icon-blocked {
+		color: $danger;
+	}
+
+	&-icon-overdue {
+		color: $warning;
+	}
+
+	&-state-blocked {
+		background-color: $danger-l2;
+	}
+
+	&-state-done {
+		background-color: $success-l2;
+	}
+
+	&-state-inProgress {
+		background-color: $info-l2;
+	}
+
+	&-state-notStarted {
+		background-color: $white;
+	}
+
+	&-state-overdue {
+		background-color: $warning-l2;
+	}
+
+	&-title {
+		flex-grow: 1;
+		font-size: map-get($font-scale, 2);
+		font-weight: $font-weight-normal;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+}

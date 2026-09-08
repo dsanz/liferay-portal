@@ -21,6 +21,7 @@ import {performUserSwitch, userData} from '../../../utils/performLogin';
 import {waitForAlert} from '../../../utils/waitForAlert';
 import {generateObjectEntryValues} from '../utils/generateObjectEntry';
 import {generateObjectFields} from '../utils/generateObjectFields';
+import {getFreshObjectRelationshipName} from '../utils/getFreshObjectRelationshipName';
 import getRandomObjectFieldText from '../utils/getRandomObjectFieldText';
 
 export const test = mergeTests(
@@ -284,9 +285,13 @@ test.describe('Manage custom layouts through object layout tab', () => {
 				await apiHelpers.buildRestClient(ObjectRelationshipAPI);
 
 			const objectRelationshipName1 =
-				'objectRelationshipName' + Math.floor(Math.random() * 99);
+				await getFreshObjectRelationshipName(apiHelpers, [
+					objectDefinition.externalReferenceCode!,
+				]);
 			const objectRelationshipName2 =
-				'objectRelationshipName' + Math.floor(Math.random() * 99);
+				await getFreshObjectRelationshipName(apiHelpers, [
+					objectDefinition.externalReferenceCode!,
+				]);
 
 			const {body: objectRelationship1} =
 				await objectRelationshipAPIClient.postObjectDefinitionByExternalReferenceCodeObjectRelationship(
@@ -533,9 +538,10 @@ test.describe('Manage custom layouts through object layout tab', () => {
 					label: {
 						en_US: 'objectRelationshipLabel' + getRandomInt(),
 					},
-					name:
-						'objectRelationshipName' +
-						Math.floor(Math.random() * 99),
+					name: await getFreshObjectRelationshipName(apiHelpers, [
+						objectDefinition.externalReferenceCode!,
+						objectDefinition2.externalReferenceCode!,
+					]),
 					objectDefinitionExternalReferenceCode1:
 						objectDefinition.externalReferenceCode,
 					objectDefinitionExternalReferenceCode2:
@@ -569,7 +575,7 @@ test.describe('Manage custom layouts through object layout tab', () => {
 
 		const objectLayoutRelTabName = getRandomString();
 
-		await objectLayoutsPage.createObjectRelationshipTab(
+		const {reload} = await objectLayoutsPage.createObjectRelationshipTab(
 			objectLayoutName,
 			objectLayoutRelTabName,
 			objectRelationship.label.en_US
@@ -579,6 +585,8 @@ test.describe('Manage custom layouts through object layout tab', () => {
 			page,
 			'Success:The object layout was updated successfully'
 		);
+
+		await reload;
 
 		const objectChildEntry = 'ChildEntry' + getRandomInt();
 
@@ -796,11 +804,9 @@ test.describe('Manage custom layouts through object layout tab', () => {
 
 			await objectLayoutsPage.openObjectLayoutConfiguration(layoutName);
 
-			await objectLayoutsPage.layoutTab.click();
+			await objectLayoutsPage.setObjectLayoutAsDefault();
 
-			await objectLayoutsPage.iframeLocator
-				.getByLabel('Mark as Default')
-				.click();
+			await objectLayoutsPage.layoutTab.click();
 
 			await objectLayoutsPage.createObjectLayoutTab('Field Tab');
 
@@ -909,7 +915,11 @@ test.describe('Manage custom layouts through object layout tab', () => {
 					label: {
 						en_US: 'Relationship' + getRandomInt(),
 					},
-					name: 'relationship' + getRandomInt(),
+					name: await getFreshObjectRelationshipName(
+						apiHelpers,
+						[objectDefinition.externalReferenceCode!],
+						'relationship'
+					),
 					objectDefinitionExternalReferenceCode1:
 						objectDefinition.externalReferenceCode,
 					objectDefinitionExternalReferenceCode2:
@@ -942,7 +952,7 @@ test.describe('Manage custom layouts through object layout tab', () => {
 			objectLayoutTabName: 'Field Tab',
 		});
 
-		await objectLayoutsPage.createObjectRelationshipTab(
+		const {reload} = await objectLayoutsPage.createObjectRelationshipTab(
 			objectLayoutName,
 			'Relationship Tab',
 			objectRelationship.label['en_US']
@@ -952,6 +962,8 @@ test.describe('Manage custom layouts through object layout tab', () => {
 			page,
 			'Success:The object layout was updated successfully'
 		);
+
+		await reload;
 
 		const applicationName =
 			'c/' + objectDefinition.name.toLowerCase() + 's';
@@ -1364,7 +1376,11 @@ test.describe('Manage custom layouts through object layout tab', () => {
 					label: {
 						en_US: 'Relationship' + getRandomInt(),
 					},
-					name: 'relationship' + getRandomInt(),
+					name: await getFreshObjectRelationshipName(
+						apiHelpers,
+						[objectDefinition.externalReferenceCode!],
+						'relationship'
+					),
 					objectDefinitionExternalReferenceCode1:
 						objectDefinition.externalReferenceCode,
 					objectDefinitionExternalReferenceCode2:
@@ -1397,7 +1413,7 @@ test.describe('Manage custom layouts through object layout tab', () => {
 			objectLayoutTabName: 'Field Tab',
 		});
 
-		await objectLayoutsPage.createObjectRelationshipTab(
+		const {reload} = await objectLayoutsPage.createObjectRelationshipTab(
 			objectLayoutName,
 			'Relationship Tab',
 			objectRelationship.label['en_US']
@@ -1407,6 +1423,8 @@ test.describe('Manage custom layouts through object layout tab', () => {
 			page,
 			'Success:The object layout was updated successfully'
 		);
+
+		await reload;
 
 		const applicationName =
 			'c/' + objectDefinition.name.toLowerCase() + 's';

@@ -1,12 +1,12 @@
 Bundle-Name: Liferay Portal Workflow Kaleo Service
 Bundle-SymbolicName: com.liferay.portal.workflow.kaleo.service
-Bundle-Version: 6.0.108
+Bundle-Version: 6.0.111
 Import-Package:\
 	!javax.servlet.*,\
 	\
 	!org.apache.commons.httpclient.*,\
 	\
 	*
-Liferay-Require-SchemaVersion: 4.6.0
+Liferay-Require-SchemaVersion: 4.7.0
 Liferay-Service: true
 -dsannotations-options: inherit

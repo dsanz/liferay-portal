@@ -34,6 +34,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -119,6 +120,8 @@ public abstract class BaseSLAResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -388,7 +391,7 @@ public abstract class BaseSLAResourceTestCase {
 		SLA sla2 = testGetProcessSLAsPage_addSLA(processId, randomSLA());
 
 		page = slaResource.getProcessSLAsPage(
-			processId, null, Pagination.of(1, 10));
+			processId, null, Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -513,17 +516,8 @@ public abstract class BaseSLAResourceTestCase {
 	public void testGraphQLGetProcessSLAsPage() throws Exception {
 		Long processId = testGetProcessSLAsPage_getProcessId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"processSLAs",
-			new HashMap<String, Object>() {
-				{
-					put("processId", processId);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetProcessSLAsPageProcessSLA_getGraphQLField(processId);
 
 		// No namespace
 
@@ -572,6 +566,24 @@ public abstract class BaseSLAResourceTestCase {
 			sla2,
 			Arrays.asList(
 				SLASerDes.toDTOs(processSLAsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetProcessSLAsPageProcessSLA_getGraphQLField(
+				Long processId)
+		throws Exception {
+
+		return new GraphQLField(
+			"processSLAs",
+			new HashMap<String, Object>() {
+				{
+					put("processId", processId);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -2106,4 +2118,4 @@ public abstract class BaseSLAResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1539871616
+// LIFERAY-REST-BUILDER-HASH:1312053522

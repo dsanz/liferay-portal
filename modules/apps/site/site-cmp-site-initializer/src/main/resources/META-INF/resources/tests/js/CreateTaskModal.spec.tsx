@@ -4,13 +4,14 @@
  */
 
 import '@testing-library/jest-dom';
-import {render, waitFor} from '@testing-library/react';
+import {fireEvent, render, waitFor} from '@testing-library/react';
 import React from 'react';
 
 import CreateTaskModal from '../../js/components/modal/CreateTaskModal';
 
 const mockGetAllProjects = jest.fn();
 const mockGetAllStates = jest.fn();
+const mockPostTaskByScope = jest.fn();
 
 jest.mock('@clayui/button', () => {
 	const Button = ({children, ...props}: any) => (
@@ -42,14 +43,30 @@ jest.mock('@clayui/modal', () => {
 });
 
 jest.mock('@liferay/site-cms-site-initializer', () => ({
-	FieldPicker: ({disabled, id, label, selectedKey}: any) => (
+	FieldPicker: ({
+		disabled,
+		id,
+		items,
+		label,
+		onSelectionChange,
+		selectedKey,
+	}: any) => (
 		<div>
 			<label htmlFor={id}>{label}</label>
 
-			<select disabled={disabled} id={id} value={selectedKey}>
+			<select
+				disabled={disabled}
+				id={id}
+				onChange={(event) => onSelectionChange(event.target.value)}
+				value={selectedKey}
+			>
 				<option value="0">Select Project</option>
 
-				<option value="1">Project 1</option>
+				{items.map(({label, value}: any) => (
+					<option key={value} value={value}>
+						{label}
+					</option>
+				))}
 			</select>
 		</div>
 	),
@@ -70,7 +87,7 @@ jest.mock('@liferay/site-cms-site-initializer', () => ({
 jest.mock('../../js/utils/api', () => ({
 	getAllProjects: (...args: any[]) => mockGetAllProjects(...args),
 	getAllStates: (...args: any[]) => mockGetAllStates(...args),
-	postTaskByScope: () => {},
+	postTaskByScope: (...args: any[]) => mockPostTaskByScope(...args),
 }));
 
 jest.mock('../../js/components/StateSelector', () => ({
@@ -84,16 +101,36 @@ jest.mock('../../js/components/StateSelector', () => ({
 	),
 }));
 
-jest.mock('../../js/components/CustomAssignee', () => ({
-	__esModule: true,
-	default: ({onChange, value}: any) => (
-		<input
-			data-testid="custom-assignee"
-			onChange={(event) => onChange({name: event.target.value})}
-			value={value?.name || ''}
-		/>
-	),
-}));
+jest.mock('../../js/components/CustomAssignee', () => {
+	const {useState} = jest.requireActual('react');
+
+	const CustomAssignee = ({
+		cmpProjectObjectEntryId,
+		onChange,
+		readOnly,
+		value: initialValue,
+	}: any) => {
+		const [value, setValue] = useState(initialValue);
+
+		return (
+			<input
+				data-cmp-project-object-entry-id={cmpProjectObjectEntryId}
+				data-testid="custom-assignee"
+				onChange={(event) => {
+					setValue({name: event.target.value});
+					onChange({name: event.target.value});
+				}}
+				readOnly={readOnly}
+				value={value?.name || ''}
+			/>
+		);
+	};
+
+	return {
+		__esModule: true,
+		default: CustomAssignee,
+	};
+});
 
 jest.mock('@liferay/object-js-components-web', () => ({
 	DatePicker: () => {},
@@ -113,6 +150,13 @@ describe('CreateTaskModal', () => {
 							title: 'Project 1',
 						},
 					},
+					{
+						embedded: {
+							id: 2,
+							scopeKey: 'scope-2',
+							title: 'Project 2',
+						},
+					},
 				],
 			},
 		});
@@ -122,17 +166,50 @@ describe('CreateTaskModal', () => {
 				items: [{key: 'in-progress', name: 'In Progress'}],
 			},
 		});
+
+		mockPostTaskByScope.mockResolvedValue({
+			data: {id: 42, title: 'New Task'},
+			error: null,
+		});
 	});
 
-	const renderModal = (projectId?: string) =>
+	const renderModal = (
+		cmpProjectObjectEntryId?: string,
+		props: Partial<React.ComponentProps<typeof CreateTaskModal>> = {}
+	) =>
 		render(
 			<CreateTaskModal
 				closeModal={() => {}}
+				cmpProjectObjectDefinitionId={123}
+				cmpProjectObjectEntryId={cmpProjectObjectEntryId}
 				loadData={() => {}}
-				projectId={projectId}
 				state=""
+				{...props}
 			/>
 		);
+
+	it('disables the assignee field until a project is selected', async () => {
+		const {getByLabelText, getByRole, getByTestId} = renderModal();
+
+		await waitFor(() => {
+			expect(getByRole('option', {name: 'Project 1'})).toBeVisible();
+		});
+
+		expect(getByTestId('custom-assignee')).toHaveAttribute('readonly');
+
+		fireEvent.change(getByLabelText('project'), {target: {value: '1'}});
+
+		await waitFor(() => {
+			expect(getByTestId('custom-assignee')).not.toHaveAttribute(
+				'readonly'
+			);
+		});
+
+		expect(getByTestId('custom-assignee')).toHaveAttribute(
+			'data-cmp-project-object-entry-id',
+			'1'
+		);
+	});
 
 	it('disables the project picker and uses the provided projectId as the initial value', async () => {
 		const {getByLabelText} = renderModal('1');
@@ -158,5 +235,70 @@ describe('CreateTaskModal', () => {
 			expect(projectPicker).not.toBeDisabled();
 			expect(projectPicker.value).toBe('0');
 		});
+	});
+
+	it('inserts the created task into the data set instead of reloading when onItemsChange is provided', async () => {
+		const loadData = jest.fn();
+		const onItemsChange = jest.fn();
+
+		const {getByLabelText, getByText} = renderModal('1', {
+			loadData,
+			onItemsChange,
+		});
+
+		await waitFor(() => {
+			expect(getByLabelText('project')).toBeDisabled();
+		});
+
+		fireEvent.click(getByText('save'));
+
+		await waitFor(() => {
+			expect(onItemsChange).toHaveBeenCalledWith({
+				itemKey: 'embedded.id',
+				items: [{embedded: {id: 42, title: 'New Task'}}],
+			});
+		});
+
+		expect(loadData).not.toHaveBeenCalled();
+	});
+
+	it('reloads the data set when onItemsChange is not provided', async () => {
+		const loadData = jest.fn();
+
+		const {getByLabelText, getByText} = renderModal('1', {loadData});
+
+		await waitFor(() => {
+			expect(getByLabelText('project')).toBeDisabled();
+		});
+
+		fireEvent.click(getByText('save'));
+
+		await waitFor(() => {
+			expect(loadData).toHaveBeenCalled();
+		});
+	});
+
+	it('remounts the assignee field cleared and scoped to the newly selected project', async () => {
+		const {getByLabelText, getByRole, getByTestId} = renderModal();
+
+		await waitFor(() => {
+			expect(getByRole('option', {name: 'Project 1'})).toBeVisible();
+		});
+
+		fireEvent.change(getByLabelText('project'), {target: {value: '1'}});
+
+		fireEvent.change(getByTestId('custom-assignee'), {
+			target: {value: 'Test Assignee'},
+		});
+
+		expect(getByTestId('custom-assignee')).toHaveValue('Test Assignee');
+
+		fireEvent.change(getByLabelText('project'), {target: {value: '2'}});
+
+		expect(getByTestId('custom-assignee')).toHaveValue('');
+		expect(getByTestId('custom-assignee')).toHaveAttribute(
+			'data-cmp-project-object-entry-id',
+			'2'
+		);
 	});
 });

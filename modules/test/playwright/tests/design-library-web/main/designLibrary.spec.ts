@@ -18,8 +18,6 @@ const test = mergeTests(
 	designLibrariesPageTest,
 	featureFlagsTest({
 		'LPD-11235': {enabled: true},
-		'LPD-17564': {enabled: true},
-		'LPD-34594': {enabled: true},
 		'LPD-57283': {enabled: true},
 	}),
 	loginTest()
@@ -526,6 +524,76 @@ test(
 			await checkAccessibility({
 				page,
 				selectors: ['.portlet-body'],
+			});
+		});
+
+		await test.step('Remove created design library', async () => {
+			await apiHelpers.headlessAssetLibrary.deleteAssetLibrary(
+				createdDesignLibrary.externalReferenceCode
+			);
+		});
+	}
+);
+
+test(
+	'Can open the manage members modal from a design library',
+	{tag: '@LPD-79454'},
+	async ({apiHelpers, designLibrariesPage, page}) => {
+		const designLibraryName = getRandomString();
+
+		const manageMembersDialog = page.getByRole('dialog');
+
+		const createdDesignLibrary =
+			await test.step('Create a new design library via headless', async () => {
+				return await apiHelpers.headlessAssetLibrary.createAssetLibrary(
+					{
+						name: designLibraryName,
+						settings: {},
+						type: 'DesignLibrary',
+					}
+				);
+			});
+
+		await test.step('Open the design library actions menu', async () => {
+			await designLibrariesPage.goToDesignLibrary(designLibraryName);
+
+			await page.getByRole('button', {name: 'More Actions'}).click();
+
+			await expect(page.getByRole('menu')).toBeVisible();
+		});
+
+		await test.step('Open the manage members modal from the menu', async () => {
+			await page
+				.getByRole('menu')
+				.getByRole('menuitem', {name: 'Manage Members'})
+				.click();
+
+			await expect(manageMembersDialog).toBeVisible();
+
+			await expect(
+				manageMembersDialog.getByText('Manage Members')
+			).toBeVisible();
+		});
+
+		await test.step('Check the add people to collaborate form and member list', async () => {
+			await expect(
+				manageMembersDialog.getByRole('combobox', {
+					name: 'Add People to Collaborate',
+				})
+			).toBeVisible();
+
+			const membersList = manageMembersDialog.getByRole('list', {
+				name: 'Who Has Access',
+			});
+
+			await expect(membersList).toBeVisible();
+
+			const ownerItem = membersList.getByRole('listitem');
+
+			await expect(ownerItem).toBeVisible();
+
+			expect(ownerItem).toHaveText('Test Test(You)(Owner)', {
+				ignoreCase: true,
 			});
 		});
 

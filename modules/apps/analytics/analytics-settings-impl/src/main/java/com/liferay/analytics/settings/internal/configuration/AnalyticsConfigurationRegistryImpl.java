@@ -380,7 +380,7 @@ public class AnalyticsConfigurationRegistryImpl
 						DISPATCH_TRIGGER_NAME_DXP_ENTITIES);
 			}
 
-			if (_isSyncedCommerceSettingsEnabled(dictionary)) {
+			if (_isSyncedSiteSettingsEnabled(dictionary)) {
 				Collections.addAll(
 					dispatchTriggerNames,
 					AnalyticsDXPEntityBatchExporterConstants.
@@ -614,62 +614,6 @@ public class AnalyticsConfigurationRegistryImpl
 		return false;
 	}
 
-	private boolean _isSyncedCommerceSettingsChanged(
-		Dictionary<String, ?> dictionary) {
-
-		String[] commerceSyncEnabledAnalyticsChannelIds =
-			GetterUtil.getStringValues(
-				dictionary.get("commerceSyncEnabledAnalyticsChannelIds"));
-
-		Arrays.sort(commerceSyncEnabledAnalyticsChannelIds);
-
-		String[] previousCommerceSyncEnabledAnalyticsChannelIds =
-			GetterUtil.getStringValues(
-				dictionary.get(
-					"previousCommerceSyncEnabledAnalyticsChannelIds"));
-
-		Arrays.sort(previousCommerceSyncEnabledAnalyticsChannelIds);
-
-		String[] previousSyncedCommerceChannelIds = GetterUtil.getStringValues(
-			dictionary.get("previousSyncedCommerceChannelIds"));
-
-		Arrays.sort(previousSyncedCommerceChannelIds);
-
-		String[] syncedCommerceChannelIds = GetterUtil.getStringValues(
-			dictionary.get("syncedCommerceChannelIds"));
-
-		Arrays.sort(syncedCommerceChannelIds);
-
-		if (!Arrays.equals(
-				commerceSyncEnabledAnalyticsChannelIds,
-				previousCommerceSyncEnabledAnalyticsChannelIds) ||
-			!Arrays.equals(
-				previousSyncedCommerceChannelIds, syncedCommerceChannelIds)) {
-
-			return true;
-		}
-
-		return false;
-	}
-
-	private boolean _isSyncedCommerceSettingsEnabled(
-		Dictionary<String, ?> dictionary) {
-
-		String[] commerceSyncEnabledAnalyticsChannelIds =
-			GetterUtil.getStringValues(
-				dictionary.get("commerceSyncEnabledAnalyticsChannelIds"));
-		String[] syncedCommerceChannelIds = GetterUtil.getStringValues(
-			dictionary.get("syncedCommerceChannelIds"));
-
-		if ((commerceSyncEnabledAnalyticsChannelIds.length != 0) &&
-			(syncedCommerceChannelIds.length != 0)) {
-
-			return true;
-		}
-
-		return false;
-	}
-
 	private boolean _isSyncedContactSettingsChanged(
 		Dictionary<String, ?> dictionary) {
 
@@ -728,46 +672,29 @@ public class AnalyticsConfigurationRegistryImpl
 		return false;
 	}
 
-	private boolean _isSyncedOrderFieldsChanged(
+	private boolean _isSyncedSiteSettingsChanged(
 		Dictionary<String, ?> dictionary) {
 
-		String[] previousSyncedOrderFieldNames = GetterUtil.getStringValues(
-			dictionary.get("previousSyncedOrderFieldNames"));
+		String[] previousSyncedGroupIds = GetterUtil.getStringValues(
+			dictionary.get("previousSyncedGroupIds"));
 
-		Arrays.sort(previousSyncedOrderFieldNames);
+		Arrays.sort(previousSyncedGroupIds);
 
-		String[] syncedOrderFieldNames = GetterUtil.getStringValues(
-			dictionary.get("syncedOrderFieldNames"));
+		String[] syncedGroupIds = GetterUtil.getStringValues(
+			dictionary.get("syncedGroupIds"));
 
-		Arrays.sort(syncedOrderFieldNames);
+		Arrays.sort(syncedGroupIds);
 
-		if ((previousSyncedOrderFieldNames.length != 0) &&
-			!Arrays.equals(
-				previousSyncedOrderFieldNames, syncedOrderFieldNames)) {
-
-			return true;
-		}
-
-		return false;
+		return !Arrays.equals(previousSyncedGroupIds, syncedGroupIds);
 	}
 
-	private boolean _isSyncedProductFieldsChanged(
+	private boolean _isSyncedSiteSettingsEnabled(
 		Dictionary<String, ?> dictionary) {
 
-		String[] previousSyncedProductFieldNames = GetterUtil.getStringValues(
-			dictionary.get("previousSyncedProductFieldNames"));
+		String[] syncedGroupIds = GetterUtil.getStringValues(
+			dictionary.get("syncedGroupIds"));
 
-		Arrays.sort(previousSyncedProductFieldNames);
-
-		String[] syncedProductFieldNames = GetterUtil.getStringValues(
-			dictionary.get("syncedProductFieldNames"));
-
-		Arrays.sort(syncedProductFieldNames);
-
-		if ((previousSyncedProductFieldNames.length != 0) &&
-			!Arrays.equals(
-				previousSyncedProductFieldNames, syncedProductFieldNames)) {
-
+		if (syncedGroupIds.length != 0) {
 			return true;
 		}
 
@@ -857,8 +784,8 @@ public class AnalyticsConfigurationRegistryImpl
 						DISPATCH_TRIGGER_NAME_DXP_ENTITIES);
 			}
 
-			if (_isSyncedCommerceSettingsChanged(dictionary)) {
-				if (_isSyncedCommerceSettingsEnabled(dictionary)) {
+			if (_isSyncedSiteSettingsChanged(dictionary)) {
+				if (_isSyncedSiteSettingsEnabled(dictionary)) {
 					Collections.addAll(
 						refreshDispatchTriggerNames,
 						AnalyticsDXPEntityBatchExporterConstants.
@@ -871,20 +798,6 @@ public class AnalyticsConfigurationRegistryImpl
 						unscheduleDispatchTriggerNames,
 						AnalyticsDXPEntityBatchExporterConstants.
 							DISPATCH_TRIGGER_NAME_ORDER,
-						AnalyticsDXPEntityBatchExporterConstants.
-							DISPATCH_TRIGGER_NAME_PRODUCT);
-				}
-			}
-
-			if (_isSyncedCommerceSettingsEnabled(dictionary)) {
-				if (_isSyncedOrderFieldsChanged(dictionary)) {
-					refreshDispatchTriggerNames.add(
-						AnalyticsDXPEntityBatchExporterConstants.
-							DISPATCH_TRIGGER_NAME_ORDER);
-				}
-
-				if (_isSyncedProductFieldsChanged(dictionary)) {
-					refreshDispatchTriggerNames.add(
 						AnalyticsDXPEntityBatchExporterConstants.
 							DISPATCH_TRIGGER_NAME_PRODUCT);
 				}
@@ -979,9 +892,7 @@ public class AnalyticsConfigurationRegistryImpl
 					AnalyticsConfiguration.class, dictionary));
 		}
 
-		if (!_initializedCompanyIds.contains(companyId)) {
-			_initializedCompanyIds.add(companyId);
-
+		if (_initializedCompanyIds.add(companyId)) {
 			if (Validator.isNull(dictionary.get("previousToken"))) {
 				_activatedCompanyIds.remove(companyId);
 			}

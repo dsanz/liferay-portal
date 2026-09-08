@@ -29,7 +29,7 @@ import {waitForAlert} from '../../../../utils/waitForAlert';
 import getFragmentDefinition from '../../../layout-content-page-editor-web/main/utils/getFragmentDefinition';
 import getPageDefinition from '../../../layout-content-page-editor-web/main/utils/getPageDefinition';
 import getWidgetDefinition from '../../../layout-content-page-editor-web/main/utils/getWidgetDefinition';
-import {miniumSetUp} from '../../utils/commerce';
+import {createAccountWithBuyerUser, miniumSetUp} from '../../utils/commerce';
 import {getDateFormatted, setFutureDate} from '../../utils/date';
 
 export const test = mergeTests(
@@ -38,7 +38,7 @@ export const test = mergeTests(
 	dataApiHelpersTest,
 	displayPageTemplatesPagesTest,
 	featureFlagsTest({
-		'LPD-20379': {enabled: true},
+		'LPD-89850': {enabled: true},
 		'LPS-178052': {enabled: true},
 	}),
 	globalMenuPagesTest,
@@ -2461,9 +2461,14 @@ test(
 				`${liferayConfig.environment.baseUrl}/web${site.friendlyUrlPath}${layout.friendlyUrlPath}`
 			);
 
-			await expect(commerceMiniCartPage.miniCartButton).toHaveClass(
-				'has-badge mini-cart-opener'
-			);
+			await expect(async () => {
+				await page.reload();
+
+				await expect(commerceMiniCartPage.miniCartButton).toHaveClass(
+					'has-badge mini-cart-opener',
+					{timeout: 5000}
+				);
+			}).toPass({timeout: 30000});
 
 			await commerceMiniCartPage.miniCartButton.click();
 
@@ -2552,5 +2557,38 @@ test(
 				'Success! Your order has been processed.'
 			);
 		});
+	}
+);
+
+test(
+	'Channel-Level Configuration for VAT Validation',
+	{tag: '@LPD-89853'},
+	async ({apiHelpers, checkoutPage, commerceAdminChannelDetailsPage}) => {
+		test.setTimeout(600000);
+
+		const {channel, site} = await miniumSetUp(apiHelpers);
+
+		const {account, buyerUser} = await createAccountWithBuyerUser(
+			apiHelpers,
+			site.id
+		);
+
+		await apiHelpers.headlessCommerceAdminAccount.postAddress(account.id, {
+			countryISOCode: 'IT',
+			defaultBilling: true,
+			defaultShipping: true,
+		});
+
+		for (const validationMode of ['disabled', 'allow-all']) {
+			await commerceAdminChannelDetailsPage.setValidationModeAsAdmin(
+				channel.name,
+				validationMode
+			);
+
+			await checkoutPage.checkoutAsBuyer(
+				site.name,
+				buyerUser.alternateName
+			);
+		}
 	}
 );

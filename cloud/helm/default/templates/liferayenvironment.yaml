@@ -1,0 +1,25 @@
+{{- if .Values.licensing.enabled }}
+apiVersion: licensing.liferay.com/v1alpha1
+kind: LiferayEnvironment
+metadata:
+    labels:
+        app: {{ include "liferay.name" . }}
+        {{- include "liferay.labels" . | nindent 8 }}
+    name: {{ include "liferay.name" . }}
+    namespace: {{ include "liferay.namespace" . }}
+spec:
+    activationCodeSecretRef:
+        key: {{ .Values.license.activationCodeSecretKey }}
+        name: {{ .Values.license.activationCodeSecretName | default (printf "%s-activation" (include "liferay.name" .)) }}
+    {{- if not .Values.autoscaling.enabled }}
+    desiredReplicas: {{ .Values.replicaCount }}
+    {{- end }}
+    {{- if .Values.licensing.offline }}
+    offline: true
+    {{- end }}
+    {{- with .Values.licensing.offlineActivationBundle }}
+    offlineActivationBundle: {{ . | quote }}
+    {{- end }}
+    workloadRef:
+        name: {{ include "liferay.name" . }}
+{{- end }}

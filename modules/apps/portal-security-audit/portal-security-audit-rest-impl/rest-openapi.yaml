@@ -19,6 +19,9 @@ components:
                 contextName:
                     readOnly: true
                     type: string
+                correlationId:
+                    readOnly: true
+                    type: string
                 creator:
                     $ref: ../../headless/headless-delivery/headless-delivery-impl/rest-openapi.yaml#Creator
                     readOnly: true
@@ -40,17 +43,41 @@ components:
                     format: int64
                     readOnly: true
                     type: integer
+                httpMethod:
+                    readOnly: true
+                    type: string
                 id:
                     format: int64
                     readOnly: true
                     type: integer
+                objectName:
+                    readOnly: true
+                    type: string
+                requestId:
+                    readOnly: true
+                    type: string
+                requestIdGenerated:
+                    readOnly: true
+                    type: boolean
+                resourceAction:
+                    readOnly: true
+                    type: string
+                resourceType:
+                    readOnly: true
+                    type: string
+                roles:
+                    readOnly: true
+                    type: string
                 serverName:
+                    readOnly: true
+                    type: string
+                userAgent:
                     readOnly: true
                     type: string
             type: object
 info:
     description:
-        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.portal.security.audit.rest.client', and version '1.0.2'."
+        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.portal.security.audit.rest.client', and version '1.1.0'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html

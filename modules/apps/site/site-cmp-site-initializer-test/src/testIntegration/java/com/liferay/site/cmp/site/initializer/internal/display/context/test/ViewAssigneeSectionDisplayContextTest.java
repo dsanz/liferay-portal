@@ -12,6 +12,7 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.rest.dto.v1_0.Assignee;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.ClassName;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
@@ -50,9 +51,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Carolina Barbosa
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-58677")}
-)
+@FeatureFlags(featureFlags = @FeatureFlag("LPD-58677"))
 @RunWith(Arquillian.class)
 @Sync
 public class ViewAssigneeSectionDisplayContextTest
@@ -69,7 +68,7 @@ public class ViewAssigneeSectionDisplayContextTest
 	public void setUp() throws Exception {
 		super.setUp();
 
-		ObjectDefinition taskObjectDefinition =
+		ObjectDefinition cmpTaskObjectDefinition =
 			_objectDefinitionLocalService.
 				getObjectDefinitionByExternalReferenceCode(
 					"L_CMP_TASK", TestPropsValues.getCompanyId());
@@ -79,19 +78,20 @@ public class ViewAssigneeSectionDisplayContextTest
 
 		serviceContext.setWorkflowAction(WorkflowConstants.ACTION_SAVE_DRAFT);
 
-		_taskObjectEntry = objectEntryLocalService.addObjectEntry(
-			projectObjectEntry.getGroupId(), projectObjectEntry.getUserId(),
-			taskObjectDefinition.getObjectDefinitionId(), 0, null,
+		_cmpTaskObjectEntry = objectEntryLocalService.addObjectEntry(
+			cmpProjectObjectEntry.getGroupId(),
+			cmpProjectObjectEntry.getUserId(),
+			cmpTaskObjectDefinition.getObjectDefinitionId(), 0, null,
 			HashMapBuilder.<String, Serializable>put(
 				"r_cmpProjectToCMPTasks_c_cmpProjectId",
-				projectObjectEntry.getObjectEntryId()
+				cmpProjectObjectEntry.getObjectEntryId()
 			).put(
 				"title", RandomTestUtil.randomString()
 			).build(),
 			serviceContext);
 
 		httpServletRequest.setAttribute(
-			InfoDisplayWebKeys.INFO_ITEM, _taskObjectEntry);
+			InfoDisplayWebKeys.INFO_ITEM, _cmpTaskObjectEntry);
 	}
 
 	@Test
@@ -101,7 +101,9 @@ public class ViewAssigneeSectionDisplayContextTest
 		Assert.assertEquals("Assignee", properties.get("label"));
 		Assert.assertEquals("ObjectField_assignTo", properties.get("name"));
 		Assert.assertEquals(
-			"/o/headless-cmp/v1.0/task-assignees/",
+			StringBundler.concat(
+				"/o/headless-cmp/v1.0/projects/",
+				cmpProjectObjectEntry.getObjectEntryId(), "/task-assignees/"),
 			properties.get("searchURL"));
 		Assert.assertFalse((Boolean)properties.get("usersOnly"));
 		Assert.assertTrue((Boolean)properties.get("visible"));
@@ -119,7 +121,7 @@ public class ViewAssigneeSectionDisplayContextTest
 			).put(
 				"type", Assignee.Type.ROLE.toString()
 			).build(),
-			_taskObjectEntry,
+			_cmpTaskObjectEntry,
 			HashMapBuilder.<String, Serializable>put(
 				"assignTo",
 				HashMapBuilder.put(
@@ -142,7 +144,7 @@ public class ViewAssigneeSectionDisplayContextTest
 			).put(
 				"type", Assignee.Type.USER.toString()
 			).build(),
-			_taskObjectEntry,
+			_cmpTaskObjectEntry,
 			HashMapBuilder.<String, Serializable>put(
 				"assignTo",
 				HashMapBuilder.put(
@@ -169,6 +171,8 @@ public class ViewAssigneeSectionDisplayContextTest
 	@Inject
 	private ClassNameLocalService _classNameLocalService;
 
+	private ObjectEntry _cmpTaskObjectEntry;
+
 	@Inject(
 		filter = "component.name=com.liferay.site.cmp.site.initializer.internal.fragment.renderer.ViewAssigneeJSPSectionFragmentRenderer"
 	)
@@ -179,7 +183,5 @@ public class ViewAssigneeSectionDisplayContextTest
 
 	@Inject
 	private RoleLocalService _roleLocalService;
-
-	private ObjectEntry _taskObjectEntry;
 
 }

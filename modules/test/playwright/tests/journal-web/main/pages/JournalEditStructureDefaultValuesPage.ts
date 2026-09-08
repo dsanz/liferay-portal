@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {Locator, Page} from '@playwright/test';
+import {Locator, Page, expect} from '@playwright/test';
 
-import fillAndClickOutside from '../../../../utils/fillAndClickOutside';
+import {openFieldset} from '../../../../utils/openFieldset';
 import {waitForAlert} from '../../../../utils/waitForAlert';
 import {JournalStructuresPage} from './JournalStructuresPage';
 
@@ -42,12 +42,37 @@ export class JournalEditStructureDefaultValuesPage {
 		await this.page.locator('body').click();
 	}
 
+	getRichTextField(name: string): Locator {
+		return this.page
+			.getByText(`${name} Rich Text Editor`)
+			.getByRole('textbox');
+	}
+
+	async fillRichTextField(name: string, content: string) {
+		const richTextField = this.getRichTextField(name);
+
+		await expect(async () => {
+			await richTextField.fill(content, {timeout: 2000});
+
+			await expect(richTextField).toContainText(content, {
+				timeout: 2000,
+			});
+		}).toPass();
+	}
+
 	async fillTextField(name: string, content: string) {
 		const textField = this.page.getByRole('textbox', {
 			name,
 		});
 
-		await fillAndClickOutside(this.page, textField, content);
+		// The Fields panel can load collapsed, leaving its inputs present but
+		// not actionable, so re-expand it before filling.
+
+		await expect(async () => {
+			await openFieldset(this.page, 'Fields');
+
+			await textField.fill(content, {timeout: 2000});
+		}).toPass();
 	}
 
 	async save() {

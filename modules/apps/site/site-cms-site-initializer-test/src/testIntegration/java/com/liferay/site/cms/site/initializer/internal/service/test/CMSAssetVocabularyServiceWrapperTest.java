@@ -15,6 +15,8 @@ import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
@@ -25,11 +27,9 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +44,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Alicia García
  */
-@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 public class CMSAssetVocabularyServiceWrapperTest {
 
@@ -57,38 +56,41 @@ public class CMSAssetVocabularyServiceWrapperTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_cmsGroup = CMSTestUtil.getOrAddGroup(
-			CMSAssetVocabularyServiceWrapperTest.class);
 		_group = GroupTestUtil.addGroup();
 	}
 
 	@Test
-	@TestInfo("LPD-90753")
+	@TestInfo({"LPD-90753", "LPD-95312"})
 	public void testGetGroupVocabularies() throws Exception {
 		_testGetGroupVocabulariesWithAssetLibraryDepotEntry();
 		_testGetGroupVocabulariesWithSpaceDepotEntry();
 		_testGetGroupVocabulariesWithSpaceDepotEntryAndDifferentVisibilityType();
+		_testGetGroupVocabulariesWithSpaceDepotEntryAndInternalVisibilityType();
 	}
 
 	private AssetVocabulary _addAssetVocabulary(
 			long groupId, int visibilityType)
 		throws Exception {
 
+		Group cmsGroup = _groupLocalService.getGroup(
+			TestPropsValues.getCompanyId(), GroupConstants.CMS);
+
 		AssetVocabulary assetVocabulary =
 			_assetVocabularyLocalService.addVocabulary(
-				TestPropsValues.getUserId(), _cmsGroup.getGroupId(),
+				TestPropsValues.getUserId(), cmsGroup.getGroupId(),
 				RandomTestUtil.randomString(),
 				HashMapBuilder.put(
 					LocaleUtil.US, RandomTestUtil.randomString()
 				).build(),
 				null, null, visibilityType,
 				ServiceContextTestUtil.getServiceContext(
-					_cmsGroup.getGroupId()));
+					cmsGroup.getGroupId()));
 
 		_cmsAssetVocabularies.add(assetVocabulary);
 
 		_assetVocabularyGroupRelLocalService.setAssetVocabularyGroupRels(
-			assetVocabulary.getVocabularyId(), new long[] {groupId});
+			assetVocabulary.getVocabularyId(), new long[] {groupId},
+			DepotConstants.TYPE_SPACE);
 
 		return assetVocabulary;
 	}
@@ -178,6 +180,43 @@ public class CMSAssetVocabularyServiceWrapperTest {
 					curAssetVocabulary.getVocabularyId() == assetVocabularyId));
 	}
 
+	private void _testGetGroupVocabulariesWithSpaceDepotEntryAndInternalVisibilityType()
+		throws Exception {
+
+		DepotEntry depotEntry = _addDepotEntry(DepotConstants.TYPE_SPACE);
+
+		AssetVocabulary internalAssetVocabulary = _addAssetVocabulary(
+			depotEntry.getGroupId(),
+			AssetVocabularyConstants.VISIBILITY_TYPE_INTERNAL);
+		AssetVocabulary publicAssetVocabulary = _addAssetVocabulary(
+			depotEntry.getGroupId(),
+			AssetVocabularyConstants.VISIBILITY_TYPE_PUBLIC);
+
+		List<AssetVocabulary> assetVocabularies =
+			_assetVocabularyService.getGroupVocabularies(
+				new long[] {_group.getGroupId(), depotEntry.getGroupId()},
+				AssetVocabularyConstants.VISIBILITY_TYPES);
+
+		long internalAssetVocabularyId =
+			internalAssetVocabulary.getVocabularyId();
+
+		Assert.assertFalse(
+			ListUtil.exists(
+				assetVocabularies,
+				curAssetVocabulary ->
+					curAssetVocabulary.getVocabularyId() ==
+						internalAssetVocabularyId));
+
+		long publicAssetVocabularyId = publicAssetVocabulary.getVocabularyId();
+
+		Assert.assertTrue(
+			ListUtil.exists(
+				assetVocabularies,
+				curAssetVocabulary ->
+					curAssetVocabulary.getVocabularyId() ==
+						publicAssetVocabularyId));
+	}
+
 	@Inject
 	private AssetVocabularyGroupRelLocalService
 		_assetVocabularyGroupRelLocalService;
@@ -192,8 +231,6 @@ public class CMSAssetVocabularyServiceWrapperTest {
 	private final List<AssetVocabulary> _cmsAssetVocabularies =
 		new ArrayList<>();
 
-	private Group _cmsGroup;
-
 	@DeleteAfterTestRun
 	private final List<DepotEntry> _depotEntries = new ArrayList<>();
 
@@ -202,5 +239,8 @@ public class CMSAssetVocabularyServiceWrapperTest {
 
 	@DeleteAfterTestRun
 	private Group _group;
+
+	@Inject
+	private GroupLocalService _groupLocalService;
 
 }

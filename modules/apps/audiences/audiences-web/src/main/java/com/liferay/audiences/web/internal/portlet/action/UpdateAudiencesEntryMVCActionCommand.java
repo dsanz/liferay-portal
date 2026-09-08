@@ -6,25 +6,28 @@
 package com.liferay.audiences.web.internal.portlet.action;
 
 import com.liferay.audiences.constants.AudiencesPortletKeys;
+import com.liferay.audiences.exception.AudiencesEntryJSONAttributeException;
 import com.liferay.audiences.exception.AudiencesEntryJSONException;
 import com.liferay.audiences.exception.AudiencesEntryNameException;
+import com.liferay.audiences.exception.DuplicateAudiencesEntryExternalReferenceCodeException;
 import com.liferay.audiences.exception.NoSuchAudiencesEntryException;
-import com.liferay.audiences.model.AudiencesEntry;
 import com.liferay.audiences.service.AudiencesEntryService;
-import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
-import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
+import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.portlet.JSONPortletResponseUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
-import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
-import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.service.ServiceContextFactory;
+import com.liferay.portal.kernel.servlet.MultiSessionMessages;
 import com.liferay.portal.kernel.servlet.SessionErrors;
-import com.liferay.portal.kernel.util.Constants;
-import com.liferay.portal.kernel.util.HttpComponentsUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ParamUtil;
-import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.util.WebKeys;
 
 import jakarta.portlet.ActionRequest;
 import jakarta.portlet.ActionResponse;
@@ -51,93 +54,108 @@ public class UpdateAudiencesEntryMVCActionCommand extends BaseMVCActionCommand {
 
 		long audiencesEntryId = ParamUtil.getLong(
 			actionRequest, "audiencesEntryId");
-
+		String externalReferenceCode = ParamUtil.getString(
+			actionRequest, "externalReferenceCode");
 		String json = ParamUtil.getString(actionRequest, "json");
 		String name = ParamUtil.getString(actionRequest, "name");
 
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			AudiencesEntry.class.getName(), actionRequest);
-
 		try {
-			AudiencesEntry audiencesEntry = null;
-
 			if (audiencesEntryId <= 0) {
-				audiencesEntry = _audiencesEntryService.addAudiencesEntry(
-					null, json, name, serviceContext);
+				_audiencesEntryService.addAudiencesEntry(
+					externalReferenceCode, json, name);
 			}
 			else {
-				audiencesEntry = _audiencesEntryService.updateAudiencesEntry(
-					audiencesEntryId, json, name);
+				_audiencesEntryService.updateAudiencesEntry(
+					audiencesEntryId, externalReferenceCode, json, name);
 			}
 
-			String redirect = ParamUtil.getString(actionRequest, "redirect");
+			MultiSessionMessages.add(
+				actionRequest, "requestProcessed", StringPool.BLANK);
 
-			if (Validator.isNotNull(redirect)) {
-				redirect = HttpComponentsUtil.setParameter(
-					redirect, "audiencesEntryId",
-					audiencesEntry.getAudiencesEntryId());
-			}
-
-			boolean saveAndContinue = ParamUtil.get(
-				actionRequest, "saveAndContinue", false);
-
-			if (saveAndContinue) {
-				redirect = _getSaveAndContinueRedirect(
-					actionRequest, audiencesEntry, redirect);
-			}
-
-			sendRedirect(actionRequest, actionResponse, redirect);
+			JSONPortletResponseUtil.writeJSON(
+				actionRequest, actionResponse, _jsonFactory.createJSONObject());
 		}
 		catch (Exception exception) {
-			if (exception instanceof NoSuchAudiencesEntryException ||
-				exception instanceof PrincipalException) {
+			SessionErrors.add(actionRequest, exception.getClass());
 
-				SessionErrors.add(actionRequest, exception.getClass());
+			hideDefaultErrorMessage(actionRequest);
 
-				actionResponse.setRenderParameter("mvcPath", "/error.jsp");
-			}
-			else if (exception instanceof AudiencesEntryJSONException ||
-					 exception instanceof AudiencesEntryNameException) {
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)actionRequest.getAttribute(WebKeys.THEME_DISPLAY);
 
-				SessionErrors.add(
-					actionRequest, exception.getClass(), exception);
-
-				actionResponse.setRenderParameter(
-					"mvcRenderCommandName", "/audiences/edit_audiences_entry");
-			}
-			else {
-				throw exception;
-			}
+			JSONPortletResponseUtil.writeJSON(
+				actionRequest, actionResponse,
+				JSONUtil.put(
+					"error", _getErrorJSONObject(exception, themeDisplay)));
 		}
 	}
 
-	private String _getSaveAndContinueRedirect(
-		ActionRequest actionRequest, AudiencesEntry audiencesEntry,
-		String redirect) {
+	private JSONObject _getErrorJSONObject(
+		Exception exception, ThemeDisplay themeDisplay) {
 
-		RequestBackedPortletURLFactory requestBackedPortletURLFactory =
-			RequestBackedPortletURLFactoryUtil.create(actionRequest);
+		if (exception instanceof AudiencesEntryJSONAttributeException) {
+			return JSONUtil.put(
+				"other",
+				_language.get(
+					themeDisplay.getLocale(),
+					"you-have-entered-an-invalid-custom-attribute"));
+		}
+		else if (exception instanceof AudiencesEntryJSONException) {
+			return JSONUtil.put(
+				"other",
+				_language.get(
+					themeDisplay.getLocale(), "you-have-entered-invalid-json"));
+		}
+		else if (exception instanceof AudiencesEntryNameException) {
+			return JSONUtil.put(
+				"name",
+				_language.get(
+					themeDisplay.getLocale(), "please-enter-a-valid-name"));
+		}
+		else if (exception instanceof
+					DuplicateAudiencesEntryExternalReferenceCodeException) {
 
-		return PortletURLBuilder.create(
-			requestBackedPortletURLFactory.createRenderURL(
-				_portal.getPortletId(actionRequest))
-		).setMVCRenderCommandName(
-			"/audiences/edit_audiences_entry"
-		).setCMD(
-			Constants.UPDATE
-		).setRedirect(
-			redirect
-		).setParameter(
-			"audiencesEntryId", audiencesEntry.getAudiencesEntryId()
-		).setWindowState(
-			actionRequest.getWindowState()
-		).buildString();
+			return JSONUtil.put(
+				"externalReferenceCode",
+				_language.get(
+					themeDisplay.getLocale(),
+					"please-enter-a-unique-external-reference-code"));
+		}
+		else if (exception instanceof NoSuchAudiencesEntryException) {
+			return JSONUtil.put(
+				"other",
+				_language.get(
+					themeDisplay.getLocale(),
+					"the-audiences-could-not-be-found"));
+		}
+		else if (exception instanceof PrincipalException) {
+			return JSONUtil.put(
+				"other",
+				_language.get(
+					themeDisplay.getLocale(),
+					"you-do-not-have-the-required-permissions"));
+		}
+
+		if (_log.isDebugEnabled()) {
+			_log.debug(exception);
+		}
+
+		return JSONUtil.put(
+			"other",
+			_language.get(
+				themeDisplay.getLocale(), "an-unexpected-error-occurred"));
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		UpdateAudiencesEntryMVCActionCommand.class);
 
 	@Reference
 	private AudiencesEntryService _audiencesEntryService;
 
 	@Reference
-	private Portal _portal;
+	private JSONFactory _jsonFactory;
+
+	@Reference
+	private Language _language;
 
 }

@@ -17,6 +17,36 @@ public class ObjectEntryGroupIdException extends PortalException {
 		return _messageKey;
 	}
 
+	public static class InvalidGroupIdForAssetCategory
+		extends ObjectEntryGroupIdException {
+
+		public InvalidGroupIdForAssetCategory(long assetCategoryId) {
+			super(
+				StringBundler.concat(
+					"Asset category ", assetCategoryId,
+					" does not belong to the object entry's scope"),
+				"asset-category-x-does-not-belong-to-the-object-entrys-scope");
+		}
+
+	}
+
+	public static class InvalidGroupIdForAssetCategoryBrief
+		extends ObjectEntryGroupIdException {
+
+		public InvalidGroupIdForAssetCategoryBrief(
+			String externalReferenceCode) {
+
+			super(
+				StringBundler.concat(
+					"Asset category with external reference code \"",
+					externalReferenceCode,
+					"\" does not belong to the object entry's scope"),
+				"asset-category-with-external-reference-code-x-does-not-" +
+					"belong-to-the-object-entrys-scope");
+		}
+
+	}
+
 	public static class InvalidGroupIdForDomain
 		extends ObjectEntryGroupIdException {
 

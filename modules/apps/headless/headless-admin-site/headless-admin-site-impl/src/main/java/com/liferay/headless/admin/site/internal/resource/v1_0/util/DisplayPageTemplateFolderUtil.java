@@ -86,7 +86,9 @@ public class DisplayPageTemplateFolderUtil {
 					parentDisplayPageTemplateFolder.
 						getExternalReferenceCode())) {
 
-				throw new UnsupportedOperationException();
+				throw new IllegalArgumentException(
+					"The provided external reference code does not point to " +
+						"the parent display page template folder");
 			}
 
 			parentLayoutPageTemplateCollection =
@@ -101,7 +103,9 @@ public class DisplayPageTemplateFolderUtil {
 				LayoutPageTemplateCollectionTypeConstants.DISPLAY_PAGE,
 				parentLayoutPageTemplateCollection.getType())) {
 
-			throw new UnsupportedOperationException();
+			throw new IllegalArgumentException(
+				"The parent display page template folder type does not match " +
+					"the display page type");
 		}
 
 		return parentLayoutPageTemplateCollection.

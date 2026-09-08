@@ -17,6 +17,7 @@
 		<field name="commerceCurrencyCode" type="String" />
 		<field name="catalogDefaultLanguageId" type="String" />
 		<field name="system" type="boolean" />
+		<field name="status" type="int" />
 	</model>
 	<model name="com.liferay.commerce.product.model.CommerceChannel">
 		<field name="mvccVersion" type="long" />
@@ -43,6 +44,7 @@
 		</field>
 		<field name="priceDisplayType" type="String" />
 		<field name="discountsTargetNetPrice" type="boolean" />
+		<field name="status" type="int" />
 	</model>
 	<model name="com.liferay.commerce.product.model.CommerceChannelAccountEntryRel">
 		<field name="mvccVersion" type="long" />
@@ -214,6 +216,7 @@
 		<field name="userName" type="String" />
 		<field name="createDate" type="Date" />
 		<field name="modifiedDate" type="Date" />
+		<field name="CProductExternalReferenceCode" type="String" />
 		<field name="CProductId" type="long" />
 		<field name="CPTaxCategoryId" type="long" />
 		<field name="accountGroupFilterEnabled" type="boolean" />
@@ -579,6 +582,7 @@
 		</field>
 		<field name="type" type="int" />
 		<field name="lastPublishDate" type="Date" />
+		<field name="status" type="int" />
 	</model>
 	<model name="com.liferay.commerce.product.model.CPOption">
 		<field name="mvccVersion" type="long" />
@@ -607,6 +611,7 @@
 			<validator name="required" />
 		</field>
 		<field name="lastPublishDate" type="Date" />
+		<field name="status" type="int" />
 	</model>
 	<model name="com.liferay.commerce.product.model.CPOptionCategory">
 		<field name="mvccVersion" type="long" />
@@ -630,6 +635,7 @@
 			<validator name="required" />
 		</field>
 		<field name="lastPublishDate" type="Date" />
+		<field name="status" type="int" />
 	</model>
 	<model name="com.liferay.commerce.product.model.CPOptionValue">
 		<field name="mvccVersion" type="long" />
@@ -653,6 +659,7 @@
 			<validator name="required" />
 		</field>
 		<field name="lastPublishDate" type="Date" />
+		<field name="status" type="int" />
 	</model>
 	<model name="com.liferay.commerce.product.model.CProduct">
 		<field name="mvccVersion" type="long" />
@@ -694,6 +701,7 @@
 		<field name="priority" type="double" />
 		<field name="visible" type="boolean" />
 		<field name="lastPublishDate" type="Date" />
+		<field name="status" type="int" />
 	</model>
 	<model name="com.liferay.commerce.product.model.CPSpecificationOptionListTypeDefinitionRel">
 		<field name="mvccVersion" type="long" />
@@ -716,5 +724,6 @@
 		<field name="modifiedDate" type="Date" />
 		<field localized="true" name="name" type="String" />
 		<field localized="true" name="description" type="String" />
+		<field name="status" type="int" />
 	</model>
 </model-hints>

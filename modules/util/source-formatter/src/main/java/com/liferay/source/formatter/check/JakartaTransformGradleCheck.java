@@ -5,12 +5,15 @@
 
 package com.liferay.source.formatter.check;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
+import com.liferay.source.formatter.util.FileUtil;
+import com.liferay.source.formatter.util.SourceFormatterUtil;
 
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -27,7 +30,7 @@ public class JakartaTransformGradleCheck extends BaseJakartaTransformCheck {
 		throws IOException {
 
 		Map<String, String> jakartaTransformDependenciesMap =
-			_getJakartaTransformDependenciesMap();
+			_getJakartaTransformDependenciesMap(absolutePath);
 
 		StringBuffer sb = new StringBuffer();
 
@@ -84,7 +87,7 @@ public class JakartaTransformGradleCheck extends BaseJakartaTransformCheck {
 	}
 
 	private synchronized Map<String, String>
-			_getJakartaTransformDependenciesMap()
+			_getJakartaTransformDependenciesMap(String absolutePath)
 		throws IOException {
 
 		if (_jakartaTransformDependenciesMap != null) {
@@ -93,21 +96,41 @@ public class JakartaTransformGradleCheck extends BaseJakartaTransformCheck {
 
 		_jakartaTransformDependenciesMap = new HashMap<>();
 
-		Class<?> clazz = getClass();
+		String content = null;
 
-		ClassLoader classLoader = clazz.getClassLoader();
+		String jakartaTransformDependenciesFilePath = getAttributeValue(
+			SourceFormatterUtil.JAKARTA_TRANSFORM_DEPENDENCIES_FILE_PATH,
+			absolutePath);
 
-		InputStream inputStream = classLoader.getResourceAsStream(
-			"dependencies/jakarta-transform-dependencies.txt");
+		if (Validator.isNotNull(jakartaTransformDependenciesFilePath)) {
+			File file = new File(jakartaTransformDependenciesFilePath);
 
-		if (inputStream == null) {
-			return Collections.emptyMap();
+			if (!file.isFile()) {
+				throw new IOException(
+					"Unable to read file \"" +
+						jakartaTransformDependenciesFilePath + "\"");
+			}
+
+			content = FileUtil.read(file);
 		}
 
-		String[] lines = StringUtil.splitLines(StringUtil.read(inputStream));
+		if (Validator.isBlank(content)) {
+			Class<?> clazz = getClass();
 
-		for (String line : lines) {
-			String[] parts = line.split("=");
+			content = StringUtil.read(
+				clazz.getClassLoader(),
+				"dependencies/jakarta-transform-dependencies.txt");
+		}
+
+		for (String line : StringUtil.splitLines(content)) {
+			String[] parts = line.split("=", 2);
+
+			if (parts.length < 2) {
+				throw new IOException(
+					StringBundler.concat(
+						"Invalid line \"", line, "\" in ",
+						jakartaTransformDependenciesFilePath));
+			}
 
 			_jakartaTransformDependenciesMap.put(parts[0], parts[1]);
 		}

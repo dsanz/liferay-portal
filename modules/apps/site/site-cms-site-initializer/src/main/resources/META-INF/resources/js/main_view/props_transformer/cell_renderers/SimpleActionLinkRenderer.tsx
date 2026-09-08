@@ -8,7 +8,7 @@ import ClayLink from '@clayui/link';
 import ClaySticker from '@clayui/sticker';
 import {findAction, replaceTokens} from '@liferay/frontend-data-set-web';
 import classNames from 'classnames';
-import React from 'react';
+import React, {useId} from 'react';
 
 import {OBJECT_ENTRY_FOLDER_CLASS_NAME} from '../../../common/utils/constants';
 import {getFileMimeTypeObjectDefinitionStickerValue} from '../utils/transformViewsItemProps';
@@ -24,6 +24,8 @@ export default function SimpleActionLinkRenderer({
 	itemData,
 	onViewClick,
 	options,
+	requiresUpdatePermission = true,
+	systemIconLabel,
 	trailingIcon,
 	value,
 }: {
@@ -37,17 +39,21 @@ export default function SimpleActionLinkRenderer({
 	itemData: any;
 	onViewClick?: (itemData: any) => void;
 	options: {actionId: string};
+	requiresUpdatePermission?: boolean;
+	systemIconLabel?: string;
 	trailingIcon?: React.ReactNode;
 	value: string;
 }) {
 	const {actionId} = options;
+	const systemIconId = useId();
 	const title =
 		value && value !== '' ? value : Liferay.Language.get('untitled-asset');
 
 	const isFolder =
 		itemData?.entryClassName === OBJECT_ENTRY_FOLDER_CLASS_NAME;
 
-	const hasUpdatePermission = Boolean(itemData?.actions?.update);
+	const hasUpdatePermission =
+		!requiresUpdatePermission || Boolean(itemData?.actions?.update);
 
 	let formattedHref = null;
 	let shouldOpenModal = false;
@@ -102,13 +108,19 @@ export default function SimpleActionLinkRenderer({
 		</ClaySticker>
 	);
 
-	const systemIcon = itemData.system && (
-		<ClayIcon
-			aria-label={Liferay.Language.get('system-default-structure')}
+	const showSystemIcon = Boolean(itemData.system && systemIconLabel);
+
+	const systemIcon = itemData.system && systemIconLabel && (
+		<span
 			className="c-ml-2 lfr-portal-tooltip text-secondary"
-			data-title={Liferay.Language.get('system-default-structure')}
-			symbol="lock"
-		/>
+			data-title={systemIconLabel}
+		>
+			<ClayIcon symbol="lock" />
+
+			<span className="sr-only" id={systemIconId}>
+				{systemIconLabel}
+			</span>
+		</span>
 	);
 
 	if (shouldOpenModal) {
@@ -117,6 +129,7 @@ export default function SimpleActionLinkRenderer({
 				{stickerElement}
 
 				<ClayLink
+					aria-describedby={showSystemIcon ? systemIconId : undefined}
 					aria-label={title}
 					data-senna-off
 					href="#"
@@ -137,10 +150,12 @@ export default function SimpleActionLinkRenderer({
 	}
 
 	if (!formattedHref) {
-		if (trailingIcon) {
+		if (systemIcon || trailingIcon) {
 			return (
 				<div className="align-items-center d-flex table-list-title">
 					<span>{title}</span>
+
+					{systemIcon}
 
 					{trailingIcon}
 				</div>
@@ -154,7 +169,12 @@ export default function SimpleActionLinkRenderer({
 		<div className="align-items-center d-flex table-list-title">
 			{stickerElement}
 
-			<ClayLink aria-label={title} data-senna-off href={formattedHref}>
+			<ClayLink
+				aria-describedby={showSystemIcon ? systemIconId : undefined}
+				aria-label={title}
+				data-senna-off
+				href={formattedHref}
+			>
 				{title}
 
 				{systemIcon}

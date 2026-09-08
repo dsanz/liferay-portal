@@ -67,16 +67,18 @@ public class DepotRoleLocalServiceWrapper extends RoleLocalServiceWrapper {
 			return;
 		}
 
-		if (Objects.equals(DepotRolesConstants.SUBTYPE_PROJECT, subtype) &&
+		if (Objects.equals(
+				DepotRolesConstants.SUBTYPE_DESIGN_LIBRARY, subtype) &&
 			FeatureFlagManagerUtil.isEnabled(
-				CompanyThreadLocal.getCompanyId(), "LPD-58677")) {
+				CompanyThreadLocal.getCompanyId(), "LPD-57283")) {
 
 			return;
 		}
 
-		if (Objects.equals(DepotRolesConstants.SUBTYPE_SPACE, subtype) &&
-			FeatureFlagManagerUtil.isEnabled(
-				CompanyThreadLocal.getCompanyId(), "LPD-17564")) {
+		if ((Objects.equals(DepotRolesConstants.SUBTYPE_PROJECT, subtype) &&
+			 FeatureFlagManagerUtil.isEnabled(
+				 CompanyThreadLocal.getCompanyId(), "LPD-58677")) ||
+			Objects.equals(DepotRolesConstants.SUBTYPE_SPACE, subtype)) {
 
 			return;
 		}

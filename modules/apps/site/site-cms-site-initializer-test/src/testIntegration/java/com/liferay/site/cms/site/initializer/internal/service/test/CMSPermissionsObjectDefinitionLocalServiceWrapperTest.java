@@ -28,19 +28,16 @@ import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import org.junit.Assert;
-import org.junit.BeforeClass;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -49,7 +46,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Adolfo Pérez
  */
-@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 public class CMSPermissionsObjectDefinitionLocalServiceWrapperTest {
 
@@ -59,12 +55,6 @@ public class CMSPermissionsObjectDefinitionLocalServiceWrapperTest {
 		new AggregateTestRule(
 			new LiferayIntegrationTestRule(),
 			PermissionCheckerMethodTestRule.INSTANCE);
-
-	@BeforeClass
-	public static void setUpClass() throws Exception {
-		CMSTestUtil.getOrAddGroup(
-			CMSPermissionsObjectDefinitionLocalServiceWrapperTest.class);
-	}
 
 	@Test
 	public void testPublishCustomObjectDefinition() throws Exception {
@@ -90,6 +80,16 @@ public class CMSPermissionsObjectDefinitionLocalServiceWrapperTest {
 		_assertResourcePermission(
 			ActionKeys.VIEW, objectDefinition.getObjectDefinitionId(),
 			ObjectDefinition.class.getName(),
+			_roleLocalService.getRole(
+				TestPropsValues.getCompanyId(), RoleConstants.USER));
+
+		objectDefinition =
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_CMS_DEFAULT_PERMISSION", TestPropsValues.getCompanyId());
+
+		_assertResourcePermission(
+			ActionKeys.VIEW, objectDefinition.getClassName(),
 			_roleLocalService.getRole(
 				TestPropsValues.getCompanyId(), RoleConstants.USER));
 	}

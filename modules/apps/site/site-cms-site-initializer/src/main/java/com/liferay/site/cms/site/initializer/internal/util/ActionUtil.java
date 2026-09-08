@@ -56,6 +56,7 @@ import com.liferay.object.service.ObjectDefinitionSettingLocalServiceUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.petra.string.StringUtil;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -687,15 +688,25 @@ public class ActionUtil {
 				objectEntryFolder.getExternalReferenceCode();
 		}
 
-		List<DropdownItem> dropdownItems = new ArrayList<>(
-			List.of(
-				getCreateFolderDropdownItem(
-					httpServletRequest, objectEntryFolderExternalReferenceCode),
-				getCMSBasicWebContentDropdownItem(
-					httpServletRequest, objectEntryFolderExternalReferenceCode),
-				getCMSBlogDropdownItem(
-					httpServletRequest,
-					objectEntryFolderExternalReferenceCode)));
+		List<DropdownItem> dropdownItems = new ArrayList<>();
+
+		dropdownItems.add(
+			getCreateFolderDropdownItem(
+				httpServletRequest, objectEntryFolderExternalReferenceCode));
+
+		if (FeatureFlagManagerUtil.isEnabled(
+				PortalUtil.getCompanyId(httpServletRequest), "LPD-62272")) {
+
+			dropdownItems.add(
+				getGenerateContentWithAIDropdownItem(httpServletRequest));
+		}
+
+		dropdownItems.add(
+			getCMSBasicWebContentDropdownItem(
+				httpServletRequest, objectEntryFolderExternalReferenceCode));
+		dropdownItems.add(
+			getCMSBlogDropdownItem(
+				httpServletRequest, objectEntryFolderExternalReferenceCode));
 
 		List<DropdownItem> contentsCustomDropdownItems =
 			getContentsCustomDropdownItems(
@@ -906,6 +917,29 @@ public class ActionUtil {
 					httpServletRequest,
 					objectEntryFolderExternalReferenceCode)));
 
+		if (FeatureFlagManagerUtil.isEnabled(
+				PortalUtil.getCompanyId(httpServletRequest), "LPD-62272")) {
+
+			long groupId = InfoItemUtil.getGroupId(httpServletRequest);
+
+			dropdownItems.add(
+				getGenerateImageWithAIDropdownItem(
+					groupId,
+					LanguageUtil.get(
+						httpServletRequest, "generate-single-image-with-ai"),
+					LanguageUtil.get(
+						httpServletRequest, "generate-single-image"),
+					objectEntryFolderExternalReferenceCode));
+			dropdownItems.add(
+				getGenerateImageWithAIDropdownItem(
+					groupId,
+					LanguageUtil.get(
+						httpServletRequest, "generate-multiple-images-with-ai"),
+					LanguageUtil.get(
+						httpServletRequest, "generate-multiple-images"),
+					objectEntryFolderExternalReferenceCode));
+		}
+
 		List<DropdownItem> filesCustomDropdownItems =
 			getFilesCustomDropdownItems(
 				httpServletRequest, objectEntryFolderExternalReferenceCode);
@@ -918,6 +952,73 @@ public class ActionUtil {
 		dropdownItems.addAll(filesCustomDropdownItems);
 
 		return dropdownItems;
+	}
+
+	public static DropdownItem getGenerateContentWithAIDropdownItem(
+		HttpServletRequest httpServletRequest) {
+
+		return DropdownItemBuilder.putData(
+			"action", "generateContentWithAI"
+		).putData(
+			"contentTypes",
+			() -> {
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)httpServletRequest.getAttribute(
+						WebKeys.THEME_DISPLAY);
+
+				try {
+					return String.valueOf(
+						JSONUtil.toJSONArray(
+							ObjectDefinitionServiceUtil.getCMSObjectDefinitions(
+								themeDisplay.getCompanyId(),
+								new String[] {
+									ObjectFolderConstants.
+										EXTERNAL_REFERENCE_CODE_CONTENT_STRUCTURES
+								}),
+							objectDefinition -> JSONUtil.put(
+								"externalReferenceCode",
+								objectDefinition.getExternalReferenceCode()
+							).put(
+								"label",
+								objectDefinition.getLabel(
+									themeDisplay.getLocale())
+							).put(
+								"name", objectDefinition.getName()
+							)));
+				}
+				catch (Exception exception) {
+					if (_log.isDebugEnabled()) {
+						_log.debug(exception);
+					}
+
+					return String.valueOf(JSONFactoryUtil.createJSONArray());
+				}
+			}
+		).setIcon(
+			"stars"
+		).setLabel(
+			LanguageUtil.get(httpServletRequest, "generate-content-with-ai")
+		).build();
+	}
+
+	public static DropdownItem getGenerateImageWithAIDropdownItem(
+		long groupId, String label, String message,
+		String objectEntryFolderExternalReferenceCode) {
+
+		return DropdownItemBuilder.putData(
+			"action", "generateImageWithAI"
+		).putData(
+			"groupId", String.valueOf(groupId)
+		).putData(
+			"message", message
+		).putData(
+			"objectEntryFolderExternalReferenceCode",
+			objectEntryFolderExternalReferenceCode
+		).setIcon(
+			"stars"
+		).setLabel(
+			label
+		).build();
 	}
 
 	public static String getRecycleBinURL(ThemeDisplay themeDisplay) {

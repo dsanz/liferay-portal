@@ -40,6 +40,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 
+import java.util.Map;
+
 /**
  * @author Daniel Kocsis
  */
@@ -635,16 +637,30 @@ public class ExportImportLocalServiceImpl
 			ExportImportConfiguration exportImportConfiguration)
 		throws PortalException {
 
+		return exportImportLocalService.mergeLayoutSetPrototypeInBackground(
+			userId, groupId, exportImportConfiguration, null);
+	}
+
+	@CTAware
+	@Override
+	public long mergeLayoutSetPrototypeInBackground(
+			long userId, long groupId,
+			ExportImportConfiguration exportImportConfiguration,
+			Map<String, Serializable> taskContextMap)
+		throws PortalException {
+
 		BackgroundTask backgroundTask =
 			BackgroundTaskManagerUtil.addBackgroundTask(
 				userId, groupId, exportImportConfiguration.getName(),
 				BackgroundTaskExecutorNames.
 					LAYOUT_SET_PROTOTYPE_MERGE_BACKGROUND_TASK_EXECUTOR,
 				HashMapBuilder.<String, Serializable>put(
-					BackgroundTaskContextMapConstants.DELETE_ON_SUCCESS, true
+					BackgroundTaskContextMapConstants.SKIP_NOTIFICATION, true
 				).put(
 					"exportImportConfigurationId",
 					exportImportConfiguration.getExportImportConfigurationId()
+				).putAll(
+					taskContextMap
 				).build(),
 				new ServiceContext());
 

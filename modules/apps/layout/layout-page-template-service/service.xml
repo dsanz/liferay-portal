@@ -326,7 +326,7 @@
 			<finder-column name="segmentsExperienceId" />
 		</finder>
 	</entity>
-	<entity external-reference-code="group" local-service="true" name="LayoutPageTemplateStructureRelElementVariation" remote-service="false" table="LPTSRelElementVariation" uuid="true">
+	<entity external-reference-code="group" local-service="true" name="LayoutPageTemplateStructureRelElementVariation" remote-service="true" table="LPTSRelElementVariation" uuid="true">
 
 		<!-- PK fields -->
 
@@ -346,8 +346,8 @@
 
 		<!-- Other fields -->
 
-		<column name="audienceEntryERC" type="String" />
-		<column localized="true" name="hide" type="String" />
+		<column name="active" type="boolean" />
+		<column name="hide" type="String" />
 		<column localized="true" name="html" type="String" />
 		<column localized="true" name="js" type="String" />
 		<column name="name" type="String" />
@@ -357,6 +357,9 @@
 
 		<!-- Finder methods -->
 
+		<finder name="Plid" return-type="Collection">
+			<finder-column name="plid" />
+		</finder>
 		<finder name="SegmentsExperienceERC" return-type="Collection">
 			<finder-column name="segmentsExperienceERC" />
 		</finder>
@@ -364,11 +367,51 @@
 			<finder-column name="plid" />
 			<finder-column name="segmentsExperienceERC" />
 		</finder>
+		<finder name="A_P_SEERC" return-type="Collection">
+			<finder-column name="active" />
+			<finder-column name="plid" />
+			<finder-column name="segmentsExperienceERC" />
+		</finder>
+	</entity>
+	<entity external-reference-code="group" local-service="true" name="LayoutPageTemplateStructureRelElementVariationAudienceEntryRel" remote-service="true" table="LPTSREVAudienceEntryRel" uuid="true">
+
+		<!-- PK fields -->
+
+		<column db-name="lptsrevAudienceEntryRelId" name="layoutPageTemplateStructureRelElementVariationAudienceEntryRelId" primary="true" type="long" />
+
+		<!-- Group instance -->
+
+		<column name="groupId" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="audienceEntryERC" type="String" />
+		<column db-name="lptsRelElementVariationERC" name="layoutPageTemplateStructureRelElementVariationERC" type="String" />
+
+		<!-- Finder methods -->
+
+		<finder name="G_LPTSREVERC" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="layoutPageTemplateStructureRelElementVariationERC" />
+		</finder>
+		<finder name="C_AEERC" return-type="Collection">
+			<finder-column name="companyId" />
+			<finder-column name="audienceEntryERC" />
+		</finder>
 	</entity>
 	<exceptions>
 		<exception>DuplicateLayoutPageTemplateCollection</exception>
 		<exception>DuplicateLayoutPageTemplateCollectionType</exception>
 		<exception>DuplicateLayoutPageTemplateEntry</exception>
+		<exception>DuplicateLayoutPageTemplateStructureRelElementVariationAudienceEntryRel</exception>
 		<exception>LayoutPageTemplateCollectionGroupId</exception>
 		<exception>LayoutPageTemplateCollectionLayoutPageTemplateCollectionKey</exception>
 		<exception>LayoutPageTemplateCollectionName</exception>
@@ -377,6 +420,9 @@
 		<exception>LayoutPageTemplateEntryLayoutPageTemplateCollectionId</exception>
 		<exception>LayoutPageTemplateEntryLayoutPageTemplateEntryKey</exception>
 		<exception>LayoutPageTemplateEntryName</exception>
+		<exception>LayoutPageTemplateStructureRelElementVariationAudienceEntryERCs</exception>
+		<exception>LayoutPageTemplateStructureRelElementVariationName</exception>
+		<exception>LayoutPageTemplateStructureRelElementVariationTargetElement</exception>
 		<exception>RequiredLayoutPageTemplateEntry</exception>
 	</exceptions>
 </service-builder>

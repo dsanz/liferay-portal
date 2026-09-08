@@ -42,8 +42,9 @@ public class SegmentsEntryServiceImpl extends SegmentsEntryServiceBaseImpl {
 
 	@Override
 	public SegmentsEntry addSegmentsEntry(
-			String segmentsEntryKey, Map<Locale, String> nameMap,
-			Map<Locale, String> descriptionMap, boolean active, String criteria,
+			String externalReferenceCode, String segmentsEntryKey,
+			Map<Locale, String> nameMap, Map<Locale, String> descriptionMap,
+			boolean active, String criteria, String source,
 			ServiceContext serviceContext)
 		throws PortalException {
 
@@ -52,24 +53,8 @@ public class SegmentsEntryServiceImpl extends SegmentsEntryServiceBaseImpl {
 			SegmentsActionKeys.MANAGE_SEGMENTS_ENTRIES);
 
 		return segmentsEntryLocalService.addSegmentsEntry(
-			segmentsEntryKey, nameMap, descriptionMap, active, criteria,
-			serviceContext);
-	}
-
-	@Override
-	public SegmentsEntry addSegmentsEntry(
-			String segmentsEntryKey, Map<Locale, String> nameMap,
-			Map<Locale, String> descriptionMap, boolean active, String criteria,
-			String source, ServiceContext serviceContext)
-		throws PortalException {
-
-		_portletResourcePermission.check(
-			getPermissionChecker(), serviceContext.getScopeGroupId(),
-			SegmentsActionKeys.MANAGE_SEGMENTS_ENTRIES);
-
-		return segmentsEntryLocalService.addSegmentsEntry(
-			segmentsEntryKey, nameMap, descriptionMap, active, criteria, source,
-			serviceContext);
+			externalReferenceCode, segmentsEntryKey, nameMap, descriptionMap,
+			active, criteria, source, serviceContext);
 	}
 
 	@Override
@@ -112,9 +97,12 @@ public class SegmentsEntryServiceImpl extends SegmentsEntryServiceBaseImpl {
 			String segmentsEntryERC, long groupId)
 		throws PortalException {
 
-		SegmentsEntry segmentsEntry =
-			segmentsEntryLocalService.fetchSegmentsEntryByExternalReferenceCode(
-				segmentsEntryERC, groupId);
+		SegmentsEntry segmentsEntry = segmentsEntryPersistence.fetchByERC_G(
+			segmentsEntryERC, groupId);
+
+		if (segmentsEntry == null) {
+			return null;
+		}
 
 		_segmentsEntryResourcePermission.check(
 			getPermissionChecker(), segmentsEntry.getSegmentsEntryId(),
@@ -144,8 +132,9 @@ public class SegmentsEntryServiceImpl extends SegmentsEntryServiceBaseImpl {
 		long groupId, String[] sources, int start, int end,
 		OrderByComparator<SegmentsEntry> orderByComparator) {
 
-		return segmentsEntryLocalService.getSegmentsEntries(
-			groupId, sources, start, end, orderByComparator);
+		return segmentsEntryPersistence.findByG_SRC(
+			_portal.getCurrentAndAncestorSiteGroupIds(groupId), sources, start,
+			end, orderByComparator);
 	}
 
 	@Override
@@ -164,8 +153,8 @@ public class SegmentsEntryServiceImpl extends SegmentsEntryServiceBaseImpl {
 	public SegmentsEntry getSegmentsEntry(long segmentsEntryId)
 		throws PortalException {
 
-		SegmentsEntry segmentsEntry =
-			segmentsEntryLocalService.getSegmentsEntry(segmentsEntryId);
+		SegmentsEntry segmentsEntry = segmentsEntryPersistence.findByPrimaryKey(
+			segmentsEntryId);
 
 		_segmentsEntryResourcePermission.check(
 			getPermissionChecker(), segmentsEntryId, ActionKeys.VIEW);
@@ -178,9 +167,8 @@ public class SegmentsEntryServiceImpl extends SegmentsEntryServiceBaseImpl {
 			String segmentsEntryERC, long groupId)
 		throws PortalException {
 
-		SegmentsEntry segmentsEntry =
-			segmentsEntryLocalService.getSegmentsEntryByExternalReferenceCode(
-				segmentsEntryERC, groupId);
+		SegmentsEntry segmentsEntry = segmentsEntryPersistence.findByERC_G(
+			segmentsEntryERC, groupId);
 
 		_segmentsEntryResourcePermission.check(
 			getPermissionChecker(), segmentsEntry.getSegmentsEntryId(),
@@ -204,17 +192,18 @@ public class SegmentsEntryServiceImpl extends SegmentsEntryServiceBaseImpl {
 
 	@Override
 	public SegmentsEntry updateSegmentsEntry(
-			long segmentsEntryId, String segmentsEntryKey,
-			Map<Locale, String> nameMap, Map<Locale, String> descriptionMap,
-			boolean active, String criteria, ServiceContext serviceContext)
+			String externalReferenceCode, long segmentsEntryId,
+			String segmentsEntryKey, Map<Locale, String> nameMap,
+			Map<Locale, String> descriptionMap, boolean active, String criteria,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		_segmentsEntryResourcePermission.check(
 			getPermissionChecker(), segmentsEntryId, ActionKeys.UPDATE);
 
 		return segmentsEntryLocalService.updateSegmentsEntry(
-			segmentsEntryId, segmentsEntryKey, nameMap, descriptionMap, active,
-			criteria, serviceContext);
+			externalReferenceCode, segmentsEntryId, segmentsEntryKey, nameMap,
+			descriptionMap, active, criteria, serviceContext);
 	}
 
 	@Reference

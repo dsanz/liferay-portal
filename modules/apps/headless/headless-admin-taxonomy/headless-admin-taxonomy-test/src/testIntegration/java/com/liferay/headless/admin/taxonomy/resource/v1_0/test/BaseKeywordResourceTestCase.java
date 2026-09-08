@@ -47,6 +47,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -129,6 +130,8 @@ public abstract class BaseKeywordResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -971,7 +974,8 @@ public abstract class BaseKeywordResourceTestCase {
 			assetLibraryId, randomKeyword());
 
 		page = keywordResource.getAssetLibraryKeywordsPage(
-			assetLibraryId, null, null, null, Pagination.of(1, 10), null);
+			assetLibraryId, null, null, null,
+			Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1353,18 +1357,9 @@ public abstract class BaseKeywordResourceTestCase {
 		Long assetLibraryId =
 			testGetAssetLibraryKeywordsPage_getAssetLibraryId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"assetLibraryKeywords",
-			new HashMap<String, Object>() {
-				{
-					put("assetLibraryId", "\"" + assetLibraryId + "\"");
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetAssetLibraryKeywordsPageAssetLibraryKeyword_getGraphQLField(
+				assetLibraryId);
 
 		// No namespace
 
@@ -1422,6 +1417,25 @@ public abstract class BaseKeywordResourceTestCase {
 			Arrays.asList(
 				KeywordSerDes.toDTOs(
 					assetLibraryKeywordsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetAssetLibraryKeywordsPageAssetLibraryKeyword_getGraphQLField(
+				Long assetLibraryId)
+		throws Exception {
+
+		return new GraphQLField(
+			"assetLibraryKeywords",
+			new HashMap<String, Object>() {
+				{
+					put("assetLibraryId", "\"" + assetLibraryId + "\"");
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -1737,7 +1751,7 @@ public abstract class BaseKeywordResourceTestCase {
 			randomKeyword());
 
 		page = keywordResource.getKeywordsRankedPage(
-			null, null, Pagination.of(1, 10));
+			null, null, Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1842,17 +1856,8 @@ public abstract class BaseKeywordResourceTestCase {
 
 	@Test
 	public void testGraphQLGetKeywordsRankedPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"keywordsRanked",
-			new HashMap<String, Object>() {
-				{
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetKeywordsRankedPageKeyword_getGraphQLField();
 
 		// No namespace
 
@@ -1907,6 +1912,23 @@ public abstract class BaseKeywordResourceTestCase {
 			Arrays.asList(
 				KeywordSerDes.toDTOs(
 					keywordsRankedJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetKeywordsRankedPageKeyword_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"keywordsRanked",
+			new HashMap<String, Object>() {
+				{
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	protected Keyword testGraphQLGetKeywordsRankedPageKeyword_addKeyword(
@@ -2145,7 +2167,8 @@ public abstract class BaseKeywordResourceTestCase {
 			siteId, randomKeyword());
 
 		page = keywordResource.getSiteKeywordsPage(
-			siteId, null, null, null, Pagination.of(1, 10), null);
+			siteId, null, null, null, Pagination.of(1, (int)totalCount + 2),
+			null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -2498,18 +2521,8 @@ public abstract class BaseKeywordResourceTestCase {
 	public void testGraphQLGetSiteKeywordsPage() throws Exception {
 		Long siteId = testGetSiteKeywordsPage_getSiteId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"keywords",
-			new HashMap<String, Object>() {
-				{
-					put("siteKey", "\"" + siteId + "\"");
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetSiteKeywordsPageSiteKeyword_getGraphQLField(siteId);
 
 		// No namespace
 
@@ -2560,6 +2573,25 @@ public abstract class BaseKeywordResourceTestCase {
 			keyword2,
 			Arrays.asList(
 				KeywordSerDes.toDTOs(keywordsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetSiteKeywordsPageSiteKeyword_getGraphQLField(
+				Long siteId)
+		throws Exception {
+
+		return new GraphQLField(
+			"keywords",
+			new HashMap<String, Object>() {
+				{
+					put("siteKey", "\"" + siteId + "\"");
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -4433,4 +4465,4 @@ public abstract class BaseKeywordResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1829607848
+// LIFERAY-REST-BUILDER-HASH:632355200

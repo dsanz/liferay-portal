@@ -1,0 +1,91 @@
+defaults:
+    run:
+        shell: bash
+jobs:
+    push:
+        outputs:
+            image_ref: ${{steps.push.outputs.image_ref}}
+            version: ${{steps.push.outputs.version}}
+        runs-on: ubuntu-latest
+        steps:
+            -   name: Checkout code
+                uses: actions/checkout@v4
+                with:
+                    fetch-depth: 1
+                    filter: tree:0
+                    show-progress: false
+                    sparse-checkout: ${{inputs.sparse_checkout}}
+            -   name: Authenticate to Google Cloud
+                uses: google-github-actions/auth@v3
+                with:
+                    project_id: ${{vars.GCP_PROJECT_ID_EXTERNAL_NONPRODUCTION}}
+                    workload_identity_provider: ${{vars.GCP_WORKLOAD_IDENTITY_PROVIDER_EXTERNAL_NONPRODUCTION}}
+            -   name: Set up Google Cloud CLI
+                uses: google-github-actions/setup-gcloud@v2
+                with:
+                    project_id: ${{vars.GCP_PROJECT_ID_EXTERNAL_NONPRODUCTION}}
+            -   name: Log in to GAR
+                run: gcloud auth configure-docker us-central1-docker.pkg.dev --quiet
+            -   env:
+                    CONTAINER_IMAGE_REGISTRY_NONPRODUCTION: ${{vars.CONTAINER_IMAGE_REGISTRY_NONPRODUCTION}}
+                id: push
+                name: Build and push image
+                run: |
+                    set -o errexit
+                    set -o nounset
+                    set -o pipefail
+
+                    function main {
+                        local version
+
+                        version=$(jq --arg key "${{inputs.image_name}}" --raw-output '.[$key]' "${GITHUB_WORKSPACE}/cloud/scripts/versions.json")
+
+                        if [[ -z "${version}" ]] || [[ "${version}" == "null" ]]
+                        then
+                            echo "The version for ${{inputs.image_name}} cannot be read from cloud/scripts/versions.json." >&2
+
+                            exit 1
+                        fi
+
+                        local sanitized_branch
+
+                        sanitized_branch=$(echo "${GITHUB_REF_NAME}" | tr 'A-Z/' 'a-z-')
+
+                        local registry_path="${CONTAINER_IMAGE_REGISTRY_NONPRODUCTION}/${sanitized_branch}/${GITHUB_SHA::7}"
+
+                        local image_ref="${registry_path}/${{inputs.image_name}}:${version}"
+
+                        docker \
+                            build \
+                            --pull \
+                            --tag "${image_ref}" \
+                            .
+
+                        docker push "${image_ref}"
+
+                        echo "image_ref=${image_ref}" >> ${GITHUB_OUTPUT}
+                        echo "version=${version}" >> ${GITHUB_OUTPUT}
+                    }
+
+                    main "${@}"
+                working-directory: ${{inputs.working_directory}}
+on:
+    workflow_call:
+        inputs:
+            image_name:
+                required: true
+                type: string
+            sparse_checkout:
+                required: true
+                type: string
+            working_directory:
+                required: true
+                type: string
+        outputs:
+            image_ref:
+                value: ${{jobs.push.outputs.image_ref}}
+            version:
+                value: ${{jobs.push.outputs.version}}
+permissions:
+    contents: read
+    id-token: write

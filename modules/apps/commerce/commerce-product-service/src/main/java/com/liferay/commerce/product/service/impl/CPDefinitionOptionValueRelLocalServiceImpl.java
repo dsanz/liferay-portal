@@ -31,10 +31,11 @@ import com.liferay.commerce.product.service.CPDefinitionOptionRelLocalService;
 import com.liferay.commerce.product.service.CPInstanceLocalService;
 import com.liferay.commerce.product.service.CPInstanceOptionValueRelLocalService;
 import com.liferay.commerce.product.service.CPInstanceUnitOfMeasureLocalService;
-import com.liferay.commerce.product.service.CPOptionLocalService;
-import com.liferay.commerce.product.service.CPOptionValueLocalService;
 import com.liferay.commerce.product.service.base.CPDefinitionOptionValueRelLocalServiceBaseImpl;
 import com.liferay.commerce.product.service.persistence.CPDefinitionOptionRelPersistence;
+import com.liferay.commerce.product.service.persistence.CPInstancePersistence;
+import com.liferay.commerce.product.service.persistence.CPOptionPersistence;
+import com.liferay.commerce.product.service.persistence.CPOptionValuePersistence;
 import com.liferay.expando.kernel.model.ExpandoBridge;
 import com.liferay.expando.kernel.service.ExpandoRowLocalService;
 import com.liferay.info.pagination.Pagination;
@@ -139,7 +140,7 @@ public class CPDefinitionOptionValueRelLocalServiceImpl
 		key = _friendlyURLNormalizer.normalize(key);
 
 		CPDefinitionOptionRel cpDefinitionOptionRel =
-			_cpDefinitionOptionRelLocalService.getCPDefinitionOptionRel(
+			_cpDefinitionOptionRelPersistence.findByPrimaryKey(
 				cpDefinitionOptionRelId);
 
 		_validate(
@@ -236,7 +237,7 @@ public class CPDefinitionOptionValueRelLocalServiceImpl
 		key = _friendlyURLNormalizer.normalize(key);
 
 		CPDefinitionOptionRel cpDefinitionOptionRel =
-			_cpDefinitionOptionRelLocalService.getCPDefinitionOptionRel(
+			_cpDefinitionOptionRelPersistence.findByPrimaryKey(
 				cpDefinitionOptionRelId);
 
 		_validate(0, cpDefinitionOptionRel, 0, key, StringPool.BLANK);
@@ -516,10 +517,12 @@ public class CPDefinitionOptionValueRelLocalServiceImpl
 		long cpDefinitionOptionRelId) {
 
 		CPDefinitionOptionRel cpDefinitionOptionRel =
-			_cpDefinitionOptionRelLocalService.fetchCPDefinitionOptionRel(
+			_cpDefinitionOptionRelPersistence.fetchByPrimaryKey(
 				cpDefinitionOptionRelId);
 
-		if (cpDefinitionOptionRel.isDefinedExternally()) {
+		if ((cpDefinitionOptionRel != null) &&
+			cpDefinitionOptionRel.isDefinedExternally()) {
+
 			return _cpCollectionProviderHelper.getCPDefinitionOptionValueRels(
 				cpDefinitionOptionRel, null, null);
 		}
@@ -533,7 +536,7 @@ public class CPDefinitionOptionValueRelLocalServiceImpl
 		long cpDefinitionOptionRelId, int start, int end) {
 
 		CPDefinitionOptionRel cpDefinitionOptionRel =
-			_cpDefinitionOptionRelLocalService.fetchCPDefinitionOptionRel(
+			_cpDefinitionOptionRelPersistence.fetchByPrimaryKey(
 				cpDefinitionOptionRelId);
 
 		if ((cpDefinitionOptionRel != null) &&
@@ -553,10 +556,12 @@ public class CPDefinitionOptionValueRelLocalServiceImpl
 		OrderByComparator<CPDefinitionOptionValueRel> orderByComparator) {
 
 		CPDefinitionOptionRel cpDefinitionOptionRel =
-			_cpDefinitionOptionRelLocalService.fetchCPDefinitionOptionRel(
+			_cpDefinitionOptionRelPersistence.fetchByPrimaryKey(
 				cpDefinitionOptionRelId);
 
-		if (cpDefinitionOptionRel.isDefinedExternally()) {
+		if ((cpDefinitionOptionRel != null) &&
+			cpDefinitionOptionRel.isDefinedExternally()) {
+
 			return _cpCollectionProviderHelper.getCPDefinitionOptionValueRels(
 				cpDefinitionOptionRel, null, Pagination.of(end, start));
 		}
@@ -672,10 +677,10 @@ public class CPDefinitionOptionValueRelLocalServiceImpl
 		throws PortalException {
 
 		CPDefinitionOptionRel cpDefinitionOptionRel =
-			_cpDefinitionOptionRelLocalService.getCPDefinitionOptionRel(
+			_cpDefinitionOptionRelPersistence.findByPrimaryKey(
 				cpDefinitionOptionRelId);
 
-		CPOption cpOption = _cpOptionLocalService.fetchCPOption(
+		CPOption cpOption = _cpOptionPersistence.fetchByPrimaryKey(
 			cpDefinitionOptionRel.getCPOptionId());
 
 		if (cpOption == null) {
@@ -683,7 +688,7 @@ public class CPDefinitionOptionValueRelLocalServiceImpl
 		}
 
 		List<CPOptionValue> cpOptionValues =
-			_cpOptionValueLocalService.getCPOptionValues(
+			_cpOptionValuePersistence.findByCPOptionId(
 				cpOption.getCPOptionId(), QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 		Map<String, Serializable> expandoBridgeAttributes =
@@ -758,10 +763,12 @@ public class CPDefinitionOptionValueRelLocalServiceImpl
 		throws PortalException {
 
 		CPDefinitionOptionRel cpDefinitionOptionRel =
-			_cpDefinitionOptionRelLocalService.fetchCPDefinitionOptionRel(
+			_cpDefinitionOptionRelPersistence.fetchByPrimaryKey(
 				cpDefinitionOptionRelId);
 
-		if (cpDefinitionOptionRel.isDefinedExternally()) {
+		if ((cpDefinitionOptionRel != null) &&
+			cpDefinitionOptionRel.isDefinedExternally()) {
+
 			return new BaseModelSearchResult<>(
 				_cpCollectionProviderHelper.getCPDefinitionOptionValueRels(
 					companyId, groupId, cpDefinitionOptionRel, keywords,
@@ -784,10 +791,12 @@ public class CPDefinitionOptionValueRelLocalServiceImpl
 		throws PortalException {
 
 		CPDefinitionOptionRel cpDefinitionOptionRel =
-			_cpDefinitionOptionRelLocalService.fetchCPDefinitionOptionRel(
+			_cpDefinitionOptionRelPersistence.fetchByPrimaryKey(
 				cpDefinitionOptionRelId);
 
-		if (cpDefinitionOptionRel.isDefinedExternally()) {
+		if ((cpDefinitionOptionRel != null) &&
+			cpDefinitionOptionRel.isDefinedExternally()) {
+
 			return _cpCollectionProviderHelper.
 				getCPDefinitionOptionValueRelsCount(
 					companyId, groupId, cpDefinitionOptionRel, keywords);
@@ -1089,7 +1098,7 @@ public class CPDefinitionOptionValueRelLocalServiceImpl
 			return cpDefinitionOptionValueRel;
 		}
 
-		CPInstance cpInstance = _cpInstanceLocalService.getCPInstance(
+		CPInstance cpInstance = _cpInstancePersistence.findByPrimaryKey(
 			cpInstanceId);
 
 		cpDefinitionOptionValueRel.setCPInstanceUuid(
@@ -1359,14 +1368,17 @@ public class CPDefinitionOptionValueRelLocalServiceImpl
 		_cpInstanceOptionValueRelLocalService;
 
 	@Reference
+	private CPInstancePersistence _cpInstancePersistence;
+
+	@Reference
 	private CPInstanceUnitOfMeasureLocalService
 		_cpInstanceUnitOfMeasureLocalService;
 
 	@Reference
-	private CPOptionLocalService _cpOptionLocalService;
+	private CPOptionPersistence _cpOptionPersistence;
 
 	@Reference
-	private CPOptionValueLocalService _cpOptionValueLocalService;
+	private CPOptionValuePersistence _cpOptionValuePersistence;
 
 	@Reference
 	private ExpandoRowLocalService _expandoRowLocalService;

@@ -81,6 +81,8 @@ public class CommerceNotificationServiceUpgradeStepRegistrator
 			UpgradeProcessFactory.alterColumnType(
 				"CommerceNotificationTemplate", "bcc", "TEXT null"));
 
+		registry.register("3.0.0", "3.1.0", new DummyUpgradeProcess());
+
 		if (_log.isInfoEnabled()) {
 			_log.info(
 				"Commerce notification upgrade step registrator finished");

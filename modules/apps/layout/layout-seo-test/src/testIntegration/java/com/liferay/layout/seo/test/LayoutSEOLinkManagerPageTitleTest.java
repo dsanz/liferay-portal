@@ -12,7 +12,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.test.util.GroupConfigurationTemporarySwapper;
 import com.liferay.portal.kernel.exception.NoSuchLayoutException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
@@ -40,7 +39,6 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortletKeys;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -71,18 +69,8 @@ public class LayoutSEOLinkManagerPageTitleTest {
 
 		_group = _addGroup();
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				_group.getCompanyId(), "LPD-17564")) {
-
-			_cmsGroup = _groupLocalService.fetchGroup(
-				_group.getCompanyId(), GroupConstants.CMS);
-
-			if (_cmsGroup == null) {
-				_cmsGroup = GroupTestUtil.addGroup(
-					_group.getCompanyId(), TestPropsValues.getUserId(),
-					GroupConstants.DEFAULT_PARENT_GROUP_ID, GroupConstants.CMS);
-			}
-		}
+		_cmsGroup = _groupLocalService.getGroup(
+			_group.getCompanyId(), GroupConstants.CMS);
 
 		_layout.setGroupId(_group.getGroupId());
 
@@ -407,7 +395,6 @@ public class LayoutSEOLinkManagerPageTitleTest {
 			_layoutSEOLinkManager.getPageTitleSuffix(_layout, companyName));
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	@TestInfo("LPD-66633")
 	public void testGetPageTitleSuffixCompanyNameInCMSGroup() throws Exception {
@@ -428,7 +415,6 @@ public class LayoutSEOLinkManagerPageTitleTest {
 			_layoutSEOLinkManager.getPageTitleSuffix(_layout, companyName));
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	@TestInfo("LPD-66633")
 	public void testGetPageTitleSuffixGroupNameCompanyNameInCMSGroup()
@@ -469,7 +455,6 @@ public class LayoutSEOLinkManagerPageTitleTest {
 		}
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	@TestInfo("LPD-66633")
 	public void testGetPageTitleSuffixWithIncludeInstanceNameWithIncludeSiteNameInCMSGroup()
@@ -521,7 +506,6 @@ public class LayoutSEOLinkManagerPageTitleTest {
 		}
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	@TestInfo("LPD-66633")
 	public void testGetPageTitleSuffixWithIncludeInstanceNameWithoutIncludeSiteNameInCMSGroup()
@@ -567,7 +551,6 @@ public class LayoutSEOLinkManagerPageTitleTest {
 		}
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	@TestInfo("LPD-66633")
 	public void testGetPageTitleSuffixWithoutIncludeInstanceNameWithIncludeSiteNameInCMSGroup()
@@ -613,7 +596,6 @@ public class LayoutSEOLinkManagerPageTitleTest {
 		}
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	@TestInfo("LPD-66633")
 	public void testGetPageTitleSuffixWithoutIncludeInstanceNameWithoutIncludeSiteNameInCMSGroup()

@@ -22,6 +22,23 @@ export class FormSettingsModalPage {
 		await this.doneButton.click();
 	}
 
+	async clickDoneButtonAndWaitForObjectFields(objectDefinitionId: number) {
+		const objectFieldsResponsePromise = this.page.waitForResponse(
+			(response) =>
+				response.ok() &&
+				response.request().method() === 'GET' &&
+				response
+					.url()
+					.includes(
+						`/o/object-admin/v1.0/object-definitions/${objectDefinitionId}`
+					)
+		);
+
+		await this.doneButton.click();
+
+		await objectFieldsResponsePromise;
+	}
+
 	async selectObject(objectLabel: string) {
 		await this.objectSelect.click();
 

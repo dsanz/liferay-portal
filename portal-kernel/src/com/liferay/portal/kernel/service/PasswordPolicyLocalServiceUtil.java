@@ -234,6 +234,10 @@ public class PasswordPolicyLocalServiceUtil {
 		return getService().dynamicQueryCount(dynamicQuery, projection);
 	}
 
+	public static PasswordPolicy fetchDefaultPasswordPolicy(long companyId) {
+		return getService().fetchDefaultPasswordPolicy(companyId);
+	}
+
 	public static PasswordPolicy fetchPasswordPolicy(long passwordPolicyId) {
 		return getService().fetchPasswordPolicy(passwordPolicyId);
 	}
@@ -242,6 +246,19 @@ public class PasswordPolicyLocalServiceUtil {
 		long companyId, String name) {
 
 		return getService().fetchPasswordPolicy(companyId, name);
+	}
+
+	public static PasswordPolicy fetchPasswordPolicyByUser(
+			com.liferay.portal.kernel.model.User user)
+		throws PortalException {
+
+		return getService().fetchPasswordPolicyByUser(user);
+	}
+
+	public static PasswordPolicy fetchPasswordPolicyByUserId(long userId)
+		throws PortalException {
+
+		return getService().fetchPasswordPolicyByUserId(userId);
 	}
 
 	/**
@@ -436,4 +453,4 @@ public class PasswordPolicyLocalServiceUtil {
 	private static volatile PasswordPolicyLocalService _service;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1635504886
+// LIFERAY-SERVICE-BUILDER-HASH:1524807190

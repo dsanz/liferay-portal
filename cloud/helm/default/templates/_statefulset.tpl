@@ -4,6 +4,12 @@
     {{- if eq .name "http" -}}{{- $backendPort = .port -}}{{- end -}}
 {{- end -}}
 {{- $suffix := ternary "" (printf "-%s" .name) (eq .name "") }}
+{{- $license := .statefulset.license | default dict }}
+{{- $licenseSecretName := $license.secretName | default (printf "%s-entitlements" (include "liferay.name" .root)) }}
+{{- $licenseVolumeName := "liferay-license" }}
+{{- $marketplace := .statefulset.marketplace | default dict }}
+{{- $marketplaceClaimName := printf "%s-marketplace" (include "liferay.name" .root) }}
+{{- $marketplaceVolumeName := "liferay-marketplace" }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -38,6 +44,9 @@ spec:
             labels:
                 app: {{ include "liferay.name" .root }}{{ $suffix }}
                 {{- include "liferay.labels" .root | nindent 16 }}
+                {{- with .statefulset.podLabels }}
+                {{- toYaml . | nindent 16 }}
+                {{- end }}
         spec:
             {{- with .statefulset.affinity }}
             affinity:
@@ -167,7 +176,7 @@ spec:
             tolerations:
             {{- toYaml . | nindent 12 }}
             {{- end }}
-            {{- if or .statefulset.volumes .statefulset.customVolumes }}
+            {{- if or .statefulset.volumes .statefulset.customVolumes $license.enabled $marketplace.enabled }}
             volumes:
                 {{- with .statefulset.volumes }}
                 {{- toYaml . | nindent 16 }}
@@ -175,15 +184,26 @@ spec:
                 {{- range $k, $v := .statefulset.customVolumes }}
                 {{- toYaml $v | nindent 16 }}
                 {{- end }}
+                {{- if $license.enabled }}
+                {{- list (dict "name" $licenseVolumeName "secret" (dict "items" (list (dict "key" "license.xml" "path" "license.xml")) "optional" true "secretName" $licenseSecretName)) | toYaml | nindent 16 }}
+                {{- end }}
+                {{- if $marketplace.enabled }}
+                {{- list (dict "name" $marketplaceVolumeName "persistentVolumeClaim" (dict "claimName" $marketplaceClaimName)) | toYaml | nindent 16 }}
+                {{- end }}
             {{- end }}
     {{- with .statefulset.updateStrategy }}
     updateStrategy:
         {{- toYaml . | nindent 8 }}
     {{- end }}
     {{- if or .statefulset.volumeClaimTemplates .statefulset.customVolumeClaimTemplates }}
+    {{- $defaultStorageClassName := .statefulset.persistence.defaultStorageClassName }}
     volumeClaimTemplates:
-        {{- with .statefulset.volumeClaimTemplates }}
-        {{- toYaml . | nindent 8 }}
+        {{- range .statefulset.volumeClaimTemplates }}
+        {{- $volumeClaimTemplate := . }}
+        {{- if and $defaultStorageClassName (not (hasKey .spec "storageClassName")) }}
+        {{- $volumeClaimTemplate = merge (deepCopy .) (dict "spec" (dict "storageClassName" $defaultStorageClassName)) }}
+        {{- end }}
+        {{- list $volumeClaimTemplate | toYaml | nindent 8 }}
         {{- end }}
         {{- range $k, $v := .statefulset.customVolumeClaimTemplates }}
         {{- toYaml $v | nindent 8 }}

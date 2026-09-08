@@ -17,6 +17,7 @@ import performLogin, {
 	performLogout,
 	userData,
 } from '../../../utils/performLogin';
+import {closeProductMenu} from '../../../utils/productMenu';
 import {waitForAlert} from '../../../utils/waitForAlert';
 import {membershipsPagesTest} from './fixtures/membershipsPagesTest';
 
@@ -452,7 +453,7 @@ test(
 				.getByTitle('Go to Memberships')
 		).toBeVisible();
 
-		await page.getByLabel('Close Product Menu').click();
+		await closeProductMenu(page);
 
 		await page.waitForTimeout(300);
 
@@ -481,6 +482,8 @@ test(
 				.locator('.control-menu-nav-item')
 				.getByTitle('Go to Membership Requests')
 		).toBeVisible();
+
+		await closeProductMenu(page);
 
 		await page.waitForTimeout(300);
 
@@ -512,6 +515,8 @@ test(
 
 		await page.reload();
 
+		await closeProductMenu(page);
+
 		await page.waitForTimeout(300);
 
 		await page.keyboard.press('Tab');
@@ -536,6 +541,14 @@ test(
 		tag: '@LPD-69499',
 	},
 	async ({apiHelpers, membershipsPage, page}) => {
+		let dialogMessage: null | string = null;
+
+		page.on('dialog', async (dialog) => {
+			dialogMessage = dialog.message();
+
+			await dialog.dismiss();
+		});
+
 		const user = await apiHelpers.headlessAdminUser.postUserAccount({
 			familyName: `"><script>alert(2)</script>`,
 			givenName: `"><script>alert(1)</script>`,
@@ -568,9 +581,9 @@ test(
 
 		await userCard.click({force: true});
 
-		const alert = page.locator('.alert');
+		await expect(userCard.locator('input[type="checkbox"]')).toBeChecked();
 
-		await expect(alert).toHaveCount(0);
+		expect(dialogMessage).toBeNull();
 	}
 );
 
@@ -587,6 +600,14 @@ test(
 		site,
 		siteSettingsPage,
 	}) => {
+		let dialogMessage: null | string = null;
+
+		page.on('dialog', async (dialog) => {
+			dialogMessage = dialog.message();
+
+			await dialog.dismiss();
+		});
+
 		const site2 = await apiHelpers.headlessAdminSite.postSite({
 			membershipType: 'restricted',
 			name: getRandomString(),
@@ -618,7 +639,7 @@ test(
 			true
 		);
 
-		await page.getByLabel('Publish', {exact: true}).click();
+		await pageEditorPage.publishPage();
 
 		await performLogout(page);
 
@@ -628,14 +649,15 @@ test(
 
 		await page.getByRole('link', {name: 'Available Sites'}).click();
 
-		await page
-			.locator(
-				`[id="_com_liferay_site_my_sites_web_portlet_MySitesPortlet_ocerSearchContainer_-${site2.name}"]`
-			)
-			.getByLabel('Show Actions')
-			.click();
-
-		await page.getByRole('menuitem', {name: 'Request Membership'}).click();
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('menuitem', {name: 'Request Membership'}),
+			trigger: page
+				.locator(
+					`[id="_com_liferay_site_my_sites_web_portlet_MySitesPortlet_ocerSearchContainer_-${site2.name}"]`
+				)
+				.getByLabel('Show Actions'),
+		});
 
 		await page
 			.getByLabel('Characters Maximum')
@@ -659,9 +681,11 @@ test(
 			trigger: page.getByLabel('Options', {exact: true}),
 		});
 
-		await page.getByLabel('More actions').click();
-
-		await page.getByRole('menuitem', {name: 'Reply'}).click();
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('menuitem', {name: 'Reply'}),
+			trigger: page.getByLabel('More actions'),
+		});
 
 		await page
 			.getByLabel('Characters Maximum')
@@ -677,9 +701,9 @@ test(
 			})
 			.click();
 
-		const alert = page.locator('.alert');
+		await expect(page.locator('p.approved.status')).toBeVisible();
 
-		await expect(alert).toHaveCount(0);
+		expect(dialogMessage).toBeNull();
 	}
 );
 
@@ -1023,3 +1047,60 @@ test('Search user group site members', async ({
 		).toBeVisible({timeout: 2000});
 	}).toPass();
 });
+
+test(
+	'Inherited members are labeled and removal affects only direct memberships',
+	{tag: '@LPD-87301'},
+	async ({apiHelpers, membershipsPage, page}) => {
+		const siteId = await page.evaluate(() => {
+			return String(Liferay.ThemeDisplay.getSiteGroupId());
+		});
+
+		const explicitUser =
+			await apiHelpers.headlessAdminUser.postUserAccount();
+
+		await apiHelpers.jsonWebServicesUser.assignUsersToSite(
+			siteId,
+			explicitUser.id
+		);
+
+		const inheritedUser =
+			await apiHelpers.headlessAdminUser.postUserAccount();
+		const userGroup = await apiHelpers.headlessAdminUser.postUserGroup();
+
+		await apiHelpers.headlessAdminUser.assignUsersToUserGroup(
+			userGroup.id,
+			[inheritedUser.id]
+		);
+
+		await apiHelpers.jsonWebServicesUserGroup.assignUserGroupsToGroup(
+			siteId,
+			String(userGroup.id)
+		);
+
+		await membershipsPage.goto();
+
+		await expect(membershipsPage.inheritanceSourceLabel).toBeVisible();
+		await expect(membershipsPage.inheritanceSourceLabel).toHaveCount(1);
+
+		let confirmationMessage = '';
+
+		page.once('dialog', (dialog) => {
+			confirmationMessage = dialog.message();
+
+			dialog.accept();
+		});
+
+		await membershipsPage.triggerRemoveMembership(
+			explicitUser.alternateName
+		);
+
+		await waitForAlert(page);
+
+		expect(confirmationMessage).toContain(
+			'Only direct memberships will be removed'
+		);
+		await expect(page.getByText(explicitUser.name)).not.toBeVisible();
+		await expect(membershipsPage.inheritanceSourceLabel).toBeVisible();
+	}
+);

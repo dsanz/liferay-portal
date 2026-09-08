@@ -7,6 +7,8 @@ package com.liferay.analytics.cms.rest.resource.v1_0.test;
 
 import com.liferay.analytics.cms.rest.client.dto.v1_0.InventoryAnalysis;
 import com.liferay.analytics.cms.rest.client.dto.v1_0.InventoryAnalysisItem;
+import com.liferay.analytics.cms.rest.resource.v1_0.InventoryAnalysisResource;
+import com.liferay.analytics.cms.rest.resource.v1_0.test.util.DepotEntryTestUtil;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.asset.entry.rel.model.AssetEntryAssetCategoryRel;
 import com.liferay.asset.entry.rel.service.AssetEntryAssetCategoryRelLocalService;
@@ -30,6 +32,7 @@ import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.rest.test.util.ObjectEntryTestUtil;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -38,11 +41,9 @@ import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
-import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
+import com.liferay.portal.vulcan.pagination.Pagination;
 
 import java.io.ByteArrayInputStream;
 import java.io.Serializable;
@@ -61,9 +62,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Rachael Koestartyo
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-34594")}
-)
 @RunWith(Arquillian.class)
 public class InventoryAnalysisResourceTest
 	extends BaseInventoryAnalysisResourceTestCase {
@@ -148,6 +146,28 @@ public class InventoryAnalysisResourceTest
 		Assert.assertEquals(1L, (long)inventoryAnalysisItem.getCount());
 
 		Assert.assertEquals("Category", inventoryAnalysisItem.getTitle());
+
+		_assertInventoryAnalysis(
+			inventoryAnalysisResource.getInventoryAnalysis(
+				null, _depotEntry.getDepotEntryId(), null, null, null, -1, null,
+				null, null, null, null),
+			0, 0L, null);
+		_assertInventoryAnalysis(
+			inventoryAnalysisResource.getInventoryAnalysis(
+				null, _depotEntry.getDepotEntryId(), null, null, null, 7, null,
+				null, null, null, null),
+			3, 5L, null);
+
+		_testGetInventoryAnalysisWithDepotEntryMemberUser();
+	}
+
+	@Test
+	public void testGetInventoryAnalysisWithoutSpaces() throws Exception {
+		_assertInventoryAnalysis(
+			inventoryAnalysisResource.getInventoryAnalysis(
+				null, null, null, null, null, null, null, null, null, null,
+				null),
+			0, 0L, null);
 	}
 
 	private void _assertInventoryAnalysis(
@@ -175,8 +195,6 @@ public class InventoryAnalysisResourceTest
 	}
 
 	private void _setUpCMSContext() throws Exception {
-		CMSTestUtil.getOrAddGroup(InventoryAnalysisResourceTest.class);
-
 		_serviceContext = ServiceContextTestUtil.getServiceContext(
 			testGroup.getGroupId(), TestPropsValues.getUserId());
 
@@ -287,6 +305,29 @@ public class InventoryAnalysisResourceTest
 				).put(
 					"videoURL", "https://www.youtube.com/watch?v=HOdbzGCI5ME"
 				).build()));
+	}
+
+	private void _testGetInventoryAnalysisWithDepotEntryMemberUser()
+		throws Exception {
+
+		InventoryAnalysisResource inventoryAnalysisResource =
+			ReflectionTestUtil.getFieldValue(
+				this, "_inventoryAnalysisResource");
+
+		Assert.assertEquals(
+			5L,
+			(long)DepotEntryTestUtil.withDepotEntryMemberUser(
+				_depotEntry,
+				() -> {
+					com.liferay.analytics.cms.rest.dto.v1_0.InventoryAnalysis
+						inventoryAnalysis =
+							inventoryAnalysisResource.getInventoryAnalysis(
+								null, _depotEntry.getDepotEntryId(), null, null,
+								null, null, null, null, null, null,
+								Pagination.of(1, 10));
+
+					return inventoryAnalysis.getTotalCount();
+				}));
 	}
 
 	@DeleteAfterTestRun

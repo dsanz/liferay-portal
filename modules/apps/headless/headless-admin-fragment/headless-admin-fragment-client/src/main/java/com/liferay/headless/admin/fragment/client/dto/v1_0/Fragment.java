@@ -20,7 +20,7 @@ import java.util.Objects;
  * @generated
  */
 @Generated("")
-public class Fragment implements Cloneable, Serializable {
+public abstract class Fragment implements Cloneable, Serializable {
 
 	public static Fragment toDTO(String json) {
 		return FragmentSerDes.toDTO(json);
@@ -151,6 +151,32 @@ public class Fragment implements Cloneable, Serializable {
 	}
 
 	protected FragmentSet fragmentSet;
+
+	public String getFragmentSetExternalReferenceCode() {
+		return fragmentSetExternalReferenceCode;
+	}
+
+	public void setFragmentSetExternalReferenceCode(
+		String fragmentSetExternalReferenceCode) {
+
+		this.fragmentSetExternalReferenceCode =
+			fragmentSetExternalReferenceCode;
+	}
+
+	public void setFragmentSetExternalReferenceCode(
+		UnsafeSupplier<String, Exception>
+			fragmentSetExternalReferenceCodeUnsafeSupplier) {
+
+		try {
+			fragmentSetExternalReferenceCode =
+				fragmentSetExternalReferenceCodeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected String fragmentSetExternalReferenceCode;
 
 	public FragmentVersion[] getFragmentVersions() {
 		return fragmentVersions;
@@ -357,7 +383,7 @@ public class Fragment implements Cloneable, Serializable {
 
 	public static enum Type {
 
-		COMPONENT("Component");
+		BASIC_FRAGMENT("BasicFragment"), FORM_FRAGMENT("FormFragment");
 
 		public static Type create(String value) {
 			for (Type type : values()) {
@@ -389,4 +415,4 @@ public class Fragment implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:276754114
+// LIFERAY-REST-BUILDER-HASH:-415793736

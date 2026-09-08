@@ -96,6 +96,9 @@ export interface IBulkActionTaskStarterDTO<T extends keyof IBulkActionType> {
 }
 
 export interface IBulkActionType {
+	AddObjectToProjectBulkSelectionAction: {
+		projectScopeKeys?: string[];
+	};
 	AssignStructureDefaultWorkflowBulkSelectionAction: {
 		workflow?: string;
 	};
@@ -152,12 +155,19 @@ export interface IBulkActionType {
 	StatusObjectBulkSelectionAction: {
 		status?: string;
 	};
+	UpdateExpirationDateObjectBulkSelectionAction: {
+		expirationDate?: string;
+	};
 	UpdateObjectValuesBulkSelectionAction: {
 		values?: Record<string, unknown>;
+	};
+	UpdateReviewDateObjectBulkSelectionAction: {
+		reviewDate?: string;
 	};
 }
 
 export interface IBulkActionTaskType {
+	AddObjectToProjectBulkSelectionAction: string;
 	AssignStructureDefaultWorkflowBulkSelectionAction: string;
 	AssignToObjectBulkSelectionAction: string;
 	CopyObjectBulkSelectionAction: string;
@@ -177,7 +187,9 @@ export interface IBulkActionTaskType {
 	ResetPermissionObjectBulkSelectionAction: string;
 	RestoreObjectBulkSelectionAction: string;
 	StatusObjectBulkSelectionAction: string;
+	UpdateExpirationDateObjectBulkSelectionAction: string;
 	UpdateObjectValuesBulkSelectionAction: string;
+	UpdateReviewDateObjectBulkSelectionAction: string;
 }
 
 export type TBulkActionTaskDTO = {

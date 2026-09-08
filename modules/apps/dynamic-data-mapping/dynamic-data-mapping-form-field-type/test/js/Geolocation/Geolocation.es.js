@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import {MapOpenStreetMap} from '@liferay/map-openstreetmap';
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -28,11 +29,19 @@ beforeAll(() => {
 			CONTROLS: {},
 			register: jest.fn(),
 		},
+		Maps: {},
 		ThemeDisplay: {
 			getPathThemeImages: () => '',
 		},
 		detach: jest.fn(),
+		fire: jest.fn(),
+		namespace: jest.fn((name) => {
+			window.Liferay[name] = window.Liferay[name] || {};
+
+			return window.Liferay[name];
+		}),
 		on: jest.fn(),
+		once: jest.fn(),
 	};
 });
 
@@ -60,8 +69,13 @@ jest.mock('@liferay/map-openstreetmap', () => ({
 			}),
 			on: jest.fn((eventName, callback) => {
 				mockInstance._listeners[eventName] = callback;
+
+				return {
+					removeListener: jest.fn(() => {
+						delete mockInstance._listeners[eventName];
+					}),
+				};
 			}),
-			removeAllListeners: jest.fn(),
 			setCenter: jest.fn(),
 		};
 
@@ -132,5 +146,226 @@ describe('Geolocation', () => {
 
 		expect(await screen.findAllByText('pt_BR Address')).toBeTruthy();
 		expect(screen.queryAllByText('en_US Address')).toHaveLength(0);
+	});
+
+	it('removes only the listener held in useGeolocation and not any other listeners', () => {
+		const renderGeolocation = () => (
+			<ConfigProvider value={{defaultLanguageId: 'en_US'}}>
+				<FormProvider
+					initialState={{
+						editingLanguageId: 'en_US',
+						pages: [],
+					}}
+					reducers={[languageReducer]}
+				>
+					<PageProvider value={{pageIndex: 0}}>
+						<GeolocationWrapper />
+					</PageProvider>
+				</FormProvider>
+			</ConfigProvider>
+		);
+
+		const {rerender} = render(renderGeolocation());
+
+		const {results} = MapOpenStreetMap.mock;
+
+		const mapInstance = results[results.length - 1].value;
+
+		const {results: onResults} = mapInstance.on.mock;
+
+		const previousListener = onResults[onResults.length - 1].value;
+
+		rerender(renderGeolocation());
+
+		const currentListener = onResults[onResults.length - 1].value;
+
+		expect(previousListener.removeListener).toHaveBeenCalledTimes(1);
+		expect(currentListener.removeListener).not.toHaveBeenCalled();
+	});
+});
+
+describe('Geolocation Google Maps loader', () => {
+	const gmapsScriptSelector =
+		'script[src*="maps.googleapis.com/maps/api/js"]';
+
+	const renderGoogleMapsField = (instanceId, name) =>
+		render(
+			<ConfigProvider value={{defaultLanguageId: 'en_US'}}>
+				<FormProvider
+					initialState={{editingLanguageId: 'en_US', pages: []}}
+					reducers={[languageReducer]}
+				>
+					<PageProvider value={{pageIndex: 0}}>
+						<Geolocation
+							instanceId={instanceId}
+							mapProviderKey="GoogleMaps"
+							name={name}
+							onChange={jest.fn()}
+							value={{lat: 1, lng: 1}}
+						/>
+					</PageProvider>
+				</FormProvider>
+			</ConfigProvider>
+		);
+
+	beforeEach(() => {
+		delete window.google;
+
+		window.Liferay.Maps = {};
+
+		window.Liferay.detach.mockClear();
+		window.Liferay.once.mockClear();
+
+		document
+			.querySelectorAll(gmapsScriptSelector)
+			.forEach((script) => script.remove());
+	});
+
+	afterEach(() => {
+		document
+			.querySelectorAll(gmapsScriptSelector)
+			.forEach((script) => script.remove());
+	});
+
+	it('clears the loading flag once the API is ready', () => {
+		renderGoogleMapsField('first', 'geoFirst');
+
+		expect(window.Liferay.Maps.gmapsLoading).toBe(true);
+
+		window.Liferay.Maps.onGMapsReady();
+
+		expect(window.Liferay.Maps.gmapsLoading).toBe(false);
+		expect(window.Liferay.Maps.gmapsReady).toBe(true);
+	});
+
+	it('detaches the gmapsReady listener when the field unmounts', () => {
+		const {unmount} = renderGoogleMapsField('first', 'geoFirst');
+
+		const [eventName, listener] = window.Liferay.once.mock.calls[0];
+
+		unmount();
+
+		expect(window.Liferay.detach).toHaveBeenCalledWith(eventName, listener);
+	});
+
+	it('injects the Google Maps API script only once for two fields', () => {
+		render(
+			<ConfigProvider value={{defaultLanguageId: 'en_US'}}>
+				<FormProvider
+					initialState={{
+						editingLanguageId: 'en_US',
+						pages: [],
+					}}
+					reducers={[languageReducer]}
+				>
+					<PageProvider value={{pageIndex: 0}}>
+						<>
+							<Geolocation
+								instanceId="first"
+								mapProviderKey="GoogleMaps"
+								name="geoFirst"
+								onChange={jest.fn()}
+								value={{lat: 1, lng: 1}}
+							/>
+
+							<Geolocation
+								instanceId="second"
+								mapProviderKey="GoogleMaps"
+								name="geoSecond"
+								onChange={jest.fn()}
+								value={{lat: 2, lng: 2}}
+							/>
+						</>
+					</PageProvider>
+				</FormProvider>
+			</ConfigProvider>
+		);
+
+		expect(document.querySelectorAll(gmapsScriptSelector)).toHaveLength(1);
+		expect(window.Liferay.once.mock.calls).toEqual([
+			['gmapsReady', expect.any(Function)],
+			['gmapsReady', expect.any(Function)],
+		]);
+	});
+
+	it('re-injects the Google Maps API script after a failed load', () => {
+		renderGoogleMapsField('first', 'geoFirst');
+
+		const [script] = document.querySelectorAll(gmapsScriptSelector);
+
+		expect(script).toBeTruthy();
+		expect(window.Liferay.Maps.gmapsLoading).toBe(true);
+
+		script.dispatchEvent(new Event('error'));
+
+		expect(window.Liferay.Maps.gmapsLoading).toBe(false);
+		expect(document.querySelectorAll(gmapsScriptSelector)).toHaveLength(0);
+
+		renderGoogleMapsField('second', 'geoSecond');
+
+		expect(document.querySelectorAll(gmapsScriptSelector)).toHaveLength(1);
+	});
+
+	it('skips injection when a loader script is already in the document', () => {
+		const script = document.createElement('script');
+
+		script.setAttribute(
+			'src',
+			'https://maps.googleapis.com/maps/api/js?v=3.exp&libraries=places&callback=Liferay.Maps.onGMapsReady'
+		);
+
+		document.head.appendChild(script);
+
+		renderGoogleMapsField('first', 'geoFirst');
+
+		expect(document.querySelectorAll(gmapsScriptSelector)).toHaveLength(1);
+		expect(window.Liferay.Maps.gmapsLoading).toBeUndefined();
+		expect(window.Liferay.once).toHaveBeenCalledWith(
+			'gmapsReady',
+			expect.any(Function)
+		);
+	});
+});
+
+describe('Geolocation map configuration', () => {
+	it('builds an isolated position for each field', () => {
+		MapOpenStreetMap.mockClear();
+
+		render(
+			<ConfigProvider value={{defaultLanguageId: 'en_US'}}>
+				<FormProvider
+					initialState={{editingLanguageId: 'en_US', pages: []}}
+					reducers={[languageReducer]}
+				>
+					<PageProvider value={{pageIndex: 0}}>
+						<>
+							<Geolocation
+								instanceId="a"
+								mapProviderKey="OpenStreetMap"
+								name="geoA"
+								onChange={jest.fn()}
+								value={{lat: 1, lng: 1}}
+							/>
+
+							<Geolocation
+								instanceId="b"
+								mapProviderKey="OpenStreetMap"
+								name="geoB"
+								onChange={jest.fn()}
+								value={{lat: 2, lng: 2}}
+							/>
+						</>
+					</PageProvider>
+				</FormProvider>
+			</ConfigProvider>
+		);
+
+		const [firstConfig, secondConfig] = MapOpenStreetMap.mock.calls.map(
+			([config]) => config
+		);
+
+		expect(firstConfig.position.location).toEqual({lat: 1, lng: 1});
+		expect(secondConfig.position.location).toEqual({lat: 2, lng: 2});
+		expect(firstConfig.position).not.toBe(secondConfig.position);
 	});
 });

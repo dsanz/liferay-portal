@@ -12,20 +12,15 @@ import {useDrop} from 'react-dnd';
 
 import {getStateObjectField} from '../../../../../utils/api';
 import {openCMPModal} from '../../../../../utils/openCMPModal';
-import {IColumn, ITask} from '../../../../../utils/types';
+import {IColumn} from '../../../../../utils/types';
 import StateLabel from '../../../../StateLabel';
 import CreateTaskModal from '../../../../modal/CreateTaskModal';
 import {KanbanViewContext} from '../context';
-import Task from './Task';
+import Task, {ITaskDragItem} from './Task';
 
 import './Column.scss';
 
 import classNames from 'classnames';
-
-interface DragItem {
-	task: ITask;
-	type: ItemTypes;
-}
 
 interface IColumnProps {
 	column: IColumn;
@@ -43,8 +38,13 @@ export function ColumnView({
 	column: {icon, key, name, tasks},
 	stateFlow,
 }: IColumnViewProps) {
-	const {changeTaskStatus, loadData, projectId} =
-		useContext(KanbanViewContext);
+	const {
+		changeTaskStatus,
+		cmpProjectObjectDefinitionId,
+		cmpProjectObjectEntryId,
+		hasAddTaskPermission,
+		loadData,
+	} = useContext(KanbanViewContext);
 
 	const canTransition = (taskStateKey: string) => {
 		if (!stateFlow) {
@@ -68,7 +68,7 @@ export function ColumnView({
 
 	const [{canDrop, isOver}, drop] = useDrop({
 		accept: ItemTypes.TASK,
-		canDrop: ({task: {actions, embedded}}: DragItem) => {
+		canDrop: ({task: {actions, embedded}}: ITaskDragItem) => {
 			if (!actions.update) {
 				return false;
 			}
@@ -113,34 +113,41 @@ export function ColumnView({
 						})}
 					</div>
 
-					<ClayButton
-						borderless
-						className="lfr__kaban-view-column-state-add-button"
-						displayType="secondary"
-						onClick={async () => {
-							await openCMPModal({
-								center: true,
-								contentComponent: ({
-									closeModal,
-								}: {
-									closeModal: () => void;
-								}) => (
-									<CreateTaskModal
-										closeModal={closeModal}
-										loadData={loadData}
-										projectId={projectId}
-										state={key}
-									/>
-								),
-								size: 'md',
-							});
-						}}
-						size="xs"
-					>
-						<ClayIcon symbol="plus" />
+					{hasAddTaskPermission && (
+						<ClayButton
+							borderless
+							className="lfr__kaban-view-column-state-add-button"
+							displayType="secondary"
+							onClick={async () => {
+								await openCMPModal({
+									center: true,
+									contentComponent: ({
+										closeModal,
+									}: {
+										closeModal: () => void;
+									}) => (
+										<CreateTaskModal
+											closeModal={closeModal}
+											cmpProjectObjectDefinitionId={
+												cmpProjectObjectDefinitionId
+											}
+											cmpProjectObjectEntryId={
+												cmpProjectObjectEntryId
+											}
+											loadData={loadData}
+											state={key}
+										/>
+									),
+									size: 'md',
+								});
+							}}
+							size="xs"
+						>
+							<ClayIcon symbol="plus" />
 
-						{Liferay.Language.get('add-task')}
-					</ClayButton>
+							{Liferay.Language.get('add-task')}
+						</ClayButton>
+					)}
 				</div>
 			</Col>
 		</div>

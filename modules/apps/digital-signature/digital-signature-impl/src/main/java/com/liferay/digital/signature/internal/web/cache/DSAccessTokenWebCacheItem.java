@@ -62,11 +62,13 @@ public class DSAccessTokenWebCacheItem implements WebCacheItem {
 			_environmentBaseURI = "account-d.docusign.com";
 		}
 
-		if (rsaPrivateKey != null) {
-			_rsaPrivateKeyBytes = rsaPrivateKey.getBytes();
+		if (rsaPrivateKey == null) {
+			_rsaPrivateKeyBytes = new byte[0];
 		}
 		else {
-			_rsaPrivateKeyBytes = new byte[0];
+			String pem = _getPEM(rsaPrivateKey);
+
+			_rsaPrivateKeyBytes = pem.getBytes();
 		}
 	}
 
@@ -150,6 +152,32 @@ public class DSAccessTokenWebCacheItem implements WebCacheItem {
 			token + "." + _encode(signature.sign()), "=");
 	}
 
+	private String _getPEM(String rsaPrivateKey) {
+
+		// PEMReader needs the markers and the base64 body on their own lines.
+		// Neither base64 nor a marker can contain a backslash, so an escaped
+		// line break is unambiguous.
+
+		String pem = StringUtil.replace(
+			rsaPrivateKey.trim(), "\\\\n", StringPool.NEW_LINE);
+
+		pem = StringUtil.replace(pem, "\\n", StringPool.NEW_LINE);
+
+		int beginIndex = pem.indexOf(_PEM_MARKER_BEGIN);
+		int endIndex = pem.lastIndexOf(_PEM_MARKER_END);
+
+		if ((beginIndex == -1) || (endIndex == -1)) {
+			return pem;
+		}
+
+		String body = pem.substring(
+			beginIndex + _PEM_MARKER_BEGIN.length(), endIndex);
+
+		return StringBundler.concat(
+			_PEM_MARKER_BEGIN, StringPool.NEW_LINE, body.trim(),
+			StringPool.NEW_LINE, _PEM_MARKER_END);
+	}
+
 	private Object _getUnixTime(long offset) {
 		Long unixTime = (System.currentTimeMillis() / Time.SECOND) + offset;
 
@@ -170,6 +198,12 @@ public class DSAccessTokenWebCacheItem implements WebCacheItem {
 
 		return keyFactory.generatePrivate(pkcs1EncodedKeySpec.getKeySpec());
 	}
+
+	private static final String _PEM_MARKER_BEGIN =
+		"-----BEGIN RSA PRIVATE KEY-----";
+
+	private static final String _PEM_MARKER_END =
+		"-----END RSA PRIVATE KEY-----";
 
 	private static final long _REFRESH_TIME = Time.MINUTE * 45;
 

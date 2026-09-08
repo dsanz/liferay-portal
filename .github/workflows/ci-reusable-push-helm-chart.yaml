@@ -34,9 +34,9 @@ jobs:
                         echo "CHART_VERSION=${chart_version}" >> ${GITHUB_ENV}
                         echo "chart_version=${chart_version}" >> ${GITHUB_OUTPUT}
 
-                        local registry_path="${HELM_CHART_REGISTRY_NONPRODUCTION}/$(echo "${GITHUB_REF_NAME}" | tr 'A-Z/' 'a-z-')"
+                        local registry_path="${HELM_CHART_REGISTRY_NONPRODUCTION}/$(echo "${GITHUB_REF_NAME}" | tr 'A-Z/' 'a-z-')/${GITHUB_SHA::7}"
 
-                        local image_ref="${registry_path}/${{inputs.chart_name}}:${chart_version}${{inputs.image_tag_suffix}}"
+                        local image_ref="${registry_path}/${{inputs.chart_name}}:${chart_version}"
 
                         echo "IMAGE_REF=${image_ref}" >> ${GITHUB_ENV}
                         echo "image_ref=${image_ref}" >> ${GITHUB_OUTPUT}
@@ -112,10 +112,6 @@ on:
         inputs:
             chart_name:
                 required: true
-                type: string
-            image_tag_suffix:
-                default: ""
-                required: false
                 type: string
             working_directory:
                 required: true

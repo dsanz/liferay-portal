@@ -14,7 +14,6 @@ import com.liferay.object.service.ObjectFolderLocalServiceUtil;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
-import com.liferay.portal.kernel.util.PropsUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
@@ -90,20 +89,12 @@ public class ObjectDefinitionImplTest {
 	public void testIsCMS() throws Exception {
 		_testIsCMS(
 			ObjectFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENT_STRUCTURES,
-			"false",
-			objectDefinition -> Assert.assertFalse(objectDefinition.isCMS()));
-		_testIsCMS(
-			ObjectFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENT_STRUCTURES,
-			"true",
 			objectDefinition -> Assert.assertTrue(objectDefinition.isCMS()));
 		_testIsCMS(
-			ObjectFolderConstants.EXTERNAL_REFERENCE_CODE_FILE_TYPES, "false",
-			objectDefinition -> Assert.assertFalse(objectDefinition.isCMS()));
-		_testIsCMS(
-			ObjectFolderConstants.EXTERNAL_REFERENCE_CODE_FILE_TYPES, "true",
+			ObjectFolderConstants.EXTERNAL_REFERENCE_CODE_FILE_TYPES,
 			objectDefinition -> Assert.assertTrue(objectDefinition.isCMS()));
 		_testIsCMS(
-			RandomTestUtil.randomString(), "true",
+			null,
 			objectDefinition -> Assert.assertFalse(objectDefinition.isCMS()));
 	}
 
@@ -132,42 +123,38 @@ public class ObjectDefinitionImplTest {
 	}
 
 	private void _testIsCMS(
-			String externalReferenceCode, String featureFlagEnabled,
+			String objectFolderExternalReferenceCode,
 			UnsafeConsumer<ObjectDefinition, Exception> unsafeConsumer)
 		throws Exception {
 
-		ObjectFolder objectFolder = Mockito.mock(ObjectFolder.class);
-
-		Mockito.when(
-			objectFolder.getExternalReferenceCode()
-		).thenReturn(
-			externalReferenceCode
-		);
-
+		long companyId = RandomTestUtil.randomLong();
 		long objectFolderId = RandomTestUtil.randomLong();
 
-		_objectFolderLocalServiceUtilMockedStatic.when(
-			() -> ObjectFolderLocalServiceUtil.fetchObjectFolder(objectFolderId)
-		).thenReturn(
-			objectFolder
-		);
+		if (objectFolderExternalReferenceCode != null) {
+			ObjectFolder objectFolder = Mockito.mock(ObjectFolder.class);
+
+			Mockito.when(
+				objectFolder.getObjectFolderId()
+			).thenReturn(
+				objectFolderId
+			);
+
+			_objectFolderLocalServiceUtilMockedStatic.when(
+				() ->
+					ObjectFolderLocalServiceUtil.
+						fetchObjectFolderByExternalReferenceCode(
+							objectFolderExternalReferenceCode, companyId)
+			).thenReturn(
+				objectFolder
+			);
+		}
 
 		ObjectDefinition objectDefinition = new ObjectDefinitionImpl();
 
+		objectDefinition.setCompanyId(companyId);
 		objectDefinition.setObjectFolderId(objectFolderId);
 
-		String featureFlagKey = "feature.flag.LPD-17564";
-
-		String originalValue = PropsUtil.get(featureFlagKey);
-
-		try {
-			PropsUtil.set(featureFlagKey, featureFlagEnabled);
-
-			unsafeConsumer.accept(objectDefinition);
-		}
-		finally {
-			PropsUtil.set(featureFlagKey, originalValue);
-		}
+		unsafeConsumer.accept(objectDefinition);
 	}
 
 	private static final MockedStatic<ObjectFolderLocalServiceUtil>

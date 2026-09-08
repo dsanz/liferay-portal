@@ -60,6 +60,16 @@ public class DepotTestUtil {
 			unsafeConsumer);
 	}
 
+	public static void withAssetLibraryOwner(
+			DepotEntry depotEntry,
+			UnsafeConsumer<User, Exception> unsafeConsumer)
+		throws Exception {
+
+		_withGroupUser(
+			depotEntry.getGroupId(), DepotRolesConstants.ASSET_LIBRARY_OWNER,
+			unsafeConsumer);
+	}
+
 	public static void withAssetLibraryPermissions(
 			DepotEntry depotEntry, String roleName, String resourceName,
 			String actionId, UnsafeRunnable<Exception> unsafeRunnable)
@@ -75,6 +85,47 @@ public class DepotTestUtil {
 		throws Exception {
 
 		_withUser(unsafeBiConsumer, RoleConstants.TYPE_DEPOT);
+	}
+
+	public static void withDesignLibraryAdministrator(
+			DepotEntry depotEntry,
+			UnsafeConsumer<User, Exception> unsafeConsumer)
+		throws Exception {
+
+		_withDesignLibraryGroupUser(
+			depotEntry.getGroupId(),
+			DepotRolesConstants.DESIGN_LIBRARY_ADMINISTRATOR, unsafeConsumer);
+	}
+
+	public static void withDesignLibraryContentReviewer(
+			DepotEntry depotEntry,
+			UnsafeConsumer<User, Exception> unsafeConsumer)
+		throws Exception {
+
+		_withDesignLibraryGroupUser(
+			depotEntry.getGroupId(),
+			DepotRolesConstants.DESIGN_LIBRARY_CONTENT_REVIEWER,
+			unsafeConsumer);
+	}
+
+	public static void withDesignLibraryMember(
+			DepotEntry depotEntry,
+			UnsafeConsumer<User, Exception> unsafeConsumer)
+		throws Exception {
+
+		_withDesignLibraryGroupUser(
+			depotEntry.getGroupId(), DepotRolesConstants.DESIGN_LIBRARY_MEMBER,
+			unsafeConsumer);
+	}
+
+	public static void withDesignLibraryOwner(
+			DepotEntry depotEntry,
+			UnsafeConsumer<User, Exception> unsafeConsumer)
+		throws Exception {
+
+		_withDesignLibraryGroupUser(
+			depotEntry.getGroupId(), DepotRolesConstants.DESIGN_LIBRARY_OWNER,
+			unsafeConsumer);
 	}
 
 	public static void withGroupPermissions(
@@ -124,6 +175,26 @@ public class DepotTestUtil {
 		}
 	}
 
+	public static void withProjectManager(
+			DepotEntry depotEntry,
+			UnsafeConsumer<User, Exception> unsafeConsumer)
+		throws Exception {
+
+		_withProjectGroupUser(
+			depotEntry.getGroupId(), DepotRolesConstants.PROJECT_MANAGER,
+			unsafeConsumer);
+	}
+
+	public static void withProjectMember(
+			DepotEntry depotEntry,
+			UnsafeConsumer<User, Exception> unsafeConsumer)
+		throws Exception {
+
+		_withProjectGroupUser(
+			depotEntry.getGroupId(), DepotRolesConstants.PROJECT_MEMBER,
+			unsafeConsumer);
+	}
+
 	public static void withRegularUser(
 			UnsafeBiConsumer<User, Role, Exception> unsafeBiConsumer)
 		throws Exception {
@@ -147,6 +218,38 @@ public class DepotTestUtil {
 		}
 
 		return true;
+	}
+
+	private static void _withDesignLibraryGroupUser(
+			long groupId, String roleName,
+			UnsafeConsumer<User, Exception> unsafeConsumer)
+		throws Exception {
+
+		Role role = RoleLocalServiceUtil.getRole(
+			TestPropsValues.getCompanyId(), roleName);
+
+		User user = UserTestUtil.addUser();
+
+		UserLocalServiceUtil.addGroupUsers(
+			groupId, new long[] {user.getUserId()});
+
+		UserGroupRoleLocalServiceUtil.addUserGroupRoles(
+			user.getUserId(), groupId, new long[] {role.getRoleId()});
+
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		try {
+			PermissionThreadLocal.setPermissionChecker(
+				PermissionCheckerFactoryUtil.create(user));
+
+			unsafeConsumer.accept(user);
+		}
+		finally {
+			PermissionThreadLocal.setPermissionChecker(permissionChecker);
+
+			UserLocalServiceUtil.deleteUser(user);
+		}
 	}
 
 	private static void _withGroupUser(
@@ -185,6 +288,25 @@ public class DepotTestUtil {
 
 			UserLocalServiceUtil.deleteUser(user);
 		}
+	}
+
+	private static void _withProjectGroupUser(
+			long groupId, String roleName,
+			UnsafeConsumer<User, Exception> unsafeConsumer)
+		throws Exception {
+
+		Role role = RoleLocalServiceUtil.fetchRole(
+			TestPropsValues.getCompanyId(), roleName);
+
+		if (role == null) {
+			RoleLocalServiceUtil.addRole(
+				RoleConstants.toSystemRoleExternalReferenceCode(roleName),
+				TestPropsValues.getUserId(), null, 0, roleName, null, null,
+				RoleConstants.TYPE_DEPOT, DepotRolesConstants.SUBTYPE_PROJECT,
+				null);
+		}
+
+		_withGroupUser(groupId, roleName, unsafeConsumer);
 	}
 
 	private static void _withUser(

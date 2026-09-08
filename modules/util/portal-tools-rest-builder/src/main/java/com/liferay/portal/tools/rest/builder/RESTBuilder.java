@@ -1807,8 +1807,8 @@ public class RESTBuilder {
 
 			String text = CamelCaseUtil.fromCamelCase(selParameterName);
 
-			text = TextFormatter.formatPlural(
-				text.substring(0, text.length() - 3));
+			text = OpenAPIUtil.formatPlural(
+				_configYAML, text.substring(0, text.length() - 3));
 
 			StringBuilder sb = new StringBuilder();
 
@@ -1967,7 +1967,8 @@ public class RESTBuilder {
 				int z = yamlString.indexOf(':', y);
 
 				if (Objects.equals(propertySchema.getType(), "array")) {
-					String plural = TextFormatter.formatPlural(schemaVarName);
+					String plural = OpenAPIUtil.formatPlural(
+						_configYAML, schemaVarName);
 
 					if (propertyName.endsWith(
 							StringUtil.upperCaseFirstLetter(plural)) &&
@@ -2118,7 +2119,8 @@ public class RESTBuilder {
 		}
 
 		context.put("schemaName", schemaName);
-		context.put("schemaNames", TextFormatter.formatPlural(schemaName));
+		context.put(
+			"schemaNames", OpenAPIUtil.formatPlural(_configYAML, schemaName));
 		context.put(
 			"schemaPath", TextFormatter.format(schemaName, TextFormatter.K));
 
@@ -2126,7 +2128,8 @@ public class RESTBuilder {
 
 		context.put("schemaVarName", schemaVarName);
 		context.put(
-			"schemaVarNames", TextFormatter.formatPlural(schemaVarName));
+			"schemaVarNames",
+			OpenAPIUtil.formatPlural(_configYAML, schemaVarName));
 
 		context.put("relatedSchemaNames", relatedSchemaNames);
 	}

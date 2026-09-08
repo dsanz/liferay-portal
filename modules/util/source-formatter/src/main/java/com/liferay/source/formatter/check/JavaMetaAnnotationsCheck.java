@@ -45,6 +45,10 @@ public class JavaMetaAnnotationsCheck extends JavaAnnotationsCheck {
 			_checkConfigurationNameValue(fileName, fileContent, annotation);
 		}
 
+		if (isAttributeValue(_CHECK_MISSING_NAME_KEY, absolutePath)) {
+			_checkMissingName(fileName, absolutePath, fileContent, annotation);
+		}
+
 		annotation = _fixOCDId(
 			fileName, annotation, javaClass.getPackageName());
 		annotation = _fixTypeProperties(annotation);
@@ -121,6 +125,27 @@ public class JavaMetaAnnotationsCheck extends JavaAnnotationsCheck {
 		}
 	}
 
+	private void _checkMissingName(
+		String fileName, String absolutePath, String content,
+		String annotation) {
+
+		if (absolutePath.contains("/archived/") ||
+			absolutePath.contains("/gradleTest/") ||
+			absolutePath.contains("/test/") ||
+			absolutePath.contains("/testIntegration/") ||
+			annotation.contains("name = ") ||
+			content.contains("generateUI = false") ||
+			!annotation.contains("@Meta.AD") ||
+			!content.contains("@Meta.OCD")) {
+
+			return;
+		}
+
+		addMessage(
+			fileName, "Missing attribute \"name\" in \"@Meta.AD\"",
+			getLineNumber(content, content.indexOf(annotation)));
+	}
+
 	private String _fixOCDId(
 		String fileName, String annotation, String packageName) {
 
@@ -148,6 +173,8 @@ public class JavaMetaAnnotationsCheck extends JavaAnnotationsCheck {
 
 	private static final String _CHECK_CONFIGURATION_NAME_KEY =
 		"checkConfigurationName";
+
+	private static final String _CHECK_MISSING_NAME_KEY = "checkMissingName";
 
 	private static final Pattern _annotationMetaTypePattern = Pattern.compile(
 		"[\\s\\(](name|description) = \"%");

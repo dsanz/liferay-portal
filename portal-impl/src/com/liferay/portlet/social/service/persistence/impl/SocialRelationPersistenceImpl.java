@@ -12,8 +12,6 @@ import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelperUtil;
@@ -1316,7 +1314,8 @@ public class SocialRelationPersistenceImpl
 				new String[] {String.class.getName()}, new String[] {"uuid_"},
 				0, 1, false, null),
 			_SQL_SELECT_SOCIALRELATION_WHERE, _SQL_COUNT_SOCIALRELATION_WHERE,
-			SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"socialRelation.", "uuid", "uuid_", FinderColumn.Type.STRING,
 				"=", true, true, SocialRelation::getUuid));
@@ -1343,6 +1342,7 @@ public class SocialRelationPersistenceImpl
 				_SQL_SELECT_SOCIALRELATION_WHERE,
 				_SQL_COUNT_SOCIALRELATION_WHERE,
 				SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"socialRelation.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -1373,6 +1373,7 @@ public class SocialRelationPersistenceImpl
 				_SQL_SELECT_SOCIALRELATION_WHERE,
 				_SQL_COUNT_SOCIALRELATION_WHERE,
 				SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"socialRelation.", "companyId", FinderColumn.Type.LONG, "=",
 					true, true, SocialRelation::getCompanyId));
@@ -1399,6 +1400,7 @@ public class SocialRelationPersistenceImpl
 				_SQL_SELECT_SOCIALRELATION_WHERE,
 				_SQL_COUNT_SOCIALRELATION_WHERE,
 				SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"socialRelation.", "userId1", FinderColumn.Type.LONG, "=",
 					true, true, SocialRelation::getUserId1));
@@ -1425,6 +1427,7 @@ public class SocialRelationPersistenceImpl
 				_SQL_SELECT_SOCIALRELATION_WHERE,
 				_SQL_COUNT_SOCIALRELATION_WHERE,
 				SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"socialRelation.", "userId2", FinderColumn.Type.LONG, "=",
 					true, true, SocialRelation::getUserId2));
@@ -1447,7 +1450,8 @@ public class SocialRelationPersistenceImpl
 				new String[] {Integer.class.getName()}, new String[] {"type_"},
 				false),
 			_SQL_SELECT_SOCIALRELATION_WHERE, _SQL_COUNT_SOCIALRELATION_WHERE,
-			SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"socialRelation.", "type", "type_", FinderColumn.Type.INTEGER,
 				"=", true, true, SocialRelation::getType));
@@ -1471,7 +1475,8 @@ public class SocialRelationPersistenceImpl
 				new String[] {Long.class.getName(), Integer.class.getName()},
 				new String[] {"companyId", "type_"}, false),
 			_SQL_SELECT_SOCIALRELATION_WHERE, _SQL_COUNT_SOCIALRELATION_WHERE,
-			SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"socialRelation.", "companyId", FinderColumn.Type.LONG, "=",
 				true, true, SocialRelation::getCompanyId),
@@ -1498,7 +1503,8 @@ public class SocialRelationPersistenceImpl
 				new String[] {Long.class.getName(), Long.class.getName()},
 				new String[] {"userId1", "userId2"}, false),
 			_SQL_SELECT_SOCIALRELATION_WHERE, _SQL_COUNT_SOCIALRELATION_WHERE,
-			SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"socialRelation.", "userId1", FinderColumn.Type.LONG, "=", true,
 				true, SocialRelation::getUserId1),
@@ -1525,7 +1531,8 @@ public class SocialRelationPersistenceImpl
 				new String[] {Long.class.getName(), Integer.class.getName()},
 				new String[] {"userId1", "type_"}, false),
 			_SQL_SELECT_SOCIALRELATION_WHERE, _SQL_COUNT_SOCIALRELATION_WHERE,
-			SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"socialRelation.", "userId1", FinderColumn.Type.LONG, "=", true,
 				true, SocialRelation::getUserId1),
@@ -1552,7 +1559,8 @@ public class SocialRelationPersistenceImpl
 				new String[] {Long.class.getName(), Integer.class.getName()},
 				new String[] {"userId2", "type_"}, false),
 			_SQL_SELECT_SOCIALRELATION_WHERE, _SQL_COUNT_SOCIALRELATION_WHERE,
-			SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			SocialRelationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"socialRelation.", "userId2", FinderColumn.Type.LONG, "=", true,
 				true, SocialRelation::getUserId2),
@@ -1603,12 +1611,6 @@ public class SocialRelationPersistenceImpl
 	private static final String _SQL_COUNT_SOCIALRELATION_WHERE =
 		"SELECT COUNT(socialRelation) FROM SocialRelation socialRelation WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No SocialRelation exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		SocialRelationPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid", "type"});
 
@@ -1618,4 +1620,4 @@ public class SocialRelationPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:705648667
+// LIFERAY-SERVICE-BUILDER-HASH:-596133905

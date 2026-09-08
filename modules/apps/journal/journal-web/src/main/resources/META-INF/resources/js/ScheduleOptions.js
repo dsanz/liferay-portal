@@ -11,6 +11,8 @@ import classNames from 'classnames';
 import {dateUtils, sub} from 'frontend-js-web';
 import React, {useEffect} from 'react';
 
+const DATE_TIME_LENGTH = 16;
+const DATE_TIME_LENGTH_AM_PM = 19;
 const FUTURE_YEARS_RANGE = 25;
 const PAST_YEARS_RANGE = 50;
 
@@ -22,13 +24,21 @@ export default function ScheduleOptions({
 	setDisplayDate,
 	setError,
 	timeZone,
+	use12Hours,
 }) {
 	const currentYear = new Date().getFullYear();
 	const {day, hour, minutes, month, year} = getDate(displayDate);
 
 	useEffect(() => {
 		if (displayDate) {
-			if (displayDate.length !== 16 || !dateUtils.isValid(displayDate)) {
+			const requiredLength = use12Hours
+				? DATE_TIME_LENGTH_AM_PM
+				: DATE_TIME_LENGTH;
+
+			if (
+				displayDate.length !== requiredLength ||
+				!dateUtils.isValid(toParseableDate(displayDate))
+			) {
 				setError(Liferay.Language.get('please-enter-a-valid-date'));
 
 				return;
@@ -37,7 +47,7 @@ export default function ScheduleOptions({
 				setError('');
 			}
 		}
-	}, [displayDate, setError, timeZone]);
+	}, [displayDate, setError, timeZone, use12Hours]);
 
 	return (
 		<>
@@ -90,10 +100,15 @@ export default function ScheduleOptions({
 						`${Liferay.Language.get('december')}`,
 					]}
 					onChange={setDisplayDate}
-					placeholder={Liferay.Language.get('yyyy-mm-dd-hh-mm')}
+					placeholder={
+						use12Hours
+							? Liferay.Language.get('yyyy-mm-dd-hh-mm-am-pm')
+							: Liferay.Language.get('yyyy-mm-dd-hh-mm')
+					}
 					required
 					time
 					timezone={timeZone.name}
+					use12Hours={use12Hours}
 					value={displayDate || ''}
 					weekdaysShort={dateUtils.getWeekdaysShort()}
 					years={{
@@ -159,7 +174,7 @@ export default function ScheduleOptions({
 }
 
 function getDate(value) {
-	const date = new Date(value);
+	const date = new Date(toParseableDate(value));
 
 	if (dateUtils.isValid(date)) {
 		return {
@@ -172,4 +187,19 @@ function getDate(value) {
 	}
 
 	return {day: '', hour: '', minutes: '', month: '', year: ''};
+}
+
+export function toParseableDate(value) {
+	const match = /^(\d{4}-\d{2}-\d{2}) (\d{2}):(\d{2}) (AM|PM)$/i.exec(value);
+
+	if (!match) {
+		return value;
+	}
+
+	const [, date, hours, minutes, meridiem] = match;
+
+	const hours24 =
+		(Number(hours) % 12) + (meridiem.toUpperCase() === 'PM' ? 12 : 0);
+
+	return `${date} ${String(hours24).padStart(2, '0')}:${minutes}`;
 }

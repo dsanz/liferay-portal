@@ -5,7 +5,6 @@
 
 package com.liferay.segments.service.persistence.impl;
 
-import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
@@ -15,8 +14,6 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.sanitizer.Sanitizer;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
@@ -634,26 +631,9 @@ public class SegmentsExperiencePersistenceImpl
 			OrderByComparator<SegmentsExperience> orderByComparator)
 		throws NoSuchExperienceException {
 
-		SegmentsExperience segmentsExperience = fetchByG_A_First(
-			groupId, active, orderByComparator);
-
-		if (segmentsExperience != null) {
-			return segmentsExperience;
-		}
-
-		StringBundler sb = new StringBundler(6);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append(", active=");
-		sb.append(active);
-
-		sb.append("}");
-
-		throw new NoSuchExperienceException(sb.toString());
+		return _collectionPersistenceFinderByG_A.findFirst(
+			finderCache, new Object[] {new long[] {groupId}, active},
+			orderByComparator);
 	}
 
 	/**
@@ -2063,36 +2043,13 @@ public class SegmentsExperiencePersistenceImpl
 			OrderByComparator<SegmentsExperience> orderByComparator)
 		throws NoSuchExperienceException {
 
-		SegmentsExperience segmentsExperience = fetchByG_SEERC_SESERC_P_A_First(
-			groupId, segmentsEntryERC, segmentsEntryScopeERC, plid, active,
+		return _collectionPersistenceFinderByG_SEERC_SESERC_P_A.findFirst(
+			finderCache,
+			new Object[] {
+				groupId, new String[] {segmentsEntryERC}, segmentsEntryScopeERC,
+				plid, active
+			},
 			orderByComparator);
-
-		if (segmentsExperience != null) {
-			return segmentsExperience;
-		}
-
-		StringBundler sb = new StringBundler(12);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append(", segmentsEntryERC=");
-		sb.append(segmentsEntryERC);
-
-		sb.append(", segmentsEntryScopeERC=");
-		sb.append(segmentsEntryScopeERC);
-
-		sb.append(", plid=");
-		sb.append(plid);
-
-		sb.append(", active=");
-		sb.append(active);
-
-		sb.append("}");
-
-		throw new NoSuchExperienceException(sb.toString());
 	}
 
 	/**
@@ -2811,6 +2768,7 @@ public class SegmentsExperiencePersistenceImpl
 			_SQL_SELECT_SEGMENTSEXPERIENCE_WHERE,
 			_SQL_COUNT_SEGMENTSEXPERIENCE_WHERE,
 			SegmentsExperienceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
 			new FinderColumn<>(
 				"segmentsExperience.", "uuid", "uuid_",
 				FinderColumn.Type.STRING, "=", true, true,
@@ -2855,7 +2813,7 @@ public class SegmentsExperiencePersistenceImpl
 				_SQL_SELECT_SEGMENTSEXPERIENCE_WHERE,
 				_SQL_COUNT_SEGMENTSEXPERIENCE_WHERE,
 				SegmentsExperienceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"segmentsExperience.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -2886,7 +2844,7 @@ public class SegmentsExperiencePersistenceImpl
 				_SQL_SELECT_SEGMENTSEXPERIENCE_WHERE,
 				_SQL_COUNT_SEGMENTSEXPERIENCE_WHERE,
 				SegmentsExperienceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"segmentsExperience.", "groupId", FinderColumn.Type.LONG,
 					"=", true, true, SegmentsExperience::getGroupId));
@@ -2913,7 +2871,7 @@ public class SegmentsExperiencePersistenceImpl
 				_SQL_SELECT_SEGMENTSEXPERIENCE_WHERE,
 				_SQL_COUNT_SEGMENTSEXPERIENCE_WHERE,
 				SegmentsExperienceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"segmentsExperience.", "groupId", FinderColumn.Type.LONG,
 					"=", true, true, SegmentsExperience::getGroupId),
@@ -2947,7 +2905,7 @@ public class SegmentsExperiencePersistenceImpl
 				_SQL_SELECT_SEGMENTSEXPERIENCE_WHERE,
 				_SQL_COUNT_SEGMENTSEXPERIENCE_WHERE,
 				SegmentsExperienceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new ArrayableFinderColumn<>(
 					"segmentsExperience.", "groupId", FinderColumn.Type.LONG,
 					"=", false, true, true, SegmentsExperience::getGroupId),
@@ -2988,7 +2946,7 @@ public class SegmentsExperiencePersistenceImpl
 				_SQL_SELECT_SEGMENTSEXPERIENCE_WHERE,
 				_SQL_COUNT_SEGMENTSEXPERIENCE_WHERE,
 				SegmentsExperienceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"segmentsExperience.", "segmentsEntryERC",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -3039,7 +2997,7 @@ public class SegmentsExperiencePersistenceImpl
 				_SQL_SELECT_SEGMENTSEXPERIENCE_WHERE,
 				_SQL_COUNT_SEGMENTSEXPERIENCE_WHERE,
 				SegmentsExperienceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"segmentsExperience.", "groupId", FinderColumn.Type.LONG,
 					"=", true, true, SegmentsExperience::getGroupId),
@@ -3122,7 +3080,7 @@ public class SegmentsExperiencePersistenceImpl
 				_SQL_SELECT_SEGMENTSEXPERIENCE_WHERE,
 				_SQL_COUNT_SEGMENTSEXPERIENCE_WHERE,
 				SegmentsExperienceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"segmentsExperience.", "groupId", FinderColumn.Type.LONG,
 					"=", true, true, SegmentsExperience::getGroupId),
@@ -3157,7 +3115,7 @@ public class SegmentsExperiencePersistenceImpl
 				_SQL_SELECT_SEGMENTSEXPERIENCE_WHERE,
 				_SQL_COUNT_SEGMENTSEXPERIENCE_WHERE,
 				SegmentsExperienceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"segmentsExperience.", "groupId", FinderColumn.Type.LONG,
 					"=", true, true, SegmentsExperience::getGroupId),
@@ -3198,7 +3156,7 @@ public class SegmentsExperiencePersistenceImpl
 				_SQL_SELECT_SEGMENTSEXPERIENCE_WHERE,
 				_SQL_COUNT_SEGMENTSEXPERIENCE_WHERE,
 				SegmentsExperienceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"segmentsExperience.", "groupId", FinderColumn.Type.LONG,
 					"=", true, true, SegmentsExperience::getGroupId),
@@ -3254,7 +3212,7 @@ public class SegmentsExperiencePersistenceImpl
 				_SQL_SELECT_SEGMENTSEXPERIENCE_WHERE,
 				_SQL_COUNT_SEGMENTSEXPERIENCE_WHERE,
 				SegmentsExperienceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"segmentsExperience.", "groupId", FinderColumn.Type.LONG,
 					"=", true, true, SegmentsExperience::getGroupId),
@@ -3317,7 +3275,7 @@ public class SegmentsExperiencePersistenceImpl
 				_SQL_SELECT_SEGMENTSEXPERIENCE_WHERE,
 				_SQL_COUNT_SEGMENTSEXPERIENCE_WHERE,
 				SegmentsExperienceModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"segmentsExperience.", "groupId", FinderColumn.Type.LONG,
 					"=", true, true, SegmentsExperience::getGroupId),
@@ -3412,12 +3370,6 @@ public class SegmentsExperiencePersistenceImpl
 	private static final String _SQL_COUNT_SEGMENTSEXPERIENCE_WHERE =
 		"SELECT COUNT(segmentsExperience) FROM SegmentsExperience segmentsExperience WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No SegmentsExperience exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		SegmentsExperiencePersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid", "active"});
 
@@ -3427,4 +3379,4 @@ public class SegmentsExperiencePersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-74272726
+// LIFERAY-SERVICE-BUILDER-HASH:1098500330

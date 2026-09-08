@@ -18,7 +18,9 @@ import com.liferay.portal.remote.cors.internal.util.PortalCORSRegistryUtil;
 
 import java.util.Dictionary;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.osgi.framework.Constants;
 import org.osgi.service.cm.ConfigurationException;
@@ -123,9 +125,7 @@ public class PortalCORSManagedServiceFactory implements ManagedServiceFactory {
 		for (String urlPattern :
 				portalCORSConfiguration.filterMappingURLPatterns()) {
 
-			if (!corsSupports.containsKey(urlPattern)) {
-				corsSupports.put(urlPattern, corsSupport);
-			}
+			corsSupports.putIfAbsent(urlPattern, corsSupport);
 		}
 	}
 
@@ -144,14 +144,17 @@ public class PortalCORSManagedServiceFactory implements ManagedServiceFactory {
 				URLPatternMapperFactory.create(corsSupports));
 		}
 
+		Set<Long> companyIds = new LinkedHashSet<>(
+			PortalCORSRegistryUtil.getKeySetUrlPatternMappers());
+
+		companyIds.remove(CompanyConstants.SYSTEM);
+
+		if (companyIds.isEmpty()) {
+			return;
+		}
+
 		_companyLocalService.forEachCompanyId(
-			companyId -> {
-				if (companyId != CompanyConstants.SYSTEM) {
-					_rebuild(companyId);
-				}
-			},
-			ArrayUtil.toLongArray(
-				PortalCORSRegistryUtil.getKeySetUrlPatternMappers()));
+			this::_rebuild, ArrayUtil.toLongArray(companyIds));
 	}
 
 	private void _rebuild(long companyId) {

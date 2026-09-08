@@ -1,0 +1,125 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.design.library.web.internal.display.context;
+
+import com.liferay.design.library.web.internal.constants.DesignLibraryAdminFDSNames;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.TabsItem;
+import com.liferay.frontend.taglib.clay.servlet.taglib.util.TabsItemListBuilder;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.module.service.Snapshot;
+import com.liferay.portal.kernel.service.UserGroupLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author Mario Leandro
+ */
+public class MembersDesignLibraryDisplayContext
+	extends BaseDesignLibraryDisplayContext {
+
+	public MembersDesignLibraryDisplayContext(
+		HttpServletRequest httpServletRequest) {
+
+		super(httpServletRequest);
+	}
+
+	public Map<String, Object> getEmptyState() {
+		return buildEmptyState(
+			"add-members-to-this-design-library",
+			"/states/design_library_empty_state.svg", "no-members-yet");
+	}
+
+	public Map<String, Object> getFDSAdditionalProps() throws PortalException {
+		Group group = getGroup();
+
+		return HashMapBuilder.<String, Object>put(
+			"externalReferenceCode", group.getExternalReferenceCode()
+		).put(
+			"hasAssignMembersPermission", hasAssignMembersPermission(group)
+		).put(
+			"ownerId", String.valueOf(group.getCreatorUserId())
+		).put(
+			"refreshDataSetIds",
+			new String[] {
+				DesignLibraryAdminFDSNames.DESIGN_LIBRARY_MEMBERS_USER_GROUPS,
+				DesignLibraryAdminFDSNames.DESIGN_LIBRARY_MEMBERS_USERS
+			}
+		).build();
+	}
+
+	public Map<String, Object> getSectionHeaderProps() throws PortalException {
+		return HashMapBuilder.<String, Object>putAll(
+			getFDSAdditionalProps()
+		).put(
+			"count", _getCount()
+		).build();
+	}
+
+	public List<TabsItem> getTabsItems() {
+		return TabsItemListBuilder.add(
+			tabsItem -> {
+				tabsItem.setActive(true);
+				tabsItem.setLabel(
+					LanguageUtil.get(httpServletRequest, "users"));
+			}
+		).add(
+			tabsItem -> tabsItem.setLabel(
+				LanguageUtil.get(httpServletRequest, "user-groups"))
+		).build();
+	}
+
+	public String getUserGroupsAPIURL() throws PortalException {
+		return _getAPIURL("user-groups", "numberOfUserAccounts");
+	}
+
+	public String getUsersAPIURL() throws PortalException {
+		return _getAPIURL("user-accounts", "roles");
+	}
+
+	private String _getAPIURL(String resourcePath, String nestedFields)
+		throws PortalException {
+
+		return getAssetLibraryURL(
+			getGroup(),
+			StringBundler.concat(
+				"/", resourcePath, "?page=1&pageSize=10&nestedFields=",
+				nestedFields));
+	}
+
+	private int _getCount() throws PortalException {
+		UserGroupLocalService userGroupLocalService =
+			_userGroupLocalServiceSnapshot.get();
+		UserLocalService userLocalService = _userLocalServiceSnapshot.get();
+
+		if ((userGroupLocalService == null) || (userLocalService == null)) {
+			return 0;
+		}
+
+		Group group = getGroup();
+
+		long groupId = group.getGroupId();
+
+		return userLocalService.getGroupUsersCount(groupId) +
+			userGroupLocalService.getGroupUserGroupsCount(groupId);
+	}
+
+	private static final Snapshot<UserGroupLocalService>
+		_userGroupLocalServiceSnapshot = new Snapshot<>(
+			MembersDesignLibraryDisplayContext.class,
+			UserGroupLocalService.class);
+	private static final Snapshot<UserLocalService> _userLocalServiceSnapshot =
+		new Snapshot<>(
+			MembersDesignLibraryDisplayContext.class, UserLocalService.class);
+
+}

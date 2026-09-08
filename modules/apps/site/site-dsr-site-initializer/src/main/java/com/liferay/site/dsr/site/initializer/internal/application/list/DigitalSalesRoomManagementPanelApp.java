@@ -9,19 +9,24 @@ import com.liferay.application.list.BasePanelApp;
 import com.liferay.application.list.PanelApp;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.PortletURLWrapper;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.service.permission.PortalPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.model.impl.PortletImpl;
 import com.liferay.site.dsr.site.initializer.internal.constants.DSRConstants;
+import com.liferay.site.dsr.site.initializer.internal.util.DSRUtil;
 
 import jakarta.portlet.PortletURL;
 
@@ -78,7 +83,8 @@ public class DigitalSalesRoomManagementPanelApp extends BasePanelApp {
 			public String toString() {
 				return StringBundler.concat(
 					themeDisplay.getPathFriendlyURLPublic(),
-					DSRConstants.DSR_FRIENDLY_URL, "/home");
+					DSRConstants.DSR_FRIENDLY_URL,
+					DSRConstants.DSR_HOME_FRIENDLY_URL);
 			}
 
 		};
@@ -88,8 +94,19 @@ public class DigitalSalesRoomManagementPanelApp extends BasePanelApp {
 	public boolean isShow(PermissionChecker permissionChecker, Group group)
 		throws PortalException {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				permissionChecker.getCompanyId(), "LPD-66359")) {
+		group = _groupLocalService.fetchGroup(
+			permissionChecker.getCompanyId(), GroupConstants.DSR);
+
+		if ((group == null) || DSRUtil.isExpired()) {
+			return false;
+		}
+
+		Layout layout = _layoutLocalService.fetchLayoutByFriendlyURL(
+			group.getGroupId(), false, DSRConstants.DSR_HOME_FRIENDLY_URL);
+
+		if ((layout == null) ||
+			!LayoutPermissionUtil.contains(
+				permissionChecker, layout, ActionKeys.VIEW)) {
 
 			return false;
 		}
@@ -99,6 +116,12 @@ public class DigitalSalesRoomManagementPanelApp extends BasePanelApp {
 	}
 
 	@Reference
+	private GroupLocalService _groupLocalService;
+
+	@Reference
 	private Language _language;
+
+	@Reference
+	private LayoutLocalService _layoutLocalService;
 
 }

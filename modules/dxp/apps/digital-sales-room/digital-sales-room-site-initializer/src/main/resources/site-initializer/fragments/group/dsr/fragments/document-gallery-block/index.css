@@ -86,11 +86,22 @@
 	position: relative;
 }
 
+.dsr-document-gallery-block-component .dsr-document-preview-image {
+	height: 100%;
+	left: 0;
+	object-fit: contain;
+	position: absolute;
+	top: 0;
+	width: 100%;
+}
+
 .dsr-document-gallery-block-component .dsr-document-title {
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 2;
 	display: -webkit-box;
 	font-weight: 600;
+	height: 3em;
+	line-height: 1.5;
 	overflow: hidden;
 	overflow-wrap: break-word;
 }

@@ -49,6 +49,16 @@ import org.osgi.framework.BundleContext;
  */
 public class DBResourceUtil {
 
+	public static void disableCache() {
+		_cacheEnabled = false;
+
+		_moduleTableNamesDCLSingleton.destroy(null);
+	}
+
+	public static void enableCache() {
+		_cacheEnabled = true;
+	}
+
 	public static Set<String> getLiferayTableNames(Connection connection)
 		throws Exception {
 
@@ -74,29 +84,18 @@ public class DBResourceUtil {
 	}
 
 	public static Set<String> getModuleTableNames() {
-		Set<String> tableNames = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+		if (_cacheEnabled) {
+			Set<String> moduleTableNames = new TreeSet<>(
+				String.CASE_INSENSITIVE_ORDER);
 
-		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
+			moduleTableNames.addAll(
+				_moduleTableNamesDCLSingleton.getSingleton(
+					DBResourceUtil::_getModuleTableNames));
 
-		for (Bundle bundle : bundleContext.getBundles()) {
-			String symbolicName = bundle.getSymbolicName();
-
-			if (!symbolicName.startsWith("com.liferay") ||
-				!BundleUtil.isLiferayServiceBundle(bundle)) {
-
-				continue;
-			}
-
-			String tableSQL = getModuleTablesSQL(bundle);
-
-			if (tableSQL == null) {
-				continue;
-			}
-
-			tableNames.addAll(parseCreateTableSQL(tableSQL));
+			return moduleTableNames;
 		}
 
-		return tableNames;
+		return _getModuleTableNames();
 	}
 
 	public static Map<String, String[]> getModuleTablesPrimaryKeyColumnNames(
@@ -156,13 +155,14 @@ public class DBResourceUtil {
 	}
 
 	public static Set<String> getPortalTableNames() {
-		if (_portalTableNames != null) {
-			return _portalTableNames;
-		}
+		Set<String> portalTableNames = new TreeSet<>(
+			String.CASE_INSENSITIVE_ORDER);
 
-		_portalTableNames = parseCreateTableSQL(getPortalTablesSQL());
+		portalTableNames.addAll(
+			_portalTableNamesDCLSingleton.getSingleton(
+				() -> parseCreateTableSQL(getPortalTablesSQL())));
 
-		return _portalTableNames;
+		return portalTableNames;
 	}
 
 	public static Map<String, String[]> getPortalTablesPrimaryKeyColumnNames() {
@@ -225,6 +225,33 @@ public class DBResourceUtil {
 		}
 
 		return tableNames;
+	}
+
+	private static Set<String> _getModuleTableNames() {
+		Set<String> moduleTableNames = new TreeSet<>(
+			String.CASE_INSENSITIVE_ORDER);
+
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
+
+		for (Bundle bundle : bundleContext.getBundles()) {
+			String symbolicName = bundle.getSymbolicName();
+
+			if (!symbolicName.startsWith("com.liferay") ||
+				!BundleUtil.isLiferayServiceBundle(bundle)) {
+
+				continue;
+			}
+
+			String tableSQL = getModuleTablesSQL(bundle);
+
+			if (tableSQL == null) {
+				continue;
+			}
+
+			moduleTableNames.addAll(parseCreateTableSQL(tableSQL));
+		}
+
+		return moduleTableNames;
 	}
 
 	private static Map<String, List<String>>
@@ -375,6 +402,7 @@ public class DBResourceUtil {
 
 	private static final Log _log = LogFactoryUtil.getLog(DBResourceUtil.class);
 
+	private static volatile boolean _cacheEnabled;
 	private static final Pattern _composedPrimaryKeyPattern = Pattern.compile(
 		"create table\\s+(\\w+)\\s*\\((?:[^;]*?)?primary key\\s*\\(([^)]+)\\)",
 		Pattern.DOTALL);
@@ -384,7 +412,10 @@ public class DBResourceUtil {
 		"create table\\s+(\\w+)\\s*\\([^;]*?(\\w+)\\s+\\w+(?:\\([^)]*\\))?" +
 			"(?:\\s+\\w+)*\\s+primary key\\b",
 		Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
-	private static volatile Set<String> _portalTableNames;
+	private static final DCLSingleton<Set<String>>
+		_moduleTableNamesDCLSingleton = new DCLSingleton<>();
+	private static final DCLSingleton<Set<String>>
+		_portalTableNamesDCLSingleton = new DCLSingleton<>();
 	private static final DCLSingleton<ServiceTrackerList<DBResourceProvider>>
 		_serviceTrackerListDCLSingleton = new DCLSingleton<>();
 

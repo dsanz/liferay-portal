@@ -5,12 +5,20 @@
 
 package com.liferay.commerce.checkout.web.internal.util;
 
+import com.liferay.account.constants.AccountEntryValidatorConstants;
+import com.liferay.account.service.AccountEntryLocalService;
+import com.liferay.account.validator.AccountEntryValidatorRegistry;
+import com.liferay.account.validator.AccountEntryValidatorResult;
+import com.liferay.account.validator.exception.AccountEntryValidatorException;
 import com.liferay.commerce.checkout.helper.CommerceCheckoutStepHttpHelper;
 import com.liferay.commerce.checkout.web.internal.display.context.OrderSummaryCheckoutStepDisplayContext;
+import com.liferay.commerce.configuration.CommerceAccountEntryValidationConfiguration;
 import com.liferay.commerce.configuration.CommerceOrderCheckoutConfiguration;
+import com.liferay.commerce.constants.CommerceAccountEntryValidationConstants;
 import com.liferay.commerce.constants.CommerceCheckoutWebKeys;
 import com.liferay.commerce.constants.CommerceConstants;
 import com.liferay.commerce.constants.CommerceOrderConstants;
+import com.liferay.commerce.constants.CommerceWebKeys;
 import com.liferay.commerce.discount.exception.CommerceDiscountLimitationTimesException;
 import com.liferay.commerce.discount.exception.NoSuchDiscountException;
 import com.liferay.commerce.exception.CommerceOrderBillingAddressException;
@@ -44,7 +52,9 @@ import com.liferay.commerce.util.CommerceShippingEngineRegistry;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONFactory;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
@@ -67,6 +77,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpServletResponseWrapper;
 
 import java.math.BigDecimal;
+
+import java.util.List;
+import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -103,6 +116,13 @@ public class OrderSummaryCommerceCheckoutStep extends BaseCommerceCheckoutStep {
 		throws Exception {
 
 		try {
+			if (FeatureFlagManagerUtil.isEnabled(
+					_portal.getCompanyId(actionRequest), "LPD-89850")) {
+
+				_validateAccountEntry(
+					_portal.getHttpServletRequest(actionRequest));
+			}
+
 			_validateCommerceOrder(actionRequest);
 
 			_checkoutCommerceOrder(actionRequest);
@@ -110,7 +130,12 @@ public class OrderSummaryCommerceCheckoutStep extends BaseCommerceCheckoutStep {
 		catch (Exception exception) {
 			Throwable throwable = exception.getCause();
 
-			if (throwable instanceof CommerceDiscountLimitationTimesException ||
+			if (throwable == null) {
+				throwable = exception;
+			}
+
+			if (throwable instanceof AccountEntryValidatorException ||
+				throwable instanceof CommerceDiscountLimitationTimesException ||
 				throwable instanceof CommerceOrderBillingAddressException ||
 				throwable instanceof CommerceOrderGuestCheckoutException ||
 				throwable instanceof CommerceOrderPaymentMethodException ||
@@ -183,6 +208,13 @@ public class OrderSummaryCommerceCheckoutStep extends BaseCommerceCheckoutStep {
 				CommerceCheckoutWebKeys.COMMERCE_CHECKOUT_STEP_DISPLAY_CONTEXT,
 				orderSummaryCheckoutStepDisplayContext);
 
+			if (FeatureFlagManagerUtil.isEnabled(
+					_portal.getCompanyId(httpServletRequest), "LPD-89850")) {
+
+				_getAccountEntryValidatorResult(
+					commerceOrder, httpServletRequest);
+			}
+
 			_jspRenderer.renderJSP(
 				httpServletRequest, httpServletResponse,
 				"/checkout_step/order_summary.jsp");
@@ -203,6 +235,18 @@ public class OrderSummaryCommerceCheckoutStep extends BaseCommerceCheckoutStep {
 		}
 
 		try {
+			if (FeatureFlagManagerUtil.isEnabled(
+					_portal.getCompanyId(httpServletRequest), "LPD-89850")) {
+
+				AccountEntryValidatorResult accountEntryValidatorResult =
+					_getAccountEntryValidatorResult(
+						commerceOrder, httpServletRequest);
+
+				if (accountEntryValidatorResult != null) {
+					return false;
+				}
+			}
+
 			ThemeDisplay themeDisplay =
 				(ThemeDisplay)httpServletRequest.getAttribute(
 					WebKeys.THEME_DISPLAY);
@@ -210,8 +254,8 @@ public class OrderSummaryCommerceCheckoutStep extends BaseCommerceCheckoutStep {
 			return _commerceOrderValidatorRegistry.isValid(
 				themeDisplay.getLocale(), commerceOrder);
 		}
-		catch (PortalException portalException) {
-			_log.error(portalException);
+		catch (Exception exception) {
+			_log.error(exception);
 
 			return false;
 		}
@@ -260,6 +304,115 @@ public class OrderSummaryCommerceCheckoutStep extends BaseCommerceCheckoutStep {
 		}
 	}
 
+	private AccountEntryValidatorResult _getAccountEntryValidatorResult(
+			CommerceOrder commerceOrder, HttpServletRequest httpServletRequest)
+		throws PortalException {
+
+		AccountEntryValidatorResult accountEntryValidatorResult =
+			(AccountEntryValidatorResult)httpServletRequest.getAttribute(
+				CommerceWebKeys.COMMERCE_ACCOUNT_VALIDATION_RESULTS);
+
+		if (accountEntryValidatorResult != null) {
+			return accountEntryValidatorResult;
+		}
+
+		CommerceChannel commerceChannel =
+			_commerceChannelLocalService.getCommerceChannelByOrderGroupId(
+				commerceOrder.getGroupId());
+
+		CommerceAccountEntryValidationConfiguration
+			commerceAccountEntryValidationConfiguration =
+				_configurationProvider.getConfiguration(
+					CommerceAccountEntryValidationConfiguration.class,
+					new GroupServiceSettingsLocator(
+						commerceChannel.getGroupId(),
+						CommerceConstants.
+							SERVICE_NAME_COMMERCE_ACCOUNT_ENTRY_VALIDATION));
+
+		String validationMode =
+			commerceAccountEntryValidationConfiguration.validationMode();
+
+		if (Objects.equals(
+				validationMode,
+				CommerceAccountEntryValidationConstants.
+					VALIDATION_MODE_DISABLED)) {
+
+			return null;
+		}
+
+		for (AccountEntryValidatorResult curAccountEntryValidatorResult :
+				_getAccountEntryValidatorResults(
+					commerceOrder, httpServletRequest)) {
+
+			if (!_isAccountValidationResultValid(
+					curAccountEntryValidatorResult, validationMode)) {
+
+				httpServletRequest.setAttribute(
+					CommerceWebKeys.COMMERCE_ACCOUNT_VALIDATION_RESULTS,
+					curAccountEntryValidatorResult);
+
+				return curAccountEntryValidatorResult;
+			}
+		}
+
+		return null;
+	}
+
+	private List<AccountEntryValidatorResult> _getAccountEntryValidatorResults(
+			CommerceOrder commerceOrder, HttpServletRequest httpServletRequest)
+		throws PortalException {
+
+		List<AccountEntryValidatorResult> accountEntryValidatorResults =
+			(List<AccountEntryValidatorResult>)httpServletRequest.getAttribute(
+				_ACCOUNT_ENTRY_VALIDATOR_RESULTS);
+
+		if (accountEntryValidatorResults != null) {
+			return accountEntryValidatorResults;
+		}
+
+		accountEntryValidatorResults = _accountEntryValidatorRegistry.validate(
+			_accountEntryLocalService.fetchAccountEntry(
+				commerceOrder.getCommerceAccountId()),
+			JSONUtil.put(
+				"billingAddressId", commerceOrder.getBillingAddressId()
+			).put(
+				"commerceOrderId", commerceOrder.getCommerceOrderId()
+			).put(
+				"shippingAddressId", commerceOrder.getShippingAddressId()
+			));
+
+		httpServletRequest.setAttribute(
+			_ACCOUNT_ENTRY_VALIDATOR_RESULTS, accountEntryValidatorResults);
+
+		return accountEntryValidatorResults;
+	}
+
+	private boolean _isAccountValidationResultValid(
+		AccountEntryValidatorResult accountEntryValidatorResult,
+		String validationMode) {
+
+		if (Objects.equals(
+				validationMode,
+				CommerceAccountEntryValidationConstants.
+					VALIDATION_MODE_ALLOW_ALL)) {
+
+			return true;
+		}
+
+		if (!accountEntryValidatorResult.isValid() ||
+			(Objects.equals(
+				validationMode,
+				CommerceAccountEntryValidationConstants.
+					VALIDATION_MODE_ALLOW_SUCCESSES_ONLY) &&
+			 AccountEntryValidatorConstants.RESULT_WARNING.equals(
+				 accountEntryValidatorResult.getResultStatus()))) {
+
+			return false;
+		}
+
+		return true;
+	}
+
 	private boolean _isCheckoutRequestedDeliveryDateEnabled(
 			CommerceOrder commerceOrder)
 		throws Exception {
@@ -277,6 +430,21 @@ public class OrderSummaryCommerceCheckoutStep extends BaseCommerceCheckoutStep {
 
 		return commerceOrderCheckoutConfiguration.
 			checkoutRequestedDeliveryDateEnabled();
+	}
+
+	private void _validateAccountEntry(HttpServletRequest httpServletRequest)
+		throws Exception {
+
+		CommerceOrder commerceOrder =
+			(CommerceOrder)httpServletRequest.getAttribute(
+				CommerceCheckoutWebKeys.COMMERCE_ORDER);
+
+		AccountEntryValidatorResult accountEntryValidatorResult =
+			_getAccountEntryValidatorResult(commerceOrder, httpServletRequest);
+
+		if (accountEntryValidatorResult != null) {
+			throw new AccountEntryValidatorException();
+		}
 	}
 
 	private void _validateCommerceOrder(ActionRequest actionRequest)
@@ -354,8 +522,18 @@ public class OrderSummaryCommerceCheckoutStep extends BaseCommerceCheckoutStep {
 		}
 	}
 
+	private static final String _ACCOUNT_ENTRY_VALIDATOR_RESULTS =
+		OrderSummaryCommerceCheckoutStep.class.getName() +
+			"#ACCOUNT_ENTRY_VALIDATOR_RESULTS";
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		OrderSummaryCommerceCheckoutStep.class);
+
+	@Reference
+	private AccountEntryLocalService _accountEntryLocalService;
+
+	@Reference
+	private AccountEntryValidatorRegistry _accountEntryValidatorRegistry;
 
 	@Reference
 	private CommerceChannelLocalService _commerceChannelLocalService;

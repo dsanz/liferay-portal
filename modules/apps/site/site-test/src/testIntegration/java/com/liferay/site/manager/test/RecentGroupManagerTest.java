@@ -7,14 +7,13 @@ package com.liferay.site.manager.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.layout.test.util.LayoutTestUtil;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
-import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
-import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.servlet.PortletServlet;
 import com.liferay.portal.kernel.test.portlet.MockPortletRequest;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
@@ -23,8 +22,9 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.JavaConstants;
+import com.liferay.portal.kernel.util.SessionClicks;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -44,7 +44,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 /**
  * @author Adolfo Pérez
  */
-@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 public class RecentGroupManagerTest {
 
@@ -57,11 +56,9 @@ public class RecentGroupManagerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_addCMSGroup();
-
 		_group = GroupTestUtil.addGroup();
 
-		LayoutTestUtil.addTypeContentLayout(_group);
+		_layout = LayoutTestUtil.addTypeContentLayout(_group);
 	}
 
 	@Test
@@ -78,6 +75,15 @@ public class RecentGroupManagerTest {
 			Collections.emptyList(),
 			_recentGroupManager.getRecentGroups(mockHttpServletRequest));
 
+		_recentGroupManager.addRecentGroup(
+			mockHttpServletRequest,
+			_groupLocalService.getGroup(
+				TestPropsValues.getCompanyId(), GroupConstants.CONTROL_PANEL));
+
+		Assert.assertEquals(
+			Collections.emptyList(),
+			_recentGroupManager.getRecentGroups(mockHttpServletRequest));
+
 		_recentGroupManager.addRecentGroup(mockHttpServletRequest, _group);
 
 		Assert.assertEquals(
@@ -85,34 +91,26 @@ public class RecentGroupManagerTest {
 			_recentGroupManager.getRecentGroups(mockHttpServletRequest));
 	}
 
-	private void _addCMSGroup() throws Exception {
+	@Test
+	public void testGetRecentGroupsWithStoredControlPanelGroup()
+		throws Exception {
 
-		// These tests require the instance to be created with the feature
-		// flag LPD-17564 enabled. On CI, feature flags are enabled on
-		// demand for each test, but not during instance initialization.
-		// Until the feature flag LPD-17564 is removed, we need an explicit CMS
-		// group creation.
+		MockHttpServletRequest mockHttpServletRequest =
+			_getMockHttpServletRequest();
 
-		Group group = _groupLocalService.fetchGroup(
-			TestPropsValues.getCompanyId(), GroupConstants.CMS);
+		Group controlPanelGroup = _groupLocalService.getGroup(
+			TestPropsValues.getCompanyId(), GroupConstants.CONTROL_PANEL);
 
-		if (group != null) {
-			return;
-		}
+		SessionClicks.put(
+			mockHttpServletRequest.getSession(), _KEY_RECENT_GROUPS,
+			StringUtil.merge(
+				new long[] {
+					controlPanelGroup.getGroupId(), _group.getGroupId()
+				}));
 
-		Role role = _roleLocalService.fetchRole(
-			TestPropsValues.getCompanyId(), RoleConstants.SITE_MEMBER);
-
-		if (role == null) {
-			_roleLocalService.addRole(
-				null, TestPropsValues.getUserId(), null, 0,
-				RoleConstants.SITE_MEMBER, null, null,
-				RoleConstants.TYPE_REGULAR, null, null);
-		}
-
-		GroupTestUtil.addGroup(
-			TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
-			GroupConstants.DEFAULT_PARENT_GROUP_ID, GroupConstants.CMS);
+		Assert.assertEquals(
+			Collections.singletonList(_group),
+			_recentGroupManager.getRecentGroups(mockHttpServletRequest));
 	}
 
 	private MockHttpServletRequest _getMockHttpServletRequest()
@@ -133,6 +131,7 @@ public class RecentGroupManagerTest {
 
 		themeDisplay.setCompany(
 			_companyLocalService.getCompany(TestPropsValues.getCompanyId()));
+		themeDisplay.setLayout(_layout);
 		themeDisplay.setPermissionChecker(
 			PermissionCheckerFactoryUtil.create(TestPropsValues.getUser()));
 		themeDisplay.setSignedIn(true);
@@ -147,8 +146,15 @@ public class RecentGroupManagerTest {
 		mockHttpServletRequest.setAttribute(
 			WebKeys.USER, TestPropsValues.getUser());
 
+		SessionClicks.put(
+			mockHttpServletRequest.getSession(), _KEY_RECENT_GROUPS,
+			StringPool.BLANK);
+
 		return mockHttpServletRequest;
 	}
+
+	private static final String _KEY_RECENT_GROUPS =
+		"com.liferay.site.util_recentGroups";
 
 	@Inject
 	private CompanyLocalService _companyLocalService;
@@ -159,10 +165,9 @@ public class RecentGroupManagerTest {
 	@Inject
 	private GroupLocalService _groupLocalService;
 
-	@Inject
-	private RecentGroupManager _recentGroupManager;
+	private Layout _layout;
 
 	@Inject
-	private RoleLocalService _roleLocalService;
+	private RecentGroupManager _recentGroupManager;
 
 }

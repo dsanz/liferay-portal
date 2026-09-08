@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -100,6 +101,8 @@ public abstract class BaseERCScopedTestEntityResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -818,17 +821,9 @@ public abstract class BaseERCScopedTestEntityResourceTestCase {
 		String assetLibraryExternalReferenceCode =
 			testGetAssetLibraryERCScopedTestEntitiesPage_getAssetLibraryExternalReferenceCode();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"assetLibraryERCScopedTestEntities",
-			new HashMap<String, Object>() {
-				{
-					put(
-						"assetLibraryExternalReferenceCode",
-						"\"" + assetLibraryExternalReferenceCode + "\"");
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetAssetLibraryERCScopedTestEntitiesPageAssetLibraryERCScopedTestEntity_getGraphQLField(
+				assetLibraryExternalReferenceCode);
 
 		// No namespace
 
@@ -895,6 +890,24 @@ public abstract class BaseERCScopedTestEntityResourceTestCase {
 				ERCScopedTestEntitySerDes.toDTOs(
 					assetLibraryERCScopedTestEntitiesJSONObject.getString(
 						"items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetAssetLibraryERCScopedTestEntitiesPageAssetLibraryERCScopedTestEntity_getGraphQLField(
+				String assetLibraryExternalReferenceCode)
+		throws Exception {
+
+		return new GraphQLField(
+			"assetLibraryERCScopedTestEntities",
+			new HashMap<String, Object>() {
+				{
+					put(
+						"assetLibraryExternalReferenceCode",
+						"\"" + assetLibraryExternalReferenceCode + "\"");
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -1202,17 +1215,8 @@ public abstract class BaseERCScopedTestEntityResourceTestCase {
 
 	@Test
 	public void testGraphQLGetERCScopedTestEntitiesPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"eRCScopedTestEntities",
-			new HashMap<String, Object>() {
-				{
-					put(
-						"roleNames",
-						getGraphQLValue(RandomTestUtil.randomString()));
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetERCScopedTestEntitiesPageERCScopedTestEntity_getGraphQLField();
 
 		// No namespace
 
@@ -1272,6 +1276,23 @@ public abstract class BaseERCScopedTestEntityResourceTestCase {
 			Arrays.asList(
 				ERCScopedTestEntitySerDes.toDTOs(
 					eRCScopedTestEntitiesJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetERCScopedTestEntitiesPageERCScopedTestEntity_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"eRCScopedTestEntities",
+			new HashMap<String, Object>() {
+				{
+					put(
+						"roleNames",
+						getGraphQLValue(RandomTestUtil.randomString()));
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	protected ERCScopedTestEntity
@@ -1466,17 +1487,9 @@ public abstract class BaseERCScopedTestEntityResourceTestCase {
 		String siteExternalReferenceCode =
 			testGetSiteERCScopedTestEntitiesPage_getSiteExternalReferenceCode();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"siteERCScopedTestEntities",
-			new HashMap<String, Object>() {
-				{
-					put(
-						"siteExternalReferenceCode",
-						"\"" + siteExternalReferenceCode + "\"");
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetSiteERCScopedTestEntitiesPageSiteERCScopedTestEntity_getGraphQLField(
+				siteExternalReferenceCode);
 
 		// No namespace
 
@@ -1537,6 +1550,24 @@ public abstract class BaseERCScopedTestEntityResourceTestCase {
 			Arrays.asList(
 				ERCScopedTestEntitySerDes.toDTOs(
 					siteERCScopedTestEntitiesJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetSiteERCScopedTestEntitiesPageSiteERCScopedTestEntity_getGraphQLField(
+				String siteExternalReferenceCode)
+		throws Exception {
+
+		return new GraphQLField(
+			"siteERCScopedTestEntities",
+			new HashMap<String, Object>() {
+				{
+					put(
+						"siteExternalReferenceCode",
+						"\"" + siteExternalReferenceCode + "\"");
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -3590,4 +3621,4 @@ public abstract class BaseERCScopedTestEntityResourceTestCase {
 		ERCScopedTestEntityResource _ercScopedTestEntityResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1660322624
+// LIFERAY-REST-BUILDER-HASH:-833940637

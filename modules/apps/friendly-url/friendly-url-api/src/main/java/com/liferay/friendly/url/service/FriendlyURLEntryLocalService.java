@@ -153,6 +153,10 @@ public interface FriendlyURLEntryLocalService
 		long groupId, long classNameId, long classPK);
 
 	public void deleteFriendlyURLLocalizationEntry(
+			FriendlyURLEntryLocalization friendlyURLEntryLocalization)
+		throws PortalException;
+
+	public void deleteFriendlyURLLocalizationEntry(
 			long friendlyURLEntryId, String languageId)
 		throws PortalException;
 
@@ -243,6 +247,10 @@ public interface FriendlyURLEntryLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public FriendlyURLEntry fetchFriendlyURLEntry(
 		long groupId, long classNameId, long parentClassPK, String urlTitle);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public FriendlyURLEntry fetchFriendlyURLEntry(
+		long groupId, long classNameId, String urlTitle);
 
 	/**
 	 * Returns the friendly url entry matching the UUID and group.
@@ -517,4 +525,4 @@ public interface FriendlyURLEntryLocalService
 		throws E;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1795462559
+// LIFERAY-SERVICE-BUILDER-HASH:-1021384353

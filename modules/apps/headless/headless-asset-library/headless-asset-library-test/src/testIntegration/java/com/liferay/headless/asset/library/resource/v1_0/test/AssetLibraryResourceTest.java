@@ -17,6 +17,7 @@ import com.liferay.headless.asset.library.client.pagination.Page;
 import com.liferay.headless.asset.library.client.pagination.Pagination;
 import com.liferay.headless.asset.library.client.permission.Permission;
 import com.liferay.headless.asset.library.client.problem.Problem;
+import com.liferay.headless.asset.library.client.resource.v1_0.AssetLibraryResource;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Group;
@@ -30,19 +31,21 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.test.TestInfo;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PrefsPropsUtil;
 import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.odata.entity.EntityField;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 
 import java.util.ArrayList;
@@ -59,7 +62,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Roberto Díaz
  */
-@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
@@ -167,13 +169,20 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
 	@Override
 	@Test
+	@TestInfo({"LPD-99972", "LPD-102154"})
 	public void testPatchAssetLibrary() throws Exception {
 		super.testPatchAssetLibrary();
 
+		_testPatchAssetLibraryExternalReferenceCodeAndFriendlyURL();
+		_testPatchAssetLibraryFriendlyURLChanged();
+		_testPatchAssetLibraryFriendlyURLUnchanged();
+		_testPatchAssetLibraryFriendlyURLValidation();
+		_testPatchAssetLibraryName();
+		_testPatchAssetLibraryNameAndFriendlyURLChanged();
+		_testPatchAssetLibraryNameAndFriendlyURLUnchanged();
 		_testPatchAssetLibraryPermissions();
 		_testPatchAssetLibrarySettings();
-		_testPatchAssetLibraryFriendlyURL();
-		_testPatchAssetLibraryFriendlyURLValidation();
+		_testPatchAssetLibraryWithoutUpdatePermission();
 	}
 
 	@Override
@@ -182,6 +191,7 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 	public void testPostAssetLibrary() throws Exception {
 		super.testPostAssetLibrary();
 
+		_testPostAssetLibrary(new MimeTypeLimit[0]);
 		_testPostAssetLibrary(
 			new MimeTypeLimit[] {
 				new MimeTypeLimit() {
@@ -191,7 +201,7 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 					}
 				}
 			});
-		_testPostAssetLibrary(new MimeTypeLimit[0]);
+		_testPostAssetLibraryFriendlyURL();
 		_testPostAssetLibraryWithDuplicateExternalReferenceCode();
 		_testPostAssetLibraryWithExternalReferenceCode();
 		_testPostAssetLibraryWithMissingTrashEntriesMaxAge();
@@ -431,6 +441,28 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 		return assetLibraryResource.postAssetLibrary(randomAssetLibrary());
 	}
 
+	private void _assertFriendlyURLAndName(
+			AssetLibrary assetLibrary, String expectedFriendlyURL,
+			String expectedName, AssetLibrary patchAssetLibrary)
+		throws Exception {
+
+		AssetLibrary patchedAssetLibrary =
+			assetLibraryResource.patchAssetLibrary(
+				assetLibrary.getExternalReferenceCode(), patchAssetLibrary);
+
+		Assert.assertEquals(
+			expectedFriendlyURL, patchedAssetLibrary.getFriendlyURL());
+		Assert.assertEquals(expectedName, patchedAssetLibrary.getName());
+
+		AssetLibrary persistedAssetLibrary =
+			assetLibraryResource.getAssetLibrary(
+				assetLibrary.getExternalReferenceCode());
+
+		Assert.assertEquals(
+			expectedFriendlyURL, persistedAssetLibrary.getFriendlyURL());
+		Assert.assertEquals(expectedName, persistedAssetLibrary.getName());
+	}
+
 	private void _assertFriendlyURLValidationFailure(
 			String friendlyURL, String expectedType)
 		throws Exception {
@@ -576,22 +608,67 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 		return assetLibrary;
 	}
 
-	private void _testPatchAssetLibraryFriendlyURL() throws Exception {
+	private String _randomFriendlyURL() {
+		return StringUtil.toLowerCase("/" + RandomTestUtil.randomString());
+	}
+
+	private void _testPatchAssetLibraryExternalReferenceCodeAndFriendlyURL()
+		throws Exception {
+
 		AssetLibrary assetLibrary = _addAssetLibrary();
 
+		String externalReferenceCode = RandomTestUtil.randomString();
+		String friendlyURL = _randomFriendlyURL();
+
+		AssetLibrary patchAssetLibrary = new AssetLibrary();
+
+		patchAssetLibrary.setExternalReferenceCode(externalReferenceCode);
+		patchAssetLibrary.setFriendlyURL(friendlyURL);
+
+		AssetLibrary patchedAssetLibrary =
+			assetLibraryResource.patchAssetLibrary(
+				assetLibrary.getExternalReferenceCode(), patchAssetLibrary);
+
 		Assert.assertEquals(
-			"/asset-library-" + assetLibrary.getId(),
-			assetLibrary.getFriendlyURL());
+			externalReferenceCode,
+			patchedAssetLibrary.getExternalReferenceCode());
+		Assert.assertEquals(friendlyURL, patchedAssetLibrary.getFriendlyURL());
 
-		String customFriendlyURL = StringUtil.toLowerCase(
-			"/cms-friendly-url-" + RandomTestUtil.randomString());
+		AssetLibrary persistedAssetLibrary =
+			assetLibraryResource.getAssetLibrary(externalReferenceCode);
 
-		assetLibrary.setFriendlyURL(customFriendlyURL);
+		Assert.assertEquals(
+			friendlyURL, persistedAssetLibrary.getFriendlyURL());
+		Assert.assertEquals(
+			assetLibrary.getName(), persistedAssetLibrary.getName());
+	}
 
-		assetLibrary = assetLibraryResource.patchAssetLibrary(
-			assetLibrary.getExternalReferenceCode(), assetLibrary);
+	private void _testPatchAssetLibraryFriendlyURLChanged() throws Exception {
+		AssetLibrary assetLibrary = _addAssetLibrary();
 
-		Assert.assertEquals(customFriendlyURL, assetLibrary.getFriendlyURL());
+		String friendlyURL = _randomFriendlyURL();
+
+		AssetLibrary patchAssetLibrary = new AssetLibrary();
+
+		patchAssetLibrary.setFriendlyURL(friendlyURL);
+
+		_assertFriendlyURLAndName(
+			assetLibrary, friendlyURL, assetLibrary.getName(),
+			patchAssetLibrary);
+	}
+
+	private void _testPatchAssetLibraryFriendlyURLUnchanged() throws Exception {
+		AssetLibrary assetLibrary = _addAssetLibrary();
+
+		String friendlyURL = assetLibrary.getFriendlyURL();
+
+		AssetLibrary patchAssetLibrary = new AssetLibrary();
+
+		patchAssetLibrary.setFriendlyURL(friendlyURL);
+
+		_assertFriendlyURLAndName(
+			assetLibrary, friendlyURL, assetLibrary.getName(),
+			patchAssetLibrary);
 	}
 
 	private void _testPatchAssetLibraryFriendlyURLValidation()
@@ -618,6 +695,55 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
 		_assertFriendlyURLValidationFailure(
 			existingFriendlyURL, "FRIENDLY_URL_DUPLICATE");
+	}
+
+	private void _testPatchAssetLibraryName() throws Exception {
+		AssetLibrary assetLibrary = _addAssetLibrary();
+
+		String name = RandomTestUtil.randomString();
+
+		AssetLibrary patchAssetLibrary = new AssetLibrary();
+
+		patchAssetLibrary.setName(name);
+
+		_assertFriendlyURLAndName(
+			assetLibrary, assetLibrary.getFriendlyURL(), name,
+			patchAssetLibrary);
+	}
+
+	private void _testPatchAssetLibraryNameAndFriendlyURLChanged()
+		throws Exception {
+
+		AssetLibrary assetLibrary = _addAssetLibrary();
+
+		String friendlyURL = _randomFriendlyURL();
+		String name = RandomTestUtil.randomString();
+
+		AssetLibrary patchAssetLibrary = new AssetLibrary();
+
+		patchAssetLibrary.setFriendlyURL(friendlyURL);
+		patchAssetLibrary.setName(name);
+
+		_assertFriendlyURLAndName(
+			assetLibrary, friendlyURL, name, patchAssetLibrary);
+	}
+
+	private void _testPatchAssetLibraryNameAndFriendlyURLUnchanged()
+		throws Exception {
+
+		AssetLibrary assetLibrary = _addAssetLibrary();
+
+		String friendlyURL = assetLibrary.getFriendlyURL();
+
+		String name = RandomTestUtil.randomString();
+
+		AssetLibrary patchAssetLibrary = new AssetLibrary();
+
+		patchAssetLibrary.setFriendlyURL(friendlyURL);
+		patchAssetLibrary.setName(name);
+
+		_assertFriendlyURLAndName(
+			assetLibrary, friendlyURL, name, patchAssetLibrary);
 	}
 
 	private void _testPatchAssetLibraryPermissions() throws Exception {
@@ -726,6 +852,78 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 			trashEnabled, trashEntriesMaxAge, useCustomLanguages);
 	}
 
+	private void _testPatchAssetLibraryWithoutUpdatePermission()
+		throws Exception {
+
+		AssetLibrary assetLibrary = _postAssetLibraryWithSettings(
+			true, _getAvailableLanguageIds(LocaleUtil.US),
+			_language.getLanguageId(LocaleUtil.US),
+			RandomTestUtil.randomString(), new MimeTypeLimit[0], true, true,
+			RandomTestUtil.randomInt(), true);
+
+		DepotEntry depotEntry = _depotEntryLocalService.getDepotEntry(
+			assetLibrary.getId());
+
+		String password = RandomTestUtil.randomString();
+
+		_user = UserTestUtil.addUser(
+			TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
+			password, RandomTestUtil.randomString() + "@liferay.com",
+			RandomTestUtil.randomString(), LocaleUtil.getDefault(),
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			new long[] {depotEntry.getGroupId()},
+			ServiceContextTestUtil.getServiceContext());
+
+		Settings settings = new Settings();
+
+		settings.setMimeTypeLimits(
+			new MimeTypeLimit[] {
+				new MimeTypeLimit() {
+					{
+						maximumSize = 1;
+						mimeType = "image/png";
+					}
+				}
+			});
+
+		AssetLibrary patchAssetLibrary = new AssetLibrary();
+
+		patchAssetLibrary.setSettings(settings);
+
+		AssetLibraryResource userAssetLibraryResource =
+			AssetLibraryResource.builder(
+			).authentication(
+				_user.getEmailAddress(), password
+			).endpoint(
+				testCompany.getVirtualHostname(),
+				PortalUtil.getPortalServerPort(false), "http"
+			).locale(
+				LocaleUtil.getDefault()
+			).build();
+
+		try {
+			userAssetLibraryResource.patchAssetLibrary(
+				assetLibrary.getExternalReferenceCode(), patchAssetLibrary);
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals("FORBIDDEN", problem.getStatus());
+		}
+
+		assetLibrary = assetLibraryResource.getAssetLibrary(
+			assetLibrary.getExternalReferenceCode());
+
+		settings = assetLibrary.getSettings();
+
+		MimeTypeLimit[] mimeTypeLimits = settings.getMimeTypeLimits();
+
+		Assert.assertEquals(
+			Arrays.toString(mimeTypeLimits), 0, mimeTypeLimits.length);
+	}
+
 	private void _testPostAssetLibrary(MimeTypeLimit[] mimeTypeLimits)
 		throws Exception {
 
@@ -750,6 +948,14 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 			trashEnabled, trashEntriesMaxAge, useCustomLanguages);
 
 		_assertGroupDepotEntryType(assetLibrary);
+	}
+
+	private void _testPostAssetLibraryFriendlyURL() throws Exception {
+		AssetLibrary assetLibrary = _addAssetLibrary();
+
+		Assert.assertEquals(
+			"/asset-library-" + assetLibrary.getId(),
+			assetLibrary.getFriendlyURL());
 	}
 
 	private void _testPostAssetLibraryWithDuplicateExternalReferenceCode()
@@ -903,5 +1109,8 @@ public class AssetLibraryResourceTest extends BaseAssetLibraryResourceTestCase {
 
 	@Inject
 	private RoleLocalService _roleLocalService;
+
+	@DeleteAfterTestRun
+	private User _user;
 
 }

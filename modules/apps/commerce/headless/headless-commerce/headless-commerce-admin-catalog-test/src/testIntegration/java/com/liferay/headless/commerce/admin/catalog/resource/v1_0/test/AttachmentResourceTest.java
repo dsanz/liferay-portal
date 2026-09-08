@@ -6,30 +6,47 @@
 package com.liferay.headless.commerce.admin.catalog.resource.v1_0.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.commerce.product.configuration.CProductVersionConfiguration;
 import com.liferay.commerce.product.constants.CPAttachmentFileEntryConstants;
 import com.liferay.commerce.product.model.CPDefinition;
 import com.liferay.commerce.product.model.CProduct;
+import com.liferay.commerce.product.model.CommerceCatalog;
+import com.liferay.commerce.product.service.CPAttachmentFileEntryLocalService;
+import com.liferay.commerce.product.service.CPDefinitionLocalService;
 import com.liferay.commerce.product.test.util.CPTestUtil;
 import com.liferay.document.library.kernel.model.DLFolderConstants;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.headless.commerce.admin.catalog.client.dto.v1_0.Attachment;
+import com.liferay.headless.commerce.admin.catalog.client.dto.v1_0.AttachmentBase64;
+import com.liferay.headless.commerce.admin.catalog.client.pagination.Page;
+import com.liferay.headless.commerce.admin.catalog.client.pagination.Pagination;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.configuration.test.util.CompanyConfigurationTemporarySwapper;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.repository.model.FileEntry;
+import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.kernel.util.Base64;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.TempFileEntryUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 
 import java.io.ByteArrayInputStream;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -58,6 +75,16 @@ public class AttachmentResourceTest extends BaseAttachmentResourceTestCase {
 		_serviceContext = ServiceContextTestUtil.getServiceContext(
 			testCompany.getCompanyId(), testGroup.getGroupId(),
 			_user.getUserId());
+	}
+
+	@Override
+	@Test
+	public void testGetProductByExternalReferenceCodeAttachmentsPage()
+		throws Exception {
+
+		super.testGetProductByExternalReferenceCodeAttachmentsPage();
+
+		_testGetProductByExternalReferenceCodeAttachmentsPageWithBinaries();
 	}
 
 	@Ignore
@@ -116,6 +143,7 @@ public class AttachmentResourceTest extends BaseAttachmentResourceTestCase {
 	public void testPostProductIdAttachment() throws Exception {
 		super.testPostProductIdAttachment();
 
+		_testPostProductIdAttachmentProductVersioning();
 		_testPostProductIdAttachmentWithFileEntryExternalReferenceCode();
 	}
 
@@ -426,6 +454,56 @@ public class AttachmentResourceTest extends BaseAttachmentResourceTestCase {
 		};
 	}
 
+	private void _testGetProductByExternalReferenceCodeAttachmentsPageWithBinaries()
+		throws Exception {
+
+		String base64EncodedContent = Base64.encode(
+			RandomTestUtil.randomBytes());
+
+		Attachment postAttachment =
+			attachmentResource.
+				postProductByExternalReferenceCodeAttachmentByBase64(
+					_cProduct.getExternalReferenceCode(),
+					new AttachmentBase64() {
+						{
+							attachment = base64EncodedContent;
+							contentType = ContentTypes.TEXT_PLAIN;
+							externalReferenceCode =
+								RandomTestUtil.randomString();
+							galleryEnabled = true;
+							neverExpire = true;
+							title = HashMapBuilder.put(
+								"en_US", RandomTestUtil.randomString(5)
+							).build();
+							type = CPAttachmentFileEntryConstants.TYPE_OTHER;
+						}
+					});
+
+		Attachment getAttachment =
+			attachmentResource.getAttachmentByExternalReferenceCode(
+				postAttachment.getExternalReferenceCode());
+
+		Assert.assertEquals(
+			base64EncodedContent, getAttachment.getAttachment());
+
+		Page<Attachment> attachmentsPage =
+			attachmentResource.getProductByExternalReferenceCodeAttachmentsPage(
+				_cProduct.getExternalReferenceCode(), Pagination.of(1, 10));
+
+		String getBase64EncodedContent = null;
+
+		for (Attachment attachment : attachmentsPage.getItems()) {
+			if (Objects.equals(
+					postAttachment.getExternalReferenceCode(),
+					attachment.getExternalReferenceCode())) {
+
+				getBase64EncodedContent = attachment.getAttachment();
+			}
+		}
+
+		Assert.assertEquals(base64EncodedContent, getBase64EncodedContent);
+	}
+
 	private void _testPatchAttachmentByExternalReferenceCodeWithFileEntryExternalReferenceCode()
 		throws Exception {
 
@@ -525,6 +603,88 @@ public class AttachmentResourceTest extends BaseAttachmentResourceTestCase {
 			GetterUtil.getLong(postAttachment.getFileEntryId()));
 	}
 
+	private void _testPostProductIdAttachmentProductVersioning()
+		throws Exception {
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						testCompany.getCompanyId(),
+						CProductVersionConfiguration.class.getName(),
+						HashMapDictionaryBuilder.<String, Object>put(
+							"enabled", true
+						).build())) {
+
+			CommerceCatalog commerceCatalog =
+				CPTestUtil.getSystemCommerceCatalog(testCompany.getCompanyId());
+
+			CPDefinition cpDefinition1 = CPTestUtil.addCPDefinitionFromCatalog(
+				commerceCatalog.getGroupId(), "simple", null, null, true, true,
+				WorkflowConstants.STATUS_APPROVED);
+
+			_cpDefinitions.add(cpDefinition1);
+
+			Assert.assertEquals(
+				1,
+				_cpDefinitionLocalService.getCProductCPDefinitionsCount(
+					cpDefinition1.getCProductId(),
+					WorkflowConstants.STATUS_APPROVED));
+
+			long classNameId = _classNameLocalService.getClassNameId(
+				CPDefinition.class.getName());
+
+			Assert.assertEquals(
+				0,
+				_cpAttachmentFileEntryLocalService.
+					getCPAttachmentFileEntriesCount(
+						classNameId, cpDefinition1.getCPDefinitionId(),
+						CPAttachmentFileEntryConstants.TYPE_OTHER,
+						WorkflowConstants.STATUS_ANY));
+
+			Attachment attachment1 = randomAttachment();
+
+			attachment1.setType(CPAttachmentFileEntryConstants.TYPE_OTHER);
+
+			attachmentResource.postProductIdAttachment(
+				cpDefinition1.getCProductId(), attachment1);
+
+			Assert.assertEquals(
+				0,
+				_cpAttachmentFileEntryLocalService.
+					getCPAttachmentFileEntriesCount(
+						classNameId, cpDefinition1.getCPDefinitionId(),
+						CPAttachmentFileEntryConstants.TYPE_OTHER,
+						WorkflowConstants.STATUS_ANY));
+
+			Assert.assertEquals(
+				1,
+				_cpDefinitionLocalService.getCProductCPDefinitionsCount(
+					cpDefinition1.getCProductId(),
+					WorkflowConstants.STATUS_APPROVED));
+
+			List<CPDefinition> cpDefinitions =
+				_cpDefinitionLocalService.getCProductCPDefinitions(
+					cpDefinition1.getCProductId(),
+					WorkflowConstants.STATUS_DRAFT, QueryUtil.ALL_POS,
+					QueryUtil.ALL_POS);
+
+			Assert.assertEquals(
+				cpDefinitions.toString(), 1, cpDefinitions.size());
+
+			CPDefinition cpDefinition2 = cpDefinitions.get(0);
+
+			_cpDefinitions.add(cpDefinition2);
+
+			Assert.assertEquals(
+				1,
+				_cpAttachmentFileEntryLocalService.
+					getCPAttachmentFileEntriesCount(
+						classNameId, cpDefinition2.getCPDefinitionId(),
+						CPAttachmentFileEntryConstants.TYPE_OTHER,
+						WorkflowConstants.STATUS_ANY));
+		}
+	}
+
 	private void _testPostProductIdAttachmentWithFileEntryExternalReferenceCode()
 		throws Exception {
 
@@ -577,8 +737,21 @@ public class AttachmentResourceTest extends BaseAttachmentResourceTestCase {
 			GetterUtil.getLong(postAttachment.getFileEntryId()));
 	}
 
+	@Inject
+	private ClassNameLocalService _classNameLocalService;
+
+	@Inject
+	private CPAttachmentFileEntryLocalService
+		_cpAttachmentFileEntryLocalService;
+
 	@DeleteAfterTestRun
 	private CPDefinition _cpDefinition;
+
+	@Inject
+	private CPDefinitionLocalService _cpDefinitionLocalService;
+
+	@DeleteAfterTestRun
+	private List<CPDefinition> _cpDefinitions = new ArrayList<>();
 
 	@DeleteAfterTestRun
 	private CProduct _cProduct;

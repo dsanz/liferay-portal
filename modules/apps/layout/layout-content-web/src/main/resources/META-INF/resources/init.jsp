@@ -7,7 +7,11 @@
 
 <%@ taglib uri="http://java.sun.com/portlet_2_0" prefix="portlet" %>
 
-<%@ taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %>
+<%@ taglib uri="http://liferay.com/tld/react" prefix="react" %><%@
+taglib uri="http://liferay.com/tld/theme" prefix="liferay-theme" %>
+
+<%@ page import="com.liferay.layout.content.web.internal.constants.LayoutContentVersionWebKeys" %><%@
+page import="com.liferay.layout.content.web.internal.display.context.LayoutContentVersionDisplayContext" %>
 
 <liferay-theme:defineObjects />
 

@@ -333,6 +333,25 @@ public class PatcherBuildUtil {
 			key);
 	}
 
+	public static String getDownloadPath(String fileName) {
+		if (Validator.isNull(fileName)) {
+			return StringPool.BLANK;
+		}
+
+		return StringUtil.replace(fileName, "/hotfix/", StringPool.SLASH);
+	}
+
+	public static String getDownloadURL(PatcherBuild patcherBuild)
+		throws Exception {
+
+		PatcherConfiguration patcherConfiguration =
+			ConfigurationProviderUtil.getCompanyConfiguration(
+				PatcherConfiguration.class, patcherBuild.getCompanyId());
+
+		return patcherConfiguration.patcherBuildDownloadURL() +
+			StringPool.SLASH + getDownloadPath(patcherBuild.getFileName());
+	}
+
 	public static List<PatcherBuild> getEquivalentPatcherBuilds(
 		long patcherProjectVersionId, String tickets) {
 
@@ -664,7 +683,7 @@ public class PatcherBuildUtil {
 				StringPool.FORWARD_SLASH + supportTicket;
 		}
 
-		return patcherConfiguration.jiraURL() + StringPool.FORWARD_SLASH +
+		return patcherConfiguration.jiraBrowseURL() + StringPool.FORWARD_SLASH +
 			supportTicket;
 	}
 
@@ -1154,19 +1173,12 @@ public class PatcherBuildUtil {
 		}
 
 		for (PatcherFix rebasePatcherFix : rebasePatcherFixes) {
-			List<Long> patcherFixIds = new ArrayList<>();
-
-			if (patcherProjectVersionIdPatcherFixIdsMap.containsKey(
-					rebasePatcherFix.getPatcherProjectVersionId())) {
-
-				patcherFixIds = patcherProjectVersionIdPatcherFixIdsMap.get(
-					rebasePatcherFix.getPatcherProjectVersionId());
-			}
+			List<Long> patcherFixIds =
+				patcherProjectVersionIdPatcherFixIdsMap.computeIfAbsent(
+					rebasePatcherFix.getPatcherProjectVersionId(),
+					key -> new ArrayList<>());
 
 			patcherFixIds.add(rebasePatcherFix.getPatcherFixId());
-
-			patcherProjectVersionIdPatcherFixIdsMap.put(
-				rebasePatcherFix.getPatcherProjectVersionId(), patcherFixIds);
 		}
 
 		return patcherProjectVersionIdPatcherFixIdsMap;
@@ -1324,7 +1336,8 @@ public class PatcherBuildUtil {
 	public static void savePatcherBuild(
 			User user, PatcherBuild parentPatcherBuild,
 			Map<Long, List<Long>> patcherProjectVersionIdPatcherFixIdsMap,
-			boolean mergeOnly, String accountEntryCode)
+			boolean mergeOnly, String accountEntryCode,
+			boolean useExistingHotfix)
 		throws Exception {
 
 		saveParentPatcherBuild(
@@ -1352,7 +1365,8 @@ public class PatcherBuildUtil {
 					parentPatcherBuild, entry.getValue(), entry.getKey());
 			}
 
-			updatePatcherBuildFixes(user, patcherBuild, entry.getValue());
+			updatePatcherBuildFixes(
+				user, patcherBuild, entry.getValue(), useExistingHotfix);
 		}
 
 		List<BaseModel<?>> sendToJenkinsBaseModels =
@@ -1379,7 +1393,8 @@ public class PatcherBuildUtil {
 
 	public static void savePatcherBuild(
 			User user, PatcherBuild patcherBuild, String accountEntryCode,
-			String supportTicket, boolean smokeTestOnly, boolean mergeOnly)
+			String supportTicket, boolean smokeTestOnly, boolean mergeOnly,
+			boolean useExistingHotfix)
 		throws Exception {
 
 		patcherBuild.setSupportTicket(supportTicket);
@@ -1420,7 +1435,7 @@ public class PatcherBuildUtil {
 
 		savePatcherBuild(
 			user, patcherBuild, patcherProjectVersionIdPatcherFixIdsMap,
-			mergeOnly, accountEntryCode);
+			mergeOnly, accountEntryCode, useExistingHotfix);
 
 		reindexRelatedModels(patcherBuild);
 	}
@@ -1515,6 +1530,14 @@ public class PatcherBuildUtil {
 			User user, PatcherBuild patcherBuild, List<Long> patcherFixIds)
 		throws Exception {
 
+		updatePatcherBuildFixes(user, patcherBuild, patcherFixIds, false);
+	}
+
+	public static void updatePatcherBuildFixes(
+			User user, PatcherBuild patcherBuild, List<Long> patcherFixIds,
+			boolean useExistingHotfix)
+		throws Exception {
+
 		PatcherFixLocalServiceUtil.clearPatcherBuildPatcherFixes(
 			patcherBuild.getPatcherBuildId());
 
@@ -1528,7 +1551,9 @@ public class PatcherBuildUtil {
 
 			patcherBuild.setPatcherFixId(patcherFixIds.get(0));
 
-			updatePatcherBuildStatusMergeComplete(user, patcherBuild);
+			if (!useExistingHotfix) {
+				updatePatcherBuildStatusMergeComplete(user, patcherBuild);
+			}
 
 			return;
 		}

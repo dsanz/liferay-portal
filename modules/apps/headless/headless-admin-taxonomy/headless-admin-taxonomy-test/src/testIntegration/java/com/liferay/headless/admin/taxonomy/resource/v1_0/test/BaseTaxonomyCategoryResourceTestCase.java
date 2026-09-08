@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -104,6 +105,8 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -240,6 +243,7 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 		taxonomyCategory.setAssetLibraryKey(regex);
 		taxonomyCategory.setDescription(regex);
 		taxonomyCategory.setExternalReferenceCode(regex);
+		taxonomyCategory.setFriendlyUrlPath(regex);
 		taxonomyCategory.setId(regex);
 		taxonomyCategory.setName(regex);
 		taxonomyCategory.setPath(regex);
@@ -255,6 +259,7 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 		Assert.assertEquals(regex, taxonomyCategory.getAssetLibraryKey());
 		Assert.assertEquals(regex, taxonomyCategory.getDescription());
 		Assert.assertEquals(regex, taxonomyCategory.getExternalReferenceCode());
+		Assert.assertEquals(regex, taxonomyCategory.getFriendlyUrlPath());
 		Assert.assertEquals(regex, taxonomyCategory.getId());
 		Assert.assertEquals(regex, taxonomyCategory.getName());
 		Assert.assertEquals(regex, taxonomyCategory.getPath());
@@ -957,7 +962,8 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 				assetLibraryId, randomTaxonomyCategory());
 
 		page = taxonomyCategoryResource.getAssetLibraryTaxonomyCategoriesPage(
-			assetLibraryId, null, null, null, Pagination.of(1, 10), null);
+			assetLibraryId, null, null, null,
+			Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1402,18 +1408,9 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 		Long assetLibraryId =
 			testGetAssetLibraryTaxonomyCategoriesPage_getAssetLibraryId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"assetLibraryTaxonomyCategories",
-			new HashMap<String, Object>() {
-				{
-					put("assetLibraryId", "\"" + assetLibraryId + "\"");
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetAssetLibraryTaxonomyCategoriesPageAssetLibraryTaxonomyCategory_getGraphQLField(
+				assetLibraryId);
 
 		// No namespace
 
@@ -1481,6 +1478,25 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 				TaxonomyCategorySerDes.toDTOs(
 					assetLibraryTaxonomyCategoriesJSONObject.getString(
 						"items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetAssetLibraryTaxonomyCategoriesPageAssetLibraryTaxonomyCategory_getGraphQLField(
+				Long assetLibraryId)
+		throws Exception {
+
+		return new GraphQLField(
+			"assetLibraryTaxonomyCategories",
+			new HashMap<String, Object>() {
+				{
+					put("assetLibraryId", "\"" + assetLibraryId + "\"");
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -1707,7 +1723,8 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 				siteId, randomTaxonomyCategory());
 
 		page = taxonomyCategoryResource.getSiteTaxonomyCategoriesPage(
-			siteId, null, null, null, Pagination.of(1, 10), null);
+			siteId, null, null, null, Pagination.of(1, (int)totalCount + 2),
+			null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -2138,18 +2155,9 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 	public void testGraphQLGetSiteTaxonomyCategoriesPage() throws Exception {
 		Long siteId = testGetSiteTaxonomyCategoriesPage_getSiteId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"taxonomyCategories",
-			new HashMap<String, Object>() {
-				{
-					put("siteKey", "\"" + siteId + "\"");
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetSiteTaxonomyCategoriesPageSiteTaxonomyCategory_getGraphQLField(
+				siteId);
 
 		// No namespace
 
@@ -2206,6 +2214,25 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 			Arrays.asList(
 				TaxonomyCategorySerDes.toDTOs(
 					taxonomyCategoriesJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetSiteTaxonomyCategoriesPageSiteTaxonomyCategory_getGraphQLField(
+				Long siteId)
+		throws Exception {
+
+		return new GraphQLField(
+			"taxonomyCategories",
+			new HashMap<String, Object>() {
+				{
+					put("siteKey", "\"" + siteId + "\"");
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -2391,7 +2418,7 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 				randomTaxonomyCategory());
 
 		page = taxonomyCategoryResource.getTaxonomyCategoriesRankedPage(
-			null, Pagination.of(1, 10));
+			null, Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -2526,16 +2553,8 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 
 	@Test
 	public void testGraphQLGetTaxonomyCategoriesRankedPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"taxonomyCategoriesRanked",
-			new HashMap<String, Object>() {
-				{
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetTaxonomyCategoriesRankedPageTaxonomyCategory_getGraphQLField();
 
 		// No namespace
 
@@ -2596,6 +2615,22 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 			Arrays.asList(
 				TaxonomyCategorySerDes.toDTOs(
 					taxonomyCategoriesRankedJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetTaxonomyCategoriesRankedPageTaxonomyCategory_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"taxonomyCategoriesRanked",
+			new HashMap<String, Object>() {
+				{
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	protected TaxonomyCategory
@@ -2846,7 +2881,7 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 		page =
 			taxonomyCategoryResource.getTaxonomyCategoryTaxonomyCategoriesPage(
 				parentTaxonomyCategoryId, null, null, null,
-				Pagination.of(1, 10), null);
+				Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -3281,20 +3316,9 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 		String parentTaxonomyCategoryId =
 			testGetTaxonomyCategoryTaxonomyCategoriesPage_getParentTaxonomyCategoryId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"taxonomyCategoryTaxonomyCategories",
-			new HashMap<String, Object>() {
-				{
-					put(
-						"parentTaxonomyCategoryId",
-						"\"" + parentTaxonomyCategoryId + "\"");
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetTaxonomyCategoryTaxonomyCategoriesPageTaxonomyCategory_getGraphQLField(
+				parentTaxonomyCategoryId);
 
 		// No namespace
 
@@ -3364,6 +3388,27 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 						"items"))));
 	}
 
+	protected GraphQLField
+			testGraphQLGetTaxonomyCategoryTaxonomyCategoriesPageTaxonomyCategory_getGraphQLField(
+				String parentTaxonomyCategoryId)
+		throws Exception {
+
+		return new GraphQLField(
+			"taxonomyCategoryTaxonomyCategories",
+			new HashMap<String, Object>() {
+				{
+					put(
+						"parentTaxonomyCategoryId",
+						"\"" + parentTaxonomyCategoryId + "\"");
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
+	}
+
 	protected TaxonomyCategory
 			testGraphQLGetTaxonomyCategoryTaxonomyCategoriesPageTaxonomyCategory_addTaxonomyCategory(
 				String parentTaxonomyCategoryId,
@@ -3426,7 +3471,7 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 			taxonomyCategoryResource.
 				getTaxonomyVocabularyTaxonomyCategoriesPage(
 					taxonomyVocabularyId, null, null, null, null,
-					Pagination.of(1, 10), null);
+					Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -3888,18 +3933,9 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 		Long taxonomyVocabularyId =
 			testGetTaxonomyVocabularyTaxonomyCategoriesPage_getTaxonomyVocabularyId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"taxonomyVocabularyTaxonomyCategories",
-			new HashMap<String, Object>() {
-				{
-					put("taxonomyVocabularyId", taxonomyVocabularyId);
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetTaxonomyVocabularyTaxonomyCategoriesPageTaxonomyVocabularyTaxonomyCategory_getGraphQLField(
+				taxonomyVocabularyId);
 
 		// No namespace
 
@@ -3970,6 +4006,25 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 				TaxonomyCategorySerDes.toDTOs(
 					taxonomyVocabularyTaxonomyCategoriesJSONObject.getString(
 						"items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetTaxonomyVocabularyTaxonomyCategoriesPageTaxonomyVocabularyTaxonomyCategory_getGraphQLField(
+				Long taxonomyVocabularyId)
+		throws Exception {
+
+		return new GraphQLField(
+			"taxonomyVocabularyTaxonomyCategories",
+			new HashMap<String, Object>() {
+				{
+					put("taxonomyVocabularyId", taxonomyVocabularyId);
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -5443,6 +5498,24 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("friendlyUrlPath", additionalAssertFieldName)) {
+				if (taxonomyCategory.getFriendlyUrlPath() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"friendlyUrlPath_i18n", additionalAssertFieldName)) {
+
+				if (taxonomyCategory.getFriendlyUrlPath_i18n() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("name", additionalAssertFieldName)) {
 				if (taxonomyCategory.getName() == null) {
 					valid = false;
@@ -5509,6 +5582,14 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 					"siteExternalReferenceCode", additionalAssertFieldName)) {
 
 				if (taxonomyCategory.getSiteExternalReferenceCode() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("system", additionalAssertFieldName)) {
+				if (taxonomyCategory.getSystem() == null) {
 					valid = false;
 				}
 
@@ -5780,6 +5861,30 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("friendlyUrlPath", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						taxonomyCategory1.getFriendlyUrlPath(),
+						taxonomyCategory2.getFriendlyUrlPath())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"friendlyUrlPath_i18n", additionalAssertFieldName)) {
+
+				if (!equals(
+						(Map)taxonomyCategory1.getFriendlyUrlPath_i18n(),
+						(Map)taxonomyCategory2.getFriendlyUrlPath_i18n())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("id", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						taxonomyCategory1.getId(), taxonomyCategory2.getId())) {
@@ -5879,6 +5984,17 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 				if (!Objects.deepEquals(
 						taxonomyCategory1.getSiteExternalReferenceCode(),
 						taxonomyCategory2.getSiteExternalReferenceCode())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("system", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						taxonomyCategory1.getSystem(),
+						taxonomyCategory2.getSystem())) {
 
 					return false;
 				}
@@ -6271,6 +6387,57 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 			return sb.toString();
 		}
 
+		if (entityFieldName.equals("friendlyUrlPath")) {
+			Object object = taxonomyCategory.getFriendlyUrlPath();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
+		if (entityFieldName.equals("friendlyUrlPath_i18n")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("id")) {
 			Object object = taxonomyCategory.getId();
 
@@ -6488,6 +6655,11 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("system")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("taxonomyCategoryProperties")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -6612,6 +6784,8 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 					RandomTestUtil.randomString());
 				externalReferenceCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
+				friendlyUrlPath = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
 				id = StringUtil.toLowerCase(RandomTestUtil.randomString());
 				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
 				numberOfTaxonomyCategories = RandomTestUtil.randomInt();
@@ -6619,6 +6793,7 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 				siteExternalReferenceCode =
 					testGroup.getExternalReferenceCode();
 				siteId = testGroup.getGroupId();
+				system = RandomTestUtil.randomBoolean();
 				taxonomyCategoryUsageCount = RandomTestUtil.randomInt();
 				taxonomyVocabularyId = RandomTestUtil.randomLong();
 				uuid = StringUtil.toLowerCase(RandomTestUtil.randomString());
@@ -6908,4 +7083,4 @@ public abstract class BaseTaxonomyCategoryResourceTestCase {
 			TaxonomyCategoryResource _taxonomyCategoryResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1286625270
+// LIFERAY-REST-BUILDER-HASH:395872311

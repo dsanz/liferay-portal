@@ -8,6 +8,7 @@ package com.liferay.source.formatter.processor;
 import com.liferay.source.formatter.SourceFormatterArgs;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -29,7 +30,13 @@ public class JakartaTransformSourceProcessorTest
 
 	@Test
 	public void testGradleJakartaTransform() throws Exception {
-		test("jakartatransform/JakartaTransform.testgradle");
+		test("jakartatransform/JakartaTransform1.testgradle");
+
+		_jakartaTransformDependenciesFilePath =
+			"src/test/resources/com/liferay/source/formatter/dependencies" +
+				"/jakartatransform/jakarta-transform-dependencies.txt";
+
+		test("jakartatransform/JakartaTransform2.testgradle");
 	}
 
 	@Test
@@ -55,7 +62,23 @@ public class JakartaTransformSourceProcessorTest
 		sourceFormatterArgs.setCheckCategoryNames(
 			Arrays.asList("JakartaTransform"));
 
+		if (_jakartaTransformDependenciesFilePath == null) {
+			return sourceFormatterArgs;
+		}
+
+		List<String> sourceFormatterProperties =
+			sourceFormatterArgs.getSourceFormatterProperties();
+
+		sourceFormatterProperties.add(
+			"jakarta.transform.dependencies.file.path=" +
+				_jakartaTransformDependenciesFilePath);
+
+		sourceFormatterArgs.setSourceFormatterProperties(
+			sourceFormatterProperties);
+
 		return sourceFormatterArgs;
 	}
+
+	private String _jakartaTransformDependenciesFilePath;
 
 }

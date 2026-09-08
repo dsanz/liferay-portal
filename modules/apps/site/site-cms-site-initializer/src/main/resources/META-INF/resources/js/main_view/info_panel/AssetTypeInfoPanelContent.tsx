@@ -65,7 +65,7 @@ const AssetTypeInfoPanelContent = ({
 		);
 	}
 
-	const asset = selectedAssets[0].embedded;
+	const asset = selectedAssets[0].embedded || {};
 	const stickerClassName = classNames(
 		getFileMimeTypeObjectDefinitionStickerValue(
 			otherProps.fileMimeTypeCssClasses,
@@ -92,9 +92,15 @@ const AssetTypeInfoPanelContent = ({
 							Number(groupId) === Number(asset.scopeId)
 					),
 					breadcrumbProps,
+					cmpProjectLinkObjectDefinitionId:
+						otherProps.cmpProjectLinkObjectDefinitionId,
+					cmpProjectObjectDefinitionId:
+						otherProps.cmpProjectObjectDefinitionId,
+					cmpProjectViewURL: otherProps.cmpProjectViewURL,
 					cmsGroupId,
 					commentsProps,
 					dataSetId,
+					entryClassName: selectedAssets[0].entryClassName,
 					selectedAssets,
 					type,
 				} as IAssetTypeInfoPanelContext

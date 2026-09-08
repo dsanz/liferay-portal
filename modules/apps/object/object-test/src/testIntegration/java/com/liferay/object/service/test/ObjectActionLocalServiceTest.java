@@ -122,6 +122,7 @@ import com.liferay.portal.kernel.test.AssertUtils;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.OrganizationTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -156,7 +157,6 @@ import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.mail.MailMessage;
 import com.liferay.portal.test.mail.MailServiceTestUtil;
 import com.liferay.portal.test.rule.FeatureFlag;
-import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -204,11 +204,8 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Brian Wing Shun Chan
  */
-@FeatureFlags(
-	featureFlags = {
-		@FeatureFlag(value = "LPD-34594"), @FeatureFlag(value = "LPS-173537")
-	}
-)
+@DataGuard(scope = DataGuard.Scope.METHOD)
+@FeatureFlag("LPS-173537")
 @RunWith(Arquillian.class)
 public class ObjectActionLocalServiceTest {
 
@@ -280,7 +277,10 @@ public class ObjectActionLocalServiceTest {
 				0, ObjectActionExecutorConstants.KEY_GROOVY),
 			"_objectScriptingExecutor", _originalObjectScriptingExecutor);
 
-		_objectDefinitionLocalService.deleteObjectDefinition(_objectDefinition);
+		if (_objectDefinition != null) {
+			_objectDefinitionLocalService.deleteObjectDefinition(
+				_objectDefinition);
+		}
 	}
 
 	@Test
@@ -1855,7 +1855,6 @@ public class ObjectActionLocalServiceTest {
 					"usePreferredLanguageForGuests")));
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testAddOrUpdateSubscriptionObjectActions() throws Exception {
 		ObjectDefinition objectDefinition =
@@ -2823,6 +2822,47 @@ public class ObjectActionLocalServiceTest {
 				objectDefinitionAAA.getName()
 			},
 			_objectEntryLocalService, _objectRelationshipLocalService);
+	}
+
+	@Test
+	public void testOnAfterDeleteObjectActionWhileDeletingObjectDefinition()
+		throws Exception {
+
+		_objectDefinition = _publishCustomObjectDefinition();
+
+		_addObjectAction(
+			RandomTestUtil.randomString(),
+			ObjectActionExecutorConstants.KEY_GROOVY,
+			ObjectActionTriggerConstants.KEY_ON_AFTER_DELETE,
+			UnicodePropertiesBuilder.put(
+				"script", "println \"Hello World\""
+			).build(),
+			false);
+
+		ObjectEntry objectEntry = _addObjectEntry(
+			_objectDefinition,
+			HashMapBuilder.<String, Serializable>put(
+				"firstName", "Paul"
+			).build());
+
+		_objectEntryLocalService.deleteObjectEntry(objectEntry);
+
+		_assertGroovyObjectActionExecutorArguments("Paul", objectEntry);
+
+		objectEntry = _addObjectEntry(
+			_objectDefinition,
+			HashMapBuilder.<String, Serializable>put(
+				"firstName", "John"
+			).build());
+
+		_objectDefinitionLocalService.deleteObjectDefinition(_objectDefinition);
+
+		_objectDefinition = null;
+
+		Assert.assertNull(
+			_objectEntryLocalService.fetchObjectEntry(
+				objectEntry.getObjectEntryId()));
+		Assert.assertEquals(0, _argumentsList.size());
 	}
 
 	@Test

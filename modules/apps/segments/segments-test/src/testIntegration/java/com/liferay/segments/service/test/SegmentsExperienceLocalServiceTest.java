@@ -6,12 +6,20 @@
 package com.liferay.segments.service.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
+import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
+import com.liferay.layout.page.template.test.util.DisplayPageTemplateTestUtil;
+import com.liferay.layout.page.template.test.util.LayoutPageTemplateTestUtil;
 import com.liferay.layout.test.util.LayoutTestUtil;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.events.StartupHelperUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.exception.LockedLayoutException;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.lock.LockManager;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.test.TestInfo;
@@ -23,14 +31,22 @@ import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Time;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.segments.constants.SegmentsEntryConstants;
 import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.segments.constants.SegmentsExperimentConstants;
+import com.liferay.segments.criteria.Criteria;
+import com.liferay.segments.criteria.CriteriaSerializer;
+import com.liferay.segments.exception.DefaultSegmentsExperienceException;
 import com.liferay.segments.exception.DuplicateSegmentsExperienceExternalReferenceCodeException;
+import com.liferay.segments.exception.DuplicateSegmentsExperienceKeyException;
 import com.liferay.segments.exception.LockedSegmentsExperimentException;
 import com.liferay.segments.exception.RequiredSegmentsExperienceException;
 import com.liferay.segments.exception.SegmentsExperienceNameException;
@@ -78,6 +94,57 @@ public class SegmentsExperienceLocalServiceTest {
 	}
 
 	@Test
+	@TestInfo("LPD-97443")
+	public void testAddDefaultSegmentsExperienceLockedLayout()
+		throws Exception {
+
+		Layout layout = _layoutLocalService.getLayout(_plid);
+
+		Layout draftLayout = layout.fetchDraftLayout();
+
+		_segmentsExperienceLocalService.deleteSegmentsExperience(
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				draftLayout.getPlid()));
+
+		_user = UserTestUtil.addUser();
+
+		_lockManager.lock(
+			_user.getUserId(), Layout.class.getName(), draftLayout.getPlid(),
+			null, false, Time.HOUR);
+
+		try {
+			try {
+				_segmentsExperienceLocalService.addDefaultSegmentsExperience(
+					null, TestPropsValues.getUserId(), draftLayout.getPlid(),
+					ServiceContextTestUtil.getServiceContext(
+						_group.getGroupId()));
+
+				Assert.fail();
+			}
+			catch (LockedLayoutException lockedLayoutException) {
+			}
+
+			StartupHelperUtil.setUpgrading(true);
+
+			try {
+				Assert.assertNotNull(
+					_segmentsExperienceLocalService.
+						addDefaultSegmentsExperience(
+							null, TestPropsValues.getUserId(),
+							draftLayout.getPlid(),
+							ServiceContextTestUtil.getServiceContext(
+								_group.getGroupId())));
+			}
+			finally {
+				StartupHelperUtil.setUpgrading(false);
+			}
+		}
+		finally {
+			_lockManager.unlock(Layout.class.getName(), draftLayout.getPlid());
+		}
+	}
+
+	@Test
 	public void testAddSegmentsExperienceActive() throws Exception {
 		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
 			_group.getGroupId());
@@ -106,6 +173,70 @@ public class SegmentsExperienceLocalServiceTest {
 			2,
 			_segmentsExperienceLocalService.getSegmentsExperiencesCount(
 				_group.getGroupId(), _plid, true));
+	}
+
+	@FeatureFlag(enable = false, value = "LPD-78863")
+	@Test
+	public void testAddSegmentsExperienceActiveWithFeatureFlagDisabled()
+		throws Exception {
+
+		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
+			_group.getGroupId());
+
+		SegmentsExperience segmentsExperience =
+			_segmentsExperienceLocalService.addSegmentsExperience(
+				null, TestPropsValues.getUserId(), _group.getGroupId(),
+				segmentsEntry.getExternalReferenceCode(), null, _plid,
+				RandomTestUtil.randomLocaleStringMap(), true,
+				new UnicodeProperties(true),
+				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		Assert.assertFalse(segmentsExperience.isActive());
+
+		segmentsExperience =
+			_segmentsExperienceLocalService.updateSegmentsExperienceActive(
+				TestPropsValues.getUserId(),
+				segmentsExperience.getSegmentsExperienceId(), true);
+
+		Assert.assertFalse(segmentsExperience.isActive());
+	}
+
+	@FeatureFlag(enable = false, value = "LPD-78863")
+	@Test
+	public void testAddSegmentsExperienceActiveWithFeatureFlagDisabledAsahFaroBackendSource()
+		throws Exception {
+
+		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
+			RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+			RandomTestUtil.randomString(),
+			CriteriaSerializer.serialize(new Criteria()),
+			SegmentsEntryConstants.SOURCE_ASAH_FARO_BACKEND,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		SegmentsExperience segmentsExperience =
+			_segmentsExperienceLocalService.addSegmentsExperience(
+				null, TestPropsValues.getUserId(), _group.getGroupId(),
+				segmentsEntry.getExternalReferenceCode(), null, _plid,
+				RandomTestUtil.randomLocaleStringMap(), true,
+				new UnicodeProperties(true),
+				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		Assert.assertTrue(segmentsExperience.isActive());
+	}
+
+	@FeatureFlag(enable = false, value = "LPD-78863")
+	@Test
+	public void testAddSegmentsExperienceActiveWithFeatureFlagDisabledDefaultSegmentsExperience()
+		throws Exception {
+
+		Layout layout = LayoutTestUtil.addTypeContentLayout(_group);
+
+		SegmentsExperience segmentsExperience =
+			_segmentsExperienceLocalService.fetchSegmentsExperience(
+				_group.getGroupId(), SegmentsExperienceConstants.KEY_DEFAULT,
+				layout.getPlid());
+
+		Assert.assertTrue(segmentsExperience.isActive());
 	}
 
 	@Test
@@ -208,6 +339,54 @@ public class SegmentsExperienceLocalServiceTest {
 			segmentsExperiences.toString(), 3, segmentsExperiences.size());
 	}
 
+	@Test
+	public void testAddSegmentsExperienceToPageTemplate() throws Exception {
+		LayoutPageTemplateEntry layoutPageTemplateEntry =
+			LayoutPageTemplateTestUtil.addLayoutPageTemplateEntry(
+				_group.getGroupId(), LayoutPageTemplateEntryTypeConstants.BASIC,
+				WorkflowConstants.STATUS_DRAFT);
+
+		try {
+			_segmentsExperienceLocalService.addSegmentsExperience(
+				null, TestPropsValues.getUserId(), _group.getGroupId(), null,
+				null, layoutPageTemplateEntry.getPlid(),
+				RandomTestUtil.randomLocaleStringMap(), true,
+				new UnicodeProperties(true),
+				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+			Assert.fail();
+		}
+		catch (IllegalArgumentException illegalArgumentException) {
+			Assert.assertEquals(
+				"Segments experiences cannot be added to layout " +
+					layoutPageTemplateEntry.getPlid() +
+						" because it belongs to a page template",
+				illegalArgumentException.getMessage());
+		}
+
+		layoutPageTemplateEntry =
+			DisplayPageTemplateTestUtil.addDisplayPageTemplate(
+				_group.getGroupId());
+
+		try {
+			_segmentsExperienceLocalService.addSegmentsExperience(
+				null, TestPropsValues.getUserId(), _group.getGroupId(), null,
+				null, layoutPageTemplateEntry.getPlid(),
+				RandomTestUtil.randomLocaleStringMap(), true,
+				new UnicodeProperties(true),
+				ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+			Assert.fail();
+		}
+		catch (IllegalArgumentException illegalArgumentException) {
+			Assert.assertEquals(
+				"Segments experiences cannot be added to layout " +
+					layoutPageTemplateEntry.getPlid() +
+						" because it is not a content page",
+				illegalArgumentException.getMessage());
+		}
+	}
+
 	@Test(
 		expected = DuplicateSegmentsExperienceExternalReferenceCodeException.class
 	)
@@ -229,6 +408,31 @@ public class SegmentsExperienceLocalServiceTest {
 			externalReferenceCode, TestPropsValues.getUserId(),
 			_group.getGroupId(), segmentsEntry.getExternalReferenceCode(), null,
 			_plid, RandomTestUtil.randomLocaleStringMap(), false,
+			new UnicodeProperties(true),
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+	}
+
+	@Test(expected = DuplicateSegmentsExperienceKeyException.class)
+	public void testAddSegmentsExperienceWithExistingSegmentsExperienceKey()
+		throws Exception {
+
+		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
+			_group.getGroupId());
+
+		String segmentsExperienceKey = StringUtil.randomString();
+
+		_segmentsExperienceLocalService.addSegmentsExperience(
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
+			segmentsEntry.getExternalReferenceCode(), null,
+			segmentsExperienceKey, _plid,
+			RandomTestUtil.randomLocaleStringMap(), 1, true,
+			new UnicodeProperties(true),
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+		_segmentsExperienceLocalService.addSegmentsExperience(
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
+			segmentsEntry.getExternalReferenceCode(), null,
+			segmentsExperienceKey, _plid,
+			RandomTestUtil.randomLocaleStringMap(), 2, true,
 			new UnicodeProperties(true),
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 	}
@@ -644,6 +848,24 @@ public class SegmentsExperienceLocalServiceTest {
 				segmentsExperience.getPriority() + 1));
 	}
 
+	@Test(expected = DefaultSegmentsExperienceException.class)
+	public void testUpdateDefaultSegmentsExperienceWithSegmentsEntry()
+		throws Exception {
+
+		SegmentsEntry segmentsEntry = SegmentsTestUtil.addSegmentsEntry(
+			_group.getGroupId());
+
+		SegmentsExperience segmentsExperience =
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperience(
+				_plid);
+
+		_segmentsExperienceLocalService.updateSegmentsExperience(
+			TestPropsValues.getUserId(),
+			segmentsExperience.getSegmentsExperienceId(),
+			segmentsEntry.getExternalReferenceCode(), null,
+			segmentsExperience.getNameMap(), true);
+	}
+
 	@Test(expected = LockedSegmentsExperimentException.class)
 	public void testUpdatePrioritySegmentsExperienceWithSegmentsExperimentInStatusRunning()
 		throws Exception {
@@ -1009,6 +1231,9 @@ public class SegmentsExperienceLocalServiceTest {
 	@Inject
 	private LayoutLocalService _layoutLocalService;
 
+	@Inject
+	private LockManager _lockManager;
+
 	private long _plid;
 
 	@Inject
@@ -1019,5 +1244,8 @@ public class SegmentsExperienceLocalServiceTest {
 
 	@Inject
 	private SegmentsExperimentLocalService _segmentsExperimentLocalService;
+
+	@DeleteAfterTestRun
+	private User _user;
 
 }

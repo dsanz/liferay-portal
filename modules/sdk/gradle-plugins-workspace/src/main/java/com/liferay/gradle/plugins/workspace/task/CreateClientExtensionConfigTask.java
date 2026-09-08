@@ -205,9 +205,7 @@ public class CreateClientExtensionConfigTask extends DefaultTask {
 			StringUtil.suffixIfNotBlank(
 				_project.getName(), _virtualInstanceId));
 
-		if (!pluginPackageProperties.containsKey("module-group-id")) {
-			pluginPackageProperties.put("module-group-id", "liferay");
-		}
+		pluginPackageProperties.putIfAbsent("module-group-id", "liferay");
 
 		_writeToOutputFile(
 			ResourceUtil.readString(
@@ -947,6 +945,7 @@ public class CreateClientExtensionConfigTask extends DefaultTask {
 					put("parentSiteKey", "parentSiteKey");
 					put("siteExternalReferenceCode", "externalReferenceCode");
 					put("siteName", "name");
+					put("siteName_i18n", "name_i18n");
 				}
 			};
 

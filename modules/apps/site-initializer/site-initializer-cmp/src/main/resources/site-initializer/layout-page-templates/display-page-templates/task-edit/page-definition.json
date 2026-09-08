@@ -330,7 +330,7 @@
 													{
 														"definition": {
 															"fragment": {
-																"key": "INPUTS-date-input"
+																"key": "com.liferay.site.cmp.site.initializer.internal.fragment.renderer.DateInputComponentSectionFragmentRenderer"
 															},
 															"fragmentConfig": {
 																"inputFieldId": "ObjectField_dueDate",
@@ -374,6 +374,9 @@
 									},
 									{
 										"definition": {
+											"cssClasses": [
+												"px-4"
+											],
 											"customCSS": ".[$FRAGMENT_CLASS$] {.cms-related-assets-header {font-weight: 600;}}",
 											"fragment": {
 												"key": "com.liferay.site.cms.site.initializer.internal.fragment.renderer.ViewRelatedAssetsJSPSectionFragmentRenderer"

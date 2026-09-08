@@ -1,0 +1,26 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.layout.renderer;
+
+import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.service.ServiceContext;
+
+import java.util.Locale;
+
+import org.osgi.annotation.versioning.ProviderType;
+
+/**
+ * @author Lourdes Fernández Besada
+ */
+@ProviderType
+public interface LayoutPreviewRenderer {
+
+	public String render(
+			Layout layout, Locale locale, long segmentsExperienceId,
+			ServiceContext serviceContext)
+		throws Exception;
+
+}

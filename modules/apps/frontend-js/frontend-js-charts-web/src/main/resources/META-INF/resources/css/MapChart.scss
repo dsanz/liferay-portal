@@ -1,0 +1,185 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+@import 'atlas-custom-properties/_variables';
+
+.chart-map {
+	display: block;
+	margin: 0;
+
+	.chart-map-caption {
+		font-weight: 600;
+		margin-block-end: 0.5rem;
+		text-align: start;
+	}
+
+	.chart-map-body {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		position: relative;
+	}
+
+	.chart-map-svg {
+		block-size: auto;
+		display: block;
+		flex: 1 1 320px;
+	}
+
+	.chart-map-land {
+		fill: $light;
+		stroke: $light-d2;
+		stroke-width: 0.5;
+
+		&.is-data {
+			animation: country-in 0.52s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+			animation-delay: var(--country-delay, 0ms);
+			cursor: pointer;
+			fill: var(--country-fill);
+			outline: none;
+			transition: filter 150ms ease;
+
+			&:hover,
+			&.is-active {
+				filter: brightness(1.08) saturate(1.05);
+			}
+		}
+	}
+
+	.chart-map-country-focus-halo {
+		fill: none;
+		stroke: $white;
+		stroke-width: 8;
+	}
+
+	.chart-map-country-focus-ring {
+		fill: none;
+		stroke: $primary-l0;
+		stroke-width: 4;
+	}
+
+	.chart-map-marker {
+		animation: marker-in 0.52s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+		animation-delay: var(--marker-delay, 0ms);
+		fill: var(--marker-fill);
+		stroke: $white;
+		stroke-width: 1.5;
+		transition: filter 160ms ease;
+
+		&.is-active {
+			filter: brightness(1.05);
+		}
+	}
+
+	.chart-map-marker-overlay {
+		animation: none;
+		stroke-width: 2.5;
+		transition: none;
+
+		&.is-focused {
+			stroke: none;
+			stroke-width: 0;
+		}
+	}
+
+	.chart-map-marker-hit-area {
+		cursor: pointer;
+		outline: none;
+	}
+
+	.chart-map-marker-focus-ring-outer {
+		fill: none;
+		stroke: $primary;
+		stroke-width: 2;
+	}
+
+	.chart-map-marker-focus-ring-inner {
+		fill: none;
+		stroke: $white;
+		stroke-width: 2;
+	}
+
+	.chart-map-legend-scale {
+		align-items: center;
+		display: flex;
+		gap: 0.5rem;
+		margin-block-start: 0.75rem;
+	}
+
+	.chart-map-legend-scale-label {
+		font-size: 0.75rem;
+	}
+
+	.chart-map-legend-scale-swatches {
+		display: flex;
+		list-style: none;
+		margin: 0;
+		padding: 0;
+	}
+
+	.chart-map-legend-scale-swatch {
+		block-size: 0.75rem;
+		inline-size: 1.5rem;
+
+		&:first-child {
+			border-end-start-radius: 9999px;
+			border-start-start-radius: 9999px;
+		}
+
+		&:last-child {
+			border-end-end-radius: 9999px;
+			border-start-end-radius: 9999px;
+		}
+	}
+}
+
+@keyframes marker-in {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes country-in {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.chart-map-marker,
+	.chart-map-land.is-data {
+		animation: none;
+		transition: none;
+	}
+}
+
+// `legendSwatchBorder={false}`: drop the swatch outline (list + table).
+// `transparent` keeps the 12x12 box so nothing shifts. The active variants
+// out-specify the rules that would otherwise re-add a white edge on
+// hover/focus.
+
+.chart-map-no-swatch-border {
+	.charts-legend__swatch,
+	.charts-legend__item.is-active .charts-legend__swatch,
+	.charts-legend-table__row.is-active .charts-legend__swatch {
+		border-color: transparent;
+	}
+}
+
+body.c-prefers-reduced-motion {
+	.chart-map-marker,
+	.chart-map-land.is-data {
+		animation: none;
+		transition: none;
+	}
+}

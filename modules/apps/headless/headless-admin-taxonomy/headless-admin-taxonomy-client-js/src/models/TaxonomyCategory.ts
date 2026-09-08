@@ -25,6 +25,8 @@
 			"description"?: string;
 			"description_i18n"?: {[key: string]: string;};
 			"externalReferenceCode"?: string;
+			"friendlyUrlPath"?: string;
+			"friendlyUrlPath_i18n"?: {[key: string]: string;};
 			"id"?: string;
 			"name"?: string;
 			"name_i18n"?: {[key: string]: string;};
@@ -35,6 +37,7 @@
 			"permissions"?: Array<Permission>;
 			"siteExternalReferenceCode"?: string;
 			"siteId"?: number;
+			"system"?: boolean;
 			"taxonomyCategoryProperties"?: Array<TaxonomyCategoryProperty>;
 			"taxonomyCategoryUsageCount"?: number;
 			"taxonomyVocabularyId"?: number;
@@ -94,6 +97,16 @@
 			type: "string",
 		},
 		{
+			baseName: "friendlyUrlPath",
+			name: "friendlyUrlPath",
+			type: "string",
+		},
+		{
+			baseName: "friendlyUrlPath_i18n",
+			name: "friendlyUrlPath_i18n",
+			type: "{[key: string]: string;}",
+		},
+		{
 			baseName: "id",
 			name: "id",
 			type: "string",
@@ -142,6 +155,11 @@
 			baseName: "siteId",
 			name: "siteId",
 			type: "number",
+		},
+		{
+			baseName: "system",
+			name: "system",
+			type: "boolean",
 		},
 		{
 			baseName: "taxonomyCategoryProperties",

@@ -307,6 +307,11 @@ public interface CommerceOrderTypeLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CommerceOrderType getOrAddEmptyCommerceOrderType(
+			String externalReferenceCode, long companyId, long userId)
+		throws PortalException;
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *
@@ -361,4 +366,4 @@ public interface CommerceOrderTypeLocalService
 		throws PortalException;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1180252910
+// LIFERAY-SERVICE-BUILDER-HASH:31536212

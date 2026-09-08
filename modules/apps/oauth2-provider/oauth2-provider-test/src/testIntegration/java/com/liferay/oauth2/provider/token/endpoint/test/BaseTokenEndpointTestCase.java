@@ -16,6 +16,7 @@ import com.liferay.oauth2.provider.internal.test.JWTAssertionClientAuthenticatio
 import com.liferay.oauth2.provider.internal.test.util.JWTAssertionUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.Base64;
@@ -60,12 +61,12 @@ public abstract class BaseTokenEndpointTestCase extends BaseClientTestCase {
 			clientAuthentications.put(
 				TEST_CLIENT_ID_1,
 				new ClientPasswordClientAuthentication(
-					TEST_CLIENT_ID_1, _TEST_CLIENT_SECRET));
+					TEST_CLIENT_ID_1, CLIENT_SECRET));
 			clientAuthentications.put(
 				TEST_CLIENT_ID_2,
 				new JWTAssertionClientAuthentication(
 					getTokenWebTarget(), TEST_CLIENT_ID_2, false,
-					TEST_CLIENT_ID_2, _TEST_CLIENT_SECRET, true));
+					TEST_CLIENT_ID_2, CLIENT_SECRET, true));
 			clientAuthentications.put(
 				TEST_CLIENT_ID_3,
 				new JWTAssertionClientAuthentication(
@@ -83,23 +84,21 @@ public abstract class BaseTokenEndpointTestCase extends BaseClientTestCase {
 			clientAuthentications.put(
 				TEST_CLIENT_ID_5,
 				new ClientPasswordClientAuthentication(
-					TEST_CLIENT_ID_5, _TEST_CLIENT_SECRET));
+					TEST_CLIENT_ID_5, CLIENT_SECRET));
 			clientAuthentications.put(
 				TEST_CLIENT_ID_6,
 				new ClientPasswordClientAuthentication(
-					TEST_CLIENT_ID_6, _TEST_CLIENT_SECRET));
+					TEST_CLIENT_ID_6, CLIENT_SECRET));
 
 			createOAuth2ApplicationWithClientSecretPost(
-				user.getCompanyId(), user, TEST_CLIENT_ID_1,
-				_TEST_CLIENT_SECRET,
+				user.getCompanyId(), user, TEST_CLIENT_ID_1, CLIENT_SECRET,
 				Arrays.asList(
 					GrantType.RESOURCE_OWNER_PASSWORD, GrantType.REFRESH_TOKEN,
 					GrantType.JWT_BEARER),
 				Arrays.asList(
 					"everything", "everything.read", "everything.write"));
 			createOAuth2ApplicationWithClientSecretJWT(
-				user.getCompanyId(), user, TEST_CLIENT_ID_2,
-				_TEST_CLIENT_SECRET,
+				user.getCompanyId(), user, TEST_CLIENT_ID_2, CLIENT_SECRET,
 				Arrays.asList(
 					GrantType.RESOURCE_OWNER_PASSWORD, GrantType.REFRESH_TOKEN,
 					GrantType.JWT_BEARER),
@@ -121,16 +120,14 @@ public abstract class BaseTokenEndpointTestCase extends BaseClientTestCase {
 				Arrays.asList(
 					"everything", "everything.read", "everything.write"));
 			createOAuth2ApplicationWithClientSecretPost(
-				user.getCompanyId(), user, TEST_CLIENT_ID_5,
-				_TEST_CLIENT_SECRET,
+				user.getCompanyId(), user, TEST_CLIENT_ID_5, CLIENT_SECRET,
 				Arrays.asList(
 					GrantType.RESOURCE_OWNER_PASSWORD, GrantType.REFRESH_TOKEN,
 					GrantType.JWT_BEARER),
 				Arrays.asList(
 					"everything", "everything.read", "everything.write"));
 			createOAuth2ApplicationWithClientSecretPost(
-				user.getCompanyId(), user, TEST_CLIENT_ID_6,
-				_TEST_CLIENT_SECRET,
+				user.getCompanyId(), user, TEST_CLIENT_ID_6, CLIENT_SECRET,
 				Arrays.asList(
 					GrantType.RESOURCE_OWNER_PASSWORD, GrantType.REFRESH_TOKEN,
 					GrantType.JWT_BEARER),
@@ -181,17 +178,23 @@ public abstract class BaseTokenEndpointTestCase extends BaseClientTestCase {
 		return parseJsonField(response, "refresh_token");
 	}
 
-	protected static final String TEST_CLIENT_ID_1 = "test_client_id_1";
+	protected static final String TEST_CLIENT_ID_1 =
+		RandomTestUtil.randomString();
 
-	protected static final String TEST_CLIENT_ID_2 = "test_client_id_2";
+	protected static final String TEST_CLIENT_ID_2 =
+		RandomTestUtil.randomString();
 
-	protected static final String TEST_CLIENT_ID_3 = "test_client_id_3";
+	protected static final String TEST_CLIENT_ID_3 =
+		RandomTestUtil.randomString();
 
-	protected static final String TEST_CLIENT_ID_4 = "test_client_id_4";
+	protected static final String TEST_CLIENT_ID_4 =
+		RandomTestUtil.randomString();
 
-	protected static final String TEST_CLIENT_ID_5 = "test_client_id_5";
+	protected static final String TEST_CLIENT_ID_5 =
+		RandomTestUtil.randomString();
 
-	protected static final String TEST_CLIENT_ID_6 = "test_client_id_6";
+	protected static final String TEST_CLIENT_ID_6 =
+		RandomTestUtil.randomString();
 
 	protected static final Map<String, ClientAuthentication>
 		clientAuthentications = new HashMap<>();
@@ -200,9 +203,6 @@ public abstract class BaseTokenEndpointTestCase extends BaseClientTestCase {
 		return getInvocationBuilder(
 			null, getTokenWebTarget(), Function.identity());
 	}
-
-	private static final String _TEST_CLIENT_SECRET =
-		"oauthTestApplicationSecret";
 
 	private static final String _TEST_CLIENT_SECRET_NOT_BASE64 =
 		"secret-2527c3ad-be54-dcea-18a3-ab349ff637ac";

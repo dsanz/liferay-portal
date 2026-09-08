@@ -14,6 +14,7 @@ import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.asset.link.service.AssetLinkLocalService;
 import com.liferay.asset.list.service.AssetListEntryLocalService;
+import com.liferay.batch.engine.language.LanguageKeyResolver;
 import com.liferay.client.extension.service.ClientExtensionEntryLocalService;
 import com.liferay.client.extension.type.manager.CETManager;
 import com.liferay.data.engine.rest.resource.v2_0.DataDefinitionResource;
@@ -61,6 +62,7 @@ import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
+import com.liferay.object.system.SystemObjectDefinitionManagerRegistry;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.service.CompanyLocalService;
@@ -159,8 +161,8 @@ public class SiteInitializerExtender
 				_fragmentsImporter, _groupLocalService,
 				_journalArticleLocalService, _jsonFactory,
 				_keywordResourceFactory, _knowledgeBaseArticleResourceFactory,
-				_knowledgeBaseFolderResourceFactory, _layoutLocalService,
-				_layoutPageTemplateEntryLocalService,
+				_knowledgeBaseFolderResourceFactory, _languageKeyResolver,
+				_layoutLocalService, _layoutPageTemplateEntryLocalService,
 				_layoutPageTemplateStructureLocalService,
 				_layoutPageTemplateStructureRelLocalService,
 				_layoutSetLocalService, _layoutsImporter,
@@ -183,7 +185,9 @@ public class SiteInitializerExtender
 				_siteNavigationMenuItemTypeRegistry,
 				_siteNavigationMenuLocalService,
 				_structuredContentFolderResourceFactory,
-				_styleBookEntryZipProcessor, _taxonomyCategoryResourceFactory,
+				_styleBookEntryZipProcessor,
+				_systemObjectDefinitionManagerRegistry,
+				_taxonomyCategoryResourceFactory,
 				_taxonomyVocabularyResourceFactory, _templateEntryLocalService,
 				_themeLocalService, _userAccountResourceFactory,
 				_userGroupLocalService, _userLocalService,
@@ -281,8 +285,8 @@ public class SiteInitializerExtender
 				_fragmentsImporter, _groupLocalService,
 				_journalArticleLocalService, _jsonFactory,
 				_keywordResourceFactory, _knowledgeBaseArticleResourceFactory,
-				_knowledgeBaseFolderResourceFactory, _layoutLocalService,
-				_layoutPageTemplateEntryLocalService,
+				_knowledgeBaseFolderResourceFactory, _languageKeyResolver,
+				_layoutLocalService, _layoutPageTemplateEntryLocalService,
 				_layoutPageTemplateStructureLocalService,
 				_layoutPageTemplateStructureRelLocalService,
 				_layoutSetLocalService, _layoutsImporter,
@@ -314,7 +318,9 @@ public class SiteInitializerExtender
 				_siteNavigationMenuItemTypeRegistry,
 				_siteNavigationMenuLocalService,
 				_structuredContentFolderResourceFactory,
-				_styleBookEntryZipProcessor, _taxonomyCategoryResourceFactory,
+				_styleBookEntryZipProcessor,
+				_systemObjectDefinitionManagerRegistry,
+				_taxonomyCategoryResourceFactory,
 				_taxonomyVocabularyResourceFactory, _templateEntryLocalService,
 				_themeLocalService, _userAccountResourceFactory,
 				_userGroupLocalService, _userLocalService,
@@ -447,6 +453,9 @@ public class SiteInitializerExtender
 		_knowledgeBaseFolderResourceFactory;
 
 	@Reference
+	private LanguageKeyResolver _languageKeyResolver;
+
+	@Reference
 	private LayoutLocalService _layoutLocalService;
 
 	@Reference
@@ -572,6 +581,10 @@ public class SiteInitializerExtender
 
 	@Reference
 	private StyleBookEntryZipProcessor _styleBookEntryZipProcessor;
+
+	@Reference
+	private SystemObjectDefinitionManagerRegistry
+		_systemObjectDefinitionManagerRegistry;
 
 	@Reference
 	private TaxonomyCategoryResource.Factory _taxonomyCategoryResourceFactory;

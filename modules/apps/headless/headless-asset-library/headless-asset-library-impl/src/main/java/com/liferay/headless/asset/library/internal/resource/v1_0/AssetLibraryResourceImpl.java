@@ -24,7 +24,6 @@ import com.liferay.headless.asset.library.internal.util.AssetLibraryUtil;
 import com.liferay.headless.asset.library.resource.v1_0.AssetLibraryResource;
 import com.liferay.petra.function.UnsafeSupplier;
 import com.liferay.portal.kernel.exception.DuplicateGroupExternalReferenceCodeException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.search.Field;
@@ -70,6 +69,8 @@ import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.component.annotations.ReferencePolicyOption;
 import org.osgi.service.component.annotations.ServiceScope;
 
 /**
@@ -85,12 +86,6 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	public void deleteAssetLibrary(String assetLibraryExternalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564")) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		DepotEntry depotEntry = _getGroupDepotEntry(
 			_getGroupIdByExternalReferenceCode(
 				assetLibraryExternalReferenceCode));
@@ -101,12 +96,6 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	@Override
 	public void deleteAssetLibraryPin(String assetLibraryExternalReferenceCode)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564")) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		DepotEntry depotEntry = _getGroupDepotEntry(
 			_getGroupIdByExternalReferenceCode(
@@ -120,12 +109,6 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	public Page<AssetLibrary> getAssetLibrariesPinnedByMePage(
 			Pagination pagination)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564")) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		List<AssetLibrary> assetLibraries = new ArrayList<>(
 			pagination.getPageSize());
@@ -157,12 +140,6 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	public AssetLibrary patchAssetLibrary(
 			String assetLibraryExternalReferenceCode, AssetLibrary assetLibrary)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564")) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		DepotEntry depotEntry = _getGroupDepotEntry(
 			_getGroupIdByExternalReferenceCode(
@@ -229,12 +206,6 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 			String assetLibraryExternalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564")) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		DepotEntry depotEntry = _getGroupDepotEntry(
 			_getGroupIdByExternalReferenceCode(
 				assetLibraryExternalReferenceCode));
@@ -250,12 +221,6 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 			String keywords, String search, Filter filter,
 			Pagination pagination, Sort[] sorts)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564")) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		return SearchUtil.search(
 			Collections.emptyMap(),
@@ -282,12 +247,6 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 			String assetLibraryExternalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564")) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		return _toAssetLibrary(
 			_depotEntryService.getGroupDepotEntry(
 				_getGroupIdByExternalReferenceCode(
@@ -297,12 +256,6 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	@Override
 	protected AssetLibrary doPostAssetLibrary(AssetLibrary assetLibrary)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564")) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		String externalReferenceCode = assetLibrary.getExternalReferenceCode();
 
@@ -334,12 +287,6 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 	protected AssetLibrary doPutAssetLibrary(
 			String assetLibraryExternalReferenceCode, AssetLibrary assetLibrary)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-17564")) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		return _toAssetLibrary(
 			_addOrUpdateDepotEntry(
@@ -406,7 +353,8 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 			DepotEntry depotEntry = _depotEntryService.getGroupDepotEntry(
 				group.getGroupId());
 
-			if (!externalReferenceCode.equals(
+			if (Validator.isNotNull(assetLibrary.getExternalReferenceCode()) &&
+				!externalReferenceCode.equals(
 					assetLibrary.getExternalReferenceCode())) {
 
 				group = depotEntry.getGroup();
@@ -417,13 +365,11 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 				group = _groupLocalService.updateGroup(group);
 			}
 
-			_updateDLSizeLimitConfiguration(
-				assetLibrary, group.getGroupId(), mimeTypeSizeLimits);
-
 			DepotEntry updatedDepotEntry = _depotEntryService.updateDepotEntry(
 				depotEntry.getDepotEntryId(), nameMap, descriptionMap,
 				_getDepotAppCustomizationMap(
 					depotEntry.getCompanyId(), externalReferenceCode),
+				assetLibrary.getFriendlyURL(),
 				UnicodePropertiesBuilder.create(
 					group.getTypeSettingsProperties(), true
 				).putAll(
@@ -431,7 +377,8 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 				).build(),
 				serviceContext);
 
-			_updateFriendlyURL(assetLibrary, group.getGroupId());
+			_updateDLSizeLimitConfiguration(
+				assetLibrary, group.getGroupId(), mimeTypeSizeLimits);
 
 			return updatedDepotEntry;
 		}
@@ -452,14 +399,13 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 		group = depotEntry.getGroup();
 
 		if ((unicodeProperties != null) && !unicodeProperties.isEmpty()) {
-			group.setTypeSettingsProperties(
+			_groupLocalService.updateGroup(
+				group.getGroupId(),
 				UnicodePropertiesBuilder.create(
 					group.getTypeSettingsProperties(), true
 				).putAll(
 					unicodeProperties
-				).build());
-
-			group = _groupLocalService.updateGroup(group);
+				).buildString());
 		}
 
 		_updateFriendlyURL(assetLibrary, group.getGroupId());
@@ -830,9 +776,12 @@ public class AssetLibraryResourceImpl extends BaseAssetLibraryResourceImpl {
 		new AssetLibraryEntityModel();
 
 	@Reference(
-		target = "(component.name=com.liferay.headless.asset.library.internal.dto.v1_0.converter.AssetLibraryDTOConverter)"
+		policy = ReferencePolicy.DYNAMIC,
+		policyOption = ReferencePolicyOption.GREEDY,
+		target = "(dto.class.name=com.liferay.depot.model.DepotEntry)"
 	)
-	private DTOConverter<DepotEntry, AssetLibrary> _assetLibraryDTOConverter;
+	private volatile DTOConverter<DepotEntry, AssetLibrary>
+		_assetLibraryDTOConverter;
 
 	@Reference
 	private CompanyLocalService _companyLocalService;

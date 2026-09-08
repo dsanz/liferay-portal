@@ -31,8 +31,11 @@ import com.liferay.portal.test.log.LogEntry;
 import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.workflow.comparator.WorkflowComparatorFactory;
+import com.liferay.portal.workflow.kaleo.model.KaleoInstanceToken;
 import com.liferay.portal.workflow.kaleo.service.KaleoInstanceLocalService;
+import com.liferay.portal.workflow.kaleo.service.KaleoInstanceTokenLocalService;
 import com.liferay.portal.workflow.kaleo.service.KaleoLogLocalService;
+import com.liferay.portal.workflow.kaleo.service.KaleoTimerInstanceTokenLocalService;
 import com.liferay.portal.workflow.manager.WorkflowDefinitionManager;
 
 import java.util.ArrayList;
@@ -52,9 +55,9 @@ public class WorkflowInstanceManagerImplTest
 
 	@Test
 	public void testCompleteKaleoInstance() throws Exception {
-		String workflowDefinitionName = RandomTestUtil.randomString();
 		String content = readFileToJSON(
 			"broken-scripted-assignment-workflow-definition.json");
+		String workflowDefinitionName = RandomTestUtil.randomString();
 
 		_workflowDefinitionManager.deployWorkflowDefinition(
 			content.getBytes(), TestPropsValues.getCompanyId(), null,
@@ -115,6 +118,84 @@ public class WorkflowInstanceManagerImplTest
 		workflowInstanceManager.deleteWorkflowInstance(
 			TestPropsValues.getCompanyId(),
 			workflowInstance.getWorkflowInstanceId());
+	}
+
+	@Test
+	public void testCompleteKaleoTimerInstanceTokensOnKaleoInstanceFailure()
+		throws Exception {
+
+		String workflowDefinitionName = RandomTestUtil.randomString();
+
+		_workflowDefinitionManager.deployWorkflowDefinition(
+			FileUtil.getBytes(
+				getResourceInputStream("broken-timer-workflow-definition.xml")),
+			TestPropsValues.getCompanyId(), null, workflowDefinitionName,
+			workflowDefinitionName, TestPropsValues.getUserId());
+
+		workflowDefinitionLinkLocalService.updateWorkflowDefinitionLink(
+			TestPropsValues.getUserId(), TestPropsValues.getCompanyId(), 0,
+			BlogsEntry.class.getName(), 0, 0, workflowDefinitionName, 1);
+
+		BlogsEntry blogsEntry = null;
+		List<LogEntry> logEntries = null;
+
+		try (LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				"com.liferay.portal.workflow.kaleo.runtime.internal." +
+					"DefaultKaleoSignaler",
+				LoggerTestUtil.ERROR)) {
+
+			blogsEntry = BlogsEntryLocalServiceUtil.addEntry(
+				TestPropsValues.getUserId(), StringUtil.randomString(),
+				StringUtil.randomString(),
+				new Date(System.currentTimeMillis() - Time.SECOND),
+				ServiceContextTestUtil.getServiceContext());
+
+			logEntries = logCapture.getLogEntries();
+		}
+
+		workflowDefinitionLinkLocalService.updateWorkflowDefinitionLink(
+			TestPropsValues.getUserId(), TestPropsValues.getCompanyId(), 0,
+			BlogsEntry.class.getName(), 0, 0, null);
+
+		int completedCount = 0;
+		int notCompletedCount = 0;
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext();
+
+		List<WorkflowInstance> workflowInstances =
+			workflowInstanceManager.getWorkflowInstances(
+				TestPropsValues.getCompanyId(), TestPropsValues.getUserId(),
+				BlogsEntry.class.getName(), blogsEntry.getEntryId(), true,
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+
+		for (WorkflowInstance workflowInstance : workflowInstances) {
+			for (KaleoInstanceToken kaleoInstanceToken :
+					_kaleoInstanceTokenLocalService.getKaleoInstanceTokens(
+						workflowInstance.getWorkflowInstanceId())) {
+
+				long kaleoInstanceTokenId =
+					kaleoInstanceToken.getKaleoInstanceTokenId();
+
+				completedCount +=
+					_kaleoTimerInstanceTokenLocalService.
+						getKaleoTimerInstanceTokensCount(
+							kaleoInstanceTokenId, false, true, serviceContext);
+				notCompletedCount +=
+					_kaleoTimerInstanceTokenLocalService.
+						getKaleoTimerInstanceTokensCount(
+							kaleoInstanceTokenId, false, false, serviceContext);
+			}
+
+			workflowInstanceManager.deleteWorkflowInstance(
+				TestPropsValues.getCompanyId(),
+				workflowInstance.getWorkflowInstanceId());
+		}
+
+		Assert.assertEquals(1, completedCount);
+		Assert.assertEquals(logEntries.toString(), 1, logEntries.size());
+		Assert.assertEquals(0, notCompletedCount);
+		Assert.assertEquals(
+			workflowInstances.toString(), 1, workflowInstances.size());
 	}
 
 	@Test
@@ -403,7 +484,14 @@ public class WorkflowInstanceManagerImplTest
 	private KaleoInstanceLocalService _kaleoInstanceLocalService;
 
 	@Inject
+	private KaleoInstanceTokenLocalService _kaleoInstanceTokenLocalService;
+
+	@Inject
 	private KaleoLogLocalService _kaleoLogLocalService;
+
+	@Inject
+	private KaleoTimerInstanceTokenLocalService
+		_kaleoTimerInstanceTokenLocalService;
 
 	@Inject
 	private WorkflowComparatorFactory _workflowComparatorFactory;

@@ -21,6 +21,7 @@ import com.liferay.dynamic.data.mapping.model.DDMStructure;
 import com.liferay.dynamic.data.mapping.test.util.DDMStructureTestUtil;
 import com.liferay.headless.admin.taxonomy.client.dto.v1_0.AssetLibrary;
 import com.liferay.headless.admin.taxonomy.client.dto.v1_0.AssetType;
+import com.liferay.headless.admin.taxonomy.client.dto.v1_0.Project;
 import com.liferay.headless.admin.taxonomy.client.dto.v1_0.TaxonomyVocabulary;
 import com.liferay.headless.admin.taxonomy.client.pagination.Page;
 import com.liferay.headless.admin.taxonomy.client.pagination.Pagination;
@@ -32,16 +33,14 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.lazy.referencing.LazyReferencingThreadLocal;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
-import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
-import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.DataGuard;
-import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -54,15 +53,17 @@ import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LogEntry;
 import com.liferay.portal.test.log.LoggerTestUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -101,6 +102,35 @@ public class TaxonomyVocabularyResourceTest
 
 			Assert.assertEquals("NOT_FOUND", problem.getStatus());
 			Assert.assertNull(problem.getTitle());
+		}
+	}
+
+	@Override
+	@Test
+	public void testDeleteTaxonomyVocabulary() throws Exception {
+		super.testDeleteTaxonomyVocabulary();
+
+		TaxonomyVocabulary randomTaxonomyVocabulary =
+			randomTaxonomyVocabulary();
+
+		randomTaxonomyVocabulary.setSystem(true);
+
+		TaxonomyVocabulary postTaxonomyVocabulary =
+			taxonomyVocabularyResource.postSiteTaxonomyVocabulary(
+				testGroup.getGroupId(), randomTaxonomyVocabulary);
+
+		Assert.assertTrue(postTaxonomyVocabulary.getSystem());
+
+		try {
+			taxonomyVocabularyResource.deleteTaxonomyVocabulary(
+				postTaxonomyVocabulary.getId());
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals("FORBIDDEN", problem.getStatus());
 		}
 	}
 
@@ -234,7 +264,6 @@ public class TaxonomyVocabularyResourceTest
 		}
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Override
 	@Test
 	public void testGetSiteTaxonomyVocabulariesPage() throws Exception {
@@ -245,7 +274,7 @@ public class TaxonomyVocabularyResourceTest
 		Group originalIrrelevantGroup = irrelevantGroup;
 		Group originalTestGroup = testGroup;
 
-		_addCMSGroup();
+		_setUpCMSGroup();
 
 		super.testGetSiteTaxonomyVocabulariesPage();
 
@@ -265,6 +294,35 @@ public class TaxonomyVocabularyResourceTest
 		_testGetTaxonomyVocabularyWithoutPermissionsAction();
 	}
 
+	@Override
+	@Test
+	public void testPatchTaxonomyVocabulary() throws Exception {
+		super.testPatchTaxonomyVocabulary();
+
+		TaxonomyVocabulary randomTaxonomyVocabulary =
+			randomTaxonomyVocabulary();
+
+		randomTaxonomyVocabulary.setSystem(true);
+
+		TaxonomyVocabulary postTaxonomyVocabulary =
+			taxonomyVocabularyResource.postSiteTaxonomyVocabulary(
+				testGroup.getGroupId(), randomTaxonomyVocabulary);
+
+		postTaxonomyVocabulary.setName(RandomTestUtil.randomString());
+
+		try {
+			taxonomyVocabularyResource.patchTaxonomyVocabulary(
+				postTaxonomyVocabulary.getId(), postTaxonomyVocabulary);
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals("FORBIDDEN", problem.getStatus());
+		}
+	}
+
 	@Test
 	public void testPostSiteTaxonomyVocabulary() throws Exception {
 		super.testPostSiteTaxonomyVocabulary();
@@ -272,6 +330,23 @@ public class TaxonomyVocabularyResourceTest
 		_testPostSiteTaxonomyVocabulary();
 		_testPostSiteTaxonomyVocabularyInvalidAssetTypeType();
 		_testPostSiteTaxonomyVocabularyInvalidAssetTypeSubtype();
+	}
+
+	@Test
+	public void testPostSiteTaxonomyVocabularySystemWithoutAssetTypes()
+		throws Exception {
+
+		TaxonomyVocabulary randomTaxonomyVocabulary =
+			randomTaxonomyVocabulary();
+
+		randomTaxonomyVocabulary.setAssetTypes(new AssetType[0]);
+		randomTaxonomyVocabulary.setSystem(true);
+
+		TaxonomyVocabulary postTaxonomyVocabulary =
+			taxonomyVocabularyResource.postSiteTaxonomyVocabulary(
+				testGroup.getGroupId(), randomTaxonomyVocabulary);
+
+		Assert.assertTrue(postTaxonomyVocabulary.getSystem());
 	}
 
 	@Override
@@ -291,7 +366,22 @@ public class TaxonomyVocabularyResourceTest
 	public void testPutTaxonomyVocabulary() throws Exception {
 		super.testPutTaxonomyVocabulary();
 
+		Group originalIrrelevantGroup = irrelevantGroup;
+		Group originalTestGroup = testGroup;
+
+		_setUpCMSGroup();
+
+		try {
+			_testPutTaxonomyVocabularyResetsProjectScope();
+			_testPutTaxonomyVocabularyResetsSpaceScope();
+		}
+		finally {
+			irrelevantGroup = originalIrrelevantGroup;
+			testGroup = originalTestGroup;
+		}
+
 		_testPutTaxonomyVocabularyUpdatesEmptyVocabulary();
+		_testPutTaxonomyVocabularyWithoutDescription();
 	}
 
 	@Override
@@ -305,8 +395,8 @@ public class TaxonomyVocabularyResourceTest
 	@Override
 	protected String[] getIgnoredEntityFieldNames() {
 		return new String[] {
-			"assetLibraries", "dateCreated", "dateModified", "siteId",
-			"visibilityType"
+			"assetLibraries", "dateCreated", "dateModified", "projects",
+			"siteId", "visibilityType"
 		};
 	}
 
@@ -314,9 +404,8 @@ public class TaxonomyVocabularyResourceTest
 	protected TaxonomyVocabulary randomTaxonomyVocabulary() throws Exception {
 		return new TaxonomyVocabulary() {
 			{
-				assetLibraries =
-					testGroup.isCMS() ?
-						new AssetLibrary[] {_randomAssetLibrary()} : null;
+				assetLibraries = testGroup.isCMS() ?
+					new AssetLibrary[] {_randomSpaceAssetLibrary()} : null;
 				assetTypes = new AssetType[] {
 					new AssetType() {
 						{
@@ -333,6 +422,8 @@ public class TaxonomyVocabularyResourceTest
 				multiValued = RandomTestUtil.randomBoolean();
 				name = RandomTestUtil.randomString();
 				numberOfTaxonomyCategories = 0;
+				projects = testGroup.isCMS() ?
+					new Project[] {_randomProjectAssetLibrary()} : null;
 				siteId = testGroup.getGroupId();
 				visibilityType = VisibilityType.PUBLIC;
 			}
@@ -358,36 +449,33 @@ public class TaxonomyVocabularyResourceTest
 		return testGetAssetLibraryTaxonomyVocabularyByExternalReferenceCode_addTaxonomyVocabulary();
 	}
 
-	private void _addCMSGroup() throws Exception {
+	private <T> void _assertSingletonArrayEquals(
+		T[] array, long expected, Function<T, Long> function) {
 
-		// These tests require the instance to be created with the feature
-		// flag LPD-17564 enabled. On CI, feature flags are enabled on
-		// demand for each test, but not during instance initialization.
-		// Until the feature flag LPD-17564 is removed, we need an explicit CMS
-		// group creation.
-
-		Role role = _roleLocalService.fetchRole(
-			testDepotEntryGroup.getCompanyId(), RoleConstants.SITE_MEMBER);
-
-		if (role == null) {
-			_roleLocalService.addRole(
-				null, TestPropsValues.getUserId(), null, 0,
-				RoleConstants.SITE_MEMBER, null, null,
-				RoleConstants.TYPE_REGULAR, null, null);
-		}
-
-		irrelevantGroup = GroupTestUtil.addGroup(
-			testDepotEntryGroup.getCompanyId(), TestPropsValues.getUserId(),
-			GroupConstants.DEFAULT_PARENT_GROUP_ID, GroupConstants.CMS);
-		testGroup = GroupTestUtil.addGroup(
-			testDepotEntryGroup.getCompanyId(), TestPropsValues.getUserId(),
-			GroupConstants.DEFAULT_PARENT_GROUP_ID, GroupConstants.CMS);
+		Assert.assertEquals(Arrays.toString(array), 1, array.length);
+		Assert.assertEquals(Long.valueOf(expected), function.apply(array[0]));
 	}
 
-	private AssetLibrary _randomAssetLibrary() throws Exception {
+	private Project _randomProjectAssetLibrary() throws Exception {
 		DepotEntry depotEntry = _depotEntryLocalService.addDepotEntry(
 			RandomTestUtil.randomLocaleStringMap(), null,
-			DepotConstants.TYPE_ASSET_LIBRARY,
+			DepotConstants.TYPE_PROJECT,
+			ServiceContextTestUtil.getServiceContext());
+
+		Group depotEntryGroup = depotEntry.getGroup();
+
+		return new Project() {
+			{
+				id = depotEntryGroup.getGroupId();
+				name = depotEntryGroup.getName(LocaleUtil.getDefault());
+			}
+		};
+	}
+
+	private AssetLibrary _randomSpaceAssetLibrary() throws Exception {
+		DepotEntry depotEntry = _depotEntryLocalService.addDepotEntry(
+			RandomTestUtil.randomLocaleStringMap(), null,
+			DepotConstants.TYPE_SPACE,
 			ServiceContextTestUtil.getServiceContext());
 
 		Group depotEntryGroup = depotEntry.getGroup();
@@ -398,6 +486,13 @@ public class TaxonomyVocabularyResourceTest
 				name = depotEntryGroup.getName(LocaleUtil.getDefault());
 			}
 		};
+	}
+
+	private void _setUpCMSGroup() throws Exception {
+		irrelevantGroup = _groupLocalService.getGroup(
+			testDepotEntryGroup.getCompanyId(), GroupConstants.CMS);
+
+		testGroup = irrelevantGroup;
 	}
 
 	private void _testGetSiteTaxonomyVocabulariesPage() throws Exception {
@@ -798,6 +893,63 @@ public class TaxonomyVocabularyResourceTest
 			ArrayUtil.isEmpty(putTaxonomyVocabulary.getAssetLibraries()));
 	}
 
+	private void _testPutTaxonomyVocabularyResetsProjectScope()
+		throws Exception {
+
+		Project project = _randomProjectAssetLibrary();
+
+		TaxonomyVocabulary randomTaxonomyVocabulary =
+			randomTaxonomyVocabulary();
+
+		randomTaxonomyVocabulary.setProjects(new Project[] {project});
+
+		TaxonomyVocabulary postTaxonomyVocabulary =
+			taxonomyVocabularyResource.postSiteTaxonomyVocabulary(
+				testGroup.getGroupId(), randomTaxonomyVocabulary);
+
+		_assertSingletonArrayEquals(
+			postTaxonomyVocabulary.getProjects(), project.getId(),
+			Project::getId);
+
+		postTaxonomyVocabulary.setProjects(new Project[0]);
+
+		TaxonomyVocabulary putTaxonomyVocabulary =
+			taxonomyVocabularyResource.putTaxonomyVocabulary(
+				postTaxonomyVocabulary.getId(), postTaxonomyVocabulary);
+
+		_assertSingletonArrayEquals(
+			putTaxonomyVocabulary.getProjects(), GroupConstants.GROUP_ID_ALL,
+			Project::getId);
+	}
+
+	private void _testPutTaxonomyVocabularyResetsSpaceScope() throws Exception {
+		AssetLibrary assetLibrary = _randomSpaceAssetLibrary();
+
+		TaxonomyVocabulary randomTaxonomyVocabulary =
+			randomTaxonomyVocabulary();
+
+		randomTaxonomyVocabulary.setAssetLibraries(
+			new AssetLibrary[] {assetLibrary});
+
+		TaxonomyVocabulary postTaxonomyVocabulary =
+			taxonomyVocabularyResource.postSiteTaxonomyVocabulary(
+				testGroup.getGroupId(), randomTaxonomyVocabulary);
+
+		_assertSingletonArrayEquals(
+			postTaxonomyVocabulary.getAssetLibraries(), assetLibrary.getId(),
+			AssetLibrary::getId);
+
+		postTaxonomyVocabulary.setAssetLibraries(new AssetLibrary[0]);
+
+		TaxonomyVocabulary putTaxonomyVocabulary =
+			taxonomyVocabularyResource.putTaxonomyVocabulary(
+				postTaxonomyVocabulary.getId(), postTaxonomyVocabulary);
+
+		_assertSingletonArrayEquals(
+			putTaxonomyVocabulary.getAssetLibraries(),
+			GroupConstants.GROUP_ID_ALL, AssetLibrary::getId);
+	}
+
 	private void _testPutTaxonomyVocabularyUpdatesEmptyVocabulary()
 		throws Exception {
 
@@ -842,6 +994,33 @@ public class TaxonomyVocabularyResourceTest
 			assetVocabulary.getVisibilityType());
 	}
 
+	private void _testPutTaxonomyVocabularyWithoutDescription()
+		throws Exception {
+
+		TaxonomyVocabulary randomTaxonomyVocabulary =
+			randomTaxonomyVocabulary();
+
+		randomTaxonomyVocabulary.setDescription((String)null);
+
+		TaxonomyVocabulary postTaxonomyVocabulary =
+			taxonomyVocabularyResource.postSiteTaxonomyVocabulary(
+				testGroup.getGroupId(), randomTaxonomyVocabulary);
+
+		Assert.assertTrue(
+			Validator.isNull(postTaxonomyVocabulary.getDescription()));
+		Assert.assertNull(postTaxonomyVocabulary.getDescription_i18n());
+
+		postTaxonomyVocabulary.setDescription(StringPool.BLANK);
+
+		TaxonomyVocabulary putTaxonomyVocabulary =
+			taxonomyVocabularyResource.putTaxonomyVocabulary(
+				postTaxonomyVocabulary.getId(), postTaxonomyVocabulary);
+
+		Assert.assertTrue(
+			Validator.isNull(putTaxonomyVocabulary.getDescription()));
+		Assert.assertNull(putTaxonomyVocabulary.getDescription_i18n());
+	}
+
 	private static final String _LOG_NAME =
 		"com.liferay.headless.admin.taxonomy.internal.resource.v1_0." +
 			"TaxonomyVocabularyResourceImpl";
@@ -863,10 +1042,10 @@ public class TaxonomyVocabularyResourceTest
 	private DLFileEntryTypeService _dlFileEntryTypeService;
 
 	@Inject
-	private ResourcePermissionLocalService _resourcePermissionLocalService;
+	private GroupLocalService _groupLocalService;
 
 	@Inject
-	private RoleLocalService _roleLocalService;
+	private ResourcePermissionLocalService _resourcePermissionLocalService;
 
 	@Inject
 	private UserLocalService _userLocalService;

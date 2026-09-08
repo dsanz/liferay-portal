@@ -19,11 +19,16 @@ import com.liferay.object.model.ObjectEntryFolder;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryFolderLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
+import com.liferay.osgi.util.service.OSGiServiceUtil;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.module.util.BundleUtil;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.context.ContextUserReplace;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
@@ -36,8 +41,6 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.WebKeys;
-import com.liferay.portal.test.rule.FeatureFlag;
-import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -45,7 +48,6 @@ import com.liferay.sharing.model.SharingEntry;
 import com.liferay.sharing.security.permission.SharingEntryAction;
 import com.liferay.sharing.service.SharingEntryService;
 import com.liferay.sharing.servlet.taglib.ui.SharingEntryDropdownItemContributor;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 
 import java.io.Serializable;
 
@@ -72,7 +74,6 @@ import org.springframework.mock.web.MockHttpServletRequest;
 /**
  * @author Mikel Lorza
  */
-@FeatureFlags(featureFlags = @FeatureFlag("LPD-17564"))
 @RunWith(Arquillian.class)
 public class ObjectEntrySharingEntryDropdownItemContributorTest {
 
@@ -89,7 +90,8 @@ public class ObjectEntrySharingEntryDropdownItemContributorTest {
 
 		_bundleContext = bundle.getBundleContext();
 
-		_group = CMSTestUtil.getOrAddGroup(getClass());
+		_group = _groupLocalService.getGroup(
+			TestPropsValues.getCompanyId(), GroupConstants.CMS);
 
 		_serviceContext = ServiceContextTestUtil.getServiceContext(
 			_group.getGroupId());
@@ -198,6 +200,40 @@ public class ObjectEntrySharingEntryDropdownItemContributorTest {
 		return themeDisplay;
 	}
 
+	private boolean _isTracked(ObjectDefinition objectDefinition)
+		throws Exception {
+
+		Bundle bundle = BundleUtil.getBundle(
+			_bundleContext, "com.liferay.sharing.web");
+
+		return OSGiServiceUtil.callService(
+			_bundleContext,
+			bundle.loadClass(
+				"com.liferay.sharing.web.internal.servlet.taglib.ui." +
+					"SharingEntryDropdownItemContributorRegistry"),
+			sharingEntryDropdownItemContributorRegistry -> {
+				Assert.assertNotNull(
+					sharingEntryDropdownItemContributorRegistry);
+
+				Object serviceTrackerMap = ReflectionTestUtil.getFieldValue(
+					sharingEntryDropdownItemContributorRegistry,
+					"_serviceTrackerMap");
+
+				List<SharingEntryDropdownItemContributor>
+					sharingEntryDropdownItemContributors =
+						ReflectionTestUtil.invoke(
+							serviceTrackerMap, "getService",
+							new Class<?>[] {Object.class},
+							objectDefinition.getClassName());
+
+				if (sharingEntryDropdownItemContributors == null) {
+					return false;
+				}
+
+				return !sharingEntryDropdownItemContributors.isEmpty();
+			});
+	}
+
 	private void _testGetSharingEntryDropdownItemsWithCMSBasicDocument()
 		throws Exception {
 
@@ -205,6 +241,9 @@ public class ObjectEntrySharingEntryDropdownItemContributorTest {
 			_objectDefinitionLocalService.
 				getObjectDefinitionByExternalReferenceCode(
 					"L_CMS_BASIC_DOCUMENT", _group.getCompanyId());
+
+		Assert.assertTrue(
+			objectDefinition.getClassName(), _isTracked(objectDefinition));
 
 		List<DropdownItem> dropdownItems = _getSharingEntryDropdownItems(
 			objectDefinition,
@@ -245,6 +284,9 @@ public class ObjectEntrySharingEntryDropdownItemContributorTest {
 				getObjectDefinitionByExternalReferenceCode(
 					"L_CMS_BASIC_WEB_CONTENT", _group.getCompanyId());
 
+		Assert.assertFalse(
+			objectDefinition.getClassName(), _isTracked(objectDefinition));
+
 		List<DropdownItem> dropdownItems = _getSharingEntryDropdownItems(
 			objectDefinition,
 			_addObjectEntry(
@@ -273,6 +315,9 @@ public class ObjectEntrySharingEntryDropdownItemContributorTest {
 	private DepotEntryLocalService _depotEntryLocalService;
 
 	private Group _group;
+
+	@Inject
+	private GroupLocalService _groupLocalService;
 
 	@Inject
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;

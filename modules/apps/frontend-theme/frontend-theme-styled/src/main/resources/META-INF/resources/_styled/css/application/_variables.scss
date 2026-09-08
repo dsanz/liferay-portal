@@ -69,6 +69,7 @@ $lfr-page-layouts-card-checked: map-merge(
 		bg: map-get($card-interactive, hover-bg),
 		box-shadow: map-get($card-interactive-primary, hover-box-shadow),
 		cursor: default,
+
 		after-highlight: $lfr-page-layouts-card-checked-after-highlight,
 	),
 	$lfr-page-layouts-card-checked

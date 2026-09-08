@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -121,6 +122,8 @@ public abstract class BaseSpecificationResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -1002,7 +1005,7 @@ public abstract class BaseSpecificationResourceTestCase {
 			testGetSpecificationsPage_addSpecification(randomSpecification());
 
 		page = specificationResource.getSpecificationsPage(
-			null, null, Pagination.of(1, 10), null);
+			null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1356,17 +1359,8 @@ public abstract class BaseSpecificationResourceTestCase {
 
 	@Test
 	public void testGraphQLGetSpecificationsPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"specifications",
-			new HashMap<String, Object>() {
-				{
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetSpecificationsPageSpecification_getGraphQLField();
 
 		// No namespace
 
@@ -1422,6 +1416,23 @@ public abstract class BaseSpecificationResourceTestCase {
 			Arrays.asList(
 				SpecificationSerDes.toDTOs(
 					specificationsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetSpecificationsPageSpecification_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"specifications",
+			new HashMap<String, Object>() {
+				{
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -1911,6 +1922,19 @@ public abstract class BaseSpecificationResourceTestCase {
 			}
 
 			if (Objects.equals(
+					"listTypeDefinitionExternalReferenceCodes",
+					additionalAssertFieldName)) {
+
+				if (specification.
+						getListTypeDefinitionExternalReferenceCodes() == null) {
+
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
 					"listTypeDefinitionId", additionalAssertFieldName)) {
 
 				if (specification.getListTypeDefinitionId() == null) {
@@ -2133,6 +2157,22 @@ public abstract class BaseSpecificationResourceTestCase {
 			if (Objects.equals("key", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						specification1.getKey(), specification2.getKey())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"listTypeDefinitionExternalReferenceCodes",
+					additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						specification1.
+							getListTypeDefinitionExternalReferenceCodes(),
+						specification2.
+							getListTypeDefinitionExternalReferenceCodes())) {
 
 					return false;
 				}
@@ -2422,6 +2462,13 @@ public abstract class BaseSpecificationResourceTestCase {
 			}
 
 			return sb.toString();
+		}
+
+		if (entityFieldName.equals(
+				"listTypeDefinitionExternalReferenceCodes")) {
+
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
 		}
 
 		if (entityFieldName.equals("listTypeDefinitionId")) {
@@ -2779,4 +2826,4 @@ public abstract class BaseSpecificationResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-537257451
+// LIFERAY-REST-BUILDER-HASH:-64179380

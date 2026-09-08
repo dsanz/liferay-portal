@@ -4,7 +4,7 @@
  */
 
 import '@testing-library/jest-dom';
-import {render} from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
 import React from 'react';
 
 import ProjectInfoSummary from '../../js/components/project/ProjectInfoSummary';
@@ -21,10 +21,13 @@ describe('ProjectInfoSummary', () => {
 	it('renders with props', () => {
 		const {getByText} = render(
 			<ProjectInfoSummary
+				cmpProjectObjectEntryId="123"
 				dueDate="2023-12-31"
+				funnelStages={[]}
+				hasUpdatePermission
 				initialState="notStarted"
 				manager={mockManager}
-				projectId="123"
+				personas={[]}
 				sponsor={mockSponsor}
 				states={mockStates}
 				tags={['tag1', 'tag2']}
@@ -37,5 +40,67 @@ describe('ProjectInfoSummary', () => {
 		expect(getByText('not-started')).toBeInTheDocument();
 		expect(getByText('tag1')).toBeInTheDocument();
 		expect(getByText('tag2')).toBeInTheDocument();
+		expect(screen.getByRole('combobox')).not.toHaveClass('disabled');
+	});
+
+	it('renders personas and funnel stages as chips', () => {
+		const {getByText} = render(
+			<ProjectInfoSummary
+				cmpProjectObjectEntryId="123"
+				dueDate="2023-12-31"
+				funnelStages={['Awareness', 'Consideration']}
+				hasUpdatePermission
+				initialState="notStarted"
+				manager={mockManager}
+				personas={['Decision Maker', 'Champion']}
+				sponsor={mockSponsor}
+				states={mockStates}
+				tags={[]}
+			/>
+		);
+
+		expect(getByText('Decision Maker')).toBeInTheDocument();
+		expect(getByText('Champion')).toBeInTheDocument();
+		expect(getByText('Awareness')).toBeInTheDocument();
+		expect(getByText('Consideration')).toBeInTheDocument();
+	});
+
+	it('renders empty personas and funnel stages without chips', () => {
+		const {queryByText} = render(
+			<ProjectInfoSummary
+				cmpProjectObjectEntryId="123"
+				dueDate="2023-12-31"
+				funnelStages={[]}
+				hasUpdatePermission
+				initialState="notStarted"
+				manager={mockManager}
+				personas={[]}
+				sponsor={mockSponsor}
+				states={mockStates}
+				tags={[]}
+			/>
+		);
+
+		expect(queryByText('Decision Maker')).not.toBeInTheDocument();
+		expect(queryByText('Awareness')).not.toBeInTheDocument();
+	});
+
+	it('disables the state selector when the user lacks update permission', () => {
+		render(
+			<ProjectInfoSummary
+				cmpProjectObjectEntryId="123"
+				dueDate="2023-12-31"
+				funnelStages={[]}
+				hasUpdatePermission={false}
+				initialState="notStarted"
+				manager={mockManager}
+				personas={[]}
+				sponsor={mockSponsor}
+				states={mockStates}
+				tags={[]}
+			/>
+		);
+
+		expect(screen.getByRole('combobox')).toHaveClass('disabled');
 	});
 });

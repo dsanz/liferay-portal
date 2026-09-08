@@ -6,9 +6,13 @@
 package com.liferay.portlet.asset.service.impl;
 
 import com.liferay.asset.kernel.exception.AssetVocabularyGroupRelGroupIdException;
+import com.liferay.asset.kernel.exception.SystemVocabularyException;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.model.AssetVocabularyGroupRel;
+import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
+import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.search.Indexer;
 import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -26,12 +30,12 @@ public class AssetVocabularyGroupRelLocalServiceImpl
 
 	@Override
 	public AssetVocabularyGroupRel addAssetVocabularyGroupRel(
-			long groupId, long vocabularyId)
+			long groupId, long vocabularyId, int depotEntryType)
 		throws PortalException {
 
 		AssetVocabularyGroupRel assetVocabularyGroupRel =
-			assetVocabularyGroupRelPersistence.fetchByG_V(
-				groupId, vocabularyId);
+			assetVocabularyGroupRelPersistence.fetchByG_V_D(
+				groupId, vocabularyId, depotEntryType);
 
 		if (assetVocabularyGroupRel != null) {
 			return assetVocabularyGroupRel;
@@ -42,6 +46,7 @@ public class AssetVocabularyGroupRelLocalServiceImpl
 
 		assetVocabularyGroupRel.setGroupId(groupId);
 		assetVocabularyGroupRel.setVocabularyId(vocabularyId);
+		assetVocabularyGroupRel.setDepotEntryType(depotEntryType);
 
 		ServiceContext serviceContext =
 			ServiceContextThreadLocal.getServiceContext();
@@ -79,10 +84,28 @@ public class AssetVocabularyGroupRelLocalServiceImpl
 
 	@Override
 	public List<AssetVocabularyGroupRel>
+		getAssetVocabularyGroupRelsByGroupIdAndDepotEntryType(
+			long groupId, int depotEntryType) {
+
+		return assetVocabularyGroupRelPersistence.findByG_D(
+			groupId, depotEntryType);
+	}
+
+	@Override
+	public List<AssetVocabularyGroupRel>
 		getAssetVocabularyGroupRelsByVocabularyId(long vocabularyId) {
 
 		return assetVocabularyGroupRelPersistence.findByVocabularyId(
 			vocabularyId);
+	}
+
+	@Override
+	public List<AssetVocabularyGroupRel>
+		getAssetVocabularyGroupRelsByVocabularyIdAndDepotEntryType(
+			long vocabularyId, int depotEntryType) {
+
+		return assetVocabularyGroupRelPersistence.findByV_D(
+			vocabularyId, depotEntryType);
 	}
 
 	@Override
@@ -92,17 +115,21 @@ public class AssetVocabularyGroupRelLocalServiceImpl
 	}
 
 	@Override
-	public void setAssetVocabularyGroupRels(long vocabularyId, long[] groupIds)
+	public void setAssetVocabularyGroupRels(
+			long vocabularyId, long[] groupIds, int depotEntryType)
 		throws PortalException {
 
 		if (ArrayUtil.isEmpty(groupIds)) {
 			throw new AssetVocabularyGroupRelGroupIdException();
 		}
 
-		assetVocabularyGroupRelPersistence.removeByVocabularyId(vocabularyId);
+		_validateSystemVocabulary(groupIds, vocabularyId);
+
+		assetVocabularyGroupRelPersistence.removeByV_D(
+			vocabularyId, depotEntryType);
 
 		for (long groupId : groupIds) {
-			addAssetVocabularyGroupRel(groupId, vocabularyId);
+			addAssetVocabularyGroupRel(groupId, vocabularyId, depotEntryType);
 		}
 	}
 
@@ -114,5 +141,26 @@ public class AssetVocabularyGroupRelLocalServiceImpl
 
 		indexer.reindex(AssetVocabulary.class.getName(), vocabularyId);
 	}
+
+	private void _validateSystemVocabulary(long[] groupIds, long vocabularyId)
+		throws PortalException {
+
+		AssetVocabulary assetVocabulary =
+			_assetVocabularyLocalService.fetchAssetVocabulary(vocabularyId);
+
+		if ((assetVocabulary == null) || !assetVocabulary.isSystem()) {
+			return;
+		}
+
+		if ((groupIds.length != 1) ||
+			(groupIds[0] != GroupConstants.GROUP_ID_ALL)) {
+
+			throw new SystemVocabularyException.MustNotChangeGroupRels(
+				vocabularyId);
+		}
+	}
+
+	@BeanReference(type = AssetVocabularyLocalService.class)
+	private AssetVocabularyLocalService _assetVocabularyLocalService;
 
 }

@@ -7,13 +7,14 @@ package com.liferay.consent.management.platform.integration.internal.servlet.tag
 
 import com.liferay.consent.management.platform.integration.configuration.ConsentManagementPlatformConfiguration;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProviderUtil;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.content.security.policy.ContentSecurityPolicyNonceProviderUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.module.configuration.ConfigurationException;
 import com.liferay.portal.kernel.servlet.taglib.BaseDynamicInclude;
 import com.liferay.portal.kernel.servlet.taglib.DynamicInclude;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,6 +22,9 @@ import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -42,12 +46,6 @@ public class ConsentManagementPlatformTopHeadDynamicInclude
 		ThemeDisplay themeDisplay =
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				themeDisplay.getCompanyId(), "LPD-65299")) {
-
-			return;
-		}
 
 		ConsentManagementPlatformConfiguration
 			consentManagementPlatformConfiguration = null;
@@ -73,7 +71,22 @@ public class ConsentManagementPlatformTopHeadDynamicInclude
 
 		PrintWriter printWriter = httpServletResponse.getWriter();
 
-		printWriter.println(consentManagementPlatformConfiguration.scriptTag());
+		String nonceAttribute =
+			ContentSecurityPolicyNonceProviderUtil.getNonceAttribute(
+				httpServletRequest);
+
+		printWriter.println(
+			_addNonceAttribute(
+				consentManagementPlatformConfiguration.scriptTag(),
+				nonceAttribute));
+
+		String consentMappingScript =
+			consentManagementPlatformConfiguration.consentMappingScript();
+
+		if (Validator.isNotNull(consentMappingScript)) {
+			printWriter.println(
+				_addNonceAttribute(consentMappingScript, nonceAttribute));
+		}
 	}
 
 	@Override
@@ -82,7 +95,21 @@ public class ConsentManagementPlatformTopHeadDynamicInclude
 			"/html/common/themes/top_head.jsp#consent_management_platform");
 	}
 
+	private String _addNonceAttribute(String html, String nonceAttribute) {
+		if (Validator.isNull(nonceAttribute)) {
+			return html;
+		}
+
+		Matcher matcher = _linkOrScriptPattern.matcher(html);
+
+		return matcher.replaceAll(
+			matchResult -> matchResult.group() + nonceAttribute);
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		ConsentManagementPlatformTopHeadDynamicInclude.class);
+
+	private static final Pattern _linkOrScriptPattern = Pattern.compile(
+		"<(?:link|script)(?=[\\s>])", Pattern.CASE_INSENSITIVE);
 
 }

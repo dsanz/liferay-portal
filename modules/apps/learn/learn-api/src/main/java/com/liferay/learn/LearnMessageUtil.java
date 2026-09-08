@@ -12,8 +12,10 @@ import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HttpUtil;
 import com.liferay.portal.kernel.util.PropsUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.webcache.WebCacheItem;
 import com.liferay.portal.kernel.webcache.WebCachePoolUtil;
 
@@ -57,8 +59,8 @@ public class LearnMessageUtil {
 		return jsonObject;
 	}
 
-	private static final boolean _LEARN_RESOURCES_MODE_DEV = Objects.equals(
-		PropsUtil.get("learn.resources.mode"), "dev");
+	private static final String _LEARN_RESOURCES_DIR = PropsUtil.get(
+		"learn.resources.dir");
 
 	private static final boolean _LEARN_RESOURCES_MODE_OFF = Objects.equals(
 		PropsUtil.get("learn.resources.mode"), "off");
@@ -79,20 +81,22 @@ public class LearnMessageUtil {
 					return JSONFactoryUtil.createJSONObject();
 				}
 
-				StringBundler sb = new StringBundler(4);
+				if (Validator.isNotNull(_LEARN_RESOURCES_DIR)) {
+					String fileName = StringBundler.concat(
+						_LEARN_RESOURCES_DIR, StringPool.SLASH, _resource,
+						".json");
 
-				if (_LEARN_RESOURCES_MODE_DEV) {
-					sb.append("http://localhost:3062/");
+					if (_log.isDebugEnabled()) {
+						_log.debug("Reading " + fileName);
+					}
+
+					return JSONFactoryUtil.createJSONObject(
+						FileUtil.read(fileName));
 				}
-				else {
-					sb.append("https://s3.amazonaws.com");
-					sb.append("/learn-resources.liferay.com/");
-				}
 
-				sb.append(_resource);
-				sb.append(".json");
-
-				String url = sb.toString();
+				String url = StringBundler.concat(
+					"https://s3.amazonaws.com/learn-resources.liferay.com/",
+					_resource, ".json");
 
 				if (_log.isDebugEnabled()) {
 					_log.debug("Reading " + url);
@@ -112,7 +116,7 @@ public class LearnMessageUtil {
 
 		@Override
 		public long getRefreshTime() {
-			if (_LEARN_RESOURCES_MODE_DEV) {
+			if (Validator.isNotNull(_LEARN_RESOURCES_DIR)) {
 				return 0;
 			}
 

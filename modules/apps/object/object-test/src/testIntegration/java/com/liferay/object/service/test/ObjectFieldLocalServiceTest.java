@@ -15,6 +15,7 @@ import com.liferay.document.library.test.util.DLTestUtil;
 import com.liferay.list.type.entry.util.ListTypeEntryUtil;
 import com.liferay.list.type.model.ListTypeDefinition;
 import com.liferay.list.type.service.ListTypeDefinitionLocalService;
+import com.liferay.notification.service.NotificationTemplateLocalService;
 import com.liferay.object.constants.ObjectActionNameConstants;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
@@ -71,7 +72,7 @@ import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectFieldSettingLocalService;
 import com.liferay.object.service.ObjectFilterLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
-import com.liferay.object.service.test.util.ObjectFieldTestUtil;
+import com.liferay.object.test.util.EncryptedObjectFieldTestUtil;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -108,8 +109,6 @@ import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.TempFileEntryUtil;
 import com.liferay.portal.kernel.util.TextFormatter;
 import com.liferay.portal.language.override.service.PLOEntryLocalService;
-import com.liferay.portal.test.rule.FeatureFlag;
-import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
@@ -142,7 +141,6 @@ import org.junit.runner.RunWith;
  * @author Marco Leo
  * @author Brian Wing Shun Chan
  */
-@FeatureFlag("LPD-34594")
 @RunWith(Arquillian.class)
 public class ObjectFieldLocalServiceTest {
 
@@ -208,19 +206,21 @@ public class ObjectFieldLocalServiceTest {
 			ObjectFieldBusinessTypeException.class,
 			ObjectFieldConstants.BUSINESS_TYPE_ENCRYPTED +
 				" business type is not indexable",
-			() -> ObjectFieldTestUtil.withEncryptedObjectFieldProperties(
-				"AES", true, ObjectFieldTestUtil.generateKey("AES"),
-				() -> ObjectDefinitionTestUtil.addCustomObjectDefinition(
-					Arrays.asList(
-						new EncryptedObjectFieldBuilder(
-						).indexed(
-							true
-						).labelMap(
-							LocalizedMapUtil.getLocalizedMap(
-								RandomTestUtil.randomString())
-						).name(
-							"a" + RandomTestUtil.randomString()
-						).build()))));
+			() ->
+				EncryptedObjectFieldTestUtil.withEncryptedObjectFieldProperties(
+					"AES", true,
+					EncryptedObjectFieldTestUtil.generateKey("AES"),
+					() -> ObjectDefinitionTestUtil.addCustomObjectDefinition(
+						Arrays.asList(
+							new EncryptedObjectFieldBuilder(
+							).indexed(
+								true
+							).labelMap(
+								LocalizedMapUtil.getLocalizedMap(
+									RandomTestUtil.randomString())
+							).name(
+								"a" + RandomTestUtil.randomString()
+							).build()))));
 		AssertUtils.assertFailure(
 			ObjectFieldBusinessTypeException.class,
 			ObjectFieldConstants.BUSINESS_TYPE_FORMULA +
@@ -283,7 +283,7 @@ public class ObjectFieldLocalServiceTest {
 			"Business type encrypted can only be used in object definitions " +
 				"with a default storage type",
 			() -> _addCustomObjectDefinitionWithEncryptedObjectField(
-				"AES", true, ObjectFieldTestUtil.generateKey("AES"),
+				"AES", true, EncryptedObjectFieldTestUtil.generateKey("AES"),
 				ObjectDefinitionConstants.STORAGE_TYPE_SALESFORCE));
 		AssertUtils.assertFailure(
 			ObjectFieldBusinessTypeException.class,
@@ -294,7 +294,7 @@ public class ObjectFieldLocalServiceTest {
 			ObjectFieldBusinessTypeException.class,
 			"Encryption algorithm is required for business type encrypted",
 			() -> _addCustomObjectDefinitionWithEncryptedObjectField(
-				"", true, ObjectFieldTestUtil.generateKey("AES"),
+				"", true, EncryptedObjectFieldTestUtil.generateKey("AES"),
 				ObjectDefinitionConstants.STORAGE_TYPE_DEFAULT));
 		AssertUtils.assertFailure(
 			ObjectFieldBusinessTypeException.class,
@@ -1082,18 +1082,50 @@ public class ObjectFieldLocalServiceTest {
 			).build());
 
 		Assert.assertNotNull(
+			_notificationTemplateLocalService.
+				fetchNotificationTemplateByExternalReferenceCode(
+					objectField1.getExternalReferenceCode() +
+						"_ASSIGNEE_NOTIFICATION_TEMPLATE",
+					objectField1.getCompanyId()));
+
+		Assert.assertNotNull(
 			_objectActionLocalService.fetchObjectAction(
 				objectDefinition.getObjectDefinitionId(),
 				ObjectActionNameConstants.NAME_ASSIGN_TO_ME));
+		Assert.assertNotNull(
+			_objectActionLocalService.fetchObjectAction(
+				objectDefinition.getObjectDefinitionId(),
+				ObjectActionNameConstants.NAME_NOTIFY_ASSIGNEE_ON_AFTER_ADD));
+		Assert.assertNotNull(
+			_objectActionLocalService.fetchObjectAction(
+				objectDefinition.getObjectDefinitionId(),
+				ObjectActionNameConstants.
+					NAME_NOTIFY_ASSIGNEE_ON_AFTER_UPDATE));
 
 		objectField1.setBusinessType(ObjectFieldConstants.BUSINESS_TYPE_TEXT);
 
-		_objectFieldLocalService.updateObjectField(objectField1);
+		objectField1 = _objectFieldLocalService.updateObjectField(objectField1);
+
+		Assert.assertNull(
+			_notificationTemplateLocalService.
+				fetchNotificationTemplateByExternalReferenceCode(
+					objectField1.getExternalReferenceCode() +
+						"_ASSIGNEE_NOTIFICATION_TEMPLATE",
+					objectField1.getCompanyId()));
 
 		Assert.assertNull(
 			_objectActionLocalService.fetchObjectAction(
 				objectDefinition.getObjectDefinitionId(),
 				ObjectActionNameConstants.NAME_ASSIGN_TO_ME));
+		Assert.assertNull(
+			_objectActionLocalService.fetchObjectAction(
+				objectDefinition.getObjectDefinitionId(),
+				ObjectActionNameConstants.NAME_NOTIFY_ASSIGNEE_ON_AFTER_ADD));
+		Assert.assertNull(
+			_objectActionLocalService.fetchObjectAction(
+				objectDefinition.getObjectDefinitionId(),
+				ObjectActionNameConstants.
+					NAME_NOTIFY_ASSIGNEE_ON_AFTER_UPDATE));
 
 		// Object field indexed language id
 
@@ -1298,6 +1330,8 @@ public class ObjectFieldLocalServiceTest {
 		AssertUtils.assertFailure(
 			ObjectFieldRequiredException.class, null,
 			() -> _addOrUpdateCustomObjectField(finalObjectField2));
+
+		_testAddOrUpdateCustomObjectFieldWithUnmodifiableSystemObjectDefinition();
 	}
 
 	@Test
@@ -1306,7 +1340,9 @@ public class ObjectFieldLocalServiceTest {
 			ObjectDefinitionTestUtil.addModifiableSystemObjectDefinition(
 				TestPropsValues.getUserId(), null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				"Test" + RandomTestUtil.randomString(), null, null,
+				ObjectDefinitionTestUtil.
+					getRandomModifiableSystemObjectDefinitionName(),
+				null, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionConstants.SCOPE_SITE, null, 1,
 				Collections.emptyList());
@@ -1540,7 +1576,9 @@ public class ObjectFieldLocalServiceTest {
 			ObjectDefinitionTestUtil.addModifiableSystemObjectDefinition(
 				TestPropsValues.getUserId(), null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				"Test" + RandomTestUtil.randomString(), null, null,
+				ObjectDefinitionTestUtil.
+					getRandomModifiableSystemObjectDefinitionName(),
+				null, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionConstants.SCOPE_SITE, null, 1,
 				Collections.emptyList());
@@ -1556,7 +1594,6 @@ public class ObjectFieldLocalServiceTest {
 			modifiableSystemObjectDefinition);
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testDeleteObjectField() throws Exception {
 
@@ -1847,7 +1884,9 @@ public class ObjectFieldLocalServiceTest {
 			ObjectDefinitionTestUtil.addModifiableSystemObjectDefinition(
 				TestPropsValues.getUserId(), null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
-				"Test" + RandomTestUtil.randomString(), null, null,
+				ObjectDefinitionTestUtil.
+					getRandomModifiableSystemObjectDefinitionName(),
+				null, null,
 				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString()),
 				ObjectDefinitionConstants.SCOPE_SITE, null, 1,
 				Collections.emptyList());
@@ -1896,9 +1935,6 @@ public class ObjectFieldLocalServiceTest {
 			modifiableSystemObjectDefinition);
 	}
 
-	@FeatureFlags(
-		featureFlags = {@FeatureFlag("LPD-70673"), @FeatureFlag("LPD-83570")}
-	)
 	@Test
 	public void testObjectFieldSettings() throws Exception {
 
@@ -3081,7 +3117,7 @@ public class ObjectFieldLocalServiceTest {
 			String algorithm, boolean enabled, String key, String storageType)
 		throws Exception {
 
-		ObjectFieldTestUtil.withEncryptedObjectFieldProperties(
+		EncryptedObjectFieldTestUtil.withEncryptedObjectFieldProperties(
 			algorithm, enabled, key,
 			() -> {
 				boolean enableCategorization = true;
@@ -3863,6 +3899,73 @@ public class ObjectFieldLocalServiceTest {
 			expectedObjectField.isState(), objectField.isState());
 	}
 
+	private void _testAddOrUpdateCustomObjectFieldWithUnmodifiableSystemObjectDefinition()
+		throws Exception {
+
+		ObjectDefinition objectDefinition =
+			_addUnmodifiableSystemObjectDefinition(
+				ObjectFieldUtil.createObjectField(
+					ObjectFieldConstants.BUSINESS_TYPE_TEXT,
+					ObjectFieldConstants.DB_TYPE_STRING, "able",
+					Collections.emptyList()));
+
+		List<ObjectFieldSetting> objectFieldSettings = Arrays.asList(
+			new ObjectFieldSettingBuilder(
+			).name(
+				ObjectFieldSettingConstants.NAME_ACCEPTED_FILE_EXTENSIONS
+			).value(
+				"txt"
+			).build(),
+			new ObjectFieldSettingBuilder(
+			).name(
+				ObjectFieldSettingConstants.NAME_FILE_SOURCE
+			).value(
+				ObjectFieldSettingConstants.VALUE_DOCS_AND_MEDIA
+			).build(),
+			new ObjectFieldSettingBuilder(
+			).name(
+				ObjectFieldSettingConstants.NAME_MAX_FILE_SIZE
+			).value(
+				"100"
+			).build());
+
+		ObjectField objectField = _addCustomObjectField(
+			new AttachmentObjectFieldBuilder(
+			).labelMap(
+				LocalizedMapUtil.getLocalizedMap(RandomTestUtil.randomString())
+			).name(
+				"upload"
+			).objectDefinitionId(
+				objectDefinition.getObjectDefinitionId()
+			).objectFieldSettings(
+				objectFieldSettings
+			).build());
+
+		Map<Locale, String> labelMap = LocalizedMapUtil.getLocalizedMap(
+			RandomTestUtil.randomString());
+
+		objectField.setLabelMap(labelMap, LocaleUtil.getSiteDefault());
+
+		objectField = _addOrUpdateCustomObjectField(
+			objectField, objectFieldSettings);
+
+		Assert.assertEquals(labelMap, objectField.getLabelMap());
+
+		String attachmentDownloadActionKey =
+			objectField.getAttachmentDownloadActionKey();
+
+		Assert.assertNull(
+			_resourceActionLocalService.fetchResourceAction(
+				objectDefinition.getClassName(), attachmentDownloadActionKey));
+		Assert.assertNull(
+			_ploEntryLocalService.fetchPLOEntry(
+				objectDefinition.getCompanyId(),
+				"action." + attachmentDownloadActionKey,
+				objectField.getDefaultLanguageId()));
+
+		_objectDefinitionLocalService.deleteObjectDefinition(objectDefinition);
+	}
+
 	private ObjectField _updateReadOnlyObjectField(
 			ObjectField objectField, String readOnly,
 			String readOnlyConditionExpression)
@@ -3894,6 +3997,9 @@ public class ObjectFieldLocalServiceTest {
 	private ListTypeDefinitionLocalService _listTypeDefinitionLocalService;
 
 	private String _listTypeEntryKey;
+
+	@Inject
+	private NotificationTemplateLocalService _notificationTemplateLocalService;
 
 	@Inject
 	private ObjectActionLocalService _objectActionLocalService;

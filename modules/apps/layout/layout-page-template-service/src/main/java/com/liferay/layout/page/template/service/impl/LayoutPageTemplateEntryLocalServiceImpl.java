@@ -6,6 +6,7 @@
 package com.liferay.layout.page.template.service.impl;
 
 import com.liferay.asset.kernel.NoSuchClassTypeException;
+import com.liferay.dynamic.data.mapping.info.item.provider.DDMStructureInfoItemFormVariationsProvider;
 import com.liferay.dynamic.data.mapping.service.DDMStructureLinkLocalService;
 import com.liferay.info.item.InfoItemFormVariation;
 import com.liferay.info.item.InfoItemServiceRegistry;
@@ -282,11 +283,15 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 
 		// Dynamic data mapping structure link
 
-		_ddmStructureLinkLocalService.addStructureLink(
-			_classNameLocalService.getClassNameId(
-				LayoutPageTemplateEntry.class),
-			layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
-			classTypeId);
+		long ddmStructureId = _getDDMStructureId(classNameId, classTypeId);
+
+		if (ddmStructureId > 0) {
+			_ddmStructureLinkLocalService.addStructureLink(
+				_classNameLocalService.getClassNameId(
+					LayoutPageTemplateEntry.class),
+				layoutPageTemplateEntry.getLayoutPageTemplateEntryId(),
+				ddmStructureId);
+		}
 
 		return layoutPageTemplateEntry;
 	}
@@ -445,8 +450,7 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 
 		if (Objects.equals(
 				layoutPageTemplateEntry.getType(),
-				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE) &&
-			(layoutPageTemplateEntry.getClassTypeId() > 0)) {
+				LayoutPageTemplateEntryTypeConstants.DISPLAY_PAGE)) {
 
 			_ddmStructureLinkLocalService.deleteStructureLinks(
 				_classNameLocalService.getClassNameId(
@@ -833,14 +837,38 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 			throw new LockedLayoutException();
 		}
 
+		// Layout page template entry
+
+		long classTypeId = LayoutPageTemplateEntryUtil.getClassTypeId(
+			classNameId, classTypeKey, layoutPageTemplateEntry.getGroupId());
+
 		layoutPageTemplateEntry.setModifiedDate(new Date());
 		layoutPageTemplateEntry.setClassNameId(classNameId);
-		layoutPageTemplateEntry.setClassTypeId(
-			layoutPageTemplateEntry.getClassTypeId());
+		layoutPageTemplateEntry.setClassTypeId(classTypeId);
 		layoutPageTemplateEntry.setClassTypeKey(classTypeKey);
 
-		return layoutPageTemplateEntryLocalService.
-			updateLayoutPageTemplateEntry(layoutPageTemplateEntry);
+		layoutPageTemplateEntry =
+			layoutPageTemplateEntryLocalService.updateLayoutPageTemplateEntry(
+				layoutPageTemplateEntry);
+
+		// Dynamic data mapping structure link
+
+		long layoutPageTemplateEntryClassNameId =
+			_classNameLocalService.getClassNameId(
+				LayoutPageTemplateEntry.class);
+
+		_ddmStructureLinkLocalService.deleteStructureLinks(
+			layoutPageTemplateEntryClassNameId, layoutPageTemplateEntryId);
+
+		long ddmStructureId = _getDDMStructureId(classNameId, classTypeId);
+
+		if (ddmStructureId > 0) {
+			_ddmStructureLinkLocalService.addStructureLink(
+				layoutPageTemplateEntryClassNameId, layoutPageTemplateEntryId,
+				ddmStructureId);
+		}
+
+		return layoutPageTemplateEntry;
 	}
 
 	@Override
@@ -1169,6 +1197,27 @@ public class LayoutPageTemplateEntryLocalServiceImpl
 		}
 
 		return colorSchemeId;
+	}
+
+	private long _getDDMStructureId(long classNameId, long classTypeId) {
+		InfoItemFormVariationsProvider<?> infoItemFormVariationsProvider =
+			_infoItemServiceRegistry.getFirstInfoItemService(
+				InfoItemFormVariationsProvider.class,
+				_portal.fetchClassName(classNameId));
+
+		if (!(infoItemFormVariationsProvider instanceof
+				DDMStructureInfoItemFormVariationsProvider)) {
+
+			return 0;
+		}
+
+		DDMStructureInfoItemFormVariationsProvider<?>
+			ddmStructureInfoItemFormVariationsProvider =
+				(DDMStructureInfoItemFormVariationsProvider<?>)
+					infoItemFormVariationsProvider;
+
+		return ddmStructureInfoItemFormVariationsProvider.getDDMStructureId(
+			String.valueOf(classTypeId));
 	}
 
 	private void _validate(

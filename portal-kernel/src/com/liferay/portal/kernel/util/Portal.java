@@ -43,6 +43,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -381,6 +382,16 @@ public interface Portal {
 	 * @return the CDN host address
 	 */
 	public String getCDNHostHttps(long companyId);
+
+	public String getChangeLanguageURL(
+			String currentURL, HttpServletRequest httpServletRequest,
+			Locale locale, ThemeDisplay themeDisplay)
+		throws PortalException;
+
+	public Map<Locale, String> getChangeLanguageURLs(
+			String currentURL, HttpServletRequest httpServletRequest,
+			Collection<Locale> locales, ThemeDisplay themeDisplay)
+		throws PortalException;
 
 	/**
 	 * Returns the fully qualified name of the class from its ID.

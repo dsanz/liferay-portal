@@ -51,11 +51,13 @@ import com.liferay.object.action.trigger.ObjectActionTriggerRegistry;
 import com.liferay.object.action.util.ObjectActionThreadLocal;
 import com.liferay.object.constants.ObjectActionExecutorConstants;
 import com.liferay.object.constants.ObjectActionKeys;
+import com.liferay.object.constants.ObjectActionNameConstants;
 import com.liferay.object.constants.ObjectActionTriggerConstants;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
 import com.liferay.object.constants.ObjectRelationshipConstants;
 import com.liferay.object.field.builder.AssigneeObjectFieldBuilder;
+import com.liferay.object.field.builder.EncryptedObjectFieldBuilder;
 import com.liferay.object.field.builder.PicklistObjectFieldBuilder;
 import com.liferay.object.field.builder.TextObjectFieldBuilder;
 import com.liferay.object.field.util.ObjectFieldUtil;
@@ -67,6 +69,7 @@ import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.object.rest.manager.v1_0.DefaultObjectEntryManager;
 import com.liferay.object.service.ObjectEntryFolderLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
+import com.liferay.object.test.util.EncryptedObjectFieldTestUtil;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.object.test.util.ObjectEntryFolderTestUtil;
 import com.liferay.object.util.HttpServletRequestThreadLocal;
@@ -131,7 +134,6 @@ import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.mail.MailServiceTestUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.SynchronousMailTestRule;
@@ -1038,6 +1040,22 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 						"assignee"
 					).build()));
 
+		ObjectAction objectAction = objectActionLocalService.fetchObjectAction(
+			objectDefinition.getObjectDefinitionId(),
+			ObjectActionNameConstants.NAME_NOTIFY_ASSIGNEE_ON_AFTER_ADD);
+
+		if (objectAction != null) {
+			objectActionLocalService.deleteObjectAction(objectAction);
+		}
+
+		objectAction = objectActionLocalService.fetchObjectAction(
+			objectDefinition.getObjectDefinitionId(),
+			ObjectActionNameConstants.NAME_NOTIFY_ASSIGNEE_ON_AFTER_UPDATE);
+
+		if (objectAction != null) {
+			objectActionLocalService.deleteObjectAction(objectAction);
+		}
+
 		addNotificationTemplateObjectAction(
 			Arrays.asList(
 				NotificationRecipientSettingUtil.
@@ -1365,7 +1383,6 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 		}
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testSendNotificationToSubscribers() throws Exception {
 		ObjectDefinition objectDefinition =
@@ -1566,6 +1583,51 @@ public class EmailNotificationTypeTest extends BaseNotificationTypeTest {
 
 			_userGroupLocalService.deleteUserGroup(userGroup2);
 		}
+	}
+
+	@Test
+	public void testSendNotificationWithEncryptedObjectField()
+		throws Exception {
+
+		EncryptedObjectFieldTestUtil.withEncryptedObjectFieldProperties(
+			"AES", true, EncryptedObjectFieldTestUtil.generateKey("AES"),
+			() -> {
+				String objectFieldName = "a" + RandomTestUtil.randomString();
+
+				ObjectDefinition objectDefinition =
+					ObjectDefinitionTestUtil.publishObjectDefinition(
+						Collections.singletonList(
+							new EncryptedObjectFieldBuilder(
+							).labelMap(
+								RandomTestUtil.randomLocaleStringMap()
+							).name(
+								objectFieldName
+							).build()));
+
+				_addNotificationTemplateObjectAction(
+					_getTermName(objectDefinition, objectFieldName),
+					NotificationTemplateConstants.EDITOR_TYPE_RICH_TEXT,
+					ObjectActionTriggerConstants.KEY_ON_AFTER_ADD,
+					objectDefinition);
+
+				String objectFieldValue = RandomTestUtil.randomString();
+
+				_objectEntryLocalService.addObjectEntry(
+					0, TestPropsValues.getUserId(),
+					objectDefinition.getObjectDefinitionId(),
+					ObjectEntryFolderConstants.
+						PARENT_OBJECT_ENTRY_FOLDER_ID_DEFAULT,
+					null,
+					HashMapBuilder.<String, Serializable>put(
+						objectFieldName, objectFieldValue
+					).build(),
+					ServiceContextTestUtil.getServiceContext());
+
+				_assertNotificationQueueEntryBody(objectFieldValue);
+
+				objectDefinitionLocalService.deleteObjectDefinition(
+					objectDefinition);
+			});
 	}
 
 	@Test

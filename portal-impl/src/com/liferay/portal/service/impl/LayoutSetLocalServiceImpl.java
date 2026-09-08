@@ -29,10 +29,11 @@ import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.VirtualHostLocalService;
 import com.liferay.portal.kernel.service.persistence.GroupPersistence;
+import com.liferay.portal.kernel.service.persistence.ImagePersistence;
 import com.liferay.portal.kernel.service.persistence.LayoutPersistence;
 import com.liferay.portal.kernel.service.persistence.LayoutSetBranchPersistence;
 import com.liferay.portal.kernel.service.persistence.VirtualHostPersistence;
-import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
+import com.liferay.portal.kernel.transaction.TransactionCallbackUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ColorSchemeFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
@@ -262,20 +263,10 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 		return layoutSetPersistence.update(layoutSet);
 	}
 
-	/**
-	 * Updates the state of the layout set prototype link.
-	 *
-	 * @param groupId the primary key of the group
-	 * @param privateLayout whether the layout set is private to the group
-	 * @param layoutSetPrototypeLinkEnabled whether the layout set prototype is
-	 *        link enabled
-	 * @param layoutSetPrototypeUuid the uuid of the layout set prototype to
-	 *        link with
-	 */
 	@Override
 	public void updateLayoutSetPrototypeLinkEnabled(
-			long groupId, boolean privateLayout,
-			boolean layoutSetPrototypeLinkEnabled,
+			long groupId, boolean mergeLayoutSetPrototype,
+			boolean privateLayout, boolean layoutSetPrototypeLinkEnabled,
 			String layoutSetPrototypeUuid)
 		throws PortalException {
 
@@ -329,7 +320,7 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 			_layoutSetBranchPersistence.update(layoutSetBranch);
 		}
 
-		if (!layoutSetPrototypeLinkEnabled ||
+		if (!mergeLayoutSetPrototype || !layoutSetPrototypeLinkEnabled ||
 			Validator.isNotNull(previousLayoutSetPrototypeUuid) ||
 			Validator.isNull(layoutSetPrototypeUuid)) {
 
@@ -339,8 +330,7 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 		try {
 			Sites sites = _sitesSnapshot.get();
 
-			sites.mergeLayoutSetPrototypeLayouts(
-				_groupPersistence.findByPrimaryKey(groupId), layoutSet);
+			sites.mergeLayoutSetPrototypeLayouts(layoutSet);
 		}
 		catch (Exception exception) {
 			if (_log.isWarnEnabled()) {
@@ -349,6 +339,18 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 					exception);
 			}
 		}
+	}
+
+	@Override
+	public void updateLayoutSetPrototypeLinkEnabled(
+			long groupId, boolean privateLayout,
+			boolean layoutSetPrototypeLinkEnabled,
+			String layoutSetPrototypeUuid)
+		throws PortalException {
+
+		layoutSetLocalService.updateLayoutSetPrototypeLinkEnabled(
+			groupId, true, privateLayout, layoutSetPrototypeLinkEnabled,
+			layoutSetPrototypeUuid);
 	}
 
 	@Override
@@ -367,7 +369,8 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 
 			long logoId = layoutSet.getLogoId();
 
-			layoutSet = layoutSetPersistence.findByG_P(groupId, privateLayout);
+			layoutSet = layoutSetPersistence.fetchByG_P(
+				groupId, privateLayout, false);
 
 			layoutSet.setModifiedDate(new Date());
 			layoutSet.setLogoId(logoId);
@@ -561,10 +564,9 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 			groupId, privateLayout);
 
 		if (!virtualHostnames.isEmpty()) {
-			long virtualHostsCount =
-				_virtualHostLocalService.getVirtualHostsCount(
-					layoutSet.getLayoutSetId(),
-					ArrayUtil.toStringArray(virtualHostnames.keySet()));
+			long virtualHostsCount = _virtualHostPersistence.countByNotL_H(
+				layoutSet.getLayoutSetId(),
+				ArrayUtil.toStringArray(virtualHostnames.keySet()));
 
 			if (virtualHostsCount > 0) {
 				throw new LayoutSetVirtualHostException();
@@ -580,7 +582,7 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 
 			layoutSetPersistence.clearCache(layoutSet);
 
-			TransactionCommitCallbackUtil.registerCallback(
+			TransactionCallbackUtil.registerCommitCallback(
 				() -> {
 					EntityCacheUtil.removeResult(
 						LayoutSetImpl.class, layoutSet.getLayoutSetId());
@@ -612,7 +614,7 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 			layoutSet.setLogoId(liveLayoutSet.getLogoId());
 
 			if (liveLayoutSet.isLogo()) {
-				Image logoImage = _imageLocalService.getImage(
+				Image logoImage = _imagePersistence.findByPrimaryKey(
 					liveLayoutSet.getLogoId());
 
 				long logoId = counterLocalService.increment();
@@ -703,6 +705,9 @@ public class LayoutSetLocalServiceImpl extends LayoutSetLocalServiceBaseImpl {
 
 	@BeanReference(type = ImageLocalService.class)
 	private ImageLocalService _imageLocalService;
+
+	@BeanReference(type = ImagePersistence.class)
+	private ImagePersistence _imagePersistence;
 
 	@BeanReference(type = LayoutLocalService.class)
 	private LayoutLocalService _layoutLocalService;

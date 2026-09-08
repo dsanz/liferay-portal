@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -90,6 +91,8 @@ public abstract class BaseDSEnvelopeResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -363,7 +366,8 @@ public abstract class BaseDSEnvelopeResourceTestCase {
 			siteId, randomDSEnvelope());
 
 		page = dsEnvelopeResource.getSiteDSEnvelopesPage(
-			siteId, null, null, null, null, Pagination.of(1, 10));
+			siteId, null, null, null, null,
+			Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -494,27 +498,9 @@ public abstract class BaseDSEnvelopeResourceTestCase {
 	public void testGraphQLGetSiteDSEnvelopesPage() throws Exception {
 		Long siteId = testGetSiteDSEnvelopesPage_getSiteId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"dSEnvelopes",
-			new HashMap<String, Object>() {
-				{
-					put("siteKey", "\"" + siteId + "\"");
-					put(
-						"fromDate",
-						getGraphQLValue(RandomTestUtil.randomString()));
-					put("keywords", null);
-					put(
-						"order",
-						getGraphQLValue(RandomTestUtil.randomString()));
-					put(
-						"status",
-						getGraphQLValue(RandomTestUtil.randomString()));
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetSiteDSEnvelopesPageSiteDSEnvelope_getGraphQLField(
+				siteId);
 
 		// No namespace
 
@@ -569,6 +555,34 @@ public abstract class BaseDSEnvelopeResourceTestCase {
 			Arrays.asList(
 				DSEnvelopeSerDes.toDTOs(
 					dSEnvelopesJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetSiteDSEnvelopesPageSiteDSEnvelope_getGraphQLField(
+				Long siteId)
+		throws Exception {
+
+		return new GraphQLField(
+			"dSEnvelopes",
+			new HashMap<String, Object>() {
+				{
+					put("siteKey", "\"" + siteId + "\"");
+					put(
+						"fromDate",
+						getGraphQLValue(RandomTestUtil.randomString()));
+					put("keywords", null);
+					put(
+						"order",
+						getGraphQLValue(RandomTestUtil.randomString()));
+					put(
+						"status",
+						getGraphQLValue(RandomTestUtil.randomString()));
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -1854,4 +1868,4 @@ public abstract class BaseDSEnvelopeResourceTestCase {
 		_dsEnvelopeResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1814703680
+// LIFERAY-REST-BUILDER-HASH:-1958071544

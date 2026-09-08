@@ -13,6 +13,8 @@ import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetCategoryService;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
 import com.liferay.asset.kernel.service.AssetVocabularyService;
+import com.liferay.friendly.url.model.FriendlyURLEntry;
+import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.headless.admin.taxonomy.dto.v1_0.ParentTaxonomyCategory;
 import com.liferay.headless.admin.taxonomy.dto.v1_0.ParentTaxonomyVocabulary;
 import com.liferay.headless.admin.taxonomy.dto.v1_0.TaxonomyCategory;
@@ -38,6 +40,8 @@ import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.UriInfo;
+
+import java.util.Map;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -82,6 +86,33 @@ public class TaxonomyCategoryDTOConverter
 		return _toTaxonomyCategory(dtoConverterContext, assetCategory);
 	}
 
+	private FriendlyURLEntry _fetchFriendlyURLEntry(
+		AssetCategory assetCategory) {
+
+		return _friendlyURLEntryLocalService.fetchMainFriendlyURLEntry(
+			_portal.getClassNameId(AssetCategory.class),
+			assetCategory.getCategoryId());
+	}
+
+	private Map<String, Map<String, String>> _getActions(
+		AssetCategory assetCategory, DTOConverterContext dtoConverterContext) {
+
+		Map<String, Map<String, String>> actions =
+			_dtoActionProvider.getActions(
+				assetCategory.getGroupId(), assetCategory.getCategoryId(),
+				dtoConverterContext.getUriInfo(),
+				dtoConverterContext.getUserId());
+
+		if (assetCategory.isSystem()) {
+			actions.remove("add-category");
+			actions.remove("delete");
+			actions.remove("replace");
+			actions.remove("update");
+		}
+
+		return actions;
+	}
+
 	private ParentTaxonomyCategory _toParentTaxonomyCategory(
 		AssetCategory parentAssetCategory,
 		DTOConverterContext dtoConverterContext) {
@@ -110,11 +141,7 @@ public class TaxonomyCategoryDTOConverter
 		return new TaxonomyCategory() {
 			{
 				setActions(
-					() -> _dtoActionProvider.getActions(
-						assetCategory.getGroupId(),
-						assetCategory.getCategoryId(),
-						dtoConverterContext.getUriInfo(),
-						dtoConverterContext.getUserId()));
+					() -> _getActions(assetCategory, dtoConverterContext));
 				setAssetLibraryKey(
 					() -> {
 						Group group = _groupLocalService.fetchGroup(
@@ -145,6 +172,33 @@ public class TaxonomyCategoryDTOConverter
 						assetCategory.getDescriptionMap()));
 				setExternalReferenceCode(
 					assetCategory::getExternalReferenceCode);
+				setFriendlyUrlPath(
+					() -> {
+						FriendlyURLEntry friendlyURLEntry =
+							_fetchFriendlyURLEntry(assetCategory);
+
+						if (friendlyURLEntry == null) {
+							return null;
+						}
+
+						return friendlyURLEntry.getUrlTitle(
+							LocaleUtil.toLanguageId(
+								dtoConverterContext.getLocale()));
+					});
+				setFriendlyUrlPath_i18n(
+					() -> {
+						FriendlyURLEntry friendlyURLEntry =
+							_fetchFriendlyURLEntry(assetCategory);
+
+						if (friendlyURLEntry == null) {
+							return null;
+						}
+
+						return LocalizedMapUtil.getI18nMap(
+							dtoConverterContext.isAcceptAllLanguages(),
+							LocalizedMapUtil.getLocalizedMap(
+								friendlyURLEntry.getLanguageIdToUrlTitleMap()));
+					});
 				setId(() -> String.valueOf(assetCategory.getCategoryId()));
 				setName(
 					() -> assetCategory.getTitle(
@@ -211,6 +265,7 @@ public class TaxonomyCategoryDTOConverter
 						}
 					});
 				setSiteId(assetCategory::getGroupId);
+				setSystem(assetCategory::isSystem);
 				setTaxonomyCategoryProperties(
 					() -> TransformUtil.transformToArray(
 						_assetCategoryPropertyLocalService.
@@ -293,6 +348,9 @@ public class TaxonomyCategoryDTOConverter
 		target = "(dto.class.name=com.liferay.headless.admin.taxonomy.dto.v1_0.TaxonomyCategory)"
 	)
 	private DTOActionProvider _dtoActionProvider;
+
+	@Reference
+	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
 
 	@Reference
 	private GroupLocalService _groupLocalService;

@@ -55,20 +55,40 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 	public void setUp() throws Exception {
 		super.setUp();
 
-		_exportImportConfiguration =
+		_importExportImportConfiguration =
 			_exportImportConfigurationLocalService.
 				addDraftExportImportConfiguration(
 					testGroup.getCreatorUserId(), RandomTestUtil.randomString(),
 					ExportImportConfigurationConstants.TYPE_IMPORT_LAYOUT,
 					Collections.emptyMap());
 
-		_backgroundTask = _backgroundTaskLocalService.addBackgroundTask(
+		_importBackgroundTask = _backgroundTaskLocalService.addBackgroundTask(
 			TestPropsValues.getUserId(), TestPropsValues.getGroupId(),
 			RandomTestUtil.randomString(),
 			BackgroundTaskExecutorNames.LAYOUT_IMPORT_BACKGROUND_TASK_EXECUTOR,
 			HashMapBuilder.<String, Serializable>put(
 				"exportImportConfigurationId",
-				_exportImportConfiguration.getExportImportConfigurationId()
+				_importExportImportConfiguration.
+					getExportImportConfigurationId()
+			).build(),
+			null);
+
+		_publishExportImportConfiguration =
+			_exportImportConfigurationLocalService.
+				addDraftExportImportConfiguration(
+					testGroup.getCreatorUserId(), RandomTestUtil.randomString(),
+					ExportImportConfigurationConstants.
+						TYPE_PUBLISH_LAYOUT_LOCAL,
+					Collections.emptyMap());
+
+		_publishBackgroundTask = _backgroundTaskLocalService.addBackgroundTask(
+			TestPropsValues.getUserId(), TestPropsValues.getGroupId(),
+			RandomTestUtil.randomString(),
+			BackgroundTaskExecutorNames.LAYOUT_STAGING_BACKGROUND_TASK_EXECUTOR,
+			HashMapBuilder.<String, Serializable>put(
+				"exportImportConfigurationId",
+				_publishExportImportConfiguration.
+					getExportImportConfigurationId()
 			).build(),
 			null);
 	}
@@ -81,7 +101,23 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 		_testGetImportProcessReportEntriesPageWithEmptyExportImportReportEntry();
 		_testGetImportProcessReportEntriesPageWithFilter();
 		_testGetImportProcessReportEntriesPageWithLocalizedSearchTerm();
+		_testGetImportProcessReportEntriesPageWithPublishProcess();
 		_testGetImportProcessReportEntriesPageWithSort();
+	}
+
+	@Override
+	@Test
+	public void testGetPublishProcessReportEntriesPage() throws Exception {
+		super.testGetPublishProcessReportEntriesPage();
+
+		_testGetPublishProcessReportEntriesPageWithImportProcess();
+	}
+
+	@Override
+	protected String[] getAdditionalAssertFieldNames() {
+		return new String[] {
+			"classExternalReferenceCode", "classPK", "configurationId"
+		};
 	}
 
 	@Override
@@ -89,22 +125,40 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 			Long importProcessId, ReportEntry reportEntry)
 		throws Exception {
 
-		return _addReportEntry(reportEntry);
+		return _addReportEntry(_importExportImportConfiguration, reportEntry);
 	}
 
 	@Override
 	protected Long testGetImportProcessReportEntriesPage_getImportProcessId()
 		throws Exception {
 
-		return _backgroundTask.getBackgroundTaskId();
+		return _importBackgroundTask.getBackgroundTaskId();
+	}
+
+	@Override
+	protected ReportEntry testGetPublishProcessReportEntriesPage_addReportEntry(
+			Long publishProcessId, ReportEntry reportEntry)
+		throws Exception {
+
+		return _addReportEntry(_publishExportImportConfiguration, reportEntry);
+	}
+
+	@Override
+	protected Long testGetPublishProcessReportEntriesPage_getPublishProcessId()
+		throws Exception {
+
+		return _publishBackgroundTask.getBackgroundTaskId();
 	}
 
 	@Override
 	protected ReportEntry testGetReportEntry_addReportEntry() throws Exception {
-		return _addReportEntry(randomReportEntry());
+		return _addReportEntry(
+			_importExportImportConfiguration, randomReportEntry());
 	}
 
-	private ReportEntry _addReportEntry(ReportEntry reportEntry)
+	private ReportEntry _addReportEntry(
+			ExportImportConfiguration exportImportConfiguration,
+			ReportEntry reportEntry)
 		throws Exception {
 
 		ExportImportReportEntry exportImportReportEntry;
@@ -115,27 +169,25 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 			(type.getCode() == ExportImportReportEntryConstants.TYPE_EMPTY)) {
 
 			exportImportReportEntry =
-				_exportImportReportEntryLocalService.
-					addEmptyExportImportReportEntry(
-						testGroup.getGroupId(), testCompany.getCompanyId(),
-						reportEntry.getClassExternalReferenceCode(),
-						reportEntry.getClassNameId(),
-						_exportImportConfiguration.
-							getExportImportConfigurationId(),
-						reportEntry.getModelName());
+				_exportImportReportEntryLocalService.addExportImportReportEntry(
+					testGroup.getGroupId(), testCompany.getCompanyId(),
+					reportEntry.getClassExternalReferenceCode(),
+					reportEntry.getClassNameId(), 0,
+					exportImportConfiguration.getExportImportConfigurationId(),
+					ExportImportReportEntryConstants.TYPE_EMPTY, null, null,
+					reportEntry.getModelName());
 		}
 		else {
 			exportImportReportEntry =
-				_exportImportReportEntryLocalService.
-					addErrorExportImportReportEntry(
-						testGroup.getGroupId(), testCompany.getCompanyId(),
-						reportEntry.getClassExternalReferenceCode(),
-						reportEntry.getClassNameId(), reportEntry.getClassPK(),
-						_exportImportConfiguration.
-							getExportImportConfigurationId(),
-						reportEntry.getErrorMessage(),
-						reportEntry.getErrorStacktrace(),
-						reportEntry.getModelName());
+				_exportImportReportEntryLocalService.addExportImportReportEntry(
+					testGroup.getGroupId(), testCompany.getCompanyId(),
+					reportEntry.getClassExternalReferenceCode(),
+					reportEntry.getClassNameId(), reportEntry.getClassPK(),
+					exportImportConfiguration.getExportImportConfigurationId(),
+					ExportImportReportEntryConstants.TYPE_ERROR,
+					reportEntry.getErrorMessage(),
+					reportEntry.getErrorStacktrace(),
+					reportEntry.getModelName());
 		}
 
 		_exportImportReportEntries.add(exportImportReportEntry);
@@ -147,8 +199,7 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 				setClassNameId(exportImportReportEntry.getClassNameId());
 				setClassPK(exportImportReportEntry.getClassPK());
 				setConfigurationId(
-					_exportImportConfiguration.
-						getExportImportConfigurationId());
+					exportImportConfiguration.getExportImportConfigurationId());
 				setDateCreated(exportImportReportEntry.getCreateDate());
 				setDateModified(exportImportReportEntry.getModifiedDate());
 				setErrorMessage(exportImportReportEntry.getErrorMessage());
@@ -172,7 +223,7 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 		reportEntry.setModelName(
 			modelNamePrefix + RandomTestUtil.randomString());
 
-		return _addReportEntry(reportEntry);
+		return _addReportEntry(_importExportImportConfiguration, reportEntry);
 	}
 
 	private void _assertReportEntries(
@@ -223,6 +274,7 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 		long totalCount = page.getTotalCount();
 
 		_addReportEntry(
+			_importExportImportConfiguration,
 			_randomReportEntry(ExportImportReportEntryConstants.TYPE_EMPTY));
 
 		page = reportEntryResource.getImportProcessReportEntriesPage(
@@ -236,8 +288,10 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 		throws Exception {
 
 		ReportEntry reportEntry1 = _addReportEntry(
+			_importExportImportConfiguration,
 			_randomReportEntry(ExportImportReportEntryConstants.TYPE_ERROR));
 		ReportEntry reportEntry2 = _addReportEntry(
+			_importExportImportConfiguration,
 			_randomReportEntry(ExportImportReportEntryConstants.TYPE_EMPTY));
 
 		_assertReportEntries(
@@ -301,15 +355,19 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 
 		ReportEntry reportEntry = randomReportEntry();
 
+		reportEntry.setConfigurationId(
+			_importExportImportConfiguration.getExportImportConfigurationId());
+
 		_exportImportReportEntries.add(
-			_exportImportReportEntryLocalService.
-				addErrorExportImportReportEntry(
-					testGroup.getGroupId(), testCompany.getCompanyId(),
-					reportEntry.getClassExternalReferenceCode(),
-					reportEntry.getClassNameId(), reportEntry.getClassPK(),
-					_exportImportConfiguration.getExportImportConfigurationId(),
-					reportEntry.getErrorMessage(),
-					reportEntry.getErrorStacktrace(), "example-text"));
+			_exportImportReportEntryLocalService.addExportImportReportEntry(
+				testGroup.getGroupId(), testCompany.getCompanyId(),
+				reportEntry.getClassExternalReferenceCode(),
+				reportEntry.getClassNameId(), reportEntry.getClassPK(),
+				_importExportImportConfiguration.
+					getExportImportConfigurationId(),
+				ExportImportReportEntryConstants.TYPE_ERROR,
+				reportEntry.getErrorMessage(), reportEntry.getErrorStacktrace(),
+				"example-text"));
 
 		Page<ReportEntry> page =
 			reportEntryResource.getImportProcessReportEntriesPage(
@@ -319,6 +377,16 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 		Assert.assertEquals(1, page.getTotalCount());
 
 		assertContains(reportEntry, (List<ReportEntry>)page.getItems());
+	}
+
+	private void _testGetImportProcessReportEntriesPageWithPublishProcess()
+		throws Exception {
+
+		assertHttpResponseStatusCode(
+			404,
+			reportEntryResource.getImportProcessReportEntriesPageHttpResponse(
+				_publishBackgroundTask.getBackgroundTaskId(), null, null,
+				Pagination.of(1, 10), null));
 	}
 
 	private void _testGetImportProcessReportEntriesPageWithSort()
@@ -358,14 +426,18 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 			reportEntry1.getId());
 	}
 
-	@DeleteAfterTestRun
-	private BackgroundTask _backgroundTask;
+	private void _testGetPublishProcessReportEntriesPageWithImportProcess()
+		throws Exception {
+
+		assertHttpResponseStatusCode(
+			404,
+			reportEntryResource.getPublishProcessReportEntriesPageHttpResponse(
+				_importBackgroundTask.getBackgroundTaskId(), null, null,
+				Pagination.of(1, 10), null));
+	}
 
 	@Inject
 	private BackgroundTaskLocalService _backgroundTaskLocalService;
-
-	@DeleteAfterTestRun
-	private ExportImportConfiguration _exportImportConfiguration;
 
 	@Inject
 	private ExportImportConfigurationLocalService
@@ -378,5 +450,17 @@ public class ReportEntryResourceTest extends BaseReportEntryResourceTestCase {
 	@Inject
 	private ExportImportReportEntryLocalService
 		_exportImportReportEntryLocalService;
+
+	@DeleteAfterTestRun
+	private BackgroundTask _importBackgroundTask;
+
+	@DeleteAfterTestRun
+	private ExportImportConfiguration _importExportImportConfiguration;
+
+	@DeleteAfterTestRun
+	private BackgroundTask _publishBackgroundTask;
+
+	@DeleteAfterTestRun
+	private ExportImportConfiguration _publishExportImportConfiguration;
 
 }

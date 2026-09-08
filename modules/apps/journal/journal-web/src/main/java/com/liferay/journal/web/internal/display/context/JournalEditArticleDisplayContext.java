@@ -81,6 +81,7 @@ import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.Constants;
+import com.liferay.portal.kernel.util.DateUtil;
 import com.liferay.portal.kernel.util.FastDateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -655,8 +656,10 @@ public class JournalEditArticleDisplayContext {
 		if (Validator.isNotNull(getArticleId())) {
 			DDMFormValues ddmFormValues = _article.getDDMFormValues();
 
-			defaultArticleLanguageId = LocaleUtil.toLanguageId(
-				ddmFormValues.getDefaultLocale());
+			if (ddmFormValues != null) {
+				defaultArticleLanguageId = LocaleUtil.toLanguageId(
+					ddmFormValues.getDefaultLocale());
+			}
 		}
 		else if (Validator.isNull(defaultArticleLanguageId) &&
 				 (getClassNameId() ==
@@ -1129,9 +1132,17 @@ public class JournalEditArticleDisplayContext {
 					return null;
 				}
 
+				String pattern = "yyyy-MM-dd HH:mm";
+
+				boolean formatAmPm = DateUtil.isFormatAmPm(
+					_themeDisplay.getLocale());
+
+				if (formatAmPm) {
+					pattern = "yyyy-MM-dd hh:mm a";
+				}
+
 				Format format = FastDateFormatFactoryUtil.getSimpleDateFormat(
-					"yyyy-MM-dd HH:mm", _themeDisplay.getLocale(),
-					_themeDisplay.getTimeZone());
+					pattern, LocaleUtil.US, _themeDisplay.getTimeZone());
 
 				return format.format(_article.getDisplayDate());
 			}
@@ -1154,6 +1165,8 @@ public class JournalEditArticleDisplayContext {
 			"showPublishModal", _isShowPublishModal()
 		).put(
 			"timeZone", getTimeZoneMap()
+		).put(
+			"use12Hours", DateUtil.isFormatAmPm(_themeDisplay.getLocale())
 		).put(
 			"workflowEnabled", () -> _isWorkflowEnabled()
 		).build();
@@ -1269,8 +1282,8 @@ public class JournalEditArticleDisplayContext {
 			"editDDMTemplateURL",
 			() -> PortletURLBuilder.createRenderURL(
 				_liferayPortletResponse
-			).setMVCPath(
-				"/edit_ddm_template.jsp"
+			).setMVCRenderCommandName(
+				"/journal/edit_ddm_template"
 			).setRedirect(
 				_themeDisplay.getURLCurrent()
 			).setParameter(

@@ -11,8 +11,6 @@ import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -864,6 +862,7 @@ public class SiteFriendlyURLPersistenceImpl
 				0, 1, false, null),
 			_SQL_SELECT_SITEFRIENDLYURL_WHERE, _SQL_COUNT_SITEFRIENDLYURL_WHERE,
 			SiteFriendlyURLModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
 			new FinderColumn<>(
 				"siteFriendlyURL.", "uuid", "uuid_", FinderColumn.Type.STRING,
 				"=", true, true, SiteFriendlyURL::getUuid));
@@ -906,7 +905,7 @@ public class SiteFriendlyURLPersistenceImpl
 				_SQL_SELECT_SITEFRIENDLYURL_WHERE,
 				_SQL_COUNT_SITEFRIENDLYURL_WHERE,
 				SiteFriendlyURLModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"siteFriendlyURL.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -935,6 +934,7 @@ public class SiteFriendlyURLPersistenceImpl
 				new String[] {"groupId", "companyId"}, false),
 			_SQL_SELECT_SITEFRIENDLYURL_WHERE, _SQL_COUNT_SITEFRIENDLYURL_WHERE,
 			SiteFriendlyURLModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
 			new FinderColumn<>(
 				"siteFriendlyURL.", "groupId", FinderColumn.Type.LONG, "=",
 				true, true, SiteFriendlyURL::getGroupId),
@@ -1058,12 +1058,6 @@ public class SiteFriendlyURLPersistenceImpl
 	private static final String _SQL_COUNT_SITEFRIENDLYURL_WHERE =
 		"SELECT COUNT(siteFriendlyURL) FROM SiteFriendlyURL siteFriendlyURL WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No SiteFriendlyURL exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		SiteFriendlyURLPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid"});
 
@@ -1073,4 +1067,4 @@ public class SiteFriendlyURLPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:73458047
+// LIFERAY-SERVICE-BUILDER-HASH:-311113881

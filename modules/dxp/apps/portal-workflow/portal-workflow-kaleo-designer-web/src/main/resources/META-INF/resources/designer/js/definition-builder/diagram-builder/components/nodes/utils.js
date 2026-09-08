@@ -6,13 +6,17 @@
 import {v4 as uuidv4} from 'uuid';
 
 import {defaultLanguageId} from '../../../constants';
+import {isAIHubInstance} from '../../../util/isAIHubInstance';
 import {insertNodeAt} from '../../util/insertNodeAt';
 import AIDecisionNode from './AIDecisionNode';
+import AIHubAgentNode from './AIHubAgentNode';
 import ConditionNode from './ConditionNode';
 import ForkNode from './ForkNode';
+import HTTPRequestNode from './HTTPRequestNode';
 import JoinNode from './JoinNode';
 import JoinXorNode from './JoinXorNode';
 import LLMNode from './LLMNode';
+import ServiceNode from './ServiceNode';
 import TaskNode from './TaskNode';
 import EndNode from './state/EndNode';
 import StartNode from './state/StartNode';
@@ -41,13 +45,20 @@ const defaultNodes = [
 
 const nodeDescription = {
 	'ai-decision': Liferay.Language.get('make-a-decision-using-llm-models'),
+	'ai-hub-agent': Liferay.Language.get('invoke-an-ai-hub-agent'),
 	'condition': Liferay.Language.get('execute-conditional-logic'),
 	'end': Liferay.Language.get('conclude-the-workflow'),
 	'fork': Liferay.Language.get('split-the-workflow-into-multiple-paths'),
+	'http-request': Liferay.Language.get(
+		'make-outbound-calls-to-rest-apis-or-client-extensions'
+	),
 	'join': Liferay.Language.get('all-interactions-need-to-be-closed'),
 	'join-xor': Liferay.Language.get('only-one-interaction-needs-to-be-closed'),
 	'llm': Liferay.Language.get(
 		'generate-content-summarize-and-classify-data-using-llm-models'
+	),
+	'service': Liferay.Language.get(
+		'execute-custom-business-logic-using-a-java-delegate'
 	),
 	'start': Liferay.Language.get('begin-a-workflow'),
 	'state': Liferay.Language.get('execute-actions-in-the-workflow'),
@@ -66,8 +77,14 @@ let nodeTypes = {
 };
 
 if (Liferay.FeatureFlags['LPD-62272']) {
-	nodeTypes = insertNodeAt(nodeTypes, 'ai-decision', AIDecisionNode, 1);
-	nodeTypes = insertNodeAt(nodeTypes, 'llm', LLMNode, 6);
+	nodeTypes = insertNodeAt(nodeTypes, 'ai-hub-agent', AIHubAgentNode, 1);
+
+	if (isAIHubInstance()) {
+		nodeTypes = insertNodeAt(nodeTypes, 'ai-decision', AIDecisionNode, 2);
+		nodeTypes = insertNodeAt(nodeTypes, 'llm', LLMNode, 7);
+		nodeTypes = insertNodeAt(nodeTypes, 'http-request', HTTPRequestNode, 8);
+		nodeTypes = insertNodeAt(nodeTypes, 'service', ServiceNode, 9);
+	}
 }
 
 export {defaultNodes, nodeDescription, nodeTypes};

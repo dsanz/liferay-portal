@@ -1,0 +1,230 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+@import 'atlas-custom-properties/_variables';
+
+.charts-bar-chart {
+	color: $dark;
+	display: block;
+	margin: 0;
+
+	// The SVG scales fluidly to the figure width; the figure is capped at the
+	// chart's natural width (set inline from the width prop) via max-width.
+
+	svg {
+		display: block;
+		height: auto;
+		width: 100%;
+	}
+
+	&__title {
+		font-size: 0.9375rem;
+		font-weight: 600;
+		margin-bottom: 0.5rem;
+	}
+
+	&__axis {
+		stroke: $light-d2;
+		stroke-width: 1;
+	}
+
+	&__bar {
+		// `--charts-bar-fill` is set inline only when `scheme="categorical"`. The
+		// fallback keeps blue mode rendering with `--chart-color-2`.
+
+		cursor: pointer;
+		fill: var(--charts-bar-fill, var(--chart-color-2));
+		outline: none;
+		transform-box: fill-box;
+		transform-origin: center bottom;
+		transition:
+			fill 160ms ease,
+			filter 160ms ease,
+			transform 160ms ease;
+	}
+
+	// Optional gray track behind the bar. Spans the full plot length so the
+	// row reads as "progress out of total".
+
+	&__bar-track {
+		fill: $light-d1;
+		pointer-events: none;
+	}
+
+	// Blue mode: darken the active bar one step down the blue ramp (resting bars
+	// are already `--chart-color-2`).
+
+	&--blue &__bar-group.is-active .charts-bar-chart__bar {
+		fill: $chart-blue-d1;
+	}
+
+	// Categorical mode: keep the per-bar hue and brighten slightly.
+
+	&--categorical &__bar-group.is-active .charts-bar-chart__bar {
+		filter: brightness(1.08) saturate(1.05);
+	}
+
+	&__bar:focus-visible {
+		outline: 2px solid $primary-d2;
+		outline-offset: 2px;
+	}
+
+	&__bar-link {
+		outline: none;
+	}
+
+	&__bar-link:focus-visible {
+		outline: 2px solid $primary-d2;
+		outline-offset: 1px;
+	}
+
+	&--blue &__bar:focus-visible {
+		fill: $chart-blue-d1;
+	}
+
+	&__label {
+		fill: $dark;
+		font-size: 0.75rem;
+	}
+
+	&__value-group {
+		pointer-events: none;
+
+		.charts-bar-chart__value {
+			fill: $dark;
+			font-size: 0.75rem;
+			font-variant-numeric: tabular-nums;
+			font-weight: 700;
+			transition: fill 160ms ease;
+		}
+
+		.charts-bar-chart__value-bg {
+			fill: $primary;
+		}
+
+		&.is-active .charts-bar-chart__value {
+			fill: $white;
+		}
+	}
+
+	// Stacked segmented meter (stacked={true}): a single horizontal row split
+	// into per-datum segments. The dark tooltip surfaces the segment's
+	// label/value on hover or focus, floating above the row.
+
+	&--stacked svg {
+		overflow: visible;
+	}
+
+	&__tip {
+		pointer-events: none;
+	}
+
+	&__tip-bg {
+		fill: $dark;
+	}
+
+	&__tip-text {
+		fill: $white;
+		font-size: 0.8125rem;
+		font-weight: 400;
+	}
+
+	&__tip-hint {
+		fill: $white;
+		fill-opacity: 0.85;
+		font-size: 0.6875rem;
+		font-weight: 400;
+	}
+
+	// Alignment: place the capped chart block within its container. `start`
+	// (default) needs no rule — block flow keeps it flush-left, matching the
+	// other charts.
+
+	&--align-center {
+		margin-inline: auto;
+	}
+
+	&--align-end {
+		margin-inline-end: 0;
+		margin-inline-start: auto;
+	}
+
+	// `legendSwatchBorder={false}`: drop the swatch outline (list + table).
+	// `transparent` keeps the 12x12 box so nothing shifts. The active variants
+	// out-specify the rules that would otherwise re-add a white edge on
+	// hover/focus.
+
+	&--no-swatch-border {
+		.charts-legend__swatch,
+		.charts-legend__item.is-active .charts-legend__swatch,
+		.charts-legend-table__row.is-active .charts-legend__swatch {
+			border-color: transparent;
+		}
+	}
+
+	// Motion: only when explicitly enabled by the component.
+
+	&--motion {
+		.charts-bar-chart__bar {
+			animation: charts-bar-rise 480ms ease-out backwards;
+			animation-delay: var(--charts-bar-delay, 0ms);
+			transform-origin: center bottom;
+		}
+
+		&.charts-bar-chart--horizontal .charts-bar-chart__bar {
+			animation-name: charts-bar-grow-x;
+			transform-origin: left center;
+		}
+
+		// Stacked is always a horizontal row regardless of `orientation`, so
+		// each segment grows from its left edge, not up from the axis.
+
+		&.charts-bar-chart--stacked .charts-bar-chart__bar {
+			animation-name: charts-bar-grow-x;
+			transform-origin: left center;
+		}
+	}
+}
+
+@keyframes charts-bar-rise {
+	from {
+		opacity: 0;
+		transform: scaleY(0);
+	}
+
+	to {
+		opacity: 1;
+		transform: scaleY(1);
+	}
+}
+
+@keyframes charts-bar-grow-x {
+	from {
+		opacity: 0;
+		transform: scaleX(0);
+	}
+
+	to {
+		opacity: 1;
+		transform: scaleX(1);
+	}
+}
+
+// Strip animations under both the OS media query and the Clay
+// `c-prefers-reduced-motion` body class.
+
+@media (prefers-reduced-motion: reduce) {
+	.charts-bar-chart__bar,
+	.charts-bar-chart__value-group {
+		animation: none !important;
+		transition: none !important;
+	}
+}
+
+body.c-prefers-reduced-motion .charts-bar-chart__bar,
+body.c-prefers-reduced-motion .charts-bar-chart__value-group {
+	animation: none !important;
+	transition: none !important;
+}

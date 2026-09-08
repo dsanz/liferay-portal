@@ -1,4 +1,5 @@
 {{- $env := index .context "apiextensions.crossplane.io/environment" -}}
+
 {{- $xr := .observed.composite.resource -}}
 
 {{- $forceDestroy := $xr.spec.forceDestroy | default false -}}
@@ -8,4 +9,4 @@
 
 {{- $labels := merge ($xr.spec.commonTags | default dict) (dict "app" "liferay" "deployment-name" $env.deploymentName "project-id" $projectId) -}}
 
-{{- include "gcp-infrastructure-provider.overlayBucketName" . }}
+{{- $overlayBucketName := printf "%s-overlay-%s" $env.deploymentName (printf "%.18s-%s" $env.projectId (printf "%s-%s" $env.deploymentName $env.projectId | sha256sum | trunc 6)) -}}

@@ -98,7 +98,9 @@ public class AssetVocabularyActionDropdownItemsProvider {
 			dropdownGroupItem -> {
 				dropdownGroupItem.setDropdownItems(
 					DropdownItemListBuilder.add(
-						() -> _hasPermission(vocabulary, ActionKeys.DELETE),
+						() ->
+							!_isSystemVocabulary(vocabulary) &&
+							_hasPermission(vocabulary, ActionKeys.DELETE),
 						dropdownItem -> {
 							dropdownItem.putData("action", "deleteVocabulary");
 							dropdownItem.putData(
@@ -151,6 +153,14 @@ public class AssetVocabularyActionDropdownItemsProvider {
 
 		return AssetVocabularyPermission.contains(
 			_themeDisplay.getPermissionChecker(), vocabulary, actionId);
+	}
+
+	private boolean _isSystemVocabulary(AssetVocabulary vocabulary) {
+		if (vocabulary == null) {
+			return false;
+		}
+
+		return vocabulary.isSystem();
 	}
 
 	private final HttpServletRequest _httpServletRequest;

@@ -5,6 +5,7 @@
 
 package com.liferay.object.web.internal.object.entries.display.context;
 
+import com.liferay.depot.util.SiteConnectedGroupGroupProviderUtil;
 import com.liferay.dynamic.data.mapping.expression.DDMExpressionFactory;
 import com.liferay.dynamic.data.mapping.form.field.type.constants.DDMFormFieldTypeConstants;
 import com.liferay.dynamic.data.mapping.form.renderer.DDMFormRenderer;
@@ -75,6 +76,7 @@ import com.liferay.object.tree.ObjectEntryTreeFactory;
 import com.liferay.object.tree.Tree;
 import com.liferay.object.web.internal.display.context.helper.ObjectRequestHelper;
 import com.liferay.object.web.internal.security.permission.resource.util.ObjectDefinitionResourcePermissionUtil;
+import com.liferay.object.web.internal.util.ObjectEntryPortletURLUtil;
 import com.liferay.object.web.internal.util.ObjectEntryUtil;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.CharPool;
@@ -93,6 +95,7 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.FriendlyURLResolver;
 import com.liferay.portal.kernel.portlet.FriendlyURLResolverRegistryUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
+import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
@@ -351,6 +354,25 @@ public class ObjectEntryDisplayContextImpl
 				return edge.getObjectRelationshipId();
 			}
 		).buildString();
+	}
+
+	@Override
+	public long[] getGroupIds() throws PortalException {
+		if (_groupIds != null) {
+			return _groupIds;
+		}
+
+		long groupId = _getGroupId();
+
+		if (groupId <= 0) {
+			groupId = _themeDisplay.getCompanyGroupId();
+		}
+
+		_groupIds =
+			SiteConnectedGroupGroupProviderUtil.
+				getCurrentAndAncestorSiteAndDepotGroupIds(groupId);
+
+		return _groupIds;
 	}
 
 	@Override
@@ -670,6 +692,8 @@ public class ObjectEntryDisplayContextImpl
 		throws PortalException {
 
 		return HashMapBuilder.put(
+			"objectDefinitionPortletId", _getObjectDefinitionPortletId()
+		).put(
 			"objectEntryId", String.valueOf(_objectEntry.getId())
 		).put(
 			"objectRelationshipId",
@@ -842,6 +866,11 @@ public class ObjectEntryDisplayContextImpl
 		DDMFormRenderingContext ddmFormRenderingContext =
 			new DDMFormRenderingContext();
 
+		long groupId = _getGroupId();
+
+		ddmFormRenderingContext.addProperty(
+			"availableLocales", LanguageUtil.getAvailableLocales(groupId));
+
 		ddmFormRenderingContext.setContainerId("editObjectEntry");
 
 		if (objectEntry != null) {
@@ -856,7 +885,7 @@ public class ObjectEntryDisplayContextImpl
 			}
 		}
 
-		ddmFormRenderingContext.setGroupId(_getGroupId());
+		ddmFormRenderingContext.setGroupId(groupId);
 		ddmFormRenderingContext.setHttpServletRequest(
 			_objectRequestHelper.getRequest());
 		ddmFormRenderingContext.setHttpServletResponse(
@@ -1082,11 +1111,11 @@ public class ObjectEntryDisplayContextImpl
 
 		return DropdownItemBuilder.setHref(
 			PortletURLBuilder.create(
-				PortalUtil.getControlPanelPortletURL(
-					_objectRequestHelper.getRequest(),
+				ObjectEntryPortletURLUtil.getRelatedObjectEntryPortletURL(
 					serviceContext.getScopeGroup(),
-					objectDefinition.getPortletId(), 0, 0,
-					PortletRequest.RENDER_PHASE)
+					_objectRequestHelper.getRequest(),
+					PortletRequest.RENDER_PHASE, objectDefinition,
+					_getObjectDefinitionPortletId())
 			).setMVCRenderCommandName(
 				"/object_entries/edit_object_entry"
 			).setBackURL(
@@ -1507,6 +1536,25 @@ public class ObjectEntryDisplayContextImpl
 			});
 	}
 
+	private String _getObjectDefinitionPortletId() {
+		ObjectDefinition objectDefinition = getObjectDefinition1();
+
+		if (objectDefinition == null) {
+			return StringPool.BLANK;
+		}
+
+		String portletId = _objectRequestHelper.getPortletId();
+
+		if (!StringUtil.equals(
+				PortletIdCodec.decodePortletName(portletId),
+				objectDefinition.getPortletId())) {
+
+			return StringPool.BLANK;
+		}
+
+		return portletId;
+	}
+
 	private ObjectEntry _getObjectEntry() throws PortalException {
 		if (_objectEntry != null) {
 			return _objectEntry;
@@ -1768,6 +1816,7 @@ public class ObjectEntryDisplayContextImpl
 
 	private final DDMExpressionFactory _ddmExpressionFactory;
 	private final DDMFormRenderer _ddmFormRenderer;
+	private long[] _groupIds;
 	private final ItemSelector _itemSelector;
 	private final ObjectDefinitionLocalService _objectDefinitionLocalService;
 	private ObjectEntry _objectEntry;

@@ -581,6 +581,7 @@ public class ObjectLayoutBoxPersistenceImpl
 				0, 1, false, null),
 			_SQL_SELECT_OBJECTLAYOUTBOX_WHERE, _SQL_COUNT_OBJECTLAYOUTBOX_WHERE,
 			ObjectLayoutBoxModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
 			new FinderColumn<>(
 				"objectLayoutBox.", "uuid", "uuid_", FinderColumn.Type.STRING,
 				"=", true, true, ObjectLayoutBox::getUuid));
@@ -607,7 +608,7 @@ public class ObjectLayoutBoxPersistenceImpl
 				_SQL_SELECT_OBJECTLAYOUTBOX_WHERE,
 				_SQL_COUNT_OBJECTLAYOUTBOX_WHERE,
 				ObjectLayoutBoxModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"objectLayoutBox.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -641,7 +642,7 @@ public class ObjectLayoutBoxPersistenceImpl
 				_SQL_SELECT_OBJECTLAYOUTBOX_WHERE,
 				_SQL_COUNT_OBJECTLAYOUTBOX_WHERE,
 				ObjectLayoutBoxModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"objectLayoutBox.", "objectLayoutTabId",
 					FinderColumn.Type.LONG, "=", true, true,
@@ -701,9 +702,6 @@ public class ObjectLayoutBoxPersistenceImpl
 	private static final String _SQL_COUNT_OBJECTLAYOUTBOX_WHERE =
 		"SELECT COUNT(objectLayoutBox) FROM ObjectLayoutBox objectLayoutBox WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No ObjectLayoutBox exists with the key {";
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid", "type"});
 
@@ -713,4 +711,4 @@ public class ObjectLayoutBoxPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1571650072
+// LIFERAY-SERVICE-BUILDER-HASH:-346378191

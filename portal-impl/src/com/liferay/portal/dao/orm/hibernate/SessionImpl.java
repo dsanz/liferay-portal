@@ -141,7 +141,7 @@ public class SessionImpl implements Session {
 		throws ORMException {
 
 		try {
-			queryString = SQLTransformer.transformFromJPQLToHQL(queryString);
+			queryString = SQLTransformer.transform(queryString);
 
 			return new SQLQueryImpl(
 				_session.createSQLQuery(queryString), strictName);
@@ -198,7 +198,7 @@ public class SessionImpl implements Session {
 		throws ORMException {
 
 		try {
-			queryString = SQLTransformer.transformFromJPQLToHQL(queryString);
+			queryString = SQLTransformer.transform(queryString);
 
 			SQLQuery sqlQuery = new SQLQueryImpl(
 				_session.createSQLQuery(queryString), strictName);
@@ -379,16 +379,6 @@ public class SessionImpl implements Session {
 	}
 
 	@Override
-	public void saveOrUpdate(Object object) throws ORMException {
-		try {
-			_session.saveOrUpdate(object);
-		}
-		catch (Exception exception) {
-			throw ExceptionTranslator.translate(exception, _session, object);
-		}
-	}
-
-	@Override
 	public String toString() {
 		return StringBundler.concat("{_session=", _session, "}");
 	}
@@ -397,7 +387,7 @@ public class SessionImpl implements Session {
 		throws ORMException {
 
 		try {
-			queryString = SQLTransformer.transformFromJPQLToHQL(queryString);
+			queryString = SQLTransformer.transformForHibernate(queryString);
 
 			return new QueryImpl(_session.createQuery(queryString), strictName);
 		}

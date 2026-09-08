@@ -24,6 +24,7 @@ import com.liferay.portal.security.ldap.configuration.ConfigurationProvider;
 import com.liferay.portal.security.ldap.configuration.LDAPServerConfiguration;
 import com.liferay.portal.security.ldap.configuration.SystemLDAPConfiguration;
 import com.liferay.portal.security.ldap.constants.LDAPConstants;
+import com.liferay.portal.security.ldap.constants.LDAPReferralModes;
 import com.liferay.portal.security.ldap.constants.LegacyLDAPPropsKeys;
 import com.liferay.portal.security.ldap.exportimport.configuration.LDAPExportConfiguration;
 import com.liferay.portal.security.ldap.exportimport.configuration.LDAPImportConfiguration;
@@ -469,7 +470,8 @@ public class LDAPPropertiesUpgradeProcess extends UpgradeProcess {
 			).put(
 				LDAPConstants.REFERRAL,
 				_prefsProps.getString(
-					companyId, LegacyLDAPPropsKeys.LDAP_REFERRAL, "follow")
+					companyId, LegacyLDAPPropsKeys.LDAP_REFERRAL,
+					LDAPReferralModes.FOLLOW)
 			).build();
 
 		if (_log.isInfoEnabled()) {

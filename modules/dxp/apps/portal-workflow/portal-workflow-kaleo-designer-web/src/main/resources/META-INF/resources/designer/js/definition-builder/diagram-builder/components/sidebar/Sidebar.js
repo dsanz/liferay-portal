@@ -7,6 +7,7 @@ import React, {useContext, useEffect, useState} from 'react';
 import {isEdge, isNode} from 'react-flow-renderer';
 
 import {DefinitionBuilderContext} from '../../../DefinitionBuilderContext';
+import {isAIHubInstance} from '../../../util/isAIHubInstance';
 import {DiagramBuilderContext} from '../../DiagramBuilderContext';
 import {DefinitionInfo} from './DefinitionInfo/DefinitionInfo';
 import SidebarBody from './SidebarBody';
@@ -138,26 +139,55 @@ export const contents = {
 };
 
 if (Liferay.FeatureFlags['LPD-62272']) {
-	contents['ai-decision'] = {
+	contents['ai-hub-agent'] = {
 		sections: [
 			'nodeInformation',
-			'promptSummary',
-			'ragSummary',
-			'toolsSummary',
+			'aiHubAgentDefinition',
+			'connectionTimeout',
 		],
 		showDeleteButton: true,
-		title: Liferay.Language.get('ai-decision'),
+		title: Liferay.Language.get('ai-hub-agent'),
 	};
-	contents['llm'] = {
-		sections: [
-			'nodeInformation',
-			'promptSummary',
-			'ragSummary',
-			'toolsSummary',
-		],
-		showDeleteButton: true,
-		title: Liferay.Language.get('llm-node'),
-	};
+
+	if (isAIHubInstance()) {
+		contents['ai-decision'] = {
+			sections: [
+				'nodeInformation',
+				'promptSummary',
+				'ragSummary',
+				'toolsSummary',
+			],
+			showDeleteButton: true,
+			title: Liferay.Language.get('ai-decision'),
+		};
+		contents['http-request'] = {
+			sections: [
+				'nodeInformation',
+				'httpEndpoint',
+				'payload',
+				'variables',
+				'connectionTimeout',
+				'authentication',
+			],
+			showDeleteButton: true,
+			title: Liferay.Language.get('http-request'),
+		};
+		contents['llm'] = {
+			sections: [
+				'nodeInformation',
+				'promptSummary',
+				'ragSummary',
+				'toolsSummary',
+			],
+			showDeleteButton: true,
+			title: Liferay.Language.get('llm-node'),
+		};
+		contents['service'] = {
+			sections: ['nodeInformation', 'serviceConfiguration'],
+			showDeleteButton: true,
+			title: Liferay.Language.get('service-node'),
+		};
+	}
 }
 
 const errorsDefaultValues = {

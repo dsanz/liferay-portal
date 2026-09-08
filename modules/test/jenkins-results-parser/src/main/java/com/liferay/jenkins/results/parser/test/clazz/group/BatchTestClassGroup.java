@@ -162,11 +162,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 			_initializeCachedReports();
 		}
 
-		if (_cachedDownstreamBuildReportsMap.containsKey(axisName)) {
-			return _cachedDownstreamBuildReportsMap.get(axisName);
-		}
-
-		return null;
+		return _cachedDownstreamBuildReportsMap.get(axisName);
 	}
 
 	public TestClassReport getCachedTestClassReport(String testName) {
@@ -180,11 +176,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 			_initializeCachedReports();
 		}
 
-		if (_cachedTestClassReportsMap.containsKey(testName)) {
-			return _cachedTestClassReportsMap.get(testName);
-		}
-
-		return null;
+		return _cachedTestClassReportsMap.get(testName);
 	}
 
 	public List<TestClassReport> getCachedTestClassReportByPrefix(
@@ -211,11 +203,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 			_initializeCachedReports();
 		}
 
-		if (_cachedTestReportsMap.containsKey(testName)) {
-			return _cachedTestReportsMap.get(testName);
-		}
-
-		return null;
+		return _cachedTestReportsMap.get(testName);
 	}
 
 	public String getCohortName() {
@@ -767,7 +755,7 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 		}
 
 		if (testPropertiesFile.exists() &&
-			!traversedPropertyFileSet.contains(testPropertiesFile)) {
+			traversedPropertyFileSet.add(testPropertiesFile)) {
 
 			JobProperty jobProperty = getJobProperty(
 				basePropertyName, file, jobType);
@@ -779,8 +767,6 @@ public abstract class BatchTestClassGroup extends BaseTestClassGroup {
 
 				jobPropertiesList.add(jobProperty);
 			}
-
-			traversedPropertyFileSet.add(testPropertiesFile);
 		}
 
 		JobProperty ignoreParentsJobProperty = getJobProperty(

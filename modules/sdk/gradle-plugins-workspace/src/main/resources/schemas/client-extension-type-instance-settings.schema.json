@@ -75,6 +75,45 @@
 		},
 		{
 			"properties": {
+				"checkInterval": {
+					"default": 15,
+					"description": "Set the number of days before a VAT number is revalidated against VIES.",
+					"min": 1,
+					"title": "Check Interval",
+					"type": "number"
+				},
+				"countryCodes": {
+					"default": "AT,BE,BG,CY,CZ,DE,DK,EE,ES,FI,FR,GR,HR,HU,IE,IT,LT,LU,LV,MT,NL,PL,PT,RO,SE,SI,SK",
+					"description": "Select the country codes whose VAT numbers are validated against VIES.",
+					"items": {
+						"type": "string"
+					},
+					"title": "Country Codes",
+					"type": "array"
+				},
+				"enabled": {
+					"default": true,
+					"title": "Enabled",
+					"type": "boolean"
+				},
+				"pid": {
+					"const": "com.liferay.account.validator.vies.configuration.VIESAccountEntryValidatorConfiguration",
+					"title": "VIES Account Entry Validator"
+				},
+				"viesEndpointURL": {
+					"default": "https://ec.europa.eu/taxation_customs/vies/rest-api/check-vat-number",
+					"description": "Set the full URL of the DG TAXUD VIES check-vat-number REST endpoint.",
+					"title": "VIES Endpoint URL",
+					"type": "string"
+				}
+			},
+			"required": [
+				"pid"
+			],
+			"title": "VIES Account Entry Validator"
+		},
+		{
+			"properties": {
 				"enabled": {
 					"default": false,
 					"description": "Enable postprocessing of all legacy markup in fragments, web content, and blogs so that Adaptive Media is able to work with it. Enabling this option may impact the performance of your sites.",
@@ -166,39 +205,24 @@
 		},
 		{
 			"properties": {
-				"location": {
-					"title": "Location",
-					"type": "string"
-				},
-				"modelName": {
-					"title": "Model Name",
-					"type": "string"
+				"enabled": {
+					"default": false,
+					"description": "Enable or disable the integration with AI Hub for automatic translations.",
+					"title": "Enabled",
+					"type": "boolean"
 				},
 				"pid": {
-					"const": "com.liferay.ai.hub.configuration.VertexAIConfiguration",
-					"title": "Vertex AI Configuration"
-				},
-				"projectId": {
-					"title": "Project ID",
-					"type": "string"
+					"const": "com.liferay.ai.hub.cell.translator.internal.configuration.AIHubCellTranslatorConfiguration",
+					"title": "Translator Using AI Hub"
 				}
 			},
 			"required": [
-				"pid",
-				"location",
-				"modelName",
-				"projectId"
+				"pid"
 			],
-			"title": "Vertex AI Configuration"
+			"title": "Translator Using AI Hub"
 		},
 		{
 			"properties": {
-				"commerceSyncEnabledAnalyticsChannelIds": {
-					"items": {
-						"type": "string"
-					},
-					"type": "array"
-				},
 				"contentRecommenderMostPopularItemsEnabled": {
 					"type": "boolean"
 				},
@@ -248,12 +272,6 @@
 				"pid": {
 					"const": "com.liferay.analytics.settings.configuration.AnalyticsConfiguration"
 				},
-				"previousCommerceSyncEnabledAnalyticsChannelIds": {
-					"items": {
-						"type": "string"
-					},
-					"type": "array"
-				},
 				"previousContentRecommenderMostPopularItemsEnabled": {
 					"type": "boolean"
 				},
@@ -278,31 +296,19 @@
 					},
 					"type": "array"
 				},
-				"previousSyncedCommerceChannelIds": {
-					"items": {
-						"type": "string"
-					},
-					"type": "array"
-				},
 				"previousSyncedContactFieldNames": {
 					"items": {
 						"type": "string"
 					},
 					"type": "array"
 				},
-				"previousSyncedOrderFieldNames": {
+				"previousSyncedGroupIds": {
 					"items": {
 						"type": "string"
 					},
 					"type": "array"
 				},
 				"previousSyncedOrganizationIds": {
-					"items": {
-						"type": "string"
-					},
-					"type": "array"
-				},
-				"previousSyncedProductFieldNames": {
 					"items": {
 						"type": "string"
 					},
@@ -344,18 +350,6 @@
 					},
 					"type": "array"
 				},
-				"syncedCategoryFieldNames": {
-					"items": {
-						"type": "string"
-					},
-					"type": "array"
-				},
-				"syncedCommerceChannelIds": {
-					"items": {
-						"type": "string"
-					},
-					"type": "array"
-				},
 				"syncedContactFieldNames": {
 					"items": {
 						"type": "string"
@@ -368,31 +362,7 @@
 					},
 					"type": "array"
 				},
-				"syncedOrderFieldNames": {
-					"items": {
-						"type": "string"
-					},
-					"type": "array"
-				},
-				"syncedOrderItemFieldNames": {
-					"items": {
-						"type": "string"
-					},
-					"type": "array"
-				},
 				"syncedOrganizationIds": {
-					"items": {
-						"type": "string"
-					},
-					"type": "array"
-				},
-				"syncedProductChannelFieldNames": {
-					"items": {
-						"type": "string"
-					},
-					"type": "array"
-				},
-				"syncedProductFieldNames": {
 					"items": {
 						"type": "string"
 					},
@@ -554,6 +524,20 @@
 		},
 		{
 			"properties": {
+				"callbackURLHostsAllowed": {
+					"description": "List the host names that batch engine task callbacks may request. Leave the list blank for any host. A host that resolves to a local network address also requires local network access.",
+					"items": {
+						"type": "string"
+					},
+					"title": "Callback URL Hosts Allowed",
+					"type": "array"
+				},
+				"callbackURLLocalNetworkAccessEnabled": {
+					"default": false,
+					"description": "Send batch engine task callbacks to a URL that resolves to a local network address. Leave this disabled unless the callbacks require it, because it lets an attacker use the portal to reach services on the internal network.",
+					"title": "Callback URL Local Network Access Enabled",
+					"type": "boolean"
+				},
 				"csvFileColumnDelimiter": {
 					"default": ",",
 					"title": "CSV File Column Delimiter",
@@ -570,6 +554,12 @@
 					"description": "Set the default size of a batch containing records from an import file that will be written to a database.",
 					"title": "Import Batch Size",
 					"type": "number"
+				},
+				"languageKeyResolutionEnabled": {
+					"default": true,
+					"description": "Enable resolving the [$FOR_EACH_LANGUAGE_ID$] language key placeholder into translations for all portal supported locales when importing batch files or running site initializers.",
+					"title": "Language Key Resolution Enabled",
+					"type": "boolean"
 				},
 				"pid": {
 					"const": "com.liferay.batch.engine.configuration.BatchEngineTaskCompanyConfiguration",
@@ -773,6 +763,12 @@
 		},
 		{
 			"properties": {
+				"automaticFriendlyURLConflictResolutionEnabled": {
+					"default": false,
+					"description": "Enable this mode to automatically resolve duplicate friendly URL conflicts.",
+					"title": "Automatic Resolution for Duplicate Friendly URL Conflicts",
+					"type": "boolean"
+				},
 				"cleanUpCTSContentData": {
 					"default": false,
 					"description": "Enable this to remove change tracking store content immediately after a publication publishes.",
@@ -931,7 +927,6 @@
 				"chatProviderAccountId",
 				"chatProviderId",
 				"chatProviderKeyId",
-				"chatProviderSecretKey",
 				"enabled",
 				"guestUsersAllowed",
 				"hideInControlPanel",
@@ -1480,6 +1475,10 @@
 				"environment": {
 					"type": "string"
 				},
+				"httpTimeout": {
+					"default": 60000,
+					"type": "number"
+				},
 				"integrationKey": {
 					"type": "string"
 				},
@@ -1860,6 +1859,24 @@
 				"pid"
 			],
 			"title": "Flags"
+		},
+		{
+			"properties": {
+				"maximumVersionsPerEntry": {
+					"default": 10,
+					"description": "Define the maximum number of versions to be stored per fragment entry. Once this limit is reached, the oldest versions will be automatically deleted to optimize storage space.",
+					"title": "Maximum Versions per Fragment Entry",
+					"type": "number"
+				},
+				"pid": {
+					"const": "com.liferay.fragment.configuration.FragmentEntryVersionConfiguration",
+					"title": "Fragment Entry Version"
+				}
+			},
+			"required": [
+				"pid"
+			],
+			"title": "Fragment Entry Version"
 		},
 		{
 			"properties": {
@@ -2262,6 +2279,13 @@
 					"title": "Index All Article Versions Enabled",
 					"type": "boolean"
 				},
+				"journalArticleCheckLimit": {
+					"default": 100,
+					"description": "Set the maximum number of articles to check.",
+					"min": 1,
+					"title": "Journal Article Check Limit",
+					"type": "number"
+				},
 				"journalArticleExportImportProcessorCacheEnabled": {
 					"default": true,
 					"description": "Specify whether processed web content will be cached and reused when running an export or a publish process. Setting this to true will speed up export or publish processes involving web content, but will increase memory usage. The cache size and timeout may be configured for the cache using the cache name \"com.liferay.journal.internal.exportimport.content.processor.JournalArticleExportImportProcessorCache\".",
@@ -2563,7 +2587,7 @@
 			"title": "Mail Settings"
 		},
 		{
-			"description": "The settings in this configuration let you control the MCP Server.",
+			"description": "The settings in this configuration let you control the MCP server.",
 			"properties": {
 				"enabled": {
 					"default": false,
@@ -2572,7 +2596,7 @@
 				},
 				"pid": {
 					"const": "com.liferay.mcp.server.rest.internal.configuration.MCPServerConfiguration",
-					"description": "The settings in this configuration let you control the MCP Server.",
+					"description": "The settings in this configuration let you control the MCP server.",
 					"title": "MCP Server"
 				}
 			},
@@ -2667,7 +2691,7 @@
 				"allowedCredentialsPerUser": {
 					"default": 1,
 					"description": "Set the number of allowed credentials per user.",
-					"title": "Allowed Credentials Per User",
+					"title": "Allowed Credentials per User",
 					"type": "number"
 				},
 				"enabled": {
@@ -2821,6 +2845,72 @@
 		},
 		{
 			"properties": {
+				"allowedGrantTypes": {
+					"default": "",
+					"description": "Open registration allows only the \"grant_types\" listed here (for example, \"authorization_code\", \"refresh_token\"), or \"*\" for any grant type. An empty list rejects all open registrations.",
+					"items": {
+						"type": "string"
+					},
+					"title": "Allowed Grant Types",
+					"type": "array"
+				},
+				"allowedHosts": {
+					"default": "",
+					"description": "Open registration allows only requests from the client IP addresses listed here. Each entry is a literal IP address or \"*\" for any host (host names are not resolved). An empty list rejects all open registrations.",
+					"items": {
+						"type": "string"
+					},
+					"title": "Allowed Hosts",
+					"type": "array"
+				},
+				"allowedRedirectURIPatterns": {
+					"default": "",
+					"description": "Open registration allows only \"redirect_uris\" matching at least one of these glob patterns (where \"*\" matches within a single path segment), or \"*\" for any redirect URI. An empty list rejects all open registrations.",
+					"items": {
+						"type": "string"
+					},
+					"title": "Allowed Redirect URI Patterns",
+					"type": "array"
+				},
+				"allowedScopes": {
+					"default": "",
+					"description": "Open registration allows only the scopes listed here, or \"*\" for any scope. An explicit scope is always required in the request. An empty list rejects all open registrations.",
+					"items": {
+						"type": "string"
+					},
+					"title": "Allowed Scopes",
+					"type": "array"
+				},
+				"maximumNumberOfRegistrationsPerHour": {
+					"default": 10,
+					"description": "Maximum number of open registrations per hour for each company and client IP. Set to 0 or a negative number to disable. Counters are kept in memory and are not shared across cluster nodes.",
+					"title": "Maximum Number of Registrations per Hour",
+					"type": "number"
+				},
+				"pid": {
+					"const": "com.liferay.oauth2.provider.rest.internal.configuration.OAuth2DynamicRegistrationConfiguration",
+					"title": "Dynamic Client Registration"
+				},
+				"requireInitialAccessToken": {
+					"default": true,
+					"description": "When enabled (default), registration requires a bearer token issued for the \"Dynamic Registrator\" OAuth 2 application. When disabled, open registration is accepted and owned by the default service account.",
+					"title": "Require Initial Access Token",
+					"type": "boolean"
+				},
+				"trustProxyHeaders": {
+					"default": false,
+					"description": "When enabled, take the client IP for the allowed hosts and rate limit checks from the \"X-Forwarded-For\" header rather than the direct TCP peer. Enable only behind a trusted proxy that overwrites this header, since it can be spoofed.",
+					"title": "Trust Proxy Headers",
+					"type": "boolean"
+				}
+			},
+			"required": [
+				"pid"
+			],
+			"title": "Dynamic Client Registration"
+		},
+		{
+			"properties": {
 				"issuer": {
 					"description": "OAuth 2 Incoming Assertion Issuer",
 					"title": "OAuth 2 Incoming Assertion Issuer",
@@ -2921,6 +3011,13 @@
 		},
 		{
 			"properties": {
+				"checkBatchSize": {
+					"default": 100,
+					"description": "Set the maximum number of object entries and object entry versions to process per check.",
+					"min": 1,
+					"title": "Object Entry Check Batch Size",
+					"type": "number"
+				},
 				"checkInterval": {
 					"default": 15,
 					"description": "Set the interval (in minutes) to check for expiration, publishing, and review of object entries.",
@@ -2969,10 +3066,6 @@
 					"default": "",
 					"type": "string"
 				},
-				"googleCloudHotfixBucket": {
-					"default": "",
-					"type": "string"
-				},
 				"helpCenterURL": {
 					"default": "",
 					"type": "string"
@@ -3005,15 +3098,31 @@
 					"default": false,
 					"type": "boolean"
 				},
-				"jenkinsToken": {
-					"default": "",
-					"type": "string"
-				},
 				"jenkinsURL": {
 					"default": "",
 					"type": "string"
 				},
-				"jiraURL": {
+				"jiraAPIToken": {
+					"default": "",
+					"type": "string"
+				},
+				"jiraAPIURL": {
+					"default": "",
+					"type": "string"
+				},
+				"jiraBrowseURL": {
+					"default": "",
+					"type": "string"
+				},
+				"jiraEmailAddress": {
+					"default": "",
+					"type": "string"
+				},
+				"jiraServiceManagementUserEmailAddress": {
+					"default": "",
+					"type": "string"
+				},
+				"jiraServiceManagementUserToken": {
 					"default": "",
 					"type": "string"
 				},
@@ -3108,14 +3217,6 @@
 					"type": "string"
 				},
 				"supportLiferayAccountSearchAPIEndpoint": {
-					"default": "",
-					"type": "string"
-				},
-				"supportLiferayLFUURL": {
-					"default": "",
-					"type": "string"
-				},
-				"supportLiferayTicketAttachmentAPIEndpoint": {
 					"default": "",
 					"type": "string"
 				},
@@ -3538,6 +3639,90 @@
 		},
 		{
 			"properties": {
+				"auditMessageMaxQueueSize": {
+					"default": 200,
+					"title": "Audit Message Maximum Queue Size",
+					"type": "number"
+				},
+				"enabled": {
+					"default": true,
+					"title": "Enabled",
+					"type": "boolean"
+				},
+				"pid": {
+					"const": "com.liferay.portal.security.audit.configuration.AuditConfiguration",
+					"title": "Audit"
+				}
+			},
+			"required": [
+				"pid"
+			],
+			"title": "Audit"
+		},
+		{
+			"properties": {
+				"enabled": {
+					"default": false,
+					"title": "Enabled",
+					"type": "boolean"
+				},
+				"generateChecksum": {
+					"default": false,
+					"title": "Generate Checksum",
+					"type": "boolean"
+				},
+				"outputDirectory": {
+					"title": "Output Directory",
+					"type": "string"
+				},
+				"outputFormat": {
+					"default": "NDJSON",
+					"enum": [
+						"CSV",
+						"NDJSON"
+					],
+					"title": "Output Format",
+					"type": "string"
+				},
+				"pid": {
+					"const": "com.liferay.portal.security.audit.router.configuration.FileSystemAuditMessageProcessorConfiguration",
+					"title": "File System Audit Message Processor"
+				}
+			},
+			"required": [
+				"pid"
+			],
+			"title": "File System Audit Message Processor"
+		},
+		{
+			"properties": {
+				"bufferSize": {
+					"default": 2000,
+					"title": "Buffer Size",
+					"type": "number"
+				},
+				"enabled": {
+					"default": true,
+					"title": "Enabled",
+					"type": "boolean"
+				},
+				"flushInterval": {
+					"default": 60000,
+					"title": "Flush Interval in Milliseconds",
+					"type": "number"
+				},
+				"pid": {
+					"const": "com.liferay.portal.security.audit.router.configuration.PersistentAuditMessageProcessorConfiguration",
+					"title": "Persistent Message Audit Message Processor"
+				}
+			},
+			"required": [
+				"pid"
+			],
+			"title": "Persistent Message Audit Message Processor"
+		},
+		{
+			"properties": {
 				"enabled": {
 					"default": false,
 					"title": "Enabled",
@@ -3897,12 +4082,7 @@
 					"type": "number"
 				},
 				"referral": {
-					"default": "follow",
-					"enum": [
-						"follow",
-						"ignore",
-						"throws"
-					],
+					"description": "Set how the server handles LDAP referrals to entries on another server. Use \"ignore\" (the default) to skip them, \"follow\" to resolve them safely over \"ldap\" and \"ldaps\" only, or \"throw\" to raise an error.",
 					"title": "Referral",
 					"type": "string"
 				}
@@ -4701,7 +4881,38 @@
 			"title": "llms.txt"
 		},
 		{
+			"description": "Control how virtual hosts restrict access to sites.",
 			"properties": {
+				"allowDefaultInstanceURLBypass": {
+					"default": false,
+					"description": "When strict virtual host mode is enabled, still allow access to sites through the default instance URL.",
+					"title": "Allow Default Instance URL Bypass",
+					"type": "boolean"
+				},
+				"pid": {
+					"const": "com.liferay.site.internal.configuration.SiteVirtualHostConfiguration",
+					"description": "Control how virtual hosts restrict access to sites.",
+					"title": "Virtual Host Restrictions"
+				},
+				"strictModeEnabled": {
+					"default": false,
+					"description": "When enabled, a site that has a virtual host is reachable only through that virtual host.",
+					"title": "Strict Virtual Host Mode Enabled",
+					"type": "boolean"
+				}
+			},
+			"required": [
+				"pid"
+			],
+			"title": "Virtual Host Restrictions"
+		},
+		{
+			"properties": {
+				"cachedGenerationEnabled": {
+					"default": false,
+					"title": "Cached Generation Enabled",
+					"type": "boolean"
+				},
 				"companySitemapGroupIds": {
 					"default": "",
 					"items": {
@@ -4745,6 +4956,26 @@
 				"xmlSitemapIndexMode": {
 					"default": "page-layout",
 					"title": "XML Sitemap Index Mode",
+					"type": "string"
+				},
+				"xmlSitemapRegenerationDayOfWeek": {
+					"default": "1",
+					"title": "XML Sitemap Regeneration Day of Week",
+					"type": "string"
+				},
+				"xmlSitemapRegenerationFrequency": {
+					"default": "daily",
+					"title": "XML Sitemap Regeneration Frequency",
+					"type": "string"
+				},
+				"xmlSitemapRegenerationTime": {
+					"default": "00:00",
+					"title": "XML Sitemap Regeneration Time",
+					"type": "string"
+				},
+				"xmlSitemapRegenerationTimeZoneId": {
+					"default": "",
+					"title": "XML Sitemap Regeneration Time Zone ID",
 					"type": "string"
 				}
 			},
@@ -4985,11 +5216,12 @@
 			"enum": [
 				"com.liferay.account.configuration.AccountEntryEmailConfiguration",
 				"com.liferay.account.configuration.AccountEntryEmailDomainsConfiguration",
+				"com.liferay.account.validator.vies.configuration.VIESAccountEntryValidatorConfiguration",
 				"com.liferay.adaptive.media.image.content.transformer.backwards.compatibility.internal.configuration.AMBackwardsCompatibilityHtmlContentTransformerConfiguration",
 				"com.liferay.adaptive.media.image.internal.configuration.AMImageCompanyConfiguration",
 				"com.liferay.ai.creator.openai.configuration.AICreatorOpenAICompanyConfiguration",
 				"com.liferay.ai.hub.cell.configuration.AIHubCellConfiguration",
-				"com.liferay.ai.hub.configuration.VertexAIConfiguration",
+				"com.liferay.ai.hub.cell.translator.internal.configuration.AIHubCellTranslatorConfiguration",
 				"com.liferay.analytics.settings.configuration.AnalyticsConfiguration",
 				"com.liferay.asset.auto.tagger.google.cloud.natural.language.internal.configuration.GCloudNaturalLanguageAssetAutoTaggerCompanyConfiguration",
 				"com.liferay.asset.auto.tagger.internal.configuration.AssetAutoTaggerCompanyConfiguration",
@@ -5034,6 +5266,7 @@
 				"com.liferay.document.library.web.internal.configuration.CacheControlConfiguration",
 				"com.liferay.exportimport.configuration.ExportImportServiceConfiguration",
 				"com.liferay.flags.configuration.FlagsGroupServiceConfiguration",
+				"com.liferay.fragment.configuration.FragmentEntryVersionConfiguration",
 				"com.liferay.fragment.configuration.FragmentJavaScriptConfiguration",
 				"com.liferay.fragment.configuration.FragmentServiceConfiguration",
 				"com.liferay.fragment.entry.processor.freemarker.internal.configuration.FreeMarkerFragmentEntryProcessorConfiguration",
@@ -5059,6 +5292,7 @@
 				"com.liferay.multi.factor.authentication.ip.address.internal.configuration.MFAIPAddressConfiguration",
 				"com.liferay.multi.factor.authentication.sample.internal.configuration.MFASampleConfiguration",
 				"com.liferay.multi.factor.authentication.timebased.otp.web.internal.configuration.MFATimeBasedOTPConfiguration",
+				"com.liferay.oauth2.provider.rest.internal.configuration.OAuth2DynamicRegistrationConfiguration",
 				"com.liferay.oauth2.provider.rest.internal.configuration.OAuth2InAssertionConfiguration",
 				"com.liferay.oauth2.provider.rest.internal.endpoint.authorize.configuration.AuthorizeScreenConfiguration",
 				"com.liferay.object.configuration.ObjectConfiguration",
@@ -5076,6 +5310,9 @@
 				"com.liferay.portal.search.internal.configuration.UserActivityAsahConfiguration",
 				"com.liferay.portal.search.opensearch2.configuration.DeepPaginationConfiguration",
 				"com.liferay.portal.search.rest.configuration.SearchSuggestionsCompanyConfiguration",
+				"com.liferay.portal.security.audit.configuration.AuditConfiguration",
+				"com.liferay.portal.security.audit.router.configuration.FileSystemAuditMessageProcessorConfiguration",
+				"com.liferay.portal.security.audit.router.configuration.PersistentAuditMessageProcessorConfiguration",
 				"com.liferay.portal.security.auto.login.internal.basic.auth.header.configuration.BasicAuthHeaderAutoLoginConfiguration",
 				"com.liferay.portal.security.configuration.BasicAuthHeaderSupportConfiguration",
 				"com.liferay.portal.security.iframe.sanitizer.configuration.IFrameConfiguration",
@@ -5100,6 +5337,7 @@
 				"com.liferay.sharing.internal.configuration.SharingCompanyConfiguration",
 				"com.liferay.site.cms.site.initializer.configuration.BulkActionTaskConfiguration",
 				"com.liferay.site.internal.configuration.LLMSCompanyConfiguration",
+				"com.liferay.site.internal.configuration.SiteVirtualHostConfiguration",
 				"com.liferay.site.internal.configuration.SitemapCompanyConfiguration",
 				"com.liferay.social.activity.internal.configuration.SocialActivityCompanyConfiguration",
 				"com.liferay.staging.configuration.StagingConfiguration",

@@ -65,11 +65,7 @@ public class SitemapStrutsAction implements StrutsAction {
 					groupId = group.getLiveGroupId();
 				}
 
-				boolean privateLayout = ParamUtil.getBoolean(
-					httpServletRequest, "privateLayout");
-
-				layoutSet = _layoutSetLocalService.getLayoutSet(
-					groupId, privateLayout);
+				layoutSet = _layoutSetLocalService.getLayoutSet(groupId, false);
 			}
 			else {
 				String host = _portal.getHost(httpServletRequest);
@@ -120,9 +116,9 @@ public class SitemapStrutsAction implements StrutsAction {
 			InputStream inputStream = _sitemapManager.getSitemapInputStream(
 				ParamUtil.getString(httpServletRequest, "assetTypeKey"),
 				ParamUtil.getString(httpServletRequest, "layoutUuid"),
-				layoutSet.getGroupId(), layoutSet.isPrivateLayout(),
-				themeDisplay,
-				ParamUtil.getInteger(httpServletRequest, "page", 1));
+				layoutSet.getGroupId(),
+				ParamUtil.getInteger(httpServletRequest, "page", 1),
+				layoutSet.isPrivateLayout(), themeDisplay);
 
 			if (inputStream == null) {
 				httpServletResponse.sendError(HttpServletResponse.SC_NOT_FOUND);

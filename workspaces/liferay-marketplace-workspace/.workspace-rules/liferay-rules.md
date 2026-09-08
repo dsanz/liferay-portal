@@ -1,111 +1,123 @@
 ---
 
-description: General rules for Liferay Workspaces
-globs: *
 alwaysApply: true
+description: General Liferay standards, architectural principles, and rule routing for AI agents in a Liferay Workspace
 
 ---
 
-# Liferay General Rules
+# Liferay Workspace Rules
 
-## 1. Context Priming
+This file is the entry point for any AI agent operating inside this workspace. It establishes the runtime context every skill below depends on.
 
-Before answering technical questions, you MUST establish the environment context:
-- Scan for `gradle.properties` in the root directory.
-- Identify the value of `liferay.workspace.product`.
+## Establish Context First
 
-## 2. Liferay Version-Aware Rules
+Before answering, identify three things:
 
-Based on the version identified above, apply this logic:
-- If Version < 7.4: Focus on traditional OSGi module development.
-- If Version >= 7.4 or a Quarterly Release (Q): Steer users toward modern Liferay best practices like Client Extensions, Fragments, and Objects.
-    - Only suggest traditional OSGi modules if Client Extensions cannot fulfill the requirements.
-    - Validate any code for Client Extensions before providing it to the user.
-    - Reference the documentation in `liferay-learn` to understand the different types of Client Extensions available and their purposes.
-- Ensure all suggested Gradle dependencies align with the `target.platform.version` defined in the project workspace.
+1. **Workspace root**: the directory containing `gradle.properties` and `settings.gradle`. If neither exists, the user has not initialized a workspace; invoke the `workspace-init` skill.
 
-## 3. Information Sources
+1. **DXP version**: read `liferay.workspace.product` from `gradle.properties`. Quarterly releases (`-Qx`) and 7.4 lines use the modern path (Client Extensions, Objects, Fragments). Versions below 7.4 use legacy OSGi modules.
 
-### Primary Documentation: liferay-learn
+1. **Bundle state**: `bundles/` exists when `blade server init` has run. The Tomcat install lives at `bundles/tomcat*/`. The active HTTP port is the `port` attribute on the `<Connector protocol="HTTP/1.1">` element in `bundles/tomcat*/conf/server.xml`. Default is 8080.
 
-The authoritative source for Liferay documentation is the [liferay-learn](https://learn.liferay.com) website. Use these key paths to retrieve documentation for all aspects of development within this workspace:
+## Project Paths
 
-| Topic | Path in liferay-learn |
-|-------|----------------------|
-| Client Extensions Overview | `/w/dxp/development/client-extensions` |
-| Custom Element Client Extensions | `/w/dxp/development/integrating-external-applications/creating-a-basic-custom-element` |
-| Objects | `/w/dxp/low-code/objects` |
-| Fragments | `/w/dxp/development/developing-page-fragments` |
+| Purpose | Path |
+| --- | --- |
+| Client extensions | `client-extensions` |
+| OSGi modules | `modules` |
+| Themes | `themes` |
+| Per environment properties | `configs/{common,local,dev,uat,prod,docker}` |
+| Runtime OSGi configs | `bundles/osgi/configs` |
+| Logs | `bundles/tomcat*/logs/catalina.out` and `bundles/logs/liferay.<YYYY-MM-DD>.log` |
+| Deployed bundles | `bundles/osgi/modules` and `bundles/osgi/client-extensions` |
 
-When you need documentation not listed above, use `web_search` to query `liferay-learn` for specific content (for example, `site:learn.liferay.com [topic]`).
+`configs/common` holds shared settings. `configs/local` is the default for development. Promotion order is `local` to `dev` to `uat` to `prod`.
 
-### Source Code: liferay-portal
-- Use [liferay-portal](https://github.com/liferay/liferay-portal) to understand architectural patterns and see the latest source code. Note that the code might be slightly ahead of the release version used in this workspace.
-- **Client Extension Samples:** Reference working examples at `https://github.com/liferay/liferay-portal/tree/master/workspaces/liferay-sample-workspace/client-extensions`.
-    - Use these samples as templates when generating new client extensions.
-    - Check sample `client-extension.yaml` files for valid property configurations.
+## Tooling
 
-## 4. Key Project Paths
+Use Blade as the primary CLI. Prefer `blade gw <task>` over invoking Gradle directly; this guarantees the workspace Gradle wrapper. Key commands:
 
-- **Logs:** `bundles/tomcat/logs`
-- **Configs/Properties:** `configs/common` (source) or `configs/[env]` (environment-specific)
-    - Steer a fresh user to use the `local` environment.
-- **Licenses:** `configs/[env]/deploy` (environment-specific)
-- **OSGi Configs:**
-    - **Source:** `configs/[env]/osgi/configs` (for example, `configs/local/osgi/configs`)
-    - **Runtime:** `bundles/osgi/configs` (deployed configurations)
-- **Modules:** `modules`
-- **Client Extensions:** `client-extensions`
+- `blade init` to scaffold a workspace
+- `blade server init` to download the bundle
+- `blade server start --tail` to start Tomcat and tail the log
+- `blade gw deploy` to package and deploy a module or client extension
+- `blade gw tasks` to list available Gradle tasks
 
-## 5. Tooling
-- **Blade:** Steer users toward `blade` as the CLI tool when possible. Use `blade gw` for Gradle tasks (view available options with `blade gw tasks`). Custom code can be deployed to the running server with `blade gw deploy`. Avoid direct usage of `gradlew`.
+## AI Agent Guidelines
 
-### MCP Server
+- **Parallel execution**: when tailing logs during deployment, run the deploy command as a nonblocking background process so log watching can happen concurrently. Use whatever background execution mechanism your tool provides.
+- **Verification**: success is defined by runtime activation (`STARTED` log status), not just a successful command exit code.
+- **CLI capability check**: before using a CLI tool to scaffold or initialize a project, verify what it supports (e.g., `blade --help`, `blade <command> --help`) rather than assuming. Do not assume a command supports a given task without checking first.
 
-Liferay's MCP server is available on 2025.Q4 and later. Use this as the default tool for querying content, managing objects, and executing actions within the portal. Older DXP versions have OpenAPI endpoints.
+## Preflight Rule for New Code Generation
 
-#### Enabling the MCP Server
+Before writing the **first line** of any artifact below, load its skill. Always, and before authoring — not after something fails. Glob based autoloading does not fire on an empty workspace, so nothing else will surface these.
 
-The MCP server is behind a feature flag. Add this property to `configs/local/portal-ext.properties` before starting the server:
+| About to author | Load first |
+| --- | --- |
+| Object definition, field, picklist, relationship | `manage-objects` |
+| Object action, notification template, workflow | `manage-object-logic` |
+| Page, `page-definition.json`, navigation menu | `manage-pages` |
+| Fragment (`fragment.json`, `index.html`) | `scaffold-fragment` |
+| Theme, style book, master page | `theme-and-design` |
+| Any `client-extension.yaml` | `scaffold-client-extension` |
+| Role, or any `resource-permissions.json` grant | `manage-roles-permissions` |
+| Commerce product or SKU | `commerce-catalogs` |
 
-```properties
-feature.flag.LPD-63311=true
-```
+Most real tasks match two or more rows — load all of them. Skipping one is not the smaller risk: much of what these skills document are failures that are **silent**, where the build succeeds and the defect only shows later, and the skill is the only place that behavior is written down. Reading portal source instead is not a substitute — the source shows what the code does, not which of its behaviors have already cost someone a day.
 
-#### Connecting to the MCP Server
+If a skill turns out to be wrong or to omit the answer, fix the skill as part of the task rather than working around it locally.
 
-| Setting | Value |
-|---------|-------|
-| URL | `http://localhost:8080/o/mcp/sse` |
-| Transport | HTTP Server-Sent Events (SSE) |
-| Authorization Header | `Basic dGVzdEBsaWZlcmF5LmNvbTp0ZXN0` |
+## MCP Server
 
-The default credentials (`test@liferay.com:test`) are base64-encoded in the header. Update if using different credentials.
+Liferay provides an MCP server for AI agent integration, gated by a feature flag and available in specific DXP versions. When present and enabled, prefer MCP over raw `curl` for content, page, and object operations. See `skills/mcp-server/SKILL.md` for setup, transport details, version requirements, and quirks.
 
-#### Available MCP Tools
+## Skill Router
 
-Once connected, the AI can use Liferay-provided tools to:
+Every skill lives under `skills/` and owns one workflow. Match the user's intent to a skill below and load it on demand — even in an empty workspace (see the Preflight Rule above).
 
-- Query and manage Liferay Objects.
-- Retrieve site and page information.
-- Interact with the content management system.
-- Execute headless API operations.
+| User Intent | Skill |
+| --- | --- |
+| First time user: a guided first run creating a workspace and starting the server | `initial-setup-guide` |
+| Set up, initialize, or repair a workspace and bundle | `workspace-init` |
+| Check, prompt for, or enable a required feature flag | `feature-flags` |
+| Deploy a target and confirm it started | `deploy-and-verify` |
+| Set up the MCP server or diagnose an MCP call | `mcp-server` |
+| Enforce production readiness on code bound for a nonlocal environment | `production-standards` |
+| Create or change an object definition, field, relationship, picklist, or validation | `manage-objects` |
+| Add object business logic — actions, workflows, notifications | `manage-object-logic` |
+| Create the OAuth application a client extension needs, or call a CET from browser code | `setup-oauth` |
+| Back an object with an external REST, database, or SaaS data source | `integrate-external-data` |
+| Build a page fragment or reusable page component | `scaffold-fragment` |
+| Build a form field fragment that binds to an object field | `scaffold-form-fragment` |
+| Create pages, navigation, SEO, or page and display templates | `manage-pages` |
+| Change the theme, colors, fonts, master page, or style book | `theme-and-design` |
+| Build a React based Custom Element widget | `react-custom-elements` |
+| Scaffold any client extension type | `scaffold-client-extension` |
+| Walk a beginner through a first client extension | `guided-client-extension` |
+| Create roles or grant permissions on objects, pages, or sites | `manage-roles-permissions` |
+| Manage environment configs, promote to UAT, or capture a site initializer | `manage-environments` |
+| Manage Commerce catalogs, products, SKUs, or B2B accounts | `commerce-catalogs` |
+| Deploy and operate a Liferay Cloud (LXC) project via `lcp` | `manage-cloud-project` |
+| Build an entire site experience from one prompt (orchestrator; calls the others) | `build-site` |
 
-## 6. Extending Workspace Rules
+Site building is **site initializer first**: the `siteInitializer` CET tree is the single source of truth. Build by triggering the initializer, then iterate by editing the source tree and applying each change live (theme, objects, fragments) or by reprovisioning (pages). See `rules/site-initializer-format.md`.
 
-To maintain a modular and scalable configuration, additional context or specialized rules should be stored in the `.workspace-rules` directory.
+## Reference Cards
 
-### Adding New Rules
+Reference cards under `rules/` hold the data skills look up. Skills cite the card path explicitly. Every card is loaded in every session, so a card states the **fact** and routes to the skill that holds the **procedure** — read the card, then load the skill it names.
 
-1. **Create the Source:** Add your new `.md` rule file in the `.workspace-rules` directory at the project root.
+- `rules/client-extension-types.md` — client extension types, their yaml, and which types may share a project
+- `rules/guest-access.md` — what an anonymous visitor can and cannot read; read before building anything public
+- `rules/headless-apis.md` — REST modules, base URIs, OAuth scopes
+- `rules/feature-flags-catalog.md` — flag table with defaults and dependencies
+- `rules/site-initializer-format.md` — site initializer directory tree and per entity file formats
+- `rules/object-actions-catalog.md` — triggers, conditions, action types
+- `rules/oauth-scopes.md` — `Liferay.*` scope strings for `oAuthApplicationHeadlessServer` blocks in CET scaffolding
+- `rules/page-types.md` — page types and their applicable APIs
 
-1. **Symlink Management:** This project uses symlinks to ensure autoload across different AI tools. New rules should be symlinked into these platform-specific folders:
-    * **Cursor:** `.cursor/rules`
-    * **Gemini CLI:** `.gemini`
-    * **Claude Code:** `.claude`
-    * **GitHub Copilot:** `.github`
-    * **Windsurf:** `.windsurf/rules`
+## Information Sources
 
-### Rule Priority
-- **General Rules:** Keep global architectural rules in `liferay-rules.md`.
-- **Feature Rules:** Use separate files in `.workspace-rules` for specific feature sets or agent skills.
+The authoritative documentation is [learn.liferay.com](https://learn.liferay.com); search `site:learn.liferay.com <topic>` to find a topic.
+
+The Liferay Portal source code at [github.com/liferay/liferay-portal](https://github.com/liferay/liferay-portal) is canonical for architectural patterns and code samples; working client extension examples live at `workspaces/liferay-sample-workspace/client-extensions/`.

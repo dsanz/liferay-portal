@@ -16,6 +16,7 @@ import com.liferay.notification.exception.NotificationTemplateExternalReferenceC
 import com.liferay.notification.model.NotificationRecipient;
 import com.liferay.notification.model.NotificationRecipientSetting;
 import com.liferay.notification.model.NotificationTemplate;
+import com.liferay.notification.service.NotificationRecipientLocalService;
 import com.liferay.notification.service.NotificationRecipientSettingLocalService;
 import com.liferay.notification.service.NotificationTemplateLocalService;
 import com.liferay.notification.test.util.NotificationTemplateUtil;
@@ -29,7 +30,6 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
@@ -58,7 +58,6 @@ public class NotificationTemplateLocalServiceTest {
 		_externalReferenceCode = RandomTestUtil.randomString();
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testAddNotificationTemplate() throws Exception {
 		User user = TestPropsValues.getUser();
@@ -184,6 +183,31 @@ public class NotificationTemplateLocalServiceTest {
 			notificationTemplate);
 	}
 
+	@Test
+	public void testDeleteNotificationTemplateWithMissingNotificationRecipient()
+		throws Exception {
+
+		User user = TestPropsValues.getUser();
+
+		NotificationTemplate notificationTemplate =
+			_notificationTemplateLocalService.addNotificationTemplate(
+				_externalReferenceCode, user.getUserId(),
+				NotificationConstants.TYPE_EMAIL);
+
+		NotificationRecipient notificationRecipient =
+			notificationTemplate.fetchNotificationRecipient();
+
+		Assert.assertNotNull(notificationRecipient);
+
+		_notificationRecipientLocalService.deleteNotificationRecipient(
+			notificationRecipient);
+
+		Assert.assertNull(notificationTemplate.fetchNotificationRecipient());
+
+		_notificationTemplateLocalService.deleteNotificationTemplate(
+			notificationTemplate);
+	}
+
 	private void _assertNotificationRecipientSetting(
 			String name, long notificationRecipientId)
 		throws Exception {
@@ -200,6 +224,10 @@ public class NotificationTemplateLocalServiceTest {
 	}
 
 	private String _externalReferenceCode;
+
+	@Inject
+	private NotificationRecipientLocalService
+		_notificationRecipientLocalService;
 
 	@Inject
 	private NotificationRecipientSettingLocalService

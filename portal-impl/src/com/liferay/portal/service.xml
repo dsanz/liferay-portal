@@ -146,29 +146,13 @@
 
 		<column name="webId" type="String" />
 		<column name="mx" type="String" />
-		<column name="homeURL" type="String" />
-		<column name="logoId" type="long" />
 		<column name="maxUsers" type="int" />
 		<column name="active" type="boolean" />
-		<column name="name" type="String" />
-		<column name="legalName" type="String" />
-		<column name="legalId" type="String" />
-		<column name="legalType" type="String" />
-		<column name="sicCode" type="String" />
-		<column name="tickerSymbol" type="String" />
-		<column name="industry" type="String" />
-		<column name="type" type="String" />
-		<column name="size" type="String" />
-		<column name="indexNameCurrent" type="String" />
-		<column name="indexNameNext" type="String" />
 
 		<!-- Finder methods -->
 
 		<finder name="WebId" return-type="Company" unique="true">
 			<finder-column name="webId" />
-		</finder>
-		<finder name="LogoId" return-type="Collection">
-			<finder-column name="logoId" />
 		</finder>
 	</entity>
 	<entity local-service="true" name="CompanyInfo" remote-service="false">
@@ -183,7 +167,20 @@
 
 		<!-- Other fields -->
 
+		<column name="homeURL" type="String" />
+		<column name="indexNameCurrent" type="String" />
+		<column name="indexNameNext" type="String" />
+		<column name="industry" type="String" />
 		<column name="key" type="String" />
+		<column name="legalId" type="String" />
+		<column name="legalName" type="String" />
+		<column name="legalType" type="String" />
+		<column name="logoId" type="long" />
+		<column name="name" type="String" />
+		<column name="sicCode" type="String" />
+		<column name="size" type="String" />
+		<column name="tickerSymbol" type="String" />
+		<column name="type" type="String" />
 
 		<!-- Finder methods -->
 
@@ -2587,7 +2584,7 @@
 
 		<!-- Finder methods -->
 
-		<finder name="CompanyId" return-type="Collection" where="type_ = 1">
+		<finder name="CompanyId" return-type="Collection" where="type = 1">
 			<finder-column name="companyId" />
 		</finder>
 		<finder name="ContactId" return-type="User" unique="true">
@@ -2599,7 +2596,7 @@
 		<finder name="PortraitId" return-type="Collection">
 			<finder-column name="portraitId" />
 		</finder>
-		<finder db-index="false" name="GtU_C" return-type="Collection" where="type_ = 1">
+		<finder db-index="false" name="GtU_C" return-type="Collection" where="type = 1">
 			<finder-column comparator="&gt;" name="userId" />
 			<finder-column name="companyId" />
 		</finder>
@@ -2607,11 +2604,11 @@
 			<finder-column name="companyId" />
 			<finder-column name="userId" />
 		</finder>
-		<finder name="C_CD" return-type="Collection" where="type_ = 1">
+		<finder name="C_CD" return-type="Collection" where="type = 1">
 			<finder-column name="companyId" />
 			<finder-column name="createDate" />
 		</finder>
-		<finder name="C_MD" return-type="Collection" where="type_ = 1">
+		<finder name="C_MD" return-type="Collection" where="type = 1">
 			<finder-column name="companyId" />
 			<finder-column name="modifiedDate" />
 		</finder>
@@ -2631,11 +2628,11 @@
 			<finder-column name="companyId" />
 			<finder-column name="type" />
 		</finder>
-		<finder name="C_S" return-type="Collection" where="type_ = 1">
+		<finder name="C_S" return-type="Collection" where="type = 1">
 			<finder-column name="companyId" />
 			<finder-column name="status" />
 		</finder>
-		<finder name="C_CD_MD" return-type="Collection" where="type_ = 1">
+		<finder name="C_CD_MD" return-type="Collection" where="type = 1">
 			<finder-column name="companyId" />
 			<finder-column name="createDate" />
 			<finder-column name="modifiedDate" />

@@ -40,7 +40,7 @@ ext {
 		"com.liferay.gradle.plugins.theme.builder.version": "2.0.17",
 		"com.liferay.portal.tools.bundle.support.version": "3.7.5",
 		"com.liferay.portal.tools.service.builder.version": "1.0.501",
-		"com.liferay.portal.tools.rest.builder.version": "1.0.471",
+		"com.liferay.portal.tools.rest.builder.version": "1.0.476",
 		"com.liferay.portal.tools.soy.builder.version": "3.0.4",
 		"com.liferay.portal.tools.theme.builder.version": "1.1.9",
 		"com.liferay.portal.vulcan.api.version": "9.3.1"
@@ -288,9 +288,20 @@ gradle.beforeProject {
 
 					dependencies {
 						testImplementation group: "junit", name: "junit", version: "4.13.1"
-						testImplementation group: "org.mockito", name: "mockito-core", version: "4.5.1"
-						testImplementation group: "org.mockito", name: "mockito-inline", version: "4.5.1"
-						testImplementation group: "org.springframework", name: "spring-test", version: "6.2.9"
+						testImplementation group: "org.mockito", name: "mockito-core", version: "5.15.2"
+						testImplementation group: "org.springframework", name: "spring-test", version: "6.2.19"
+					}
+
+					tasks.withType(Test) {
+						doFirst {
+							File mockitoCoreJarFile = classpath.find {
+								it.name.startsWith("mockito-core")
+							}
+
+							if (mockitoCoreJarFile != null) {
+								jvmArgs "-javaagent:${mockitoCoreJarFile.absolutePath}"
+							}
+						}
 					}
 				}
 			}
@@ -568,7 +579,7 @@ gradle.beforeProject {
 					}
 				}
 			}
-			else if (!project.path.startsWith(":dxp:apps:osb:osb-faro:") && !project.path.startsWith(":sdk:") && !project.path.startsWith(":test:") && !project.path.startsWith(":util:") && !project.path.contains("site-initializer-")) {
+			else if (!project.path.startsWith(":sdk:") && !project.path.startsWith(":test:") && !project.path.startsWith(":util:") && !project.path.contains("site-initializer-")) {
 				buildCSS {
 					enabled = false
 				}
@@ -656,6 +667,12 @@ gradle.beforeProject {
 
 			compileTestJava {
 				configurations.compileOnly.allDependencies.withType(ProjectDependency) {
+					if (!it.dependencyProject.name.endsWith("-theme")) {
+						mustRunAfter "${it.dependencyProject.path}:processResources"
+					}
+				}
+
+				configurations.testImplementation.allDependencies.withType(ProjectDependency) {
 					if (!it.dependencyProject.name.endsWith("-theme")) {
 						mustRunAfter "${it.dependencyProject.path}:processResources"
 					}
@@ -875,12 +892,12 @@ gradle.beforeProject {
 
 				dependencies {
 					compileJspClasspath files(Project.class.classLoader.getURLs())
-					compileJspClasspath group: "org.apache.tomcat", name: "tomcat-jasper", version: "10.1.55"
+					compileJspClasspath group: "org.apache.tomcat", name: "tomcat-jasper", version: "10.1.57"
 					compileJspClasspathTransform group: "com.liferay", name: "com.liferay.gradle.plugins.jasper.jspc", transitive: false, version: "2.0.20"
 					jspCClasspath files(tasks.named(sourceSets.main.compileJavaTaskName))
 					jspCClasspath files(tasks.named(sourceSets.main.processResourcesTaskName))
 					jspCClasspath group: "jakarta.servlet.jsp.jstl", name: "jakarta.servlet.jsp.jstl-api", version: "3.0.2"
-					jspCClasspath group: "org.apache.tomcat", name: "tomcat-jasper", version: "10.1.55"
+					jspCClasspath group: "org.apache.tomcat", name: "tomcat-jasper", version: "10.1.57"
 					jspCClasspath group: "org.glassfish.web", name: "jakarta.servlet.jsp.jstl", version: "3.0.1"
 				}
 
@@ -1052,21 +1069,25 @@ private boolean _containsProject(
 }
 
 private List<String> _getTestClasses(Task task) {
-	return task.project.gradle.testClasses.collect {
-		String testClass ->
+	List<String> testClasses = []
 
-		if (testClass.startsWith("/modules/")) {
-			String projectPath = task.project.path.replace(':' as char, '/' as char)
+	String javaDirName = "src/" + task.name + "/java/"
 
-			String javaPath = "/modules" + projectPath + "/src/" + task.name + "/java/"
+	Project project = task.project
 
-			if (testClass.startsWith(javaPath)) {
-				testClass = testClass.replace(javaPath, "")
-			}
+	for (String testClass : project.gradle.testClasses) {
+		String testJavaClass = testClass.replace(".class", ".java")
+
+		String javaFileName = javaDirName + testJavaClass
+
+		File javaFile = project.file(javaFileName)
+
+		if (javaFile.exists()) {
+			testClasses.add(testClass)
 		}
-
-		return testClass
 	}
+
+	return testClasses
 }
 
 private boolean _hasTestClasses(Task task, String testClassesDirName) {

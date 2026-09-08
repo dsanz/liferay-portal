@@ -1,0 +1,60 @@
+affinity: {}
+customLabels: {}
+debug: false
+downloadPollInterval: 15s
+fullnameOverride: ""
+gracePeriod: 168h
+heartbeatInterval: 10m
+image:
+    pullPolicy: IfNotPresent
+    pullSecrets: []
+    repository: us-central1-docker.pkg.dev/external-assets-prd/liferay-cloud-native/liferay-dxp-operator
+    tag: 0.1.0
+marketplace:
+    claimName: ""
+    csi:
+        driver: ""
+        volumeAttributes: {}
+        volumeHandle: ""
+    enabled: false
+    mountPath: /marketplace
+    size: 10Gi
+metrics:
+    port: 8080
+nameOverride: ""
+namespaceOverride: ""
+nodeSelector: {}
+podAnnotations: {}
+podSecurityContext:
+    runAsNonRoot: true
+    seccompProfile:
+        type: RuntimeDefault
+probes:
+    port: 8081
+provisioning:
+    baseURL: https://api.one.liferay.com
+rbac:
+    create: true
+replicaCount: 1
+resources:
+    limits:
+        cpu: 500m
+        memory: 256Mi
+    requests:
+        cpu: 100m
+        memory: 128Mi
+retry:
+    initialDelay: 30s
+    maxDelay: 30m
+securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+        drop:
+            -   ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+serviceAccount:
+    annotations: {}
+    create: true
+    name: ""
+tolerations: []

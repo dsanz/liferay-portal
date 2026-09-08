@@ -40,17 +40,6 @@ public class AnalyticsConfigurationModelListener
 			analyticsConfiguration.
 				contentRecommenderUserPersonalizationEnabled());
 
-		String[] commerceSyncEnabledAnalyticsChannelIds =
-			analyticsConfiguration.commerceSyncEnabledAnalyticsChannelIds();
-
-		if (commerceSyncEnabledAnalyticsChannelIds == null) {
-			commerceSyncEnabledAnalyticsChannelIds = new String[0];
-		}
-
-		properties.put(
-			"previousCommerceSyncEnabledAnalyticsChannelIds",
-			commerceSyncEnabledAnalyticsChannelIds);
-
 		properties.put(
 			"previousSyncAllAccounts",
 			analyticsConfiguration.syncAllAccounts());
@@ -80,16 +69,6 @@ public class AnalyticsConfigurationModelListener
 			properties.put("previousSyncedAccountGroupIds", new String[0]);
 		}
 
-		String[] syncedCommerceChannelIds =
-			analyticsConfiguration.syncedCommerceChannelIds();
-
-		if (syncedCommerceChannelIds == null) {
-			syncedCommerceChannelIds = new String[0];
-		}
-
-		properties.put(
-			"previousSyncedCommerceChannelIds", syncedCommerceChannelIds);
-
 		String[] syncedContactFieldNames =
 			analyticsConfiguration.syncedContactFieldNames();
 
@@ -98,13 +77,13 @@ public class AnalyticsConfigurationModelListener
 				"previousSyncedContactFieldNames", syncedContactFieldNames);
 		}
 
-		String[] syncedOrderFieldNames =
-			analyticsConfiguration.syncedOrderFieldNames();
+		String[] syncedGroupIds = analyticsConfiguration.syncedGroupIds();
 
-		if (ArrayUtil.isNotEmpty(syncedOrderFieldNames)) {
-			properties.put(
-				"previousSyncedOrderFieldNames", syncedOrderFieldNames);
+		if (syncedGroupIds == null) {
+			syncedGroupIds = new String[0];
 		}
+
+		properties.put("previousSyncedGroupIds", syncedGroupIds);
 
 		String[] syncedOrganizationIds =
 			analyticsConfiguration.syncedOrganizationIds();
@@ -119,14 +98,6 @@ public class AnalyticsConfigurationModelListener
 		}
 		else if (analyticsConfiguration.syncAllContacts()) {
 			properties.put("previousSyncedOrganizationIds", new String[0]);
-		}
-
-		String[] syncedProductFieldNames =
-			analyticsConfiguration.syncedProductFieldNames();
-
-		if (ArrayUtil.isNotEmpty(syncedProductFieldNames)) {
-			properties.put(
-				"previousSyncedProductFieldNames", syncedProductFieldNames);
 		}
 
 		String[] syncedUserFieldNames =

@@ -149,10 +149,14 @@ public class OAuthClientEntryPersistenceTest {
 		newOAuthClientEntry.setOIDCUserInfoMapperJSON(
 			RandomTestUtil.randomString());
 
+		newOAuthClientEntry.setTokenConnectionTimeout(RandomTestUtil.nextInt());
+
 		newOAuthClientEntry.setTokenRequestParametersJSON(
 			RandomTestUtil.randomString());
 
-		_oAuthClientEntries.add(_persistence.update(newOAuthClientEntry));
+		newOAuthClientEntry = _persistence.update(newOAuthClientEntry);
+
+		_oAuthClientEntries.add(newOAuthClientEntry);
 
 		OAuthClientEntry existingOAuthClientEntry =
 			_persistence.findByPrimaryKey(newOAuthClientEntry.getPrimaryKey());
@@ -207,6 +211,9 @@ public class OAuthClientEntryPersistenceTest {
 		Assert.assertEquals(
 			existingOAuthClientEntry.getOIDCUserInfoMapperJSON(),
 			newOAuthClientEntry.getOIDCUserInfoMapperJSON());
+		Assert.assertEquals(
+			existingOAuthClientEntry.getTokenConnectionTimeout(),
+			newOAuthClientEntry.getTokenConnectionTimeout());
 		Assert.assertEquals(
 			existingOAuthClientEntry.getTokenRequestParametersJSON(),
 			newOAuthClientEntry.getTokenRequestParametersJSON());
@@ -324,7 +331,7 @@ public class OAuthClientEntryPersistenceTest {
 			true, "modifiedDate", true, "authRequestParametersJSON", true,
 			"authServerWellKnownURI", true, "clientId", true, "matcherField",
 			true, "metadataCacheTime", true, "oidcUserInfoMapperJSON", true,
-			"tokenRequestParametersJSON", true);
+			"tokenConnectionTimeout", true, "tokenRequestParametersJSON", true);
 	}
 
 	@Test
@@ -663,6 +670,8 @@ public class OAuthClientEntryPersistenceTest {
 		oAuthClientEntry.setOIDCUserInfoMapperJSON(
 			RandomTestUtil.randomString());
 
+		oAuthClientEntry.setTokenConnectionTimeout(RandomTestUtil.nextInt());
+
 		oAuthClientEntry.setTokenRequestParametersJSON(
 			RandomTestUtil.randomString());
 
@@ -677,4 +686,4 @@ public class OAuthClientEntryPersistenceTest {
 	private ClassLoader _dynamicQueryClassLoader;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1126482045
+// LIFERAY-SERVICE-BUILDER-HASH:89569616

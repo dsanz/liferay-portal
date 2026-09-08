@@ -22,8 +22,6 @@ import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.sanitizer.Sanitizer;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
@@ -885,6 +883,7 @@ public class CommercePricingClassPersistenceImpl
 		ctMergeColumnNames.add("title");
 		ctMergeColumnNames.add("description");
 		ctMergeColumnNames.add("lastPublishDate");
+		ctMergeColumnNames.add("status");
 
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.CONTROL, ctControlColumnNames);
@@ -928,7 +927,7 @@ public class CommercePricingClassPersistenceImpl
 				_SQL_SELECT_COMMERCEPRICINGCLASS_WHERE,
 				_SQL_COUNT_COMMERCEPRICINGCLASS_WHERE,
 				CommercePricingClassModelImpl.ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"commercePricingClass.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -956,7 +955,7 @@ public class CommercePricingClassPersistenceImpl
 				_SQL_SELECT_COMMERCEPRICINGCLASS_WHERE,
 				_SQL_COUNT_COMMERCEPRICINGCLASS_WHERE,
 				CommercePricingClassModelImpl.ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"commercePricingClass.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -988,7 +987,7 @@ public class CommercePricingClassPersistenceImpl
 				_SQL_SELECT_COMMERCEPRICINGCLASS_WHERE,
 				_SQL_COUNT_COMMERCEPRICINGCLASS_WHERE,
 				CommercePricingClassModelImpl.ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"commercePricingClass.", "companyId",
 					FinderColumn.Type.LONG, "=", true, true,
@@ -1070,12 +1069,6 @@ public class CommercePricingClassPersistenceImpl
 	private static final String _SQL_COUNT_COMMERCEPRICINGCLASS_WHERE =
 		"SELECT COUNT(commercePricingClass) FROM CommercePricingClass commercePricingClass WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No CommercePricingClass exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		CommercePricingClassPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid"});
 
@@ -1085,4 +1078,4 @@ public class CommercePricingClassPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:736864130
+// LIFERAY-SERVICE-BUILDER-HASH:-1472336910

@@ -23,6 +23,7 @@ import java.nio.file.Paths;
 
 import java.security.KeyStore;
 
+import java.util.Arrays;
 import java.util.concurrent.Future;
 
 import javax.net.ssl.SSLContext;
@@ -65,7 +66,9 @@ public class RestClientTransportFactory {
 
 				@Override
 				public void onFailure(Node node) {
-					_log.error(new Exception("Unable to connect to " + node));
+					if (_log.isWarnEnabled()) {
+						_log.warn("Marked node as unavailable: " + node);
+					}
 				}
 
 			}
@@ -211,6 +214,8 @@ public class RestClientTransportFactory {
 	}
 
 	private SSLContext _createSSLContext() {
+		char[] truststorePasswordChars = _truststorePassword.toCharArray();
+
 		try {
 			Path path = Paths.get(_truststorePath);
 
@@ -218,18 +223,21 @@ public class RestClientTransportFactory {
 
 			KeyStore keyStore = KeyStore.getInstance(_truststoreType);
 
-			keyStore.load(inputStream, _truststorePassword.toCharArray());
+			keyStore.load(inputStream, truststorePasswordChars);
 
 			SSLContextBuilder sslContextBuilder = SSLContexts.custom();
 
 			sslContextBuilder.loadKeyMaterial(
-				keyStore, _truststorePassword.toCharArray());
+				keyStore, truststorePasswordChars);
 			sslContextBuilder.loadTrustMaterial(keyStore, null);
 
 			return sslContextBuilder.build();
 		}
 		catch (Exception exception) {
 			throw new RuntimeException(exception);
+		}
+		finally {
+			Arrays.fill(truststorePasswordChars, '\0');
 		}
 	}
 

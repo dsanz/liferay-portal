@@ -28,6 +28,7 @@ import com.liferay.portal.kernel.util.PropsKeys;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
+import com.liferay.portal.security.audit.configuration.AuditConfigurationUtil;
 import com.liferay.portal.security.audit.wiring.internal.configuration.AuditLogContextConfiguration;
 
 import jakarta.servlet.Filter;
@@ -53,7 +54,6 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	configurationPid = "com.liferay.portal.security.audit.wiring.internal.configuration.AuditLogContextConfiguration",
-	enabled = false,
 	property = {
 		"after-filter=Session Max Allowed Filter", "servlet-context-name=",
 		"servlet-filter-name=Audit Filter", "url-pattern=/*",
@@ -115,7 +115,8 @@ public class AuditFilter extends BaseFilter implements TryFilter {
 			httpServletRequest.getServerName());
 		auditRequestThreadLocal.setServerPort(
 			httpServletRequest.getServerPort());
-		auditRequestThreadLocal.setSessionID(httpSession.getId());
+		auditRequestThreadLocal.setSessionID(
+			(String)httpSession.getAttribute(WebKeys.AUDIT_SESSION_ID));
 
 		if (!_auditLogContextConfiguration.enabled()) {
 			return null;
@@ -139,6 +140,24 @@ public class AuditFilter extends BaseFilter implements TryFilter {
 			userLogin, xRequestId);
 
 		return null;
+	}
+
+	@Override
+	public boolean isFilterEnabled(
+		HttpServletRequest httpServletRequest,
+		HttpServletResponse httpServletResponse) {
+
+		long companyId = CompanyThreadLocal.getCompanyId();
+
+		if (companyId == CompanyConstants.SYSTEM) {
+			if (_log.isDebugEnabled()) {
+				_log.debug("Skip filter for company ID 0");
+			}
+
+			return false;
+		}
+
+		return AuditConfigurationUtil.isEnabled(companyId);
 	}
 
 	@Activate

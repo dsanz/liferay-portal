@@ -25,6 +25,48 @@ public class AssetStatistics implements Cloneable, Serializable {
 		return AssetStatisticsSerDes.toDTO(json);
 	}
 
+	public Long getApprovedCount() {
+		return approvedCount;
+	}
+
+	public void setApprovedCount(Long approvedCount) {
+		this.approvedCount = approvedCount;
+	}
+
+	public void setApprovedCount(
+		UnsafeSupplier<Long, Exception> approvedCountUnsafeSupplier) {
+
+		try {
+			approvedCount = approvedCountUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long approvedCount;
+
+	public Long getBrokenLinksCount() {
+		return brokenLinksCount;
+	}
+
+	public void setBrokenLinksCount(Long brokenLinksCount) {
+		this.brokenLinksCount = brokenLinksCount;
+	}
+
+	public void setBrokenLinksCount(
+		UnsafeSupplier<Long, Exception> brokenLinksCountUnsafeSupplier) {
+
+		try {
+			brokenLinksCount = brokenLinksCountUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long brokenLinksCount;
+
 	public Long getExpiredCount() {
 		return expiredCount;
 	}
@@ -88,6 +130,27 @@ public class AssetStatistics implements Cloneable, Serializable {
 
 	protected Long inDraftCount;
 
+	public Long getPendingCount() {
+		return pendingCount;
+	}
+
+	public void setPendingCount(Long pendingCount) {
+		this.pendingCount = pendingCount;
+	}
+
+	public void setPendingCount(
+		UnsafeSupplier<Long, Exception> pendingCountUnsafeSupplier) {
+
+		try {
+			pendingCount = pendingCountUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long pendingCount;
+
 	public Long getReviewDateOverdueCount() {
 		return reviewDateOverdueCount;
 	}
@@ -109,6 +172,27 @@ public class AssetStatistics implements Cloneable, Serializable {
 
 	protected Long reviewDateOverdueCount;
 
+	public Long getScheduledCount() {
+		return scheduledCount;
+	}
+
+	public void setScheduledCount(Long scheduledCount) {
+		this.scheduledCount = scheduledCount;
+	}
+
+	public void setScheduledCount(
+		UnsafeSupplier<Long, Exception> scheduledCountUnsafeSupplier) {
+
+		try {
+			scheduledCount = scheduledCountUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long scheduledCount;
+
 	public Long getTotalCount() {
 		return totalCount;
 	}
@@ -129,6 +213,27 @@ public class AssetStatistics implements Cloneable, Serializable {
 	}
 
 	protected Long totalCount;
+
+	public Long getUpcomingReviewCount() {
+		return upcomingReviewCount;
+	}
+
+	public void setUpcomingReviewCount(Long upcomingReviewCount) {
+		this.upcomingReviewCount = upcomingReviewCount;
+	}
+
+	public void setUpcomingReviewCount(
+		UnsafeSupplier<Long, Exception> upcomingReviewCountUnsafeSupplier) {
+
+		try {
+			upcomingReviewCount = upcomingReviewCountUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long upcomingReviewCount;
 
 	@Override
 	public AssetStatistics clone() throws CloneNotSupportedException {
@@ -162,4 +267,4 @@ public class AssetStatistics implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-941353405
+// LIFERAY-REST-BUILDER-HASH:-614999884

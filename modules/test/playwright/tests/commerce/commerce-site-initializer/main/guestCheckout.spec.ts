@@ -17,7 +17,12 @@ import {
 	performLoginViaApi,
 	performLogout,
 } from '../../../../utils/performLogin';
-import {classicCommerceSetUp, guestCheckoutSetUp} from '../../utils/commerce';
+import {
+	classicCommerceSetUp,
+	enableGuestPageView,
+	guestCheckoutSetUp,
+	speedwellSetUp,
+} from '../../utils/commerce';
 
 export const test = mergeTests(
 	apiHelpersTest,
@@ -26,7 +31,6 @@ export const test = mergeTests(
 	displayPageTemplatesPagesTest,
 	featureFlagsTest({
 		'LPD-10562': {enabled: true},
-		'LPD-20379': {enabled: true},
 	}),
 	loginTest(),
 	pageEditorPagesTest
@@ -34,7 +38,7 @@ export const test = mergeTests(
 
 test(
 	'Guest can directly checkout a new order in B2B channel site',
-	{tag: ['@LPD-35678', '@LPD-84664']},
+	{tag: ['@LPD-35678', '@LPD-84664', '@LPD-93817']},
 	async ({
 		apiHelpers,
 		checkoutPage,
@@ -74,17 +78,7 @@ test(
 				await commerceMiniCartPage.miniCartButton.click();
 			});
 
-			await test.step('Open the order details and verify that no error alert is shown', async () => {
-				await commerceMiniCartPage.viewDetailsButton.click();
-
-				await page.waitForLoadState('networkidle');
-
-				await expect(page.locator('.alert-danger')).toHaveCount(0);
-			});
-
 			await test.step('Proceed as guest from the mini cart and verify the checkout survives a page reload', async () => {
-				await commerceMiniCartPage.miniCartButton.click();
-
 				await commerceMiniCartPage.proceedAsGuest.click();
 
 				await expect(checkoutPage.activeCheckoutStep).toBeVisible();
@@ -198,11 +192,28 @@ test(
 			});
 
 			await test.step('Verify the account is selected and the cart still has the product', async () => {
+				const accountSelectionModal = page.locator(
+					'#account-selection-modal'
+				);
+				const accountSelector = page.locator('.btn-account-selector', {
+					hasText: account.name,
+				});
+
 				await expect(
-					page.locator('.btn-account-selector', {
-						hasText: account.name,
-					})
+					accountSelectionModal.or(accountSelector).first()
 				).toBeVisible();
+
+				if (await accountSelectionModal.isVisible()) {
+					await accountSelectionModal
+						.locator('#available-accounts-list')
+						.selectOption(account.name);
+
+					await accountSelectionModal
+						.getByRole('button', {name: 'Continue'})
+						.click();
+				}
+
+				await expect(accountSelector).toBeVisible();
 
 				await commerceMiniCartPage.miniCartButton.click();
 
@@ -751,6 +762,175 @@ test(
 			await expect(page.locator('.product-card')).toBeVisible();
 
 			await expect(page.locator('.add-to-wish-list')).toHaveCount(0);
+		});
+	}
+);
+
+test(
+	'Guest cannot use the mini cart quick add when guest checkout is disabled in B2B channel site',
+	{tag: '@LPD-94001'},
+	async ({apiHelpers, commerceMiniCartPage, page}) => {
+		test.setTimeout(90000);
+
+		const {site} = await classicCommerceSetUp(
+			apiHelpers,
+			`B2B_${getRandomString()}`
+		);
+
+		await enableGuestPageView(page, site);
+
+		try {
+			await test.step('Open the mini cart as a guest', async () => {
+				await performLogout(page);
+
+				await page.goto(`/web${site.friendlyUrlPath}`);
+
+				await commerceMiniCartPage.miniCartButton.click();
+			});
+
+			await test.step('Verify the quick add is disabled', async () => {
+				await expect(
+					commerceMiniCartPage.searchProductsInput
+				).toBeDisabled();
+
+				await expect(
+					commerceMiniCartPage.quickAddToCartButton
+				).toBeDisabled();
+			});
+		}
+		finally {
+			await performLoginViaApi({page, screenName: 'test'});
+		}
+	}
+);
+
+test(
+	'Guest checkout survives sign-in after the order in the URL is merged away',
+	{tag: '@LPD-95478'},
+	async ({
+		apiHelpers,
+		commerceAdminChannelDetailsPage,
+		commerceAdminChannelsPage,
+		commerceMiniCartPage,
+		commerceThemeMiniumCatalogPage,
+		page,
+	}) => {
+		test.setTimeout(120000);
+
+		const {channel, site} = await speedwellSetUp(
+			apiHelpers,
+			`Speedwell_${getRandomString()}`
+		);
+
+		const account = await apiHelpers.headlessAdminUser.postAccount({
+			name: getRandomString(),
+			type: 'person',
+		});
+
+		await apiHelpers.headlessAdminUser.assignUserToAccountByEmailAddress(
+			account.id,
+			['test@liferay.com']
+		);
+
+		await guestCheckoutSetUp(
+			channel,
+			commerceAdminChannelDetailsPage,
+			commerceAdminChannelsPage,
+			page,
+			site
+		);
+
+		let order;
+
+		await test.step('Provision the full-page authentication layout via the channel health check', async () => {
+			await performLoginViaApi({page, screenName: 'test'});
+
+			await commerceAdminChannelsPage.goto();
+
+			await (
+				await commerceAdminChannelsPage.channelsTableRowLink(
+					channel.name
+				)
+			).click();
+
+			await (
+				await commerceAdminChannelDetailsPage.commerceChannelHealthChecksTableRowAction(
+					'Fix Issue',
+					'Guest Checkout Authentication'
+				)
+			).click();
+
+			await page.waitForLoadState('networkidle');
+		});
+
+		await test.step('Give the user an open order so the guest order is merged into it on sign-in', async () => {
+			const product =
+				await apiHelpers.headlessCommerceAdminCatalog.getProductByName(
+					'Calipers'
+				);
+
+			const sku = product.skus[0];
+
+			order = await apiHelpers.headlessCommerceDeliveryCart.postCart(
+				{
+					accountId: account.id,
+					cartItems: [{quantity: 1, skuId: sku.id}],
+				},
+				channel.id
+			);
+
+			await performLogout(page);
+		});
+
+		await test.step('As a guest, proceed to checkout and continue to the authentication page', async () => {
+			await page.goto(`/web${site.friendlyUrlPath}/catalog`, {
+				waitUntil: 'networkidle',
+			});
+
+			const productName = 'Wear Sensors';
+
+			await commerceThemeMiniumCatalogPage.catalogSearch.fill(
+				productName
+			);
+
+			await commerceThemeMiniumCatalogPage.catalogSearch.press('Enter');
+
+			await page.waitForLoadState('networkidle');
+
+			await commerceThemeMiniumCatalogPage
+				.productCardAddToCartButton(productName)
+				.click();
+
+			await page.waitForLoadState('networkidle');
+
+			await commerceMiniCartPage.miniCartButton.click();
+
+			await expect(
+				commerceMiniCartPage.miniCartItem(productName)
+			).toBeVisible();
+
+			await commerceMiniCartPage.proceedAsGuest.click();
+
+			await page.waitForLoadState('networkidle');
+		});
+
+		await test.step('Sign in on the authentication page and verify the checkout renders against the merged order', async () => {
+			await page
+				.locator('input[id*="LoginPortlet_login"]')
+				.fill('test@liferay.com');
+			await page.locator('input[id*="LoginPortlet_pass"]').fill('test');
+			await page.getByRole('button', {name: 'Sign In'}).last().click();
+
+			await page.waitForLoadState('networkidle');
+
+			await expect(page.locator('.alert-danger')).toHaveCount(0);
+
+			const cartItems =
+				await apiHelpers.headlessCommerceDeliveryCart.getCartItems(
+					order.id
+				);
+
+			expect(cartItems.items).toHaveLength(2);
 		});
 	}
 );

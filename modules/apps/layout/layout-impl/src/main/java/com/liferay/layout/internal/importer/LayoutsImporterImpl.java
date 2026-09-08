@@ -14,6 +14,8 @@ import com.liferay.client.extension.model.ClientExtensionEntryRel;
 import com.liferay.client.extension.service.ClientExtensionEntryRelLocalService;
 import com.liferay.client.extension.type.CET;
 import com.liferay.client.extension.type.manager.CETManager;
+import com.liferay.depot.service.DepotEntryGroupRelLocalService;
+import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.fragment.contributor.FragmentCollectionContributorRegistry;
 import com.liferay.fragment.listener.FragmentEntryLinkListener;
@@ -146,6 +148,7 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -356,6 +359,7 @@ public class LayoutsImporterImpl implements LayoutsImporter {
 			new ContainerLayoutStructureItemImporter());
 		_addLayoutStructureItemImporter(
 			new DropZoneLayoutStructureItemImporter(
+				_companyLocalService, _depotEntryLocalService,
 				_fragmentCollectionContributorRegistry,
 				_fragmentCollectionLocalService, _fragmentEntryLocalService,
 				_fragmentRendererRegistry));
@@ -370,7 +374,8 @@ public class LayoutsImporterImpl implements LayoutsImporter {
 			new FragmentDropZoneLayoutStructureItemImporter());
 		_addLayoutStructureItemImporter(
 			new FragmentLayoutStructureItemImporter(
-				_companyLocalService, _fragmentCollectionContributorRegistry,
+				_companyLocalService, _depotEntryGroupRelLocalService,
+				_depotEntryLocalService, _fragmentCollectionContributorRegistry,
 				_fragmentCollectionService, _fragmentEntryLinkLocalService,
 				_fragmentEntryLocalService, _fragmentEntryProcessorRegistry,
 				_fragmentEntryValidator, _fragmentRendererRegistry,
@@ -1019,11 +1024,19 @@ public class LayoutsImporterImpl implements LayoutsImporter {
 
 		List<FragmentEntryLink> fragmentEntryLinks = new ArrayList<>();
 
+		Set<String> warningMessages = new LinkedHashSet<>();
+
 		_processPageElement(
 			fragmentEntryLinks, layout, layoutStructure,
 			LayoutStructureConstants.LATEST_PAGE_DEFINITION_VERSION,
 			pageElement, parentItemId, position, preserveItemIds,
-			segmentsExperienceId, new HashSet<>());
+			segmentsExperienceId, warningMessages);
+
+		if (_log.isWarnEnabled()) {
+			for (String warningMessage : warningMessages) {
+				_log.warn(warningMessage);
+			}
+		}
 
 		consumer.accept(layoutStructure);
 
@@ -2366,12 +2379,17 @@ public class LayoutsImporterImpl implements LayoutsImporter {
 					}
 				}
 			}
-			else if (favIconMap.containsKey("externalReferenceCode")) {
-				_addClientExtensionEntryRel(
-					String.valueOf(favIconMap.get("externalReferenceCode")),
-					layout, serviceContext,
-					ClientExtensionEntryConstants.TYPE_THEME_FAVICON, null,
-					userId);
+			else {
+				Object externalReferenceCode = favIconMap.get(
+					"externalReferenceCode");
+
+				if (externalReferenceCode != null) {
+					_addClientExtensionEntryRel(
+						String.valueOf(externalReferenceCode), layout,
+						serviceContext,
+						ClientExtensionEntryConstants.TYPE_THEME_FAVICON, null,
+						userId);
+				}
 			}
 		}
 
@@ -2458,6 +2476,12 @@ public class LayoutsImporterImpl implements LayoutsImporter {
 
 	@Reference
 	private CompanyLocalService _companyLocalService;
+
+	@Reference
+	private DepotEntryGroupRelLocalService _depotEntryGroupRelLocalService;
+
+	@Reference
+	private DepotEntryLocalService _depotEntryLocalService;
 
 	@Reference
 	private DLAppService _dlAppService;

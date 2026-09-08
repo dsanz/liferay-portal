@@ -52,9 +52,9 @@ $btn-link-disabled-color: $link-color !default;
 
 $btn-border-radius-lg: $border-radius !default;
 $btn-font-size-lg: $font-size-lg !default; // 18px
+$btn-inline-item-font-size-lg: $font-size-lg !default; // 18px
 $btn-padding-x-lg: 1.5rem !default; // 24px
 $btn-padding-y-lg: 0.59375rem !default; // 9.5px
-$btn-inline-item-font-size-lg: $font-size-lg !default; // 18px
 
 $btn-lg: () !default;
 $btn-lg: map-deep-merge(
@@ -411,6 +411,18 @@ $btn-dark: map-deep-merge(
 	$btn-dark
 );
 
+$btn-ai: () !default;
+$btn-ai: map-deep-merge(
+	(
+		box-shadow: c-unset,
+
+		focus: (
+			box-shadow: c-unset,
+		),
+	),
+	$btn-ai
+);
+
 // Button Outline Variant
 
 $btn-outline-primary: () !default;
@@ -429,8 +441,9 @@ $btn-outline-primary: map-deep-merge(
 
 		active: (
 			background-color: rgba($primary, 0.12),
-			color: $primary-d1,
 			box-shadow: map-deep-get($btn-primary, active, box-shadow),
+			color: $primary-d1,
+
 			focus: (
 				box-shadow:
 					map-deep-get($btn-primary, active, focus, box-shadow),
@@ -444,6 +457,38 @@ $btn-outline-primary: map-deep-merge(
 		),
 	),
 	$btn-outline-primary
+);
+
+$btn-outline-ai: () !default;
+$btn-outline-ai: map-deep-merge(
+	(
+		hover: (
+			background-color: rgba($purple, 0.06),
+			color: $purple-d1,
+		),
+
+		focus: (
+			background-color: rgba($purple, 0.06),
+			box-shadow: c-unset,
+			color: $purple-d1,
+		),
+
+		active: (
+			background-color: rgba($purple, 0.12),
+			color: $purple-d1,
+
+			focus: (
+				box-shadow: c-unset,
+			),
+		),
+
+		disabled: (
+			background-color: transparent,
+			border-color: $purple,
+			color: $purple,
+		),
+	),
+	$btn-outline-ai
 );
 
 $btn-outline-secondary: () !default;

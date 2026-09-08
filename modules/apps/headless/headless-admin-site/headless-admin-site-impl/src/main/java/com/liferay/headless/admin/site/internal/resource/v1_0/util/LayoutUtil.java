@@ -10,6 +10,7 @@ import com.liferay.client.extension.service.ClientExtensionEntryRelLocalServiceU
 import com.liferay.client.extension.type.CET;
 import com.liferay.client.extension.type.manager.CETManager;
 import com.liferay.expando.kernel.util.ExpandoUtil;
+import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.fragment.processor.FragmentEntryProcessorRegistry;
 import com.liferay.headless.admin.site.dto.v1_0.BasicWidgetPageWidgetInstance;
@@ -58,6 +59,7 @@ import com.liferay.portal.kernel.model.LayoutTemplate;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.model.LayoutTypePortletConstants;
 import com.liferay.portal.kernel.model.Theme;
+import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.LayoutServiceUtil;
@@ -89,6 +91,7 @@ import java.io.Serializable;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -432,6 +435,9 @@ public class LayoutUtil {
 			ServiceContext serviceContext)
 		throws Exception {
 
+		typeSettingsUnicodeProperties.putAll(
+			_getLastImportSettingsMap(serviceContext.getUserId()));
+
 		if (!Objects.equals(
 				typeSettingsUnicodeProperties,
 				layout.getTypeSettingsProperties())) {
@@ -550,6 +556,9 @@ public class LayoutUtil {
 
 		_setExpandoBridgeAttributes(pageSpecification, serviceContext);
 
+		typeSettingsUnicodeProperties.putAll(
+			_getLastImportSettingsMap(serviceContext.getUserId()));
+
 		if (!Objects.equals(
 				typeSettingsUnicodeProperties,
 				layout.getTypeSettingsProperties())) {
@@ -635,12 +644,18 @@ public class LayoutUtil {
 		GeneralConfig generalConfig =
 			widgetLookAndFeelConfig.getGeneralConfig();
 
-		if (generalConfig.getApplicationDecorator() != null) {
-			map.put(
-				"portletSetupPortletDecoratorId",
-				StringUtil.lowerCase(
-					generalConfig.getApplicationDecoratorAsString()));
+		String portletSetupPortletDecoratorId =
+			generalConfig.getCustomApplicationDecorator();
+
+		if ((portletSetupPortletDecoratorId == null) &&
+			(generalConfig.getApplicationDecorator() != null)) {
+
+			portletSetupPortletDecoratorId = StringUtil.lowerCase(
+				generalConfig.getApplicationDecoratorAsString());
 		}
+
+		map.put(
+			"portletSetupPortletDecoratorId", portletSetupPortletDecoratorId);
 
 		Map<String, String> customTitleI18n =
 			generalConfig.getCustomTitle_i18n();
@@ -681,6 +696,30 @@ public class LayoutUtil {
 		}
 
 		return URLUtil.getByteArray(iconImageURL.getUrl());
+	}
+
+	private static Map<String, String> _getLastImportSettingsMap(long userId) {
+		if (!ExportImportThreadLocal.isLayoutImportInProcess() ||
+			!ExportImportThreadLocal.isStagingInProcess()) {
+
+			return Collections.emptyMap();
+		}
+
+		User user = UserLocalServiceUtil.fetchUser(userId);
+
+		if (user == null) {
+			return HashMapBuilder.put(
+				"last-import-date", String.valueOf(System.currentTimeMillis())
+			).build();
+		}
+
+		return HashMapBuilder.put(
+			"last-import-date", String.valueOf(System.currentTimeMillis())
+		).put(
+			"last-import-user-name", user::getFullName
+		).put(
+			"last-import-user-uuid", user::getUuid
+		).build();
 	}
 
 	private static String _getMasterLayoutPageTemplateEntryERC(
@@ -1295,6 +1334,9 @@ public class LayoutUtil {
 
 		UnicodeProperties unicodeProperties =
 			layout.getTypeSettingsProperties();
+
+		unicodeProperties.putAll(
+			_getLastImportSettingsMap(serviceContext.getUserId()));
 
 		if (widgetPageSpecification == null) {
 			return LayoutServiceUtil.updateTypeSettings(

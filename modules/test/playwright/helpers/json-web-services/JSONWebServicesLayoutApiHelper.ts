@@ -99,6 +99,12 @@ export class JSONWebServicesLayoutApiHelper {
 			}
 		);
 
+		// Content layouts are edited through their draft layout
+
+		if (options.type === 'content') {
+			layout.draftLayout = await this.getDraftLayout(layout);
+		}
+
 		// Publish content layouts using UI (since there's no headless method available yet)
 
 		if (options.publish && options.type === 'content') {
@@ -133,10 +139,34 @@ export class JSONWebServicesLayoutApiHelper {
 		);
 	}
 
+	/**
+	 * Returns the draft layout of the given content layout, which is the one
+	 * serving the page editor. The draft layout carries the external reference
+	 * code of its live layout with a '-draft' suffix.
+	 */
+	async getDraftLayout(layout: Layout): Promise<Layout> {
+		const urlSearchParams = new URLSearchParams();
+
+		urlSearchParams.append(
+			'externalReferenceCode',
+			`${layout.externalReferenceCode}-draft`
+		);
+		urlSearchParams.append('groupId', layout.groupId);
+
+		return this.apiHelpers.post(
+			`${liferayConfig.environment.baseUrl}${this.basePath}/get-layout-by-external-reference-code`,
+			{
+				data: urlSearchParams.toString(),
+				failOnStatusCode: true,
+				headers: await this.apiHelpers.getJSONWebServicesHeaders(),
+			}
+		);
+	}
+
 	async getLayoutsCount(
 		groupId: number,
 		privateLayout: boolean
-	): Promise<void> {
+	): Promise<number> {
 		const urlSearchParams = new URLSearchParams();
 
 		// @ts-ignore

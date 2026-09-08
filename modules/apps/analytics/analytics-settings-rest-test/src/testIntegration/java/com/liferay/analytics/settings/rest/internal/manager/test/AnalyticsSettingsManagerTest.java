@@ -7,6 +7,7 @@ package com.liferay.analytics.settings.rest.internal.manager.test;
 
 import com.liferay.analytics.settings.configuration.AnalyticsConfiguration;
 import com.liferay.analytics.settings.rest.manager.AnalyticsSettingsManager;
+import com.liferay.analytics.test.util.AnalyticsCompanyConfigurationTemporarySwapper;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.test.util.CompanyConfigurationTemporarySwapper;
@@ -54,159 +55,58 @@ public class AnalyticsSettingsManagerTest {
 	public void setUp() throws Exception {
 		_analyticsChannelId1 = RandomTestUtil.randomString(8);
 		_analyticsChannelId2 = RandomTestUtil.randomString(8);
-		_commerceChannelGroup1 = _addCommerceChannelGroup();
-		_commerceChannelGroup2 = _addCommerceChannelGroup();
+
 		_siteGroup1 = GroupTestUtil.addGroup();
+
+		_commerceChannelGroup1 = _addCommerceChannelGroup(
+			_siteGroup1.getGroupId());
+
 		_siteGroup2 = GroupTestUtil.addGroup();
+
+		_commerceChannelGroup2 = _addCommerceChannelGroup(
+			_siteGroup2.getGroupId());
 	}
 
 	@After
 	public void tearDown() throws Exception {
 		_analyticsSettingsManager.deleteCompanyConfiguration(
 			TestPropsValues.getCompanyId());
-
 		_groupLocalService.deleteGroup(_commerceChannelGroup1);
 		_groupLocalService.deleteGroup(_commerceChannelGroup2);
 		_groupLocalService.deleteGroup(_siteGroup1);
 		_groupLocalService.deleteGroup(_siteGroup2);
 	}
 
-	@Ignore
 	@Test
 	public void testGetCommerceChannelIds() throws Exception {
-		Long[] emptyCommerceChannelIds =
+		long[] emptyCommerceChannelIds =
 			_analyticsSettingsManager.getCommerceChannelIds(
-				_analyticsChannelId1, TestPropsValues.getCompanyId());
+				TestPropsValues.getCompanyId(), new long[0]);
 
 		Assert.assertEquals(
 			Arrays.toString(emptyCommerceChannelIds), 0,
 			emptyCommerceChannelIds.length);
 
-		String[] updateCommerceChannelIds =
-			_analyticsSettingsManager.updateCommerceChannelIds(
-				_analyticsChannelId1, TestPropsValues.getCompanyId(),
-				new Long[] {_commerceChannelGroup1.getClassPK()});
+		long[] commerceChannelIds =
+			_analyticsSettingsManager.getCommerceChannelIds(
+				TestPropsValues.getCompanyId(),
+				new long[] {_siteGroup1.getGroupId()});
 
-		Assert.assertArrayEquals(
-			Arrays.toString(updateCommerceChannelIds),
-			ArrayUtil.sortedUnique(updateCommerceChannelIds),
-			ArrayUtil.sortedUnique(
-				new String[] {
-					String.valueOf(_commerceChannelGroup1.getClassPK())
-				}));
+		Assert.assertEquals(
+			Arrays.toString(commerceChannelIds), 1, commerceChannelIds.length);
+		Assert.assertEquals(
+			_commerceChannelGroup1.getClassPK(), commerceChannelIds[0]);
 
-		_analyticsSettingsManager.updateCompanyConfiguration(
-			TestPropsValues.getCompanyId(),
-			HashMapBuilder.<String, Object>put(
-				"syncedCommerceChannelIds", updateCommerceChannelIds
-			).build());
-
-		updateCommerceChannelIds =
-			_analyticsSettingsManager.updateCommerceChannelIds(
-				_analyticsChannelId2, TestPropsValues.getCompanyId(),
-				new Long[] {_commerceChannelGroup2.getClassPK()});
-
-		Assert.assertArrayEquals(
-			Arrays.toString(updateCommerceChannelIds),
-			ArrayUtil.sortedUnique(updateCommerceChannelIds),
-			ArrayUtil.sortedUnique(
-				new String[] {
-					String.valueOf(_commerceChannelGroup1.getClassPK()),
-					String.valueOf(_commerceChannelGroup2.getClassPK())
-				}));
-
-		_analyticsSettingsManager.updateCompanyConfiguration(
-			TestPropsValues.getCompanyId(),
-			HashMapBuilder.<String, Object>put(
-				"syncedCommerceChannelIds", updateCommerceChannelIds
-			).build());
-
-		IdempotentRetryAssert.retryAssert(
-			5, TimeUnit.SECONDS, 1, TimeUnit.SECONDS,
-			() -> {
-				Long[] commerceChannelIds =
-					_analyticsSettingsManager.getCommerceChannelIds(
-						_analyticsChannelId1, TestPropsValues.getCompanyId());
-
-				Assert.assertEquals(
-					Arrays.toString(commerceChannelIds), 1,
-					commerceChannelIds.length);
-
-				return null;
-			});
-
-		updateCommerceChannelIds =
-			_analyticsSettingsManager.updateCommerceChannelIds(
-				_analyticsChannelId1, TestPropsValues.getCompanyId(),
-				new Long[] {
-					_commerceChannelGroup1.getClassPK(),
-					_commerceChannelGroup2.getClassPK()
+		long[] bothCommerceChannelIds =
+			_analyticsSettingsManager.getCommerceChannelIds(
+				TestPropsValues.getCompanyId(),
+				new long[] {
+					_siteGroup1.getGroupId(), _siteGroup2.getGroupId()
 				});
 
-		Assert.assertArrayEquals(
-			Arrays.toString(updateCommerceChannelIds),
-			ArrayUtil.sortedUnique(updateCommerceChannelIds),
-			ArrayUtil.sortedUnique(
-				new String[] {
-					String.valueOf(_commerceChannelGroup1.getClassPK()),
-					String.valueOf(_commerceChannelGroup2.getClassPK())
-				}));
-
-		_analyticsSettingsManager.updateCompanyConfiguration(
-			TestPropsValues.getCompanyId(),
-			HashMapBuilder.<String, Object>put(
-				"syncedCommerceChannelIds", updateCommerceChannelIds
-			).build());
-
-		IdempotentRetryAssert.retryAssert(
-			5, TimeUnit.SECONDS, 1, TimeUnit.SECONDS,
-			() -> {
-				Long[] commerceChannelIds =
-					_analyticsSettingsManager.getCommerceChannelIds(
-						_analyticsChannelId1, TestPropsValues.getCompanyId());
-
-				Assert.assertEquals(
-					Arrays.toString(commerceChannelIds), 2,
-					commerceChannelIds.length);
-
-				return null;
-			});
-
-		updateCommerceChannelIds =
-			_analyticsSettingsManager.updateCommerceChannelIds(
-				_analyticsChannelId1, TestPropsValues.getCompanyId(),
-				new Long[] {_commerceChannelGroup1.getClassPK()});
-
-		Assert.assertArrayEquals(
-			Arrays.toString(updateCommerceChannelIds),
-			ArrayUtil.sortedUnique(updateCommerceChannelIds),
-			ArrayUtil.sortedUnique(
-				new String[] {
-					String.valueOf(_commerceChannelGroup1.getClassPK())
-				}));
-
-		_analyticsSettingsManager.updateCompanyConfiguration(
-			TestPropsValues.getCompanyId(),
-			HashMapBuilder.<String, Object>put(
-				"syncedCommerceChannelIds", updateCommerceChannelIds
-			).build());
-
-		IdempotentRetryAssert.retryAssert(
-			5, TimeUnit.SECONDS, 1, TimeUnit.SECONDS,
-			() -> {
-				Long[] commerceChannelIds =
-					_analyticsSettingsManager.getCommerceChannelIds(
-						_analyticsChannelId1, TestPropsValues.getCompanyId());
-
-				Assert.assertEquals(
-					Arrays.toString(commerceChannelIds), 1,
-					commerceChannelIds.length);
-				Assert.assertEquals(
-					_commerceChannelGroup1.getClassPK(),
-					(long)commerceChannelIds[0]);
-
-				return null;
-			});
+		Assert.assertEquals(
+			Arrays.toString(bothCommerceChannelIds), 2,
+			bothCommerceChannelIds.length);
 	}
 
 	@Ignore
@@ -328,23 +228,10 @@ public class AnalyticsSettingsManagerTest {
 
 	@Test
 	public void testIsSiteIdSynced() throws Exception {
-		try (CompanyConfigurationTemporarySwapper
-				companyConfigurationTemporarySwapper =
-					new CompanyConfigurationTemporarySwapper(
-						TestPropsValues.getCompanyId(),
-						AnalyticsConfiguration.class.getName(),
-						HashMapDictionaryBuilder.<String, Object>put(
-							"liferayAnalyticsDataSourceId",
-							RandomTestUtil.nextLong()
-						).put(
-							"liferayAnalyticsEnableAllGroupIds", true
-						).put(
-							"liferayAnalyticsFaroBackendSecuritySignature",
-							RandomTestUtil.randomString()
-						).put(
-							"liferayAnalyticsFaroBackendURL",
-							RandomTestUtil.randomString()
-						).build())) {
+		try (AnalyticsCompanyConfigurationTemporarySwapper
+				analyticsCompanyConfigurationTemporarySwapper =
+					new AnalyticsCompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId())) {
 
 			Assert.assertTrue(
 				_analyticsSettingsManager.isSiteIdSynced(
@@ -408,6 +295,54 @@ public class AnalyticsSettingsManagerTest {
 	}
 
 	@Test
+	public void testPreviousSyncedGroupIds() throws Exception {
+		_analyticsSettingsManager.updateCompanyConfiguration(
+			TestPropsValues.getCompanyId(),
+			HashMapBuilder.<String, Object>put(
+				"syncedGroupIds",
+				new String[] {String.valueOf(_siteGroup1.getGroupId())}
+			).build());
+
+		IdempotentRetryAssert.retryAssert(
+			5, TimeUnit.SECONDS, 1, TimeUnit.SECONDS,
+			() -> {
+				AnalyticsConfiguration analyticsConfiguration =
+					_analyticsSettingsManager.getAnalyticsConfiguration(
+						TestPropsValues.getCompanyId());
+
+				Assert.assertArrayEquals(
+					new String[] {String.valueOf(_siteGroup1.getGroupId())},
+					analyticsConfiguration.syncedGroupIds());
+
+				return null;
+			});
+
+		_analyticsSettingsManager.updateCompanyConfiguration(
+			TestPropsValues.getCompanyId(),
+			HashMapBuilder.<String, Object>put(
+				"syncedGroupIds",
+				new String[] {String.valueOf(_siteGroup2.getGroupId())}
+			).build());
+
+		IdempotentRetryAssert.retryAssert(
+			5, TimeUnit.SECONDS, 1, TimeUnit.SECONDS,
+			() -> {
+				AnalyticsConfiguration analyticsConfiguration =
+					_analyticsSettingsManager.getAnalyticsConfiguration(
+						TestPropsValues.getCompanyId());
+
+				Assert.assertArrayEquals(
+					new String[] {String.valueOf(_siteGroup1.getGroupId())},
+					analyticsConfiguration.previousSyncedGroupIds());
+				Assert.assertArrayEquals(
+					new String[] {String.valueOf(_siteGroup2.getGroupId())},
+					analyticsConfiguration.syncedGroupIds());
+
+				return null;
+			});
+	}
+
+	@Test
 	public void testUpdateCompanyConfiguration() throws Exception {
 		AnalyticsConfiguration analyticsConfiguration1 =
 			_analyticsSettingsManager.getAnalyticsConfiguration(
@@ -462,14 +397,14 @@ public class AnalyticsSettingsManagerTest {
 			});
 	}
 
-	private Group _addCommerceChannelGroup() throws Exception {
+	private Group _addCommerceChannelGroup(long siteGroupId) throws Exception {
 		return _groupLocalService.addGroup(
 			StringPool.BLANK, TestPropsValues.getUserId(), 0,
 			"com.liferay.commerce.product.model.CommerceChannel",
 			RandomTestUtil.randomLong(), 0,
 			RandomTestUtil.randomLocaleStringMap(),
 			RandomTestUtil.randomLocaleStringMap(),
-			GroupConstants.TYPE_SITE_OPEN, null, false,
+			GroupConstants.TYPE_SITE_OPEN, "siteGroupId=" + siteGroupId, false,
 			GroupConstants.DEFAULT_MEMBERSHIP_RESTRICTION,
 			"/" + RandomTestUtil.randomString(6), false, false, true,
 			ServiceContextTestUtil.getServiceContext());

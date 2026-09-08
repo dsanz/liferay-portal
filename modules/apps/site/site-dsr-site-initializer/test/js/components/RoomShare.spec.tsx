@@ -4,7 +4,13 @@
  */
 
 import '@testing-library/jest-dom';
-import {cleanup, render, screen, waitFor} from '@testing-library/react';
+import {
+	cleanup,
+	fireEvent,
+	render,
+	screen,
+	waitFor,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -28,6 +34,7 @@ jest.mock(
 			deleteRoomUserAccount: jest.fn(),
 			getRoomInvitedMembers: jest.fn(),
 			getRoomUserAccounts: jest.fn(),
+			updateRoomInvitedMember: jest.fn(),
 			updateRoomUserAccount: jest.fn(),
 		},
 	})
@@ -44,7 +51,7 @@ const mockUsers = [
 		emailAddress: 'ran.doe@liferay.com',
 		id: 2,
 		name: 'Ran Doe',
-		roleKey: 'DSR Contributor',
+		roleKey: 'DSR Content Contributor',
 	},
 	{
 		emailAddress: 'win.doe@liferay.com',
@@ -54,8 +61,10 @@ const mockUsers = [
 	},
 ];
 
-const renderComponent = ({roomId}: IRoomShareProps) => {
-	return render(<RoomShare roomId={roomId} />);
+const renderComponent = ({canAssignAllRoles, roomId}: IRoomShareProps) => {
+	return render(
+		<RoomShare canAssignAllRoles={canAssignAllRoles} roomId={roomId} />
+	);
 };
 
 describe('RoomShare', () => {
@@ -69,6 +78,10 @@ describe('RoomShare', () => {
 
 		(RoomService.getRoomUserAccounts as jest.Mock).mockResolvedValue(
 			mockUsers
+		);
+
+		(RoomService.updateRoomInvitedMember as jest.Mock).mockResolvedValue(
+			{}
 		);
 
 		(RoomService.updateRoomUserAccount as jest.Mock).mockImplementation(
@@ -106,6 +119,31 @@ describe('RoomShare', () => {
 		expect(
 			container.querySelector('[data-testid="inviteButton"]')
 		).toBeInTheDocument();
+		expect(container.querySelector('.reference-mark')).toBeInTheDocument();
+	});
+
+	it('disables the invite button until an email address is added', async () => {
+		const {container} = renderComponent({
+			roomId: 10,
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('John Doe')).toBeInTheDocument();
+		});
+
+		const inviteButton = container.querySelector(
+			'[data-testid="inviteButton"]'
+		) as HTMLButtonElement;
+
+		expect(inviteButton).toBeDisabled();
+
+		const emailInput = container.querySelector(
+			'[data-testid="emailAddressesInput"]'
+		) as HTMLInputElement;
+
+		await userEvent.type(emailInput, 'newuser@liferay.com,');
+
+		expect(inviteButton).not.toBeDisabled();
 	});
 
 	it('loads and displays users', async () => {
@@ -202,8 +240,21 @@ describe('RoomShare', () => {
 		});
 	});
 
-	it('changes role for a user', async () => {
+	it('changes role for a user while preserving the expiration date', async () => {
+		const membershipExpirationDate = new Date(
+			Date.now() + 365 * 24 * 60 * 60 * 1000
+		).toISOString();
+
+		(RoomService.getRoomUserAccounts as jest.Mock).mockResolvedValue([
+			...mockUsers.slice(0, 2),
+			{
+				...mockUsers[2],
+				membershipExpirationDate,
+			},
+		]);
+
 		renderComponent({
+			canAssignAllRoles: true,
 			roomId: 10,
 		});
 
@@ -225,11 +276,15 @@ describe('RoomShare', () => {
 		});
 
 		const openDropdownMenu = document.querySelector('.dropdown-menu.show');
-		const contributorMenuItem = openDropdownMenu?.querySelector(
-			'.dropdown-item'
+		const contributorMenuItem = Array.from(
+			openDropdownMenu?.querySelectorAll('.dropdown-item') ?? []
+		).find((item) =>
+			item.textContent?.includes('content-contributor')
 		) as HTMLElement;
 
-		expect(contributorMenuItem.textContent).toContain('contributor');
+		expect(contributorMenuItem.textContent).toContain(
+			'content-contributor'
+		);
 
 		await userEvent.click(contributorMenuItem);
 
@@ -238,7 +293,8 @@ describe('RoomShare', () => {
 				10,
 				3,
 				{
-					roleKey: 'DSR Contributor',
+					membershipExpirationDate,
+					roleKey: 'DSR Content Contributor',
 				}
 			);
 		});
@@ -299,6 +355,7 @@ describe('RoomShare', () => {
 
 	it('selects role from dropdown before inviting', async () => {
 		const {container} = renderComponent({
+			canAssignAllRoles: true,
 			roomId: 10,
 		});
 
@@ -312,11 +369,13 @@ describe('RoomShare', () => {
 		await userEvent.click(roleKeyButton);
 
 		await waitFor(() => {
-			document.querySelector('[data-testid="roleKeyItem_contributor"]');
+			document.querySelector(
+				'[data-testid="roleKeyItem_content-contributor"]'
+			);
 		});
 
 		const contributorItem = document.querySelector(
-			'[data-testid="roleKeyItem_contributor"]'
+			'[data-testid="roleKeyItem_content-contributor"]'
 		) as HTMLButtonElement;
 		await userEvent.click(contributorItem);
 
@@ -333,21 +392,25 @@ describe('RoomShare', () => {
 		await waitFor(() => {
 			expect(RoomService.addRoomUserAccount).toHaveBeenCalledWith(10, {
 				emailAddress: 'newuser@liferay.com',
-				roleKey: 'DSR Contributor',
+				roleKey: 'DSR Content Contributor',
 			});
 		});
 	});
 
 	it('displays user initials when no image is available', async () => {
-		renderComponent({
+		const {container} = renderComponent({
 			roomId: 10,
 		});
 
 		await waitFor(() => {
-			expect(screen.getByText('J')).toBeInTheDocument();
-			expect(screen.getByText('R')).toBeInTheDocument();
-			expect(screen.getByText('W')).toBeInTheDocument();
+			expect(screen.getByText('John Doe')).toBeInTheDocument();
 		});
+
+		const initials = Array.from(
+			container.querySelectorAll('.sticker-user-icon')
+		).map((sticker) => sticker.textContent);
+
+		expect(initials).toEqual(['J', 'R', 'W']);
 	});
 
 	it('shows users count in the header', async () => {
@@ -416,8 +479,6 @@ describe('RoomShare', () => {
 	});
 
 	it('shows role dropdown for invited members when current user is owner', async () => {
-		jest.spyOn(Liferay.ThemeDisplay, 'getUserId').mockReturnValue('1');
-
 		const mockInvitedMembers = [
 			{
 				emailAddress: 'invited@example.com',
@@ -431,6 +492,7 @@ describe('RoomShare', () => {
 		);
 
 		renderComponent({
+			canAssignAllRoles: true,
 			roomId: 10,
 		});
 
@@ -477,5 +539,452 @@ describe('RoomShare', () => {
 		expect(
 			invitedUserRow?.querySelector('.dropdown-toggle')
 		).not.toBeNull();
+	});
+
+	it('displays no-expiration for a user without an expiration date', async () => {
+		renderComponent({
+			roomId: 10,
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('Win Doe')).toBeInTheDocument();
+		});
+
+		const userRow = screen.getByText('Win Doe').closest('.user-row');
+
+		expect(userRow?.textContent).toContain('no-expiration');
+	});
+
+	it('displays the expiration label in warning or info style depending on whether it is expiring soon', async () => {
+		const expiringSoonDate = new Date(
+			Date.now() + 3 * 24 * 60 * 60 * 1000
+		).toISOString();
+		const notExpiringSoonDate = new Date(
+			Date.now() + 365 * 24 * 60 * 60 * 1000
+		).toISOString();
+
+		(RoomService.getRoomUserAccounts as jest.Mock).mockResolvedValue([
+			mockUsers[0],
+			{
+				...mockUsers[1],
+				membershipExpirationDate: expiringSoonDate,
+			},
+			{
+				...mockUsers[2],
+				membershipExpirationDate: notExpiringSoonDate,
+			},
+		]);
+
+		renderComponent({
+			roomId: 10,
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('Win Doe')).toBeInTheDocument();
+		});
+
+		const expiringSoonRow = screen
+			.getByText('Ran Doe')
+			.closest('.user-row');
+
+		expect(expiringSoonRow?.querySelector('.label-warning')).not.toBeNull();
+		expect(
+			expiringSoonRow?.querySelector('.lexicon-icon-warning-full')
+		).not.toBeNull();
+		expect(expiringSoonRow?.querySelector('.label-info')).toBeNull();
+
+		const notExpiringSoonRow = screen
+			.getByText('Win Doe')
+			.closest('.user-row');
+
+		expect(notExpiringSoonRow?.querySelector('.label-info')).not.toBeNull();
+		expect(notExpiringSoonRow?.querySelector('.label-warning')).toBeNull();
+		expect(
+			notExpiringSoonRow?.querySelector('.lexicon-icon-warning-full')
+		).toBeNull();
+		expect(
+			screen.getByText(
+				new Date(notExpiringSoonDate).toLocaleDateString('en-US', {
+					day: 'numeric',
+					month: 'short',
+					timeZone: 'UTC',
+					year: 'numeric',
+				})
+			)
+		).toBeInTheDocument();
+	});
+
+	it('updates the expiration date while preserving the role', async () => {
+		const membershipExpirationDate = new Date(
+			Date.now() + 365 * 24 * 60 * 60 * 1000
+		).toISOString();
+
+		(RoomService.getRoomUserAccounts as jest.Mock).mockResolvedValue([
+			...mockUsers.slice(0, 2),
+			{
+				...mockUsers[2],
+				membershipExpirationDate,
+			},
+		]);
+
+		const {container} = renderComponent({
+			canAssignAllRoles: true,
+			roomId: 10,
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('Win Doe')).toBeInTheDocument();
+		});
+
+		await userEvent.click(
+			container.querySelector(
+				'[data-testid="editExpiration_3"]'
+			) as HTMLButtonElement
+		);
+
+		await userEvent.click(
+			container.querySelector(
+				'[data-testid="confirmExpiration_3"]'
+			) as HTMLButtonElement
+		);
+
+		await waitFor(() => {
+			expect(RoomService.updateRoomUserAccount).toHaveBeenCalledWith(
+				10,
+				3,
+				expect.objectContaining({
+					membershipExpirationDate: expect.any(String),
+					roleKey: 'Site Member',
+				})
+			);
+		});
+	});
+
+	it('does not update the expiration date when it is in the past', async () => {
+		const membershipExpirationDate = new Date(
+			Date.now() + 365 * 24 * 60 * 60 * 1000
+		).toISOString();
+
+		(RoomService.getRoomUserAccounts as jest.Mock).mockResolvedValue([
+			...mockUsers.slice(0, 2),
+			{
+				...mockUsers[2],
+				membershipExpirationDate,
+			},
+		]);
+
+		const {container} = renderComponent({
+			canAssignAllRoles: true,
+			roomId: 10,
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('Win Doe')).toBeInTheDocument();
+		});
+
+		await userEvent.click(
+			container.querySelector(
+				'[data-testid="editExpiration_3"]'
+			) as HTMLButtonElement
+		);
+
+		fireEvent.change(
+			container.querySelectorAll(
+				'input[placeholder="YYYY-MM-DD"]'
+			)[1] as HTMLInputElement,
+			{
+				target: {value: '2020-01-15'},
+			}
+		);
+
+		await userEvent.click(
+			container.querySelector(
+				'[data-testid="confirmExpiration_3"]'
+			) as HTMLButtonElement
+		);
+
+		expect(RoomService.updateRoomUserAccount).not.toHaveBeenCalled();
+		expect(mockOpenToast).toHaveBeenCalledWith({
+			message: 'expiration-date-must-be-a-future-date',
+			type: 'danger',
+		});
+	});
+
+	it('shows the expiration warning banner when a membership is expiring soon', async () => {
+		const membershipExpirationDate = new Date(
+			Date.now() + 3 * 24 * 60 * 60 * 1000
+		).toISOString();
+
+		(RoomService.getRoomUserAccounts as jest.Mock).mockResolvedValue([
+			...mockUsers.slice(0, 2),
+			{
+				...mockUsers[2],
+				membershipExpirationDate,
+			},
+		]);
+
+		const {container} = renderComponent({
+			roomId: 10,
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('Win Doe')).toBeInTheDocument();
+		});
+
+		const alert = container.querySelector('.alert');
+
+		expect(alert).toBeInTheDocument();
+		expect(alert?.textContent).toContain('has-access-expiring-within');
+	});
+
+	it('invites a user with an expiration date', async () => {
+		const {container} = renderComponent({
+			roomId: 10,
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('John Doe')).toBeInTheDocument();
+		});
+
+		fireEvent.change(
+			container.querySelector(
+				'input[placeholder="YYYY-MM-DD"]'
+			) as HTMLInputElement,
+			{
+				target: {value: '2030-01-15'},
+			}
+		);
+
+		const emailInput = container.querySelector(
+			'[data-testid="emailAddressesInput"]'
+		) as HTMLInputElement;
+		await userEvent.type(emailInput, 'newuser@liferay.com,');
+
+		await userEvent.click(
+			container.querySelector(
+				'[data-testid="inviteButton"]'
+			) as HTMLButtonElement
+		);
+
+		await waitFor(() => {
+			expect(RoomService.addRoomUserAccount).toHaveBeenCalledWith(
+				10,
+				expect.objectContaining({
+					emailAddress: 'newuser@liferay.com',
+					membershipExpirationDate: expect.any(String),
+					roleKey: 'Site Member',
+				})
+			);
+		});
+	});
+
+	it('does not invite a user when the expiration date is in the past', async () => {
+		const {container} = renderComponent({
+			roomId: 10,
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('John Doe')).toBeInTheDocument();
+		});
+
+		fireEvent.change(
+			container.querySelector(
+				'input[placeholder="YYYY-MM-DD"]'
+			) as HTMLInputElement,
+			{
+				target: {value: '2020-01-15'},
+			}
+		);
+
+		await userEvent.type(
+			container.querySelector(
+				'[data-testid="emailAddressesInput"]'
+			) as HTMLInputElement,
+			'newuser@liferay.com,'
+		);
+
+		await userEvent.click(
+			container.querySelector(
+				'[data-testid="inviteButton"]'
+			) as HTMLButtonElement
+		);
+
+		expect(RoomService.addRoomUserAccount).not.toHaveBeenCalled();
+		expect(mockOpenToast).toHaveBeenCalledWith({
+			message: 'expiration-date-must-be-a-future-date',
+			type: 'danger',
+		});
+	});
+
+	it('updates an invited member expiration date using updateRoomInvitedMember', async () => {
+		const membershipExpirationDate = new Date(
+			Date.now() + 365 * 24 * 60 * 60 * 1000
+		).toISOString();
+
+		(RoomService.getRoomInvitedMembers as jest.Mock).mockResolvedValue([
+			{
+				emailAddress: 'invited@example.com',
+				id: 10,
+				membershipExpirationDate,
+				ownerId: 999,
+			},
+		]);
+
+		const {container} = renderComponent({
+			canAssignAllRoles: true,
+			roomId: 10,
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('invited@example.com')).toBeInTheDocument();
+		});
+
+		await userEvent.click(
+			container.querySelector(
+				'[data-testid="editExpiration_10"]'
+			) as HTMLButtonElement
+		);
+
+		await userEvent.click(
+			container.querySelector(
+				'[data-testid="confirmExpiration_10"]'
+			) as HTMLButtonElement
+		);
+
+		await waitFor(() => {
+			expect(RoomService.updateRoomInvitedMember).toHaveBeenCalledWith(
+				10,
+				10,
+				expect.objectContaining({
+					membershipExpirationDate: expect.any(String),
+				})
+			);
+		});
+	});
+
+	it('invites a user with the room collaborator role', async () => {
+		const {container} = renderComponent({
+			canAssignAllRoles: true,
+			roomId: 10,
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('John Doe')).toBeInTheDocument();
+		});
+
+		const roleKeyButton = container.querySelector(
+			'[data-testid="roleKeyButton"]'
+		) as HTMLButtonElement;
+		await userEvent.click(roleKeyButton);
+
+		await waitFor(() => {
+			expect(
+				document.querySelector(
+					'[data-testid="roleKeyItem_room-collaborator"]'
+				)
+			).toBeInTheDocument();
+		});
+
+		const roomCollaboratorItem = document.querySelector(
+			'[data-testid="roleKeyItem_room-collaborator"]'
+		) as HTMLButtonElement;
+		await userEvent.click(roomCollaboratorItem);
+
+		const emailInput = container.querySelector(
+			'[data-testid="emailAddressesInput"]'
+		) as HTMLInputElement;
+		await userEvent.type(emailInput, 'newuser@liferay.com,');
+
+		const inviteButton = container.querySelector(
+			'[data-testid="inviteButton"]'
+		) as HTMLButtonElement;
+		await userEvent.click(inviteButton);
+
+		await waitFor(() => {
+			expect(RoomService.addRoomUserAccount).toHaveBeenCalledWith(10, {
+				emailAddress: 'newuser@liferay.com',
+				roleKey: 'DSR Room Collaborator',
+			});
+		});
+	});
+
+	it('shows only the content contributor and viewer roles when the current user is a room collaborator', async () => {
+		const roomCollaboratorUser = [
+			{
+				emailAddress: 'jack.doe@liferay.com',
+				id: 1,
+				name: 'Jack Doe',
+				roleKey: 'DSR Room Collaborator',
+			},
+		];
+
+		(RoomService.getRoomUserAccounts as jest.Mock).mockResolvedValue(
+			roomCollaboratorUser
+		);
+
+		const {container} = renderComponent({
+			roomId: 10,
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('Jack Doe')).toBeInTheDocument();
+		});
+
+		const roleKeyButton = container.querySelector(
+			'[data-testid="roleKeyButton"]'
+		) as HTMLButtonElement;
+		await userEvent.click(roleKeyButton);
+
+		await waitFor(() => {
+			expect(
+				document.querySelector(
+					'[data-testid="roleKeyItem_content-contributor"]'
+				)
+			).toBeInTheDocument();
+		});
+
+		expect(
+			document.querySelector('[data-testid="roleKeyItem_viewer"]')
+		).toBeInTheDocument();
+		expect(
+			document.querySelector(
+				'[data-testid="roleKeyItem_room-collaborator"]'
+			)
+		).toBeNull();
+	});
+
+	it('shows all roles when the current user is an administrator who is not a room member', async () => {
+		jest.spyOn(Liferay.ThemeDisplay, 'getUserId').mockReturnValue('999');
+
+		const {container} = renderComponent({
+			canAssignAllRoles: true,
+			roomId: 10,
+		});
+
+		await waitFor(() => {
+			expect(screen.getByText('John Doe')).toBeInTheDocument();
+		});
+
+		const roleKeyButton = container.querySelector(
+			'[data-testid="roleKeyButton"]'
+		) as HTMLButtonElement;
+		await userEvent.click(roleKeyButton);
+
+		await waitFor(() => {
+			expect(
+				document.querySelector(
+					'[data-testid="roleKeyItem_room-collaborator"]'
+				)
+			).toBeInTheDocument();
+		});
+
+		expect(
+			document.querySelector(
+				'[data-testid="roleKeyItem_content-contributor"]'
+			)
+		).toBeInTheDocument();
+		expect(
+			document.querySelector('[data-testid="roleKeyItem_viewer"]')
+		).toBeInTheDocument();
 	});
 });

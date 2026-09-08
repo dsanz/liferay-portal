@@ -45,6 +45,8 @@ export default function buildStructure({
 		label: mainObjectDefinition.label,
 		name: mainObjectDefinition.name ?? '',
 		path: mainObjectDefinition.restContextPath ?? '',
+		settings: getSettings(mainObjectDefinition),
+		slug: mainObjectDefinition.friendlyURLSeparator ?? '',
 		spaces: getSpaces(mainObjectDefinition),
 		status: isPublished ? 'published' : 'draft',
 		system: mainObjectDefinition.system ?? false,
@@ -311,7 +313,26 @@ function getFieldSettings(objectField: ObjectField): Field['settings'] {
 		objectFieldSettings[objectFieldSetting.name] = objectFieldSetting.value;
 	}
 
-	if (objectField.businessType === 'Attachment') {
+	if (objectField.businessType === 'EmailAddress') {
+		if (objectFieldSettings.autocompleteDomains) {
+			settings.autocompleteDomains =
+				objectFieldSettings.autocompleteDomains;
+		}
+
+		if (objectFieldSettings.autocompleteEnabled) {
+			settings.autocompleteEnabled =
+				objectFieldSettings.autocompleteEnabled;
+		}
+
+		if (objectFieldSettings.blockedDomains) {
+			settings.blockedDomains = objectFieldSettings.blockedDomains;
+		}
+
+		if (objectFieldSettings.uniqueValues) {
+			settings.uniqueValues = objectFieldSettings.uniqueValues;
+		}
+	}
+	else if (objectField.businessType === 'Attachment') {
 		settings.acceptedFileExtensions =
 			objectFieldSettings.acceptedFileExtensions;
 		settings.fileSource = objectFieldSettings.fileSource;
@@ -377,6 +398,7 @@ function getFieldType(objectField: ObjectField): FieldType {
 		Date: 'date',
 		DateTime: 'datetime',
 		Decimal: 'decimal',
+		EmailAddress: 'email',
 		Integer: 'integer',
 		LongText: 'long-text',
 		PhoneNumber: 'phone-number',
@@ -385,6 +407,18 @@ function getFieldType(objectField: ObjectField): FieldType {
 	} as const;
 
 	return BUSINESS_TYPE_TO_FIELD_TYPE[objectField.businessType];
+}
+
+export function getSettings(
+	objectDefinition: ObjectDefinition
+): Structure['settings'] {
+	const settings = objectDefinition.objectDefinitionSettings || [];
+
+	const allowStandaloneObjectEntry = settings.find(
+		({name}) => name === 'allowStandaloneObjectEntry'
+	)?.value;
+
+	return {allowStandaloneObjectEntry};
 }
 
 export function getSpaces(objectDefinition: ObjectDefinition) {
@@ -454,20 +488,18 @@ function getRelatedContentObjectRelationships(
 	const relationships: ObjectRelationship[] = [];
 
 	for (const objectDefinition of Object.values(objectDefinitions)) {
-		if (
-			mainObjectDefinition.externalReferenceCode ===
-			objectDefinition.externalReferenceCode
-		) {
-			continue;
-		}
-
 		for (const objectRelationship of objectDefinition.objectRelationships ||
 			[]) {
 			if (
 				objectRelationship.objectDefinitionExternalReferenceCode2 ===
 					mainObjectDefinition.externalReferenceCode &&
 				objectRelationship.type === 'oneToMany' &&
-				!objectRelationship.edge
+				!objectRelationship.edge &&
+				!(
+					objectDefinition.externalReferenceCode ===
+						mainObjectDefinition.externalReferenceCode &&
+					isRepeatableGroup(objectRelationship, objectDefinitions)
+				)
 			) {
 				relationships.push(objectRelationship);
 			}

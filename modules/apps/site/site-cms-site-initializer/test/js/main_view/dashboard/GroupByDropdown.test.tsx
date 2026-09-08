@@ -7,10 +7,10 @@ import '@testing-library/jest-dom';
 import {fireEvent, render, screen} from '@testing-library/react';
 import React from 'react';
 
-import {ViewDashboardContextProvider} from '../../../../src/main/resources/META-INF/resources/js/main_view/dashboard/ViewDashboardContext';
-import {Item} from '../../../../src/main/resources/META-INF/resources/js/main_view/dashboard/components/FilterDropdown';
-import {GroupByDropdown} from '../../../../src/main/resources/META-INF/resources/js/main_view/dashboard/components/GroupByDropdown';
-import {InventoryAnalysisDataType} from '../../../../src/main/resources/META-INF/resources/js/main_view/dashboard/components/InventoryAnalysisCard';
+import {Item} from '../../../../src/main/resources/META-INF/resources/js/main_view/dashboard/common/filters/FilterDropdown';
+import {InventoryContextProvider} from '../../../../src/main/resources/META-INF/resources/js/main_view/dashboard/inventory/InventoryContext';
+import {GroupByDropdown} from '../../../../src/main/resources/META-INF/resources/js/main_view/dashboard/inventory/components/GroupByDropdown';
+import {InventoryAnalysisDataType} from '../../../../src/main/resources/META-INF/resources/js/main_view/dashboard/inventory/components/InventoryAnalysisCard';
 
 const mockFetch = (data: InventoryAnalysisDataType) => {
 	global.fetch = jest.fn().mockResolvedValue({
@@ -49,9 +49,9 @@ const WrappedComponent = ({
 	initialItem: Item;
 	onSelectItem: (item: Item) => void;
 }) => (
-	<ViewDashboardContextProvider value={mockContextValue}>
+	<InventoryContextProvider value={mockContextValue}>
 		<GroupByDropdown item={initialItem} onSelectItem={onSelectItem} />
-	</ViewDashboardContextProvider>
+	</InventoryContextProvider>
 );
 
 describe('[CMS Dashboard] Components: GroupByDropdown - All Options', () => {
@@ -84,21 +84,26 @@ describe('[CMS Dashboard] Components: GroupByDropdown - All Options', () => {
 				/>
 			);
 
-			const button = screen.getByRole('button', {
+			const trigger = screen.getByRole('combobox', {
+				name: 'group-by',
+			});
+			expect(trigger).toHaveTextContent(item.label);
+
+			fireEvent.click(trigger);
+
+			const option = await screen.findByRole('option', {
 				name: item.label,
 			});
-			expect(button).toBeInTheDocument();
+			expect(option).toBeInTheDocument();
 
-			fireEvent.click(button);
+			fireEvent.click(option);
 
-			const menuitem = screen.getByRole('menuitem', {
-				name: item.label,
-			});
-			expect(menuitem).toBeInTheDocument();
-
-			fireEvent.click(menuitem);
-
-			expect(onSelectItem).toHaveBeenCalledWith(item);
+			expect(onSelectItem).toHaveBeenCalledWith(
+				expect.objectContaining({
+					label: item.label,
+					value: item.value,
+				})
+			);
 		}
 	);
 });

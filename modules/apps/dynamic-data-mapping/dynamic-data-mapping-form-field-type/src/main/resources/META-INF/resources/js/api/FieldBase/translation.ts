@@ -32,6 +32,7 @@ export interface WebContentField<T = unknown> {
 	disabled?: boolean;
 	fieldName: string;
 	hidden?: boolean;
+	hiddenByTranslationFilter?: boolean;
 	localizable?: boolean;
 	localizedValueEdited?: any;
 	name: string;
@@ -130,6 +131,7 @@ export function showFilteredFields({
 				...field,
 				disabled: !visible,
 				hidden: !visible,
+				hiddenByTranslationFilter: !visible,
 				nestedFields: newNestedFields,
 				visible,
 			};
@@ -142,14 +144,19 @@ export function showFilteredFields({
 				...field,
 				disabled: false,
 				hidden: false,
+				hiddenByTranslationFilter: false,
 				visible: true,
 			};
 		}
 		else {
+			const hiddenByVisibilityRule =
+				field.visible === false && !field.hiddenByTranslationFilter;
+
 			return {
 				...field,
 				disabled: true,
 				hidden: true,
+				hiddenByTranslationFilter: !hiddenByVisibilityRule,
 				visible: false,
 			};
 		}

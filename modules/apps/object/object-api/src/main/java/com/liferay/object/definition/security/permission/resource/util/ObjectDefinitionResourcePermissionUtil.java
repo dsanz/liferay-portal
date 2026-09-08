@@ -13,12 +13,12 @@ import com.liferay.object.model.ObjectAction;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.service.ObjectActionLocalService;
+import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.model.Portlet;
 import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.model.ResourceConstants;
@@ -34,13 +34,19 @@ import com.liferay.portal.kernel.service.ResourcePermissionLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.xml.Document;
 import com.liferay.portal.kernel.xml.SAXReaderUtil;
+
+import java.io.Serializable;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -64,6 +70,8 @@ public class ObjectDefinitionResourcePermissionUtil {
 		try (SafeCloseable safeCloseable = CompanyThreadLocal.lock(
 				objectDefinition.getCompanyId())) {
 
+			_removeModelResources(objectDefinition, resourceActions);
+
 			resourceActions.populateModelResources(document);
 
 			Portlet portlet = portletLocalService.getPortletById(
@@ -79,7 +87,7 @@ public class ObjectDefinitionResourcePermissionUtil {
 			}
 
 			_objectDefinitionResourceActionDocumentsMap.put(
-				objectDefinition, document);
+				_getKey(objectDefinition), document);
 		}
 	}
 
@@ -91,7 +99,7 @@ public class ObjectDefinitionResourcePermissionUtil {
 		throws Exception {
 
 		Document document = _objectDefinitionResourceActionDocumentsMap.remove(
-			objectDefinition);
+			_getKey(objectDefinition));
 
 		if (document == null) {
 			document = _readDocument(
@@ -149,6 +157,15 @@ public class ObjectDefinitionResourcePermissionUtil {
 			modelPermissions);
 	}
 
+	private static Serializable _getKey(ObjectDefinition objectDefinition) {
+		if (PropsValues.DATABASE_PARTITION_ENABLED) {
+			return objectDefinition.getObjectDefinitionId() + StringPool.AT +
+				objectDefinition.getCompanyId();
+		}
+
+		return objectDefinition.getObjectDefinitionId();
+	}
+
 	private static String _getObjectActionPermissionKeys(
 		ObjectActionLocalService objectActionLocalService,
 		List<ObjectAction> objectActions, long objectDefinitionId) {
@@ -200,9 +217,6 @@ public class ObjectDefinitionResourcePermissionUtil {
 				continue;
 			}
 
-			objectFieldLocalService.addOrUpdateObjectFieldPLOEntries(
-				objectField);
-
 			objectFieldPermissionKeys = StringBundler.concat(
 				objectFieldPermissionKeys, "<action-key>",
 				objectField.getAttachmentDownloadActionKey(), "</action-key>");
@@ -240,9 +254,7 @@ public class ObjectDefinitionResourcePermissionUtil {
 				ObjectActionKeys.OBJECT_ENTRY_HISTORY, "</action-key>");
 		}
 
-		if (objectDefinition.isEnableObjectEntrySubscription() &&
-			FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-
+		if (objectDefinition.isEnableObjectEntrySubscription()) {
 			permissionsSupports = StringBundler.concat(
 				permissionsSupports, "<action-key>", ActionKeys.SUBSCRIBE,
 				"</action-key>");
@@ -262,15 +274,9 @@ public class ObjectDefinitionResourcePermissionUtil {
 			objectActionLocalService, objectActions,
 			objectDefinition.getObjectDefinitionId());
 
-		String objectFieldPermissionKeys = StringPool.BLANK;
-
-		if (FeatureFlagManagerUtil.isEnabled(
-				objectDefinition.getCompanyId(), "LPD-17564")) {
-
-			objectFieldPermissionKeys = _getObjectFieldPermissionKeys(
-				objectDefinition.getObjectDefinitionId(),
-				objectFieldLocalService, objectFields);
-		}
+		String objectFieldPermissionKeys = _getObjectFieldPermissionKeys(
+			objectDefinition.getObjectDefinitionId(), objectFieldLocalService,
+			objectFields);
 
 		String resourceActionsFileName =
 			"resource-actions/resource-actions.xml.tpl";
@@ -306,7 +312,50 @@ public class ObjectDefinitionResourcePermissionUtil {
 				}));
 	}
 
-	private static final Map<ObjectDefinition, Document>
+	private static void _removeModelResources(
+		ObjectDefinition objectDefinition, ResourceActions resourceActions) {
+
+		String resourceName = resourceActions.getPortletRootModelResource(
+			objectDefinition.getPortletId());
+
+		if (Validator.isNull(resourceName) ||
+			Objects.equals(resourceName, objectDefinition.getResourceName())) {
+
+			return;
+		}
+
+		long objectDefinitionId = GetterUtil.getLong(
+			StringUtil.extractLast(resourceName, StringPool.POUND));
+
+		if (objectDefinitionId <= 0) {
+			return;
+		}
+
+		ObjectDefinition originalObjectDefinition =
+			ObjectDefinitionLocalServiceUtil.fetchObjectDefinition(
+				objectDefinitionId);
+
+		if (originalObjectDefinition != null) {
+			return;
+		}
+
+		Serializable key = objectDefinitionId;
+
+		if (PropsValues.DATABASE_PARTITION_ENABLED) {
+			key =
+				objectDefinitionId + StringPool.AT +
+					objectDefinition.getCompanyId();
+		}
+
+		Document document = _objectDefinitionResourceActionDocumentsMap.remove(
+			key);
+
+		if (document != null) {
+			resourceActions.removeModelResources(document);
+		}
+	}
+
+	private static final Map<Serializable, Document>
 		_objectDefinitionResourceActionDocumentsMap = new ConcurrentHashMap<>();
 
 }

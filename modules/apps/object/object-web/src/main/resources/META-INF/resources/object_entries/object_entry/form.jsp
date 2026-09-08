@@ -143,6 +143,9 @@ if (ParamUtil.getBoolean(request, "showHeader", true)) {
 			);
 		}
 
+		const metadataObjectFieldNames =
+			<%= ObjectFieldUtil.getMetadataObjectFieldNamesJSONArray() %>;
+
 		const scheduleObjectFieldNames = [
 			'displayDate',
 			'expirationDate',
@@ -172,10 +175,6 @@ if (ParamUtil.getBoolean(request, "showHeader", true)) {
 
 		function <portlet:namespace />getValues(fields) {
 			return fields.reduce((obj, field) => {
-				if (field.readOnly) {
-					return obj;
-				}
-
 				if (scheduleObjectFieldNames.includes(field.fieldName)) {
 					if (field.value) {
 						return Object.assign(obj, {
@@ -183,6 +182,13 @@ if (ParamUtil.getBoolean(request, "showHeader", true)) {
 						});
 					}
 
+					return obj;
+				}
+
+				if (
+					metadataObjectFieldNames.includes(field.fieldName) ||
+					field.type === 'fieldset'
+				) {
 					return obj;
 				}
 
@@ -289,10 +295,7 @@ if (ParamUtil.getBoolean(request, "showHeader", true)) {
 							'<portlet:namespace />scheduleContainer'
 						);
 
-						if (
-							Liferay.FeatureFlags['LPD-17564'] &&
-							scheduleContainerInput
-						) {
+						if (scheduleContainerInput) {
 							scheduleContainerInputValue = JSON.parse(
 								scheduleContainerInput.value
 							);
@@ -369,10 +372,7 @@ if (ParamUtil.getBoolean(request, "showHeader", true)) {
 								});
 							}
 
-							if (
-								Liferay.FeatureFlags['LPD-17564'] &&
-								scheduleContainerInputValue
-							) {
+							if (scheduleContainerInputValue) {
 								values = {
 									...values,
 									...scheduleContainerInputValue,
@@ -390,7 +390,7 @@ if (ParamUtil.getBoolean(request, "showHeader", true)) {
 								});
 							}
 
-							Liferay.Util.fetch(
+							return Liferay.Util.fetch(
 								'<%= objectEntryDisplayContext.getAPIURL() %>',
 								{
 									body: JSON.stringify(values),
@@ -418,30 +418,61 @@ if (ParamUtil.getBoolean(request, "showHeader", true)) {
 											type: 'success',
 										});
 
-										response.json().then((payload) => {
-											const portletURL =
-												Liferay.Util.PortletURL.createPortletURL(
-													'<%= currentURLObj %>',
-													{
-														externalReferenceCode:
-															payload.externalReferenceCode,
-													}
-												);
+										response
+											.json()
+											.catch(() => null)
+											.then((payload) => {
+												if (
+													payload &&
+													payload.externalReferenceCode
+												) {
+													const portletURL =
+														Liferay.Util.PortletURL.createPortletURL(
+															'<%= currentURLObj %>',
+															{
+																externalReferenceCode:
+																	payload.externalReferenceCode,
+															}
+														);
 
-											Liferay.Util.navigate(
-												portletURL.toString()
-											);
-										});
+													Liferay.Util.navigate(
+														portletURL.toString()
+													);
+												}
+												else {
+													Liferay.Util.navigate(
+														'<%= currentURLObj %>'
+													);
+												}
+											});
 									}
 									else {
-										return response.json();
+										return response.json().catch(() => {
+											throw new Error(
+												'<liferay-ui:message key="an-unexpected-error-occurred" />'
+											);
+										});
 									}
 								})
 								.then((response) => {
 									if (response && response.detail) {
-										const errorMessageArray = JSON.parse(
-											response.detail
-										);
+										let errorMessageArray;
+
+										try {
+											errorMessageArray = JSON.parse(
+												response.detail
+											);
+										}
+										catch (error) {
+											errorMessageArray = null;
+										}
+
+										if (!Array.isArray(errorMessageArray)) {
+											throw new Error(
+												response.title ||
+													'<liferay-ui:message key="an-unexpected-error-occurred" />'
+											);
+										}
 
 										const alertClassName =
 											'<portlet:namespace />alert';

@@ -244,6 +244,39 @@ $dark-d2: var(--dark-d2) !default;
 $dark-l1: var(--dark-l1) !default;
 $dark-l2: var(--dark-l2) !default;
 
+$chart-blue-d1: var(--chart-blue-d1) !default;
+$chart-blue-d2: var(--chart-blue-d2) !default;
+$chart-blue-d3: var(--chart-blue-d3) !default;
+$chart-blue-d4: var(--chart-blue-d4) !default;
+$chart-blue-l1: var(--chart-blue-l1) !default;
+$chart-blue-l2: var(--chart-blue-l2) !default;
+$chart-blue-l3: var(--chart-blue-l3) !default;
+$chart-blue-l4: var(--chart-blue-l4) !default;
+$chart-blue-l5: var(--chart-blue-l5) !default;
+
+$chart-color-1: var(--chart-color-1) !default;
+$chart-color-2: var(--chart-color-2) !default;
+$chart-color-3: var(--chart-color-3) !default;
+$chart-color-4: var(--chart-color-4) !default;
+$chart-color-5: var(--chart-color-5) !default;
+$chart-color-6: var(--chart-color-6) !default;
+$chart-color-7: var(--chart-color-7) !default;
+$chart-color-8: var(--chart-color-8) !default;
+$chart-color-9: var(--chart-color-9) !default;
+$chart-color-10: var(--chart-color-10) !default;
+
+$chart-trend-negative: var(--chart-trend-negative) !default;
+$chart-trend-neutral: var(--chart-trend-neutral) !default;
+$chart-trend-positive: var(--chart-trend-positive) !default;
+
+$scrollbar-inset: var(--scrollbar-inset) !default;
+$scrollbar-radius: var(--scrollbar-radius) !default;
+$scrollbar-size: var(--scrollbar-size) !default;
+$scrollbar-thumb: var(--scrollbar-thumb) !default;
+$scrollbar-thumb-active: var(--scrollbar-thumb-active) !default;
+$scrollbar-thumb-hover: var(--scrollbar-thumb-hover) !default;
+$scrollbar-track: var(--scrollbar-track) !default;
+
 $theme-colors: () !default;
 $theme-colors: map-merge(
 	(
@@ -296,10 +329,10 @@ $spacers: map-deep-merge(
 $sizes: () !default;
 $sizes: map-merge(
 	(
-		100: 100%,
 		25: 25%,
 		50: 50%,
 		75: 75%,
+		100: 100%,
 		auto: auto,
 	),
 	$sizes
@@ -357,9 +390,13 @@ $component-disabled-opacity: var(--component-disabled-opacity) !default;
 
 $grid-breakpoints: (
 	xs: 0,
+
 	sm: 576px,
+
 	md: 768px,
+
 	lg: 992px,
+
 	xl: 1280px,
 ) !default;
 
@@ -400,7 +437,7 @@ $container-max-widths: (
 
 	lg: 960px,
 
-	xl: 1140px,
+	xl: 1248px,
 
 	xxl: 1392px,
 
@@ -413,10 +450,12 @@ $container-form-lg: () !default;
 $container-form-lg: map-deep-merge(
 	(
 		breakpoint-up: lg,
-		padding-bottom-mobile: 1rem,
+
 		padding-bottom: 3rem,
-		padding-top-mobile: 1rem,
 		padding-top: 3rem,
+
+		padding-bottom-mobile: 1rem,
+		padding-top-mobile: 1rem,
 	),
 	$container-form-lg
 );

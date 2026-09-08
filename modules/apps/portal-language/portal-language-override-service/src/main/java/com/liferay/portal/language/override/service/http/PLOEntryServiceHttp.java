@@ -43,8 +43,8 @@ public class PLOEntryServiceHttp {
 
 	public static com.liferay.portal.language.override.model.PLOEntry
 			addOrUpdatePLOEntry(
-				HttpPrincipal httpPrincipal, String key, String languageId,
-				String value)
+				HttpPrincipal httpPrincipal, String externalReferenceCode,
+				String key, String languageId, String value)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
@@ -53,7 +53,7 @@ public class PLOEntryServiceHttp {
 				_addOrUpdatePLOEntryParameterTypes0);
 
 			MethodHandler methodHandler = new MethodHandler(
-				methodKey, key, languageId, value);
+				methodKey, externalReferenceCode, key, languageId, value);
 
 			Object returnObj = null;
 
@@ -160,18 +160,60 @@ public class PLOEntryServiceHttp {
 		}
 	}
 
+	public static com.liferay.portal.language.override.model.PLOEntry
+			deletePLOEntryByExternalReferenceCode(
+				HttpPrincipal httpPrincipal, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				PLOEntryServiceUtil.class,
+				"deletePLOEntryByExternalReferenceCode",
+				_deletePLOEntryByExternalReferenceCodeParameterTypes3);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, externalReferenceCode);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return (com.liferay.portal.language.override.model.PLOEntry)
+				returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
 	public static java.util.List
 		<com.liferay.portal.language.override.model.PLOEntry> getPLOEntries(
-				HttpPrincipal httpPrincipal, long companyId)
+				HttpPrincipal httpPrincipal)
 			throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
 			MethodKey methodKey = new MethodKey(
 				PLOEntryServiceUtil.class, "getPLOEntries",
-				_getPLOEntriesParameterTypes3);
+				_getPLOEntriesParameterTypes4);
 
-			MethodHandler methodHandler = new MethodHandler(
-				methodKey, companyId);
+			MethodHandler methodHandler = new MethodHandler(methodKey);
 
 			Object returnObj = null;
 
@@ -202,17 +244,106 @@ public class PLOEntryServiceHttp {
 		}
 	}
 
-	public static int getPLOEntriesCount(
-			HttpPrincipal httpPrincipal, long companyId)
+	public static java.util.List
+		<com.liferay.portal.language.override.model.PLOEntry> getPLOEntries(
+				HttpPrincipal httpPrincipal, int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.portal.language.override.model.PLOEntry>
+						orderByComparator)
+			throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				PLOEntryServiceUtil.class, "getPLOEntries",
+				_getPLOEntriesParameterTypes5);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, start, end, orderByComparator);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return (java.util.List
+				<com.liferay.portal.language.override.model.PLOEntry>)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
+	public static java.util.List
+		<com.liferay.portal.language.override.model.PLOEntry> getPLOEntries(
+				HttpPrincipal httpPrincipal, String keywords, int start,
+				int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.portal.language.override.model.PLOEntry>
+						orderByComparator)
+			throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				PLOEntryServiceUtil.class, "getPLOEntries",
+				_getPLOEntriesParameterTypes6);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, keywords, start, end, orderByComparator);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return (java.util.List
+				<com.liferay.portal.language.override.model.PLOEntry>)returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
+	public static int getPLOEntriesCount(HttpPrincipal httpPrincipal)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		try {
 			MethodKey methodKey = new MethodKey(
 				PLOEntryServiceUtil.class, "getPLOEntriesCount",
-				_getPLOEntriesCountParameterTypes4);
+				_getPLOEntriesCountParameterTypes7);
 
-			MethodHandler methodHandler = new MethodHandler(
-				methodKey, companyId);
+			MethodHandler methodHandler = new MethodHandler(methodKey);
 
 			Object returnObj = null;
 
@@ -242,6 +373,88 @@ public class PLOEntryServiceHttp {
 		}
 	}
 
+	public static int getPLOEntriesCount(
+			HttpPrincipal httpPrincipal, String keywords)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				PLOEntryServiceUtil.class, "getPLOEntriesCount",
+				_getPLOEntriesCountParameterTypes8);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, keywords);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return ((Integer)returnObj).intValue();
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
+	public static com.liferay.portal.language.override.model.PLOEntry
+			getPLOEntryByExternalReferenceCode(
+				HttpPrincipal httpPrincipal, String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		try {
+			MethodKey methodKey = new MethodKey(
+				PLOEntryServiceUtil.class, "getPLOEntryByExternalReferenceCode",
+				_getPLOEntryByExternalReferenceCodeParameterTypes9);
+
+			MethodHandler methodHandler = new MethodHandler(
+				methodKey, externalReferenceCode);
+
+			Object returnObj = null;
+
+			try {
+				returnObj = TunnelUtil.invoke(httpPrincipal, methodHandler);
+			}
+			catch (Exception exception) {
+				if (exception instanceof
+						com.liferay.portal.kernel.exception.PortalException) {
+
+					throw (com.liferay.portal.kernel.exception.PortalException)
+						exception;
+				}
+
+				throw new com.liferay.portal.kernel.exception.SystemException(
+					exception);
+			}
+
+			return (com.liferay.portal.language.override.model.PLOEntry)
+				returnObj;
+		}
+		catch (com.liferay.portal.kernel.exception.SystemException
+					systemException) {
+
+			_log.error(systemException, systemException);
+
+			throw systemException;
+		}
+	}
+
 	public static void importPLOEntries(
 			HttpPrincipal httpPrincipal, String languageId,
 			java.util.Properties properties)
@@ -251,7 +464,7 @@ public class PLOEntryServiceHttp {
 		try {
 			MethodKey methodKey = new MethodKey(
 				PLOEntryServiceUtil.class, "importPLOEntries",
-				_importPLOEntriesParameterTypes5);
+				_importPLOEntriesParameterTypes10);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, languageId, properties);
@@ -292,7 +505,7 @@ public class PLOEntryServiceHttp {
 		try {
 			MethodKey methodKey = new MethodKey(
 				PLOEntryServiceUtil.class, "setPLOEntries",
-				_setPLOEntriesParameterTypes6);
+				_setPLOEntriesParameterTypes11);
 
 			MethodHandler methodHandler = new MethodHandler(
 				methodKey, key, localizationMap);
@@ -324,19 +537,39 @@ public class PLOEntryServiceHttp {
 	private static Log _log = LogFactoryUtil.getLog(PLOEntryServiceHttp.class);
 
 	private static final Class<?>[] _addOrUpdatePLOEntryParameterTypes0 =
-		new Class[] {String.class, String.class, String.class};
+		new Class[] {String.class, String.class, String.class, String.class};
 	private static final Class<?>[] _deletePLOEntriesParameterTypes1 =
 		new Class[] {String.class};
 	private static final Class<?>[] _deletePLOEntryParameterTypes2 =
 		new Class[] {String.class, String.class};
-	private static final Class<?>[] _getPLOEntriesParameterTypes3 =
-		new Class[] {long.class};
-	private static final Class<?>[] _getPLOEntriesCountParameterTypes4 =
-		new Class[] {long.class};
-	private static final Class<?>[] _importPLOEntriesParameterTypes5 =
+	private static final Class<?>[]
+		_deletePLOEntryByExternalReferenceCodeParameterTypes3 = new Class[] {
+			String.class
+		};
+	private static final Class<?>[] _getPLOEntriesParameterTypes4 =
+		new Class[] {};
+	private static final Class<?>[] _getPLOEntriesParameterTypes5 =
+		new Class[] {
+			int.class, int.class,
+			com.liferay.portal.kernel.util.OrderByComparator.class
+		};
+	private static final Class<?>[] _getPLOEntriesParameterTypes6 =
+		new Class[] {
+			String.class, int.class, int.class,
+			com.liferay.portal.kernel.util.OrderByComparator.class
+		};
+	private static final Class<?>[] _getPLOEntriesCountParameterTypes7 =
+		new Class[] {};
+	private static final Class<?>[] _getPLOEntriesCountParameterTypes8 =
+		new Class[] {String.class};
+	private static final Class<?>[]
+		_getPLOEntryByExternalReferenceCodeParameterTypes9 = new Class[] {
+			String.class
+		};
+	private static final Class<?>[] _importPLOEntriesParameterTypes10 =
 		new Class[] {String.class, java.util.Properties.class};
-	private static final Class<?>[] _setPLOEntriesParameterTypes6 =
+	private static final Class<?>[] _setPLOEntriesParameterTypes11 =
 		new Class[] {String.class, java.util.Map.class};
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:2019287986
+// LIFERAY-SERVICE-BUILDER-HASH:-136216899

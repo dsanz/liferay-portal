@@ -5,6 +5,7 @@
 
 package com.liferay.saml.opensaml.integration.internal.bootstrap;
 
+import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.saml.opensaml.integration.internal.util.ConfigurationServiceBootstrapUtil;
 
 import java.util.Collection;
@@ -21,6 +22,8 @@ import org.opensaml.xmlsec.impl.BasicDecryptionConfiguration;
 import org.opensaml.xmlsec.impl.BasicEncryptionConfiguration;
 import org.opensaml.xmlsec.impl.BasicSignatureSigningConfiguration;
 import org.opensaml.xmlsec.impl.BasicSignatureValidationConfiguration;
+import org.opensaml.xmlsec.impl.BasicWhitelistBlacklistConfiguration;
+import org.opensaml.xmlsec.signature.support.SignatureConstants;
 
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
@@ -28,6 +31,7 @@ import org.osgi.service.component.annotations.Modified;
 
 /**
  * @author Carlos Sierra Andrés
+ * @author Jorge García Jiménez
  */
 @Component(service = {})
 public class SecurityConfigurationBootstrap {
@@ -49,32 +53,39 @@ public class SecurityConfigurationBootstrap {
 				DefaultSecurityConfigurationBootstrap.
 					buildDefaultSignatureValidationConfiguration();
 
+		String[] blacklistedAlgorithms = new String[0];
+
 		Object blacklistedAlgorithmsObject = properties.get(
 			"blacklisted.algorithms");
 
 		if (blacklistedAlgorithmsObject instanceof String[]) {
-			basicDecryptionConfiguration.setBlacklistedAlgorithms(
-				_combine(
-					basicDecryptionConfiguration.getBlacklistedAlgorithms(),
-					(String[])blacklistedAlgorithmsObject));
-
-			basicEncryptionConfiguration.setBlacklistedAlgorithms(
-				_combine(
-					basicEncryptionConfiguration.getBlacklistedAlgorithms(),
-					(String[])blacklistedAlgorithmsObject));
-
-			basicSignatureSigningConfiguration.setBlacklistedAlgorithms(
-				_combine(
-					basicSignatureSigningConfiguration.
-						getBlacklistedAlgorithms(),
-					(String[])blacklistedAlgorithmsObject));
-
-			basicSignatureValidationConfiguration.setBlacklistedAlgorithms(
-				_combine(
-					basicSignatureValidationConfiguration.
-						getBlacklistedAlgorithms(),
-					(String[])blacklistedAlgorithmsObject));
+			blacklistedAlgorithms = (String[])blacklistedAlgorithmsObject;
 		}
+
+		_blacklist(basicDecryptionConfiguration, blacklistedAlgorithms);
+		_blacklist(basicEncryptionConfiguration, blacklistedAlgorithms);
+
+		String[] fipsDisallowedAlgorithms = new String[0];
+
+		if (PropsValues.FIPS_ENABLED) {
+			fipsDisallowedAlgorithms = new String[] {
+				SignatureConstants.ALGO_ID_DIGEST_NOT_RECOMMENDED_MD5,
+				SignatureConstants.ALGO_ID_DIGEST_SHA1,
+				SignatureConstants.ALGO_ID_MAC_HMAC_NOT_RECOMMENDED_MD5,
+				SignatureConstants.ALGO_ID_MAC_HMAC_SHA1,
+				SignatureConstants.ALGO_ID_SIGNATURE_DSA_SHA1,
+				SignatureConstants.ALGO_ID_SIGNATURE_ECDSA_SHA1,
+				SignatureConstants.ALGO_ID_SIGNATURE_NOT_RECOMMENDED_RSA_MD5,
+				SignatureConstants.ALGO_ID_SIGNATURE_RSA_SHA1
+			};
+		}
+
+		_blacklist(
+			basicSignatureSigningConfiguration, blacklistedAlgorithms,
+			fipsDisallowedAlgorithms);
+		_blacklist(
+			basicSignatureValidationConfiguration, blacklistedAlgorithms,
+			fipsDisallowedAlgorithms);
 
 		ConfigurationServiceBootstrapUtil.register(
 			DecryptionConfiguration.class, basicDecryptionConfiguration);
@@ -88,14 +99,20 @@ public class SecurityConfigurationBootstrap {
 			basicSignatureValidationConfiguration);
 	}
 
-	private Collection<String> _combine(
-		Collection<String> collection, String... strings) {
+	private void _blacklist(
+		BasicWhitelistBlacklistConfiguration
+			basicWhitelistBlacklistConfiguration,
+		String[]... stringsArray) {
 
-		Collection<String> combinedCollection = new HashSet<>(collection);
+		Collection<String> blacklistedAlgorithms = new HashSet<>(
+			basicWhitelistBlacklistConfiguration.getBlacklistedAlgorithms());
 
-		Collections.addAll(combinedCollection, strings);
+		for (String[] strings : stringsArray) {
+			Collections.addAll(blacklistedAlgorithms, strings);
+		}
 
-		return combinedCollection;
+		basicWhitelistBlacklistConfiguration.setBlacklistedAlgorithms(
+			blacklistedAlgorithms);
 	}
 
 }

@@ -144,9 +144,13 @@ public class AnalyticsBatchExportImportManagerImpl
 					).build(),
 					batchEngineExportTaskItemDelegateName);
 
-			batchEngineExportTasks.add(batchEngineExportTask);
-
 			_batchEngineExportTaskExecutor.execute(batchEngineExportTask);
+
+			batchEngineExportTask =
+				_batchEngineExportTaskLocalService.fetchBatchEngineExportTask(
+					batchEngineExportTask.getBatchEngineExportTaskId());
+
+			batchEngineExportTasks.add(batchEngineExportTask);
 
 			BatchEngineTaskExecuteStatus batchEngineTaskExecuteStatus =
 				BatchEngineTaskExecuteStatus.valueOf(
@@ -283,6 +287,10 @@ public class AnalyticsBatchExportImportManagerImpl
 
 		_batchEngineExportTaskExecutor.execute(batchEngineExportTask);
 
+		batchEngineExportTask =
+			_batchEngineExportTaskLocalService.fetchBatchEngineExportTask(
+				batchEngineExportTask.getBatchEngineExportTaskId());
+
 		BatchEngineTaskExecuteStatus batchEngineTaskExecuteStatus =
 			BatchEngineTaskExecuteStatus.valueOf(
 				batchEngineExportTask.getExecuteStatus());
@@ -392,6 +400,10 @@ public class AnalyticsBatchExportImportManagerImpl
 				batchEngineImportTaskItemDelegateName);
 
 		_batchEngineImportTaskExecutor.execute(batchEngineImportTask);
+
+		batchEngineImportTask =
+			_batchEngineImportTaskLocalService.fetchBatchEngineImportTask(
+				batchEngineImportTask.getBatchEngineImportTaskId());
 
 		BatchEngineTaskExecuteStatus batchEngineTaskExecuteStatus =
 			BatchEngineTaskExecuteStatus.valueOf(
@@ -595,7 +607,9 @@ public class AnalyticsBatchExportImportManagerImpl
 
 		options.addPart("oAuthClientId", oAuth2Application.getClientId());
 		options.addPart(
-			"oAuthClientSecret", oAuth2Application.getClientSecret());
+			"oAuthClientSecret",
+			_oAuth2ApplicationLocalService.getPlaintextClientSecret(
+				oAuth2Application));
 
 		JSONObject jsonObject = _jsonFactory.createJSONObject(
 			new String(Base64.decode(analyticsConfiguration.token())));

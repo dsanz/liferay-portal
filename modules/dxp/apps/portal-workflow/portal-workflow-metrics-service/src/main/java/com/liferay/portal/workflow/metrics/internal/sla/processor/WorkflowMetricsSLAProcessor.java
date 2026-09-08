@@ -343,8 +343,10 @@ public class WorkflowMetricsSLAProcessor {
 			TaskInterval taskInterval = _toTaskInterval(
 				document, lastCheckLocalDateTime, null);
 
+			String stopTimeMarker = stopTimeMarkers.get(nodeId);
+
 			if (pauseTimeMarkers.containsKey(nodeId) &&
-				!stopTimeMarkers.containsKey(nodeId)) {
+				(stopTimeMarker == null)) {
 
 				workflowMetricsSLAStopwatch.pause(
 					taskInterval._startLocalDateTime);
@@ -355,13 +357,14 @@ public class WorkflowMetricsSLAProcessor {
 				}
 			}
 
-			if (startTimeMarkers.containsKey(nodeId)) {
-				if (Objects.equals(startTimeMarkers.get(nodeId), "enter")) {
+			String startTimeMarker = startTimeMarkers.get(nodeId);
+
+			if (startTimeMarker != null) {
+				if (Objects.equals(startTimeMarker, "enter")) {
 					workflowMetricsSLAStopwatch.run(
 						taskInterval._startLocalDateTime);
 				}
-				else if (Objects.equals(
-							startTimeMarkers.get(nodeId), "leave") &&
+				else if (Objects.equals(startTimeMarker, "leave") &&
 						 (taskInterval._endLocalDateTime != null)) {
 
 					workflowMetricsSLAStopwatch.run(
@@ -369,12 +372,12 @@ public class WorkflowMetricsSLAProcessor {
 				}
 			}
 
-			if (stopTimeMarkers.containsKey(nodeId)) {
-				if (Objects.equals(stopTimeMarkers.get(nodeId), "enter")) {
+			if (stopTimeMarker != null) {
+				if (Objects.equals(stopTimeMarker, "enter")) {
 					workflowMetricsSLAStopwatch.stop(
 						taskInterval._startLocalDateTime);
 				}
-				else if (Objects.equals(stopTimeMarkers.get(nodeId), "leave") &&
+				else if (Objects.equals(stopTimeMarker, "leave") &&
 						 (taskInterval._endLocalDateTime != null)) {
 
 					workflowMetricsSLAStopwatch.stop(

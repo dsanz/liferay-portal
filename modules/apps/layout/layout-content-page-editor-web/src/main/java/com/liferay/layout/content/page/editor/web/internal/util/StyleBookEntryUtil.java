@@ -5,17 +5,26 @@
 
 package com.liferay.layout.content.page.editor.web.internal.util;
 
+import com.liferay.exportimport.kernel.staging.StagingUtil;
 import com.liferay.frontend.token.definition.FrontendTokenDefinition;
 import com.liferay.frontend.token.definition.FrontendTokenMapping;
+import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.style.book.model.StyleBookEntry;
+import com.liferay.style.book.util.StyleBookEntryProviderUtil;
 
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -78,6 +87,24 @@ public class StyleBookEntryUtil {
 		}
 
 		return frontendTokensValues;
+	}
+
+	public static List<Map<String, Object>> getStyleBookEntryMaps(
+			FrontendTokenDefinition frontendTokenDefinition,
+			boolean includeFrontendTokensValues, Layout layout,
+			ThemeDisplay themeDisplay)
+		throws Exception {
+
+		long groupId = StagingUtil.getLiveGroupId(layout.getGroupId());
+		Map<Long, Group> scopeGroups = new HashMap<>();
+
+		return TransformUtil.transform(
+			StyleBookEntryProviderUtil.getStyleBookEntries(
+				layout.getCompanyId(), groupId,
+				frontendTokenDefinition.getThemeId()),
+			styleBookEntry -> _getStyleBookEntryMap(
+				frontendTokenDefinition, groupId, includeFrontendTokensValues,
+				scopeGroups, styleBookEntry, themeDisplay));
 	}
 
 	private static JSONObject _getFrontendTokenValuesJSONObject(
@@ -151,6 +178,63 @@ public class StyleBookEntryUtil {
 			"tokenSetLabel", frontendTokenSetLabel
 		).put(
 			"value", value
+		).build();
+	}
+
+	private static Group _getScopeGroup(
+		long groupId, Map<Long, Group> scopeGroups,
+		StyleBookEntry styleBookEntry) {
+
+		if (styleBookEntry.getGroupId() == groupId) {
+			return null;
+		}
+
+		return scopeGroups.computeIfAbsent(
+			styleBookEntry.getGroupId(), GroupLocalServiceUtil::fetchGroup);
+	}
+
+	private static Map<String, Object> _getStyleBookEntryMap(
+		FrontendTokenDefinition frontendTokenDefinition, long groupId,
+		boolean includeFrontendTokensValues, Map<Long, Group> scopeGroups,
+		StyleBookEntry styleBookEntry, ThemeDisplay themeDisplay) {
+
+		Group scopeGroup = _getScopeGroup(groupId, scopeGroups, styleBookEntry);
+
+		return HashMapBuilder.<String, Object>put(
+			"imagePreviewURL", styleBookEntry.getImagePreviewURL(themeDisplay)
+		).put(
+			"name", styleBookEntry.getName()
+		).put(
+			"styleBookEntryERC", styleBookEntry.getExternalReferenceCode()
+		).put(
+			"styleBookEntryScopeERC",
+			() -> {
+				if (scopeGroup == null) {
+					return null;
+				}
+
+				return scopeGroup.getExternalReferenceCode();
+			}
+		).put(
+			"subtitle",
+			() -> {
+				if (scopeGroup == null) {
+					return null;
+				}
+
+				return scopeGroup.getDescriptiveName(themeDisplay.getLocale());
+			}
+		).put(
+			"tokenValues",
+			() -> {
+				if (!includeFrontendTokensValues) {
+					return null;
+				}
+
+				return getFrontendTokensValues(
+					frontendTokenDefinition, themeDisplay.getLocale(),
+					styleBookEntry);
+			}
 		).build();
 	}
 

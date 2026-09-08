@@ -6,6 +6,7 @@
 import '@testing-library/jest-dom';
 import {SidePanel} from '@clayui/core';
 import {cleanup, render, screen, within} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import SpaceService from '../../../../src/main/resources/META-INF/resources/js/common/services/SpaceService';
@@ -78,6 +79,44 @@ describe('CMS Asset Type Info Panel', () => {
 	afterEach(() => {
 		jest.resetAllMocks();
 		cleanup();
+
+		(global as any).Liferay.FeatureFlags = {};
+	});
+
+	it('does not render the Projects tab when the CMP feature flag is disabled', async () => {
+		(global as any).Liferay.FeatureFlags = {};
+
+		render(
+			<SidePanel containerRef={{current: null}}>
+				<AssetTypeInfoPanelContent
+					additionalProps={testAdditionalProps}
+					items={[CONTENT_OBJECT_ENTRY] as any}
+				/>
+			</SidePanel>
+		);
+
+		await userEvent.click(screen.getByRole('tab', {name: 'more'}));
+
+		expect(screen.getByText('versions')).toBeInTheDocument();
+
+		expect(screen.queryByText('projects')).not.toBeInTheDocument();
+	});
+
+	it('renders the Projects tab when the CMP feature flag is enabled', async () => {
+		(global as any).Liferay.FeatureFlags = {'LPD-58677': true};
+
+		render(
+			<SidePanel containerRef={{current: null}}>
+				<AssetTypeInfoPanelContent
+					additionalProps={testAdditionalProps}
+					items={[CONTENT_OBJECT_ENTRY] as any}
+				/>
+			</SidePanel>
+		);
+
+		await userEvent.click(screen.getByRole('tab', {name: 'more'}));
+
+		expect(screen.getByText('projects')).toBeInTheDocument();
 	});
 
 	it('renders the component for a Web Content asset type', async () => {
@@ -320,5 +359,48 @@ describe('CMS Asset Type Info Panel', () => {
 		expect(
 			within(breadcrumb).getByRole('button', {name: 'content-folder'})
 		).toBeInTheDocument();
+	});
+
+	describe('user time zone', () => {
+		const originalGetTimeZone = global.Liferay.ThemeDisplay.getTimeZone;
+
+		beforeEach(() => {
+			global.Liferay.ThemeDisplay.getTimeZone = jest
+				.fn()
+				.mockReturnValue('America/Los_Angeles');
+		});
+
+		afterEach(() => {
+			global.Liferay.ThemeDisplay.getTimeZone = originalGetTimeZone;
+		});
+
+		it('shows the metadata dates in the user time zone', () => {
+			render(
+				<SidePanel containerRef={{current: null}}>
+					<AssetTypeInfoPanelContent
+						additionalProps={testAdditionalProps}
+						items={
+							[
+								{
+									...CONTENT_OBJECT_ENTRY,
+									embedded: {
+										...CONTENT_OBJECT_ENTRY.embedded,
+										expirationDate: '2026-03-01T02:30:00Z',
+										reviewDate: '2026-03-02T01:15:00Z',
+									},
+								},
+							] as any
+						}
+					/>
+				</SidePanel>
+			);
+
+			expect(
+				screen.getByText('02/28/2026, 06:30 PM')
+			).toBeInTheDocument();
+			expect(
+				screen.getByText('03/01/2026, 05:15 PM')
+			).toBeInTheDocument();
+		});
 	});
 });

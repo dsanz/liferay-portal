@@ -5,8 +5,10 @@
 
 package com.liferay.portal.upgrade.data.cleanup;
 
+import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.portal.db.index.PrimaryKeyUpdaterUtil;
 import com.liferay.portal.events.StartupHelperUtil;
+import com.liferay.portal.kernel.dao.db.BaseDBProcess;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -31,7 +33,7 @@ public class DataCleanupPreupgradeProcessSuite {
 	public void cleanUp() throws Exception {
 		try (Connection connection = DataAccess.getConnection()) {
 			if (StartupHelperUtil.isDBNew() ||
-				PortalUpgradeProcess.isInLatestSchemaVersion(connection) ||
+				PortalUpgradeProcess.isInCompatibleSchemaVersion(connection) ||
 				(PortalUpgradeProcess.getCurrentState(connection) !=
 					ReleaseConstants.STATE_GOOD)) {
 
@@ -40,29 +42,18 @@ public class DataCleanupPreupgradeProcessSuite {
 		}
 
 		try (LoggingTimer loggingTimer = new LoggingTimer()) {
-			List<DataCleanupPreupgradeProcess> dataCleanupPreupgradeProcesses =
-				getSortedDataCleanupPreupgradeProcesses();
+			DataCleanupPreupgradeProcessUtil.enableCache();
 
-			for (DataCleanupPreupgradeProcess dataCleanupPreupgradeProcess :
-					dataCleanupPreupgradeProcesses) {
+			try {
+				DataCleanupConcurrentExecutor dataCleanupConcurrentExecutor =
+					new DataCleanupConcurrentExecutor();
 
-				Class<?> clazz = dataCleanupPreupgradeProcess.getClass();
-
-				if (ArrayUtil.contains(
-						PropsValues.
-							UPGRADE_DATABASE_PREUPGRADE_DATA_CLEANUP_BLACKLIST,
-						clazz.getName())) {
-
-					if (_log.isInfoEnabled()) {
-						_log.info(
-							"Skipping blacklisted data cleanup process: " +
-								clazz.getName());
-					}
-
-					continue;
-				}
-
-				dataCleanupPreupgradeProcess.upgrade();
+				dataCleanupConcurrentExecutor._execute(
+					_getLayeredDataCleanupPreupgradeProcesses(),
+					this::_runDataCleanupPreupgradeProcess);
+			}
+			finally {
+				DataCleanupPreupgradeProcessUtil.disableCache();
 			}
 		}
 	}
@@ -271,6 +262,40 @@ public class DataCleanupPreupgradeProcessSuite {
 			).build();
 	}
 
+	private List<List<DataCleanupPreupgradeProcess>>
+		_getLayeredDataCleanupPreupgradeProcesses() {
+
+		return DataCleanupPreupgradeProcess.
+			getLayeredDataCleanupPreupgradeProcesses(
+				_dataCleanupPreupgradeProcessesMap);
+	}
+
+	private void _runDataCleanupPreupgradeProcess(
+			DataCleanupPreupgradeProcess dataCleanupPreupgradeProcess)
+		throws Exception {
+
+		Class<?> clazz = dataCleanupPreupgradeProcess.getClass();
+
+		if (ArrayUtil.contains(
+				PropsValues.UPGRADE_DATABASE_PREUPGRADE_DATA_CLEANUP_BLACKLIST,
+				clazz.getName())) {
+
+			if (_log.isInfoEnabled()) {
+				_log.info(
+					"Skipping blacklisted data cleanup process: " +
+						clazz.getName());
+			}
+
+			return;
+		}
+
+		try (LoggingTimer loggingTimer = new LoggingTimer(
+				clazz.getSimpleName())) {
+
+			dataCleanupPreupgradeProcess.upgrade();
+		}
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		DataCleanupPreupgradeProcessSuite.class);
 
@@ -278,5 +303,35 @@ public class DataCleanupPreupgradeProcessSuite {
 		<DataCleanupPreupgradeProcess, List<DataCleanupPreupgradeProcess>>
 			_dataCleanupPreupgradeProcessesMap =
 				_createDataCleanupPreupgradeProcessesMap();
+
+	private static class DataCleanupConcurrentExecutor extends BaseDBProcess {
+
+		private void _execute(
+				List<List<DataCleanupPreupgradeProcess>>
+					dataCleanupPreupgradeProcessesList,
+				UnsafeConsumer<DataCleanupPreupgradeProcess, Exception>
+					unsafeConsumer)
+			throws Exception {
+
+			for (List<DataCleanupPreupgradeProcess>
+					dataCleanupPreupgradeProcesses :
+						dataCleanupPreupgradeProcessesList) {
+
+				if (dataCleanupPreupgradeProcesses.size() == 1) {
+					unsafeConsumer.accept(
+						dataCleanupPreupgradeProcesses.get(0));
+
+					continue;
+				}
+
+				processConcurrently(
+					dataCleanupPreupgradeProcesses.toArray(
+						new DataCleanupPreupgradeProcess[0]),
+					unsafeConsumer,
+					"Unable to run data cleanup processes concurrently");
+			}
+		}
+
+	}
 
 }

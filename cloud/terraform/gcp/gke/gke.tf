@@ -1,5 +1,8 @@
 resource "google_container_cluster" "primary" {
 	addons_config {
+		gcp_filestore_csi_driver_config {
+			enabled=true
+		}
 		horizontal_pod_autoscaling {
 			disabled=false
 		}
@@ -41,6 +44,12 @@ resource "google_container_cluster" "primary" {
 				cidr_block=cidr_blocks.value
 			}
 			for_each=var.master_authorized_networks
+		}
+	}
+	monitoring_config {
+		enable_components=["SYSTEM_COMPONENTS"]
+		managed_prometheus {
+			enabled=true
 		}
 	}
 	name=local.cluster_name

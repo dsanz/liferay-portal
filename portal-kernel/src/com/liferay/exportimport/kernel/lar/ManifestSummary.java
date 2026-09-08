@@ -121,7 +121,7 @@ public class ManifestSummary implements Serializable {
 		ManifestSummary manifestSummary = new ManifestSummary();
 
 		manifestSummary._configurationPortletOptions = new HashMap<>(
-			manifestSummary._configurationPortletOptions);
+			_configurationPortletOptions);
 		manifestSummary._dataPortlets = new ArrayList<>(_dataPortlets);
 		manifestSummary._layoutPortlets = new ArrayList<>(_layoutPortlets);
 
@@ -194,12 +194,12 @@ public class ManifestSummary implements Serializable {
 	}
 
 	public long getModelAdditionCount(String manifestSummaryKey) {
-		if (!_modelAdditionCounters.containsKey(manifestSummaryKey)) {
-			return -1;
-		}
-
 		LongWrapper modelAdditionCounter = _modelAdditionCounters.get(
 			manifestSummaryKey);
+
+		if (modelAdditionCounter == null) {
+			return -1;
+		}
 
 		return modelAdditionCounter.getValue();
 	}
@@ -245,12 +245,12 @@ public class ManifestSummary implements Serializable {
 	}
 
 	public long getModelDeletionCount(String manifestSummaryKey) {
-		if (!_modelDeletionCounters.containsKey(manifestSummaryKey)) {
-			return -1;
-		}
-
 		LongWrapper modelDeletionCounter = _modelDeletionCounters.get(
 			manifestSummaryKey);
+
+		if (modelDeletionCounter == null) {
+			return -1;
+		}
 
 		return modelDeletionCounter.getValue();
 	}
@@ -260,11 +260,14 @@ public class ManifestSummary implements Serializable {
 	}
 
 	public String getStagedModelAssetTitle(String manifestSummaryKey) {
-		if (!_stagedModelAssetTitles.containsKey(manifestSummaryKey)) {
+		String stagedModelAssetTitle = _stagedModelAssetTitles.get(
+			manifestSummaryKey);
+
+		if (stagedModelAssetTitle == null) {
 			return StringPool.BLANK;
 		}
 
-		return _stagedModelAssetTitles.get(manifestSummaryKey);
+		return stagedModelAssetTitle;
 	}
 
 	public Map<String, String> getStagedModelAssetTitles() {
@@ -274,7 +277,10 @@ public class ManifestSummary implements Serializable {
 	public void incrementModelAdditionCount(StagedModelType stagedModelType) {
 		String manifestSummaryKey = getManifestSummaryKey(stagedModelType);
 
-		if (!_modelAdditionCounters.containsKey(manifestSummaryKey)) {
+		LongWrapper modelAdditionCounter = _modelAdditionCounters.get(
+			manifestSummaryKey);
+
+		if (modelAdditionCounter == null) {
 			_modelAdditionCounters.put(manifestSummaryKey, new LongWrapper(1));
 
 			_manifestSummaryKeys.add(manifestSummaryKey);
@@ -282,25 +288,22 @@ public class ManifestSummary implements Serializable {
 			return;
 		}
 
-		LongWrapper modelAdditionCounter = _modelAdditionCounters.get(
-			manifestSummaryKey);
-
 		modelAdditionCounter.increment();
 	}
 
 	public void incrementModelDeletionCount(StagedModelType stagedModelType) {
 		String manifestSummaryKey = getManifestSummaryKey(stagedModelType);
 
-		if (!_modelDeletionCounters.containsKey(manifestSummaryKey)) {
+		LongWrapper modelDeletionCounter = _modelDeletionCounters.get(
+			manifestSummaryKey);
+
+		if (modelDeletionCounter == null) {
 			_modelDeletionCounters.put(manifestSummaryKey, new LongWrapper(1));
 
 			_manifestSummaryKeys.add(manifestSummaryKey);
 
 			return;
 		}
-
-		LongWrapper modelDeletionCounter = _modelDeletionCounters.get(
-			manifestSummaryKey);
 
 		modelDeletionCounter.increment();
 	}

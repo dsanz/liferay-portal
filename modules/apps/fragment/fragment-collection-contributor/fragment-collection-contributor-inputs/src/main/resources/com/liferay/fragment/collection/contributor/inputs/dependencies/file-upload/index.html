@@ -8,7 +8,7 @@
 	[#assign localFileUploaded = true]
 [/#if]
 
-<div class="file-upload">
+<div class="file-upload"[#if input.attributes.isCMS?? && input.attributes.isCMS] data-ai-assistant-field-id="${fragmentElementId}"[/#if]>
 	<div class="form-group [#if input.errorMessage?has_content]has-error[/#if] mb-0">
 		<label class="[#if !input.showLabel || !input.label?has_content]sr-only[/#if]" id="${fragmentElementId}-file-upload-label">
 			${htmlUtil.escape(input.label)}
@@ -29,6 +29,10 @@
 
 					<input accept="${(input.attributes.allowedFileExtensions?has_content)?then(input.attributes.allowedFileExtensions, '*')}" aria-describedby="${fragmentElementId}-file-upload-help-text" aria-labelledby="${fragmentElementId}-file-upload-label ${fragmentElementId}-file-upload-button-label [#if  input.errorMessage?has_content]${fragmentElementId}-file-upload-error-message[/#if]" class="file-upload-input sr-only" formenctype="multipart/form-data" id="${fragmentElementId}-file-upload" [#if !localFileUploaded]name="${input.name}"[/#if] ${input.required?then('required', '' )} type="${showDocumentLibrarySelector?then('text', 'file')}" [#if input.value??]value="${input.value}"[/#if] tabIndex="-1" />
 				</div>
+
+				[#if input.attributes.isCMS?? && input.attributes.isCMS]
+					<div class="file-upload-ai-assistant ml-2"></div>
+				[/#if]
 
 				<strong aria-label="${htmlUtil.escape(input.label)}" class="forms-file-upload-file-name pl-2" data-placeholder="${languageUtil.get(locale, "no-file-selected")}" role="textbox" value="">
 					[#if input.attributes.fileName??]${htmlUtil.escape(input.attributes.fileName)}[/#if]

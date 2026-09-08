@@ -13,10 +13,12 @@
 	export class BatchTestEntity {
 			"acceptAllLanguages"?: boolean;
 			"customFields"?: Array<any>;
+			"embeddedNestedField"?: object;
 			"externalReferenceCode"?: string;
 			"id"?: number;
 			"name"?: string;
-			"nestedField"?: string;
+			"nestedField1"?: string;
+			"nestedField2"?: string;
 			"relatedCompanyTestEntity"?: CompanyTestEntity;
 
 		static "discriminator": string | undefined = undefined;
@@ -37,6 +39,11 @@
 			type: "Array<any>",
 		},
 		{
+			baseName: "embeddedNestedField",
+			name: "embeddedNestedField",
+			type: "object",
+		},
+		{
 			baseName: "externalReferenceCode",
 			name: "externalReferenceCode",
 			type: "string",
@@ -52,8 +59,13 @@
 			type: "string",
 		},
 		{
-			baseName: "nestedField",
-			name: "nestedField",
+			baseName: "nestedField1",
+			name: "nestedField1",
+			type: "string",
+		},
+		{
+			baseName: "nestedField2",
+			name: "nestedField2",
 			type: "string",
 		},
 		{

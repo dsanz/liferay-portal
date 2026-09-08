@@ -1,6 +1,6 @@
 Bundle-Name: Liferay SAML OpenSAML Integration
 Bundle-SymbolicName: com.liferay.saml.opensaml.integration
-Bundle-Version: 6.2.35
+Bundle-Version: 6.2.37
 Export-Package:\
 	com.liferay.saml.opensaml.integration.field.expression.handler,\
 	com.liferay.saml.opensaml.integration.field.expression.handler.registry,\
@@ -58,7 +58,15 @@ Import-Package:\
 	!org.apache.xml.utils.*,\
 	!org.apache.xpath.*,\
 	\
+	!org.bouncycastle.crypto.engines.*,\
+	!org.bouncycastle.crypto.modes.*,\
+	!org.bouncycastle.crypto.params.*,\
+	!org.bouncycastle.openssl.*,\
+	!org.bouncycastle.pqc.*,\
+	\
 	!org.checkerframework.*,\
+	\
+	!org.cryptacular.*,\
 	\
 	!org.jdom.*,\
 	\
@@ -80,7 +88,6 @@ Import-Package:\
 	opensaml-profile-api-*;lib:=true,\
 	opensaml-profile-impl-*;lib:=true,\
 	opensaml-saml-api-*;lib:=true,\
-	opensaml-security-api-*;lib:=true,\
 	opensaml-security-impl-*;lib:=true,\
 	opensaml-soap-api-*;lib:=true,\
 	opensaml-soap-impl-*;lib:=true,\
@@ -90,4 +97,5 @@ Import-Package:\
 	opensaml-xmlsec-impl-*;lib:=true,\
 	org.opensaml.impl-*;lib:=true,\
 	org.opensaml.messaging-*;lib:=true,\
-	org.opensaml.messaging.impl-*;lib:=true
+	org.opensaml.messaging.impl-*;lib:=true,\
+	org.opensaml.security.api-*;lib:=true

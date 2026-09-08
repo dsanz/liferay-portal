@@ -13,6 +13,7 @@ import {
 import {BlockQuote} from '@ckeditor/ckeditor5-block-quote/dist/index.js';
 import {EditorConfig} from '@ckeditor/ckeditor5-core/dist/index.js';
 import {Essentials} from '@ckeditor/ckeditor5-essentials/dist/index.js';
+import {FindAndReplace} from '@ckeditor/ckeditor5-find-and-replace/dist/index.js';
 import {Font} from '@ckeditor/ckeditor5-font/dist/index.js';
 import {Heading} from '@ckeditor/ckeditor5-heading/dist/index.js';
 import {HorizontalLine} from '@ckeditor/ckeditor5-horizontal-line/dist/index.js';
@@ -34,8 +35,10 @@ import {Link, LinkImage} from '@ckeditor/ckeditor5-link/dist/index.js';
 import {List} from '@ckeditor/ckeditor5-list/dist/index.js';
 import {MediaEmbed} from '@ckeditor/ckeditor5-media-embed/dist/index.js';
 import {Paragraph} from '@ckeditor/ckeditor5-paragraph/dist/index.js';
+import {PasteFromOfficeEnhanced} from '@ckeditor/ckeditor5-paste-from-office-enhanced/dist/index.js';
 import {PasteFromOffice} from '@ckeditor/ckeditor5-paste-from-office/dist/index.js';
 import {RemoveFormat} from '@ckeditor/ckeditor5-remove-format/dist/index.js';
+import {SourceEditingEnhanced} from '@ckeditor/ckeditor5-source-editing-enhanced/dist/index.js';
 import {SourceEditing} from '@ckeditor/ckeditor5-source-editing/dist/index.js';
 import {Style} from '@ckeditor/ckeditor5-style/dist/index.js';
 import {
@@ -56,9 +59,15 @@ import {EEditorConfigPreset, EEditorVariant} from './types';
 const getDefaultEditorConfig = ({
 	editorVariant,
 	preset,
+	showAICreator,
+	showPasteFromOfficeEnhanced,
+	showSourceEditingEnhanced,
 }: {
 	editorVariant: EEditorVariant;
 	preset: EEditorConfigPreset;
+	showAICreator?: boolean;
+	showPasteFromOfficeEnhanced?: boolean;
+	showSourceEditingEnhanced?: boolean;
 }): EditorConfig => {
 	const basicPlugins = [
 		BlockToolbar,
@@ -72,6 +81,7 @@ const getDefaultEditorConfig = ({
 		List,
 		Paragraph,
 		PasteFromOffice,
+		...(showPasteFromOfficeEnhanced ? [PasteFromOfficeEnhanced] : []),
 		Underline,
 	];
 
@@ -127,9 +137,9 @@ const getDefaultEditorConfig = ({
 
 	const advancedPlugins = [
 		...basicPlugins,
-		AICreator,
 		Alignment,
 		BlockQuote,
+		FindAndReplace,
 		Font,
 		Heading,
 		HeadlessItemSelector,
@@ -152,8 +162,14 @@ const getDefaultEditorConfig = ({
 		TableToolbar,
 	];
 
+	if (showAICreator) {
+		advancedPlugins.push(AICreator);
+	}
+
 	if (editorVariant === EEditorVariant.CLASSIC) {
-		advancedPlugins.push(SourceEditing);
+		advancedPlugins.push(
+			showSourceEditingEnhanced ? SourceEditingEnhanced : SourceEditing
+		);
 	}
 
 	if (Liferay.FeatureFlags['LPD-62272']) {
@@ -165,6 +181,7 @@ const getDefaultEditorConfig = ({
 		'|',
 		'undo',
 		'redo',
+		'findAndReplace',
 		'|',
 		'style',
 		'|',
@@ -196,13 +213,20 @@ const getDefaultEditorConfig = ({
 		'horizontalLine',
 		'|',
 		'alignment',
-		'|',
-		'aiCreator',
 	];
+
+	if (showAICreator) {
+		toolbarItems.push('|');
+		toolbarItems.push('aiCreator');
+	}
 
 	if (editorVariant === EEditorVariant.CLASSIC) {
 		toolbarItems.push('|');
-		toolbarItems.push('sourceEditing');
+		toolbarItems.push(
+			showSourceEditingEnhanced
+				? 'sourceEditingEnhanced'
+				: 'sourceEditing'
+		);
 	}
 
 	const advancedEditorConfig: EditorConfig = {
@@ -262,6 +286,9 @@ const getDefaultEditorConfig = ({
 			previewsInData: true,
 		},
 		plugins: advancedPlugins,
+		sourceEditingEnhanced: {
+			theme: 'dark',
+		},
 		style: {
 			definitions: [
 				{
@@ -288,6 +315,46 @@ const getDefaultEditorConfig = ({
 					classes: ['code'],
 					element: 'code',
 					name: Liferay.Language.get('computer-code'),
+				},
+				{
+					classes: ['text-primary'],
+					element: 'span',
+					name: Liferay.Language.get('primary'),
+				},
+				{
+					classes: ['text-secondary'],
+					element: 'span',
+					name: Liferay.Language.get('secondary'),
+				},
+				{
+					classes: ['text-success'],
+					element: 'span',
+					name: Liferay.Language.get('success'),
+				},
+				{
+					classes: ['text-danger'],
+					element: 'span',
+					name: Liferay.Language.get('danger'),
+				},
+				{
+					classes: ['text-warning'],
+					element: 'span',
+					name: Liferay.Language.get('warning'),
+				},
+				{
+					classes: ['text-info'],
+					element: 'span',
+					name: Liferay.Language.get('info'),
+				},
+				{
+					classes: ['text-dark'],
+					element: 'span',
+					name: Liferay.Language.get('dark'),
+				},
+				{
+					classes: ['text-light'],
+					element: 'span',
+					name: Liferay.Language.get('light'),
 				},
 			],
 		},

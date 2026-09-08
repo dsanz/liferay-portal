@@ -149,9 +149,9 @@ $alert: () !default;
 $alert: map-deep-merge(
 	(
 		border-color: transparent,
+		border-radius: clay-enable-rounded($alert-border-radius),
 		border-style: $alert-border-style,
 		border-width: $alert-border-width,
-		border-radius: clay-enable-rounded($alert-border-radius),
 		display: block,
 		font-size: $alert-font-size,
 		margin-bottom: $alert-margin-bottom,
@@ -348,7 +348,6 @@ $alert-notifications-absolute-top-mobile: 4.25rem !default;
 $alert-notifications-absolute: () !default;
 $alert-notifications-absolute: map-deep-merge(
 	(
-		breakpoint-down: sm,
 		bottom: $alert-notifications-absolute-bottom,
 		height: 0rem,
 		left: $alert-notifications-absolute-left,
@@ -357,11 +356,13 @@ $alert-notifications-absolute: map-deep-merge(
 		top: $alert-notifications-absolute-top,
 		z-index: $zindex-alert-notifications,
 
-		mobile: (
-			bottom: $alert-notifications-absolute-bottom-mobile,
-			left: $alert-notifications-absolute-left-mobile,
-			right: $alert-notifications-absolute-right-mobile,
-			top: $alert-notifications-absolute-top-mobile,
+		media-breakpoint-down: (
+			sm: (
+				bottom: $alert-notifications-absolute-bottom-mobile,
+				left: $alert-notifications-absolute-left-mobile,
+				right: $alert-notifications-absolute-right-mobile,
+				top: $alert-notifications-absolute-top-mobile,
+			),
 		),
 	),
 	$alert-notifications-absolute
@@ -386,7 +387,6 @@ $alert-notifications-fixed-top-mobile: null !default;
 $alert-notifications-fixed: () !default;
 $alert-notifications-fixed: map-deep-merge(
 	(
-		breakpoint-down: sm,
 		bottom: $alert-notifications-fixed-bottom,
 		left: $alert-notifications-fixed-left,
 		position: fixed,
@@ -394,11 +394,13 @@ $alert-notifications-fixed: map-deep-merge(
 		top: $alert-notifications-fixed-top,
 		z-index: $zindex-alert-notifications,
 
-		mobile: (
-			bottom: $alert-notifications-fixed-bottom-mobile,
-			left: $alert-notifications-fixed-left-mobile,
-			right: $alert-notifications-fixed-right-mobile,
-			top: $alert-notifications-fixed-top-mobile,
+		media-breakpoint-down: (
+			sm: (
+				bottom: $alert-notifications-fixed-bottom-mobile,
+				left: $alert-notifications-fixed-left-mobile,
+				right: $alert-notifications-fixed-right-mobile,
+				top: $alert-notifications-fixed-top-mobile,
+			),
 		),
 	),
 	$alert-notifications-fixed
@@ -518,9 +520,9 @@ $alert-inline: map-deep-merge(
 			align-items: center,
 			margin-bottom: calc(#{$alert-padding-y} * -1 - 1px),
 			margin-top: calc(#{$alert-padding-y} * -1 - 1px),
+			min-height: 3.5rem,
 			padding-bottom: 0.5625rem,
 			padding-top: 0.5625rem,
-			min-height: 3.5rem,
 
 			btn-group: (
 				margin-right: 2rem,

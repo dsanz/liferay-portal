@@ -364,6 +364,12 @@ public interface CPConfigurationListLocalService
 	public CPConfigurationList getMasterCPConfigurationList(long groupId)
 		throws NoSuchCPConfigurationListException;
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CPConfigurationList getOrAddEmptyCPConfigurationList(
+			String externalReferenceCode, long companyId, long userId,
+			long groupId)
+		throws PortalException;
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *
@@ -421,4 +427,4 @@ public interface CPConfigurationListLocalService
 		throws E;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1656689447
+// LIFERAY-SERVICE-BUILDER-HASH:-385849409

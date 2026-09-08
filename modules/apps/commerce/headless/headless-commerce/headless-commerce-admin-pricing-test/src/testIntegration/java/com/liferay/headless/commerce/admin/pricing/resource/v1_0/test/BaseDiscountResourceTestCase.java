@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -119,6 +120,8 @@ public abstract class BaseDiscountResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -962,7 +965,8 @@ public abstract class BaseDiscountResourceTestCase {
 
 		Discount discount2 = testGetDiscountsPage_addDiscount(randomDiscount());
 
-		page = discountResource.getDiscountsPage(Pagination.of(1, 10));
+		page = discountResource.getDiscountsPage(
+			Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1060,16 +1064,8 @@ public abstract class BaseDiscountResourceTestCase {
 
 	@Test
 	public void testGraphQLGetDiscountsPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"discounts",
-			new HashMap<String, Object>() {
-				{
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetDiscountsPageDiscount_getGraphQLField();
 
 		// No namespace
 
@@ -1119,6 +1115,21 @@ public abstract class BaseDiscountResourceTestCase {
 			discount2,
 			Arrays.asList(
 				DiscountSerDes.toDTOs(discountsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField testGraphQLGetDiscountsPageDiscount_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"discounts",
+			new HashMap<String, Object>() {
+				{
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -2874,4 +2885,4 @@ public abstract class BaseDiscountResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1277206396
+// LIFERAY-REST-BUILDER-HASH:-1393585512

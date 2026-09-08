@@ -21,6 +21,12 @@ async function fetchVocabulary(vocabularyId: number) {
 	);
 }
 
+async function getVocabularies(siteId: number | string) {
+	return ApiHelper.get<{
+		items: {assetLibraries: {id: number}[]; id: string; name: string}[];
+	}>(`/o/headless-admin-taxonomy/v1.0/sites/${siteId}/taxonomy-vocabularies`);
+}
+
 async function getRequiredVocabularies({
 	assetLibraryId,
 	assetTypeId,
@@ -52,6 +58,66 @@ async function getRequiredVocabularies({
 	});
 }
 
+async function getVocabularyIdsByExternalReferenceCode({
+	assetLibraryId,
+	externalReferenceCodes,
+	siteGroupId,
+}: {
+	assetLibraryId: number | string;
+	externalReferenceCodes: string[];
+	siteGroupId: number | string;
+}) {
+	const vocabularyIds: {[externalReferenceCode: string]: number} = {};
+
+	await Promise.all(
+		externalReferenceCodes.map(async (externalReferenceCode) => {
+			const {data} = await ApiHelper.get<{id?: number}>(
+				`/o/headless-admin-taxonomy/v1.0/sites/${siteGroupId}/taxonomy-vocabularies/by-external-reference-code/${externalReferenceCode}`
+			);
+
+			if (data?.id) {
+				vocabularyIds[externalReferenceCode] = data.id;
+			}
+		})
+	);
+
+	const missingExternalReferenceCodes = externalReferenceCodes.filter(
+		(externalReferenceCode) => !(externalReferenceCode in vocabularyIds)
+	);
+
+	if (missingExternalReferenceCodes.length) {
+		const scope =
+			Number(assetLibraryId) > 0
+				? `asset-libraries/${assetLibraryId}`
+				: `sites/${siteGroupId}`;
+
+		const {data} = await ApiHelper.get<{
+			items?: Array<{
+				parentTaxonomyVocabulary?: {
+					externalReferenceCode?: string;
+					id?: number;
+				};
+			}>;
+		}>(
+			`/o/headless-admin-taxonomy/v1.0/${scope}/taxonomy-categories?filter=assetTypes in ('0')&pageSize=100`
+		);
+
+		(data?.items || []).forEach(({parentTaxonomyVocabulary}) => {
+			const {externalReferenceCode, id} = parentTaxonomyVocabulary || {};
+
+			if (
+				id &&
+				externalReferenceCode &&
+				missingExternalReferenceCodes.includes(externalReferenceCode)
+			) {
+				vocabularyIds[externalReferenceCode] = id;
+			}
+		});
+	}
+
+	return vocabularyIds;
+}
+
 async function updateVocabulary(vocabulary: IVocabulary) {
 	return await ApiHelper.put<IVocabulary>(
 		`/o/headless-admin-taxonomy/v1.0/taxonomy-vocabularies/${vocabulary.id}`,
@@ -78,5 +144,7 @@ export default {
 	fetchVocabulary,
 	getCommonCategories,
 	getRequiredVocabularies,
+	getVocabularies,
+	getVocabularyIdsByExternalReferenceCode,
 	updateVocabulary,
 };

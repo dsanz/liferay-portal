@@ -8,30 +8,149 @@
 <%@ include file="/init.jsp" %>
 
 <%
-long designLibraryEntryId = (long)request.getAttribute(DesignLibraryConstants.DESIGN_LIBRARY_ENTRY_ID_KEY);
+ConnectedSitesDesignLibraryDisplayContext connectedSitesDesignLibraryDisplayContext = new ConnectedSitesDesignLibraryDisplayContext(request);
 
-DesignLibraryResourcesDisplayContext designLibraryResourcesDisplayContext = new DesignLibraryResourcesDisplayContext(request, liferayPortletResponse);
+MembersDesignLibraryDisplayContext membersDesignLibraryDisplayContext = new MembersDesignLibraryDisplayContext(request);
+
+ViewResourcesDesignLibraryDisplayContext viewResourcesDesignLibraryDisplayContext = new ViewResourcesDesignLibraryDisplayContext(request, liferayPortletResponse);
 %>
 
 <div>
 	<div>
 		<react:component
 			module="{DesignLibraryBreadcrumb} from design-library-web"
-			props="<%= designLibraryResourcesDisplayContext.getBreadcrumbProps(designLibraryEntryId) %>"
+			props="<%= viewResourcesDesignLibraryDisplayContext.getBreadcrumbProps() %>"
 		/>
 	</div>
 
-	<div class="design-library-fds-wrapper design-library-fds-wrapper--resources">
-		<frontend-data-set:headless-display
-			additionalProps="<%= designLibraryResourcesDisplayContext.getFDSAdditionalProps(designLibraryEntryId) %>"
-			apiURL="<%= designLibraryResourcesDisplayContext.getAPIURL(designLibraryEntryId) %>"
-			emptyState="<%= designLibraryResourcesDisplayContext.getEmptyState() %>"
-			fdsActionDropdownItems="<%= designLibraryResourcesDisplayContext.getFDSActionDropdownItems(designLibraryEntryId) %>"
-			formName="fm"
-			id="<%= DesignLibraryAdminFDSNames.DESIGN_LIBRARY_RESOURCES %>"
-			propsTransformer="{DesignLibraryResourcesFDSPropsTransformer} from design-library-web"
-			selectedItemsKey="embedded.id"
-			selectionType="multiple"
-		/>
-	</div>
+	<c:choose>
+		<c:when test="<%= viewResourcesDesignLibraryDisplayContext.hasContentAccess() %>">
+
+			<%
+			Map<String, Object> resourcesFDSAdditionalProps = viewResourcesDesignLibraryDisplayContext.getFDSAdditionalProps();
+
+			Map<String, Object> membersFDSAdditionalProps = membersDesignLibraryDisplayContext.getFDSAdditionalProps();
+			%>
+
+			<div class="pb-4 px-4">
+				<div class="row">
+					<div class="col-12 col-lg-8">
+						<div class="card">
+							<div class="card-body">
+								<div>
+									<react:component
+										module="{DesignLibraryAssetsSectionHeader} from design-library-web"
+										props="<%= resourcesFDSAdditionalProps %>"
+									/>
+								</div>
+
+								<div class="design-library-fds-wrapper design-library-fds-wrapper--resources">
+									<frontend-data-set:headless-display
+										additionalProps="<%= resourcesFDSAdditionalProps %>"
+										apiURL="<%= viewResourcesDesignLibraryDisplayContext.getAPIURL() %>"
+										bulkActionDropdownItems="<%= viewResourcesDesignLibraryDisplayContext.getBulkActionDropdownItems() %>"
+										emptyState="<%= viewResourcesDesignLibraryDisplayContext.getEmptyState() %>"
+										fdsActionDropdownItems="<%= viewResourcesDesignLibraryDisplayContext.getFDSActionDropdownItems() %>"
+										formName="fm"
+										id="<%= DesignLibraryAdminFDSNames.DESIGN_LIBRARY_RESOURCES %>"
+										propsTransformer="{DesignLibraryAssetsFDSPropsTransformer} from design-library-web"
+										selectedItemsKey="embedded.externalReferenceCode"
+										selectionType="multiple"
+									/>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="col-12 col-lg-4">
+						<div class="card design-library-summary-card mb-4">
+							<div class="card-body design-library-members-fds">
+								<div>
+									<react:component
+										module="{DesignLibraryMembersSectionHeader} from design-library-web"
+										props="<%= membersDesignLibraryDisplayContext.getSectionHeaderProps() %>"
+									/>
+								</div>
+
+								<clay:tabs
+									tabsItems="<%= membersDesignLibraryDisplayContext.getTabsItems() %>"
+								>
+									<clay:tabs-panel>
+										<div class="design-library-summary-fds">
+											<frontend-data-set:headless-display
+												additionalProps="<%= membersFDSAdditionalProps %>"
+												apiURL="<%= membersDesignLibraryDisplayContext.getUsersAPIURL() %>"
+												emptyState="<%= membersDesignLibraryDisplayContext.getEmptyState() %>"
+												formName="fm"
+												id="<%= DesignLibraryAdminFDSNames.DESIGN_LIBRARY_MEMBERS_USERS %>"
+												propsTransformer="{DesignLibraryMembersFDSPropsTransformer} from design-library-web"
+												showManagementBar="<%= false %>"
+												showPagination="<%= false %>"
+												showSearch="<%= false %>"
+												showSelectAll="<%= false %>"
+												style="fluid"
+											/>
+										</div>
+									</clay:tabs-panel>
+
+									<clay:tabs-panel>
+										<div class="design-library-summary-fds">
+											<frontend-data-set:headless-display
+												additionalProps="<%= membersFDSAdditionalProps %>"
+												apiURL="<%= membersDesignLibraryDisplayContext.getUserGroupsAPIURL() %>"
+												emptyState="<%= membersDesignLibraryDisplayContext.getEmptyState() %>"
+												formName="fm"
+												id="<%= DesignLibraryAdminFDSNames.DESIGN_LIBRARY_MEMBERS_USER_GROUPS %>"
+												propsTransformer="{DesignLibraryMembersFDSPropsTransformer} from design-library-web"
+												showManagementBar="<%= false %>"
+												showPagination="<%= false %>"
+												showSearch="<%= false %>"
+												showSelectAll="<%= false %>"
+												style="fluid"
+											/>
+										</div>
+									</clay:tabs-panel>
+								</clay:tabs>
+							</div>
+						</div>
+
+						<div class="card design-library-summary-card">
+							<div class="card-body">
+								<div>
+									<react:component
+										module="{DesignLibraryConnectedSitesSectionHeader} from design-library-web"
+										props="<%= connectedSitesDesignLibraryDisplayContext.getSectionHeaderProps() %>"
+									/>
+								</div>
+
+								<div class="design-library-summary-fds">
+									<frontend-data-set:headless-display
+										additionalProps="<%= connectedSitesDesignLibraryDisplayContext.getFDSAdditionalProps() %>"
+										apiURL="<%= connectedSitesDesignLibraryDisplayContext.getAPIURL() %>"
+										emptyState="<%= connectedSitesDesignLibraryDisplayContext.getEmptyState() %>"
+										formName="fm"
+										id="<%= DesignLibraryAdminFDSNames.DESIGN_LIBRARY_CONNECTED_SITES %>"
+										propsTransformer="{DesignLibraryConnectedSitesFDSPropsTransformer} from design-library-web"
+										showManagementBar="<%= false %>"
+										showPagination="<%= false %>"
+										showSearch="<%= false %>"
+										showSelectAll="<%= false %>"
+										style="fluid"
+									/>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</c:when>
+		<c:otherwise>
+			<div class="p-4">
+				<clay:alert
+					displayType="info"
+					message="you-do-not-have-access-to-any-content-in-this-design-library"
+				/>
+			</div>
+		</c:otherwise>
+	</c:choose>
 </div>

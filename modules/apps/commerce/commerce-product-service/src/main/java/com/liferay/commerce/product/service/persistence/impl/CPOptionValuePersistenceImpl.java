@@ -22,8 +22,6 @@ import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.sanitizer.Sanitizer;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
@@ -913,6 +911,7 @@ public class CPOptionValuePersistenceImpl
 		ctMergeColumnNames.add("priority");
 		ctMergeColumnNames.add("key_");
 		ctMergeColumnNames.add("lastPublishDate");
+		ctMergeColumnNames.add("status");
 
 		_ctColumnNamesMap.put(
 			CTColumnResolutionType.CONTROL, ctControlColumnNames);
@@ -954,7 +953,8 @@ public class CPOptionValuePersistenceImpl
 				new String[] {String.class.getName()}, new String[] {"uuid_"},
 				0, 1, false, null),
 			_SQL_SELECT_CPOPTIONVALUE_WHERE, _SQL_COUNT_CPOPTIONVALUE_WHERE,
-			CPOptionValueModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			CPOptionValueModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"cpOptionValue.", "uuid", "uuid_", FinderColumn.Type.STRING,
 				"=", true, true, CPOptionValue::getUuid));
@@ -980,6 +980,7 @@ public class CPOptionValuePersistenceImpl
 					new String[] {"uuid_", "companyId"}, 0, 1, false, null),
 				_SQL_SELECT_CPOPTIONVALUE_WHERE, _SQL_COUNT_CPOPTIONVALUE_WHERE,
 				CPOptionValueModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"cpOptionValue.", "uuid", "uuid_", FinderColumn.Type.STRING,
 					"=", true, true, CPOptionValue::getUuid),
@@ -1008,6 +1009,7 @@ public class CPOptionValuePersistenceImpl
 					new String[] {"companyId"}, false),
 				_SQL_SELECT_CPOPTIONVALUE_WHERE, _SQL_COUNT_CPOPTIONVALUE_WHERE,
 				CPOptionValueModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"cpOptionValue.", "companyId", FinderColumn.Type.LONG, "=",
 					true, true, CPOptionValue::getCompanyId));
@@ -1033,6 +1035,7 @@ public class CPOptionValuePersistenceImpl
 					new String[] {"CPOptionId"}, false),
 				_SQL_SELECT_CPOPTIONVALUE_WHERE, _SQL_COUNT_CPOPTIONVALUE_WHERE,
 				CPOptionValueModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"cpOptionValue.", "CPOptionId", FinderColumn.Type.LONG, "=",
 					true, true, CPOptionValue::getCPOptionId));
@@ -1128,12 +1131,6 @@ public class CPOptionValuePersistenceImpl
 	private static final String _SQL_COUNT_CPOPTIONVALUE_WHERE =
 		"SELECT COUNT(cpOptionValue) FROM CPOptionValue cpOptionValue WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No CPOptionValue exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		CPOptionValuePersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid", "key"});
 
@@ -1143,4 +1140,4 @@ public class CPOptionValuePersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:784225578
+// LIFERAY-SERVICE-BUILDER-HASH:1142280881

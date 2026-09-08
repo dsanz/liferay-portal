@@ -35,10 +35,12 @@ test(
 				'Redo',
 				'Bold',
 				'Italic',
+				'Link',
 				'Bookmark',
-				'Timestamp',
 				'Image',
 				'Video',
+				'Styles',
+				'Timestamp',
 			];
 
 			const availableButtons =
@@ -51,19 +53,6 @@ test(
 			await expect(
 				classicPage.toolbar.buttonLabels.getByLabel('Underline')
 			).toBeHidden();
-		});
-
-		await test.step('"Timestamp" custom plugin has Clay icon', async () => {
-			const timestampButton = classicPage.toolbar.container.getByRole(
-				'button',
-				{
-					name: 'Timestamp',
-				}
-			);
-
-			await expect(
-				timestampButton.locator('svg use[href*="/clay/"]')
-			).toBeAttached();
 		});
 
 		await test.step('Item selector controls open item selector modal', async () => {

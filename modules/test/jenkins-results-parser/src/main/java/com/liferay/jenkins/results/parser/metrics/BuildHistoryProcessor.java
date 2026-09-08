@@ -140,19 +140,13 @@ public class BuildHistoryProcessor {
 					for (Map.Entry<String, Set<BuildJSONObject>> entry :
 							groupedBuildDataJSONObjectsMap.entrySet()) {
 
-						String key = entry.getKey();
+						BuildHistory buildHistory =
+							buildHistories.computeIfAbsent(
+								entry.getKey(),
+								key -> new BuildHistory(
+									duration, key, startTime));
 
-						if (!buildHistories.containsKey(key)) {
-							BuildHistory buildHistory = new BuildHistory(
-								duration, key, startTime);
-
-							buildHistories.put(key, buildHistory);
-						}
-
-						BuildHistory buildHistory = buildHistories.get(key);
-
-						buildHistory.addBuildJSONObjects(
-							groupedBuildDataJSONObjectsMap.get(key));
+						buildHistory.addBuildJSONObjects(entry.getValue());
 					}
 				}
 
@@ -250,14 +244,9 @@ public class BuildHistoryProcessor {
 		for (Map.Entry<String, Set<BuildJSONObject>> entry :
 				groupedBuildDataJSONObjectsMap.entrySet()) {
 
-			if (!buildHistoriesMap.containsKey(entry.getKey())) {
-				BuildHistory buildHistory = new BuildHistory(
-					duration, entry.getKey(), startTime);
-
-				buildHistoriesMap.put(entry.getKey(), buildHistory);
-			}
-
-			BuildHistory buildHistory = buildHistoriesMap.get(entry.getKey());
+			BuildHistory buildHistory = buildHistoriesMap.computeIfAbsent(
+				entry.getKey(),
+				key -> new BuildHistory(duration, key, startTime));
 
 			buildHistory.addBuildJSONObjects(entry.getValue());
 		}
@@ -388,13 +377,9 @@ public class BuildHistoryProcessor {
 		for (BuildJSONObject buildJSONObject : buildJSONObjects) {
 			String groupName = groupingFunction.apply(buildJSONObject);
 
-			if (!groupedBuildDataJSONObjectsMap.containsKey(groupName)) {
-				groupedBuildDataJSONObjectsMap.put(
-					groupName, new HashSet<BuildJSONObject>());
-			}
-
 			Set<BuildJSONObject> groupedBuildJSONObjects =
-				groupedBuildDataJSONObjectsMap.get(groupName);
+				groupedBuildDataJSONObjectsMap.computeIfAbsent(
+					groupName, key -> new HashSet<>());
 
 			groupedBuildJSONObjects.add(buildJSONObject);
 		}
@@ -576,9 +561,9 @@ public class BuildHistoryProcessor {
 
 			Map<String, String> parameters = buildJSONObject.getParameters();
 
-			if (parameters.containsKey("JOB_VARIANT")) {
-				String jobVariant = parameters.get("JOB_VARIANT");
+			String jobVariant = parameters.get("JOB_VARIANT");
 
+			if (jobVariant != null) {
 				if (jobVariant.contains("functional")) {
 					return TestBatchType.POSHI.toString();
 				}
@@ -673,24 +658,20 @@ public class BuildHistoryProcessor {
 				Map<String, String> parameters =
 					buildJSONObject.getParameters();
 
-				if (parameters.containsKey("CI_TEST_SUITE")) {
-					_topLevelBuildTestSuiteMap.put(
-						buildJSONObject.getURL(),
-						parameters.get("CI_TEST_SUITE"));
+				String ciTestSuite = parameters.get("CI_TEST_SUITE");
 
-					return parameters.get("CI_TEST_SUITE");
+				if (ciTestSuite != null) {
+					_topLevelBuildTestSuiteMap.put(
+						buildJSONObject.getURL(), ciTestSuite);
+
+					return ciTestSuite;
 				}
 
 				return "[Unknown]";
 			}
 
-			String topLevelBuildURL = buildJSONObject.getTopLevelBuildURL();
-
-			if (_topLevelBuildTestSuiteMap.containsKey(topLevelBuildURL)) {
-				return _topLevelBuildTestSuiteMap.get(topLevelBuildURL);
-			}
-
-			return "[Unknown]";
+			return _topLevelBuildTestSuiteMap.getOrDefault(
+				buildJSONObject.getTopLevelBuildURL(), "[Unknown]");
 		}
 
 		private final Map<String, String> _topLevelBuildTestSuiteMap =

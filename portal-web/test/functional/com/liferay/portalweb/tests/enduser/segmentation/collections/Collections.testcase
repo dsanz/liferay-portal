@@ -6,7 +6,7 @@ definition {
 	property custom.properties = "jsonws.web.service.paths.excludes=";
 	property portal.acceptance = "true";
 	property portal.release = "true";
-	property portal.suite.search.engine = "elasticsearch8,opensearch2,solr";
+	property portal.suite.search.engine = "elasticsearch8,opensearch2";
 	property portal.upstream = "true";
 	property test.liferay.virtual.instance = "false";
 	property test.run.type = "single";
@@ -127,34 +127,6 @@ definition {
 
 		task ("Assert the taglib that displays when there are no entries displays") {
 			AssertElementPresent(locator1 = "Message#EMPTY_INFO_TAGLIB");
-		}
-	}
-
-	@description = "This is a test for LPS-143093. Add assets to manual collection for selected item types."
-	@priority = 4
-	test AddAssetsToManualCollectionForSelectedItemTypes {
-		task ("Given a user has a manual collection") {
-			AssetListsAdmin.openAssetListsAdmin(siteURLKey = "test-site-name");
-
-			AssetListsAdmin.addManualSelection(assetListTitle = "Manual Collection");
-		}
-
-		task ("When the user selects item types") {
-			AssetListsAdmin.configureItemTypeInManualCollection(
-				itemType = "Select Types",
-				moveToAvailableItemTypeList = "Blogs Entry,Web Content Article");
-		}
-
-		task ("Then only selected types are shown on the dropdown menu") {
-			Button.clickSelect();
-
-			for (var menuItem : list "Calendar Event,Basic Document,Translation,Web Content Folder") {
-				MenuItem.verifyVisible(menuItem = ${menuItem});
-			}
-
-			for (var menuItem : list "Blogs Entry,Web Content Article") {
-				MenuItem.viewNotPresent(menuItem = ${menuItem});
-			}
 		}
 	}
 
@@ -524,66 +496,6 @@ definition {
 		}
 	}
 
-	@description = "This is a test for LPS-98466. Editing a collection fails after deleting a segment used by it."
-	@priority = 3
-	test EditManualCollectionAfterDeletingASegmentUsedByIt {
-		task ("Given a manual collection with variation") {
-			task ("Create web content articles") {
-				for (var i : list "1,2") {
-					JSONWebcontent.addWebContent(
-						content = "WC Content",
-						groupName = "Test Site Name",
-						title = "WC_Title_${i}");
-				}
-			}
-
-			task ("Create a segment") {
-				JSONSegmentsentry.addSegment(
-					fieldName = "Signed In",
-					groupName = "Test Site Name",
-					operator = "equals",
-					segmentName = "Segment Name",
-					text = "false");
-			}
-
-			task ("Create a manual Collection") {
-				AssetListsAdmin.openAssetListsAdmin(siteURLKey = "test-site-name");
-
-				AssetListsAdmin.addManualSelection(assetListTitle = "Manual Collection Test");
-
-				AssetListsAdmin.configureItemTypeInManualCollection(
-					itemSubtype = "All Subtypes",
-					itemType = "Web Content Article");
-			}
-
-			task ("Create a variation for the collection and select a web content") {
-				AssetListsAdmin.addPersonalizedVariation(segmentName = "Segment Name");
-
-				AssetListsAdmin.selectAsset(
-					assetListTitle = "Manual Collection Test",
-					assetType = "Basic Web Content",
-					entryList = "WC_Title_2");
-			}
-		}
-
-		task ("When delete the segment") {
-			JSONSegmentsentry.deleteSegment(
-				groupName = "Test Site Name",
-				segmentName = "Segment Name");
-		}
-
-		task ("Then assert user is able to edit the manual collection") {
-			AssetListsAdmin.openAssetListsAdmin(siteURLKey = "test-site-name");
-
-			AssetListsAdmin.editAssetList(assetListTitle = "Manual Collection Test");
-
-			AssetListsAdmin.selectAsset(
-				assetListTitle = "Manual Collection Test",
-				assetType = "Basic Web Content",
-				entryList = "WC_Title_1");
-		}
-	}
-
 	@description = "This is a test for LPS-131309. The user could filter collection items by global category."
 	@priority = 4
 	test FilterCollectionItemsByGlobalCategory {
@@ -902,175 +814,6 @@ definition {
 		}
 	}
 
-	@description = "LPS-93726: Validate if, on content set personalized variations, the same content can match different content set variations"
-	@priority = 3
-	test SelectAssetToDifferentVariations {
-		task ("Create a public page") {
-			JSONLayout.addPublicLayout(
-				groupName = "Test Site Name",
-				layoutName = "Test Page Name");
-		}
-
-		task ("Add an Asset Publisher portlet to the created public page") {
-			JSONLayout.addWidgetToPublicLayout(
-				groupName = "Test Site Name",
-				layoutName = "Test Page Name",
-				widgetName = "Asset Publisher");
-		}
-
-		task ("Create a web content article") {
-			JSONWebcontent.addWebContent(
-				content = "WC WebContent Content",
-				groupName = "Test Site Name",
-				title = "WC WebContent Title");
-		}
-
-		task ("Create a segment") {
-			JSONSegmentsentry.addSegment(
-				fieldName = "Screen Name",
-				groupName = "Test Site Name",
-				operator = "equals",
-				segmentName = "Segment With Test User",
-				text = "Test");
-		}
-
-		task ("Create a manual Collection") {
-			AssetListsAdmin.openAssetListsAdmin(siteURLKey = "test-site-name");
-
-			AssetListsAdmin.addManualSelection(assetListTitle = "Manual Collection Test");
-
-			AssetListsAdmin.configureItemTypeInManualCollection(
-				itemSubtype = "All Subtypes",
-				itemType = "Web Content Article");
-		}
-
-		task ("Add a personalized variation to collection") {
-			AssetListsAdmin.selectAsset(
-				assetName = "WC WebContent Title",
-				assetType = "Basic Web Content");
-		}
-
-		task ("Select the Web Content Article as item type and Basic Web Content as item subtype and link the web content article to the Collection") {
-			AssetListsAdmin.addPersonalizedVariation(segmentName = "Segment With Test User");
-
-			AssetListsAdmin.selectAsset(
-				assetName = "WC WebContent Title",
-				assetType = "Basic Web Content",
-				itemSubtype = "Basic Web Content",
-				itemType = "Web Content Article");
-		}
-
-		task ("Select the created manual Collection to be used in the asset publisher portlet") {
-			Navigator.gotoSitePage(
-				pageName = "Test Page Name",
-				siteName = "Test Site Name");
-
-			AssetPublisherPortlet.selectAssetList(assetListName = "Manual Collection Test");
-		}
-
-		task ("View web content article matching with Collection for that variation in Asset Publisher") {
-			Navigator.gotoSitePage(
-				pageName = "Test Page Name",
-				siteName = "Test Site Name");
-
-			AssertTextEquals(
-				key_assetTitle = "WC WebContent Title",
-				locator1 = "AP#ASSET_ABSTRACT_DESCRIPTION",
-				value1 = "WC WebContent Content");
-		}
-
-		task ("Logout and View web content article matching with Collection for default variation in Asset Publisher") {
-			User.logoutPG();
-
-			Navigator.gotoSitePage(
-				pageName = "Test Page Name",
-				siteName = "Test Site Name");
-
-			AssertTextEquals(
-				key_assetTitle = "WC WebContent Title",
-				locator1 = "AP#ASSET_ABSTRACT_DESCRIPTION",
-				value1 = "WC WebContent Content");
-		}
-	}
-
-	@description = "LPS-93726: Validate if, when the user creates one content set personalized, for Manual Content Sets, he can apply in some portlet (assert publisher) to use"
-	@priority = 5
-	test UseManualCollectionAtPortlet {
-		task ("Create a public page") {
-			JSONLayout.addPublicLayout(
-				groupName = "Test Site Name",
-				layoutName = "Test Page Name");
-		}
-
-		task ("Add an Asset Publisher portlet to the created public page") {
-			JSONLayout.addWidgetToPublicLayout(
-				groupName = "Test Site Name",
-				layoutName = "Test Page Name",
-				widgetName = "Asset Publisher");
-		}
-
-		task ("Create a web content article") {
-			JSONWebcontent.addWebContent(
-				content = "WC WebContent Content",
-				groupName = "Test Site Name",
-				title = "WC WebContent Title");
-		}
-
-		task ("Create a segment") {
-			JSONSegmentsentry.addSegment(
-				fieldName = "Screen Name",
-				groupName = "Test Site Name",
-				operator = "equals",
-				segmentName = "Segment With Test User",
-				text = "test");
-		}
-
-		task ("Create a manual Collection") {
-			AssetListsAdmin.openAssetListsAdmin(siteURLKey = "test-site-name");
-
-			AssetListsAdmin.addManualSelection(assetListTitle = "Manual Collection Test");
-
-			AssetListsAdmin.configureItemTypeInManualCollection(
-				itemSubtype = "All Subtypes",
-				itemType = "Web Content Article");
-		}
-
-		task ("Add a personalized variation to collection") {
-			AssetListsAdmin.addPersonalizedVariation(segmentName = "Segment With Test User");
-		}
-
-		task ("Select the Web Content Article as item type and Basic Web Content as item subtype and link the web content article to the Collection") {
-			AssetListsAdmin.selectAsset(
-				assetName = "WC WebContent Title",
-				assetType = "Basic Web Content",
-				itemSubtype = "Basic Web Content",
-				itemType = "Web Content Article");
-		}
-
-		task ("Deprioritize the Anyone variation") {
-			AssetListsAdmin.deprioritizeVariation(variationTitle = "Anyone");
-		}
-
-		task ("Select the created manual Collection to be used in the asset publisher portlet") {
-			Navigator.gotoSitePage(
-				pageName = "Test Page Name",
-				siteName = "Test Site Name");
-
-			AssetPublisherPortlet.selectAssetList(assetListName = "Manual Collection Test");
-		}
-
-		task ("View web content articles matching with dynamic Collection display in Asset Publisher") {
-			Navigator.gotoSitePage(
-				pageName = "Test Page Name",
-				siteName = "Test Site Name");
-
-			AssertTextEquals(
-				key_assetTitle = "WC WebContent Title",
-				locator1 = "AP#ASSET_ABSTRACT_DESCRIPTION",
-				value1 = "WC WebContent Content");
-		}
-	}
-
 	@description = "LPS-86283: Validate if, the name of the variation is provided by the name of the segment	"
 	@priority = 3
 	test VariationNameIsShown {
@@ -1186,55 +929,6 @@ definition {
 		}
 	}
 
-	@description = "Assert that Asset Lists correctly display their selected content."
-	@priority = 4
-	@uitest
-	test ViewAssetListContent {
-		task ("Create a web content article") {
-			JSONWebcontent.addWebContent(
-				content = "WC WebContent Content",
-				groupName = "Test Site Name",
-				title = "WC WebContent Title");
-		}
-
-		task ("Create a manual asset list") {
-			AssetListsAdmin.openAssetListsAdmin(siteURLKey = "test-site-name");
-
-			AssetListsAdmin.addManualSelection(assetListTitle = "Manual Asset List Test");
-		}
-
-		task ("Select the Web Content Article as item type and Basic Web Content as item subtype") {
-			AssetListsAdmin.configureItemTypeInManualCollection(
-				itemSubtype = "Basic Web Content",
-				itemType = "Web Content Article");
-		}
-
-		task ("Select the created web content article to be linked to the asset list") {
-			AssetListsAdmin.selectAsset(
-				assetName = "WC WebContent Title",
-				assetType = "Basic Web Content");
-		}
-
-		task ("Assert the selected web content article is viewable from the View Content action for the asset list") {
-			AssetListsAdmin.openAssetListsAdmin(siteURLKey = "test-site-name");
-
-			AssetListsAdmin.viewContent(
-				assetListTitle = "Manual Asset List Test",
-				assetTitle = "WC WebContent Title",
-				assetType = "Web Content Article");
-
-			AssertTextEquals(
-				key_assetTitle = "WC WebContent Title",
-				locator1 = "AssetLists#ASSET_TITLE_ROW",
-				value1 = "WC WebContent Title");
-
-			AssertTextEquals(
-				key_assetTitle = "Web Content Article",
-				locator1 = "AssetLists#ASSET_TYPE_ROW",
-				value1 = "Web Content Article");
-		}
-	}
-
 	@description = "This is a test for LPS-125486. Collection should be available after delete Item Subtype."
 	@priority = 4
 	test ViewCollectionAfterDeleteItemSubtype {
@@ -1276,10 +970,10 @@ definition {
 				locator1 = "Select#ANY",
 				value1 = "Web Content Article");
 
-			AssertSelectedLabel(
+			AssertTextEquals.assertPartialText(
 				key_selectFieldLabel = "Item Subtype",
 				locator1 = "Select#ANY",
-				value1 = "-Not Selected-");
+				value1 = "ID:");
 		}
 	}
 

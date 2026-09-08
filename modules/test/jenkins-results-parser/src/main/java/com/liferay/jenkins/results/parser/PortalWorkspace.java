@@ -119,6 +119,7 @@ public class PortalWorkspace extends BaseWorkspace {
 		_configureLiferayOSBFaroWorkspaceGitRepository();
 		_configureLiferayReleaseToolWorkspaceGitRepository();
 		_configurePluginsWorkspaceGitRepository();
+		_configurePortalPrivateWorkspaceGitRepository();
 		_configurePortalsPlutoWorkspaceGitRepository();
 		_configurePortletAPIGitRepository();
 
@@ -427,6 +428,22 @@ public class PortalWorkspace extends BaseWorkspace {
 
 		pluginsWorkspaceGitRepository.setPortalUpstreamBranchName(
 			portalWorkspaceGitRepository.getUpstreamBranchName());
+	}
+
+	private void _configurePortalPrivateWorkspaceGitRepository() {
+		PortalWorkspaceGitRepository portalWorkspaceGitRepository =
+			getPortalWorkspaceGitRepository();
+
+		String portalUpstreamBranchName =
+			portalWorkspaceGitRepository.getUpstreamBranchName();
+
+		if (!portalUpstreamBranchName.equals("master")) {
+			return;
+		}
+
+		_updateWorkspaceGitRepository(
+			"git-commit/liferay-portal-master-private",
+			portalWorkspaceGitRepository.getPortalPrivateRepositoryDirName());
 	}
 
 	private void _configurePortalsPlutoWorkspaceGitRepository() {

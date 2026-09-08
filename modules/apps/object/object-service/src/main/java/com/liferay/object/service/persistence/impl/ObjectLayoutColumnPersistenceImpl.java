@@ -674,6 +674,7 @@ public class ObjectLayoutColumnPersistenceImpl
 			_SQL_SELECT_OBJECTLAYOUTCOLUMN_WHERE,
 			_SQL_COUNT_OBJECTLAYOUTCOLUMN_WHERE,
 			ObjectLayoutColumnModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
 			new FinderColumn<>(
 				"objectLayoutColumn.", "uuid", "uuid_",
 				FinderColumn.Type.STRING, "=", true, true,
@@ -701,7 +702,7 @@ public class ObjectLayoutColumnPersistenceImpl
 				_SQL_SELECT_OBJECTLAYOUTCOLUMN_WHERE,
 				_SQL_COUNT_OBJECTLAYOUTCOLUMN_WHERE,
 				ObjectLayoutColumnModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"objectLayoutColumn.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -733,7 +734,7 @@ public class ObjectLayoutColumnPersistenceImpl
 				_SQL_SELECT_OBJECTLAYOUTCOLUMN_WHERE,
 				_SQL_COUNT_OBJECTLAYOUTCOLUMN_WHERE,
 				ObjectLayoutColumnModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"objectLayoutColumn.", "objectFieldId",
 					FinderColumn.Type.LONG, "=", true, true,
@@ -764,7 +765,7 @@ public class ObjectLayoutColumnPersistenceImpl
 				_SQL_SELECT_OBJECTLAYOUTCOLUMN_WHERE,
 				_SQL_COUNT_OBJECTLAYOUTCOLUMN_WHERE,
 				ObjectLayoutColumnModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"objectLayoutColumn.", "objectLayoutRowId",
 					FinderColumn.Type.LONG, "=", true, true,
@@ -824,9 +825,6 @@ public class ObjectLayoutColumnPersistenceImpl
 	private static final String _SQL_COUNT_OBJECTLAYOUTCOLUMN_WHERE =
 		"SELECT COUNT(objectLayoutColumn) FROM ObjectLayoutColumn objectLayoutColumn WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No ObjectLayoutColumn exists with the key {";
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid", "size"});
 
@@ -836,4 +834,4 @@ public class ObjectLayoutColumnPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1637347845
+// LIFERAY-SERVICE-BUILDER-HASH:1493432866

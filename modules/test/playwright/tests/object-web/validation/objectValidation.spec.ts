@@ -27,6 +27,7 @@ import getRandomString from '../../../utils/getRandomString';
 import {journalPagesTest} from '../../journal-web/main/fixtures/journalPagesTest';
 import getFormContainerDefinition from '../../layout-content-page-editor-web/main/utils/getFormContainerDefinition';
 import getPageDefinition from '../../layout-content-page-editor-web/main/utils/getPageDefinition';
+import {getFreshObjectRelationshipName} from '../utils/getFreshObjectRelationshipName';
 
 export const test = mergeTests(
 	apiHelpersTest,
@@ -207,11 +208,9 @@ test.describe('Object Expression Builder Validation', () => {
 	}) => {
 		await objectValidationsPage.viewObjectDefinitionsPage.goto();
 
-		await page.getByPlaceholder('Search').fill('User');
-
-		await page.keyboard.press('Enter');
-
-		await page.getByRole('link', {exact: true, name: 'User'}).click();
+		await objectValidationsPage.viewObjectDefinitionsPage.clickEditObjectDefinitionLink(
+			'User'
+		);
 
 		await objectValidationsPage.validationTabItem.click();
 
@@ -1293,7 +1292,9 @@ test.describe('Object Groovy Validation', () => {
 			'Groovy'
 		);
 
-		await page.reload();
+		await expect(async () => {
+			await page.reload({timeout: 15000});
+		}).toPass({timeout: 60000});
 
 		await expect(page.getByRole('cell', {name: 'No'})).toBeVisible();
 	});
@@ -1579,8 +1580,13 @@ test.describe('Object Unique Composite Key Validation', () => {
 		const integerFieldName = 'integerField' + getRandomInt();
 		const objectRelationshipLabel =
 			'objectRelationshipLabel' + getRandomInt();
-		const objectRelationshipName =
-			'objectRelationshipName' + Math.floor(Math.random() * 99);
+		const objectRelationshipName = await getFreshObjectRelationshipName(
+			apiHelpers,
+			[
+				objectDefinition2.externalReferenceCode!,
+				objectDefinition1.externalReferenceCode!,
+			]
+		);
 		const picklistFieldName = 'picklistField' + getRandomInt();
 
 		const objectFieldAPIClient =

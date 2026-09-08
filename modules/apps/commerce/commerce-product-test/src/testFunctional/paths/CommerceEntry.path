@@ -776,6 +776,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>PAGINATION_NEXT_PAGES</td>
+	<td>xpath=(//a | //button)[contains(@class, 'page-link')][*[name()='svg'][contains(@class,'lexicon-icon-angle-right')]]</td>
+	<td></td>
+</tr>
+<tr>
 	<td>PAGINATION_NEXT_PAGES_BY_TABLE</td>
 	<td>//div[contains(@id,'${key_id}')]//a[contains(@class, 'page-link')][*[name()='svg'][contains(@class,'lexicon-icon-angle-right')]]</td>
 	<td></td>
@@ -1222,6 +1227,11 @@
 	<td></td>
 </tr>
 <tr>
+	<td>MULTISELECT_INPUT</td>
+	<td>//input[@class='form-control-inset']</td>
+	<td></td>
+</tr>
+<tr>
 	<td>REMOVE_ALL_IMAGE_TAG</td>
 	<td>//label[contains(.,'Tags')]/..//div[contains(@class,'input-group-item input-group-item-shrink')]//*[name()='svg']</td>
 	<td></td>
@@ -1248,11 +1258,6 @@
 	<td></td>
 </tr>
 <tr>
-	<td>SEARCH_ORDER_ID</td>
-	<td>//input[@type='text'][contains(@class,'form-control')][contains(@placeholder,'Search Order')]</td>
-	<td></td>
-</tr>
-<tr>
 	<td>SUGGESTION_ACTIVE_ORDER_KEY</td>
 	<td>//div[contains(@class,'commerce-item__content') and contains(.,'${key_value}')]</td>
 	<td></td>
@@ -1270,11 +1275,6 @@
 <tr>
 	<td>SEARCH_ORDER_ID_RESULT</td>
 	<td>//p[@class='table-list-title' and contains(.,'${key_entryName}')]/a</td>
-	<td></td>
-</tr>
-<tr>
-	<td>ORDER_ID_FIRST_RESULT</td>
-	<td>(//*[contains(@class, 'table-list-title')])[1]/a</td>
 	<td></td>
 </tr>
 <tr>

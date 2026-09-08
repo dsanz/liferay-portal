@@ -5,8 +5,12 @@
 
 package com.liferay.client.extension.type.internal.factory;
 
+import com.liferay.client.extension.constants.ClientExtensionEntryConstants;
+import com.liferay.client.extension.model.ClientExtensionEntry;
+import com.liferay.client.extension.type.GlobalCSSCET;
 import com.liferay.client.extension.type.factory.CETImplFactory;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
@@ -27,6 +31,42 @@ public class CETFactoryImplTest {
 	@Rule
 	public static final LiferayUnitTestRule liferayUnitTestRule =
 		LiferayUnitTestRule.INSTANCE;
+
+	@Test
+	public void testCreate() throws Exception {
+		CETFactoryImpl cetFactoryImpl = new CETFactoryImpl();
+
+		cetFactoryImpl.activate();
+
+		ClientExtensionEntry clientExtensionEntry = Mockito.mock(
+			ClientExtensionEntry.class);
+
+		Mockito.when(
+			clientExtensionEntry.getProperties()
+		).thenReturn(
+			StringPool.BLANK
+		);
+
+		Mockito.when(
+			clientExtensionEntry.getType()
+		).thenReturn(
+			ClientExtensionEntryConstants.TYPE_GLOBAL_CSS
+		);
+
+		String url = "http://" + RandomTestUtil.randomString();
+
+		Mockito.when(
+			clientExtensionEntry.getTypeSettings()
+		).thenReturn(
+			"scope=company\nurl=" + url
+		);
+
+		GlobalCSSCET globalCSSCET = (GlobalCSSCET)cetFactoryImpl.create(
+			clientExtensionEntry, false);
+
+		Assert.assertEquals("company", globalCSSCET.getScope());
+		Assert.assertEquals(url, globalCSSCET.getURL());
+	}
 
 	@Test
 	public void testTransformURLsWithAmpersands() {

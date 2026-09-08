@@ -17,19 +17,28 @@ import java.util.Map;
  */
 public class ObjectFieldBag {
 
-	public ObjectFieldBag(List<ObjectField> objectFields) {
+	public ObjectFieldBag(
+		boolean modifiableAndSystem, List<ObjectField> objectFields) {
+
 		_objectFields = objectFields;
 
 		for (ObjectField objectField : _objectFields) {
 			_idObjectFieldsMap.put(objectField.getObjectFieldId(), objectField);
 			_nameObjectFieldsMap.put(objectField.getName(), objectField);
 
-			if (objectField.isIndexed()) {
-				_indexedObjectFields.add(objectField);
+			if (!objectField.isIndexed()) {
+				continue;
+			}
 
-				if (!objectField.isSystem()) {
-					_nonsystemIndexedObjectFields.add(objectField);
+			_indexedObjectFields.add(objectField);
+
+			if (modifiableAndSystem) {
+				if (!objectField.isMetadata()) {
+					_nestedIndexedObjectFields.add(objectField);
 				}
+			}
+			else if (!objectField.isSystem()) {
+				_nestedIndexedObjectFields.add(objectField);
 			}
 		}
 	}
@@ -38,8 +47,8 @@ public class ObjectFieldBag {
 		return _indexedObjectFields;
 	}
 
-	public List<ObjectField> getNonsystemIndexedObjectFields() {
-		return _nonsystemIndexedObjectFields;
+	public List<ObjectField> getNestedIndexedObjectFields() {
+		return _nestedIndexedObjectFields;
 	}
 
 	public ObjectField getObjectField(long objectFieldId) {
@@ -54,7 +63,7 @@ public class ObjectFieldBag {
 	private final List<ObjectField> _indexedObjectFields = new ArrayList<>();
 	private final Map<String, ObjectField> _nameObjectFieldsMap =
 		new HashMap<>();
-	private final List<ObjectField> _nonsystemIndexedObjectFields =
+	private final List<ObjectField> _nestedIndexedObjectFields =
 		new ArrayList<>();
 	private final List<ObjectField> _objectFields;
 

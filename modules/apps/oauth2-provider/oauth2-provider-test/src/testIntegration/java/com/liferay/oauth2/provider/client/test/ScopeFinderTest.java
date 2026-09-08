@@ -14,6 +14,7 @@ import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalService;
 import com.liferay.oauth2.provider.service.OAuth2ScopeGrantLocalService;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
@@ -48,7 +49,7 @@ public class ScopeFinderTest extends BaseClientTestCase {
 	@Test
 	public void testUnavailableAssignedScopeAliases() throws Exception {
 		String token = getToken(
-			"oauthTestClientCredentials", null,
+			_CLIENT_ID_CLIENT_CREDENTIALS, null,
 			this::getClientCredentialsResponse, this::parseTokenString);
 
 		Assert.assertNotNull(token);
@@ -77,7 +78,7 @@ public class ScopeFinderTest extends BaseClientTestCase {
 		invocationBuilder = authorize(
 			webTarget.request(),
 			getToken(
-				"oauthTestClientCredentials", null,
+				_CLIENT_ID_CLIENT_CREDENTIALS, null,
 				this::getClientCredentialsResponse, this::parseTokenString));
 
 		Assert.assertEquals(
@@ -92,8 +93,8 @@ public class ScopeFinderTest extends BaseClientTestCase {
 		invocationBuilder = authorize(
 			webTarget.request(),
 			getToken(
-				"oauthTestApplication", null,
-				this::getClientCredentialsResponse, this::parseTokenString));
+				_CLIENT_ID, null, this::getClientCredentialsResponse,
+				this::parseTokenString));
 
 		Assert.assertEquals(
 			200,
@@ -112,8 +113,8 @@ public class ScopeFinderTest extends BaseClientTestCase {
 		invocationBuilder = authorize(
 			webTarget.request(),
 			getToken(
-				"oauthTestApplication", null,
-				this::getClientCredentialsResponse, this::parseTokenString));
+				_CLIENT_ID, null, this::getClientCredentialsResponse,
+				this::parseTokenString));
 
 		Assert.assertEquals(
 			403,
@@ -125,6 +126,11 @@ public class ScopeFinderTest extends BaseClientTestCase {
 	protected BundleActivator getBundleActivator() {
 		return new ScopeFinderTestPreparatorBundleActivator();
 	}
+
+	private static final String _CLIENT_ID = RandomTestUtil.randomString();
+
+	private static final String _CLIENT_ID_CLIENT_CREDENTIALS =
+		RandomTestUtil.randomString();
 
 	private long _oAuth2ApplicationId;
 
@@ -165,12 +171,12 @@ public class ScopeFinderTest extends BaseClientTestCase {
 			User user = UserTestUtil.getAdminUser(companyId);
 
 			createOAuth2Application(
-				companyId, user, "oauthTestClientCredentials",
+				companyId, user, _CLIENT_ID_CLIENT_CREDENTIALS,
 				Collections.singletonList(GrantType.CLIENT_CREDENTIALS),
 				Collections.singletonList("everything.read"));
 
 			OAuth2Application oAuth2Application = createOAuth2Application(
-				companyId, user, "oauthTestApplication",
+				companyId, user, _CLIENT_ID,
 				Collections.singletonList(
 					"Liferay.Captcha.REST.everything.read"));
 

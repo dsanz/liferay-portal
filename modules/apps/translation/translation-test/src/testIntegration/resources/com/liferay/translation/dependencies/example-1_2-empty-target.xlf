@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<xliff version="1.2">
+	<file datatype="html" original="com.liferay.journal.model.JournalArticle:122" source-language="en-US" target-language="de-DE" tool="okapi">
+		<header />
+		<body>
+			<trans-unit id="1">
+				<source xml:lang="en-US">Segment one.</source>
+				<target xml:lang="de-DE"></target>
+			</trans-unit>
+			<trans-unit id="2">
+				<source xml:lang="en-US">Segment two.</source>
+				<target xml:lang="de-DE">Segment zwei.</target>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

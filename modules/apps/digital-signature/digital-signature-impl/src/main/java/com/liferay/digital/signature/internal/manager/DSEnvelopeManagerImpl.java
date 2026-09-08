@@ -123,8 +123,9 @@ public class DSEnvelopeManagerImpl implements DSEnvelopeManager {
 
 	@Override
 	public Page<DSEnvelope> getDSEnvelopesPage(
-		long companyId, long groupId, String fromDateString, String keywords,
-		String order, Pagination pagination, String status) {
+		long companyId, long groupId, String fromDateString,
+		boolean includeDocuments, String keywords, String order,
+		Pagination pagination, String status) {
 
 		Matcher matcher = _pattern.matcher(GetterUtil.get(keywords, ""));
 
@@ -143,9 +144,10 @@ public class DSEnvelopeManagerImpl implements DSEnvelopeManager {
 			"envelopes?count=", pagination.getPageSize(), "&from_date=",
 			GetterUtil.get(fromDateString, "2000-01-01"),
 			"&folder_types=sentitems&start_position=",
-			pagination.getStartPosition(),
-			"&include=custom_fields,documents,recipients&order=",
-			GetterUtil.get(order, ""));
+			pagination.getStartPosition(), "&include=",
+			includeDocuments ? "custom_fields,documents,recipients" :
+				"custom_fields,recipients",
+			"&order=", GetterUtil.get(order, ""));
 
 		if (!Validator.isBlank(keywords)) {
 			location += "&search_text=" + keywords;

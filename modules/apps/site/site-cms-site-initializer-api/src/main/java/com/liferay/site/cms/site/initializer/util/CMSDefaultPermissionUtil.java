@@ -179,6 +179,13 @@ public class CMSDefaultPermissionUtil {
 			FilterFactory<Predicate> filterFactory)
 		throws PortalException {
 
+		// A folder at the company scope has no depot group, so it has nothing
+		// to inherit default permissions from
+
+		if (objectEntryFolder.getGroupId() == 0) {
+			return null;
+		}
+
 		ObjectDefinition objectDefinition =
 			ObjectDefinitionLocalServiceUtil.
 				fetchObjectDefinitionByExternalReferenceCode(

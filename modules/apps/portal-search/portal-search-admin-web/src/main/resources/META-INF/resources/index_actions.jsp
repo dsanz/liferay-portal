@@ -33,10 +33,9 @@ page import="java.util.Map" %>
 <%
 IndexActionsDisplayContext indexActionsDisplayContext = (IndexActionsDisplayContext)request.getAttribute(SearchAdminWebKeys.INDEX_ACTIONS_DISPLAY_CONTEXT);
 
+List<BackgroundTask> failedReindexBackgroundTasks = BackgroundTaskManagerUtil.getBackgroundTasks(CompanyConstants.SYSTEM, new String[] {"com.liferay.portal.search.internal.background.task.ReindexIndexReindexerBackgroundTaskExecutor", "com.liferay.portal.search.internal.background.task.ReindexPortalBackgroundTaskExecutor", "com.liferay.portal.search.internal.background.task.ReindexSingleIndexerBackgroundTaskExecutor"}, BackgroundTaskConstants.STATUS_FAILED);
 List<BackgroundTask> indexReindexerBackgroundTasks = BackgroundTaskManagerUtil.getBackgroundTasks(CompanyConstants.SYSTEM, "com.liferay.portal.search.internal.background.task.ReindexIndexReindexerBackgroundTaskExecutor", BackgroundTaskConstants.STATUS_IN_PROGRESS);
-
 List<BackgroundTask> reindexPortalBackgroundTasks = BackgroundTaskManagerUtil.getBackgroundTasks(CompanyConstants.SYSTEM, "com.liferay.portal.search.internal.background.task.ReindexPortalBackgroundTaskExecutor", BackgroundTaskConstants.STATUS_IN_PROGRESS);
-
 List<BackgroundTask> reindexSingleBackgroundTasks = BackgroundTaskManagerUtil.getBackgroundTasks(CompanyConstants.SYSTEM, "com.liferay.portal.search.internal.background.task.ReindexSingleIndexerBackgroundTaskExecutor", BackgroundTaskConstants.STATUS_IN_PROGRESS);
 
 JSONObject classNameToBackgroundTaskJSONObject = JSONFactoryUtil.createJSONObject();
@@ -62,6 +61,9 @@ for (BackgroundTask backgroundTask : ListUtil.concat(reindexSingleBackgroundTask
 
 <span class="hide" id="<portlet:namespace />classNameToBackgroundTaskMap">
 	<%= classNameToBackgroundTaskJSONObject.toString() %>
+</span>
+<span class="hide" id="<portlet:namespace />failedReindexBackgroundTasksCount">
+	<%= failedReindexBackgroundTasks.size() %>
 </span>
 
 <div>

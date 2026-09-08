@@ -3,10 +3,14 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {Locator, Page} from '@playwright/test';
+import {Locator, Page, expect} from '@playwright/test';
 
+import {clickAndExpectToBeVisible} from '../../utils/clickAndExpectToBeVisible';
 import {waitForAlert} from '../../utils/waitForAlert';
 import {ProcessBuilderPage} from './ProcessBuilderPage';
+
+const WORKFLOW_NAMESPACE =
+	'_com_liferay_portal_workflow_web_portlet_ControlPanelWorkflowPortlet_';
 
 export class ConfigurationTabPage {
 	readonly configurationTabLink: Locator;
@@ -23,15 +27,25 @@ export class ConfigurationTabPage {
 
 	async goTo() {
 		await this.processBuilderPage.goto();
-		await this.configurationTabLink.waitFor({state: 'visible'});
-		await this.configurationTabLink.click({force: true});
+		await this.configurationTabLink.click();
 		await this.page.waitForURL((url) =>
 			url.href.includes('=configuration')
 		);
 	}
 
-	private async clickAssetTypeEditButton(assetType: string) {
+	async searchAssetType(assetType: string) {
+		await this.page.goto(
+			'/group/control_panel/manage' +
+				'?p_p_id=com_liferay_portal_workflow_web_portlet_ControlPanelWorkflowPortlet' +
+				`&${WORKFLOW_NAMESPACE}tab=configuration` +
+				`&${WORKFLOW_NAMESPACE}keywords=${encodeURIComponent(assetType)}`
+		);
+
 		await this.page.waitForLoadState('networkidle');
+	}
+
+	private async clickAssetTypeEditButton(assetType: string) {
+		await this.searchAssetType(assetType);
 
 		const editButton = this.page
 			.getByRole('row')
@@ -43,7 +57,12 @@ export class ConfigurationTabPage {
 			})
 			.getByRole('button', {name: 'Edit'});
 
-		await editButton.click();
+		await expect(editButton).toBeVisible();
+
+		await clickAndExpectToBeVisible({
+			target: this.getAssignWorkflowDropdown(assetType),
+			trigger: editButton,
+		});
 	}
 
 	private async clickAssetTypeSaveButton(

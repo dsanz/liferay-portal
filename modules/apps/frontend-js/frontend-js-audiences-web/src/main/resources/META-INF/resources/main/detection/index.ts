@@ -10,6 +10,7 @@ import {getBrowserName} from './attributes/browser_name';
 import {getBrowserVersion} from './attributes/browser_version';
 import {getCookies} from './attributes/cookies';
 import {getCustom} from './attributes/custom';
+import {getDeviceType} from './attributes/device_type';
 import {getHostname} from './attributes/hostname';
 import {getLanguage} from './attributes/language';
 import {getLocalDate} from './attributes/local_date';
@@ -17,7 +18,7 @@ import {getLocalHour} from './attributes/local_hour';
 import {getPathname} from './attributes/pathname';
 import {getReferrer} from './attributes/referrer';
 import {getRequestParameters} from './attributes/request_parameters';
-import {getSegments} from './attributes/segments';
+import {getSegment} from './attributes/segment';
 import {getTimezone} from './attributes/timezone';
 import {getUrl} from './attributes/url';
 import {getUserAgent} from './attributes/user_agent';
@@ -33,17 +34,12 @@ import {notIncludes} from './operators/not_includes';
 
 import type {
 	Attribute,
+	AudienceId,
 	AudiencesDefinition,
 	Conjunction,
 	Operator,
-	RetentionType,
 	Rule,
 } from '../index';
-
-export interface AudienceMatch {
-	id: string;
-	retentionType: RetentionType;
-}
 
 type AttributeValue = Set<string> | boolean | number | string;
 
@@ -53,6 +49,7 @@ interface OperatorImpl {
 
 export class Detection {
 	private _audiencesDefinition: AudiencesDefinition;
+	private _acSegments: Set<string> | undefined;
 	private _uaParser: UAParser;
 
 	constructor(audiencesDefinition: AudiencesDefinition) {
@@ -62,23 +59,32 @@ export class Detection {
 		this._uaParser = new UAParser(navigator.userAgent);
 	}
 
-	async run(): Promise<AudienceMatch[]> {
+	async run(): Promise<AudienceId[]> {
 		const matches = [];
 
 		for (const audience of this._audiencesDefinition.audiences) {
-			const {conjunction, id, retentionType, rules} = audience;
+			const {conjunction, id, rules} = audience;
 
 			log(`Checking rules for audience '${id}'...`);
 
-			const matched = await this._evaluateGroup(conjunction, rules);
+			let matched;
+
+			try {
+				matched = await this._evaluateGroup(conjunction, rules);
+			}
+			catch (error: any) {
+				log(
+					`Unable to evaluate the rules of audience '${id}', so ` +
+						`the audience is not matched: ${error.message || error}`
+				);
+
+				continue;
+			}
 
 			if (matched) {
-				log(`Matched ${retentionType} audience: ${id}`);
+				log(`Matched audience: ${id}`);
 
-				matches.push({
-					id,
-					retentionType,
-				});
+				matches.push(id);
 			}
 		}
 
@@ -97,6 +103,9 @@ export class Detection {
 		}
 		else if (attr.startsWith('custom:')) {
 			return getCustom(attr.slice(7));
+		}
+		else if (attr === 'device_type') {
+			return getDeviceType(this._uaParser);
 		}
 		else if (attr === 'hostname') {
 			return getHostname();
@@ -119,8 +128,8 @@ export class Detection {
 		else if (attr === 'request_parameters') {
 			return getRequestParameters();
 		}
-		else if (attr === 'segments') {
-			return getSegments();
+		else if (attr === 'segment') {
+			return getSegment();
 		}
 		else if (attr === 'timezone') {
 			return getTimezone();

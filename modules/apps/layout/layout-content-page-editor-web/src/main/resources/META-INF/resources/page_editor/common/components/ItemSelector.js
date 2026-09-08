@@ -19,8 +19,11 @@ import {getPageContentDropdownItems} from '../../app/utils/getPageContentDropdow
 import {ITEM_SELECTOR_VARIANTS} from '../../app/utils/itemSelectorVariants';
 import usePageContents from '../../app/utils/usePageContents';
 import {openItemSelector} from '../openItemSelector';
+import MappedFieldLabel from './MappedFieldLabel';
 
 const DEFAULT_BEFORE_ITEM_SELECT = () => {};
+
+const DEFAULT_IS_ALLOWED_MAPPED_ITEM = () => true;
 
 const DEFAULT_OPTIONS_MENU_ITEMS = [];
 
@@ -30,6 +33,7 @@ export default function ItemSelector({
 	className,
 	eventName,
 	helpText,
+	isAllowedMappedItem = DEFAULT_IS_ALLOWED_MAPPED_ITEM,
 	itemSelectorURL,
 	label,
 	modalProps,
@@ -39,6 +43,7 @@ export default function ItemSelector({
 	quickMappedInfoItems = DEFAULT_QUICK_MAPPED_INFO_ITEMS,
 	selectedItem,
 	showEditControls = true,
+	showMappedFeedback = false,
 	showMappedItems = true,
 	transformValueCallback,
 	variant = ITEM_SELECTOR_VARIANTS.input,
@@ -93,8 +98,9 @@ export default function ItemSelector({
 		});
 
 		if (quickMappedInfoItems.length) {
-			transformedMappedItems =
-				quickMappedInfoItems.map(transformMappedItem);
+			transformedMappedItems = quickMappedInfoItems
+				.filter(isAllowedMappedItem)
+				.map(transformMappedItem);
 		}
 		else if (pageContents.length) {
 			transformedMappedItems = pageContents
@@ -102,6 +108,7 @@ export default function ItemSelector({
 					(pageContent) =>
 						pageContent.type !== Liferay.Language.get('collection')
 				)
+				.filter(isAllowedMappedItem)
 				.map(transformMappedItem);
 		}
 
@@ -127,6 +134,7 @@ export default function ItemSelector({
 
 		return transformedMappedItems;
 	}, [
+		isAllowedMappedItem,
 		label,
 		onItemSelect,
 		openModal,
@@ -180,6 +188,8 @@ export default function ItemSelector({
 		return content?.title || selectedItem.title || '';
 	}, [quickMappedInfoItems, pageContents, selectedItem]);
 
+	const isMapped = showMappedFeedback && Boolean(selectedItemTitle);
+
 	const selectContentButtonIcon = selectedItem?.title ? 'change' : 'plus';
 
 	const selectContentButtonLabel = sub(
@@ -198,7 +208,11 @@ export default function ItemSelector({
 	}
 
 	return (
-		<ClayForm.Group className={className}>
+		<ClayForm.Group
+			className={classNames(className, {
+				'page-editor__mapped-field': isMapped,
+			})}
+		>
 			<label htmlFor={itemSelectorInputId}>{label}</label>
 
 			<ClayInput.Group small>
@@ -284,6 +298,8 @@ export default function ItemSelector({
 				)}
 			</ClayInput.Group>
 
+			{isMapped ? <MappedFieldLabel className="mb-0 mt-1" /> : null}
+
 			{helpText ? (
 				<div className="mt-1 text-secondary" id={helpTextId}>
 					{helpText}
@@ -297,6 +313,7 @@ ItemSelector.propTypes = {
 	className: PropTypes.string,
 	eventName: PropTypes.string,
 	helpText: PropTypes.string,
+	isAllowedMappedItem: PropTypes.func,
 	itemSelectorURL: PropTypes.string,
 	label: PropTypes.string.isRequired,
 	modalProps: PropTypes.object,
@@ -319,6 +336,7 @@ ItemSelector.propTypes = {
 	),
 	selectedItem: PropTypes.shape({title: PropTypes.string}),
 	showEditControls: PropTypes.bool,
+	showMappedFeedback: PropTypes.bool,
 	showMappedItems: PropTypes.bool,
 	transformValueCallback: PropTypes.func.isRequired,
 };

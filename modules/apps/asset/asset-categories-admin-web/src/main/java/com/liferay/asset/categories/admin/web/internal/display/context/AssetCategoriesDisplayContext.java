@@ -635,6 +635,11 @@ public class AssetCategoriesDisplayContext {
 									"for-internal-use-only")));
 					}
 
+					if (isSystemVocabulary(vocabulary)) {
+						verticalNavItem.addIcon(
+							IconItem.of("lock", StringPool.BLANK));
+					}
+
 					if (vocabulary.getVisibilityType() ==
 							AssetVocabularyConstants.VISIBILITY_TYPE_EMPTY) {
 
@@ -965,15 +970,35 @@ public class AssetCategoriesDisplayContext {
 		return _showSelectAssetDisplayPage;
 	}
 
-	public boolean isVisibilityTypeDisabled(AssetVocabulary vocabulary) {
-		if ((vocabulary == null) ||
-			(vocabulary.getVisibilityType() ==
-				AssetVocabularyConstants.VISIBILITY_TYPE_EMPTY)) {
-
+	public boolean isSystemCategory(AssetCategory category) {
+		if (category == null) {
 			return false;
 		}
 
-		return true;
+		return category.isSystem();
+	}
+
+	public boolean isSystemVocabulary(AssetVocabulary vocabulary) {
+		if (vocabulary == null) {
+			return false;
+		}
+
+		return vocabulary.isSystem();
+	}
+
+	public boolean isVisibilityTypeDisabled(AssetVocabulary vocabulary) {
+		if (vocabulary == null) {
+			return false;
+		}
+
+		if ((vocabulary.getVisibilityType() !=
+				AssetVocabularyConstants.VISIBILITY_TYPE_EMPTY) ||
+			isSystemVocabulary(vocabulary)) {
+
+			return true;
+		}
+
+		return false;
 	}
 
 	public boolean isVisibilityTypeInternalChecked(AssetVocabulary vocabulary) {

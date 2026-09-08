@@ -2,7 +2,7 @@ apiVersion: apiextensions.crossplane.io/v2
 kind: CompositeResourceDefinition
 metadata:
     annotations:
-        argocd.argoproj.io/sync-options: ServerSideApply=true
+        argocd.argoproj.io/sync-options: ServerSideApply=true,SkipDryRunOnMissingResource=true
         argocd.argoproj.io/sync-wave: "-60"
     name: liferayinfrastructures.gcp.liferay.com
 spec:
@@ -32,6 +32,11 @@ spec:
                                             type: integer
                                         storageClass:
                                             type: string
+                                        vaultTags:
+                                            additionalProperties:
+                                                type: string
+                                            default: {}
+                                            type: object
                                     type: object
                                 cmk:
                                     default:
@@ -71,7 +76,7 @@ spec:
                                 orphanOnDelete:
                                     default: false
                                     type: boolean
-                                overlay:
+                                overlayAccess:
                                     properties:
                                         enabled:
                                             default: false
@@ -95,6 +100,11 @@ spec:
                                             type: boolean
                                         region:
                                             type: string
+                                        tags:
+                                            additionalProperties:
+                                                type: string
+                                            default: {}
+                                            type: object
                                     type: object
                                 targetActiveDataPlane:
                                     enum:
@@ -121,6 +131,7 @@ apiVersion: apiextensions.crossplane.io/v1
 kind: Composition
 metadata:
     annotations:
+        argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
         argocd.argoproj.io/sync-wave: "-50"
     name: liferay-gcp-infrastructure-provider.gcp.liferay.com
 spec:

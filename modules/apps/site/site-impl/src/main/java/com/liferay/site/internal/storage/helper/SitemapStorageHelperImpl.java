@@ -12,11 +12,17 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.CompanyConstants;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.site.storage.helper.SitemapStorageHelper;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 import java.nio.charset.StandardCharsets;
+
+import java.util.Date;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -26,6 +32,24 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(service = SitemapStorageHelper.class)
 public class SitemapStorageHelperImpl implements SitemapStorageHelper {
+
+	@Override
+	public void deleteSitemaps(long companyId) throws PortalException {
+		_dlStore.deleteDirectory(
+			companyId, CompanyConstants.SYSTEM, _getDirName());
+
+		String lastRegenerateSitemapDateFileName =
+			_getLastRegenerateSitemapDateFileName();
+
+		if (_dlStore.hasFile(
+				companyId, CompanyConstants.SYSTEM,
+				lastRegenerateSitemapDateFileName, Store.VERSION_DEFAULT)) {
+
+			_dlStore.deleteFile(
+				companyId, CompanyConstants.SYSTEM,
+				lastRegenerateSitemapDateFileName);
+		}
+	}
 
 	@Override
 	public void deleteSitemaps(long companyId, long groupId)
@@ -43,6 +67,31 @@ public class SitemapStorageHelperImpl implements SitemapStorageHelper {
 		_dlStore.deleteDirectory(
 			companyId, CompanyConstants.SYSTEM,
 			_getDirName(groupId, assetTypeKey));
+	}
+
+	@Override
+	public Date getLastRegenerateSitemapDate(long companyId)
+		throws PortalException {
+
+		String lastRegenerateSitemapDateFileName =
+			_getLastRegenerateSitemapDateFileName();
+
+		if (!_dlStore.hasFile(
+				companyId, CompanyConstants.SYSTEM,
+				lastRegenerateSitemapDateFileName, Store.VERSION_DEFAULT)) {
+
+			return null;
+		}
+
+		try (InputStream inputStream = _dlStore.getFileAsStream(
+				companyId, CompanyConstants.SYSTEM,
+				lastRegenerateSitemapDateFileName, Store.VERSION_DEFAULT)) {
+
+			return new Date(GetterUtil.getLong(StringUtil.read(inputStream)));
+		}
+		catch (IOException ioException) {
+			throw new PortalException(ioException);
+		}
 	}
 
 	@Override
@@ -86,6 +135,34 @@ public class SitemapStorageHelperImpl implements SitemapStorageHelper {
 	}
 
 	@Override
+	public boolean hasSitemapFiles(long companyId) throws PortalException {
+		return ArrayUtil.isNotEmpty(
+			_dlStore.getFileNames(
+				companyId, CompanyConstants.SYSTEM, _getDirName()));
+	}
+
+	@Override
+	public void storeLastRegenerateSitemapDateFile(long companyId)
+		throws PortalException {
+
+		String lastRegenerateSitemapDateFileName =
+			_getLastRegenerateSitemapDateFileName();
+
+		if (_dlStore.hasFile(
+				companyId, CompanyConstants.SYSTEM,
+				lastRegenerateSitemapDateFileName, Store.VERSION_DEFAULT)) {
+
+			_dlStore.deleteFile(
+				companyId, CompanyConstants.SYSTEM,
+				lastRegenerateSitemapDateFileName);
+		}
+
+		_storeSitemapFile(
+			companyId, lastRegenerateSitemapDateFileName,
+			String.valueOf(System.currentTimeMillis()));
+	}
+
+	@Override
 	public void storeSitemapFile(long companyId, long groupId, String xml)
 		throws PortalException {
 
@@ -102,6 +179,10 @@ public class SitemapStorageHelperImpl implements SitemapStorageHelper {
 			companyId, _getSitemapFileName(groupId, assetTypeKey, page), xml);
 	}
 
+	private String _getDirName() {
+		return "sitemaps";
+	}
+
 	private String _getDirName(long groupId) {
 		return "sitemaps/" + groupId;
 	}
@@ -109,6 +190,10 @@ public class SitemapStorageHelperImpl implements SitemapStorageHelper {
 	private String _getDirName(long groupId, String assetTypeKey) {
 		return StringBundler.concat(
 			"sitemaps/", groupId, StringPool.SLASH, assetTypeKey);
+	}
+
+	private String _getLastRegenerateSitemapDateFileName() {
+		return "sitemap-metadata/last-regenerate-sitemap-date";
 	}
 
 	private String _getSitemapFileName(long groupId) {

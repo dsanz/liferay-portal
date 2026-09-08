@@ -26,6 +26,7 @@ import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.relationship.util.ObjectRelationshipUtil;
 import com.liferay.object.rest.dto.v1_0.FileEntry;
 import com.liferay.object.rest.dto.v1_0.ListEntry;
+import com.liferay.object.rest.dto.v1_0.Status;
 import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
 import com.liferay.object.service.ObjectEntryLocalServiceUtil;
 import com.liferay.object.service.ObjectRelationshipLocalServiceUtil;
@@ -177,6 +178,14 @@ public class ObjectEntryUtil {
 			objectDefinition.getObjectDefinitionId());
 		serviceBuilderObjectEntry.setDefaultLanguageId(
 			objectEntry.getDefaultLanguageId());
+		serviceBuilderObjectEntry.setDisplayDate(objectEntry.getDisplayDate());
+
+		Status status = objectEntry.getStatus();
+
+		if (status != null) {
+			serviceBuilderObjectEntry.setStatus(
+				GetterUtil.getInteger(status.getCode()));
+		}
 
 		return new ProxyObjectEntry(serviceBuilderObjectEntry, objectEntry);
 	}
@@ -349,7 +358,10 @@ public class ObjectEntryUtil {
 				objectDefinition.getObjectDefinitionId());
 
 		for (ObjectRelationship objectRelationship : objectRelationships) {
-			if (!fieldsMap.containsKey(objectRelationship.getName())) {
+			Map<String, Object> objectRelationshipValues = fieldsMap.get(
+				objectRelationship.getName());
+
+			if (objectRelationshipValues == null) {
 				continue;
 			}
 
@@ -361,13 +373,6 @@ public class ObjectEntryUtil {
 					objectDefinitionId);
 
 			if (relatedObjectDefinition == null) {
-				continue;
-			}
-
-			Map<String, Object> objectRelationshipValues = fieldsMap.get(
-				objectRelationship.getName());
-
-			if (objectRelationshipValues == null) {
 				continue;
 			}
 
@@ -391,12 +396,8 @@ public class ObjectEntryUtil {
 						String externalReferenceCode = GetterUtil.getString(
 							childEntry.getKey());
 
-						if (!childProperties.containsKey(
-								"externalReferenceCode")) {
-
-							childProperties.put(
-								"externalReferenceCode", externalReferenceCode);
-						}
+						childProperties.putIfAbsent(
+							"externalReferenceCode", externalReferenceCode);
 
 						_addRelatedProperties(
 							fieldsMap, relatedObjectDefinition,
@@ -421,17 +422,15 @@ public class ObjectEntryUtil {
 					Map<String, Object> childProperties =
 						(Map<String, Object>)entry.getValue();
 
-					if (!childProperties.containsKey("externalReferenceCode")) {
-						String externalReferenceCode = GetterUtil.getString(
-							entry.getKey());
+					String externalReferenceCode = GetterUtil.getString(
+						entry.getKey());
 
-						childProperties.put(
-							"externalReferenceCode", externalReferenceCode);
-					}
+					childProperties.putIfAbsent(
+						"externalReferenceCode", externalReferenceCode);
 
 					_addRelatedProperties(
-						fieldsMap, relatedObjectDefinition, entry.getKey(),
-						childProperties);
+						fieldsMap, relatedObjectDefinition,
+						externalReferenceCode, childProperties);
 
 					relatedProperties.add(childProperties);
 				}

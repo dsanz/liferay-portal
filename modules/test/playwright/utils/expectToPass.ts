@@ -9,14 +9,5 @@ export async function expectToPass(
 	callback: () => Promise<void>,
 	{timeout}: {timeout: number}
 ) {
-	while (true) {
-		try {
-			await expect(callback).toPass({timeout});
-
-			return;
-		}
-		catch {
-			continue;
-		}
-	}
+	await expect(callback).toPass({timeout});
 }

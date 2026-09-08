@@ -6,21 +6,12 @@
 package com.liferay.portal.vulcan.fields;
 
 import com.liferay.petra.lang.CentralizedThreadLocal;
+import com.liferay.petra.lang.SafeCloseable;
 
 /**
  * @author Ivica Cardic
  */
 public class NestedFieldsContextThreadLocal {
-
-	public static NestedFieldsContext getAndSetNestedFieldsContext(
-		NestedFieldsContext nestedFieldsContext) {
-
-		NestedFieldsContext oldNestedFieldsContext = getNestedFieldsContext();
-
-		setNestedFieldsContext(nestedFieldsContext);
-
-		return oldNestedFieldsContext;
-	}
 
 	public static NestedFieldsContext getNestedFieldsContext() {
 		return _nestedFieldsContext.get();
@@ -32,8 +23,14 @@ public class NestedFieldsContextThreadLocal {
 		_nestedFieldsContext.set(nestedFieldsContext);
 	}
 
-	private static final ThreadLocal<NestedFieldsContext> _nestedFieldsContext =
-		new CentralizedThreadLocal<>(
+	public static SafeCloseable setNestedFieldsContextWithSafeCloseable(
+		NestedFieldsContext nestedFieldsContext) {
+
+		return _nestedFieldsContext.setWithSafeCloseable(nestedFieldsContext);
+	}
+
+	private static final CentralizedThreadLocal<NestedFieldsContext>
+		_nestedFieldsContext = new CentralizedThreadLocal<>(
 			NestedFieldsContextThreadLocal.class + "._nestedFieldsContext");
 
 }

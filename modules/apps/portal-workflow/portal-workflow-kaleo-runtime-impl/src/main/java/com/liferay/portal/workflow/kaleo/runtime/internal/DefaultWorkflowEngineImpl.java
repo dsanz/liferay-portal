@@ -23,7 +23,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.transaction.Isolation;
 import com.liferay.portal.kernel.transaction.Propagation;
-import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
+import com.liferay.portal.kernel.transaction.TransactionCallbackUtil;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
@@ -147,7 +147,7 @@ public class DefaultWorkflowEngineImpl
 	@Override
 	public WorkflowDefinition deployWorkflowDefinition(
 			String externalReferenceCode, String title, String name,
-			String scope, InputStream inputStream,
+			String scope, boolean system, InputStream inputStream,
 			ServiceContext serviceContext)
 		throws WorkflowException {
 
@@ -165,8 +165,8 @@ public class DefaultWorkflowEngineImpl
 					definitionName, serviceContext);
 
 			WorkflowDefinition workflowDefinition = _workflowDeployer.deploy(
-				externalReferenceCode, title, definitionName, scope, definition,
-				serviceContext);
+				externalReferenceCode, title, definitionName, scope, system,
+				definition, serviceContext);
 
 			_updateWorkflowDefinitionLinks(
 				serviceContext.getCompanyId(), kaleoDefinition,
@@ -204,6 +204,10 @@ public class DefaultWorkflowEngineImpl
 				kaleoInstanceToken, kaleoTimerInstanceToken, workflowContext,
 				serviceContext);
 
+			if (kaleoTimerInstanceToken.isCompleted()) {
+				return executionContext;
+			}
+
 			if (PrincipalThreadLocal.getUserId() == 0) {
 				PrincipalThreadLocal.setName(serviceContext.getUserId());
 			}
@@ -232,7 +236,7 @@ public class DefaultWorkflowEngineImpl
 					updateKaleoTimerInstanceToken(kaleoTimerInstanceToken);
 			}
 
-			TransactionCommitCallbackUtil.registerCallback(
+			TransactionCallbackUtil.registerCommitCallback(
 				() -> {
 					_kaleoSignaler.signalExecute(
 						kaleoInstanceToken.getCurrentKaleoNode(),
@@ -451,7 +455,8 @@ public class DefaultWorkflowEngineImpl
 	@Override
 	public WorkflowDefinition saveWorkflowDefinition(
 			String externalReferenceCode, String title, String name,
-			String scope, byte[] bytes, ServiceContext serviceContext)
+			String scope, boolean system, byte[] bytes,
+			ServiceContext serviceContext)
 		throws WorkflowException {
 
 		try {
@@ -465,8 +470,8 @@ public class DefaultWorkflowEngineImpl
 					definitionName, serviceContext);
 
 			WorkflowDefinition workflowDefinition = _workflowDeployer.save(
-				externalReferenceCode, title, definitionName, scope, definition,
-				serviceContext);
+				externalReferenceCode, title, definitionName, scope, system,
+				definition, serviceContext);
 
 			_updateWorkflowDefinitionLinks(
 				serviceContext.getCompanyId(), kaleoDefinition,
@@ -601,7 +606,7 @@ public class DefaultWorkflowEngineImpl
 			ExecutionContext executionContext = new ExecutionContext(
 				kaleoInstanceToken, workflowContext, serviceContext);
 
-			TransactionCommitCallbackUtil.registerCallback(
+			TransactionCallbackUtil.registerCommitCallback(
 				() -> {
 					try {
 						_kaleoSignaler.signalExit(

@@ -31,7 +31,6 @@ import com.liferay.petra.sql.dsl.query.DSLQuery;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Document;
@@ -115,6 +114,29 @@ public class ObjectEntryModelDocumentContributor
 		field.addField(new Field("fieldName", fieldName));
 		field.addField(new Field("valueFieldName", valueFieldName));
 		field.addField(new Field(valueFieldName, value));
+
+		fieldArray.addField(field);
+	}
+
+	private void _addMultiValuedKeywordField(
+		FieldArray fieldArray, String fieldName, String[] values) {
+
+		if (ArrayUtil.isEmpty(values)) {
+			return;
+		}
+
+		Field field = new Field("");
+
+		field.addField(new Field("fieldName", fieldName));
+		field.addField(new Field("valueFieldName", "value_keyword"));
+
+		String[] keywordValues = new String[values.length];
+
+		for (int i = 0; i < values.length; i++) {
+			keywordValues[i] = StringUtil.lowerCase(values[i]);
+		}
+
+		field.addField(new Field("value_keyword", keywordValues));
 
 		fieldArray.addField(field);
 	}
@@ -263,11 +285,30 @@ public class ObjectEntryModelDocumentContributor
 		}
 		else if (StringUtil.equals(
 					objectField.getBusinessType(),
-					ObjectFieldConstants.BUSINESS_TYPE_MULTISELECT_PICKLIST) &&
-				 (fieldValue instanceof List)) {
+					ObjectFieldConstants.BUSINESS_TYPE_MULTISELECT_PICKLIST)) {
 
-			fieldValue = ListUtil.toString(
-				(List)fieldValue, (String)null, StringPool.COMMA_AND_SPACE);
+			String valueString = null;
+
+			if (fieldValue instanceof List) {
+				valueString = ListUtil.toString(
+					(List)fieldValue, (String)null, StringPool.COMMA_AND_SPACE);
+			}
+			else {
+				valueString = String.valueOf(fieldValue);
+			}
+
+			_addMultiValuedKeywordField(
+				fieldArray, fieldName,
+				StringUtil.split(valueString, StringPool.COMMA_AND_SPACE));
+
+			if (objectField.isIndexedAsKeyword()) {
+				_appendToContent(
+					locale, fieldName, textEmbeddingContentHelper, valueString);
+
+				return;
+			}
+
+			fieldValue = valueString;
 		}
 		else if (StringUtil.equals(
 					objectField.getBusinessType(),
@@ -405,6 +446,15 @@ public class ObjectEntryModelDocumentContributor
 
 		ObjectDefinition objectDefinition = objectEntry.getObjectDefinition();
 
+		if (objectDefinition == null) {
+			return;
+		}
+
+		document.addDate(Field.DISPLAY_DATE, objectEntry.getDisplayDate());
+		document.addDate(
+			Field.EXPIRATION_DATE, objectEntry.getExpirationDate());
+		document.addDate(Field.REVIEW_DATE, objectEntry.getReviewDate());
+
 		FieldArray fieldArray = (FieldArray)document.getField(
 			"nestedFieldArray");
 
@@ -416,7 +466,7 @@ public class ObjectEntryModelDocumentContributor
 
 		document.addKeyword(
 			"objectDefinitionExternalReferenceCode",
-			objectDefinition.getExternalReferenceCode());
+			objectDefinition.getExternalReferenceCode(), true);
 		document.addKeyword(
 			"objectDefinitionId", objectEntry.getObjectDefinitionId());
 		document.addKeyword(
@@ -424,29 +474,34 @@ public class ObjectEntryModelDocumentContributor
 
 		ObjectFieldBag objectFieldBag = objectDefinition.getObjectFieldBag();
 
-		List<ObjectField> objectFields = null;
-
-		if (objectDefinition.isModifiableAndSystem()) {
-			objectFields = ListUtil.filter(
-				objectFieldBag.getIndexedObjectFields(),
-				objectField -> !objectField.isMetadata());
-		}
-		else {
-			objectFields = objectFieldBag.getNonsystemIndexedObjectFields();
-		}
+		List<ObjectField> nestedIndexedObjectFields =
+			objectFieldBag.getNestedIndexedObjectFields();
 
 		TextEmbeddingContentHelper<ObjectEntry> textEmbeddingContentHelper =
 			new TextEmbeddingContentHelper<>(
 				objectEntry.getCompanyId(), objectEntry.getDefaultLanguageId(),
-				StringPool.COMMA_AND_SPACE, objectEntry, objectFields.size(),
+				StringPool.COMMA_AND_SPACE, objectEntry,
+				nestedIndexedObjectFields.size(),
 				_textEmbeddingDocumentContributor);
 
 		Map<String, Serializable> values = null;
 
-		if (!objectFields.isEmpty()) {
+		if (!nestedIndexedObjectFields.isEmpty()) {
 			values = objectEntry.getIndexedValues();
 
-			for (ObjectField objectField : objectFields) {
+			for (ObjectField objectField : nestedIndexedObjectFields) {
+				if (StringUtil.equals(
+						objectField.getBusinessType(),
+						ObjectFieldConstants.BUSINESS_TYPE_ATTACHMENT)) {
+
+					long fileEntryId = GetterUtil.getLong(
+						values.get(objectField.getName()));
+
+					if (fileEntryId != 0) {
+						_contributeFile(document, fileEntryId);
+					}
+				}
+
 				if (objectField.isLocalized()) {
 					Map<String, Object> localizedValues =
 						(Map<String, Object>)values.get(
@@ -506,27 +561,11 @@ public class ObjectEntryModelDocumentContributor
 			"objectFolderExternalReferenceCode",
 			objectFolder.getExternalReferenceCode(), true);
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				objectEntry.getCompanyId(), "LPD-17564")) {
+		document.addKeyword(
+			"rootDescendantNode", objectEntry.isRootDescendantNode());
 
-			document.addDate(Field.DISPLAY_DATE, objectEntry.getDisplayDate());
-			document.addDate(
-				Field.EXPIRATION_DATE, objectEntry.getExpirationDate());
-			document.addDate(Field.REVIEW_DATE, objectEntry.getReviewDate());
-
-			_contributeObjectEntryFolder(
-				document, objectEntry.getObjectEntryFolderId());
-
-			if (values == null) {
-				values = objectEntry.getIndexedValues();
-			}
-
-			long fileEntryId = GetterUtil.getLong(values.get("file"));
-
-			if (fileEntryId != 0) {
-				_contributeFile(document, fileEntryId);
-			}
-		}
+		_contributeObjectEntryFolder(
+			document, objectEntry.getObjectEntryFolderId());
 
 		if (objectDefinition.isCMP()) {
 			if (values == null) {
@@ -583,6 +622,10 @@ public class ObjectEntryModelDocumentContributor
 			return;
 		}
 
+		document.addKeyword(
+			Field.TREE_PATH,
+			StringUtil.split(objectEntryFolder.getTreePath(), CharPool.SLASH));
+
 		ObjectEntryFolder rootObjectEntryFolder = _getRootObjectEntryFolder(
 			objectEntryFolder);
 
@@ -597,7 +640,6 @@ public class ObjectEntryModelDocumentContributor
 			return;
 		}
 
-		document.addKeyword("cms_kind", "object");
 		document.addKeyword(
 			"cms_root",
 			rootObjectEntryFolder.getObjectEntryFolderId() ==
@@ -651,35 +693,56 @@ public class ObjectEntryModelDocumentContributor
 									ObjectFieldConstants.
 										BUSINESS_TYPE_ATTACHMENT))) {
 
+						String dbTableName = objectField.getDBTableName();
+
+						if (objectField.isLocalized()) {
+							dbTableName =
+								objectDefinition.getLocalizationDBTableName();
+						}
+
 						ObjectFieldTable objectFieldTable =
-							new ObjectFieldTable(objectField);
+							new ObjectFieldTable(dbTableName, objectField);
 
-						for (Object[] values :
-								_dlFileEntryLocalService.
-									<List<Object[]>>dslQuery(
-										objectFieldTable.buildDSLQuery(),
-										false)) {
+						try {
+							for (Object[] values :
+									_dlFileEntryLocalService.
+										<List<Object[]>>dslQuery(
+											objectFieldTable.buildDSLQuery(),
+											false)) {
 
-							localFileNames.put(
-								(Long)values[0], (String)values[1]);
+								localFileNames.put(
+									(Long)values[0], (String)values[1]);
+							}
+						}
+						catch (Exception exception) {
+							if (_log.isWarnEnabled()) {
+								_log.warn(
+									"Unable to get file names for object " +
+										"field " + objectField.getName(),
+									exception);
+							}
 						}
 					}
 
 					return localFileNames;
 				});
 
-		if (fileNames == null) {
-			DLFileEntry dlFileEntry =
-				DLFileEntryLocalServiceUtil.fetchDLFileEntry(dlFileEntryId);
+		if (fileNames != null) {
+			String fileName = fileNames.get(dlFileEntryId);
 
-			if (dlFileEntry != null) {
-				return dlFileEntry.getFileName();
+			if (fileName != null) {
+				return fileName;
 			}
-
-			return StringPool.BLANK;
 		}
 
-		return fileNames.getOrDefault(dlFileEntryId, StringPool.BLANK);
+		DLFileEntry dlFileEntry = DLFileEntryLocalServiceUtil.fetchDLFileEntry(
+			dlFileEntryId);
+
+		if (dlFileEntry != null) {
+			return dlFileEntry.getFileName();
+		}
+
+		return StringPool.BLANK;
 	}
 
 	private long[] _getOrganizationIds(Long accountEntryId) {
@@ -808,8 +871,8 @@ public class ObjectEntryModelDocumentContributor
 			);
 		}
 
-		private ObjectFieldTable(ObjectField objectField) {
-			super(objectField.getDBTableName(), () -> null);
+		private ObjectFieldTable(String dbTableName, ObjectField objectField) {
+			super(dbTableName, () -> null);
 
 			_column = createColumn(
 				objectField.getDBColumnName(), Long.class, Types.BIGINT,

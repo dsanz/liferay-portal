@@ -11,24 +11,39 @@ import com.liferay.layout.content.exception.LayoutContentVersionNameException;
 import com.liferay.layout.content.exception.RequiredLayoutContentVersionException;
 import com.liferay.layout.content.exception.UnsupportedLayoutLayoutContentVersionException;
 import com.liferay.layout.content.model.LayoutContentVersion;
+import com.liferay.layout.content.service.LayoutContentVersionPreviewLocalService;
 import com.liferay.layout.content.service.base.LayoutContentVersionLocalServiceBaseImpl;
 import com.liferay.layout.content.util.comparator.LayoutContentVersionVersionComparator;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
+import com.liferay.layout.renderer.LayoutPreviewRenderer;
+import com.liferay.layout.util.LayoutServiceContextHelper;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.language.Language;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.DigesterUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.segments.model.SegmentsExperience;
+import com.liferay.segments.service.SegmentsExperienceLocalService;
+
+import java.io.InputStream;
 
 import java.util.Date;
 import java.util.List;
@@ -106,7 +121,12 @@ public class LayoutContentVersionLocalServiceImpl
 		layoutContentVersion.setStatusByUserName(user.getFullName());
 		layoutContentVersion.setStatusDate(new Date());
 
-		return layoutContentVersionPersistence.update(layoutContentVersion);
+		layoutContentVersion = layoutContentVersionPersistence.update(
+			layoutContentVersion);
+
+		_addLayoutContentVersionPreviews(layout, layoutContentVersion, userId);
+
+		return layoutContentVersion;
 	}
 
 	@Override
@@ -160,24 +180,33 @@ public class LayoutContentVersionLocalServiceImpl
 		_validateLayout(
 			_layoutLocalService.getLayout(layoutContentVersion.getPlid()));
 
-		if (layoutContentVersion.getStatus() ==
-				WorkflowConstants.STATUS_APPROVED) {
+		if ((layoutContentVersion.getStatus() ==
+				WorkflowConstants.STATUS_APPROVED) &&
+			(layoutContentVersion.getLayoutContentVersionId() ==
+				getLatestApprovedLayoutContentVersionId(
+					layoutContentVersion.getPlid()))) {
 
-			LayoutContentVersion latestApprovedLayoutContentVersion =
-				layoutContentVersionPersistence.fetchByP_S_First(
-					layoutContentVersion.getPlid(),
-					WorkflowConstants.STATUS_APPROVED,
-					LayoutContentVersionVersionComparator.getInstance(false));
-
-			if (layoutContentVersion.getLayoutContentVersionId() ==
-					latestApprovedLayoutContentVersion.
-						getLayoutContentVersionId()) {
-
-				throw new RequiredLayoutContentVersionException();
-			}
+			throw new RequiredLayoutContentVersionException();
 		}
 
+		_layoutContentVersionPreviewLocalService.
+			deleteLayoutContentVersionPreviews(layoutContentVersionId);
+
 		return layoutContentVersionPersistence.remove(layoutContentVersionId);
+	}
+
+	@Override
+	public long getLatestApprovedLayoutContentVersionId(long plid) {
+		LayoutContentVersion latestApprovedLayoutContentVersion =
+			layoutContentVersionPersistence.fetchByP_S_First(
+				plid, WorkflowConstants.STATUS_APPROVED,
+				LayoutContentVersionVersionComparator.getInstance(false));
+
+		if (latestApprovedLayoutContentVersion == null) {
+			return 0;
+		}
+
+		return latestApprovedLayoutContentVersion.getLayoutContentVersionId();
 	}
 
 	@Override
@@ -244,6 +273,103 @@ public class LayoutContentVersionLocalServiceImpl
 		return layoutContentVersionPersistence.update(layoutContentVersion);
 	}
 
+	private static String _read(String name) {
+		try (InputStream inputStream =
+				LayoutContentVersionLocalServiceImpl.class.getResourceAsStream(
+					"dependencies/" + name)) {
+
+			return StringUtil.read(inputStream);
+		}
+		catch (Exception exception) {
+			_log.error("Unable to read template " + name, exception);
+		}
+
+		return StringPool.BLANK;
+	}
+
+	private void _addLayoutContentVersionPreviews(
+		Layout layout, LayoutContentVersion layoutContentVersion, long userId) {
+
+		try (AutoCloseable autoCloseable =
+				_layoutServiceContextHelper.getServiceContextAutoCloseable(
+					layout)) {
+
+			ServiceContext serviceContext =
+				ServiceContextThreadLocal.getServiceContext();
+
+			for (SegmentsExperience segmentsExperience :
+					_segmentsExperienceLocalService.getSegmentsExperiences(
+						layout.getGroupId(), layout.getPlid())) {
+
+				_addLayoutContentVersionPreviews(
+					layout, layoutContentVersion, segmentsExperience,
+					serviceContext, userId);
+			}
+		}
+		catch (Exception exception) {
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					"Unable to add layout content version previews for PLID " +
+						layout.getPlid(),
+					exception);
+			}
+		}
+	}
+
+	private void _addLayoutContentVersionPreviews(
+		Layout layout, LayoutContentVersion layoutContentVersion,
+		SegmentsExperience segmentsExperience, ServiceContext serviceContext,
+		long userId) {
+
+		for (Locale locale :
+				_language.getAvailableLocales(layout.getGroupId())) {
+
+			String html = null;
+
+			try {
+				html = _layoutPreviewRenderer.render(
+					layout, locale,
+					segmentsExperience.getSegmentsExperienceId(),
+					serviceContext);
+			}
+			catch (Exception exception) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						StringBundler.concat(
+							"Unable to render layout content version preview ",
+							"for language ID ", LocaleUtil.toLanguageId(locale),
+							", PLID ", layout.getPlid(),
+							", and segments experience ",
+							segmentsExperience.getSegmentsExperienceId()),
+						exception);
+				}
+
+				html = _getPreviewErrorHTML(locale);
+			}
+
+			try {
+				_layoutContentVersionPreviewLocalService.
+					addLayoutContentVersionPreview(
+						userId,
+						layoutContentVersion.getLayoutContentVersionId(), html,
+						LocaleUtil.toLanguageId(locale),
+						segmentsExperience.getExternalReferenceCode());
+			}
+			catch (Exception exception) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						StringBundler.concat(
+							"Unable to persist layout content version preview ",
+							"for language ID ", LocaleUtil.toLanguageId(locale),
+							", PLID ", layout.getPlid(),
+							", and segments experience ",
+							segmentsExperience.getSegmentsExperienceId()),
+						exception);
+				}
+			}
+		}
+	}
+
 	private int _getNextVersion(long plid) {
 		LayoutContentVersion layoutContentVersion =
 			layoutContentVersionPersistence.fetchByPlid_First(
@@ -254,6 +380,18 @@ public class LayoutContentVersionLocalServiceImpl
 		}
 
 		return layoutContentVersion.getVersion() + 1;
+	}
+
+	private String _getPreviewErrorHTML(Locale locale) {
+		return StringUtil.replace(
+			_PREVIEW_ERROR_HTML, new String[] {"[$MESSAGE$]", "[$TITLE$]"},
+			new String[] {
+				_language.get(
+					locale,
+					"this-preview-is-not-available.-an-error-occurred-while-" +
+						"generating-the-preview-when-this-version-was-created"),
+				_language.get(locale, "error")
+			});
 	}
 
 	private void _validateExternalReferenceCode(
@@ -301,12 +439,37 @@ public class LayoutContentVersionLocalServiceImpl
 		}
 	}
 
+	private static final String _PREVIEW_ERROR_HTML;
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		LayoutContentVersionLocalServiceImpl.class);
+
+	static {
+		_PREVIEW_ERROR_HTML = _read("preview_error.html");
+	}
+
+	@Reference
+	private Language _language;
+
+	@Reference
+	private LayoutContentVersionPreviewLocalService
+		_layoutContentVersionPreviewLocalService;
+
 	@Reference
 	private LayoutLocalService _layoutLocalService;
 
 	@Reference
 	private LayoutPageTemplateEntryLocalService
 		_layoutPageTemplateEntryLocalService;
+
+	@Reference
+	private LayoutPreviewRenderer _layoutPreviewRenderer;
+
+	@Reference
+	private LayoutServiceContextHelper _layoutServiceContextHelper;
+
+	@Reference
+	private SegmentsExperienceLocalService _segmentsExperienceLocalService;
 
 	@Reference
 	private UserLocalService _userLocalService;

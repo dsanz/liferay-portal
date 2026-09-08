@@ -13,6 +13,7 @@ import {objectPagesTest} from '../../../fixtures/objectPagesTest';
 import {usersAndOrganizationsPagesTest} from '../../../fixtures/usersAndOrganizationsPagesTest';
 import {getRandomInt} from '../../../utils/getRandomInt';
 import {performUserSwitch, userData} from '../../../utils/performLogin';
+import {waitForAlert} from '../../../utils/waitForAlert';
 import {generateObjectFields} from '../utils/generateObjectFields';
 
 const test = mergeTests(
@@ -108,6 +109,8 @@ test('can anonymize object entries', async ({
 	await personalDataErasurePage.anonymizeMenuItem.click();
 
 	await personalDataErasurePage.anonymizeButton.click();
+
+	await waitForAlert(page, undefined, {first: true});
 
 	await usersAndOrganizationsPage.goToUsers();
 
@@ -264,6 +267,8 @@ test('can delete object entries via personal data management', async ({
 	await personalDataErasurePage.allSelectedButton.click();
 
 	await personalDataErasurePage.deleteMenuItem.click();
+
+	await waitForAlert(page);
 
 	await usersAndOrganizationsPage.goToUsers(true);
 

@@ -42,6 +42,9 @@ public class DepotEntryGroupRelServiceImpl
 		_depotEntryModelResourcePermission.check(
 			getPermissionChecker(), depotEntryId, ActionKeys.UPDATE);
 
+		GroupPermissionUtil.check(
+			getPermissionChecker(), toGroupId, ActionKeys.UPDATE);
+
 		return depotEntryGroupRelLocalService.addDepotEntryGroupRel(
 			depotEntryId, toGroupId);
 	}
@@ -52,11 +55,15 @@ public class DepotEntryGroupRelServiceImpl
 		throws PortalException {
 
 		DepotEntryGroupRel depotEntryGroupRel =
-			depotEntryGroupRelLocalService.getDepotEntryGroupRel(
+			depotEntryGroupRelPersistence.findByPrimaryKey(
 				depotEntryGroupRelId);
 
 		_depotEntryModelResourcePermission.check(
 			getPermissionChecker(), depotEntryGroupRel.getDepotEntryId(),
+			ActionKeys.UPDATE);
+
+		GroupPermissionUtil.check(
+			getPermissionChecker(), depotEntryGroupRel.getToGroupId(),
 			ActionKeys.UPDATE);
 
 		return depotEntryGroupRelLocalService.deleteDepotEntryGroupRel(
@@ -85,8 +92,8 @@ public class DepotEntryGroupRelServiceImpl
 			getPermissionChecker(), depotEntry.getDepotEntryId(),
 			ActionKeys.VIEW);
 
-		return depotEntryGroupRelLocalService.getDepotEntryGroupRels(
-			depotEntry, start, end);
+		return depotEntryGroupRelPersistence.findByDepotEntryId(
+			depotEntry.getDepotEntryId(), start, end);
 	}
 
 	@Override
@@ -109,8 +116,8 @@ public class DepotEntryGroupRelServiceImpl
 			getPermissionChecker(), depotEntry.getDepotEntryId(),
 			ActionKeys.VIEW);
 
-		return depotEntryGroupRelLocalService.getDepotEntryGroupRelsCount(
-			depotEntry);
+		return depotEntryGroupRelPersistence.countByDepotEntryId(
+			depotEntry.getDepotEntryId());
 	}
 
 	@Override
@@ -130,7 +137,7 @@ public class DepotEntryGroupRelServiceImpl
 		throws PortalException {
 
 		DepotEntryGroupRel depotEntryGroupRel =
-			depotEntryGroupRelLocalService.getDepotEntryGroupRel(
+			depotEntryGroupRelPersistence.findByPrimaryKey(
 				depotEntryGroupRelId);
 
 		_depotEntryModelResourcePermission.check(
@@ -147,7 +154,7 @@ public class DepotEntryGroupRelServiceImpl
 		throws PortalException {
 
 		DepotEntryGroupRel depotEntryGroupRel =
-			depotEntryGroupRelLocalService.getDepotEntryGroupRel(
+			depotEntryGroupRelPersistence.findByPrimaryKey(
 				depotEntryGroupRelId);
 
 		_depotEntryModelResourcePermission.check(

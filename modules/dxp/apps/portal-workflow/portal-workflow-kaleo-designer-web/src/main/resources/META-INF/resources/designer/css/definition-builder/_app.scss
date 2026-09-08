@@ -1,4 +1,4 @@
-@import 'atlas-variables';
+@import 'atlas-custom-properties/_variables';
 
 .definition-builder-app {
 	height: calc(100vh - 64px - var(--control-menu-container-height));
@@ -17,6 +17,26 @@
 
 		.lexicon-icon {
 			margin-top: 0;
+		}
+	}
+
+	// react-flow-renderer's bundled theme-default.css hardcodes the zoom
+	// controls' light-mode colors (theme-default.css:124-152); override them
+	// below to stay legible against the dark canvas. The container-level
+	// box-shadow (`.react-flow__controls`) uses a low-opacity rgba() and
+	// already reads fine in both themes, so it's intentionally left untouched.
+	.react-flow__controls-button {
+		background: $white;
+		border-bottom: 1px solid $gray-300;
+
+		&:hover {
+			background: $gray-200;
+		}
+
+		// theme-default.css never sets an explicit fill for the icon's <svg>
+		// path, so it defaults to black; make it theme-aware explicitly.
+		svg {
+			fill: $secondary;
 		}
 	}
 

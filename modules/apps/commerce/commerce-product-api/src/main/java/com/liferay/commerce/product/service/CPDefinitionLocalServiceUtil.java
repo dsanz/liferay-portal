@@ -365,11 +365,24 @@ public class CPDefinitionLocalServiceUtil {
 			externalReferenceCode, companyId, excludeDraft);
 	}
 
+	public static CPDefinition fetchCPDefinitionByCProductExternalReferenceCode(
+		String externalReferenceCode, long companyId, int status) {
+
+		return getService().fetchCPDefinitionByCProductExternalReferenceCode(
+			externalReferenceCode, companyId, status);
+	}
+
 	public static CPDefinition fetchCPDefinitionByCProductId(
 		long cProductId, boolean excludeDraft) {
 
 		return getService().fetchCPDefinitionByCProductId(
 			cProductId, excludeDraft);
+	}
+
+	public static CPDefinition fetchCPDefinitionByCProductId(
+		long cProductId, int status) {
+
+		return getService().fetchCPDefinitionByCProductId(cProductId, status);
 	}
 
 	public static CPDefinition fetchCPDefinitionByFriendlyURL(
@@ -425,6 +438,14 @@ public class CPDefinitionLocalServiceUtil {
 		throws PortalException {
 
 		return getService().getCPDefinition(CPDefinitionId);
+	}
+
+	public static CPDefinition getCPDefinitionByCProductExternalReferenceCode(
+			String externalReferenceCode, long companyId)
+		throws PortalException {
+
+		return getService().getCPDefinitionByCProductExternalReferenceCode(
+			externalReferenceCode, companyId);
 	}
 
 	public static CPDefinition getCPDefinitionByCProductId(long cProductId)
@@ -623,6 +644,12 @@ public class CPDefinitionLocalServiceUtil {
 			cProductId, status, start, end, orderByComparator);
 	}
 
+	public static int getCProductCPDefinitionsCount(
+		long cProductId, int status) {
+
+		return getService().getCProductCPDefinitionsCount(cProductId, status);
+	}
+
 	public static com.liferay.commerce.product.model.CPAttachmentFileEntry
 			getDefaultImageCPAttachmentFileEntry(long cpDefinitionId)
 		throws PortalException {
@@ -663,6 +690,15 @@ public class CPDefinitionLocalServiceUtil {
 
 	public static String getLayoutUuid(long groupId, long cpDefinitionId) {
 		return getService().getLayoutUuid(groupId, cpDefinitionId);
+	}
+
+	public static CPDefinition getOrAddEmptyCPDefinition(
+			String externalReferenceCode, String productTypeName,
+			long companyId, long userId, long groupId)
+		throws PortalException {
+
+		return getService().getOrAddEmptyCPDefinition(
+			externalReferenceCode, productTypeName, companyId, userId, groupId);
 	}
 
 	/**
@@ -963,4 +999,4 @@ public class CPDefinitionLocalServiceUtil {
 			CPDefinitionLocalServiceUtil.class, CPDefinitionLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:95856568
+// LIFERAY-SERVICE-BUILDER-HASH:-949275408

@@ -8,7 +8,6 @@ package com.liferay.site.sitemap.web.internal.configuration.admin.display;
 import com.liferay.configuration.admin.display.ConfigurationScreen;
 import com.liferay.configuration.admin.display.ConfigurationScreenWrapper;
 import com.liferay.item.selector.ItemSelector;
-import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -18,7 +17,9 @@ import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.portal.settings.configuration.admin.display.PortalSettingsConfigurationScreenContributor;
 import com.liferay.portal.settings.configuration.admin.display.PortalSettingsConfigurationScreenFactory;
 import com.liferay.site.configuration.manager.SitemapConfigurationManager;
+import com.liferay.site.manager.SitemapManager;
 import com.liferay.site.sitemap.web.internal.display.context.SitemapCompanyConfigurationDisplayContext;
+import com.liferay.site.storage.helper.SitemapStorageHelper;
 
 import jakarta.portlet.PortletRequest;
 import jakarta.portlet.PortletResponse;
@@ -55,9 +56,6 @@ public class SitemapPortalSettingsConfigurationScreenWrapper
 	private Language _language;
 
 	@Reference
-	private ObjectDefinitionLocalService _objectDefinitionLocalService;
-
-	@Reference
 	private Portal _portal;
 
 	@Reference
@@ -69,6 +67,12 @@ public class SitemapPortalSettingsConfigurationScreenWrapper
 
 	@Reference
 	private SitemapConfigurationManager _sitemapConfigurationManager;
+
+	@Reference
+	private SitemapManager _sitemapManager;
+
+	@Reference
+	private SitemapStorageHelper _sitemapStorageHelper;
 
 	private class SitemapPortalSettingsConfigurationScreenContributor
 		implements PortalSettingsConfigurationScreenContributor {
@@ -126,7 +130,8 @@ public class SitemapPortalSettingsConfigurationScreenWrapper
 					_portal.getLiferayPortletResponse(
 						(PortletResponse)httpServletRequest.getAttribute(
 							JavaConstants.JAKARTA_PORTLET_RESPONSE)),
-					_objectDefinitionLocalService, _sitemapConfigurationManager,
+					_sitemapConfigurationManager, _sitemapManager,
+					_sitemapStorageHelper,
 					(ThemeDisplay)httpServletRequest.getAttribute(
 						WebKeys.THEME_DISPLAY)));
 		}

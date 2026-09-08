@@ -29,7 +29,7 @@ export type ContentLabelDisplayType =
 	| 'content-7'
 	| 'content-8';
 
-export const ItemAfter = React.forwardRef<
+const ItemAfter = React.forwardRef<
 	HTMLSpanElement,
 	React.HTMLAttributes<HTMLSpanElement>
 >(({children, className, ...otherProps}, ref) => (
@@ -44,7 +44,7 @@ export const ItemAfter = React.forwardRef<
 
 ItemAfter.displayName = 'ClayLabelItemAfter';
 
-export const ItemBefore = React.forwardRef<
+const ItemBefore = React.forwardRef<
 	HTMLSpanElement,
 	React.HTMLAttributes<HTMLSpanElement>
 >(({children, className, ...otherProps}, ref) => (
@@ -59,7 +59,7 @@ export const ItemBefore = React.forwardRef<
 
 ItemBefore.displayName = 'ClayLabelItemBefore';
 
-export const ItemExpand = React.forwardRef<
+const ItemExpand = React.forwardRef<
 	HTMLAnchorElement | HTMLSpanElement,
 	React.BaseHTMLAttributes<HTMLAnchorElement | HTMLSpanElement>
 >(({children, className, href, ...otherProps}, ref) => {
@@ -99,8 +99,14 @@ interface IBaseProps<T extends string = string>
 
 	/**
 	 * Flag to indicate if the label should be of the `large` variant.
+	 * @deprecated Use `size="lg"` instead.
 	 */
 	large?: boolean;
+
+	/**
+	 * Determines the size of the label.
+	 */
+	size?: 'lg' | 'sm';
 }
 
 const OldLabel = React.forwardRef<HTMLSpanElement, IBaseProps>(
@@ -112,6 +118,7 @@ const OldLabel = React.forwardRef<HTMLSpanElement, IBaseProps>(
 			displayType,
 			inverse = false,
 			large = false,
+			size,
 			...otherProps
 		},
 		ref
@@ -123,8 +130,9 @@ const OldLabel = React.forwardRef<HTMLSpanElement, IBaseProps>(
 				{...otherProps}
 				className={classNames('label', className, {
 					'label-dismissible': dismissible,
-					'label-lg': large,
+					'label-lg': !size && large,
 					[`label-${displayType}`]: !useInverse && displayType,
+					[`label-${size}`]: size,
 					[`label-inverse-${displayType}`]: useInverse,
 				})}
 				ref={ref}
@@ -237,10 +245,11 @@ const ContentLabelComponent = React.forwardRef<
 
 ContentLabelComponent.displayName = 'ClayContentLabel';
 
-export const ContentLabel = Object.assign(ContentLabelComponent, {
+const ContentLabel = Object.assign(ContentLabelComponent, {
 	ItemAfter,
 	ItemBefore,
 	ItemExpand,
 });
 
+export {ContentLabel, ItemAfter, ItemBefore, ItemExpand};
 export default Label;

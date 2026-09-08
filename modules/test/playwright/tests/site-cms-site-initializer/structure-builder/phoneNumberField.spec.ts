@@ -6,9 +6,9 @@
 import {expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
-import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {pageEditorPagesTest} from '../../../fixtures/pageEditorPagesTest';
+import {clickAndExpectToBeHidden} from '../../../utils/clickAndExpectToBeHidden';
 import {clickAndExpectToBeVisible} from '../../../utils/clickAndExpectToBeVisible';
 import {getRandomInt} from '../../../utils/getRandomInt';
 import getRandomString from '../../../utils/getRandomString';
@@ -19,11 +19,6 @@ import {structureBuilderPagesTest} from './fixtures/structureBuilderPagesTest';
 const test = mergeTests(
 	cmsPagesTest,
 	dataApiHelpersTest,
-	featureFlagsTest({
-		'LPD-17564': {enabled: true},
-		'LPD-70672': {enabled: true},
-		'LPD-83570': {enabled: true},
-	}),
 	loginTest(),
 	pageEditorPagesTest,
 	structureBuilderPagesTest
@@ -61,11 +56,31 @@ test(
 
 		const phoneFragmentTrigger = page.getByLabel('Country Code');
 
+		const unitedStatesOption = page.getByRole('option', {
+			name: /United States/,
+		});
+
 		await clickAndExpectToBeVisible({
-			autoClick: true,
-			target: page.getByRole('option', {name: /United States/}),
+			target: unitedStatesOption,
 			trigger: phoneFragmentTrigger,
 		});
+
+		// The CMS theme compiles clay's atlas-custom-properties flavor, which
+		// sets pointer-events: none on .dropdown-item.active, so the selected
+		// option cannot be clicked. Remove this guard once that divergence is
+		// resolved.
+
+		if (
+			(await unitedStatesOption.getAttribute('aria-selected')) === 'true'
+		) {
+			await clickAndExpectToBeHidden({
+				target: unitedStatesOption,
+				trigger: phoneFragmentTrigger,
+			});
+		}
+		else {
+			await unitedStatesOption.click();
+		}
 
 		const phoneInput = page.locator('input[type="tel"]');
 

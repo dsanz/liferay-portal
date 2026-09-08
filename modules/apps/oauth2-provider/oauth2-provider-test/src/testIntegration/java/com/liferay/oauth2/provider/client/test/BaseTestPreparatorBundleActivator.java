@@ -11,6 +11,7 @@ import com.liferay.oauth2.provider.model.OAuth2Application;
 import com.liferay.oauth2.provider.model.OAuth2Authorization;
 import com.liferay.oauth2.provider.scope.spi.prefix.handler.PrefixHandler;
 import com.liferay.oauth2.provider.scope.spi.prefix.handler.PrefixHandlerFactory;
+import com.liferay.oauth2.provider.scope.spi.scope.descriptor.ScopeDescriptor;
 import com.liferay.oauth2.provider.scope.spi.scope.finder.ScopeFinder;
 import com.liferay.oauth2.provider.scope.spi.scope.mapper.ScopeMapper;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalService;
@@ -26,6 +27,7 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HashMapDictionary;
@@ -207,7 +209,7 @@ public abstract class BaseTestPreparatorBundleActivator
 		throws PortalException {
 
 		return createOAuth2Application(
-			companyId, user, clientId, "oauthTestApplicationSecret",
+			companyId, user, clientId, BaseClientTestCase.CLIENT_SECRET,
 			allowedGrantTypesList,
 			Collections.singletonList(
 				"http://redirecturi:" + PortalUtil.getPortalServerPort(false)),
@@ -221,8 +223,22 @@ public abstract class BaseTestPreparatorBundleActivator
 		throws PortalException {
 
 		return createOAuth2Application(
-			companyId, user, clientId, "oauthTestApplicationSecret",
+			companyId, user, clientId, BaseClientTestCase.CLIENT_SECRET,
 			allowedGrantTypesList,
+			Collections.singletonList(
+				"http://redirecturi:" + PortalUtil.getPortalServerPort(false)),
+			scopeAliasesList);
+	}
+
+	protected OAuth2Application createOAuth2Application(
+			long companyId, User user, String clientId,
+			List<GrantType> allowedGrantTypesList, String name,
+			List<String> scopeAliasesList)
+		throws PortalException {
+
+		return createOAuth2Application(
+			companyId, user, clientId, BaseClientTestCase.CLIENT_SECRET,
+			allowedGrantTypesList, name,
 			Collections.singletonList(
 				"http://redirecturi:" + PortalUtil.getPortalServerPort(false)),
 			scopeAliasesList);
@@ -267,8 +283,35 @@ public abstract class BaseTestPreparatorBundleActivator
 
 	protected OAuth2Application createOAuth2Application(
 			long companyId, User user, String clientId, String clientSecret,
+			List<GrantType> allowedGrantTypesList, String name,
+			List<String> redirectURIsList, List<String> scopeAliasesList)
+		throws PortalException {
+
+		return createOAuth2Application(
+			companyId, user, clientId, clientSecret, allowedGrantTypesList,
+			OAuthConstants.TOKEN_ENDPOINT_AUTH_POST, null, name,
+			redirectURIsList, false, scopeAliasesList, false);
+	}
+
+	protected OAuth2Application createOAuth2Application(
+			long companyId, User user, String clientId, String clientSecret,
 			List<GrantType> allowedGrantTypesList,
 			String clientAuthenticationMethod, String jwks,
+			List<String> redirectURIsList, boolean rememberDevice,
+			List<String> scopeAliasesList, boolean trustedApplication)
+		throws PortalException {
+
+		return createOAuth2Application(
+			companyId, user, clientId, clientSecret, allowedGrantTypesList,
+			clientAuthenticationMethod, jwks, RandomTestUtil.randomString(),
+			redirectURIsList, rememberDevice, scopeAliasesList,
+			trustedApplication);
+	}
+
+	protected OAuth2Application createOAuth2Application(
+			long companyId, User user, String clientId, String clientSecret,
+			List<GrantType> allowedGrantTypesList,
+			String clientAuthenticationMethod, String jwks, String name,
 			List<String> redirectURIsList, boolean rememberDevice,
 			List<String> scopeAliasesList, boolean trustedApplication)
 		throws PortalException {
@@ -287,10 +330,10 @@ public abstract class BaseTestPreparatorBundleActivator
 				companyId, user.getUserId(), user.getFullName(),
 				allowedGrantTypesList, clientAuthenticationMethod,
 				user.getUserId(), clientId, 0, clientSecret,
-				"test oauth application",
+				RandomTestUtil.randomString(),
 				Collections.singletonList("token.introspection"),
 				"http://localhost:" + PortalUtil.getPortalServerPort(false), 0,
-				jwks, "test application",
+				jwks, name,
 				"http://localhost:" + PortalUtil.getPortalServerPort(false),
 				redirectURIsList, rememberDevice, scopeAliasesList,
 				trustedApplication, new ServiceContext());
@@ -420,6 +463,19 @@ public abstract class BaseTestPreparatorBundleActivator
 		ServiceRegistration<PrefixHandlerFactory> serviceRegistration =
 			bundleContext.registerService(
 				PrefixHandlerFactory.class, a -> prefixHandler, properties);
+
+		autoCloseables.add(serviceRegistration::unregister);
+
+		return serviceRegistration;
+	}
+
+	protected ServiceRegistration<ScopeDescriptor> registerScopeDescriptor(
+		ScopeDescriptor scopeDescriptor,
+		Dictionary<String, Object> properties) {
+
+		ServiceRegistration<ScopeDescriptor> serviceRegistration =
+			bundleContext.registerService(
+				ScopeDescriptor.class, scopeDescriptor, properties);
 
 		autoCloseables.add(serviceRegistration::unregister);
 

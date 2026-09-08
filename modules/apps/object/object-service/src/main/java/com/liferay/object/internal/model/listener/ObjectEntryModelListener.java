@@ -12,6 +12,7 @@ import com.liferay.list.type.service.ListTypeEntryLocalService;
 import com.liferay.object.action.engine.ObjectActionEngine;
 import com.liferay.object.constants.ObjectActionTriggerConstants;
 import com.liferay.object.constants.ObjectFieldConstants;
+import com.liferay.object.definition.util.ObjectDefinitionThreadLocal;
 import com.liferay.object.entry.util.ObjectEntryPayloadUtil;
 import com.liferay.object.entry.util.ObjectEntryThreadLocal;
 import com.liferay.object.field.business.type.ObjectFieldBusinessType;
@@ -41,7 +42,6 @@ import com.liferay.portal.kernel.audit.AuditMessage;
 import com.liferay.portal.kernel.audit.AuditRouter;
 import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -54,8 +54,10 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.security.audit.event.generators.constants.EventTypes;
 import com.liferay.portal.security.audit.event.generators.util.Attribute;
 import com.liferay.portal.security.audit.event.generators.util.AuditMessageBuilder;
@@ -64,10 +66,13 @@ import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -120,7 +125,10 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 
 			User user = _userLocalService.getUser(userId);
 
-			if (!objectEntry.isInTrash()) {
+			if (!ObjectDefinitionThreadLocal.isDeleteObjectDefinitionId(
+					objectEntry.getObjectDefinitionId()) &&
+				!objectEntry.isInTrash()) {
+
 				_executeObjectActions(
 					ObjectActionTriggerConstants.KEY_ON_AFTER_DELETE,
 					objectEntry, objectEntry, user);
@@ -130,10 +138,7 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 				_objectEntryLocalService.fetchObjectEntry(
 					objectEntry.getRootObjectEntryId());
 
-			if (!FeatureFlagManagerUtil.isEnabled(
-					objectEntry.getCompanyId(), "LPD-34594") ||
-				(rootObjectEntry == null)) {
-
+			if (rootObjectEntry == null) {
 				return;
 			}
 
@@ -224,6 +229,45 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 			bundleContext, RelevantObjectEntryModelListener.class);
 	}
 
+	private boolean _addModifiedLocalizedAttributes(
+		List<Attribute> attributes, String defaultLanguageId,
+		ObjectField objectField, Map<String, Serializable> originalValues,
+		Map<String, Serializable> values) {
+
+		boolean modified = false;
+
+		Map<String, Serializable> originalLocalizedValues = _getLocalizedValues(
+			objectField, originalValues);
+
+		Set<String> languageIds = new TreeSet<>(
+			originalLocalizedValues.keySet());
+
+		Map<String, Serializable> localizedValues = _getLocalizedValues(
+			objectField, values);
+
+		languageIds.addAll(localizedValues.keySet());
+
+		for (String languageId : languageIds) {
+			Object originalValue = originalLocalizedValues.get(languageId);
+			Object value = localizedValues.get(languageId);
+
+			if (Objects.equals(originalValue, value)) {
+				continue;
+			}
+
+			attributes.add(
+				new Attribute(
+					_getLocalizedAttributeName(
+						defaultLanguageId, languageId, objectField),
+					_getAuditValue(objectField, value),
+					_getAuditValue(objectField, originalValue)));
+
+			modified = true;
+		}
+
+		return modified;
+	}
+
 	private void _executeObjectActions(
 			String objectActionTriggerKey, ObjectEntry originalObjectEntry,
 			ObjectEntry objectEntry, User user)
@@ -269,11 +313,31 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 
 		JSONObject additionalInfoJSONObject = auditMessage.getAdditionalInfo();
 
+		String defaultLanguageId = _getDefaultLanguageId(objectEntry);
+
 		for (ObjectField objectField :
 				_objectFieldLocalService.getObjectFields(
 					objectDefinition.getObjectDefinitionId())) {
 
 			Map<String, Serializable> values = objectEntry.getValues();
+
+			if (objectField.isLocalized()) {
+				Map<String, Serializable> localizedValues = _getLocalizedValues(
+					objectField, values);
+
+				if (MapUtil.isNotEmpty(localizedValues)) {
+					for (Map.Entry<String, Serializable> entry :
+							localizedValues.entrySet()) {
+
+						additionalInfoJSONObject.put(
+							_getLocalizedAttributeName(
+								defaultLanguageId, entry.getKey(), objectField),
+							_getAuditValue(objectField, entry.getValue()));
+					}
+
+					continue;
+				}
+			}
 
 			additionalInfoJSONObject.put(
 				objectField.getName(),
@@ -384,8 +448,51 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 		return value;
 	}
 
+	private String _getDefaultLanguageId(ObjectEntry objectEntry) {
+		String defaultLanguageId = objectEntry.getDefaultLanguageId();
+
+		if (Validator.isNull(defaultLanguageId)) {
+			return LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault());
+		}
+
+		return defaultLanguageId;
+	}
+
+	private String _getLocalizedAttributeName(
+		String defaultLanguageId, String languageId, ObjectField objectField) {
+
+		if (Objects.equals(defaultLanguageId, languageId)) {
+			return objectField.getName();
+		}
+
+		return StringBundler.concat(
+			objectField.getName(), StringPool.OPEN_BRACKET, languageId,
+			StringPool.CLOSE_BRACKET);
+	}
+
+	private Map<String, Serializable> _getLocalizedValues(
+		ObjectField objectField, Map<String, Serializable> values) {
+
+		Serializable localizedValues = values.get(
+			objectField.getI18nObjectFieldName());
+
+		if (!(localizedValues instanceof Map<?, ?>)) {
+			if ((localizedValues != null) && _log.isWarnEnabled()) {
+				_log.warn(
+					StringBundler.concat(
+						"Unable to audit object field \"",
+						objectField.getI18nObjectFieldName(),
+						"\" because its value is not a map"));
+			}
+
+			return Collections.emptyMap();
+		}
+
+		return (Map<String, Serializable>)localizedValues;
+	}
+
 	private List<Attribute> _getModifiedAttributes(
-		ObjectDefinition objectDefinition,
+		String defaultLanguageId, ObjectDefinition objectDefinition,
 		Map<String, Serializable> originalValues,
 		Map<String, Serializable> values) {
 
@@ -394,6 +501,14 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 		for (ObjectField objectField :
 				_objectFieldLocalService.getObjectFields(
 					objectDefinition.getObjectDefinitionId())) {
+
+			if (objectField.isLocalized() &&
+				_addModifiedLocalizedAttributes(
+					attributes, defaultLanguageId, objectField, originalValues,
+					values)) {
+
+				continue;
+			}
 
 			Object originalValue = originalValues.get(objectField.getName());
 			Object value = values.get(objectField.getName());
@@ -435,8 +550,8 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 					String.valueOf(objectEntry.getPrimaryKeyObj()), null,
 					EventTypes.UPDATE,
 					_getModifiedAttributes(
-						objectDefinition, originalObjectEntry.getValues(),
-						values)));
+						_getDefaultLanguageId(objectEntry), objectDefinition,
+						originalObjectEntry.getValues(), values)));
 		}
 		else {
 			_auditRouter.route(
@@ -536,10 +651,7 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 			Date modifiedDate, ObjectEntry objectEntry)
 		throws PortalException {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				objectEntry.getCompanyId(), "LPD-34594") ||
-			!objectEntry.isRootDescendantNode()) {
-
+		if (!objectEntry.isRootDescendantNode()) {
 			return;
 		}
 

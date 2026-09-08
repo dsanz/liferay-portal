@@ -11,6 +11,7 @@ import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.info.exception.NoSuchInfoItemException;
 import com.liferay.info.item.ClassPKInfoItemIdentifier;
+import com.liferay.info.item.InfoItemIdentifier;
 import com.liferay.info.item.InfoItemServiceRegistry;
 import com.liferay.info.item.provider.InfoItemObjectProvider;
 import com.liferay.message.boards.model.MBMessage;
@@ -130,6 +131,45 @@ public class MBDiscussionPermissionImpl extends BaseDiscussionPermission {
 			ActionKeys.VIEW);
 	}
 
+	private int _getDepotEntryType(MBMessage message) {
+		InfoItemObjectProvider<Object> infoItemObjectProvider =
+			_infoItemServiceRegistry.getFirstInfoItemService(
+				InfoItemObjectProvider.class, message.getClassName());
+
+		if (infoItemObjectProvider == null) {
+			return DepotConstants.TYPE_ANY;
+		}
+
+		try {
+			Object infoItem = infoItemObjectProvider.getInfoItem(
+				new ClassPKInfoItemIdentifier(
+					message.getClassPK(), InfoItemIdentifier.VERSION_LATEST));
+
+			if (!(infoItem instanceof GroupedModel)) {
+				return DepotConstants.TYPE_ANY;
+			}
+
+			GroupedModel groupedModel = (GroupedModel)infoItem;
+
+			DepotEntry depotEntry =
+				_depotEntryLocalService.fetchGroupDepotEntry(
+					groupedModel.getGroupId());
+
+			if (depotEntry == null) {
+				return DepotConstants.TYPE_ANY;
+			}
+
+			return depotEntry.getType();
+		}
+		catch (NoSuchInfoItemException noSuchInfoItemException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(noSuchInfoItemException);
+			}
+
+			return DepotConstants.TYPE_ANY;
+		}
+	}
+
 	private boolean _hasPermission(
 			PermissionChecker permissionChecker, MBMessage message,
 			String actionId)
@@ -148,11 +188,20 @@ public class MBDiscussionPermissionImpl extends BaseDiscussionPermission {
 				CommentGroupServiceConfiguration.class, message.getCompanyId(),
 				message.getGroupId());
 
+		int depotEntryType = _getDepotEntryType(message);
+
 		if ((commentGroupServiceConfiguration.alwaysEditableByOwner() ||
-			 _isSpaceDepotEntry(message)) &&
+			 (depotEntryType == DepotConstants.TYPE_PROJECT) ||
+			 (depotEntryType == DepotConstants.TYPE_SPACE)) &&
 			(permissionChecker.getUserId() == message.getUserId())) {
 
 			return true;
+		}
+
+		if ((depotEntryType == DepotConstants.TYPE_PROJECT) &&
+			actionId.equals(ActionKeys.UPDATE_DISCUSSION)) {
+
+			return false;
 		}
 
 		if (message.isPending()) {
@@ -169,46 +218,6 @@ public class MBDiscussionPermissionImpl extends BaseDiscussionPermission {
 		return hasPermission(
 			permissionChecker, message.getCompanyId(), message.getGroupId(),
 			className, message.getClassPK(), actionId);
-	}
-
-	private boolean _isSpaceDepotEntry(MBMessage message) {
-		InfoItemObjectProvider<Object> infoItemObjectProvider =
-			_infoItemServiceRegistry.getFirstInfoItemService(
-				InfoItemObjectProvider.class, message.getClassName());
-
-		if (infoItemObjectProvider == null) {
-			return false;
-		}
-
-		try {
-			Object infoItem = infoItemObjectProvider.getInfoItem(
-				new ClassPKInfoItemIdentifier(message.getClassPK()));
-
-			if (!(infoItem instanceof GroupedModel)) {
-				return false;
-			}
-
-			GroupedModel groupedModel = (GroupedModel)infoItem;
-
-			DepotEntry depotEntry =
-				_depotEntryLocalService.fetchGroupDepotEntry(
-					groupedModel.getGroupId());
-
-			if ((depotEntry != null) &&
-				(depotEntry.getType() == DepotConstants.TYPE_SPACE)) {
-
-				return true;
-			}
-
-			return false;
-		}
-		catch (NoSuchInfoItemException noSuchInfoItemException) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(noSuchInfoItemException);
-			}
-
-			return false;
-		}
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

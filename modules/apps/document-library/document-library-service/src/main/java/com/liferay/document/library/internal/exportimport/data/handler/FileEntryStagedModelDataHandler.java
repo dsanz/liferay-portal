@@ -153,7 +153,7 @@ public class FileEntryStagedModelDataHandler
 		String uuid, long groupId) {
 
 		try {
-			return _dlAppLocalService.getFileEntryByUuidAndGroupId(
+			return _dlAppLocalService.fetchFileEntryByUuidAndGroupId(
 				uuid, groupId);
 		}
 		catch (PortalException portalException) {
@@ -557,7 +557,7 @@ public class FileEntryStagedModelDataHandler
 						if (updateFileEntry) {
 							DLFileVersion alreadyExistingFileVersion =
 								_dlFileVersionLocalService.
-									getFileVersionByUuidAndGroupId(
+									fetchDLFileVersionByUuidAndGroupId(
 										fileVersionUuid,
 										existingFileEntry.getGroupId());
 

@@ -10,7 +10,7 @@ import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.model.DepotEntryModel;
 import com.liferay.depot.service.DepotEntryLocalService;
-import com.liferay.document.library.kernel.service.DLAppLocalService;
+import com.liferay.document.library.kernel.service.DLAppService;
 import com.liferay.exportimport.attachment.ExportImportAttachmentManager;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.object.action.engine.ObjectActionEngine;
@@ -515,6 +515,36 @@ public class DefaultObjectEntryManagerImpl
 	}
 
 	@Override
+	public void disassociateRelatedModel(
+			DTOConverterContext dtoConverterContext,
+			String externalReferenceCode, ObjectDefinition objectDefinition,
+			ObjectRelationship objectRelationship,
+			String relatedExternalReferenceCode, String scopeKey)
+		throws Exception {
+
+		com.liferay.object.model.ObjectEntry serviceBuilderObjectEntry =
+			_objectEntryService.getObjectEntry(
+				externalReferenceCode, getGroupId(objectDefinition, scopeKey),
+				objectDefinition.getObjectDefinitionId());
+
+		ObjectDefinition relatedObjectDefinition =
+			ObjectRelationshipUtil.getRelatedObjectDefinition(
+				objectDefinition, objectRelationship);
+
+		com.liferay.object.model.ObjectEntry serviceBuilderRelatedObjectEntry =
+			_objectEntryService.getObjectEntry(
+				relatedExternalReferenceCode,
+				getGroupId(relatedObjectDefinition, scopeKey),
+				relatedObjectDefinition.getObjectDefinitionId());
+
+		_disassociateRelatedModels(
+			objectDefinition, objectRelationship,
+			serviceBuilderObjectEntry.getObjectEntryId(),
+			new long[] {serviceBuilderRelatedObjectEntry.getObjectEntryId()},
+			relatedObjectDefinition, dtoConverterContext.getUserId());
+	}
+
+	@Override
 	public void disassociateRelatedModels(
 			DTOConverterContext dtoConverterContext,
 			ObjectDefinition objectDefinition,
@@ -836,8 +866,7 @@ public class DefaultObjectEntryManagerImpl
 					groupId, objectDefinition.getObjectDefinitionId(),
 					aggregationTerm, predicate,
 					GetterUtil.getBoolean(
-						dtoConverterContext.getAttribute("preferApproved")),
-					start, end)),
+						dtoConverterContext.getAttribute("preferApproved")))),
 			TransformUtil.transform(
 				objectEntryLocalService.getPrimaryKeys(
 					groupIds, companyId, dtoConverterContext.getUserId(),
@@ -1270,6 +1299,25 @@ public class DefaultObjectEntryManagerImpl
 	}
 
 	@Override
+	public ObjectEntry partialUpdateObjectEntry(
+			long companyId, DTOConverterContext dtoConverterContext,
+			String externalReferenceCode, ObjectDefinition objectDefinition,
+			ObjectEntry objectEntry, String scopeKey)
+		throws Exception {
+
+		ObjectEntry existingObjectEntry =
+			ObjectEntryManagerUtil.partialUpdateObjectEntry(
+				getObjectEntry(
+					companyId, dtoConverterContext, externalReferenceCode,
+					objectDefinition, scopeKey),
+				objectDefinition.getObjectDefinitionId(), objectEntry);
+
+		return _updateObjectEntry(
+			companyId, dtoConverterContext, externalReferenceCode,
+			objectDefinition, existingObjectEntry, true, scopeKey);
+	}
+
+	@Override
 	public ObjectEntry partialUpdateRelatedObjectEntry(
 			DTOConverterContext dtoConverterContext, ObjectEntry objectEntry,
 			long objectEntryId, ObjectRelationship objectRelationship,
@@ -1280,14 +1328,14 @@ public class DefaultObjectEntryManagerImpl
 			_objectDefinitionLocalService.getObjectDefinition(
 				objectRelationship.getObjectDefinitionId2());
 
-		return updateRelatedObjectEntry(
+		return _updateRelatedObjectEntry(
 			dtoConverterContext,
 			ObjectEntryManagerUtil.partialUpdateObjectEntry(
 				getRelatedObjectEntry(
 					dtoConverterContext, objectEntryId, objectRelationship,
 					parentObjectEntryId),
 				objectDefinition2.getObjectDefinitionId(), objectEntry),
-			objectEntryId, objectRelationship, parentObjectEntryId);
+			objectEntryId, objectRelationship, parentObjectEntryId, true);
 	}
 
 	@Override
@@ -1302,14 +1350,14 @@ public class DefaultObjectEntryManagerImpl
 			_objectDefinitionLocalService.getObjectDefinition(
 				objectRelationship.getObjectDefinitionId2());
 
-		return updateRelatedObjectEntry(
+		return _updateRelatedObjectEntry(
 			dtoConverterContext, externalReferenceCode,
 			ObjectEntryManagerUtil.partialUpdateObjectEntry(
 				getRelatedObjectEntry(
 					dtoConverterContext, externalReferenceCode,
 					objectRelationship, parentExternalReferenceCode, scopeKey),
 				objectDefinition2.getObjectDefinitionId(), objectEntry),
-			objectRelationship, parentExternalReferenceCode, scopeKey);
+			objectRelationship, parentExternalReferenceCode, true, scopeKey);
 	}
 
 	@Override
@@ -1405,46 +1453,9 @@ public class DefaultObjectEntryManagerImpl
 			ObjectEntry objectEntry, String scopeKey)
 		throws Exception {
 
-		long groupId = getGroupId(objectDefinition, scopeKey);
-
-		com.liferay.object.model.ObjectEntry serviceBuilderObjectEntry =
-			objectEntryLocalService.fetchObjectEntry(
-				externalReferenceCode, groupId,
-				objectDefinition.getObjectDefinitionId());
-
-		if (serviceBuilderObjectEntry != null) {
-			_checkObjectEntryStatus(serviceBuilderObjectEntry);
-		}
-
-		validateReadOnlyObjectFields(
-			externalReferenceCode, groupId, objectDefinition, objectEntry);
-
-		ServiceContext serviceContext = _createServiceContext(
-			dtoConverterContext, objectDefinition, objectEntry, scopeKey);
-
-		serviceContext.setCompanyId(companyId);
-
-		return _toObjectEntry(
-			dtoConverterContext, objectDefinition,
-			_addOrUpdateNestedObjectEntries(
-				dtoConverterContext, objectDefinition, objectEntry,
-				_getObjectRelationships(objectDefinition, objectEntry),
-				_updateStatus(
-					dtoConverterContext, objectEntry,
-					_objectEntryService.addOrUpdateObjectEntry(
-						externalReferenceCode, groupId,
-						objectDefinition.getObjectDefinitionId(),
-						_getObjectEntryFolderId(
-							objectDefinition.getCompanyId(), groupId,
-							objectEntry, objectDefinition, serviceContext),
-						_toObjectValues(
-							0L, dtoConverterContext.getLocale(),
-							objectDefinition, objectEntry, scopeKey,
-							serviceContext),
-						serviceContext),
-					serviceContext),
-				scopeKey),
-			null);
+		return _updateObjectEntry(
+			companyId, dtoConverterContext, externalReferenceCode,
+			objectDefinition, objectEntry, false, scopeKey);
 	}
 
 	public ObjectEntry updateRelatedObjectEntry(
@@ -1455,7 +1466,7 @@ public class DefaultObjectEntryManagerImpl
 
 		return _updateRelatedObjectEntry(
 			dtoConverterContext, objectEntry, objectEntryId, objectRelationship,
-			parentObjectEntryId);
+			parentObjectEntryId, false);
 	}
 
 	@Override
@@ -1466,27 +1477,9 @@ public class DefaultObjectEntryManagerImpl
 			String parentExternalReferenceCode, String scopeKey)
 		throws Exception {
 
-		com.liferay.object.model.ObjectEntry serviceBuilderObjectEntry =
-			_objectEntryService.getObjectEntry(
-				externalReferenceCode,
-				getGroupId(
-					_objectDefinitionLocalService.getObjectDefinition(
-						objectRelationship.getObjectDefinitionId2()),
-					scopeKey),
-				objectRelationship.getObjectDefinitionId2());
-		com.liferay.object.model.ObjectEntry parentServiceBuilderObjectEntry =
-			_objectEntryService.getObjectEntry(
-				parentExternalReferenceCode,
-				getGroupId(
-					_objectDefinitionLocalService.getObjectDefinition(
-						objectRelationship.getObjectDefinitionId1()),
-					scopeKey),
-				objectRelationship.getObjectDefinitionId1());
-
 		return _updateRelatedObjectEntry(
-			dtoConverterContext, objectEntry,
-			serviceBuilderObjectEntry.getObjectEntryId(), objectRelationship,
-			parentServiceBuilderObjectEntry.getObjectEntryId());
+			dtoConverterContext, externalReferenceCode, objectEntry,
+			objectRelationship, parentExternalReferenceCode, false, scopeKey);
 	}
 
 	@Override
@@ -1688,7 +1681,7 @@ public class DefaultObjectEntryManagerImpl
 			dtoConverterContext, objectDefinition,
 			_addOrUpdateNestedObjectEntries(
 				dtoConverterContext, objectDefinition, objectEntry,
-				_getObjectRelationships(objectDefinition, objectEntry),
+				_getObjectRelationships(objectDefinition, objectEntry), false,
 				serviceBuilderObjectEntry, scopeKey),
 			null);
 	}
@@ -1698,6 +1691,7 @@ public class DefaultObjectEntryManagerImpl
 				DTOConverterContext dtoConverterContext,
 				ObjectDefinition objectDefinition, ObjectEntry objectEntry,
 				Map<String, ObjectRelationship> objectRelationships,
+				boolean partialUpdate,
 				com.liferay.object.model.ObjectEntry serviceBuilderObjectEntry,
 				String scopeKey)
 		throws Exception {
@@ -1851,13 +1845,13 @@ public class DefaultObjectEntryManagerImpl
 								nestedScopeKey);
 						}
 						else {
-							nestedObjectEntry = updateRelatedObjectEntry(
+							nestedObjectEntry = _updateRelatedObjectEntry(
 								dtoConverterContext,
 								nestedObjectEntry.getExternalReferenceCode(),
 								nestedObjectEntry, objectRelationship,
 								serviceBuilderObjectEntry.
 									getExternalReferenceCode(),
-								nestedScopeKey);
+								partialUpdate, nestedScopeKey);
 						}
 					}
 					else if (LazyReferencingThreadLocal.isEnabled()) {
@@ -1871,13 +1865,37 @@ public class DefaultObjectEntryManagerImpl
 							null);
 					}
 					else {
-						nestedObjectEntry =
-							objectEntryManager.updateObjectEntry(
-								objectDefinition.getCompanyId(),
-								dtoConverterContext,
-								nestedObjectEntry.getExternalReferenceCode(),
+						com.liferay.object.model.ObjectEntry
+							nestedServiceBuilderObjectEntry = null;
+
+						if (partialUpdate) {
+							nestedServiceBuilderObjectEntry =
+								_objectEntryService.fetchObjectEntry(
+									nestedObjectEntry.
+										getExternalReferenceCode(),
+									groupId,
+									relatedObjectDefinition.
+										getObjectDefinitionId());
+						}
+
+						if (nestedServiceBuilderObjectEntry == null) {
+							nestedObjectEntry =
+								objectEntryManager.updateObjectEntry(
+									objectDefinition.getCompanyId(),
+									dtoConverterContext,
+									nestedObjectEntry.
+										getExternalReferenceCode(),
+									relatedObjectDefinition, nestedObjectEntry,
+									nestedScopeKey);
+						}
+						else {
+							nestedObjectEntry = _updateObjectEntry(
+								0L, dtoConverterContext,
 								relatedObjectDefinition, nestedObjectEntry,
-								nestedScopeKey);
+								nestedServiceBuilderObjectEntry.
+									getObjectEntryId(),
+								true, true);
+						}
 					}
 
 					if (!oneToManyObjectRelationship) {
@@ -1886,8 +1904,10 @@ public class DefaultObjectEntryManagerImpl
 							serviceBuilderObjectEntry.getPrimaryKey(),
 							nestedObjectEntry.getId(),
 							ServiceContextUtil.createServiceContext(
-								objectDefinition.getCompanyId(), groupId,
-								nestedObjectEntry,
+								objectDefinition.getCompanyId(),
+								relatedObjectDefinition.
+									isEnableCategorization(),
+								groupId, nestedObjectEntry,
 								dtoConverterContext.getUserId()));
 					}
 
@@ -1963,7 +1983,7 @@ public class DefaultObjectEntryManagerImpl
 			dtoConverterContext, objectDefinition,
 			_addOrUpdateNestedObjectEntries(
 				dtoConverterContext, objectDefinition, objectEntry,
-				_getObjectRelationships(objectDefinition, objectEntry),
+				_getObjectRelationships(objectDefinition, objectEntry), false,
 				_objectEntryService.addObjectEntry(
 					groupId, objectDefinition.getObjectDefinitionId(),
 					GetterUtil.getLong(objectEntry.getObjectEntryFolderId()),
@@ -1981,9 +2001,7 @@ public class DefaultObjectEntryManagerImpl
 			ObjectDefinition objectDefinition, Map<String, Serializable> values)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				objectDefinition.getCompanyId(), "LPD-69877") ||
-			objectDefinition.isAllowStandaloneObjectEntry() ||
+		if (objectDefinition.isAllowStandaloneObjectEntry() ||
 			!objectDefinition.isRootDescendantNode()) {
 
 			return;
@@ -2114,6 +2132,7 @@ public class DefaultObjectEntryManagerImpl
 
 		return ServiceContextUtil.createServiceContext(
 			objectDefinition.getCompanyId(),
+			objectDefinition.isEnableCategorization(),
 			getGroupId(objectDefinition, scopeKey),
 			dtoConverterContext.getLocale(), modelPermissions, objectEntry,
 			objectEntryComments, dtoConverterContext.getUserId());
@@ -2146,8 +2165,7 @@ public class DefaultObjectEntryManagerImpl
 			_trashHelper.isTrashEnabled(
 				serviceBuilderObjectEntry.getGroupId()) &&
 			(serviceBuilderObjectEntry.getStatus() !=
-				WorkflowConstants.STATUS_IN_TRASH) &&
-			FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
+				WorkflowConstants.STATUS_IN_TRASH)) {
 
 			_objectEntryService.moveObjectEntryToTrash(
 				serviceBuilderObjectEntry,
@@ -2282,6 +2300,27 @@ public class DefaultObjectEntryManagerImpl
 				}
 			),
 			dtoConverterContext.getUserId());
+	}
+
+	private com.liferay.portal.kernel.repository.model.FileEntry
+			_fetchServiceBuilderFileEntry(
+				FileEntry fileEntry, ObjectDefinition objectDefinition,
+				String scopeKey)
+		throws Exception {
+
+		if (Validator.isNotNull(fileEntry.getExternalReferenceCode())) {
+			return _dlAppService.fetchFileEntryByExternalReferenceCode(
+				fileEntry.getExternalReferenceCode(),
+				_getFileEntryGroupId(
+					_getGroupExternalReferenceCode(fileEntry), objectDefinition,
+					scopeKey));
+		}
+
+		if (fileEntry.getId() != null) {
+			return _dlAppService.fetchFileEntry(fileEntry.getId());
+		}
+
+		return null;
 	}
 
 	private String _getDateString(Date date) {
@@ -2485,10 +2524,9 @@ public class DefaultObjectEntryManagerImpl
 	}
 
 	private String _getObjectEntryFolderExternalReferenceCode(
-		long companyId, long groupId, ObjectDefinition objectDefinition) {
+		long groupId, ObjectDefinition objectDefinition) {
 
-		if (!FeatureFlagManagerUtil.isEnabled(companyId, "LPD-17564") ||
-			(groupId == 0) ||
+		if ((groupId == 0) ||
 			!StringUtil.equals(
 				objectDefinition.getScope(),
 				ObjectDefinitionConstants.SCOPE_DEPOT)) {
@@ -2542,7 +2580,7 @@ public class DefaultObjectEntryManagerImpl
 
 			objectEntryFolderExternalReferenceCode =
 				_getObjectEntryFolderExternalReferenceCode(
-					companyId, groupId, objectDefinition);
+					groupId, objectDefinition);
 
 			if (Validator.isNull(objectEntryFolderExternalReferenceCode)) {
 				return objectEntryFolderId;
@@ -2588,13 +2626,30 @@ public class DefaultObjectEntryManagerImpl
 			actions = HashMapBuilder.create(
 				actions
 			).<String, Map<String, String>>put(
-				"copy",
+				"addToLaunch",
 				() -> {
 					if (!FeatureFlagManagerUtil.isEnabled(
 							serviceBuilderObjectEntry.getCompanyId(),
-							"LPD-17564") ||
-						(!objectEntryVersion.isApproved() &&
-						 !objectEntryVersion.isDraft())) {
+							"LPD-72278") ||
+						!objectEntryVersion.isApproved()) {
+
+						return null;
+					}
+
+					return _addAction(
+						ActionKeys.UPDATE,
+						new String[] {
+							"getByExternalReferenceCodeByVersion",
+							"getScopeScopeKeyByExternalReferenceCodeByVersion"
+						},
+						objectDefinition, serviceBuilderObjectEntry,
+						templateParameterMap, dtoConverterContext.getUriInfo());
+				}
+			).put(
+				"copy",
+				() -> {
+					if (!objectEntryVersion.isApproved() &&
+						!objectEntryVersion.isDraft()) {
 
 						return null;
 					}
@@ -2672,10 +2727,7 @@ public class DefaultObjectEntryManagerImpl
 			).put(
 				"expire",
 				() -> {
-					if (!FeatureFlagManagerUtil.isEnabled(
-							serviceBuilderObjectEntry.getCompanyId(),
-							"LPD-17564") ||
-						objectEntryVersion.isExpired() ||
+					if (objectEntryVersion.isExpired() ||
 						objectEntryVersion.isDraft() ||
 						objectEntryVersion.isPending()) {
 
@@ -2888,7 +2940,7 @@ public class DefaultObjectEntryManagerImpl
 						groupId, objectDefinition.getObjectDefinitionId(),
 						serviceBuilderObjectEntry.getObjectEntryId(),
 						objectRelationship.getObjectRelationshipId(),
-						aggregationTerm, predicate, true, search, start, end)),
+						aggregationTerm, predicate, true, search)),
 			_toObjectEntries(
 				dtoConverterContext,
 				objectRelatedModelsProvider.getRelatedModels(
@@ -2952,9 +3004,7 @@ public class DefaultObjectEntryManagerImpl
 			com.liferay.object.model.ObjectEntry serviceBuilderObjectEntry)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				objectDefinition.getCompanyId(), "LPD-17564") ||
-			!objectDefinition.isEnableObjectEntrySubscription() ||
+		if (!objectDefinition.isEnableObjectEntrySubscription() ||
 			ObjectEntryFolderSubscriptionUtil.isSubscribedToObjectEntryFolder(
 				serviceBuilderObjectEntry.getCompanyId(),
 				serviceBuilderObjectEntry.getGroupId(),
@@ -3135,7 +3185,7 @@ public class DefaultObjectEntryManagerImpl
 		if ((fileEntry == null) ||
 			((fileEntry.getExternalReferenceCode() == null) &&
 			 (fileEntry.getFileBase64() == null) &&
-			 (fileEntry.getFileURL() == null))) {
+			 (fileEntry.getFileURL() == null) && (fileEntry.getId() == null))) {
 
 			return 0;
 		}
@@ -3151,21 +3201,15 @@ public class DefaultObjectEntryManagerImpl
 				"File source " + fileSource + " is not supported");
 		}
 
-		if (Validator.isNotNull(fileEntry.getExternalReferenceCode())) {
-			com.liferay.portal.kernel.repository.model.FileEntry
-				serviceBuilderFileEntry =
-					_dlAppLocalService.fetchFileEntryByExternalReferenceCode(
-						_getFileEntryGroupId(
-							_getGroupExternalReferenceCode(fileEntry),
-							objectDefinition, scopeKey),
-						fileEntry.getExternalReferenceCode());
+		com.liferay.portal.kernel.repository.model.FileEntry
+			serviceBuilderFileEntry = _fetchServiceBuilderFileEntry(
+				fileEntry, objectDefinition, scopeKey);
 
-			if ((serviceBuilderFileEntry != null) &&
-				(objectField.getCompanyId() ==
-					serviceBuilderFileEntry.getCompanyId())) {
+		if ((serviceBuilderFileEntry != null) &&
+			(objectField.getCompanyId() ==
+				serviceBuilderFileEntry.getCompanyId())) {
 
-				return serviceBuilderFileEntry.getFileEntryId();
-			}
+			return serviceBuilderFileEntry.getFileEntryId();
 		}
 
 		byte[] fileContent = {};
@@ -3218,9 +3262,6 @@ public class DefaultObjectEntryManagerImpl
 
 			throw new IllegalArgumentException("File content is empty");
 		}
-
-		com.liferay.portal.kernel.repository.model.FileEntry
-			serviceBuilderFileEntry = null;
 
 		String groupExternalReferenceCode = _getGroupExternalReferenceCode(
 			fileEntry);
@@ -3491,37 +3532,32 @@ public class DefaultObjectEntryManagerImpl
 			actions = HashMapBuilder.create(
 				actions
 			).<String, Map<String, String>>put(
-				"copy",
+				"addToLaunch",
 				() -> {
 					if (!FeatureFlagManagerUtil.isEnabled(
 							serviceBuilderObjectEntry.getCompanyId(),
-							"LPD-17564")) {
+							"LPD-72278") ||
+						!serviceBuilderObjectEntry.isDraft()) {
 
 						return null;
 					}
 
 					return _addAction(
-						ActionKeys.UPDATE,
-						"postObjectEntryByObjectEntryFolderCopy",
+						ActionKeys.UPDATE, "getObjectEntry",
 						serviceBuilderObjectEntry,
 						dtoConverterContext.getUriInfo());
 				}
 			).put(
+				"copy",
+				() -> _addAction(
+					ActionKeys.UPDATE, "postObjectEntryByObjectEntryFolderCopy",
+					serviceBuilderObjectEntry, dtoConverterContext.getUriInfo())
+			).put(
 				"copy-replace",
-				() -> {
-					if (!FeatureFlagManagerUtil.isEnabled(
-							serviceBuilderObjectEntry.getCompanyId(),
-							"LPD-17564")) {
-
-						return null;
-					}
-
-					return _addAction(
-						ActionKeys.UPDATE,
-						"postObjectEntryByObjectEntryFolderCopyReplace",
-						serviceBuilderObjectEntry,
-						dtoConverterContext.getUriInfo());
-				}
+				() -> _addAction(
+					ActionKeys.UPDATE,
+					"postObjectEntryByObjectEntryFolderCopyReplace",
+					serviceBuilderObjectEntry, dtoConverterContext.getUriInfo())
 			).put(
 				"delete",
 				() -> _addAction(
@@ -3530,32 +3566,19 @@ public class DefaultObjectEntryManagerImpl
 					serviceBuilderParentObjectEntry)
 			).put(
 				"duplicate",
-				() -> {
-					if (!FeatureFlagManagerUtil.isEnabled(
-							serviceBuilderObjectEntry.getCompanyId(),
-							"LPD-17564")) {
-
-						return null;
-					}
-
-					return _addAction(
-						ActionKeys.UPDATE,
-						"postObjectEntryByObjectEntryFolderCopy",
-						serviceBuilderObjectEntry,
-						HashMapBuilder.put(
-							"objectEntryFolderId",
-							String.valueOf(
-								serviceBuilderObjectEntry.
-									getObjectEntryFolderId())
-						).build(),
-						dtoConverterContext.getUriInfo());
-				}
+				() -> _addAction(
+					ActionKeys.UPDATE, "postObjectEntryByObjectEntryFolderCopy",
+					serviceBuilderObjectEntry,
+					HashMapBuilder.put(
+						"objectEntryFolderId",
+						String.valueOf(
+							serviceBuilderObjectEntry.getObjectEntryFolderId())
+					).build(),
+					dtoConverterContext.getUriInfo())
 			).put(
 				"expire",
 				() -> {
-					if (!FeatureFlagManagerUtil.isEnabled(
-							objectDefinition.getCompanyId(), "LPD-17564") ||
-						serviceBuilderObjectEntry.isDraft() ||
+					if (serviceBuilderObjectEntry.isDraft() ||
 						serviceBuilderObjectEntry.isExpired() ||
 						serviceBuilderObjectEntry.isPending()) {
 
@@ -3579,59 +3602,28 @@ public class DefaultObjectEntryManagerImpl
 					serviceBuilderParentObjectEntry)
 			).put(
 				"get-by-scope",
-				() -> {
-					if (!FeatureFlagManagerUtil.isEnabled(
-							serviceBuilderObjectEntry.getCompanyId(),
-							"LPD-17564")) {
-
-						return null;
-					}
-
-					return ActionUtil.addAction(
-						ActionKeys.VIEW, ObjectEntryResourceImpl.class,
-						serviceBuilderObjectEntry.getObjectEntryId(),
-						"getScopeScopeKeyPage", null,
-						_objectEntryService.getModelResourcePermission(
-							serviceBuilderObjectEntry.getObjectDefinitionId()),
-						HashMapBuilder.put(
-							"scopeKey",
-							String.valueOf(
-								serviceBuilderObjectEntry.getGroupId())
-						).build(),
-						dtoConverterContext.getUriInfo());
-				}
+				() -> ActionUtil.addAction(
+					ActionKeys.VIEW, ObjectEntryResourceImpl.class,
+					serviceBuilderObjectEntry.getObjectEntryId(),
+					"getScopeScopeKeyPage", null,
+					_objectEntryService.getModelResourcePermission(
+						serviceBuilderObjectEntry.getObjectDefinitionId()),
+					HashMapBuilder.put(
+						"scopeKey",
+						String.valueOf(serviceBuilderObjectEntry.getGroupId())
+					).build(),
+					dtoConverterContext.getUriInfo())
 			).put(
 				"move",
-				() -> {
-					if (!FeatureFlagManagerUtil.isEnabled(
-							serviceBuilderObjectEntry.getCompanyId(),
-							"LPD-17564")) {
-
-						return null;
-					}
-
-					return _addAction(
-						ActionKeys.UPDATE,
-						"postObjectEntryByObjectEntryFolderMove",
-						serviceBuilderObjectEntry,
-						dtoConverterContext.getUriInfo());
-				}
+				() -> _addAction(
+					ActionKeys.UPDATE, "postObjectEntryByObjectEntryFolderMove",
+					serviceBuilderObjectEntry, dtoConverterContext.getUriInfo())
 			).put(
 				"move-replace",
-				() -> {
-					if (!FeatureFlagManagerUtil.isEnabled(
-							serviceBuilderObjectEntry.getCompanyId(),
-							"LPD-17564")) {
-
-						return null;
-					}
-
-					return _addAction(
-						ActionKeys.UPDATE,
-						"postObjectEntryByObjectEntryFolderMoveReplace",
-						serviceBuilderObjectEntry,
-						dtoConverterContext.getUriInfo());
-				}
+				() -> _addAction(
+					ActionKeys.UPDATE,
+					"postObjectEntryByObjectEntryFolderMoveReplace",
+					serviceBuilderObjectEntry, dtoConverterContext.getUriInfo())
 			).put(
 				"permissions",
 				_addAction(
@@ -3645,10 +3637,7 @@ public class DefaultObjectEntryManagerImpl
 			).put(
 				"restore",
 				() -> {
-					if (!FeatureFlagManagerUtil.isEnabled(
-							objectDefinition.getCompanyId(), "LPD-17564") ||
-						!serviceBuilderObjectEntry.isInTrash()) {
-
+					if (!serviceBuilderObjectEntry.isInTrash()) {
 						return null;
 					}
 
@@ -3664,12 +3653,6 @@ public class DefaultObjectEntryManagerImpl
 			).put(
 				"share",
 				() -> {
-					if (!FeatureFlagManagerUtil.isEnabled(
-							objectDefinition.getCompanyId(), "LPD-17564")) {
-
-						return null;
-					}
-
 					Group group = groupLocalService.fetchGroup(
 						serviceBuilderObjectEntry.getGroupId());
 
@@ -3803,6 +3786,24 @@ public class DefaultObjectEntryManagerImpl
 					properties);
 			}
 
+			if (objectField.isLocalized()) {
+				ObjectFieldBusinessType objectFieldBusinessType =
+					_objectFieldBusinessTypeRegistry.getObjectFieldBusinessType(
+						objectField.getBusinessType());
+
+				Map<String, Object> localizedValues =
+					objectFieldBusinessType.getLocalizedValues(
+						objectField, serviceContext.getUserId(), properties);
+
+				if (localizedValues != null) {
+					values.put(
+						objectField.getI18nObjectFieldName(),
+						(Serializable)localizedValues);
+
+					continue;
+				}
+			}
+
 			Object value = ObjectEntryValuesUtil.getValue(
 				getGroupId(objectDefinition, scopeKey),
 				_objectDefinitionLocalService, objectEntryLocalService,
@@ -3822,20 +3823,7 @@ public class DefaultObjectEntryManagerImpl
 			}
 
 			if (objectField.isLocalized()) {
-				ObjectFieldBusinessType objectFieldBusinessType =
-					_objectFieldBusinessTypeRegistry.getObjectFieldBusinessType(
-						objectField.getBusinessType());
-
-				Map<String, Object> localizedValues =
-					objectFieldBusinessType.getLocalizedValues(
-						objectField, serviceContext.getUserId(), properties);
-
-				if (localizedValues != null) {
-					values.put(
-						objectField.getI18nObjectFieldName(),
-						(Serializable)localizedValues);
-				}
-				else if (value != null) {
+				if (value != null) {
 					String defaultLanguageId =
 						objectEntry.getDefaultLanguageId();
 
@@ -3979,6 +3967,15 @@ public class DefaultObjectEntryManagerImpl
 			objectDefinition, objectEntry, scopeKey, serviceContext);
 
 		if (partialUpdate) {
+			Set<Map.Entry<String, Serializable>> entries = values.entrySet();
+
+			Map<String, Object> properties = objectEntry.getProperties();
+
+			entries.removeIf(
+				entry ->
+					(entry.getValue() == null) &&
+					!properties.containsKey(entry.getKey()));
+
 			serviceBuilderObjectEntry =
 				_objectEntryService.partialUpdateObjectEntry(
 					objectEntryId,
@@ -4003,8 +4000,59 @@ public class DefaultObjectEntryManagerImpl
 			_addOrUpdateNestedObjectEntries(
 				dtoConverterContext, objectDefinition, objectEntry,
 				_getObjectRelationships(objectDefinition, objectEntry),
+				partialUpdate,
 				_updateStatus(
 					dtoConverterContext, objectEntry, serviceBuilderObjectEntry,
+					serviceContext),
+				scopeKey),
+			null);
+	}
+
+	private ObjectEntry _updateObjectEntry(
+			long companyId, DTOConverterContext dtoConverterContext,
+			String externalReferenceCode, ObjectDefinition objectDefinition,
+			ObjectEntry objectEntry, boolean partialUpdateNestedObjectEntries,
+			String scopeKey)
+		throws Exception {
+
+		long groupId = getGroupId(objectDefinition, scopeKey);
+
+		com.liferay.object.model.ObjectEntry serviceBuilderObjectEntry =
+			objectEntryLocalService.fetchObjectEntry(
+				externalReferenceCode, groupId,
+				objectDefinition.getObjectDefinitionId());
+
+		if (serviceBuilderObjectEntry != null) {
+			_checkObjectEntryStatus(serviceBuilderObjectEntry);
+		}
+
+		validateReadOnlyObjectFields(
+			externalReferenceCode, groupId, objectDefinition, objectEntry);
+
+		ServiceContext serviceContext = _createServiceContext(
+			dtoConverterContext, objectDefinition, objectEntry, scopeKey);
+
+		serviceContext.setCompanyId(companyId);
+
+		return _toObjectEntry(
+			dtoConverterContext, objectDefinition,
+			_addOrUpdateNestedObjectEntries(
+				dtoConverterContext, objectDefinition, objectEntry,
+				_getObjectRelationships(objectDefinition, objectEntry),
+				partialUpdateNestedObjectEntries,
+				_updateStatus(
+					dtoConverterContext, objectEntry,
+					_objectEntryService.addOrUpdateObjectEntry(
+						externalReferenceCode, groupId,
+						objectDefinition.getObjectDefinitionId(),
+						_getObjectEntryFolderId(
+							objectDefinition.getCompanyId(), groupId,
+							objectEntry, objectDefinition, serviceContext),
+						_toObjectValues(
+							0L, dtoConverterContext.getLocale(),
+							objectDefinition, objectEntry, scopeKey,
+							serviceContext),
+						serviceContext),
 					serviceContext),
 				scopeKey),
 			null);
@@ -4013,7 +4061,7 @@ public class DefaultObjectEntryManagerImpl
 	private ObjectEntry _updateRelatedObjectEntry(
 			DTOConverterContext dtoConverterContext, ObjectEntry objectEntry,
 			long objectEntryId, ObjectRelationship objectRelationship,
-			long parentObjectEntryId)
+			long parentObjectEntryId, boolean partialUpdate)
 		throws Exception {
 
 		Map<String, Object> properties = objectEntry.getProperties();
@@ -4043,7 +4091,38 @@ public class DefaultObjectEntryManagerImpl
 			objectRelationship.getObjectFieldId2(), dtoConverterContext,
 			_objectDefinitionLocalService.getObjectDefinition(
 				objectRelationship.getObjectDefinitionId2()),
-			objectEntry, objectEntryId, false, true);
+			objectEntry, objectEntryId, partialUpdate, true);
+	}
+
+	private ObjectEntry _updateRelatedObjectEntry(
+			DTOConverterContext dtoConverterContext,
+			String externalReferenceCode, ObjectEntry objectEntry,
+			ObjectRelationship objectRelationship,
+			String parentExternalReferenceCode, boolean partialUpdate,
+			String scopeKey)
+		throws Exception {
+
+		com.liferay.object.model.ObjectEntry serviceBuilderObjectEntry =
+			_objectEntryService.getObjectEntry(
+				externalReferenceCode,
+				getGroupId(
+					_objectDefinitionLocalService.getObjectDefinition(
+						objectRelationship.getObjectDefinitionId2()),
+					scopeKey),
+				objectRelationship.getObjectDefinitionId2());
+		com.liferay.object.model.ObjectEntry parentServiceBuilderObjectEntry =
+			_objectEntryService.getObjectEntry(
+				parentExternalReferenceCode,
+				getGroupId(
+					_objectDefinitionLocalService.getObjectDefinition(
+						objectRelationship.getObjectDefinitionId1()),
+					scopeKey),
+				objectRelationship.getObjectDefinitionId1());
+
+		return _updateRelatedObjectEntry(
+			dtoConverterContext, objectEntry,
+			serviceBuilderObjectEntry.getObjectEntryId(), objectRelationship,
+			parentServiceBuilderObjectEntry.getObjectEntryId(), partialUpdate);
 	}
 
 	private com.liferay.object.model.ObjectEntry _updateStatus(
@@ -4087,7 +4166,7 @@ public class DefaultObjectEntryManagerImpl
 	private DepotEntryLocalService _depotEntryLocalService;
 
 	@Reference
-	private DLAppLocalService _dlAppLocalService;
+	private DLAppService _dlAppService;
 
 	@Reference
 	private DTOConverterRegistry _dtoConverterRegistry;

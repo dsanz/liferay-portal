@@ -13,8 +13,6 @@ import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.NoSuchUserGroupRoleException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.UserGroupRole;
 import com.liferay.portal.kernel.model.UserGroupRoleTable;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
@@ -850,6 +848,7 @@ public class UserGroupRolePersistenceImpl
 					new String[] {"userId"}, false),
 				_SQL_SELECT_USERGROUPROLE_WHERE, _SQL_COUNT_USERGROUPROLE_WHERE,
 				UserGroupRoleModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"userGroupRole.", "userId", FinderColumn.Type.LONG, "=",
 					true, true, UserGroupRole::getUserId));
@@ -875,6 +874,7 @@ public class UserGroupRolePersistenceImpl
 					new String[] {"groupId"}, false),
 				_SQL_SELECT_USERGROUPROLE_WHERE, _SQL_COUNT_USERGROUPROLE_WHERE,
 				UserGroupRoleModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"userGroupRole.", "groupId", FinderColumn.Type.LONG, "=",
 					true, true, UserGroupRole::getGroupId));
@@ -900,6 +900,7 @@ public class UserGroupRolePersistenceImpl
 					new String[] {"roleId"}, false),
 				_SQL_SELECT_USERGROUPROLE_WHERE, _SQL_COUNT_USERGROUPROLE_WHERE,
 				UserGroupRoleModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"userGroupRole.", "roleId", FinderColumn.Type.LONG, "=",
 					true, true, UserGroupRole::getRoleId));
@@ -923,7 +924,8 @@ public class UserGroupRolePersistenceImpl
 				new String[] {Long.class.getName(), Long.class.getName()},
 				new String[] {"userId", "groupId"}, false),
 			_SQL_SELECT_USERGROUPROLE_WHERE, _SQL_COUNT_USERGROUPROLE_WHERE,
-			UserGroupRoleModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			UserGroupRoleModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"userGroupRole.", "userId", FinderColumn.Type.LONG, "=", true,
 				true, UserGroupRole::getUserId),
@@ -950,7 +952,8 @@ public class UserGroupRolePersistenceImpl
 				new String[] {Long.class.getName(), Long.class.getName()},
 				new String[] {"groupId", "roleId"}, false),
 			_SQL_SELECT_USERGROUPROLE_WHERE, _SQL_COUNT_USERGROUPROLE_WHERE,
-			UserGroupRoleModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			UserGroupRoleModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"userGroupRole.", "groupId", FinderColumn.Type.LONG, "=", true,
 				true, UserGroupRole::getGroupId),
@@ -1001,16 +1004,10 @@ public class UserGroupRolePersistenceImpl
 	private static final String _SQL_COUNT_USERGROUPROLE_WHERE =
 		"SELECT COUNT(userGroupRole) FROM UserGroupRole userGroupRole WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No UserGroupRole exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		UserGroupRolePersistenceImpl.class);
-
 	@Override
 	protected FinderCache getFinderCache() {
 		return FinderCacheUtil.getFinderCache();
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1905152416
+// LIFERAY-SERVICE-BUILDER-HASH:2071661412

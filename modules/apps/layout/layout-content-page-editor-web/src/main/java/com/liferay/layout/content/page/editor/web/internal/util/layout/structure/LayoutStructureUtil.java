@@ -23,6 +23,7 @@ import com.liferay.layout.util.structure.LayoutStructureItem;
 import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.util.List;
@@ -74,6 +75,19 @@ public class LayoutStructureUtil {
 		}
 	}
 
+	public static FragmentEntry getFragmentEntry(
+		FragmentEntryLink fragmentEntryLink) {
+
+		FragmentEntry fragmentEntry = fragmentEntryLink.fetchFragmentEntry();
+
+		if (fragmentEntry == null) {
+			return FragmentCollectionContributorRegistryUtil.getFragmentEntry(
+				fragmentEntryLink.getRendererKey());
+		}
+
+		return fragmentEntry;
+	}
+
 	public static LayoutStructure getLayoutStructure(
 			long groupId, long plid, long segmentsExperienceId)
 		throws PortalException {
@@ -99,7 +113,7 @@ public class LayoutStructureUtil {
 	}
 
 	public static boolean hasMissingFragmentEntryFragmentEntryLinks(
-		String itemId, LayoutStructure layoutStructure) {
+		long[] groupIds, String itemId, LayoutStructure layoutStructure) {
 
 		LayoutStructureItem layoutStructureItem =
 			layoutStructure.getLayoutStructureItem(itemId);
@@ -109,7 +123,8 @@ public class LayoutStructureUtil {
 		}
 
 		return _hasMissingFragmentEntryFragmentEntryLinks(
-			layoutStructureItem.getChildrenItemIds(), layoutStructure);
+			groupIds, layoutStructureItem.getChildrenItemIds(),
+			layoutStructure);
 	}
 
 	public static JSONObject updateLayoutPageTemplateData(
@@ -131,28 +146,16 @@ public class LayoutStructureUtil {
 		return dataJSONObject;
 	}
 
-	private static FragmentEntry _getFragmentEntry(
-		FragmentEntryLink fragmentEntryLink) {
-
-		FragmentEntry fragmentEntry = fragmentEntryLink.fetchFragmentEntry();
-
-		if (fragmentEntry == null) {
-			return FragmentCollectionContributorRegistryUtil.getFragmentEntry(
-				fragmentEntryLink.getRendererKey());
-		}
-
-		return fragmentEntry;
-	}
-
 	private static boolean _hasMissingFragmentEntryFragmentEntryLinks(
-		List<String> itemIds, LayoutStructure layoutStructure) {
+		long[] groupIds, List<String> itemIds,
+		LayoutStructure layoutStructure) {
 
 		for (String itemId : itemIds) {
 			LayoutStructureItem layoutStructureItem =
 				layoutStructure.getLayoutStructureItem(itemId);
 
 			if (_hasMissingFragmentEntryFragmentEntryLinks(
-					layoutStructureItem.getChildrenItemIds(),
+					groupIds, layoutStructureItem.getChildrenItemIds(),
 					layoutStructure)) {
 
 				return true;
@@ -172,9 +175,17 @@ public class LayoutStructureUtil {
 				FragmentEntryLinkLocalServiceUtil.fetchFragmentEntryLink(
 					fragmentStyledLayoutStructureItem.getFragmentEntryLinkId());
 
-			FragmentEntry fragmentEntry = _getFragmentEntry(fragmentEntryLink);
+			if (fragmentEntryLink == null) {
+				return true;
+			}
+
+			FragmentEntry fragmentEntry = getFragmentEntry(fragmentEntryLink);
 
 			if (fragmentEntry != null) {
+				if (!ArrayUtil.contains(groupIds, fragmentEntry.getGroupId())) {
+					return true;
+				}
+
 				continue;
 			}
 

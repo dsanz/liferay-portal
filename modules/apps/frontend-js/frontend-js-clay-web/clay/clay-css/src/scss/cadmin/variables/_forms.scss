@@ -1,6 +1,9 @@
-$cadmin-input-bg: $cadmin-gray-200 !default;
+$cadmin-input-bg: var(--cadmin-input-bg, $cadmin-gray-200) !default;
 
-$cadmin-input-border-color: $cadmin-gray-300 !default;
+$cadmin-input-border-color: var(
+	--cadmin-input-border-color,
+	$cadmin-gray-300
+) !default;
 $cadmin-input-border-style: solid !default;
 $cadmin-input-border-width: 1px !default;
 
@@ -9,9 +12,12 @@ $cadmin-input-border-left-width: $cadmin-input-border-width !default;
 $cadmin-input-border-right-width: $cadmin-input-border-width !default;
 $cadmin-input-border-top-width: $cadmin-input-border-width !default;
 
-$cadmin-input-border-radius: $cadmin-border-radius !default;
-$cadmin-input-box-shadow: null !default;
-$cadmin-input-color: $cadmin-gray-900 !default;
+$cadmin-input-border-radius: var(
+	--cadmin-input-border-radius,
+	$cadmin-border-radius
+) !default;
+$cadmin-input-box-shadow: var(--cadmin-input-box-shadow) !default;
+$cadmin-input-color: var(--cadmin-input-color, $cadmin-gray-900) !default;
 $cadmin-input-font-family: $cadmin-input-btn-font-family !default;
 $cadmin-input-font-size: $cadmin-input-btn-font-size !default;
 $cadmin-input-font-weight: $cadmin-font-weight-base !default;
@@ -28,21 +34,43 @@ $cadmin-input-height-mobile: null !default;
 
 // Input Focus
 
-$cadmin-input-focus-bg: $cadmin-primary-l3 !default;
-$cadmin-input-focus-border-color: unquote(
-	'hsl(from #{$cadmin-component-active-bg} h s calc(l + 22.9))'
+$cadmin-input-focus-bg: var(
+	--cadmin-input-focus-bg,
+	$cadmin-primary-l3
 ) !default;
-$cadmin-input-focus-box-shadow: $cadmin-component-focus-box-shadow !default;
-$cadmin-input-focus-color: $cadmin-input-color !default;
+$cadmin-input-focus-border-color: var(
+	--cadmin-input-focus-border-color,
+	unquote('hsl(from #{$cadmin-component-active-bg} h s calc(l + 22.9))')
+) !default;
+$cadmin-input-focus-box-shadow: var(
+	--cadmin-input-focus-box-shadow,
+	$cadmin-component-focus-box-shadow
+) !default;
+$cadmin-input-focus-color: var(
+	--cadmin-input-focus-color,
+	$cadmin-input-color
+) !default;
 $cadmin-input-focus-width: $cadmin-input-btn-focus-width !default;
 
 // Input Disabled
 
-$cadmin-input-disabled-bg: $cadmin-input-bg !default;
-$cadmin-input-disabled-border-color: $cadmin-input-bg !default;
-$cadmin-input-disabled-color: $cadmin-gray-500 !default;
+$cadmin-input-disabled-bg: var(
+	--cadmin-input-disabled-bg,
+	$cadmin-input-bg
+) !default;
+$cadmin-input-disabled-border-color: var(
+	--cadmin-input-disabled-border-color,
+	$cadmin-input-bg
+) !default;
+$cadmin-input-disabled-color: var(
+	--cadmin-input-disabled-color,
+	$cadmin-gray-500
+) !default;
 $cadmin-input-disabled-cursor: $cadmin-disabled-cursor !default;
-$cadmin-input-disabled-opacity: 1 !default;
+$cadmin-input-disabled-opacity: var(
+	--cadmin-input-disabled-opacity,
+	1
+) !default;
 
 // Input Placeholder
 
@@ -56,14 +84,14 @@ $cadmin-input: () !default;
 $cadmin-input: map-deep-merge(
 	(
 		background-color: $cadmin-input-bg,
-		border-color: $cadmin-input-border-color,
-		border-style: $cadmin-input-border-style,
-		border-width: $cadmin-input-border-width,
 		border-bottom-width: $cadmin-input-border-bottom-width,
+		border-color: $cadmin-input-border-color,
 		border-left-width: $cadmin-input-border-left-width,
-		border-right-width: $cadmin-input-border-right-width,
-		border-top-width: $cadmin-input-border-top-width,
 		border-radius: clay-enable-rounded($cadmin-input-border-radius),
+		border-right-width: $cadmin-input-border-right-width,
+		border-style: $cadmin-input-border-style,
+		border-top-width: $cadmin-input-border-top-width,
+		border-width: $cadmin-input-border-width,
 		box-shadow: clay-enable-shadows([$cadmin-input-box-shadow]),
 		color: $cadmin-input-color,
 		display: block,
@@ -331,15 +359,21 @@ $cadmin-form-control-label-text: map-merge(
 
 // @deprecated after v2.18.0 use the Sass map `$cadmin-input-readonly` instead
 
-$cadmin-input-readonly-bg: $cadmin-white !default;
+$cadmin-input-readonly-bg: var(
+	--cadmin-input-readonly-bg,
+	$cadmin-white
+) !default;
 
 // @deprecated after v2.18.0 use the Sass map `$cadmin-input-readonly` instead
 
-$cadmin-input-readonly-border-color: $cadmin-input-border-color !default;
+$cadmin-input-readonly-border-color: var(
+	--cadmin-input-readonly-border-color,
+	$cadmin-input-border-color
+) !default;
 
 // @deprecated after v2.18.0 use the Sass map `$cadmin-input-readonly` instead
 
-$cadmin-input-readonly-color: null !default;
+$cadmin-input-readonly-color: var(--cadmin-input-readonly-color) !default;
 
 // @deprecated after v2.18.0 use the Sass map `$cadmin-input-readonly` instead
 
@@ -1287,6 +1321,7 @@ $cadmin-has-success: map-deep-merge(
 					border-color: $cadmin-input-success-border-color,
 					box-shadow: $cadmin-input-success-box-shadow,
 				),
+
 				focus: (
 					box-shadow: none,
 
@@ -1704,8 +1739,8 @@ $cadmin-input-group-item: map-deep-merge(
 		dropdown: (
 			display: flex,
 			flex-wrap: wrap,
-			word-wrap: break-word,
 			width: 100%,
+			word-wrap: break-word,
 		),
 	),
 	$cadmin-input-group-item
@@ -2178,4 +2213,100 @@ $cadmin-input-group-stacked-sm-down: map-deep-merge(
 		shrink-margin-right: 8px,
 	),
 	$cadmin-input-group-stacked-sm-down
+);
+
+$cadmin-input-group-ai: () !default;
+$cadmin-input-group-ai: map-deep-merge(
+	(
+		'.input-group-item-shrink': (
+			padding-top: 0.25rem,
+		),
+
+		'.form-control': (
+			padding: 0 0 0 $cadmin-input-padding-x,
+
+			'&:focus-within:has(.form-control-inset:focus)': (
+				border-color: $cadmin-purple-l2,
+				box-shadow:
+					unquote('0 0 10px hsl(from #{$cadmin-purple} h s l / 0.15)'),
+			),
+		),
+
+		'&[data-ai-state="focused"]': (
+			'.form-control': (
+				border-color: $cadmin-purple-l2,
+				box-shadow:
+					unquote('0 0 10px hsl(from #{$cadmin-purple} h s l / 0.15)'),
+			),
+		),
+
+		'&[data-ai-state="working"]': (
+			'.form-control': (
+				background-color: $cadmin-purple-l5,
+				border-color: $cadmin-purple-l1,
+				box-shadow:
+					unquote('0 0 10px hsl(from #{$cadmin-purple} h s l / 0.15)'),
+				color: $cadmin-purple-d2,
+			),
+		),
+
+		'&[data-ai-state="result"], &[data-ai-state="result-readonly"]': (
+			'.form-control': (
+				background-color: $cadmin-gray-100,
+				border-color: $cadmin-purple-l1,
+				box-shadow: none,
+				color: $cadmin-purple,
+			),
+		),
+
+		'.form-control-inset': (
+			color: inherit,
+			height: 2.375rem,
+			margin: 0,
+			min-height: 0,
+			padding: $cadmin-input-padding-y $cadmin-input-padding-x
+				$cadmin-input-padding-y 0,
+			resize: none,
+			width: 100%,
+
+			'&[aria-hidden="true"]::placeholder': (
+				background-image:
+					linear-gradient(
+						to right,
+						$cadmin-primary,
+						$cadmin-purple-d2
+					),
+				border-radius: $cadmin-input-border-radius,
+				color: transparent,
+				opacity: 0.25,
+			),
+		),
+
+		'.autofit-row': (
+			margin-left: -0.25rem,
+			margin-right: -0.25rem,
+
+			'.autofit-col': (
+				padding: 0.75rem 0.25rem,
+			),
+
+			'.autofit-col-expand': (
+				padding-bottom: 0,
+				padding-top: 0,
+			),
+
+			'.lexicon-icon': (
+				margin-top: 0,
+			),
+		),
+	),
+	$cadmin-input-group-ai
+);
+
+$cadmin-input-group-palette: () !default;
+$cadmin-input-group-palette: map-deep-merge(
+	(
+		'.input-group-ai': $cadmin-input-group-ai,
+	),
+	$cadmin-input-group-palette
 );

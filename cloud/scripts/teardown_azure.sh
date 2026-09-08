@@ -1,0 +1,181 @@
+#!/usr/bin/env bash
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+source "$(dirname "${BASH_SOURCE[0]}")/_azure_common.sh"
+
+function main {
+	if [ ${#} -eq 0 ]
+	then
+		echo "Usage: ${0} <configuration-json-file>" >&2
+		echo "" >&2
+		echo "See cloud/scripts/config.json.example_azure for a sample." >&2
+
+		exit 1
+	fi
+
+	check_utils az helm jq terraform
+
+	validate_config_json "${1}"
+
+	echo "This will destroy the AKS cluster and the Liferay platform."
+	echo ""
+
+	local reply
+
+	read -p "Type \"yes\" to continue: " -r reply
+
+	if [[ ${reply} != yes ]]
+	then
+		echo "The teardown was canceled."
+
+		exit 1
+	fi
+
+	generate_tfvars "${1}" "aks"
+
+	generate_tfvars "${1}" "platform"
+
+	az_login "${1}"
+
+	local terraform_args=()
+
+	while IFS= read -r terraform_arg
+	do
+		terraform_args+=("${terraform_arg}")
+	done < <(get_terraform_args "${1}")
+
+	local has_remote_tfstate=false
+
+	if jq --exit-status '.tfstate | objects' "${1}" &> /dev/null
+	then
+		has_remote_tfstate=true
+	fi
+
+	if [[ ${has_remote_tfstate} == true ]]
+	then
+		local container_name
+		local deployment_name
+		local region
+		local resource_group_name
+		local storage_account_name
+
+		container_name="$(jq --raw-output '.tfstate.container_name' "${1}")"
+		deployment_name="$(jq --raw-output '.deployment_name' "${1}")"
+		region="$(jq --raw-output '.region' "${1}")"
+		resource_group_name="$(jq --raw-output '.tfstate.resource_group_name' "${1}")"
+		storage_account_name="$(jq --raw-output '.tfstate.storage_account_name' "${1}")"
+
+		generate_remote_backend_overrides "${container_name}" "${deployment_name}" "${region}" "${resource_group_name}" "${storage_account_name}"
+	else
+		generate_local_backend_overrides
+	fi
+
+	if connect_to_cluster
+	then
+		_uninstall_liferay_platform_chart
+	else
+		echo "Skipping the Liferay platform root application uninstall."
+	fi
+
+	_destroy_azure_platform "${terraform_args[@]}"
+
+	_destroy_azure_aks "${terraform_args[@]}"
+
+	if [[ ${has_remote_tfstate} == true ]]
+	then
+		_delete_tfstate_storage "${resource_group_name}" "${storage_account_name}"
+	fi
+}
+
+function _delete_tfstate_storage {
+	local resource_group_name="${1}"
+	local storage_account_name="${2}"
+
+	if ! az storage account show --name "${storage_account_name}" --resource-group "${resource_group_name}" &> /dev/null
+	then
+		echo "Storage account ${storage_account_name} does not exist. Skipping the deletion process."
+
+		return
+	fi
+
+	local reply
+
+	read -p "Type \"yes\" to delete the Terraform state storage account ${storage_account_name}: " -r reply
+
+	if [[ ${reply} != yes ]]
+	then
+		echo "Storage account ${storage_account_name} was kept."
+
+		return
+	fi
+
+	echo "Deleting storage account ${storage_account_name}."
+
+	az storage account delete \
+		--name "${storage_account_name}" \
+		--resource-group "${resource_group_name}" \
+		--yes
+
+	echo "Storage account ${storage_account_name} was deleted successfully."
+
+	if [[ $(az resource list --output tsv --query "length(@)" --resource-group "${resource_group_name}") -eq 0 ]]
+	then
+		echo "Deleting resource group ${resource_group_name}."
+
+		az group delete --name "${resource_group_name}" --yes
+
+		echo "Resource group ${resource_group_name} was deleted successfully."
+	else
+		echo "Resource group ${resource_group_name} was kept because it still holds other resources."
+	fi
+}
+
+function _destroy_azure_aks {
+	push_directory "${ROOT_CLOUD_DIR}/terraform/azure/aks"
+
+	echo "Destroying the Azure AKS cluster."
+
+	terraform init
+
+	terraform destroy -input=false "${@}"
+
+	echo "Azure AKS cluster teardown complete."
+
+	pop_directory
+}
+
+function _destroy_azure_platform {
+	push_directory "${ROOT_CLOUD_DIR}/terraform/azure/platform"
+
+	echo "Destroying the Liferay platform."
+
+	terraform init
+
+	terraform destroy -input=false "${@}"
+
+	echo "Liferay platform teardown complete."
+
+	pop_directory
+}
+
+function _uninstall_liferay_platform_chart {
+	echo "Uninstalling the Liferay platform root application."
+
+	if ! helm \
+		uninstall \
+		liferay-platform \
+		--ignore-not-found \
+		--namespace argocd-system \
+		--timeout 30m0s \
+		--wait
+	then
+		echo "The liferay-platform Helm release was not uninstalled after 30 minutes." >&2
+
+		exit 1
+	fi
+}
+
+main "${@}"

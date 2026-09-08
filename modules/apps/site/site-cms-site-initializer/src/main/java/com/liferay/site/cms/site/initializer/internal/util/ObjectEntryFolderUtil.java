@@ -21,7 +21,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Repository;
-import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
 import com.liferay.portal.kernel.service.RepositoryLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -64,14 +63,12 @@ public class ObjectEntryFolderUtil {
 					setForceDeleteSystemObjectEntryFolderWithSafeCloseable(
 						true)) {
 
-			ObjectEntryFolderLocalServiceUtil.
-				deleteObjectEntryFolderByExternalReferenceCode(
-					ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS,
-					depotEntry.getGroupId(), depotEntry.getCompanyId());
-			ObjectEntryFolderLocalServiceUtil.
-				deleteObjectEntryFolderByExternalReferenceCode(
-					ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES,
-					depotEntry.getGroupId(), depotEntry.getCompanyId());
+			_deleteObjectEntryFolder(
+				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENTS,
+				depotEntry);
+			_deleteObjectEntryFolder(
+				ObjectEntryFolderConstants.EXTERNAL_REFERENCE_CODE_FILES,
+				depotEntry);
 		}
 	}
 
@@ -128,7 +125,7 @@ public class ObjectEntryFolderUtil {
 		attachmentManager.getDLFolder(
 			objectDefinition.getCompanyId(), group.getGroupId(),
 			objectDefinition.getPortletId(), serviceContext,
-			PrincipalThreadLocal.getUserId());
+			group.getCreatorUserId());
 
 		try (SafeCloseable safeCloseable =
 				DLAppHelperThreadLocal.setEnabledWithSafeCloseable(false)) {
@@ -142,13 +139,29 @@ public class ObjectEntryFolderUtil {
 			}
 
 			RepositoryLocalServiceUtil.addRepository(
-				null, PrincipalThreadLocal.getUserId(), group.getGroupId(),
+				null, group.getCreatorUserId(), group.getGroupId(),
 				PortalUtil.getClassNameId(
 					TemporaryFileEntryRepository.class.getName()),
 				DLFolderConstants.DEFAULT_PARENT_FOLDER_ID,
 				TempFileEntryUtil.class.getName(), StringPool.BLANK,
 				TempFileEntryUtil.class.getName(), new UnicodeProperties(),
 				true, serviceContext);
+		}
+	}
+
+	private static void _deleteObjectEntryFolder(
+			String externalReferenceCode, DepotEntry depotEntry)
+		throws PortalException {
+
+		ObjectEntryFolder objectEntryFolder =
+			ObjectEntryFolderLocalServiceUtil.
+				fetchObjectEntryFolderByExternalReferenceCode(
+					externalReferenceCode, depotEntry.getGroupId(),
+					depotEntry.getCompanyId());
+
+		if (objectEntryFolder != null) {
+			ObjectEntryFolderLocalServiceUtil.deleteObjectEntryFolder(
+				objectEntryFolder);
 		}
 	}
 

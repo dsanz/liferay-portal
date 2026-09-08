@@ -29,6 +29,7 @@ import {
 	FilterImplementationArgs,
 	IOdataStringArgs,
 	ISelectedItemsLabelArgs,
+	ISelectedItemsPreview,
 } from '../Filter';
 import {EEntityFieldType} from '../utils/types';
 
@@ -43,6 +44,8 @@ export interface SelectionFilterImplementationArgs
 	items: TItem[];
 	multiple: boolean;
 	onClose?: () => void;
+	preloadedData?: SelectedData;
+	showExcludeToggle?: boolean;
 }
 
 interface SelectedData {
@@ -73,6 +76,7 @@ interface SearchOptions {
 
 const DEFAULT_DEBOUNCE_DELAY = 300;
 const DEFAULT_PAGE_SIZE = 10;
+const PREVIEW_ITEMS_COUNT = 3;
 
 function fetchData(
 	apiURL: string,
@@ -104,6 +108,21 @@ function getSelectedItemsLabel({
 		(exclude ? `(${Liferay.Language.get('exclude')}) ` : '') +
 		selectedItems.map((item) => item.label).join(', ')
 	);
+}
+
+function getSelectedItemsPreview({
+	selectedData,
+}: ISelectedItemsLabelArgs): ISelectedItemsPreview {
+	const {exclude, selectedItems} = selectedData as unknown as SelectedData;
+
+	const visibleItems = selectedItems.slice(0, PREVIEW_ITEMS_COUNT);
+
+	return {
+		hiddenItemsCount: selectedItems.length - visibleItems.length,
+		label:
+			(exclude ? `(${Liferay.Language.get('exclude')}) ` : '') +
+			visibleItems.map((item) => item.label).join(', '),
+	};
 }
 
 function getOdataString({
@@ -196,8 +215,10 @@ function SelectionFilter({
 	items: initialItems,
 	multiple,
 	onClose,
+	preloadedData,
 	selectedData,
 	setFilter,
+	showExcludeToggle = true,
 }: SelectionFilterImplementationArgs) {
 	const [searchOptions, setSearchOptions] = useState({
 		currentPage: 1,
@@ -217,14 +238,18 @@ function SelectionFilter({
 	const [scrollingAreaRendered, setScrollingAreaRendered] = useState(false);
 	const infiniteLoaderRef = useRef(null);
 	const [infiniteLoaderRendered, setInfiniteLoaderRendered] = useState(false);
-	const [exclude, setExclude] = useState(!!selectedData?.exclude);
+	const configuredExclude = !!preloadedData?.exclude;
+
+	const [exclude, setExclude] = useState(
+		selectedData ? !!selectedData.exclude : configuredExclude
+	);
 
 	const loaderVisible = !localItems.length && items?.length < total;
 
 	useEffect(() => {
-		setExclude(!!selectedData?.exclude);
+		setExclude(selectedData ? !!selectedData.exclude : configuredExclude);
 		setSelectedItems(selectedData?.selectedItems || []);
-	}, [selectedData]);
+	}, [configuredExclude, selectedData]);
 
 	const handleAutocompleteQuery: (value: string) => void = debounce(
 
@@ -389,23 +414,25 @@ function SelectionFilter({
 	return (
 		<>
 			{autocompleteEnabled && (
-				<>
-					<ClayDropDown.Caption className="pb-0">
-						<ClayAutocomplete>
-							<ClayAutocomplete.Input
-								onChange={(
-									event: ChangeEvent<HTMLInputElement>
-								) =>
-									handleAutocompleteQuery(event.target.value)
-								}
-								placeholder={inputPlaceholder}
-							/>
+				<ClayDropDown.Caption className="filter-header">
+					<ClayAutocomplete>
+						<ClayAutocomplete.Input
+							onChange={(event: ChangeEvent<HTMLInputElement>) =>
+								handleAutocompleteQuery(event.target.value)
+							}
+							placeholder={inputPlaceholder}
+						/>
 
-							{loading && <ClayAutocomplete.LoadingIndicator />}
-						</ClayAutocomplete>
+						{loading && <ClayAutocomplete.LoadingIndicator />}
+					</ClayAutocomplete>
+				</ClayDropDown.Caption>
+			)}
 
-						{selectedItems.length ? (
-							<div className="mt-2 selected-elements-wrapper">
+			<div className="filter-body" ref={setScrollingArea}>
+				{autocompleteEnabled && !!selectedItems.length ? (
+					<>
+						<ClayDropDown.Caption className="pt-0">
+							<div className="selected-elements-wrapper">
 								{selectedItems.map((selectedItem) => (
 									<ClayLabel
 										closeButtonProps={{
@@ -424,97 +451,97 @@ function SelectionFilter({
 									</ClayLabel>
 								))}
 							</div>
-						) : null}
+						</ClayDropDown.Caption>
+
+						{showExcludeToggle && <Divider />}
+					</>
+				) : null}
+
+				{showExcludeToggle && (
+					<ClayDropDown.Caption className="pb-0">
+						<div className="row">
+							<div className="col">
+								<label htmlFor={`autocomplete-exclude-${id}`}>
+									{Liferay.Language.get('exclude')}
+								</label>
+							</div>
+
+							<div className="col-auto">
+								<ClayToggle
+									id={`autocomplete-exclude-${id}`}
+									onToggle={() => setExclude(!exclude)}
+									toggled={exclude}
+								/>
+							</div>
+						</div>
 					</ClayDropDown.Caption>
+				)}
 
-					<Divider />
-				</>
-			)}
+				<Divider />
 
-			<ClayDropDown.Caption className="pb-0">
-				<div className="row">
-					<div className="col">
-						<label htmlFor={`autocomplete-exclude-${id}`}>
-							{Liferay.Language.get('exclude')}
-						</label>
-					</div>
+				<div className="pb-1 pl-3 pr-3 pt-1">
+					{items && !!items.length ? (
+						<ul className="filter-items mx-n2 px-2">
+							{items.map(({label, value}, index) => {
+								const newValue = {
+									label,
+									value,
+								};
 
-					<div className="col-auto">
-						<ClayToggle
-							id={`autocomplete-exclude-${id}`}
-							onToggle={() => setExclude(!exclude)}
-							toggled={exclude}
-						/>
-					</div>
-				</div>
-			</ClayDropDown.Caption>
-
-			<Divider />
-
-			<div className="pb-1 pl-3 pr-3 pt-1">
-				{items && !!items.length ? (
-					<ul
-						className="inline-scroller mx-n2 px-2"
-						ref={setScrollingArea}
-					>
-						{items.map(({label, value}, index) => {
-							const newValue = {
-								label,
-								value,
-							};
-
-							return (
-								<Item
-									aria-label={label}
-									checked={Boolean(
-										selectedItems.find(
-											(element) => element.value === value
-										)
-									)}
-									key={`${value}-${index}`}
-									label={label.toString()}
-									multiple={multiple}
-									onChange={() => {
-										setSelectedItems(
+								return (
+									<Item
+										aria-label={label}
+										checked={Boolean(
 											selectedItems.find(
 												(element) =>
 													element.value === value
 											)
-												? selectedItems.filter(
-														(element) =>
-															element.value !==
-															value
-													)
-												: multiple
-													? [
-															...selectedItems,
-															newValue,
-														]
-													: [newValue]
-										);
-									}}
-									value={value}
-								/>
-							);
-						})}
+										)}
+										key={`${value}-${index}`}
+										label={label.toString()}
+										multiple={multiple}
+										onChange={() => {
+											setSelectedItems(
+												selectedItems.find(
+													(element) =>
+														element.value === value
+												)
+													? selectedItems.filter(
+															(element) =>
+																element.value !==
+																value
+														)
+													: multiple
+														? [
+																...selectedItems,
+																newValue,
+															]
+														: [newValue]
+											);
+										}}
+										value={value}
+									/>
+								);
+							})}
 
-						{loaderVisible && (
-							<ClayLoadingIndicator
-								ref={setInfiniteLoader}
-								size="sm"
-							/>
-						)}
-					</ul>
-				) : (
-					<div className="mt-2 p-2 text-muted">
-						{Liferay.Language.get('no-items-were-found')}
-					</div>
-				)}
+							{loaderVisible && (
+								<ClayLoadingIndicator
+									ref={setInfiniteLoader}
+									size="sm"
+								/>
+							)}
+						</ul>
+					) : (
+						<div className="mt-2 p-2 text-muted">
+							{Liferay.Language.get('no-items-were-found')}
+						</div>
+					)}
+				</div>
 			</div>
 
 			<Divider />
 
-			<ClayDropDown.Caption>
+			<ClayDropDown.Caption className="filter-footer">
 				<ClayButton
 					disabled={submitDisabled}
 					onClick={() => {
@@ -522,7 +549,7 @@ function SelectionFilter({
 							setFilter({
 								active: false,
 								selectedData: {
-									exclude: false,
+									exclude,
 									selectedItems: [],
 								},
 							});
@@ -563,6 +590,7 @@ const filterImplementation: FilterImplementation<SelectionFilterImplementationAr
 		Component: SelectionFilter,
 		getOdataString,
 		getSelectedItemsLabel,
+		getSelectedItemsPreview,
 	};
 
 export default filterImplementation;

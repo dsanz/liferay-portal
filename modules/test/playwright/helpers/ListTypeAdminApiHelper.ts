@@ -34,7 +34,7 @@ export class ListTypeAdminApiHelper {
 
 	async getListTypeDefinitions(): Promise<ListTypeDefinitions> {
 		return this.apiHelpers.get(
-			`${this.apiHelpers.baseUrl}${this.basePath}/list-type-definitions`
+			`${this.apiHelpers.baseUrl}${this.basePath}/list-type-definitions?page=-1`
 		);
 	}
 

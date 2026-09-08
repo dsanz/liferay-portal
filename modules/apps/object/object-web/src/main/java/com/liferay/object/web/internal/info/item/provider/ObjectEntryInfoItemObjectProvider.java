@@ -31,6 +31,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Guilherme Camacho
@@ -76,7 +77,8 @@ public class ObjectEntryInfoItemObjectProvider
 						classPKInfoItemIdentifier.getClassPK());
 			}
 
-			return objectEntry;
+			return _resolveLatestApprovedObjectEntry(
+				objectEntry, classPKInfoItemIdentifier.getVersion());
 		}
 
 		ServiceContext serviceContext =
@@ -88,8 +90,11 @@ public class ObjectEntryInfoItemObjectProvider
 		Map<InfoItemIdentifier, ObjectEntry> objectEntries = _getObjectEntries(
 			serviceContext.getRequest());
 
-		if (objectEntries.containsKey(ercInfoItemIdentifier)) {
-			return objectEntries.get(ercInfoItemIdentifier);
+		ObjectEntry curObjectEntry = objectEntries.get(ercInfoItemIdentifier);
+
+		if (curObjectEntry != null) {
+			return _resolveLatestApprovedObjectEntry(
+				curObjectEntry, ercInfoItemIdentifier.getVersion());
 		}
 
 		Group group = null;
@@ -143,7 +148,9 @@ public class ObjectEntryInfoItemObjectProvider
 				objectEntries.put(
 					ercInfoItemIdentifier, serviceBuilderObjectEntry);
 
-				return serviceBuilderObjectEntry;
+				return _resolveLatestApprovedObjectEntry(
+					serviceBuilderObjectEntry,
+					ercInfoItemIdentifier.getVersion());
 			}
 		}
 		catch (Exception exception) {
@@ -175,6 +182,33 @@ public class ObjectEntryInfoItemObjectProvider
 		}
 
 		return objectEntries;
+	}
+
+	private ObjectEntry _resolveLatestApprovedObjectEntry(
+			ObjectEntry objectEntry, String version)
+		throws NoSuchInfoItemException {
+
+		if ((Validator.isNotNull(version) &&
+			 !Objects.equals(
+				 version, InfoItemIdentifier.VERSION_LATEST_APPROVED)) ||
+			objectEntry.isApproved()) {
+
+			return objectEntry;
+		}
+
+		ObjectEntry latestApprovedObjectEntry =
+			_objectEntryLocalService.fetchObjectEntryByHeadObjectEntryId(
+				objectEntry.getObjectEntryId());
+
+		if ((latestApprovedObjectEntry != null) &&
+			latestApprovedObjectEntry.isApproved()) {
+
+			return latestApprovedObjectEntry;
+		}
+
+		throw new NoSuchInfoItemException(
+			"Unable to get an approved object entry " +
+				objectEntry.getObjectEntryId());
 	}
 
 	private static final String _OBJECT_ENTRIES =

@@ -27,6 +27,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -84,6 +85,8 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -271,6 +274,22 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
 
+			if (Objects.equals("approvedCount", additionalAssertFieldName)) {
+				if (assetStatistics.getApprovedCount() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("brokenLinksCount", additionalAssertFieldName)) {
+				if (assetStatistics.getBrokenLinksCount() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("expiredCount", additionalAssertFieldName)) {
 				if (assetStatistics.getExpiredCount() == null) {
 					valid = false;
@@ -297,6 +316,14 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("pendingCount", additionalAssertFieldName)) {
+				if (assetStatistics.getPendingCount() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals(
 					"reviewDateOverdueCount", additionalAssertFieldName)) {
 
@@ -307,8 +334,26 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("scheduledCount", additionalAssertFieldName)) {
+				if (assetStatistics.getScheduledCount() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("totalCount", additionalAssertFieldName)) {
 				if (assetStatistics.getTotalCount() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"upcomingReviewCount", additionalAssertFieldName)) {
+
+				if (assetStatistics.getUpcomingReviewCount() == null) {
 					valid = false;
 				}
 
@@ -434,6 +479,28 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
 
+			if (Objects.equals("approvedCount", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						assetStatistics1.getApprovedCount(),
+						assetStatistics2.getApprovedCount())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("brokenLinksCount", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						assetStatistics1.getBrokenLinksCount(),
+						assetStatistics2.getBrokenLinksCount())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("expiredCount", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						assetStatistics1.getExpiredCount(),
@@ -469,6 +536,17 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("pendingCount", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						assetStatistics1.getPendingCount(),
+						assetStatistics2.getPendingCount())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals(
 					"reviewDateOverdueCount", additionalAssertFieldName)) {
 
@@ -482,10 +560,34 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("scheduledCount", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						assetStatistics1.getScheduledCount(),
+						assetStatistics2.getScheduledCount())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("totalCount", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						assetStatistics1.getTotalCount(),
 						assetStatistics2.getTotalCount())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"upcomingReviewCount", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						assetStatistics1.getUpcomingReviewCount(),
+						assetStatistics2.getUpcomingReviewCount())) {
 
 					return false;
 				}
@@ -601,6 +703,16 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 		sb.append(operator);
 		sb.append(" ");
 
+		if (entityFieldName.equals("approvedCount")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("brokenLinksCount")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("expiredCount")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -616,12 +728,27 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("pendingCount")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("reviewDateOverdueCount")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("scheduledCount")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
 		if (entityFieldName.equals("totalCount")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("upcomingReviewCount")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
@@ -673,11 +800,16 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 	protected AssetStatistics randomAssetStatistics() throws Exception {
 		return new AssetStatistics() {
 			{
+				approvedCount = RandomTestUtil.randomLong();
+				brokenLinksCount = RandomTestUtil.randomLong();
 				expiredCount = RandomTestUtil.randomLong();
 				expiringSoonCount = RandomTestUtil.randomLong();
 				inDraftCount = RandomTestUtil.randomLong();
+				pendingCount = RandomTestUtil.randomLong();
 				reviewDateOverdueCount = RandomTestUtil.randomLong();
+				scheduledCount = RandomTestUtil.randomLong();
 				totalCount = RandomTestUtil.randomLong();
+				upcomingReviewCount = RandomTestUtil.randomLong();
 			}
 		};
 	}
@@ -905,4 +1037,4 @@ public abstract class BaseAssetStatisticsResourceTestCase {
 		_assetStatisticsResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:256843011
+// LIFERAY-REST-BUILDER-HASH:-1448042726

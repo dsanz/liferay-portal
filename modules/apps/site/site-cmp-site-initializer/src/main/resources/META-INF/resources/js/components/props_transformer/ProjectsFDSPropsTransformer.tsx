@@ -10,12 +10,13 @@ import {
 	SimpleActionLinkRenderer,
 	addOnClickToCreationMenuItems,
 	deleteItemAction,
-	manageMembersAction,
 } from '@liferay/site-cms-site-initializer';
 import {fetch, sub} from 'frontend-js-web';
 
+import {getFormattedLabel} from '../../utils/getFormattedText';
 import StateLabel from '../StateLabel';
 import ACTIONS from './actions/creationMenuActions';
+import manageMembersAction from './actions/manageMembersAction';
 import AssigneeRenderer from './cell_renderers/AssigneeRenderer';
 
 type Action = {
@@ -96,6 +97,7 @@ export default function ProjectsFDSPropsTransformer({
 							additionalProps,
 							itemData,
 							options,
+							requiresUpdatePermission: false,
 							value,
 						}),
 					name: 'simpleActionLinkTableCellRenderer',
@@ -142,7 +144,7 @@ export default function ProjectsFDSPropsTransformer({
 						Liferay.Language.get(
 							'delete-project-confirmation-body'
 						),
-						itemData.embedded.title
+						getFormattedLabel(itemData.embedded.title)
 					),
 					itemData,
 					loadData
@@ -164,7 +166,9 @@ export default function ProjectsFDSPropsTransformer({
 
 				manageMembersAction({
 					assetLibraryCreatorUserId: creatorUserId,
+					cmpProjectObjectEntryId: itemData.embedded.id,
 					externalReferenceCode: scopeExternalReferenceCode,
+					filter: additionalProps?.filter,
 					hasAssignMembersPermission: 'assign-members' in actions,
 					title: Liferay.Language.get('all-members'),
 				});

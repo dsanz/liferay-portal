@@ -7,11 +7,15 @@ package com.liferay.portal.osgi.web.wab.generator.internal.artifact;
 
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONException;
+import com.liferay.portal.kernel.json.JSONFactoryUtil;
+import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.StringUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 
 import java.net.URL;
@@ -70,8 +74,13 @@ public class ArtifactURLUtil {
 
 		String symbolicName = getSymbolicName(path);
 
-		if (fileExtension.equals("zip") && _isClientExtensionZip(path)) {
-			symbolicName = getClientExtensionSymbolicName(path);
+		if (fileExtension.equals("zip")) {
+			JSONObject jsonObject = _getClientExtensionConfigJSONObject(path);
+
+			if (jsonObject != null) {
+				symbolicName = getClientExtensionSymbolicName(path);
+				contextName = _getWebContextPath(jsonObject);
+			}
 		}
 
 		if (contextName == null) {
@@ -86,7 +95,7 @@ public class ArtifactURLUtil {
 				"&fileExtension=", fileExtension, "&protocol=file"));
 	}
 
-	private static boolean _isClientExtensionZip(String path) {
+	private static JSONObject _getClientExtensionConfigJSONObject(String path) {
 		try (ZipFile zipFile = new ZipFile(path)) {
 			Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
 
@@ -95,18 +104,56 @@ public class ArtifactURLUtil {
 
 				String name = zipEntry.getName();
 
-				if (name.endsWith(".client-extension-config.json") &&
-					(name.indexOf("/") == -1)) {
+				if ((name.indexOf(CharPool.SLASH) == -1) &&
+					name.endsWith(".client-extension-config.json")) {
 
-					return true;
+					try (InputStream inputStream = zipFile.getInputStream(
+							zipEntry)) {
+
+						return JSONFactoryUtil.createJSONObject(
+							StringUtil.read(inputStream));
+					}
+					catch (JSONException jsonException) {
+						_log.error(
+							"Unable to parse client extension config in " +
+								path,
+							jsonException);
+
+						return null;
+					}
 				}
 			}
 		}
-		catch (IOException ioException) {
-			_log.error("Path " + path + " is not a valid ZIP", ioException);
+		catch (Exception exception) {
+			_log.error("Path " + path + " is not a valid ZIP", exception);
 		}
 
-		return false;
+		return null;
+	}
+
+	private static String _getWebContextPath(JSONObject jsonObject) {
+		for (String key : jsonObject.keySet()) {
+			JSONObject configurationJSONObject = jsonObject.getJSONObject(key);
+
+			if (configurationJSONObject == null) {
+				continue;
+			}
+
+			String webContextPath = configurationJSONObject.getString(
+				"webContextPath");
+
+			if (Validator.isNull(webContextPath)) {
+				continue;
+			}
+
+			if (webContextPath.startsWith("/")) {
+				return webContextPath.substring(1);
+			}
+
+			return webContextPath;
+		}
+
+		return null;
 	}
 
 	private static String _readServletContextName(ZipFile zipFile)

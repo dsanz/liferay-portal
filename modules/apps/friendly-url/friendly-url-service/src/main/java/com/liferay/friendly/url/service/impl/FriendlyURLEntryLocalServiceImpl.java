@@ -285,12 +285,15 @@ public class FriendlyURLEntryLocalServiceImpl
 
 	@Override
 	public void deleteFriendlyURLLocalizationEntry(
-			long friendlyURLEntryId, String languageId)
+			FriendlyURLEntryLocalization friendlyURLEntryLocalization)
 		throws PortalException {
 
-		friendlyURLEntryLocalizationPersistence.
-			removeByFriendlyURLEntryId_LanguageId(
-				friendlyURLEntryId, languageId);
+		friendlyURLEntryLocalization =
+			friendlyURLEntryLocalizationPersistence.remove(
+				friendlyURLEntryLocalization);
+
+		long friendlyURLEntryId =
+			friendlyURLEntryLocalization.getFriendlyURLEntryId();
 
 		int count =
 			friendlyURLEntryLocalizationPersistence.countByFriendlyURLEntryId(
@@ -298,7 +301,7 @@ public class FriendlyURLEntryLocalServiceImpl
 
 		if (count == 0) {
 			FriendlyURLEntry friendlyURLEntry =
-				friendlyURLEntryLocalService.fetchFriendlyURLEntry(
+				friendlyURLEntryPersistence.fetchByPrimaryKey(
 					friendlyURLEntryId);
 
 			if (friendlyURLEntry == null) {
@@ -312,6 +315,17 @@ public class FriendlyURLEntryLocalServiceImpl
 		// Asset
 
 		_deleteAssetEntry(FriendlyURLEntry.class.getName(), friendlyURLEntryId);
+	}
+
+	@Override
+	public void deleteFriendlyURLLocalizationEntry(
+			long friendlyURLEntryId, String languageId)
+		throws PortalException {
+
+		deleteFriendlyURLLocalizationEntry(
+			friendlyURLEntryLocalizationPersistence.
+				findByFriendlyURLEntryId_LanguageId(
+					friendlyURLEntryId, languageId));
 	}
 
 	@Override
@@ -330,6 +344,23 @@ public class FriendlyURLEntryLocalServiceImpl
 		FriendlyURLEntryLocalization friendlyURLEntryLocalization =
 			friendlyURLEntryLocalizationPersistence.fetchByG_C_P_U_First(
 				groupId, classNameId, parentClassPK,
+				_friendlyURLNormalizer.normalizeWithEncoding(urlTitle), null);
+
+		if (friendlyURLEntryLocalization == null) {
+			return null;
+		}
+
+		return friendlyURLEntryPersistence.fetchByPrimaryKey(
+			friendlyURLEntryLocalization.getFriendlyURLEntryId());
+	}
+
+	@Override
+	public FriendlyURLEntry fetchFriendlyURLEntry(
+		long groupId, long classNameId, String urlTitle) {
+
+		FriendlyURLEntryLocalization friendlyURLEntryLocalization =
+			friendlyURLEntryLocalizationPersistence.fetchByG_C_U_First(
+				groupId, classNameId,
 				_friendlyURLNormalizer.normalizeWithEncoding(urlTitle), null);
 
 		if (friendlyURLEntryLocalization == null) {
@@ -854,6 +885,10 @@ public class FriendlyURLEntryLocalServiceImpl
 		long classNameId, long companyId) {
 
 		String className = _portal.fetchClassName(classNameId);
+
+		if (Validator.isNull(className)) {
+			return false;
+		}
 
 		String[] classNames = StringUtil.split(
 			className, ResourceActionsUtil.getCompositeModelNameSeparator());

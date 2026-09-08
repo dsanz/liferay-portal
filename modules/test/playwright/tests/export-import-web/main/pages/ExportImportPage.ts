@@ -25,15 +25,10 @@ export type taskStatus = 'success' | 'completedWithErrors';
 
 export class ExportImportPage {
 	readonly addFilterButton: Locator;
-	readonly allRadioButton: Locator;
 	readonly cancelButton: Locator;
 	readonly clearMenuItem: Locator;
 	readonly clearSearchButton: Locator;
 	readonly continueButton: Locator;
-	readonly copyAsNewRadioButton: Locator;
-	readonly deleteApplicationDataAlert: Locator;
-	readonly deleteApplicationDataCheckbox: Locator;
-	readonly deleteApplicationDataBeforeImportingWarningLabel: Locator;
 	readonly deletionsLabel: Locator;
 	readonly downloadButton: Locator;
 	readonly exportButton: Locator;
@@ -47,9 +42,7 @@ export class ExportImportPage {
 	readonly filterBackButton: Locator;
 	readonly filterButton: Locator;
 	readonly importButton: Locator;
-	readonly importModalButton: Locator;
 	readonly importPermissionsCheckbox: Locator;
-	readonly mirrorWithOverwritingRadioButton: Locator;
 	readonly newExportButton: Locator;
 	readonly newImportButton: Locator;
 	readonly page: Page;
@@ -75,15 +68,11 @@ export class ExportImportPage {
 		taskStatus?: taskStatus
 	) => Locator;
 	readonly title: Locator;
-	readonly updateDataAlert: Locator;
-	readonly updateDataMirrorWarningLabel: Locator;
 	readonly useCurrentUserAsAuthorCheckbox: Locator;
 	readonly viewReportEntriesMenuItem: Locator;
-	readonly warningHeader: Locator;
 
 	constructor(page: Page) {
 		this.addFilterButton = page.getByRole('button', {name: 'Add Filter'});
-		this.allRadioButton = page.getByTestId('range_rangeAll');
 		this.cancelButton = page.getByRole('button', {name: 'Cancel'});
 		this.clearMenuItem = page.getByRole('link', {name: 'Clear'});
 		this.clearSearchButton = page.getByRole('button', {
@@ -91,18 +80,6 @@ export class ExportImportPage {
 			name: 'Clear',
 		});
 		this.continueButton = page.getByRole('button', {name: 'Continue'});
-		this.copyAsNewRadioButton = page.getByLabel('Copy as new');
-		this.deleteApplicationDataAlert = page.locator('[role="alert"]', {
-			hasText: 'This option does not apply to object entries.',
-		});
-		this.deleteApplicationDataCheckbox = page.getByLabel(
-			'Delete Application Data'
-		);
-		this.deleteApplicationDataBeforeImportingWarningLabel = page
-			.getByLabel('Important Info About Your Import')
-			.getByText(
-				'Delete Application Data Before Importing: This option does not apply to object'
-			);
 		this.deletionsLabel = page
 			.getByLabel('Deletions', {exact: true})
 			.locator('label');
@@ -128,13 +105,7 @@ export class ExportImportPage {
 			.getByTestId('managementToolbar')
 			.getByRole('button', {name: 'Filter'});
 		this.importButton = page.getByRole('button', {name: 'Import'});
-		this.importModalButton = page
-			.getByLabel('Important Info About Your Import')
-			.getByRole('button', {name: 'Import'});
 		this.importPermissionsCheckbox = page.getByLabel('Import Permissions');
-		this.mirrorWithOverwritingRadioButton = page.getByLabel(
-			'Mirror with overwriting'
-		);
 		this.newExportButton = page.getByRole('link', {name: 'Custom Export'});
 		this.newImportButton = page.getByRole('link', {name: 'Import'});
 		this.page = page;
@@ -209,7 +180,7 @@ export class ExportImportPage {
 			});
 		this.taskStatusLabel = (taskName, taskStatus = 'success') => {
 			const taskStatusTexts: Record<taskStatus, string> = {
-				completedWithErrors: 'Completed with errors',
+				completedWithErrors: 'Completed With Errors',
 				success: 'Successful',
 			};
 
@@ -218,23 +189,11 @@ export class ExportImportPage {
 				.getByText(taskStatusTexts[taskStatus]);
 		};
 		this.title = page.getByPlaceholder('Enter the name of the process');
-		this.updateDataAlert = page.locator('[role="alert"]', {
-			hasText:
-				'Objects entries are always mirrored regardless of the selection.',
-		});
-		this.updateDataMirrorWarningLabel = page
-			.getByLabel('Important Info About Your Import')
-			.getByText(
-				'Update Data (Mirror): Objects entries are always mirrored regardless of the selection.'
-			);
 		this.useCurrentUserAsAuthorCheckbox = page.getByLabel(
 			'Use the Current User as Author: Assign the current user as the author of all'
 		);
 		this.viewReportEntriesMenuItem = page.getByRole('menuitem', {
 			name: 'View Report Entries',
-		});
-		this.warningHeader = page.getByRole('heading', {
-			name: 'Important Info About Your Import',
 		});
 	}
 
@@ -256,15 +215,44 @@ export class ExportImportPage {
 		label: string | RegExp,
 		{
 			counts = {},
+			portletId,
 			registrations,
 		}: {
 			counts?: {deletions?: number; items?: number};
+			portletId?: string;
 			registrations?: Array<{
 				counts: {deletions?: number; items?: number};
 				label: string | RegExp;
 			}>;
 		} = {}
 	) {
+		if (portletId) {
+			if (registrations) {
+				await this._expandPortlet(portletId);
+			}
+
+			await this._assertLabelCounts(
+				this._portletLabel(portletId),
+				counts
+			);
+
+			const contentLocator = this.page.locator(
+				`[id$="_content_${portletId}"]`
+			);
+
+			for (const registration of registrations ?? []) {
+				await this._assertLabelCounts(
+					this._filterLabels(
+						contentLocator.locator('label'),
+						registration.label
+					),
+					registration.counts
+				);
+			}
+
+			return;
+		}
+
 		if (registrations) {
 			if (typeof label === 'string') {
 				await this.page
@@ -311,6 +299,34 @@ export class ExportImportPage {
 		await this._assertPortletEntryCounts(label, {deletions: 'hidden'});
 	}
 
+	private _filterLabels(labels: Locator, label: string | RegExp): Locator {
+		return labels.filter(
+			typeof label === 'string'
+				? {has: this.page.locator(`:text-is("${label}")`)}
+				: {hasText: label}
+		);
+	}
+
+	private _portletLabel(portletId: string): Locator {
+		return this.page.locator('label').filter({
+			has: this.page.locator(`input[name$="_PORTLET_DATA_${portletId}"]`),
+		});
+	}
+
+	private async _expandPortlet(portletId: string) {
+		const dataCheckbox = this.page.locator(
+			`input[name$="_PORTLET_DATA_${portletId}"]`
+		);
+
+		if (!(await dataCheckbox.isChecked())) {
+			await dataCheckbox.check();
+		}
+
+		await this.page
+			.locator(`button.content-link[data-portletid="${portletId}"]`)
+			.click();
+	}
+
 	private async _assertPortletEntryCounts(
 		label: string | RegExp,
 		counts: {
@@ -318,12 +334,19 @@ export class ExportImportPage {
 			items?: 'absent' | number;
 		}
 	) {
-		const filter =
-			typeof label === 'string'
-				? {has: this.page.locator(`:text-is("${label}")`)}
-				: {hasText: label};
+		await this._assertLabelCounts(
+			this._filterLabels(this.page.locator('label'), label),
+			counts
+		);
+	}
 
-		const labelLocator = this.page.locator('label').filter(filter);
+	private async _assertLabelCounts(
+		labelLocator: Locator,
+		counts: {
+			deletions?: 'absent' | 'hidden' | number;
+			items?: 'absent' | number;
+		}
+	) {
 		const {deletions, items} = counts;
 
 		if (items !== undefined) {
@@ -536,16 +559,6 @@ export class ExportImportPage {
 		await expect(this.taskStatusLabel(fileName, taskStatus)).toBeVisible({
 			timeout,
 		});
-	}
-
-	async importByDefault(filePath: string) {
-		await this.selectImportFile({filePath});
-
-		await this.importButton.click();
-
-		await expect(
-			this.taskStatusLabel(path.basename(filePath), 'success')
-		).toBeVisible();
 	}
 
 	async getExportableItems() {

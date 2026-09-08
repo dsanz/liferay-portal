@@ -129,6 +129,8 @@ public abstract class BulkAction implements Cloneable, Serializable {
 
 	public static enum Type {
 
+		ADD_OBJECT_TO_PROJECT_BULK_SELECTION_ACTION(
+			"AddObjectToProjectBulkSelectionAction"),
 		ASSIGN_STRUCTURE_DEFAULT_WORKFLOW_BULK_SELECTION_ACTION(
 			"AssignStructureDefaultWorkflowBulkSelectionAction"),
 		ASSIGN_TO_OBJECT_BULK_SELECTION_ACTION(
@@ -158,8 +160,12 @@ public abstract class BulkAction implements Cloneable, Serializable {
 		STATUS_OBJECT_BULK_SELECTION_ACTION("StatusObjectBulkSelectionAction"),
 		EDIT_OBJECT_CATEGORIES_BULK_SELECTION_ACTION(
 			"EditObjectCategoriesBulkSelectionAction"),
+		UPDATE_EXPIRATION_DATE_OBJECT_BULK_SELECTION_ACTION(
+			"UpdateExpirationDateObjectBulkSelectionAction"),
 		UPDATE_OBJECT_VALUES_BULK_SELECTION_ACTION(
-			"UpdateObjectValuesBulkSelectionAction");
+			"UpdateObjectValuesBulkSelectionAction"),
+		UPDATE_REVIEW_DATE_OBJECT_BULK_SELECTION_ACTION(
+			"UpdateReviewDateObjectBulkSelectionAction");
 
 		public static Type create(String value) {
 			for (Type type : values()) {
@@ -191,4 +197,4 @@ public abstract class BulkAction implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-336127652
+// LIFERAY-REST-BUILDER-HASH:2012469309

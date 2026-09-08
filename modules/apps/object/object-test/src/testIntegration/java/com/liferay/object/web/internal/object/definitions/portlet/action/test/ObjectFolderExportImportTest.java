@@ -17,7 +17,6 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.util.ListUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -38,7 +37,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Guilherme Sa
  */
-@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 public class ObjectFolderExportImportTest extends BaseExportImportTestCase {
 
@@ -127,10 +125,8 @@ public class ObjectFolderExportImportTest extends BaseExportImportTestCase {
 			"TestObjectFolder2",
 			Collections.singletonList("TESTOBJECTDEFINITION1"));
 		_assertObjectFolder(
-			0, Collections.emptyList(), "TestObjectFolder3",
-			Collections.emptyList());
-		_assertDefaultObjectFolder(
-			Collections.singletonList("TESTOBJECTDEFINITION1"),
+			2, Collections.singletonList("TESTOBJECTDEFINITION1"),
+			"TestObjectFolder3",
 			Collections.singletonList("TESTOBJECTDEFINITION2"));
 	}
 

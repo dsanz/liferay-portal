@@ -180,6 +180,34 @@ components:
             required:
                 -   name
             type: object
+        Project:
+            properties:
+                externalReferenceCode:
+                    description:
+                        The project's external reference code.
+                    type: string
+                id:
+                    description:
+                        The project's site ID.
+                    format: int64
+                    type: integer
+                name:
+                    description:
+                        The project's name.
+                    readOnly: true
+                    type: string
+                name_i18n:
+                    additionalProperties:
+                        type: string
+                    description:
+                        The localized project's name.
+                    readOnly: true
+                    type: object
+                scopeKey:
+                    description:
+                        The project's scope key.
+                    type: string
+            type: object
         TaxonomyCategory:
             description:
                 Represents a category, which is a hierarchical classification that can be associated with particular asset types. Properties follow the [category](https://schema.org/category) specification.
@@ -231,6 +259,14 @@ components:
                     description:
                         The category's external reference code
                     type: string
+                friendlyUrlPath:
+                    description:
+                        The category's relative URL.
+                    type: string
+                friendlyUrlPath_i18n:
+                    additionalProperties:
+                        type: string
+                    type: object
                 id:
                     description:
                         The category's ID.
@@ -310,6 +346,10 @@ components:
                     format: int64
                     readOnly: true
                     type: integer
+                system:
+                    description:
+                        Whether this is a system category, which cannot be renamed, modified, or deleted.
+                    type: boolean
                 taxonomyCategoryProperties:
                     # @review
                     description:
@@ -450,6 +490,12 @@ components:
                     items:
                         type: permission
                     type: array
+                projects:
+                    description:
+                        A list of projects that this vocabulary is associated with.
+                    items:
+                        $ref: "#/components/schemas/Project"
+                    type: array
                 siteExternalReferenceCode:
                     description:
                         The external reference code of the site to which this vocabulary is scoped.
@@ -461,6 +507,10 @@ components:
                     format: int64
                     readOnly: true
                     type: integer
+                system:
+                    description:
+                        Whether this is a system vocabulary, which cannot be renamed or deleted.
+                    type: boolean
                 uuid:
                     description:
                         The UUID of the vocabulary.
@@ -481,7 +531,7 @@ components:
             type: object
 info:
     description:
-        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.admin.taxonomy.client', and version '4.0.49'."
+        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.admin.taxonomy.client', and version '4.0.51'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html

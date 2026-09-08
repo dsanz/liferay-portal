@@ -35,9 +35,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Pedro Leite
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-58677")}
-)
+@FeatureFlags(featureFlags = @FeatureFlag("LPD-58677"))
 @RunWith(Arquillian.class)
 @Sync
 public class ViewProjectManagerAssigneeSectionDisplayContextTest
@@ -78,7 +76,7 @@ public class ViewProjectManagerAssigneeSectionDisplayContextTest
 			).put(
 				"type", Assignee.Type.USER.toString()
 			).build(),
-			projectObjectEntry,
+			cmpProjectObjectEntry,
 			HashMapBuilder.<String, Serializable>put(
 				"r_userToCMPProjectManager_userId", user.getUserId()
 			).build());

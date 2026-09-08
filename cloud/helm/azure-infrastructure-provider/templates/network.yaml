@@ -1,0 +1,51 @@
+{{- $deploymentContext := .Values.deploymentContext -}}
+apiVersion: network.azure.m.upbound.io/v1beta1
+kind: PrivateDNSZone
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+        argocd.argoproj.io/sync-wave: "-80"
+    labels:
+        app: liferay
+    name: {{ include "network.databasePrivateDnsZoneName" $ }}
+spec:
+    forProvider:
+        resourceGroupName: {{ $deploymentContext.resourceGroupName | quote }}
+---
+apiVersion: network.azure.m.upbound.io/v1beta1
+kind: PrivateDNSZoneVirtualNetworkLink
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+        argocd.argoproj.io/sync-wave: "-80"
+    labels:
+        app: liferay
+    name: {{ $deploymentContext.deploymentName }}-database-dns-link
+spec:
+    forProvider:
+        privateDnsZoneName: {{ include "network.databasePrivateDnsZoneName" $ }}
+        registrationEnabled: false
+        resourceGroupName: {{ $deploymentContext.resourceGroupName | quote }}
+        virtualNetworkId: {{ include "network.virtualNetworkId" $ }}
+---
+apiVersion: network.azure.m.upbound.io/v1beta1
+kind: Subnet
+metadata:
+    annotations:
+        argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+        argocd.argoproj.io/sync-wave: "-80"
+    labels:
+        app: liferay
+    name: {{ include "network.databaseSubnetName" $ }}
+spec:
+    forProvider:
+        addressPrefixes:
+            -   {{ .Values.network.databaseSubnetCidr | quote }}
+        delegation:
+            -   name: database-flexible-server
+                serviceDelegation:
+                    actions:
+                        -   Microsoft.Network/virtualNetworks/subnets/join/action
+                    name: Microsoft.DBforPostgreSQL/flexibleServers
+        resourceGroupName: {{ $deploymentContext.resourceGroupName | quote }}
+        virtualNetworkName: {{ include "network.virtualNetworkName" $ }}

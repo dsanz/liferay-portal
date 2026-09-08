@@ -39,6 +39,56 @@ public class InfoFormValidationException extends InfoFormException {
 			locale, "x-an-error-occurred", HtmlUtil.escape(fieldLabel), false);
 	}
 
+	public static class AssetTooManyCategories
+		extends InfoFormValidationException {
+
+		public AssetTooManyCategories(
+			AssetCategoryException assetCategoryException,
+			AssetVocabulary assetVocabulary) {
+
+			_assetCategoryException = assetCategoryException;
+			_assetVocabulary = assetVocabulary;
+		}
+
+		public AssetCategoryException getAssetCategoryException() {
+			return _assetCategoryException;
+		}
+
+		public AssetVocabulary getAssetVocabulary() {
+			return _assetVocabulary;
+		}
+
+		@Override
+		public String getLocalizedMessage(Locale locale) {
+			return LanguageUtil.format(
+				locale, "you-cannot-select-more-than-one-category-for-x",
+				(_assetVocabulary != null) ?
+					HtmlUtil.escape(_assetVocabulary.getTitle(locale)) :
+						StringPool.BLANK);
+		}
+
+		private final AssetCategoryException _assetCategoryException;
+		private final AssetVocabulary _assetVocabulary;
+
+	}
+
+	public static class BlockedEmailAddressDomain
+		extends InvalidInfoFieldValue {
+
+		public BlockedEmailAddressDomain(String infoFieldUniqueId) {
+			super(infoFieldUniqueId);
+		}
+
+		@Override
+		public String getLocalizedMessage(Locale locale) {
+			return LanguageUtil.get(
+				locale,
+				"the-email-address-domain-is-not-allowed-enter-an-email-" +
+					"address-with-a-different-domain");
+		}
+
+	}
+
 	public static class CustomValidation extends InfoFormValidationException {
 
 		public CustomValidation(String infoFieldUniqueId, String message) {
@@ -57,6 +107,46 @@ public class InfoFormValidationException extends InfoFormException {
 		}
 
 		private final String _message;
+
+	}
+
+	public static class DuplicateExternalReferenceCode
+		extends InfoFormValidationException {
+
+		public DuplicateExternalReferenceCode(String infoFieldUniqueId) {
+			super(infoFieldUniqueId);
+		}
+
+		@Override
+		public String getLocalizedMessage(Locale locale) {
+			return LanguageUtil.get(
+				locale, "this-external-reference-code-is-already-in-use");
+		}
+
+		@Override
+		public String getLocalizedMessage(String fieldLabel, Locale locale) {
+			return getLocalizedMessage(locale);
+		}
+
+	}
+
+	public static class DuplicateFriendlyURL
+		extends InfoFormValidationException {
+
+		public DuplicateFriendlyURL(String infoFieldUniqueId) {
+			super(infoFieldUniqueId);
+		}
+
+		@Override
+		public String getLocalizedMessage(Locale locale) {
+			return LanguageUtil.get(
+				locale, "please-enter-a-unique-friendly-url");
+		}
+
+		@Override
+		public String getLocalizedMessage(String fieldLabel, Locale locale) {
+			return getLocalizedMessage(locale);
+		}
 
 	}
 
@@ -228,6 +318,20 @@ public class InfoFormValidationException extends InfoFormException {
 
 		private final CaptchaException _captchaException;
 		private final long _fragmentEntryLinkId;
+
+	}
+
+	public static class InvalidEmailAddress extends InvalidInfoFieldValue {
+
+		public InvalidEmailAddress(String infoFieldUniqueId) {
+			super(infoFieldUniqueId);
+		}
+
+		@Override
+		public String getLocalizedMessage(Locale locale) {
+			return LanguageUtil.get(
+				locale, "please-enter-a-valid-email-address");
+		}
 
 	}
 

@@ -158,7 +158,7 @@ public class AuditEventLocalServiceImpl extends AuditEventLocalServiceBaseImpl {
 		if (ArrayUtil.isNotEmpty(accountEntryIds)) {
 			junction.add(accountEntryIdProperty.in(accountEntryIds));
 		}
-		else {
+		else if (andSearch) {
 			junction.add(accountEntryIdProperty.eq(0L));
 		}
 
@@ -224,7 +224,7 @@ public class AuditEventLocalServiceImpl extends AuditEventLocalServiceBaseImpl {
 		if (Validator.isNotNull(contextName)) {
 			junction.add(contextNameProperty.eq(contextName));
 		}
-		else {
+		else if (andSearch) {
 			junction.add(contextNameProperty.isNull());
 		}
 
@@ -280,7 +280,7 @@ public class AuditEventLocalServiceImpl extends AuditEventLocalServiceBaseImpl {
 		auditEvent.setCompanyId(auditMessage.getCompanyId());
 		auditEvent.setUserId(auditMessage.getUserId());
 		auditEvent.setUserName(auditMessage.getUserName());
-		auditEvent.setCreateDate(auditMessage.getTimestamp());
+		auditEvent.setCreateDate(auditMessage.getTimestampDate());
 		auditEvent.setAccountEntryId(auditMessage.getAccountEntryId());
 		auditEvent.setAdditionalInfo(
 			String.valueOf(auditMessage.getAdditionalInfo()));
@@ -289,11 +289,27 @@ public class AuditEventLocalServiceImpl extends AuditEventLocalServiceBaseImpl {
 		auditEvent.setClientHost(auditMessage.getClientHost());
 		auditEvent.setClientIP(auditMessage.getClientIP());
 		auditEvent.setContextName(auditMessage.getContextName());
+		auditEvent.setCorrelationId(auditMessage.getCorrelationId());
 		auditEvent.setEventType(auditMessage.getEventType());
+		auditEvent.setHttpMethod(auditMessage.getHttpMethod());
+		auditEvent.setImpersonated(auditMessage.isImpersonated());
+		auditEvent.setImpersonatedUserEmailAddress(
+			auditMessage.getImpersonatedUserEmailAddress());
+		auditEvent.setImpersonatedUserId(auditMessage.getImpersonatedUserId());
+		auditEvent.setImpersonatedUserName(
+			auditMessage.getImpersonatedUserName());
 		auditEvent.setMessage(auditMessage.getMessage());
+		auditEvent.setObjectName(auditMessage.getObjectName());
+		auditEvent.setRequestId(auditMessage.getRequestId());
+		auditEvent.setRequestIdGenerated(auditMessage.isRequestIdGenerated());
+		auditEvent.setResourceAction(auditMessage.getResourceAction());
+		auditEvent.setResourceType(auditMessage.getResourceType());
+		auditEvent.setRoles(auditMessage.getRoles());
 		auditEvent.setServerName(auditMessage.getServerName());
 		auditEvent.setServerPort(auditMessage.getServerPort());
 		auditEvent.setSessionID(auditMessage.getSessionID());
+		auditEvent.setUserAgent(auditMessage.getUserAgent());
+		auditEvent.setUserEmailAddress(auditMessage.getUserEmailAddress());
 
 		return auditEvent;
 	}

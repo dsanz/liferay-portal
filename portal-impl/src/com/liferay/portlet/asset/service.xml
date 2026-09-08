@@ -29,6 +29,7 @@
 		<column localized="true" name="title" type="String" />
 		<column localized="true" name="description" type="String" />
 		<column name="vocabularyId" type="long" />
+		<column name="system" type="boolean" />
 		<column name="lastPublishDate" type="Date" />
 		<column name="status" type="int" />
 
@@ -335,6 +336,7 @@
 		<!-- Other fields -->
 
 		<column name="vocabularyId" type="long" />
+		<column name="depotEntryType" type="int" />
 
 		<!-- Finder methods -->
 
@@ -347,6 +349,19 @@
 		<finder name="G_V" return-type="AssetVocabularyGroupRel">
 			<finder-column name="groupId" />
 			<finder-column name="vocabularyId" />
+		</finder>
+		<finder name="G_D" return-type="Collection">
+			<finder-column name="groupId" />
+			<finder-column name="depotEntryType" />
+		</finder>
+		<finder name="V_D" return-type="Collection">
+			<finder-column name="vocabularyId" />
+			<finder-column name="depotEntryType" />
+		</finder>
+		<finder name="G_V_D" return-type="AssetVocabularyGroupRel">
+			<finder-column name="groupId" />
+			<finder-column name="vocabularyId" />
+			<finder-column name="depotEntryType" />
 		</finder>
 	</entity>
 	<exceptions>
@@ -370,6 +385,8 @@
 		<exception>DuplicateVocabulary</exception>
 		<exception>DuplicateVocabularyExternalReferenceCode</exception>
 		<exception>InvalidAssetCategory</exception>
+		<exception>SystemCategory</exception>
+		<exception>SystemVocabulary</exception>
 		<exception>VocabularyExternalReferenceCode</exception>
 		<exception>VocabularyName</exception>
 		<exception>VocabularyVisibilityType</exception>

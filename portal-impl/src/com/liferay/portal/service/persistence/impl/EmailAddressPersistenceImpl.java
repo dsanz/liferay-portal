@@ -15,8 +15,6 @@ import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.DuplicateEmailAddressExternalReferenceCodeException;
 import com.liferay.portal.kernel.exception.NoSuchEmailAddressException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.EmailAddress;
 import com.liferay.portal.kernel.model.EmailAddressTable;
 import com.liferay.portal.kernel.sanitizer.Sanitizer;
@@ -1196,7 +1194,8 @@ public class EmailAddressPersistenceImpl
 				new String[] {String.class.getName()}, new String[] {"uuid_"},
 				0, 1, false, null),
 			_SQL_SELECT_EMAILADDRESS_WHERE, _SQL_COUNT_EMAILADDRESS_WHERE,
-			EmailAddressModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			EmailAddressModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"emailAddress.", "uuid", "uuid_", FinderColumn.Type.STRING, "=",
 				true, true, EmailAddress::getUuid));
@@ -1222,6 +1221,7 @@ public class EmailAddressPersistenceImpl
 					new String[] {"uuid_", "companyId"}, 0, 1, false, null),
 				_SQL_SELECT_EMAILADDRESS_WHERE, _SQL_COUNT_EMAILADDRESS_WHERE,
 				EmailAddressModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"emailAddress.", "uuid", "uuid_", FinderColumn.Type.STRING,
 					"=", true, true, EmailAddress::getUuid),
@@ -1250,6 +1250,7 @@ public class EmailAddressPersistenceImpl
 					new String[] {"companyId"}, false),
 				_SQL_SELECT_EMAILADDRESS_WHERE, _SQL_COUNT_EMAILADDRESS_WHERE,
 				EmailAddressModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"emailAddress.", "companyId", FinderColumn.Type.LONG, "=",
 					true, true, EmailAddress::getCompanyId));
@@ -1275,6 +1276,7 @@ public class EmailAddressPersistenceImpl
 					new String[] {"userId"}, false),
 				_SQL_SELECT_EMAILADDRESS_WHERE, _SQL_COUNT_EMAILADDRESS_WHERE,
 				EmailAddressModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"emailAddress.", "userId", FinderColumn.Type.LONG, "=",
 					true, true, EmailAddress::getUserId));
@@ -1298,7 +1300,8 @@ public class EmailAddressPersistenceImpl
 				new String[] {Long.class.getName(), Long.class.getName()},
 				new String[] {"companyId", "classNameId"}, false),
 			_SQL_SELECT_EMAILADDRESS_WHERE, _SQL_COUNT_EMAILADDRESS_WHERE,
-			EmailAddressModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			EmailAddressModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"emailAddress.", "companyId", FinderColumn.Type.LONG, "=", true,
 				true, EmailAddress::getCompanyId),
@@ -1331,7 +1334,8 @@ public class EmailAddressPersistenceImpl
 				},
 				new String[] {"companyId", "classNameId", "classPK"}, false),
 			_SQL_SELECT_EMAILADDRESS_WHERE, _SQL_COUNT_EMAILADDRESS_WHERE,
-			EmailAddressModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			EmailAddressModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"emailAddress.", "companyId", FinderColumn.Type.LONG, "=", true,
 				true, EmailAddress::getCompanyId),
@@ -1379,6 +1383,7 @@ public class EmailAddressPersistenceImpl
 					false),
 				_SQL_SELECT_EMAILADDRESS_WHERE, _SQL_COUNT_EMAILADDRESS_WHERE,
 				EmailAddressModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"emailAddress.", "companyId", FinderColumn.Type.LONG, "=",
 					true, true, EmailAddress::getCompanyId),
@@ -1432,12 +1437,6 @@ public class EmailAddressPersistenceImpl
 	private static final String _SQL_COUNT_EMAILADDRESS_WHERE =
 		"SELECT COUNT(emailAddress) FROM EmailAddress emailAddress WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No EmailAddress exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		EmailAddressPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid", "primary"});
 
@@ -1447,4 +1446,4 @@ public class EmailAddressPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1294586220
+// LIFERAY-SERVICE-BUILDER-HASH:-920281401

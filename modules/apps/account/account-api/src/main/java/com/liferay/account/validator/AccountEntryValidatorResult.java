@@ -8,6 +8,7 @@ package com.liferay.account.validator;
 import com.liferay.account.constants.AccountEntryValidatorConstants;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.util.Validator;
 
 import java.io.Serializable;
 
@@ -18,8 +19,8 @@ import java.util.Objects;
  */
 public final class AccountEntryValidatorResult implements Serializable {
 
-	public static Builder builder(String key) {
-		return new Builder(key);
+	public static Builder builder(String classPK) {
+		return new Builder(classPK);
 	}
 
 	public String getActionLabel() {
@@ -34,8 +35,8 @@ public final class AccountEntryValidatorResult implements Serializable {
 		return _jsonObject;
 	}
 
-	public String getKey() {
-		return _key;
+	public String getClassPK() {
+		return _classPK;
 	}
 
 	public String getResultMessage() {
@@ -72,8 +73,16 @@ public final class AccountEntryValidatorResult implements Serializable {
 		}
 
 		public AccountEntryValidatorResult build() {
+			if (Validator.isNull(_resultMessage) &&
+				Objects.equals(
+					_resultStatus,
+					AccountEntryValidatorConstants.RESULT_FAILURE)) {
+
+				_resultMessage = "account-validation-failed";
+			}
+
 			return new AccountEntryValidatorResult(
-				_actionLabel, _actionURL, _jsonObject, _key, _resultMessage,
+				_actionLabel, _actionURL, _classPK, _jsonObject, _resultMessage,
 				_resultStatus);
 		}
 
@@ -89,14 +98,14 @@ public final class AccountEntryValidatorResult implements Serializable {
 			return this;
 		}
 
-		private Builder(String key) {
-			_key = key;
+		private Builder(String classPK) {
+			_classPK = classPK;
 		}
 
 		private String _actionLabel = StringPool.BLANK;
 		private String _actionURL = StringPool.BLANK;
+		private final String _classPK;
 		private JSONObject _jsonObject;
-		private final String _key;
 		private String _resultMessage = StringPool.BLANK;
 		private String _resultStatus =
 			AccountEntryValidatorConstants.RESULT_SUCCESS;
@@ -104,21 +113,21 @@ public final class AccountEntryValidatorResult implements Serializable {
 	}
 
 	private AccountEntryValidatorResult(
-		String actionLabel, String actionURL, JSONObject jsonObject, String key,
-		String resultMessage, String resultStatus) {
+		String actionLabel, String actionURL, String classPK,
+		JSONObject jsonObject, String resultMessage, String resultStatus) {
 
 		_actionLabel = actionLabel;
 		_actionURL = actionURL;
+		_classPK = classPK;
 		_jsonObject = jsonObject;
-		_key = key;
 		_resultMessage = resultMessage;
 		_resultStatus = resultStatus;
 	}
 
 	private final String _actionLabel;
 	private final String _actionURL;
+	private final String _classPK;
 	private final JSONObject _jsonObject;
-	private final String _key;
 	private final String _resultMessage;
 	private final String _resultStatus;
 

@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -121,6 +122,8 @@ public abstract class BaseMeasurementUnitResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -1278,7 +1281,7 @@ public abstract class BaseMeasurementUnitResourceTestCase {
 				measurementUnitType, randomMeasurementUnit());
 
 		page = measurementUnitResource.getMeasurementUnitsByType(
-			measurementUnitType, Pagination.of(1, 10), null);
+			measurementUnitType, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1586,19 +1589,9 @@ public abstract class BaseMeasurementUnitResourceTestCase {
 		String measurementUnitType =
 			testGetMeasurementUnitsByType_getMeasurementUnitType();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"measurementUnitsByType",
-			new HashMap<String, Object>() {
-				{
-					put(
-						"measurementUnitType",
-						"\"" + measurementUnitType + "\"");
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetMeasurementUnitsByTypeMeasurementUnit_getGraphQLField(
+				measurementUnitType);
 
 		// No namespace
 
@@ -1663,6 +1656,26 @@ public abstract class BaseMeasurementUnitResourceTestCase {
 					measurementUnitsByTypeJSONObject.getString("items"))));
 	}
 
+	protected GraphQLField
+			testGraphQLGetMeasurementUnitsByTypeMeasurementUnit_getGraphQLField(
+				String measurementUnitType)
+		throws Exception {
+
+		return new GraphQLField(
+			"measurementUnitsByType",
+			new HashMap<String, Object>() {
+				{
+					put(
+						"measurementUnitType",
+						"\"" + measurementUnitType + "\"");
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
+	}
+
 	protected MeasurementUnit
 			testGraphQLGetMeasurementUnitsByTypeMeasurementUnit_addMeasurementUnit(
 				String measurementUnitType, MeasurementUnit measurementUnit)
@@ -1689,7 +1702,7 @@ public abstract class BaseMeasurementUnitResourceTestCase {
 				randomMeasurementUnit());
 
 		page = measurementUnitResource.getMeasurementUnitsPage(
-			null, Pagination.of(1, 10), null);
+			null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -2048,16 +2061,8 @@ public abstract class BaseMeasurementUnitResourceTestCase {
 
 	@Test
 	public void testGraphQLGetMeasurementUnitsPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"measurementUnits",
-			new HashMap<String, Object>() {
-				{
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetMeasurementUnitsPageMeasurementUnit_getGraphQLField();
 
 		// No namespace
 
@@ -2116,6 +2121,22 @@ public abstract class BaseMeasurementUnitResourceTestCase {
 			Arrays.asList(
 				MeasurementUnitSerDes.toDTOs(
 					measurementUnitsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetMeasurementUnitsPageMeasurementUnit_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"measurementUnits",
+			new HashMap<String, Object>() {
+				{
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -3425,4 +3446,4 @@ public abstract class BaseMeasurementUnitResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1729057933
+// LIFERAY-REST-BUILDER-HASH:-1503941057

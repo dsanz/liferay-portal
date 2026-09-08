@@ -6,15 +6,16 @@
 package com.liferay.batch.engine.internal.unit;
 
 import com.liferay.petra.executor.PortalExecutorManager;
-import com.liferay.petra.function.UnsafeSupplier;
+import com.liferay.petra.function.UnsafeRunnable;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagListener;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.MapUtil;
-import com.liferay.portal.kernel.util.Tuple;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 
@@ -31,20 +32,20 @@ import org.osgi.service.component.annotations.Reference;
 @Component(service = FeatureFlagBatchEngineUnitProcessor.class)
 public class FeatureFlagBatchEngineUnitProcessor {
 
-	public void registerBatchEngineUnit(
+	public void registerBatchEngineUnits(
 		long companyId, String featureFlagKey,
-		UnsafeSupplier<CompletableFuture<Void>, Exception> unsafeSupplier) {
+		UnsafeRunnable<Exception> unsafeRunnable) {
 
-		_unsafeSuppliers.compute(
-			_getTuple(companyId, featureFlagKey),
-			(key, unsafeSuppliers) -> {
-				if (unsafeSuppliers == null) {
-					unsafeSuppliers = new ArrayList<>();
+		_unsafeRunnables.compute(
+			Map.entry(companyId, featureFlagKey),
+			(key, unsafeRunnables) -> {
+				if (unsafeRunnables == null) {
+					unsafeRunnables = new ArrayList<>();
 				}
 
-				unsafeSuppliers.add(unsafeSupplier);
+				unsafeRunnables.add(unsafeRunnable);
 
-				return unsafeSuppliers;
+				return unsafeRunnables;
 			});
 	}
 
@@ -60,17 +61,15 @@ public class FeatureFlagBatchEngineUnitProcessor {
 		_serviceRegistration.unregister();
 	}
 
-	private Tuple _getTuple(long companyId, String featureFlagKey) {
-		return new Tuple(companyId, featureFlagKey);
-	}
+	private static final Log _log = LogFactoryUtil.getLog(
+		FeatureFlagBatchEngineUnitProcessor.class);
 
 	@Reference
 	private PortalExecutorManager _portalExecutorManager;
 
 	private ServiceRegistration<FeatureFlagListener> _serviceRegistration;
-	private final Map
-		<Tuple, List<UnsafeSupplier<CompletableFuture<Void>, Exception>>>
-			_unsafeSuppliers = new ConcurrentHashMap<>();
+	private final Map<Map.Entry<Long, String>, List<UnsafeRunnable<Exception>>>
+		_unsafeRunnables = new ConcurrentHashMap<>();
 
 	private class FeatureFlagListenerImpl implements FeatureFlagListener {
 
@@ -82,37 +81,37 @@ public class FeatureFlagBatchEngineUnitProcessor {
 				return;
 			}
 
-			Tuple tuple = _getTuple(companyId, featureFlagKey);
+			List<UnsafeRunnable<Exception>> unsafeRunnables =
+				_unsafeRunnables.remove(Map.entry(companyId, featureFlagKey));
 
-			if (!_unsafeSuppliers.containsKey(tuple)) {
+			if (unsafeRunnables == null) {
 				return;
 			}
 
-			synchronized (_unsafeSuppliers) {
-				List<UnsafeSupplier<CompletableFuture<Void>, Exception>>
-					unsafeSuppliers = _unsafeSuppliers.remove(tuple);
+			ExecutorService executorService =
+				_portalExecutorManager.getPortalExecutor(
+					FeatureFlagListenerImpl.class.getName());
 
-				ExecutorService executorService =
-					_portalExecutorManager.getPortalExecutor(
-						FeatureFlagListenerImpl.class.getName());
+			executorService.submit(
+				() -> {
+					for (UnsafeRunnable<Exception> unsafeRunnable :
+							unsafeRunnables) {
 
-				executorService.submit(
-					() -> {
-						for (UnsafeSupplier<CompletableFuture<Void>, Exception>
-								unsafeSupplier : unsafeSuppliers) {
-
-							try {
-								CompletableFuture<Void> completableFuture =
-									unsafeSupplier.get();
-
-								completableFuture.get();
-							}
-							catch (Exception exception) {
-								throw new RuntimeException(exception);
-							}
+						try {
+							unsafeRunnable.run();
 						}
-					});
-			}
+						catch (Throwable throwable) {
+							_log.error(
+								StringBundler.concat(
+									"Unable to process batch engine units ",
+									"deferred for feature flag ",
+									featureFlagKey, " in company ", companyId),
+								throwable);
+
+							return;
+						}
+					}
+				});
 		}
 
 	}

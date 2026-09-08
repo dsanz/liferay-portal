@@ -20,6 +20,21 @@ variable "deployment_name" {
 		error_message="The variable \"deployment_name\" must be 3-24 characters, start with a lowercase letter, and contain only lowercase letters, numbers, and hyphens."
 	}
 }
+variable "dxp_operator_config" {
+	default={}
+	type=object(
+		{
+			heartbeat_interval=optional(string, null)
+			image=optional(
+				object(
+					{
+						repository=optional(string, null)
+						tag=optional(string, null)
+					}), {})
+			provisioning_base_url=optional(string, null)
+			retry_max_delay=optional(string, null)
+		})
+}
 variable "external_secret_store_provider_hcl" {
 	default=null
 	type=any
@@ -56,6 +71,7 @@ variable "infrastructure_git_repo_config" {
 				base=optional(string, "liferay/projects/{{path[2]}}/base")
 				environments=optional(string, "liferay/projects/*/environments/*")
 				infrastructure_provider_values_filename=optional(string, "infrastructure-provider.yaml")
+				observability_values_filename=optional(string, "observability.yaml")
 				project_values_filename=optional(string, "project.yaml")
 				projects=optional(string, "liferay/projects/*")
 				system=optional(string, "liferay/system")
@@ -176,6 +192,29 @@ variable "liferay_helm_chart_name" {
 	}
 }
 variable "liferay_helm_chart_version" {
+	type=string
+}
+variable "observability_config" {
+	default={}
+	type=object(
+		{
+			enabled=optional(bool, false)
+			namespace=optional(string, "observability")
+		}
+	)
+}
+variable "observability_helm_chart_config" {
+	default={}
+	type=object(
+		{
+			chart_name=optional(string, "observability")
+			chart_url=optional(string, "oci://us-central1-docker.pkg.dev/external-assets-prd/liferay-helm-chart/observability")
+			path=optional(string, null)
+			version=optional(string, null)
+		}
+	)
+}
+variable "observability_helm_chart_version" {
 	type=string
 }
 variable "project_id" {

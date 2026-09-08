@@ -245,7 +245,7 @@ public class LayoutUtilityPageEntryLocalServiceImpl
 		throws PortalException {
 
 		LayoutUtilityPageEntry layoutUtilityPageEntry =
-			layoutUtilityPageEntryLocalService.fetchLayoutUtilityPageEntry(
+			layoutUtilityPageEntryPersistence.fetchByPrimaryKey(
 				layoutUtilityPageEntryId);
 
 		return layoutUtilityPageEntryLocalService.deleteLayoutUtilityPageEntry(
@@ -428,7 +428,7 @@ public class LayoutUtilityPageEntryLocalServiceImpl
 		throws PortalException {
 
 		LayoutUtilityPageEntry layoutUtilityPageEntry =
-			layoutUtilityPageEntryPersistence.fetchByPrimaryKey(
+			layoutUtilityPageEntryPersistence.findByPrimaryKey(
 				layoutUtilityPageEntryId);
 
 		_validateName(

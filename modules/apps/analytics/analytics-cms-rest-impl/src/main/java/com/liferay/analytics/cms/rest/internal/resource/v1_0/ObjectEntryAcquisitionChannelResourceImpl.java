@@ -9,7 +9,11 @@ import com.liferay.analytics.cms.rest.dto.v1_0.ObjectEntryAcquisitionChannel;
 import com.liferay.analytics.cms.rest.internal.client.AnalyticsCloudClient;
 import com.liferay.analytics.cms.rest.resource.v1_0.ObjectEntryAcquisitionChannelResource;
 import com.liferay.analytics.settings.rest.manager.AnalyticsSettingsManager;
+import com.liferay.analytics.settings.rest.util.AnalyticsSettingsManagerUtil;
+import com.liferay.object.model.ObjectEntry;
+import com.liferay.object.service.ObjectEntryService;
 import com.liferay.portal.kernel.license.util.LicenseManagerUtil;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.vulcan.pagination.Page;
 
@@ -31,25 +35,43 @@ public class ObjectEntryAcquisitionChannelResourceImpl
 	@Override
 	public Page<ObjectEntryAcquisitionChannel>
 			getObjectEntryAcquisitionChannelsPage(
-				String externalReferenceCode, Long groupId, Integer rangeKey)
+				Long groupId, Long objectEntryId, Integer rangeKey)
 		throws Exception {
 
 		LicenseManagerUtil.checkFreeTier();
 
+		AnalyticsSettingsManagerUtil.checkAnalyticsEnabled(
+			_analyticsSettingsManager, contextCompany.getCompanyId());
+
+		if (groupId != null) {
+			AnalyticsSettingsManagerUtil.checkSiteIdSynced(
+				_analyticsSettingsManager,
+				_groupLocalService.getGroup(groupId));
+		}
+
 		AnalyticsCloudClient analyticsCloudClient = new AnalyticsCloudClient(
 			_http);
+
+		ObjectEntry objectEntry = _objectEntryService.getObjectEntry(
+			objectEntryId);
 
 		return Page.of(
 			analyticsCloudClient.getObjectEntryAcquisitionChannels(
 				_analyticsSettingsManager.getAnalyticsConfiguration(
 					contextCompany.getCompanyId()),
-				externalReferenceCode, groupId, rangeKey));
+				objectEntry.getExternalReferenceCode(), groupId, rangeKey));
 	}
 
 	@Reference
 	private AnalyticsSettingsManager _analyticsSettingsManager;
 
 	@Reference
+	private GroupLocalService _groupLocalService;
+
+	@Reference
 	private Http _http;
+
+	@Reference
+	private ObjectEntryService _objectEntryService;
 
 }

@@ -381,6 +381,10 @@ public class PropsValues {
 	public static String COMPANY_DEFAULT_WEB_ID = PropsUtil.get(
 		PropsKeys.COMPANY_DEFAULT_WEB_ID);
 
+	public static final long COMPANY_DELETE_IN_PROCESS_MAX_TIME =
+		GetterUtil.getLong(
+			PropsUtil.get(PropsKeys.COMPANY_DELETE_IN_PROCESS_MAX_TIME));
+
 	public static final boolean COMPANY_LOGIN_PREPOPULATE_DOMAIN =
 		GetterUtil.getBoolean(
 			PropsUtil.get(PropsKeys.COMPANY_LOGIN_PREPOPULATE_DOMAIN));
@@ -802,6 +806,10 @@ public class PropsValues {
 	public static final String EDITOR_WYSIWYG_DEFAULT = PropsUtil.get(
 		PropsKeys.EDITOR_WYSIWYG_DEFAULT);
 
+	public static final boolean ENTERPRISE_PRODUCT_AI_HUB_ENABLED =
+		GetterUtil.getBoolean(
+			PropsUtil.get(PropsKeys.ENTERPRISE_PRODUCT_AI_HUB_ENABLED));
+
 	public static final boolean ENTERPRISE_PRODUCT_NOTIFICATION_ENABLED =
 		GetterUtil.getBoolean(
 			PropsUtil.get(PropsKeys.ENTERPRISE_PRODUCT_NOTIFICATION_ENABLED));
@@ -1092,12 +1100,10 @@ public class PropsValues {
 	public static final String LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING =
 		PropsUtil.get(PropsKeys.LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING);
 
-	public static final boolean
-		LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING_ENABLED =
-			GetterUtil.getBoolean(
-				PropsUtil.get(
-					PropsKeys.
-						LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING_ENABLED));
+	public static boolean LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING_ENABLED =
+		GetterUtil.getBoolean(
+			PropsUtil.get(
+				PropsKeys.LAYOUT_FRIENDLY_URL_PUBLIC_SERVLET_MAPPING_ENABLED));
 
 	public static final boolean LAYOUT_GUEST_SHOW_MAX_ICON =
 		GetterUtil.getBoolean(
@@ -1135,6 +1141,13 @@ public class PropsValues {
 	public static final int LAYOUT_SCOPE_GROUP_FINDER_THRESHOLD =
 		GetterUtil.getInteger(
 			PropsUtil.get(PropsKeys.LAYOUT_SCOPE_GROUP_FINDER_THRESHOLD));
+
+	public static final boolean
+		LAYOUT_SET_PROTOTYPE_MERGE_DELETE_CACHE_FILE_ENABLED =
+			GetterUtil.getBoolean(
+				PropsUtil.get(
+					PropsKeys.
+						LAYOUT_SET_PROTOTYPE_MERGE_DELETE_CACHE_FILE_ENABLED));
 
 	public static final int LAYOUT_SET_PROTOTYPE_MERGE_FAIL_THRESHOLD =
 		GetterUtil.getInteger(
@@ -2358,11 +2371,6 @@ public class PropsValues {
 	public static final int UPGRADE_CONCURRENT_FETCH_SIZE =
 		GetterUtil.getInteger(
 			PropsUtil.get(PropsKeys.UPGRADE_CONCURRENT_FETCH_SIZE));
-
-	public static final int UPGRADE_CONCURRENT_PROCESS_FUTURE_LIST_MAX_SIZE =
-		GetterUtil.getInteger(
-			PropsUtil.get(
-				PropsKeys.UPGRADE_CONCURRENT_PROCESS_FUTURE_LIST_MAX_SIZE));
 
 	public static final boolean UPGRADE_DATABASE_DL_STORAGE_CHECK_DISABLED =
 		GetterUtil.getBoolean(

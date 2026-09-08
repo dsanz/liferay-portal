@@ -142,8 +142,9 @@ public class OpenIdConnectSessionPersistenceTest {
 
 		newOpenIdConnectSession.setSessionId(RandomTestUtil.randomString());
 
-		_openIdConnectSessions.add(
-			_persistence.update(newOpenIdConnectSession));
+		newOpenIdConnectSession = _persistence.update(newOpenIdConnectSession);
+
+		_openIdConnectSessions.add(newOpenIdConnectSession);
 
 		OpenIdConnectSession existingOpenIdConnectSession =
 			_persistence.findByPrimaryKey(
@@ -219,21 +220,21 @@ public class OpenIdConnectSessionPersistenceTest {
 	}
 
 	@Test
-	public void testCountByI_S() throws Exception {
-		_persistence.countByI_S("", "");
-
-		_persistence.countByI_S("null", "null");
-
-		_persistence.countByI_S((String)null, (String)null);
-	}
-
-	@Test
 	public void testCountByC_A_C() throws Exception {
 		_persistence.countByC_A_C(RandomTestUtil.nextLong(), "", "");
 
 		_persistence.countByC_A_C(0L, "null", "null");
 
 		_persistence.countByC_A_C(0L, (String)null, (String)null);
+	}
+
+	@Test
+	public void testCountByC_I_S() throws Exception {
+		_persistence.countByC_I_S(RandomTestUtil.nextLong(), "", "");
+
+		_persistence.countByC_I_S(0L, "null", "null");
+
+		_persistence.countByC_I_S(0L, (String)null, (String)null);
 	}
 
 	@Test
@@ -583,17 +584,6 @@ public class OpenIdConnectSessionPersistenceTest {
 				new Class<?>[] {String.class}, "issuer"));
 
 		Assert.assertEquals(
-			openIdConnectSession.getIssuer(),
-			ReflectionTestUtil.invoke(
-				openIdConnectSession, "getColumnOriginalValue",
-				new Class<?>[] {String.class}, "issuer"));
-		Assert.assertEquals(
-			openIdConnectSession.getSessionId(),
-			ReflectionTestUtil.invoke(
-				openIdConnectSession, "getColumnOriginalValue",
-				new Class<?>[] {String.class}, "sessionId"));
-
-		Assert.assertEquals(
 			Long.valueOf(openIdConnectSession.getUserId()),
 			ReflectionTestUtil.<Long>invoke(
 				openIdConnectSession, "getColumnOriginalValue",
@@ -650,4 +640,4 @@ public class OpenIdConnectSessionPersistenceTest {
 	private ClassLoader _dynamicQueryClassLoader;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-94933892
+// LIFERAY-SERVICE-BUILDER-HASH:-1045422463

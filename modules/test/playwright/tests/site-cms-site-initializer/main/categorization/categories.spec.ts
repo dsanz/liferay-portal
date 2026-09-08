@@ -6,7 +6,6 @@
 import {expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../../../fixtures/dataApiHelpersTest';
-import {featureFlagsTest} from '../../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../../fixtures/loginTest';
 import {checkAccessibility} from '../../../../utils/checkAccessibility';
 import {clickAndExpectToBeVisible} from '../../../../utils/clickAndExpectToBeVisible';
@@ -20,9 +19,13 @@ const test = mergeTests(
 	categorizationPagesTest,
 	cmsPagesTest,
 	dataApiHelpersTest,
-	featureFlagsTest({
-		'LPD-17564': {enabled: true},
-	}),
+	loginTest()
+);
+
+const systemCategoryTest = mergeTests(
+	categorizationPagesTest,
+	cmsPagesTest,
+	dataApiHelpersTest,
 	loginTest()
 );
 
@@ -238,6 +241,38 @@ test.describe("Category tests that don't focus on creation", () => {
 	);
 
 	test(
+		"Edit the slug of a Vocabulary's Category",
+		{tag: '@LPD-99566'},
+		async ({editCategoryPage}) => {
+
+			// A new category has no slug yet
+
+			await editCategoryPage.gotoCreateCategory(vocabularyId);
+
+			await expect(editCategoryPage.slugInput).toBeEmpty();
+
+			// An empty slug falls back to the category name
+
+			await editCategoryPage.gotoEditCategory(categoryId);
+
+			await expect(editCategoryPage.slugInput).toHaveValue(categoryName);
+
+			// A slug is normalized and kept
+
+			await editCategoryPage.fillSlug('Winter Sports');
+
+			await editCategoryPage.clickSave();
+			await editCategoryPage.handleEditConfirmationModal(true);
+
+			await editCategoryPage.gotoEditCategory(categoryId);
+
+			await expect(editCategoryPage.slugInput).toHaveValue(
+				'winter-sports'
+			);
+		}
+	);
+
+	test(
 		"Visit the edit page of a Vocabulary's Category from dropdown actions",
 		{tag: '@LPD-53252'},
 		async ({categoriesPage, page}) => {
@@ -301,7 +336,7 @@ test.describe("Category tests that don't focus on creation", () => {
 
 			await checkAccessibility({
 				page: editCategoryPage.page,
-				selectors: ['.categorization-section'],
+				selectors: ['.cms-section'],
 				selectorsToExclude: ['.control-menu-container'],
 			});
 
@@ -479,7 +514,7 @@ test.describe('Move category tests', () => {
 
 			await checkAccessibility({
 				page,
-				selectors: ['.category-selector-modal'],
+				selectors: ['.modal-content'],
 			});
 
 			await page.getByRole('button', {name: 'move'}).click();
@@ -589,15 +624,18 @@ test.describe('Subcategory tests', () => {
 
 			await editCategoryPage.clickSave();
 
-			await categoriesPage.assertBreadcrumbItemText(1, vocabularyName);
+			await expect(async () => {
+				await categoriesPage.gotoSubcategories(
+					categoryId,
+					categoryName,
+					vocabularyId,
+					vocabularyName
+				);
 
-			await expect(categoriesPage.getItem('1')).toBeVisible();
-
-			await categoriesPage.getItem('1').click();
-
-			await categoriesPage.assertBreadcrumbItemText(2, categoryName);
-
-			await expect(categoriesPage.getItem(subcategoryName)).toBeVisible();
+				await expect(
+					categoriesPage.getItem(subcategoryName)
+				).toBeVisible({timeout: 5000});
+			}).toPass();
 		}
 	);
 });
@@ -721,3 +759,146 @@ test(
 		).toBeVisible();
 	}
 );
+
+systemCategoryTest.describe('System category tests', () => {
+	let systemCategoryId: number;
+	let systemCategoryName: string;
+	let systemVocabularyId: number;
+	let systemVocabularyName: string;
+
+	systemCategoryTest.beforeEach(
+		'Create a vocabulary with a system category via API',
+		async ({apiHelpers}) => {
+			systemCategoryName = getRandomString();
+			systemVocabularyName = getRandomString();
+
+			const siteId = await apiHelpers.headlessAdminUser
+				.getSiteByFriendlyUrlPath('cms')
+				.then((response) => response.id);
+
+			systemVocabularyId = await apiHelpers.headlessAdminTaxonomy
+				.postSiteTaxonomyVocabulary({
+					assetLibraries: [{id: -1}],
+					assetTypes: [
+						{
+							required: false,
+							subtype: 'AllAssetSubtypes',
+							type: 'AllAssetTypes',
+						},
+					],
+					name: systemVocabularyName,
+					siteId,
+					visibilityType: 'PUBLIC',
+				})
+				.then((response) => response.id);
+
+			systemCategoryId = await apiHelpers.headlessAdminTaxonomy
+				.postTaxonomyVocabularyTaxonomyCategory({
+					name: systemCategoryName,
+					system: true,
+					vocabularyId: systemVocabularyId,
+				})
+				.then((response) => response.id);
+		}
+	);
+
+	// A system category cannot be deleted once created, so the automatic
+	// cleanup of its vocabulary fails silently and both are left behind. Each
+	// test creates a fresh vocabulary and navigates to it by id, so the
+	// leftover data does not interfere with the assertions.
+
+	systemCategoryTest(
+		'Mark a system category with a lock icon and hide its edit, move, and delete actions',
+		{tag: '@LPD-96625'},
+		async ({categoriesPage}) => {
+			await categoriesPage.goto(systemVocabularyId, systemVocabularyName);
+
+			// The system category is marked with a lock icon
+
+			await expect(
+				categoriesPage.getItemSystemIcon(systemCategoryName)
+			).toBeVisible();
+
+			// The edit, move, and delete actions are not offered
+
+			await categoriesPage.expectItemActionHidden({
+				action: 'Edit',
+				filter: systemCategoryName,
+			});
+			await categoriesPage.expectItemActionHidden({
+				action: 'Move',
+				filter: systemCategoryName,
+			});
+			await categoriesPage.expectItemActionHidden({
+				action: 'Delete',
+				filter: systemCategoryName,
+			});
+		}
+	);
+
+	systemCategoryTest(
+		'Lock the protected fields when editing a system category',
+		{tag: '@LPD-96625'},
+		async ({editCategoryPage, page}) => {
+			await editCategoryPage.gotoEditCategory(systemCategoryId);
+
+			await expect(
+				page.getByText(`Edit ${systemCategoryName}`)
+			).toBeVisible();
+
+			// The name and description cannot be edited
+
+			await expect(editCategoryPage.nameInput).toBeDisabled();
+			await expect(editCategoryPage.descriptionInput).toBeDisabled();
+		}
+	);
+
+	systemCategoryTest(
+		'Hide the add subcategory action for a system category',
+		{tag: '@LPD-97548'},
+		async ({categoriesPage}) => {
+			await categoriesPage.goto(systemVocabularyId, systemVocabularyName);
+
+			// A subcategory cannot be added to a system category
+
+			await categoriesPage.expectItemActionHidden({
+				action: 'Add Subcategory',
+				filter: systemCategoryName,
+			});
+		}
+	);
+
+	systemCategoryTest(
+		'Keep regular categories in the same vocabulary editable',
+		{tag: '@LPD-96625'},
+		async ({apiHelpers, categoriesPage, page}) => {
+			const regularCategoryName = getRandomString();
+
+			await apiHelpers.headlessAdminTaxonomy.postTaxonomyVocabularyTaxonomyCategory(
+				{
+					name: regularCategoryName,
+					vocabularyId: systemVocabularyId,
+				}
+			);
+
+			await categoriesPage.goto(systemVocabularyId, systemVocabularyName);
+
+			// A regular category is not marked as system
+
+			await expect(
+				categoriesPage.getItemSystemIcon(regularCategoryName)
+			).toBeHidden();
+
+			// A regular category can still be edited
+
+			await categoriesPage.execItemAction({
+				action: 'Edit',
+				filter: regularCategoryName,
+			});
+
+			await expect(
+				page.getByText(`Edit ${regularCategoryName}`)
+			).toBeVisible();
+		}
+	);
+});

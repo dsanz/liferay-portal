@@ -5,6 +5,7 @@
 
 package com.liferay.portal.workflow.kaleo.service.impl;
 
+import com.liferay.account.service.AccountEntryUserRelLocalService;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
@@ -17,6 +18,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
+import com.liferay.portal.workflow.kaleo.internal.util.KaleoDefinitionScopeUtil;
 import com.liferay.portal.workflow.kaleo.model.KaleoDefinition;
 import com.liferay.portal.workflow.kaleo.service.KaleoDefinitionLocalService;
 import com.liferay.portal.workflow.kaleo.service.base.KaleoDefinitionServiceBaseImpl;
@@ -41,15 +43,15 @@ public class KaleoDefinitionServiceImpl extends KaleoDefinitionServiceBaseImpl {
 	@Override
 	public KaleoDefinition addKaleoDefinition(
 			String externalReferenceCode, String name, String title,
-			String description, String content, String scope, int version,
-			ServiceContext serviceContext)
+			String description, String content, String scope, boolean system,
+			int version, ServiceContext serviceContext)
 		throws PortalException {
 
 		_checkPermissions(serviceContext);
 
 		return _kaleoDefinitionLocalService.addKaleoDefinition(
 			externalReferenceCode, name, title, description, content, scope,
-			version, serviceContext);
+			system, version, serviceContext);
 	}
 
 	@Override
@@ -57,7 +59,7 @@ public class KaleoDefinitionServiceImpl extends KaleoDefinitionServiceBaseImpl {
 		throws PortalException {
 
 		KaleoDefinition kaleoDefinition =
-			_kaleoDefinitionLocalService.getKaleoDefinition(kaleoDefinitionId);
+			kaleoDefinitionPersistence.findByPrimaryKey(kaleoDefinitionId);
 
 		_kaleoDefinitionModelResourcePermission.check(
 			getPermissionChecker(), kaleoDefinition, ActionKeys.VIEW);
@@ -86,9 +88,8 @@ public class KaleoDefinitionServiceImpl extends KaleoDefinitionServiceBaseImpl {
 			String name, ServiceContext serviceContext)
 		throws PortalException {
 
-		KaleoDefinition kaleoDefinition =
-			_kaleoDefinitionLocalService.getKaleoDefinition(
-				name, serviceContext);
+		KaleoDefinition kaleoDefinition = kaleoDefinitionPersistence.findByC_N(
+			serviceContext.getCompanyId(), name);
 
 		_kaleoDefinitionModelResourcePermission.check(
 			getPermissionChecker(), kaleoDefinition, ActionKeys.VIEW);
@@ -106,8 +107,11 @@ public class KaleoDefinitionServiceImpl extends KaleoDefinitionServiceBaseImpl {
 		_kaleoDefinitionModelResourcePermission.check(
 			getPermissionChecker(), null, ActionKeys.VIEW);
 
-		return _kaleoDefinitionLocalService.getScopeKaleoDefinitions(
-			scope, active, start, end, orderByComparator, serviceContext);
+		return kaleoDefinitionPersistence.findByG_C_S_A(
+			KaleoDefinitionScopeUtil.getGroupId(
+				scope, serviceContext, _accountEntryUserRelLocalService),
+			serviceContext.getCompanyId(), scope, active, start, end,
+			orderByComparator);
 	}
 
 	@Override
@@ -120,21 +124,25 @@ public class KaleoDefinitionServiceImpl extends KaleoDefinitionServiceBaseImpl {
 		_kaleoDefinitionModelResourcePermission.check(
 			getPermissionChecker(), null, ActionKeys.VIEW);
 
-		return _kaleoDefinitionLocalService.getScopeKaleoDefinitions(
-			scope, start, end, orderByComparator, serviceContext);
+		return kaleoDefinitionPersistence.findByG_C_S(
+			KaleoDefinitionScopeUtil.getGroupId(
+				scope, serviceContext, _accountEntryUserRelLocalService),
+			serviceContext.getCompanyId(), scope, start, end,
+			orderByComparator);
 	}
 
 	@Override
 	public KaleoDefinition updateKaleoDefinition(
 			String externalReferenceCode, long kaleoDefinitionId, String title,
-			String description, String content, ServiceContext serviceContext)
+			String description, String content, boolean system,
+			ServiceContext serviceContext)
 		throws PortalException {
 
 		_checkPermissions(serviceContext);
 
 		return _kaleoDefinitionLocalService.updatedKaleoDefinition(
 			externalReferenceCode, kaleoDefinitionId, title, description,
-			content, serviceContext);
+			content, system, serviceContext);
 	}
 
 	private void _checkPermissions(ServiceContext serviceContext)
@@ -154,6 +162,9 @@ public class KaleoDefinitionServiceImpl extends KaleoDefinitionServiceBaseImpl {
 			permissionChecker, serviceContext.getScopeGroupId(),
 			ActionKeys.ADD_DEFINITION);
 	}
+
+	@Reference
+	private AccountEntryUserRelLocalService _accountEntryUserRelLocalService;
 
 	@Reference
 	private KaleoDefinitionLocalService _kaleoDefinitionLocalService;

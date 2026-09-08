@@ -188,7 +188,6 @@ test(
 	async ({
 		apiHelpers,
 		configurationTabPage,
-		globalMenuPage,
 		page,
 		viewObjectDefinitionsPage,
 	}) => {
@@ -202,47 +201,27 @@ test(
 			type: 'objectDefinition',
 		});
 
-		await globalMenuPage.goToApplications('Process Builder');
+		const label = objectDefinition.label['en_US'];
 
-		await configurationTabPage.configurationTabLink.click();
+		await configurationTabPage.searchAssetType(label);
 
-		await expect(
-			page.getByRole('row', {
-				name: objectDefinition.label['en_US'],
-			})
-		).toBeVisible();
+		await expect(page.getByRole('row', {name: label})).toBeVisible();
 
 		await viewObjectDefinitionsPage.goto();
 
-		await viewObjectDefinitionsPage.changeObjectActivateStatus(
-			objectDefinition.label['en_US']
-		);
+		await viewObjectDefinitionsPage.changeObjectActivateStatus(label);
 
-		await globalMenuPage.goToApplications('Process Builder');
+		await configurationTabPage.searchAssetType(label);
 
-		await configurationTabPage.configurationTabLink.click();
-
-		await expect(
-			page.getByRole('row', {
-				name: objectDefinition.label['en_US'],
-			})
-		).toBeHidden();
+		await expect(page.getByRole('row', {name: label})).toBeHidden();
 
 		await viewObjectDefinitionsPage.goto();
 
-		await viewObjectDefinitionsPage.changeObjectActivateStatus(
-			objectDefinition.label['en_US']
-		);
+		await viewObjectDefinitionsPage.changeObjectActivateStatus(label);
 
-		await globalMenuPage.goToApplications('Process Builder');
+		await configurationTabPage.searchAssetType(label);
 
-		await configurationTabPage.configurationTabLink.click();
-
-		await expect(
-			page.getByRole('row', {
-				name: objectDefinition.label['en_US'],
-			})
-		).toBeVisible();
+		await expect(page.getByRole('row', {name: label})).toBeVisible();
 	}
 );
 

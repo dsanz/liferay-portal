@@ -63,20 +63,23 @@ public class JSONWebServiceClientImpl extends BaseJSONWebServiceClientImpl {
 			setProxyPassword(getString("proxyPassword", properties));
 		}
 
-		if (properties.containsKey("trustSelfSignedCertificates")) {
-			setTrustSelfSignedCertificates(
-				(boolean)properties.get("trustSelfSignedCertificates"));
+		if (properties.get("trustSelfSignedCertificates") instanceof
+				Boolean trustSelfSignedCertificates) {
+
+			setTrustSelfSignedCertificates(trustSelfSignedCertificates);
 		}
 
 		afterPropertiesSet();
 	}
 
 	protected String getString(String key, Map<String, Object> properties) {
-		if (!properties.containsKey(key)) {
+		Object value = properties.get(key);
+
+		if (value == null) {
 			return null;
 		}
 
-		return String.valueOf(properties.get(key));
+		return String.valueOf(value);
 	}
 
 	@Override

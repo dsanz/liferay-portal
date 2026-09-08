@@ -9,6 +9,8 @@ import React from 'react';
 
 import {IBulkActionTaskType} from '../../../common/types/BulkActionTask';
 
+export const BULK_ACTION_ADD_OBJECT_TO_PROJECT =
+	'AddObjectToProjectBulkSelectionAction';
 export const BULK_ACTION_ASSIGN_DEFAULT_WORKFLOW =
 	'AssignStructureDefaultWorkflowBulkSelectionAction';
 export const BULK_ACTION_ASSIGN_TO = 'AssignToObjectBulkSelectionAction';
@@ -32,13 +34,20 @@ export const BULK_ACTION_RESET_PERMISSIONS =
 export const BULK_ACTION_RESTORE = 'RestoreObjectBulkSelectionAction';
 export const BULK_ACTION_STATUS = 'StatusObjectBulkSelectionAction';
 export const BULK_ACTION_TAGS = 'EditObjectTagsBulkSelectionAction';
+export const BULK_ACTION_UPDATE_EXPIRATION_DATE =
+	'UpdateExpirationDateObjectBulkSelectionAction';
 export const BULK_ACTION_UPDATE_OBJECT_VALUES =
 	'UpdateObjectValuesBulkSelectionAction';
+export const BULK_ACTION_UPDATE_REVIEW_DATE =
+	'UpdateReviewDateObjectBulkSelectionAction';
 
 export const INTERVAL_TASK_POLLING_MS = 5000;
 
 export const LABELS_BULK_ACTIONS: {[key in keyof IBulkActionTaskType]: string} =
 	{
+		[BULK_ACTION_ADD_OBJECT_TO_PROJECT]: Liferay.Language.get(
+			'add-assets-to-project'
+		),
 		[BULK_ACTION_ASSIGN_DEFAULT_WORKFLOW]:
 			Liferay.Language.get('assign-workflow'),
 		[BULK_ACTION_ASSIGN_TO]: Liferay.Language.get('assign-to'),
@@ -69,8 +78,13 @@ export const LABELS_BULK_ACTIONS: {[key in keyof IBulkActionTaskType]: string} =
 		[BULK_ACTION_RESTORE]: Liferay.Language.get('assets-restoration'),
 		[BULK_ACTION_STATUS]: Liferay.Language.get('state-update'),
 		[BULK_ACTION_TAGS]: Liferay.Language.get('assets-tagging'),
+		[BULK_ACTION_UPDATE_EXPIRATION_DATE]: Liferay.Language.get(
+			'expiration-date-update'
+		),
 		[BULK_ACTION_UPDATE_OBJECT_VALUES]:
 			Liferay.Language.get('text-replace'),
+		[BULK_ACTION_UPDATE_REVIEW_DATE]:
+			Liferay.Language.get('review-date-update'),
 	};
 
 export const STATUS_COMPLETED = 'completed';

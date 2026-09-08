@@ -46,6 +46,7 @@ import jakarta.servlet.http.HttpSession;
 
 import java.io.IOException;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -481,6 +482,24 @@ public class PortalUtil {
 	 */
 	public static String getCDNHostHttps(long companyId) {
 		return _portal.getCDNHostHttps(companyId);
+	}
+
+	public static String getChangeLanguageURL(
+			String currentURL, HttpServletRequest httpServletRequest,
+			Locale locale, ThemeDisplay themeDisplay)
+		throws PortalException {
+
+		return _portal.getChangeLanguageURL(
+			currentURL, httpServletRequest, locale, themeDisplay);
+	}
+
+	public static Map<Locale, String> getChangeLanguageURLs(
+			String currentURL, HttpServletRequest httpServletRequest,
+			Collection<Locale> locales, ThemeDisplay themeDisplay)
+		throws PortalException {
+
+		return _portal.getChangeLanguageURLs(
+			currentURL, httpServletRequest, locales, themeDisplay);
 	}
 
 	/**

@@ -53,9 +53,72 @@ components:
                 virtualHost:
                     type: string
             type: object
+        PortalInstanceCopy:
+            description:
+                Configuration for copying a portal instance.
+            properties:
+                destinationCompanyId:
+                    description:
+                        The company ID to assign to the new portal instance. Omit it or pass a non-positive value to generate one automatically.
+                    format: int64
+                    type: integer
+                name:
+                    description:
+                        The name of the new portal instance.
+                    type: string
+                virtualHost:
+                    description:
+                        The virtual host of the new portal instance.
+                    type: string
+                webId:
+                    description:
+                        The web ID of the new portal instance.
+                    type: string
+            required:
+                -   name
+                -   virtualHost
+                -   webId
+            type: object
+        PortalInstanceExport:
+            description:
+                The result of exporting a portal instance.
+            properties:
+                exportedPartitionName:
+                    description:
+                        The name of the schema created by the export (e.g., lexported_12345).
+                    type: string
+                sourceCompanyId:
+                    description:
+                        The ID of the source company that was exported (e.g., 12345).
+                    format: int64
+                    type: integer
+            type: object
+        PortalInstanceImport:
+            description:
+                Import configuration for a DB partition portal instance.
+            properties:
+                name:
+                    description:
+                        Optional display name for the imported portal instance.
+                    type: string
+                schemaName:
+                    description:
+                        The DB partition schema name to import (e.g., lexported_12345).
+                    type: string
+                virtualHost:
+                    description:
+                        Optional virtual host for the imported portal instance.
+                    type: string
+                webId:
+                    description:
+                        Optional web ID for the imported portal instance.
+                    type: string
+            required:
+                -   schemaName
+            type: object
 info:
     description:
-        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.portal.instances.client', and version '1.0.31'."
+        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.portal.instances.client', and version '1.0.34'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html
@@ -117,6 +180,31 @@ paths:
                     description:
                         default response
             # @review
+            tags: ["PortalInstance"]
+    /portal-instances/import:
+        post:
+            description:
+                Imports a DB partition portal instance
+            operationId: postPortalInstanceImport
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/PortalInstanceImport"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/PortalInstanceImport"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalInstance"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/PortalInstance"
+                    description:
+                        The imported portal instance.
             tags: ["PortalInstance"]
     /portal-instances/{portalInstanceId}:
         delete:
@@ -212,6 +300,37 @@ paths:
                     description:
                         default response
             tags: ["PortalInstance"]
+    /portal-instances/{portalInstanceId}/copy:
+        post:
+            description:
+                Copies the portal instance
+            operationId: postPortalInstanceCopy
+            parameters:
+                -   in: path
+                    name: portalInstanceId
+                    required: true
+                    schema:
+                        type: string
+            requestBody:
+                content:
+                    application/json:
+                        schema:
+                            $ref: "#/components/schemas/PortalInstanceCopy"
+                    application/xml:
+                        schema:
+                            $ref: "#/components/schemas/PortalInstanceCopy"
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalInstance"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/PortalInstance"
+                    description:
+                        The copied portal instance.
+            tags: ["PortalInstance"]
     /portal-instances/{portalInstanceId}/deactivate:
         # @review
         put:
@@ -231,4 +350,27 @@ paths:
                         application/xml: {}
                     description:
                         default response
+            tags: ["PortalInstance"]
+    /portal-instances/{portalInstanceId}/export:
+        post:
+            description:
+                Exports the portal instance
+            operationId: postPortalInstanceExport
+            parameters:
+                -   in: path
+                    name: portalInstanceId
+                    required: true
+                    schema:
+                        type: string
+            responses:
+                200:
+                    content:
+                        application/json:
+                            schema:
+                                $ref: "#/components/schemas/PortalInstanceExport"
+                        application/xml:
+                            schema:
+                                $ref: "#/components/schemas/PortalInstanceExport"
+                    description:
+                        The result of exporting the portal instance.
             tags: ["PortalInstance"]

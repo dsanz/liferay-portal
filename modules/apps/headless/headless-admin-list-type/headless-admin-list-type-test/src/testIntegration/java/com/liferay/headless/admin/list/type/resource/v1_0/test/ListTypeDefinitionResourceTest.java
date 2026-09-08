@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.odata.entity.EntityField;
@@ -36,6 +37,7 @@ import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -79,6 +81,68 @@ public class ListTypeDefinitionResourceTest
 			});
 	}
 
+	@Override
+	@Test
+	public void testPatchListTypeDefinition() throws Exception {
+		super.testPatchListTypeDefinition();
+
+		ListTypeDefinition postListTypeDefinition =
+			testPatchListTypeDefinition_addListTypeDefinition();
+
+		ListTypeDefinition patchListTypeDefinition =
+			listTypeDefinitionResource.patchListTypeDefinition(
+				postListTypeDefinition.getId(),
+				new ListTypeDefinition() {
+					{
+						listTypeEntries = ArrayUtil.append(
+							postListTypeDefinition.getListTypeEntries(),
+							new ListTypeEntry() {
+								{
+									key = RandomTestUtil.randomString();
+									name_i18n =
+										RandomTestUtil.
+											randomLanguageIdStringMap();
+								}
+							});
+					}
+				});
+
+		ListTypeDefinition getListTypeDefinition =
+			listTypeDefinitionResource.getListTypeDefinition(
+				patchListTypeDefinition.getId());
+
+		ListTypeEntry[] listTypeEntries =
+			getListTypeDefinition.getListTypeEntries();
+
+		Assert.assertEquals(
+			Arrays.toString(listTypeEntries), 2, listTypeEntries.length);
+
+		String patchedName = RandomTestUtil.randomString();
+
+		patchListTypeDefinition =
+			listTypeDefinitionResource.patchListTypeDefinition(
+				postListTypeDefinition.getId(),
+				new ListTypeDefinition() {
+					{
+						name_i18n = Collections.singletonMap(
+							"en-US", patchedName);
+					}
+				});
+
+		getListTypeDefinition =
+			listTypeDefinitionResource.getListTypeDefinition(
+				patchListTypeDefinition.getId());
+
+		Assert.assertEquals(
+			Collections.singletonMap("en-US", patchedName),
+			getListTypeDefinition.getName_i18n());
+
+		listTypeEntries = getListTypeDefinition.getListTypeEntries();
+
+		Assert.assertEquals(
+			Arrays.toString(listTypeEntries), 2, listTypeEntries.length);
+	}
+
 	@Test
 	public void testPatchPostPutListTypeDefinitionWithPermissions()
 		throws Exception {
@@ -111,22 +175,30 @@ public class ListTypeDefinitionResourceTest
 		// No permissions in the body request
 
 		_assertListTypeDefinitionWithPermissions(
-			JSONUtil.putAll(_getOwnerPermissionsJSONObject()),
+			JSONUtil.putAll(
+				_getPermissionsJSONObject(RoleConstants.CMS_ADMINISTRATOR),
+				_getPermissionsJSONObject(RoleConstants.OWNER)),
 			_patchPutListTypeDefinitionWithPermissions(
 				Http.Method.PATCH,
 				_postListTypeDefinitionWithPermissions(true, null), true,
 				null));
 		_assertListTypeDefinitionWithPermissions(
-			JSONUtil.putAll(_getOwnerPermissionsJSONObject()),
+			JSONUtil.putAll(
+				_getPermissionsJSONObject(RoleConstants.CMS_ADMINISTRATOR),
+				_getPermissionsJSONObject(RoleConstants.OWNER)),
 			_patchPutListTypeDefinitionWithPermissions(
 				Http.Method.PUT,
 				_postListTypeDefinitionWithPermissions(true, null), true,
 				null));
 		_assertListTypeDefinitionWithPermissions(
-			JSONUtil.putAll(_getOwnerPermissionsJSONObject()),
+			JSONUtil.putAll(
+				_getPermissionsJSONObject(RoleConstants.CMS_ADMINISTRATOR),
+				_getPermissionsJSONObject(RoleConstants.OWNER)),
 			_postListTypeDefinitionWithPermissions(true, null));
 		_assertListTypeDefinitionWithPermissions(
-			JSONUtil.putAll(_getOwnerPermissionsJSONObject()),
+			JSONUtil.putAll(
+				_getPermissionsJSONObject(RoleConstants.CMS_ADMINISTRATOR),
+				_getPermissionsJSONObject(RoleConstants.OWNER)),
 			_putByExternalReferenceCodeListTypeDefinitionWithPermissions(
 				_postListTypeDefinitionWithPermissions(true, null), true,
 				null));
@@ -156,6 +228,7 @@ public class ListTypeDefinitionResourceTest
 
 		_assertListTypeDefinitionWithPermissions(
 			JSONUtil.putAll(
+				_getPermissionsJSONObject(RoleConstants.CMS_ADMINISTRATOR),
 				_getPermissionsJSONObject(
 					new String[] {ActionKeys.DELETE, ActionKeys.PERMISSIONS},
 					role1.getName()),
@@ -168,6 +241,7 @@ public class ListTypeDefinitionResourceTest
 
 		_assertListTypeDefinitionWithPermissions(
 			JSONUtil.putAll(
+				_getPermissionsJSONObject(RoleConstants.CMS_ADMINISTRATOR),
 				_getPermissionsJSONObject(
 					new String[] {ActionKeys.DELETE}, role1.getName()),
 				_getPermissionsJSONObject(
@@ -179,6 +253,7 @@ public class ListTypeDefinitionResourceTest
 						new String[] {ActionKeys.VIEW}, role3.getName()))));
 		_assertListTypeDefinitionWithPermissions(
 			JSONUtil.putAll(
+				_getPermissionsJSONObject(RoleConstants.CMS_ADMINISTRATOR),
 				_getPermissionsJSONObject(
 					new String[] {ActionKeys.DELETE}, role1.getName()),
 				_getPermissionsJSONObject(
@@ -190,6 +265,7 @@ public class ListTypeDefinitionResourceTest
 						new String[] {ActionKeys.UPDATE}, role3.getName()))));
 		_assertListTypeDefinitionWithPermissions(
 			JSONUtil.putAll(
+				_getPermissionsJSONObject(RoleConstants.CMS_ADMINISTRATOR),
 				_getPermissionsJSONObject(
 					new String[] {ActionKeys.DELETE, ActionKeys.UPDATE},
 					role1.getName()),
@@ -208,6 +284,7 @@ public class ListTypeDefinitionResourceTest
 		// Permissions with empty list
 
 		JSONArray companyPermissionsJSONArray = JSONUtil.putAll(
+			_getPermissionsJSONObject(RoleConstants.CMS_ADMINISTRATOR),
 			_getPermissionsJSONObject(
 				new String[] {ActionKeys.DELETE}, role1.getName()));
 
@@ -496,13 +573,13 @@ public class ListTypeDefinitionResourceTest
 		Assert.assertNull(jsonObject.get("title"));
 	}
 
-	private JSONObject _getOwnerPermissionsJSONObject() {
+	private JSONObject _getPermissionsJSONObject(String roleName) {
 		return _getPermissionsJSONObject(
 			new String[] {
 				ActionKeys.DELETE, ActionKeys.PERMISSIONS, ActionKeys.UPDATE,
 				ActionKeys.VIEW
 			},
-			RoleConstants.OWNER);
+			roleName);
 	}
 
 	private JSONObject _getPermissionsJSONObject(

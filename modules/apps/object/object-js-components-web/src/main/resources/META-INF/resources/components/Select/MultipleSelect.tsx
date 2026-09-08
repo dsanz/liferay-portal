@@ -98,10 +98,11 @@ export function MultipleSelect({
 		const multiSelectOptions = [] as LabelValueObject[];
 
 		(options as MultiSelectItem[]).forEach(({children}) => {
-			return children.forEach(({checked, label}) => {
+			return children.forEach(({checked, label, value}) => {
 				if (checked) {
 					multiSelectOptions.push({
 						label,
+						value,
 					});
 				}
 			});

@@ -548,13 +548,7 @@ public class BuildHistory {
 	}
 
 	private void _addData(Map<String, Long> dataMap, String key, Long value) {
-		if (!dataMap.containsKey(key)) {
-			dataMap.put(key, value);
-
-			return;
-		}
-
-		dataMap.put(key, dataMap.get(key) + value);
+		dataMap.merge(key, value, Long::sum);
 	}
 
 	private String _getBuildIdentifier(BuildJSONObject buildJSONObject) {
@@ -640,9 +634,7 @@ public class BuildHistory {
 		long totalValue = 0L;
 
 		for (String dateString : dateStrings) {
-			if (dailyValueMap.containsKey(dateString)) {
-				totalValue += dailyValueMap.get(dateString);
-			}
+			totalValue += dailyValueMap.getOrDefault(dateString, 0L);
 		}
 
 		return totalValue;

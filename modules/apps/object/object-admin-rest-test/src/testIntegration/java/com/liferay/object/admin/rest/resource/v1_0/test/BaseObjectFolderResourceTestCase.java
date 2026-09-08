@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -119,6 +120,8 @@ public abstract class BaseObjectFolderResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -833,7 +836,7 @@ public abstract class BaseObjectFolderResourceTestCase {
 			randomObjectFolder());
 
 		page = objectFolderResource.getObjectFoldersPage(
-			null, Pagination.of(1, 10));
+			null, Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -950,17 +953,8 @@ public abstract class BaseObjectFolderResourceTestCase {
 
 	@Test
 	public void testGraphQLGetObjectFoldersPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"objectFolders",
-			new HashMap<String, Object>() {
-				{
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetObjectFoldersPageObjectFolder_getGraphQLField();
 
 		// No namespace
 
@@ -1015,6 +1009,23 @@ public abstract class BaseObjectFolderResourceTestCase {
 			Arrays.asList(
 				ObjectFolderSerDes.toDTOs(
 					objectFoldersJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetObjectFoldersPageObjectFolder_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"objectFolders",
+			new HashMap<String, Object>() {
+				{
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -2280,4 +2291,4 @@ public abstract class BaseObjectFolderResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:277154760
+// LIFERAY-REST-BUILDER-HASH:1055017992

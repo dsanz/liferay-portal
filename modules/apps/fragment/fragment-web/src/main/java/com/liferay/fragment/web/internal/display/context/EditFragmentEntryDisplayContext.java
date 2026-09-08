@@ -18,9 +18,12 @@ import com.liferay.fragment.web.internal.info.field.type.CaptchaInfoFieldType;
 import com.liferay.fragment.web.internal.info.field.type.FormButtonInfoFieldType;
 import com.liferay.fragment.web.internal.info.field.type.LocalizationSelectInfoFieldType;
 import com.liferay.fragment.web.internal.info.field.type.StepperInfoFieldType;
+import com.liferay.fragment.web.internal.util.DesignLibraryUtil;
+import com.liferay.info.field.type.AssigneeInfoFieldType;
 import com.liferay.info.field.type.BooleanInfoFieldType;
 import com.liferay.info.field.type.DateInfoFieldType;
 import com.liferay.info.field.type.DateTimeInfoFieldType;
+import com.liferay.info.field.type.EmailInfoFieldType;
 import com.liferay.info.field.type.FileInfoFieldType;
 import com.liferay.info.field.type.FriendlyURLInfoFieldType;
 import com.liferay.info.field.type.HTMLInfoFieldType;
@@ -28,6 +31,7 @@ import com.liferay.info.field.type.InfoFieldType;
 import com.liferay.info.field.type.LongTextInfoFieldType;
 import com.liferay.info.field.type.MultiselectInfoFieldType;
 import com.liferay.info.field.type.NumberInfoFieldType;
+import com.liferay.info.field.type.PhoneNumberInfoFieldType;
 import com.liferay.info.field.type.RelationshipInfoFieldType;
 import com.liferay.info.field.type.SelectInfoFieldType;
 import com.liferay.info.field.type.TextInfoFieldType;
@@ -97,7 +101,7 @@ public class EditFragmentEntryDisplayContext {
 		_themeDisplay = (ThemeDisplay)httpServletRequest.getAttribute(
 			WebKeys.THEME_DISPLAY);
 
-		_setViewAttributes();
+		_updatePortletDisplay();
 	}
 
 	public long getFragmentCollectionId() {
@@ -525,7 +529,7 @@ public class EditFragmentEntryDisplayContext {
 		).put(
 			"resources", resources
 		).put(
-			"showFieldTypes", _showFieldTypes()
+			"showFieldTypes", _isShowFieldTypes()
 		).put(
 			"spritemap", _themeDisplay.getPathThemeSpritemap()
 		).put(
@@ -626,8 +630,24 @@ public class EditFragmentEntryDisplayContext {
 		return _readOnly;
 	}
 
-	private void _setViewAttributes() {
+	private boolean _isShowFieldTypes() {
+		FragmentEntry fragmentEntry = getFragmentEntry();
+
+		if ((fragmentEntry == null) || !fragmentEntry.isTypeInput()) {
+			return false;
+		}
+
+		return true;
+	}
+
+	private void _updatePortletDisplay() {
 		PortletDisplay portletDisplay = _themeDisplay.getPortletDisplay();
+
+		if (DesignLibraryUtil.isDesignLibraryScope(
+				_themeDisplay.getScopeGroup())) {
+
+			portletDisplay.setPortletDecoratorId("barebone");
+		}
 
 		portletDisplay.setShowBackIcon(true);
 		portletDisplay.setURLBack(getRedirect());
@@ -651,26 +671,17 @@ public class EditFragmentEntryDisplayContext {
 				")"));
 	}
 
-	private boolean _showFieldTypes() {
-		FragmentEntry fragmentEntry = getFragmentEntry();
-
-		if ((fragmentEntry == null) || !fragmentEntry.isTypeInput()) {
-			return false;
-		}
-
-		return true;
-	}
-
 	private static final InfoFieldType[] _INFO_FIELD_TYPES = {
-		BooleanInfoFieldType.INSTANCE, CaptchaInfoFieldType.INSTANCE,
-		DateInfoFieldType.INSTANCE, DateTimeInfoFieldType.INSTANCE,
+		AssigneeInfoFieldType.INSTANCE, BooleanInfoFieldType.INSTANCE,
+		CaptchaInfoFieldType.INSTANCE, DateInfoFieldType.INSTANCE,
+		DateTimeInfoFieldType.INSTANCE, EmailInfoFieldType.INSTANCE,
 		FileInfoFieldType.INSTANCE, FormButtonInfoFieldType.INSTANCE,
 		FriendlyURLInfoFieldType.INSTANCE, HTMLInfoFieldType.INSTANCE,
 		LocalizationSelectInfoFieldType.INSTANCE,
 		LongTextInfoFieldType.INSTANCE, MultiselectInfoFieldType.INSTANCE,
-		NumberInfoFieldType.INSTANCE, RelationshipInfoFieldType.INSTANCE,
-		SelectInfoFieldType.INSTANCE, StepperInfoFieldType.INSTANCE,
-		TextInfoFieldType.INSTANCE
+		NumberInfoFieldType.INSTANCE, PhoneNumberInfoFieldType.INSTANCE,
+		RelationshipInfoFieldType.INSTANCE, SelectInfoFieldType.INSTANCE,
+		StepperInfoFieldType.INSTANCE, TextInfoFieldType.INSTANCE
 	};
 
 	private static final Log _log = LogFactoryUtil.getLog(

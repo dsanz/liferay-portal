@@ -32,16 +32,16 @@ public class RoomSectionTableFDSViewTest
 	@Test
 	public void testGetFDSTableSchema() throws Exception {
 		assertFDSTableSchemaField(
-			"view", "roomNameTableCellRenderer", "name", "embedded.name");
+			"view", "roomNameTableCellRenderer", "name", "name");
 		assertFDSTableSchemaField(
-			null, "dateTime", "creation-date", "embedded.dateCreated");
+			null, "dateTime", "creation-date", "dateCreated");
 		assertFDSTableSchemaField(
-			null, "dateTime", "last-modified", "embedded.dateModified");
-		assertFDSTableSchemaField(null, null, "owner", "embedded.creator.name");
+			null, "dateTime", "last-modified", "dateModified");
+		assertFDSTableSchemaField(null, null, "owner", "creator.name");
 		assertFDSTableSchemaField(
-			null, "roomStatusTableCellRenderer", "status", "embedded.status");
+			null, "roomTrendTableCellRenderer", "trend", "trend");
 		assertFDSTableSchemaField(
-			null, "roomTrendTableCellRenderer", "trend", "embedded.trend");
+			null, "roomStatusFieldTableCellRenderer", "status", "roomStatus");
 	}
 
 	@Override

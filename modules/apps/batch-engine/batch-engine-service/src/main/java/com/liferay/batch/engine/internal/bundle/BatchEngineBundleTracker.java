@@ -11,7 +11,10 @@ import com.liferay.batch.engine.unit.BatchEngineUnitMetaInfo;
 import com.liferay.batch.engine.unit.BatchEngineUnitProcessor;
 import com.liferay.batch.engine.unit.BatchEngineUnitReader;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.module.framework.ModuleServiceLifecycle;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.module.util.ServiceLatch;
+import com.liferay.portal.kernel.servlet.InitialRequestSyncUtil;
 import com.liferay.portal.kernel.upgrade.util.UpgradeProcessUtil;
 
 import java.util.ArrayList;
@@ -26,7 +29,6 @@ import org.osgi.framework.BundleEvent;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
 import org.osgi.util.tracker.BundleTracker;
 import org.osgi.util.tracker.BundleTrackerCustomizer;
 
@@ -44,7 +46,29 @@ public class BatchEngineBundleTracker {
 			bundleContext, Bundle.ACTIVE,
 			new BatchEngineBundleTrackerCustomizer());
 
-		_bundleTracker.open();
+		InitialRequestSyncUtil.registerSyncCallable(
+			() -> {
+				ServiceLatch serviceLatch = new ServiceLatch(bundleContext);
+
+				serviceLatch.waitFor(
+					BatchEngineUnitProcessor.class,
+					batchEngineUnitProcessor ->
+						_batchEngineUnitProcessor = batchEngineUnitProcessor
+				).waitFor(
+					BatchEngineUnitReader.class,
+					batchEngineUnitReader ->
+						_batchEngineUnitReader = batchEngineUnitReader
+				).waitFor(
+					MultiCompanyBatchEngineUnitProcessor.class,
+					multiCompanyBatchEngineUnitProcessor ->
+						_multiCompanyBatchEngineUnitProcessor =
+							multiCompanyBatchEngineUnitProcessor
+				).openOn(
+					_bundleTracker::open
+				);
+
+				return null;
+			});
 	}
 
 	@Deactivate
@@ -52,18 +76,12 @@ public class BatchEngineBundleTracker {
 		_bundleTracker.close();
 	}
 
-	@Reference
+	private static final Log _log = LogFactoryUtil.getLog(
+		BatchEngineBundleTracker.class);
+
 	private BatchEngineUnitProcessor _batchEngineUnitProcessor;
-
-	@Reference
 	private BatchEngineUnitReader _batchEngineUnitReader;
-
 	private BundleTracker<Bundle> _bundleTracker;
-
-	@Reference(target = ModuleServiceLifecycle.PORTLETS_INITIALIZED)
-	private ModuleServiceLifecycle _moduleServiceLifecycle;
-
-	@Reference
 	private MultiCompanyBatchEngineUnitProcessor
 		_multiCompanyBatchEngineUnitProcessor;
 
@@ -112,8 +130,16 @@ public class BatchEngineBundleTracker {
 				}
 			}
 
-			_batchEngineUnitProcessor.processBatchEngineUnits(
-				singleCompanyBatchEngineUnits);
+			try {
+				_batchEngineUnitProcessor.processBatchEngineUnits(
+					singleCompanyBatchEngineUnits);
+			}
+			catch (Exception exception) {
+				_log.error(
+					"Unable to process batch engine units of bundle " +
+						bundle.getSymbolicName(),
+					exception);
+			}
 
 			if (multiCompanyBatchEngineUnits.isEmpty()) {
 				return null;

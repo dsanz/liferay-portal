@@ -16,6 +16,7 @@ import com.liferay.commerce.product.service.CPConfigurationListService;
 import com.liferay.commerce.product.service.CPDefinitionService;
 import com.liferay.commerce.service.CPDAvailabilityEstimateService;
 import com.liferay.commerce.service.CPDefinitionInventoryService;
+import com.liferay.commerce.service.CommerceAvailabilityEstimateService;
 import com.liferay.headless.commerce.admin.catalog.dto.v1_0.Product;
 import com.liferay.headless.commerce.admin.catalog.dto.v1_0.ProductConfiguration;
 import com.liferay.headless.commerce.admin.catalog.dto.v1_0.ProductConfigurationList;
@@ -24,6 +25,7 @@ import com.liferay.headless.commerce.admin.catalog.dto.v1_0.ProductTaxConfigurat
 import com.liferay.headless.commerce.admin.catalog.internal.dto.v1_0.converter.ProductConfigurationDTOConverterContext;
 import com.liferay.headless.commerce.admin.catalog.internal.odata.entity.v1_0.ProductConfigurationEntityModel;
 import com.liferay.headless.commerce.admin.catalog.internal.util.v1_0.ProductConfigurationUtil;
+import com.liferay.headless.commerce.admin.catalog.internal.util.v1_0.ProductUtil;
 import com.liferay.headless.commerce.admin.catalog.resource.v1_0.ProductConfigurationResource;
 import com.liferay.portal.kernel.change.tracking.CTAware;
 import com.liferay.portal.kernel.search.Field;
@@ -214,10 +216,9 @@ public class ProductConfigurationResourceImpl
 		throws Exception {
 
 		CPDefinition cpDefinition =
-			_cpDefinitionService.
-				fetchCPDefinitionByCProductExternalReferenceCode(
-					externalReferenceCode, contextCompany.getCompanyId(),
-					false);
+			ProductUtil.fetchCPDefinitionByCProductExternalReferenceCode(
+				externalReferenceCode, contextCompany.getCompanyId(),
+				_cpDefinitionService);
 
 		if (cpDefinition == null) {
 			throw new NoSuchCPDefinitionException(
@@ -258,8 +259,8 @@ public class ProductConfigurationResourceImpl
 				GetterUtil.getBoolean(
 					productConfiguration.getAllowBackOrder(),
 					cpConfigurationEntry.isBackOrders()),
-				GetterUtil.getLong(
-					productConfiguration.getAvailabilityEstimateId(),
+				ProductConfigurationUtil.getCommerceAvailabilityEstimateId(
+					_commerceAvailabilityEstimateService, productConfiguration,
 					cpConfigurationEntry.getCommerceAvailabilityEstimateId()),
 				GetterUtil.getString(
 					productConfiguration.getInventoryEngine(),
@@ -340,8 +341,8 @@ public class ProductConfigurationResourceImpl
 			Long id, ProductConfiguration productConfiguration)
 		throws Exception {
 
-		CPDefinition cpDefinition =
-			_cpDefinitionService.fetchCPDefinitionByCProductId(id, false);
+		CPDefinition cpDefinition = ProductUtil.fetchCPDefinitionByCProductId(
+			id, _cpDefinitionService);
 
 		if (cpDefinition == null) {
 			throw new NoSuchCPDefinitionException(
@@ -372,8 +373,8 @@ public class ProductConfigurationResourceImpl
 				GetterUtil.getBoolean(
 					productConfiguration.getAllowBackOrder(),
 					masterCPConfigurationEntry.isBackOrders()),
-				GetterUtil.getLong(
-					productConfiguration.getAvailabilityEstimateId(),
+				ProductConfigurationUtil.getCommerceAvailabilityEstimateId(
+					_commerceAvailabilityEstimateService, productConfiguration,
 					masterCPConfigurationEntry.
 						getCommerceAvailabilityEstimateId()),
 				GetterUtil.getString(
@@ -438,6 +439,7 @@ public class ProductConfigurationResourceImpl
 			cpDefinition.getCPDefinitionId());
 
 		ProductConfigurationUtil.updateCPDAvailabilityEstimate(
+			_commerceAvailabilityEstimateService,
 			_cpdAvailabilityEstimateService, productConfiguration,
 			cpDefinition.getCPDefinitionId());
 
@@ -482,12 +484,10 @@ public class ProductConfigurationResourceImpl
 			Objects.equals(entityType.getValue(), "product")) {
 
 			CPDefinition cpDefinition =
-				_cpDefinitionService.
-					fetchCPDefinitionByCProductExternalReferenceCode(
-						GetterUtil.getString(
-							productConfiguration.
-								getEntityExternalReferenceCode()),
-						contextCompany.getCompanyId(), false);
+				ProductUtil.fetchCPDefinitionByCProductExternalReferenceCode(
+					GetterUtil.getString(
+						productConfiguration.getEntityExternalReferenceCode()),
+					contextCompany.getCompanyId(), _cpDefinitionService);
 
 			if (cpDefinition == null) {
 				cpDefinition = _cpDefinitionService.getCPDefinition(classPK);
@@ -516,8 +516,9 @@ public class ProductConfigurationResourceImpl
 				ProductConfigurationUtil.getAllowedOrderQuantities(
 					productConfiguration.getAllowedOrderQuantities(), null),
 				GetterUtil.getBoolean(productConfiguration.getAllowBackOrder()),
-				GetterUtil.getLong(
-					productConfiguration.getAvailabilityEstimateId()),
+				ProductConfigurationUtil.getCommerceAvailabilityEstimateId(
+					_commerceAvailabilityEstimateService, productConfiguration,
+					0),
 				GetterUtil.getString(productConfiguration.getInventoryEngine()),
 				GetterUtil.getDouble(productShippingConfiguration.getDepth()),
 				GetterUtil.getBoolean(
@@ -644,6 +645,10 @@ public class ProductConfigurationResourceImpl
 
 	private static final EntityModel _entityModel =
 		new ProductConfigurationEntityModel();
+
+	@Reference
+	private CommerceAvailabilityEstimateService
+		_commerceAvailabilityEstimateService;
 
 	@Reference(
 		target = "(model.class.name=com.liferay.commerce.product.model.CPConfigurationEntry)"

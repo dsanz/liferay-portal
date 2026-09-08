@@ -38,9 +38,7 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Fábio Alves
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-58677")}
-)
+@FeatureFlags(featureFlags = @FeatureFlag("LPD-58677"))
 @RunWith(Arquillian.class)
 @Sync
 public class ViewProjectTasksSectionDisplayContextTest
@@ -61,14 +59,16 @@ public class ViewProjectTasksSectionDisplayContextTest
 				"(objectDefinitionId eq ",
 				objectDefinition.getObjectDefinitionId(),
 				" and scopeGroupId eq ", assetEntry.getGroupId(),
-				")&nestedFields=cmpProjectToCMPTasks,embedded"),
+				")&nestedFields=embedded,embedded.cmpProjectToCMPTasks",
+				"&nestedFieldsDepth=2"),
 			getAPIURL(assetEntry));
 		Assert.assertEquals(
 			StringBundler.concat(
 				"/o/search/v1.0/search?emptySearch=true&filter=",
 				"(objectDefinitionId eq ",
 				objectDefinition.getObjectDefinitionId(),
-				")&nestedFields=cmpProjectToCMPTasks,embedded"),
+				")&nestedFields=embedded,embedded.cmpProjectToCMPTasks",
+				"&nestedFieldsDepth=2"),
 			getAPIURL(null));
 	}
 
@@ -78,7 +78,7 @@ public class ViewProjectTasksSectionDisplayContextTest
 			getFDSActionDropdownItems(assetEntry);
 
 		Assert.assertEquals(
-			fdsActionDropdownItems.toString(), 6,
+			fdsActionDropdownItems.toString(), 7,
 			fdsActionDropdownItems.size());
 
 		FrontendDataSetTestUtil.assertFDSActionDropdownItem(
@@ -103,10 +103,15 @@ public class ViewProjectTasksSectionDisplayContextTest
 				"entryClassName", objectDefinition.getClassName()),
 			fdsActionDropdownItems.get(4));
 		FrontendDataSetTestUtil.assertFDSActionDropdownItem(
-			"trash", "delete", "Delete", null,
+			"date-time", "update-due-date", "Update Due Date", "get",
 			Collections.singletonMap(
 				"entryClassName", objectDefinition.getClassName()),
 			fdsActionDropdownItems.get(5));
+		FrontendDataSetTestUtil.assertFDSActionDropdownItem(
+			"trash", "delete", "Delete", null,
+			Collections.singletonMap(
+				"entryClassName", objectDefinition.getClassName()),
+			fdsActionDropdownItems.get(6));
 	}
 
 	@Test
@@ -125,7 +130,7 @@ public class ViewProjectTasksSectionDisplayContextTest
 
 		Assert.assertEquals(
 			assetEntry.getClassPK(),
-			tasksQuickFiltersProperties.get("projectId"));
+			tasksQuickFiltersProperties.get("cmpProjectObjectEntryId"));
 	}
 
 	@Override

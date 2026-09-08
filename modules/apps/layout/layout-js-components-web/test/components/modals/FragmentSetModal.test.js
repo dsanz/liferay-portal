@@ -11,6 +11,7 @@ import React from 'react';
 import FragmentSetModal from '../../../src/main/resources/META-INF/resources/js/components/modals/FragmentSetModal';
 
 const renderComponent = ({
+	allowCustomName,
 	fragmentCollections = [],
 	onSubmitFragmentCollection,
 } = {}) => {
@@ -18,6 +19,7 @@ const renderComponent = ({
 
 	render(
 		<FragmentSetModal
+			allowCustomName={allowCustomName}
 			fragmentCollections={fragmentCollections}
 			onSubmitFragmentCollection={onSubmitFragmentCollection}
 		/>
@@ -54,7 +56,7 @@ describe('FragmentSetModal', () => {
 			jest.runAllTimers();
 		});
 
-		expect(screen.getByLabelText('fragment-sets')).toBeInTheDocument();
+		expect(screen.getByLabelText('fragment-set')).toBeInTheDocument();
 		expect(
 			screen.getByDisplayValue('-- not-selected --')
 		).toBeInTheDocument();
@@ -131,12 +133,84 @@ describe('FragmentSetModal', () => {
 			jest.runAllTimers();
 		});
 
-		fireEvent.change(screen.getByLabelText('fragment-sets'), {
+		fireEvent.change(screen.getByLabelText('fragment-set'), {
 			target: {value: '1'},
 		});
 
 		await user.click(screen.getByText('save'));
 
-		expect(onSubmitFragmentCollection).toHaveBeenCalledWith(1);
+		expect(onSubmitFragmentCollection).toHaveBeenCalledWith(1, '');
+	});
+
+	it('submits the selected fragment collection with the fragment name when allowCustomName is set', async () => {
+		const onSubmitFragmentCollection = jest.fn();
+		const user = renderComponent({
+			allowCustomName: true,
+			fragmentCollections: [
+				{fragmentCollectionId: 1, name: 'fragment-collection'},
+			],
+			onSubmitFragmentCollection,
+		});
+
+		act(() => {
+			jest.runAllTimers();
+		});
+
+		fireEvent.change(screen.getByLabelText('fragment-name'), {
+			target: {value: 'my-fragment'},
+		});
+
+		fireEvent.change(screen.getByLabelText('fragment-set'), {
+			target: {value: '1'},
+		});
+
+		await user.click(screen.getByText('save'));
+
+		expect(onSubmitFragmentCollection).toHaveBeenCalledWith(
+			1,
+			'my-fragment'
+		);
+	});
+
+	it('shows required validation when the fragment name is empty and allowCustomName is set', async () => {
+		const onSubmitFragmentCollection = jest.fn();
+		const user = renderComponent({
+			allowCustomName: true,
+			fragmentCollections: [
+				{fragmentCollectionId: 1, name: 'fragment-collection'},
+			],
+			onSubmitFragmentCollection,
+		});
+
+		act(() => {
+			jest.runAllTimers();
+		});
+
+		fireEvent.change(screen.getByLabelText('fragment-set'), {
+			target: {value: '1'},
+		});
+
+		await user.click(screen.getByText('save'));
+
+		expect(onSubmitFragmentCollection).not.toHaveBeenCalled();
+		expect(screen.getByText('x-field-is-required')).toBeInTheDocument();
+	});
+
+	it('does not create the fragment set when the fragment name is empty and allowCustomName is set', async () => {
+		const onSubmitFragmentCollection = jest.fn();
+		const user = renderComponent({
+			allowCustomName: true,
+			onSubmitFragmentCollection,
+		});
+
+		act(() => {
+			jest.runAllTimers();
+		});
+
+		await user.click(screen.getByText('save'));
+
+		expect(fetch).not.toHaveBeenCalled();
+		expect(onSubmitFragmentCollection).not.toHaveBeenCalled();
+		expect(screen.getByText('x-field-is-required')).toBeInTheDocument();
 	});
 });

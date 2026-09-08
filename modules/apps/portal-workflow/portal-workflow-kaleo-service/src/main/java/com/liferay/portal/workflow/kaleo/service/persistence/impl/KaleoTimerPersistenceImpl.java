@@ -672,7 +672,8 @@ public class KaleoTimerPersistenceImpl
 					new String[] {"kaleoClassName", "kaleoClassPK"}, 0, 1,
 					false, null),
 				_SQL_SELECT_KALEOTIMER_WHERE, _SQL_COUNT_KALEOTIMER_WHERE,
-				KaleoTimerModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				KaleoTimerModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"kaleoTimer.", "kaleoClassName", FinderColumn.Type.STRING,
 					"=", true, true, KaleoTimer::getKaleoClassName),
@@ -704,7 +705,8 @@ public class KaleoTimerPersistenceImpl
 					new String[] {"kaleoClassName", "kaleoDefinitionVersionId"},
 					0, 1, false, null),
 				_SQL_SELECT_KALEOTIMER_WHERE, _SQL_COUNT_KALEOTIMER_WHERE,
-				KaleoTimerModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				KaleoTimerModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"kaleoTimer.", "kaleoClassName", FinderColumn.Type.STRING,
 					"=", true, true, KaleoTimer::getKaleoClassName),
@@ -746,7 +748,8 @@ public class KaleoTimerPersistenceImpl
 					new String[] {"kaleoClassName", "kaleoClassPK", "blocking"},
 					0, 1, false, null),
 				_SQL_SELECT_KALEOTIMER_WHERE, _SQL_COUNT_KALEOTIMER_WHERE,
-				KaleoTimerModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				KaleoTimerModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"kaleoTimer.", "kaleoClassName", FinderColumn.Type.STRING,
 					"=", true, true, KaleoTimer::getKaleoClassName),
@@ -814,13 +817,10 @@ public class KaleoTimerPersistenceImpl
 	private static final String _SQL_COUNT_KALEOTIMER_WHERE =
 		"SELECT COUNT(kaleoTimer) FROM KaleoTimer kaleoTimer WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No KaleoTimer exists with the key {";
-
 	@Override
 	protected FinderCache getFinderCache() {
 		return finderCache;
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-243639570
+// LIFERAY-SERVICE-BUILDER-HASH:-556436503

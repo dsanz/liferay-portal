@@ -49,6 +49,7 @@ public class GetDSEnvelopesMVCResourceCommand extends BaseMVCResourceCommand {
 		Page<DSEnvelope> page = _dsEnvelopeManager.getDSEnvelopesPage(
 			themeDisplay.getCompanyId(), themeDisplay.getSiteGroupId(),
 			ParamUtil.getString(resourceRequest, "from_date", "2000-01-01"),
+			false,
 			StringUtil.replace(
 				ParamUtil.getString(resourceRequest, "keywords"),
 				CharPool.SPACE, CharPool.PLUS),

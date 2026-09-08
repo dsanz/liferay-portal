@@ -11,7 +11,6 @@ import com.liferay.object.constants.ObjectConstants;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.constants.ObjectFolderConstants;
-import com.liferay.object.definition.util.ObjectDefinitionUtil;
 import com.liferay.object.field.builder.TextObjectFieldBuilder;
 import com.liferay.object.field.util.ObjectFieldUtil;
 import com.liferay.object.model.ObjectDefinition;
@@ -45,11 +44,9 @@ import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 import com.liferay.site.cms.site.initializer.util.RoleUtil;
 
 import java.util.Arrays;
@@ -92,13 +89,10 @@ public class ObjectDefinitionServiceTest {
 				objectFolderId, ObjectDefinitionConstants.SCOPE_COMPANY, user));
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	@TestInfo("LPD-66895")
 	public void testAddCustomObjectDefinitionByCMSAdministratorRole()
 		throws Exception {
-
-		CMSTestUtil.getOrAddGroup(ObjectDefinitionServiceTest.class);
 
 		User user = _addCMSAdministratorUser();
 
@@ -304,13 +298,10 @@ public class ObjectDefinitionServiceTest {
 				_addCustomObjectDefinition(_adminUser), _user));
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	@TestInfo("LPD-66895")
 	public void testPublishCustomObjectDefinitionByCMSAdministratorRole()
 		throws Exception {
-
-		CMSTestUtil.getOrAddGroup(ObjectDefinitionServiceTest.class);
 
 		_testPublishCustomObjectDefinition(
 			_addCustomObjectDefinition(_adminUser), _addCMSAdministratorUser());
@@ -536,11 +527,12 @@ public class ObjectDefinitionServiceTest {
 
 			_objectDefinitionService.addSystemObjectDefinition(
 				RandomTestUtil.randomString(), user.getUserId(), objectFolderId,
-				ObjectDefinitionUtil.generateRandomClassName(), true, false,
-				true, false, true, false, false, false, false, false, null,
-				RandomTestUtil.randomLocaleStringMap(),
-				"Test" + RandomTestUtil.randomString(), null, null,
-				RandomTestUtil.randomLocaleStringMap(), false,
+				ObjectDefinitionTestUtil.getUniqueRandomClassName(), true,
+				false, true, false, true, false, false, false, false, false,
+				null, RandomTestUtil.randomLocaleStringMap(),
+				ObjectDefinitionTestUtil.
+					getRandomModifiableSystemObjectDefinitionName(),
+				null, null, RandomTestUtil.randomLocaleStringMap(), false,
 				ObjectDefinitionConstants.SCOPE_COMPANY,
 				Collections.emptyList(),
 				Arrays.asList(

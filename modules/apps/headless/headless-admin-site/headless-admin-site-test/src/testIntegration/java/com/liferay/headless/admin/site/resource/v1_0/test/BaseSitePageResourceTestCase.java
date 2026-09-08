@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
@@ -96,6 +97,8 @@ public abstract class BaseSitePageResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -342,7 +345,7 @@ public abstract class BaseSitePageResourceTestCase {
 
 		page = sitePageResource.getSiteSitePagesPage(
 			siteExternalReferenceCode, null, null, null, null,
-			Pagination.of(1, 10), null);
+			Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1132,6 +1135,16 @@ public abstract class BaseSitePageResourceTestCase {
 			}
 
 			if (Objects.equals(
+					"pageSpecificationVersions", additionalAssertFieldName)) {
+
+				if (sitePage.getPageSpecificationVersions() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
 					"pageSpecifications", additionalAssertFieldName)) {
 
 				if (sitePage.getPageSpecifications() == null) {
@@ -1481,6 +1494,19 @@ public abstract class BaseSitePageResourceTestCase {
 				if (!Objects.deepEquals(
 						sitePage1.getPageSettings(),
 						sitePage2.getPageSettings())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"pageSpecificationVersions", additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						sitePage1.getPageSpecificationVersions(),
+						sitePage2.getPageSpecificationVersions())) {
 
 					return false;
 				}
@@ -1897,6 +1923,11 @@ public abstract class BaseSitePageResourceTestCase {
 		}
 
 		if (entityFieldName.equals("pageSettings")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("pageSpecificationVersions")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
@@ -2351,4 +2382,4 @@ public abstract class BaseSitePageResourceTestCase {
 		_sitePageResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1475393816
+// LIFERAY-REST-BUILDER-HASH:-674533440

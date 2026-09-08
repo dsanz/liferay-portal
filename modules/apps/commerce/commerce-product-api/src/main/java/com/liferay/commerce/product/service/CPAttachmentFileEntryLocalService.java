@@ -405,6 +405,12 @@ public interface CPAttachmentFileEntryLocalService
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
 
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CPAttachmentFileEntry getOrAddEmptyCPAttachmentFileEntry(
+			String externalReferenceCode, long companyId, long userId,
+			long groupId, long classNameId, long classPK)
+		throws PortalException;
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *
@@ -476,4 +482,4 @@ public interface CPAttachmentFileEntryLocalService
 		throws E;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:783187018
+// LIFERAY-SERVICE-BUILDER-HASH:1859986131

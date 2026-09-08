@@ -16,6 +16,8 @@ LDAPAuthConfiguration ldapAuthConfiguration = ldapAuthConfigurationProvider.getC
 <aui:fieldset>
 	<aui:input name="<%= Constants.CMD %>" type="hidden" value="<%= LDAPSettingsConstants.CMD_UPDATE_AUTH %>" />
 
+	<%@ include file="/error_ldap_configuration_model_listener_exception.jspf" %>
+
 	<liferay-ui:error key="ldapExportAndImportOnPasswordAutogeneration" message="ldap-export-must-not-be-enabled-when-autogeneration-of-user-passwords-is-enabled-for-ldap-import" />
 
 	<aui:input label="enabled" name='<%= "ldap--" + LDAPConstants.AUTH_ENABLED + "--" %>' type="checkbox" value="<%= ldapAuthConfiguration.enabled() %>" />
@@ -30,14 +32,20 @@ LDAPAuthConfiguration ldapAuthConfiguration = ldapAuthConfigurationProvider.getC
 	</aui:select>
 
 	<aui:select label="password-encryption-algorithm" name='<%= "ldap--" + LDAPConstants.PASSWORD_ENCRYPTION_ALGORITHM + "--" %>' value="<%= ldapAuthConfiguration.passwordEncryptionAlgorithm() %>">
-		<aui:option label="bcrypt" value="<%= LDAPSettingsConstants.BCRYPT %>" />
-		<aui:option label="md2" value="<%= LDAPSettingsConstants.MD2 %>" />
-		<aui:option label="md5" value="<%= LDAPSettingsConstants.MD5 %>" />
-		<aui:option label="none" value="<%= LDAPSettingsConstants.NONE %>" />
-		<aui:option label="sha" value="<%= LDAPSettingsConstants.SHA %>" />
+		<c:if test="<%= !PropsValues.FIPS_ENABLED %>">
+			<aui:option label="bcrypt" value="<%= LDAPSettingsConstants.BCRYPT %>" />
+			<aui:option label="md2" value="<%= LDAPSettingsConstants.MD2 %>" />
+			<aui:option label="md5" value="<%= LDAPSettingsConstants.MD5 %>" />
+			<aui:option label="none" value="<%= LDAPSettingsConstants.NONE %>" />
+			<aui:option label="sha" value="<%= LDAPSettingsConstants.SHA %>" />
+		</c:if>
+
 		<aui:option label="sha-256" value="<%= LDAPSettingsConstants.SHA_256 %>" />
 		<aui:option label="sha-384" value="<%= LDAPSettingsConstants.SHA_384 %>" />
-		<aui:option label="ssha" value="<%= LDAPSettingsConstants.SSHA %>" />
-		<aui:option label="ufc-crypt" value="<%= LDAPSettingsConstants.UFC_CRYPT %>" />
+
+		<c:if test="<%= !PropsValues.FIPS_ENABLED %>">
+			<aui:option label="ssha" value="<%= LDAPSettingsConstants.SSHA %>" />
+			<aui:option label="ufc-crypt" value="<%= LDAPSettingsConstants.UFC_CRYPT %>" />
+		</c:if>
 	</aui:select>
 </aui:fieldset>

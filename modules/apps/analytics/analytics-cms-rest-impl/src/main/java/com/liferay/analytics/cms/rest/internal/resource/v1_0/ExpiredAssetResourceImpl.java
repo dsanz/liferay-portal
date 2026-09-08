@@ -9,6 +9,7 @@ import com.liferay.analytics.cms.rest.dto.v1_0.ExpiredAsset;
 import com.liferay.analytics.cms.rest.internal.depot.entry.util.DepotEntryUtil;
 import com.liferay.analytics.cms.rest.internal.resource.v1_0.util.ObjectEntryVersionTitleExpressionUtil;
 import com.liferay.analytics.cms.rest.resource.v1_0.ExpiredAssetResource;
+import com.liferay.depot.model.DepotEntry;
 import com.liferay.layout.service.LayoutClassedModelUsageLocalService;
 import com.liferay.object.entry.util.ObjectEntryThreadLocal;
 import com.liferay.object.model.ObjectDefinitionTable;
@@ -29,6 +30,7 @@ import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.license.util.LicenseManagerUtil;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.portlet.LiferayWindowState;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
@@ -37,6 +39,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
@@ -60,9 +63,14 @@ public class ExpiredAssetResourceImpl extends BaseExpiredAssetResourceImpl {
 
 		LicenseManagerUtil.checkFreeTier();
 
-		Long[] groupIds = DepotEntryUtil.getGroupIds(
-			DepotEntryUtil.getDepotEntries(
-				contextCompany.getCompanyId(), depotEntryId));
+		List<DepotEntry> depotEntries = DepotEntryUtil.getDepotEntries(
+			ActionKeys.VIEW, contextCompany.getCompanyId(), depotEntryId);
+
+		if (depotEntries.isEmpty()) {
+			return Page.of(Collections.emptyList(), pagination, 0);
+		}
+
+		Long[] groupIds = DepotEntryUtil.getGroupIds(depotEntries);
 
 		Locale locale = LocaleUtil.fromLanguageId(languageId, true, false);
 

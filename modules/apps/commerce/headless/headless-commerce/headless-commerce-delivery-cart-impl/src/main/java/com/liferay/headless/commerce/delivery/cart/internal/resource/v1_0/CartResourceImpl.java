@@ -6,9 +6,14 @@
 package com.liferay.headless.commerce.delivery.cart.internal.resource.v1_0;
 
 import com.liferay.account.constants.AccountConstants;
+import com.liferay.account.constants.AccountEntryValidatorConstants;
 import com.liferay.account.model.AccountEntry;
 import com.liferay.account.service.AccountEntryLocalService;
+import com.liferay.account.validator.AccountEntryValidatorRegistry;
+import com.liferay.account.validator.AccountEntryValidatorResult;
+import com.liferay.commerce.configuration.CommerceAccountEntryValidationConfiguration;
 import com.liferay.commerce.configuration.CommerceOrderCheckoutConfiguration;
+import com.liferay.commerce.constants.CommerceAccountEntryValidationConstants;
 import com.liferay.commerce.constants.CommerceAddressConstants;
 import com.liferay.commerce.constants.CommerceConstants;
 import com.liferay.commerce.constants.CommerceOrderActionKeys;
@@ -51,6 +56,7 @@ import com.liferay.commerce.shipping.engine.fixed.model.CommerceShippingFixedOpt
 import com.liferay.commerce.shipping.engine.fixed.service.CommerceShippingFixedOptionLocalService;
 import com.liferay.commerce.term.model.CommerceTermEntry;
 import com.liferay.commerce.term.service.CommerceTermEntryLocalService;
+import com.liferay.commerce.util.CommerceChannelConfigurationUtil;
 import com.liferay.commerce.util.CommerceCheckoutStep;
 import com.liferay.commerce.util.CommerceCheckoutStepRegistry;
 import com.liferay.commerce.util.CommerceShippingEngineRegistry;
@@ -75,6 +81,9 @@ import com.liferay.portal.events.ServicePreAction;
 import com.liferay.portal.events.ThemeServicePreAction;
 import com.liferay.portal.kernel.encryptor.Encryptor;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Country;
 import com.liferay.portal.kernel.model.Region;
 import com.liferay.portal.kernel.portlet.PortletProvider;
@@ -121,6 +130,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -443,6 +453,9 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 		CommerceOrder commerceOrder = _addCommerceOrder(
 			cart, commerceChannel.getGroupId());
 
+		CommerceChannelConfigurationUtil.validateGuestCheckout(
+			commerceOrder.getCommerceOrderId());
+
 		_updateOrder(commerceOrder, cart);
 
 		return _toCart(commerceOrder.getCommerceOrderId(), true);
@@ -694,6 +707,9 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 		CartItem[] orderItems = cart.getCartItems();
 
 		if (orderItems != null) {
+			CommerceChannelConfigurationUtil.validateGuestCheckout(
+				commerceOrder.getCommerceOrderId());
+
 			_commerceOrderItemService.deleteCommerceOrderItems(
 				commerceOrder.getCommerceOrderId());
 
@@ -809,6 +825,65 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 				finalCommerceOrder, finalCart));
 
 		cart.setValid(() -> true);
+
+		if (FeatureFlagManagerUtil.isEnabled(
+				commerceOrder.getCompanyId(), "LPD-89850")) {
+
+			CommerceAccountEntryValidationConfiguration
+				commerceAccountEntryValidationConfiguration =
+					_configurationProvider.getConfiguration(
+						CommerceAccountEntryValidationConfiguration.class,
+						new GroupServiceSettingsLocator(
+							commerceOrder.getGroupId(),
+							CommerceConstants.
+								SERVICE_NAME_COMMERCE_ACCOUNT_ENTRY_VALIDATION));
+
+			String validationMode =
+				commerceAccountEntryValidationConfiguration.validationMode();
+
+			if (!Objects.equals(
+					validationMode,
+					CommerceAccountEntryValidationConstants.
+						VALIDATION_MODE_DISABLED)) {
+
+				for (AccountEntryValidatorResult accountEntryValidatorResult :
+						_accountEntryValidatorRegistry.validate(
+							_accountEntryLocalService.fetchAccountEntry(
+								commerceOrder.getCommerceAccountId()),
+							JSONUtil.put(
+								"billingAddressId",
+								commerceOrder.getBillingAddressId()
+							).put(
+								"commerceOrderId",
+								commerceOrder.getCommerceOrderId()
+							).put(
+								"shippingAddressId",
+								commerceOrder.getShippingAddressId()
+							))) {
+
+					if (_isAccountValidationResultValid(
+							accountEntryValidatorResult, validationMode)) {
+
+						continue;
+					}
+
+					cart.setValid(() -> false);
+
+					if (Validator.isNotNull(
+							accountEntryValidatorResult.getResultMessage())) {
+
+						String errorMessage = _language.get(
+							contextAcceptLanguage.getPreferredLocale(),
+							accountEntryValidatorResult.getResultMessage());
+
+						cart.setErrorMessages(
+							() -> new String[] {errorMessage});
+					}
+
+					return cart;
+				}
+			}
+		}
 
 		try {
 			commerceOrder = _commerceOrderEngine.checkoutCommerceOrder(
@@ -1035,14 +1110,12 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 					commerceOrderItem.getCommerceOrderItemId(),
 					contextAcceptLanguage.getPreferredLocale()));
 
-			if (commerceOrderValidatorResults.containsKey(
-					commerceOrderItem.getCommerceOrderItemId())) {
+			List<CommerceOrderValidatorResult>
+				commerceOrderItemValidatorResults =
+					commerceOrderValidatorResults.get(
+						commerceOrderItem.getCommerceOrderItemId());
 
-				List<CommerceOrderValidatorResult>
-					commerceOrderItemValidatorResults =
-						commerceOrderValidatorResults.get(
-							commerceOrderItem.getCommerceOrderItemId());
-
+			if (commerceOrderItemValidatorResults != null) {
 				boolean cartItemValid = true;
 
 				for (CommerceOrderValidatorResult commerceOrderValidatorResult :
@@ -1106,6 +1179,32 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 				commerceOrder.getGroupId());
 
 		themeDisplay.setScopeGroupId(commerceChannel.getSiteGroupId());
+	}
+
+	private boolean _isAccountValidationResultValid(
+		AccountEntryValidatorResult accountEntryValidatorResult,
+		String validationMode) {
+
+		if (Objects.equals(
+				validationMode,
+				CommerceAccountEntryValidationConstants.
+					VALIDATION_MODE_ALLOW_ALL)) {
+
+			return true;
+		}
+
+		if (!accountEntryValidatorResult.isValid() ||
+			(Objects.equals(
+				validationMode,
+				CommerceAccountEntryValidationConstants.
+					VALIDATION_MODE_ALLOW_SUCCESSES_ONLY) &&
+			 AccountEntryValidatorConstants.RESULT_WARNING.equals(
+				 accountEntryValidatorResult.getResultStatus()))) {
+
+			return false;
+		}
+
+		return true;
 	}
 
 	private boolean _isValidDeliveryTerm(
@@ -1361,6 +1460,9 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 	@Reference
 	private AccountEntryLocalService _accountEntryLocalService;
 
+	@Reference
+	private AccountEntryValidatorRegistry _accountEntryValidatorRegistry;
+
 	@Reference(
 		target = "(component.name=com.liferay.headless.commerce.delivery.cart.internal.dto.v1_0.converter.CartDTOConverter)"
 	)
@@ -1434,6 +1536,9 @@ public class CartResourceImpl extends BaseCartResourceImpl {
 
 	@Reference
 	private Encryptor _encryptor;
+
+	@Reference
+	private Language _language;
 
 	@Reference
 	private Portal _portal;

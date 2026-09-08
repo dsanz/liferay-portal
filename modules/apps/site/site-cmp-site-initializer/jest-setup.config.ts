@@ -5,6 +5,8 @@
 
 // @ts-nocheck
 
+import {escapeHTML} from 'frontend-js-web';
+
 jest.mock('@ckeditor/ckeditor5-alignment/dist/index', () => ({}));
 jest.mock('@ckeditor/ckeditor5-bookmark/dist/index', () => ({}));
 jest.mock('@ckeditor/ckeditor5-clipboard/dist/index', () => ({}));
@@ -26,6 +28,7 @@ jest.mock('@ckeditor/ckeditor5-media-embed/dist/index', () => ({}));
 jest.mock('@ckeditor/ckeditor5-mention/dist/index', () => ({}));
 jest.mock('@ckeditor/ckeditor5-minimap/dist/index', () => ({}));
 jest.mock('@ckeditor/ckeditor5-page-break/dist/index', () => ({}));
+jest.mock('@ckeditor/ckeditor5-source-editing-enhanced/dist/index', () => ({}));
 jest.mock('@ckeditor/ckeditor5-special-characters/dist/index', () => ({}));
 jest.mock('@ckeditor/ckeditor5-style/dist/index', () => ({}));
 jest.mock('@ckeditor/ckeditor5-table/dist/index', () => ({}));
@@ -74,11 +77,13 @@ class MockBroadcastChannel {
 		getDefaultLanguageId: () => 'en_US',
 		getLanguageId: () => 'en_US',
 		getPathThemeImages: () => '/images',
+		getPortalURL: () => 'http://localhost:8080',
+		getSiteGroupId: () => '20121',
 		getUserId: () => '1',
 	},
 	Util: {
 		...(globalThis.Liferay.Util || {}),
-		escapeHTML: (str: string) => str,
+		escapeHTML,
 		formatStorage: (size: number) => `${size / 1024} KB`,
 	},
 	authToken: 'mocked-auth-token',

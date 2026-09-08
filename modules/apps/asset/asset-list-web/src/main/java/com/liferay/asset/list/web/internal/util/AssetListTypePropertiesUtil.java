@@ -9,8 +9,8 @@ import com.liferay.list.type.service.ListTypeEntryLocalServiceUtil;
 import com.liferay.object.constants.ObjectFieldConstants;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectField;
+import com.liferay.object.model.bag.ObjectFieldBag;
 import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
-import com.liferay.object.service.ObjectFieldLocalServiceUtil;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
@@ -61,13 +61,15 @@ public class AssetListTypePropertiesUtil {
 				continue;
 			}
 
+			ObjectFieldBag objectFieldBag =
+				objectDefinition.getObjectFieldBag();
+
 			jsonArray.put(
 				JSONUtil.put(
 					"items",
 					_getItemsJSONArray(
 						classNameIds[i], classTypeId, locale,
-						ObjectFieldLocalServiceUtil.getObjectFields(
-							objectDefinition.getObjectDefinitionId()))
+						objectFieldBag.getNestedIndexedObjectFields())
 				).put(
 					"label", objectDefinition.getLabel(locale, true)
 				));
@@ -183,10 +185,6 @@ public class AssetListTypePropertiesUtil {
 		return JSONUtil.toJSONArray(
 			objectFields,
 			objectField -> {
-				if (objectField.isMetadata()) {
-					return null;
-				}
-
 				String type = _toType(objectField.getBusinessType());
 
 				if (type == null) {
@@ -197,6 +195,18 @@ public class AssetListTypePropertiesUtil {
 					classNameId, classTypeId, locale, objectField, type);
 			},
 			_log);
+	}
+
+	private static boolean _isSortable(String businessType) {
+		if (businessType.equals(ObjectFieldConstants.BUSINESS_TYPE_LONG_TEXT) ||
+			businessType.equals(
+				ObjectFieldConstants.BUSINESS_TYPE_MULTISELECT_PICKLIST) ||
+			businessType.equals(ObjectFieldConstants.BUSINESS_TYPE_RICH_TEXT)) {
+
+			return false;
+		}
+
+		return true;
 	}
 
 	private static JSONObject _toPropertyJSONObject(
@@ -231,11 +241,17 @@ public class AssetListTypePropertiesUtil {
 					_log);
 			}
 		).put(
+			"sortable", _isSortable(objectField.getBusinessType())
+		).put(
 			"type", type
 		);
 	}
 
 	private static String _toType(String businessType) {
+		if (businessType == null) {
+			return null;
+		}
+
 		if (businessType.equals(ObjectFieldConstants.BUSINESS_TYPE_BOOLEAN)) {
 			return "boolean";
 		}

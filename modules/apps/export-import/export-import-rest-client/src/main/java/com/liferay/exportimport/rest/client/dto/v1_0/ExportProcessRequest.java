@@ -47,6 +47,35 @@ public class ExportProcessRequest implements Cloneable, Serializable {
 
 	protected Boolean comments;
 
+	public DateRangeType getDateRangeType() {
+		return dateRangeType;
+	}
+
+	public String getDateRangeTypeAsString() {
+		if (dateRangeType == null) {
+			return null;
+		}
+
+		return dateRangeType.toString();
+	}
+
+	public void setDateRangeType(DateRangeType dateRangeType) {
+		this.dateRangeType = dateRangeType;
+	}
+
+	public void setDateRangeType(
+		UnsafeSupplier<DateRangeType, Exception> dateRangeTypeUnsafeSupplier) {
+
+		try {
+			dateRangeType = dateRangeTypeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected DateRangeType dateRangeType;
+
 	public Boolean getDeletions() {
 		return deletions;
 	}
@@ -88,25 +117,6 @@ public class ExportProcessRequest implements Cloneable, Serializable {
 	}
 
 	protected Date endDate;
-
-	public Integer getLast() {
-		return last;
-	}
-
-	public void setLast(Integer last) {
-		this.last = last;
-	}
-
-	public void setLast(UnsafeSupplier<Integer, Exception> lastUnsafeSupplier) {
-		try {
-			last = lastUnsafeSupplier.get();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	protected Integer last;
 
 	public Boolean getLogo() {
 		return logo;
@@ -166,33 +176,6 @@ public class ExportProcessRequest implements Cloneable, Serializable {
 	}
 
 	protected Boolean permissions;
-
-	public Range getRange() {
-		return range;
-	}
-
-	public String getRangeAsString() {
-		if (range == null) {
-			return null;
-		}
-
-		return range.toString();
-	}
-
-	public void setRange(Range range) {
-		this.range = range;
-	}
-
-	public void setRange(UnsafeSupplier<Range, Exception> rangeUnsafeSupplier) {
-		try {
-			range = rangeUnsafeSupplier.get();
-		}
-		catch (Exception e) {
-			throw new RuntimeException(e);
-		}
-	}
-
-	protected Range range;
 
 	public Boolean getRatings() {
 		return ratings;
@@ -356,16 +339,16 @@ public class ExportProcessRequest implements Cloneable, Serializable {
 		return ExportProcessRequestSerDes.toJSON(this);
 	}
 
-	public static enum Range {
+	public static enum DateRangeType {
 
-		ALL("all"), DATE_RANGE("dateRange"), LAST("last");
+		ALL("ALL"), DATE_RANGE("DATE_RANGE"), LAST("LAST");
 
-		public static Range create(String value) {
-			for (Range range : values()) {
-				if (Objects.equals(range.getValue(), value) ||
-					Objects.equals(range.name(), value)) {
+		public static DateRangeType create(String value) {
+			for (DateRangeType dateRangeType : values()) {
+				if (Objects.equals(dateRangeType.getValue(), value) ||
+					Objects.equals(dateRangeType.name(), value)) {
 
-					return range;
+					return dateRangeType;
 				}
 			}
 
@@ -381,7 +364,7 @@ public class ExportProcessRequest implements Cloneable, Serializable {
 			return _value;
 		}
 
-		private Range(String value) {
+		private DateRangeType(String value) {
 			_value = value;
 		}
 
@@ -390,4 +373,4 @@ public class ExportProcessRequest implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:61670162
+// LIFERAY-REST-BUILDER-HASH:-773468954

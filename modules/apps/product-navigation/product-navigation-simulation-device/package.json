@@ -1,10 +1,10 @@
 {
 	"dependencies": {
-		"@clayui/alert": "^3.165.0",
-		"@clayui/button": "^3.165.0",
-		"@clayui/form": "^3.165.0",
-		"@clayui/icon": "^3.165.0",
-		"@clayui/layout": "^3.165.0",
+		"@clayui/alert": "^3.166.0",
+		"@clayui/button": "^3.166.0",
+		"@clayui/form": "^3.166.0",
+		"@clayui/icon": "^3.166.0",
+		"@clayui/layout": "^3.166.0",
 		"@liferay/frontend-js-react-web": "*",
 		"@liferay/layout-js-components-web": "*",
 		"classnames": "2.3.1",
@@ -20,5 +20,5 @@
 		"checkFormat": "node-scripts format --check",
 		"format": "node-scripts format"
 	},
-	"version": "6.0.80"
+	"version": "6.0.81"
 }

@@ -29,13 +29,15 @@ import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.Http;
+import com.liferay.portal.kernel.util.LocaleThreadLocal;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.HashMap;
+import java.util.Locale;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -60,11 +62,21 @@ public class AssetCategoryLayoutDisplayPageProviderTest {
 		_group = GroupTestUtil.addGroup();
 	}
 
-	@FeatureFlag("LPD-70396")
 	@Test
 	public void testGetLayoutDisplayPageObjectProvider() throws Exception {
 		_testGetLayoutDisplayPageObjectProviderERCInfoItemIdentifier();
+		_testGetLayoutDisplayPageObjectProviderLocalizedAssetCategory();
 		_testGetLayoutDisplayPageObjectProviderNestedAssetCategory();
+	}
+
+	@Test
+	public void testGetURLTitle() throws Exception {
+		_testGetURLTitleWithEncodedAssetVocabularyName(
+			"vocabulary name", "vocabulary%20name");
+		_testGetURLTitleWithEncodedAssetVocabularyName(
+			"vocabulario ñ", "vocabulario%20%C3%B1");
+		_testGetURLTitleWithMaximumLengthExceeded();
+		_testGetURLTitleWithMaximumLengthNotExceeded();
 	}
 
 	private AssetCategory _addAssetCategory(
@@ -77,7 +89,7 @@ public class AssetCategoryLayoutDisplayPageProviderTest {
 			HashMapBuilder.put(
 				LocaleUtil.getDefault(), title
 			).build(),
-			new HashMap<>(), assetVocabularyId, null,
+			new HashMap<>(), assetVocabularyId, false, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 	}
 
@@ -85,6 +97,17 @@ public class AssetCategoryLayoutDisplayPageProviderTest {
 		return AssetTestUtil.addVocabulary(
 			_group.getGroupId(),
 			StringUtil.toLowerCase(StringUtil.randomString()));
+	}
+
+	private LayoutDisplayPageObjectProvider<?>
+		_getLayoutDisplayPageObjectProvider(AssetCategory assetCategory) {
+
+		return _layoutDisplayPageProvider.getLayoutDisplayPageObjectProvider(
+			assetCategory.getGroupId(),
+			new InfoItemReference(
+				AssetCategory.class.getName(),
+				new ERCInfoItemIdentifier(
+					assetCategory.getExternalReferenceCode())));
 	}
 
 	private void _testGetLayoutDisplayPageObjectProviderERCInfoItemIdentifier()
@@ -99,7 +122,7 @@ public class AssetCategoryLayoutDisplayPageProviderTest {
 			HashMapBuilder.put(
 				LocaleUtil.getDefault(), StringUtil.randomString()
 			).build(),
-			AssetVocabularyConstants.EMPTY_VOCABULARY_ID, null,
+			AssetVocabularyConstants.EMPTY_VOCABULARY_ID, false, null,
 			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 
 		LayoutDisplayPageObjectProvider layoutDisplayPageObjectProvider =
@@ -139,6 +162,54 @@ public class AssetCategoryLayoutDisplayPageProviderTest {
 						assetCategory.getExternalReferenceCode())));
 
 		Assert.assertNull(layoutDisplayPageObjectProvider);
+	}
+
+	private void _testGetLayoutDisplayPageObjectProviderLocalizedAssetCategory()
+		throws Exception {
+
+		AssetVocabulary assetVocabulary = _addAssetVocabulary();
+
+		String spanishURLTitle = StringUtil.toLowerCase(
+			StringUtil.randomString());
+
+		AssetCategory assetCategory = _assetCategoryLocalService.addCategory(
+			null, TestPropsValues.getUserId(), _group.getGroupId(),
+			AssetCategoryConstants.DEFAULT_PARENT_CATEGORY_ID,
+			HashMapBuilder.put(
+				LocaleUtil.getDefault(),
+				StringUtil.toLowerCase(StringUtil.randomString())
+			).put(
+				LocaleUtil.SPAIN, spanishURLTitle
+			).build(),
+			new HashMap<>(), assetVocabulary.getVocabularyId(), false, null,
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
+
+		String friendlyURL = StringBundler.concat(
+			assetVocabulary.getName(), StringPool.SLASH, spanishURLTitle);
+
+		Locale themeDisplayLocale = LocaleThreadLocal.getThemeDisplayLocale();
+
+		try {
+			LocaleThreadLocal.setThemeDisplayLocale(LocaleUtil.SPAIN);
+
+			LayoutDisplayPageObjectProvider<?> layoutDisplayPageObjectProvider =
+				_layoutDisplayPageProvider.getLayoutDisplayPageObjectProvider(
+					_group.getGroupId(), friendlyURL);
+
+			Assert.assertEquals(
+				assetCategory,
+				layoutDisplayPageObjectProvider.getDisplayObject());
+		}
+		finally {
+			LocaleThreadLocal.setThemeDisplayLocale(themeDisplayLocale);
+		}
+
+		LayoutDisplayPageObjectProvider<?> layoutDisplayPageObjectProvider =
+			_layoutDisplayPageProvider.getLayoutDisplayPageObjectProvider(
+				_group.getGroupId(), friendlyURL);
+
+		Assert.assertEquals(
+			assetCategory, layoutDisplayPageObjectProvider.getDisplayObject());
 	}
 
 	private void _testGetLayoutDisplayPageObjectProviderNestedAssetCategory()
@@ -190,6 +261,92 @@ public class AssetCategoryLayoutDisplayPageProviderTest {
 			assetCategory4,
 			layoutDisplayPageObjectProvider2.getDisplayObject());
 	}
+
+	private void _testGetURLTitleWithEncodedAssetVocabularyName(
+			String assetVocabularyName, String encodedAssetVocabularyName)
+		throws Exception {
+
+		AssetVocabulary assetVocabulary = AssetTestUtil.addVocabulary(
+			_group.getGroupId(), assetVocabularyName);
+
+		String assetCategoryURLTitle = StringUtil.toLowerCase(
+			StringUtil.randomString());
+
+		AssetCategory assetCategory = _addAssetCategory(
+			assetVocabulary.getVocabularyId(),
+			AssetCategoryConstants.DEFAULT_PARENT_CATEGORY_ID,
+			assetCategoryURLTitle);
+
+		LayoutDisplayPageObjectProvider<?> layoutDisplayPageObjectProvider1 =
+			_getLayoutDisplayPageObjectProvider(assetCategory);
+
+		String urlTitle = layoutDisplayPageObjectProvider1.getURLTitle(
+			LocaleUtil.getDefault());
+
+		Assert.assertEquals(
+			StringBundler.concat(
+				encodedAssetVocabularyName, StringPool.SLASH,
+				assetCategoryURLTitle),
+			urlTitle);
+
+		LayoutDisplayPageObjectProvider<?> layoutDisplayPageObjectProvider2 =
+			_layoutDisplayPageProvider.getLayoutDisplayPageObjectProvider(
+				_group.getGroupId(), urlTitle);
+
+		Assert.assertEquals(
+			assetCategory, layoutDisplayPageObjectProvider2.getDisplayObject());
+	}
+
+	private void _testGetURLTitleWithMaximumLengthExceeded() throws Exception {
+		AssetVocabulary assetVocabulary = _addAssetVocabulary();
+
+		long parentCategoryId =
+			AssetCategoryConstants.DEFAULT_PARENT_CATEGORY_ID;
+
+		AssetCategory assetCategory = null;
+
+		int count = (Http.URL_MAXIMUM_LENGTH / _CATEGORY_TITLE_LENGTH) + 2;
+
+		for (int i = 0; i < count; i++) {
+			assetCategory = _addAssetCategory(
+				assetVocabulary.getVocabularyId(), parentCategoryId,
+				StringUtil.toLowerCase(
+					StringUtil.randomString(_CATEGORY_TITLE_LENGTH)));
+
+			parentCategoryId = assetCategory.getCategoryId();
+		}
+
+		LayoutDisplayPageObjectProvider<?> layoutDisplayPageObjectProvider =
+			_getLayoutDisplayPageObjectProvider(assetCategory);
+
+		Assert.assertEquals(
+			String.valueOf(assetCategory.getCategoryId()),
+			layoutDisplayPageObjectProvider.getURLTitle(
+				LocaleUtil.getDefault()));
+	}
+
+	private void _testGetURLTitleWithMaximumLengthNotExceeded()
+		throws Exception {
+
+		AssetVocabulary assetVocabulary = _addAssetVocabulary();
+
+		String urlTitle = StringUtil.toLowerCase(StringUtil.randomString());
+
+		AssetCategory assetCategory = _addAssetCategory(
+			assetVocabulary.getVocabularyId(),
+			AssetCategoryConstants.DEFAULT_PARENT_CATEGORY_ID, urlTitle);
+
+		LayoutDisplayPageObjectProvider<?> layoutDisplayPageObjectProvider =
+			_getLayoutDisplayPageObjectProvider(assetCategory);
+
+		Assert.assertEquals(
+			StringBundler.concat(
+				assetVocabulary.getName(), StringPool.SLASH, urlTitle),
+			layoutDisplayPageObjectProvider.getURLTitle(
+				LocaleUtil.getDefault()));
+	}
+
+	private static final int _CATEGORY_TITLE_LENGTH = 250;
 
 	@Inject
 	private AssetCategoryLocalService _assetCategoryLocalService;

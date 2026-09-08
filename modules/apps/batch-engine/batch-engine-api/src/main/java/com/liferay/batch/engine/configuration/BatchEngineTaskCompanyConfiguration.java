@@ -9,6 +9,8 @@ import aQute.bnd.annotation.metatype.Meta;
 
 import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClassDefinition;
 
+import org.osgi.annotation.versioning.ProviderType;
+
 /**
  * @author Matija Petanjek
  */
@@ -21,7 +23,21 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 	localization = "content/Language",
 	name = "batch-engine-task-company-configuration-name"
 )
+@ProviderType
 public interface BatchEngineTaskCompanyConfiguration {
+
+	@Meta.AD(
+		description = "callback-url-hosts-allowed-description",
+		name = "callback-url-hosts-allowed", required = false
+	)
+	public String[] callbackURLHostsAllowed();
+
+	@Meta.AD(
+		deflt = "false",
+		description = "callback-url-local-network-access-enabled-description",
+		name = "callback-url-local-network-access-enabled", required = false
+	)
+	public boolean callbackURLLocalNetworkAccessEnabled();
 
 	@Meta.AD(deflt = ",", name = "csv-file-column-delimiter", required = false)
 	public String csvFileColumnDelimiter();
@@ -37,5 +53,12 @@ public interface BatchEngineTaskCompanyConfiguration {
 		name = "import-batch-size", required = false
 	)
 	public int importBatchSize();
+
+	@Meta.AD(
+		deflt = "true",
+		description = "language-key-resolution-enabled-description",
+		name = "language-key-resolution-enabled", required = false
+	)
+	public boolean languageKeyResolutionEnabled();
 
 }

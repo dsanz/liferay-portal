@@ -14,7 +14,9 @@ import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServ
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -71,13 +73,13 @@ public class ContentEditorToolbarComponentSectionFragmentRenderer
 	}
 
 	@Override
-	protected String getLabelKey() {
-		return "content-editor-management-bar";
+	protected String getComponentName() {
+		return "ContentEditorToolbar";
 	}
 
 	@Override
-	protected String getModuleName() {
-		return "ContentEditorToolbar";
+	protected String getLabelKey() {
+		return "content-editor-management-bar";
 	}
 
 	@Override
@@ -87,7 +89,10 @@ public class ContentEditorToolbarComponentSectionFragmentRenderer
 
 		HashMapBuilder.HashMapWrapper<String, Object> hashMapWrapper =
 			HashMapBuilder.<String, Object>put(
-				"backURL", ParamUtil.getString(httpServletRequest, "redirect"));
+				"backURL", ParamUtil.getString(httpServletRequest, "redirect")
+			).put(
+				"groupId", InfoItemUtil.getGroupId(httpServletRequest)
+			);
 
 		LayoutDisplayPageObjectProvider<?> layoutDisplayPageObjectProvider =
 			(LayoutDisplayPageObjectProvider<?>)httpServletRequest.getAttribute(
@@ -198,6 +203,29 @@ public class ContentEditorToolbarComponentSectionFragmentRenderer
 				Constants.ADD,
 				ParamUtil.getString(httpServletRequest, Constants.CMD))
 		).put(
+			"objectFields",
+			() -> {
+				if (objectDefinition == null) {
+					return null;
+				}
+
+				return JSONUtil.toJSONArray(
+					_objectFieldLocalService.getObjectFields(
+						objectDefinition.getObjectDefinitionId()),
+					objectField -> {
+						if (objectField.isMetadata()) {
+							return null;
+						}
+
+						return JSONUtil.put(
+							"label",
+							objectField.getLabel(themeDisplay.getLocale())
+						).put(
+							"name", objectField.getName()
+						);
+					});
+			}
+		).put(
 			"title", title
 		).put(
 			"type",
@@ -231,6 +259,9 @@ public class ContentEditorToolbarComponentSectionFragmentRenderer
 
 	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Reference
+	private ObjectFieldLocalService _objectFieldLocalService;
 
 	@Reference
 	private WorkflowDefinitionLinkLocalService

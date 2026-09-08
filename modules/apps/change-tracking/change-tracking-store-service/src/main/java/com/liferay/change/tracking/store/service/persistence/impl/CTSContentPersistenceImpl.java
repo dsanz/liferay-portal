@@ -21,8 +21,6 @@ import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.persistence.change.tracking.helper.CTPersistenceHelper;
 import com.liferay.portal.kernel.service.persistence.impl.BasePersistenceImpl;
@@ -768,10 +766,7 @@ public class CTSContentPersistenceImpl
 				session.save(ctsContent);
 			}
 			else {
-				session.evict(
-					CTSContentImpl.class, ctsContent.getPrimaryKeyObj());
-
-				session.saveOrUpdate(ctsContent);
+				ctsContent = (CTSContent)session.merge(ctsContent);
 			}
 
 			session.flush();
@@ -934,7 +929,8 @@ public class CTSContentPersistenceImpl
 				new String[] {Long.class.getName(), String.class.getName()},
 				new String[] {"repositoryId", "path_"}, 0, 2, false, null),
 			_SQL_SELECT_CTSCONTENT_WHERE, _SQL_COUNT_CTSCONTENT_WHERE,
-			CTSContentModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			CTSContentModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"ctsContent.", "repositoryId", FinderColumn.Type.LONG, "=",
 				true, true, CTSContent::getRepositoryId),
@@ -969,7 +965,8 @@ public class CTSContentPersistenceImpl
 				new String[] {"companyId", "repositoryId", "storeType"}, 0, 4,
 				false, null),
 			_SQL_SELECT_CTSCONTENT_WHERE, _SQL_COUNT_CTSCONTENT_WHERE,
-			CTSContentModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			CTSContentModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"ctsContent.", "companyId", FinderColumn.Type.LONG, "=", true,
 				true, CTSContent::getCompanyId),
@@ -1016,7 +1013,8 @@ public class CTSContentPersistenceImpl
 					},
 					0, 12, false, null),
 				_SQL_SELECT_CTSCONTENT_WHERE, _SQL_COUNT_CTSCONTENT_WHERE,
-				CTSContentModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				CTSContentModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"ctsContent.", "companyId", FinderColumn.Type.LONG, "=",
 					true, true, CTSContent::getCompanyId),
@@ -1058,7 +1056,8 @@ public class CTSContentPersistenceImpl
 					},
 					false),
 				_SQL_SELECT_CTSCONTENT_WHERE, _SQL_COUNT_CTSCONTENT_WHERE,
-				CTSContentModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				CTSContentModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"ctsContent.", "companyId", FinderColumn.Type.LONG, "=",
 					true, true, CTSContent::getCompanyId),
@@ -1163,12 +1162,6 @@ public class CTSContentPersistenceImpl
 	private static final String _SQL_COUNT_CTSCONTENT_WHERE =
 		"SELECT COUNT(ctsContent) FROM CTSContent ctsContent WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No CTSContent exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		CTSContentPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"path", "data", "size"});
 
@@ -1178,4 +1171,4 @@ public class CTSContentPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-33702926
+// LIFERAY-SERVICE-BUILDER-HASH:333066147

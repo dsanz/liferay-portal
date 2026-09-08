@@ -18,6 +18,7 @@ import {pageViewModePagesTest} from '../../../fixtures/pageViewModePagesTest';
 import {pagesAdminPagesTest} from '../../../fixtures/pagesAdminPagesTest';
 import {portletConfigurationPermissionsPageTest} from '../../../fixtures/portletConfigurationPermissionsPagesTest';
 import {productMenuPageTest} from '../../../fixtures/productMenuPageTest';
+import {sitesPageTest} from '../../../fixtures/sitesPageTest';
 import {systemSettingsPageTest} from '../../../fixtures/systemSettingsPageTest';
 import {uiElementsPageTest} from '../../../fixtures/uiElementsTest';
 import {webContentDisplayPageTest} from '../../../fixtures/webContentDisplayPageTest';
@@ -43,6 +44,7 @@ export const test = mergeTests(
 	pageEditorPagesTest,
 	productMenuPageTest,
 	portletPublishToLivePageTest,
+	sitesPageTest,
 	stagingConfigurationPageTest,
 	webContentDisplayPageTest,
 	uiElementsPageTest,
@@ -66,6 +68,11 @@ export const testFlagsEnabled = mergeTests(
 	webContentDisplayPageTest
 );
 
+export const testWithSitePagesAPI = mergeTests(
+	test,
+	featureFlagsTest({'LPD-35443': {enabled: true}})
+);
+
 test(
 	'Verify there is advanced staging configuration checkbox with description in Instance Setting,the configuration checkbox can be enabled',
 	{tag: ['@LPS-189238', '@LPD-88913']},
@@ -73,6 +80,7 @@ test(
 		apiHelpers,
 		exportImportStagingInstanceSettingsPage,
 		page,
+		pageEditorPage,
 		portletPublishToLivePage,
 	}) => {
 		const site = await apiHelpers.headlessAdminSite.postSite({
@@ -84,6 +92,11 @@ test(
 			options: {type: 'content'},
 			title: getRandomString(),
 		});
+
+		// Publish the page so it can be reached through its live friendly URL
+
+		await pageEditorPage.goto(layout, site.friendlyUrlPath);
+		await pageEditorPage.publishPage();
 
 		await exportImportStagingInstanceSettingsPage.goto();
 		await exportImportStagingInstanceSettingsPage.checkConfigurationOption({
@@ -138,6 +151,7 @@ test(
 		apiHelpers,
 		exportImportStagingSystemSettingsPage,
 		page,
+		pageEditorPage,
 		portletPublishToLivePage,
 	}) => {
 		const site = await apiHelpers.headlessAdminSite.postSite({
@@ -149,6 +163,11 @@ test(
 			options: {type: 'content'},
 			title: getRandomString(),
 		});
+
+		// Publish the page so it can be reached through its live friendly URL
+
+		await pageEditorPage.goto(layout, site.friendlyUrlPath);
+		await pageEditorPage.publishPage();
 
 		await exportImportStagingSystemSettingsPage.goto();
 		await exportImportStagingSystemSettingsPage.checkConfigurationOption({
@@ -275,6 +294,7 @@ test(
 		apiHelpers,
 		exportImportStagingInstanceSettingsPage,
 		page,
+		pageEditorPage,
 		portletPublishToLivePage,
 	}) => {
 		const site = await apiHelpers.headlessAdminSite.postSite({
@@ -286,6 +306,11 @@ test(
 			options: {type: 'content'},
 			title: getRandomString(),
 		});
+
+		// Publish the page so it can be reached through its live friendly URL
+
+		await pageEditorPage.goto(layout, site.friendlyUrlPath);
+		await pageEditorPage.publishPage();
 
 		await exportImportStagingInstanceSettingsPage.goto();
 		await exportImportStagingInstanceSettingsPage.checkConfigurationOption({
@@ -452,5 +477,67 @@ testFlagsEnabled(
 
 		await webContentDisplayPage.gotoWebContentAdmin(layout.plid);
 		await page.getByText(webContentName).waitFor({state: 'visible'});
+	}
+);
+
+testWithSitePagesAPI(
+	'Staging is blocked for a Site linked to a Site Template with propagation enabled',
+	{tag: '@LPD-87027'},
+	async ({
+		apiHelpers,
+		globalMenuPage,
+		sitesPage,
+		stagingConfigurationPage,
+	}) => {
+		const siteTemplateName = 'SiteTemplate-' + getRandomString();
+
+		const layoutSetPrototype =
+			await apiHelpers.jsonWebServicesLayoutSetPrototype.addLayoutSetPrototypes(
+				{
+					name: siteTemplateName,
+				}
+			);
+
+		apiHelpers.data.push({
+			id: layoutSetPrototype.layoutSetPrototypeId,
+			type: 'layoutSetPrototype',
+		});
+
+		await globalMenuPage.goToControlPanel('Sites');
+
+		const siteName = 'Site-' + getRandomString();
+
+		const {externalReferenceCode} = await sitesPage.createSite({
+			isCustom: true,
+			siteName,
+			templateName: siteTemplateName,
+		});
+
+		apiHelpers.data.push({id: externalReferenceCode, type: 'site'});
+
+		// Wait until the Site Template pages propagate to the linked Site so the
+		// propagation background task completes before the cleanup deletes it
+
+		await expect(async () => {
+			const sitePages = await apiHelpers.headlessAdminSite.getPages(
+				externalReferenceCode,
+				'pageSize=100&privateLayout=false'
+			);
+
+			expect(sitePages.items.length).toBeGreaterThan(0);
+		}).toPass();
+
+		await stagingConfigurationPage.gotoStagingConfiguration(
+			'/' + siteName.toLowerCase()
+		);
+
+		await expect(
+			stagingConfigurationPage.page.getByText(
+				'Staging cannot be used for this site because the propagation ' +
+					'of changes from the site template is enabled.'
+			)
+		).toBeVisible();
+
+		await expect(stagingConfigurationPage.localLiveRadio).toBeHidden();
 	}
 );

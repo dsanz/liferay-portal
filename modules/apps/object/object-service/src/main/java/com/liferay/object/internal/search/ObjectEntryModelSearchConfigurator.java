@@ -23,8 +23,11 @@ import com.liferay.object.service.ObjectEntryFolderLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectFolderLocalService;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
+import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
 import com.liferay.portal.kernel.search.ReindexCacheThreadLocal;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.search.indexer.IndexerDocumentBuilder;
@@ -78,27 +81,30 @@ public class ObjectEntryModelSearchConfigurator
 		_modelIndexerWriterContributor =
 			new ObjectEntryFullReindexModelIndexerWriterContributor();
 
-		ObjectEntryModelDocumentContributor
-			objectEntryModelDocumentContributor =
-				new ObjectEntryModelDocumentContributor(
-					_accountEntryOrganizationRelLocalService,
-					_dlFileEntryLocalService, _objectEntryFolderLocalService,
-					_objectFieldBusinessTypeRegistry,
-					_textEmbeddingDocumentContributor);
-
 		_modelDocumentContributorServiceRegistration =
 			bundleContext.registerService(
 				(Class<ModelDocumentContributor<?>>)
 					(Class<?>)ModelDocumentContributor.class,
-				objectEntryModelDocumentContributor,
+				new ObjectEntryModelDocumentContributor(
+					_accountEntryOrganizationRelLocalService,
+					_dlFileEntryLocalService, _objectEntryFolderLocalService,
+					_objectFieldBusinessTypeRegistry,
+					_textEmbeddingDocumentContributor),
 				MapUtil.singletonDictionary(
 					"indexer.class.name", ObjectEntry.class.getName()));
+
+		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+			bundleContext, IndexerDocumentBuilder.class, "indexer.class.name");
 	}
 
 	@Deactivate
 	protected void deactivate() {
 		if (_modelDocumentContributorServiceRegistration != null) {
 			_modelDocumentContributorServiceRegistration.unregister();
+		}
+
+		if (_serviceTrackerMap != null) {
+			_serviceTrackerMap.close();
 		}
 	}
 
@@ -176,6 +182,7 @@ public class ObjectEntryModelSearchConfigurator
 		if (objectFieldsMap != null) {
 			objectDefinition.setObjectFieldBag(
 				new ObjectFieldBag(
+					objectDefinition.isModifiableAndSystem(),
 					objectFieldsMap.getOrDefault(
 						objectDefinition.getObjectDefinitionId(),
 						Collections.emptyList())));
@@ -238,6 +245,9 @@ public class ObjectEntryModelSearchConfigurator
 	@Reference
 	private ObjectFolderLocalService _objectFolderLocalService;
 
+	private ServiceTrackerMap<String, IndexerDocumentBuilder>
+		_serviceTrackerMap;
+
 	@Reference
 	private TextEmbeddingDocumentContributor _textEmbeddingDocumentContributor;
 
@@ -252,6 +262,10 @@ public class ObjectEntryModelSearchConfigurator
 			AtomicReference<Map<Long, ObjectDefinition>>
 				objectDefinitionsMapReference = new AtomicReference<>();
 
+			indexableActionableDynamicQuery.setAddCriteriaMethod(
+				dynamicQuery -> dynamicQuery.add(
+					RestrictionsFactoryUtil.eqProperty(
+						"objectEntryId", "headObjectEntryId")));
 			indexableActionableDynamicQuery.setPerformActionMethod(
 				(ObjectEntry objectEntry) -> {
 					Map<Long, ObjectDefinition> objectDefinitionsMap =
@@ -273,8 +287,31 @@ public class ObjectEntryModelSearchConfigurator
 
 					objectEntry.setObjectDefinition(objectDefinition);
 
-					return indexerDocumentBuilder.getDocument(objectEntry);
+					IndexerDocumentBuilder
+						objectDefinitionIndexerDocumentBuilder =
+							_serviceTrackerMap.getService(
+								objectDefinition.getClassName());
+
+					if (objectDefinitionIndexerDocumentBuilder == null) {
+						return indexerDocumentBuilder.getDocument(objectEntry);
+					}
+
+					return objectDefinitionIndexerDocumentBuilder.getDocument(
+						objectEntry);
 				});
+		}
+
+		@Override
+		public IndexerWriterMode getIndexerWriterMode(ObjectEntry objectEntry) {
+			if (!objectEntry.isHead()) {
+				return IndexerWriterMode.DELETE;
+			}
+
+			if (!ReindexCacheThreadLocal.isFullMode()) {
+				return IndexerWriterMode.SKIP;
+			}
+
+			return IndexerWriterMode.UPDATE;
 		}
 
 		@Override
@@ -283,9 +320,7 @@ public class ObjectEntryModelSearchConfigurator
 		}
 
 		private ObjectEntryFullReindexModelIndexerWriterContributor() {
-			super(
-				IndexerWriterMode.UPDATE,
-				_objectEntryLocalService::getIndexableActionableDynamicQuery);
+			super(_objectEntryLocalService::getIndexableActionableDynamicQuery);
 		}
 
 	}

@@ -92,7 +92,28 @@ async function importPicklistFromFile(
 
 	await expect(page.getByLabel('External Reference Code')).not.toBeEmpty();
 
+	const importNavigation = page.waitForNavigation({waitUntil: 'load'}).then(
+		() => 'imported',
+		() => null
+	);
+
+	const overwritePrompt = page
+		.getByRole('heading', {name: 'Update Existing Picklist'})
+		.waitFor({state: 'visible'})
+		.then(
+			() => 'prompted',
+			() => null
+		);
+
 	await page.getByRole('button', {exact: true, name: 'Import'}).click();
+
+	const outcome = await Promise.race([importNavigation, overwritePrompt]);
+
+	if (outcome === null) {
+		throw new Error(
+			'The import neither reloaded the page nor asked about overwriting'
+		);
+	}
 }
 
 test.describe('manage export/import of picklists', () => {
@@ -156,8 +177,6 @@ test.describe('manage export/import of picklists', () => {
 				filePath,
 				importedPicklistName
 			);
-
-			await page.waitForLoadState('networkidle');
 
 			await listTypeDefinitionPage.goto();
 
@@ -283,8 +302,6 @@ test.describe('manage export/import of picklists', () => {
 				importedPicklistName
 			);
 
-			await page.waitForLoadState('networkidle');
-
 			await listTypeDefinitionPage.goto();
 
 			const [importedListTypeDefinition] =
@@ -406,8 +423,6 @@ test.describe('manage export/import of picklists', () => {
 				filePath,
 				importedPicklistName
 			);
-
-			await page.waitForLoadState('networkidle');
 
 			await listTypeDefinitionPage.goto();
 
@@ -1103,7 +1118,6 @@ test.describe('manage picklists inside the picklists portlet', () => {
 	test('ensure picklist entry keys starting with upper case are correctly rendered in the entries', async ({
 		apiHelpers,
 		listTypeDefinitionPage,
-		page,
 	}) => {
 		const listTypeDefinition: ListTypeDefinition =
 			await apiHelpers.listTypeAdmin.postRandomListTypeDefinition();
@@ -1135,39 +1149,26 @@ test.describe('manage picklists inside the picklists portlet', () => {
 
 		const [responseEntries]: ListTypeEntry[] = response.listTypeEntries;
 
-		const frameElement = await page.$('iframe');
-		const frame = await frameElement.contentFrame();
-		await frame.waitForLoadState('networkidle');
-
-		const listTypeDefinitionHeader =
-			await listTypeDefinitionPage.frameLocator
-				.locator('.fds th')
-				.allInnerTexts();
-
-		const listTypeDefinitionContent =
-			await listTypeDefinitionPage.frameLocator
-				.locator('.fds td')
-				.allInnerTexts();
-
-		const listTypeDefinitionHeaderTemplate = [
+		const listTypeDefinitionHeaders = [
 			'Name',
 			'Key',
 			'External Reference Code',
 		];
 
-		const listTypeDefinitionContentTemplate = [
+		const listTypeDefinitionEntry = [
 			listTypeDefinitionEntryName,
 			listTypeDefinitionEntryKey,
 			responseEntries.externalReferenceCode,
 		];
 
-		for (let i = 0; i < 3; i++) {
-			expect(listTypeDefinitionHeaderTemplate[i]).toBe(
-				listTypeDefinitionHeader[i]
-			);
-			expect(listTypeDefinitionContentTemplate[i]).toBe(
-				listTypeDefinitionContent[i]
-			);
+		for (let i = 0; i < listTypeDefinitionHeaders.length; i++) {
+			await expect(
+				listTypeDefinitionPage.frameLocator.locator('.fds th').nth(i)
+			).toHaveText(listTypeDefinitionHeaders[i]);
+
+			await expect(
+				listTypeDefinitionPage.frameLocator.locator('.fds td').nth(i)
+			).toHaveText(listTypeDefinitionEntry[i]);
 		}
 	});
 

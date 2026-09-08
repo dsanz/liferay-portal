@@ -7,23 +7,37 @@ package com.liferay.commerce.product.asset.categories.web.internal.frontend.tagl
 
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.service.AssetCategoryService;
+import com.liferay.commerce.product.asset.categories.web.internal.constants.CPAssetCategoriesWebKeys;
 import com.liferay.commerce.product.url.CPFriendlyURL;
 import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
 import com.liferay.frontend.taglib.servlet.taglib.util.JSPRenderer;
+import com.liferay.info.item.InfoItemReference;
+import com.liferay.layout.display.page.LayoutDisplayPageObjectProvider;
+import com.liferay.layout.display.page.LayoutDisplayPageProvider;
+import com.liferay.layout.display.page.LayoutDisplayPageProviderRegistry;
+import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
+import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.WebKeys;
 
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
+
+import java.util.Locale;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -60,11 +74,15 @@ public class CategoryCPFriendlyURLScreenNavigationEntry
 		throws IOException {
 
 		AssetCategory assetCategory = null;
-
 		long categoryId = ParamUtil.getLong(httpServletRequest, "categoryId");
 		long classNameId = _portal.getClassNameId(AssetCategory.class);
-
+		String commerceFriendlyURLBase = StringPool.BLANK;
+		String commerceFriendlyURLSeparator = StringPool.BLANK;
+		String siteFriendlyURLBase = StringPool.BLANK;
+		String siteFriendlyURLSeparator = StringPool.BLANK;
+		String siteURLTitle = StringPool.BLANK;
 		String titleMapAsXML = StringPool.BLANK;
+		String urlTitle = StringPool.BLANK;
 
 		try {
 			assetCategory = _assetCategoryService.fetchCategory(categoryId);
@@ -74,23 +92,98 @@ public class CategoryCPFriendlyURLScreenNavigationEntry
 					_friendlyURLEntryLocalService.getMainFriendlyURLEntry(
 						classNameId, categoryId);
 
+				ThemeDisplay themeDisplay =
+					(ThemeDisplay)httpServletRequest.getAttribute(
+						WebKeys.THEME_DISPLAY);
+
+				Locale siteDefaultLocale = themeDisplay.getSiteDefaultLocale();
+
 				titleMapAsXML = friendlyURLEntry.getUrlTitleMapAsXML();
+				urlTitle = friendlyURLEntry.getUrlTitle(
+					LocaleUtil.toLanguageId(siteDefaultLocale));
+
+				commerceFriendlyURLSeparator =
+					_cpFriendlyURL.getAssetCategoryURLSeparator(
+						themeDisplay.getCompanyId());
+
+				String groupFriendlyURL = _getGroupFriendlyURL(themeDisplay);
+
+				commerceFriendlyURLBase =
+					groupFriendlyURL + commerceFriendlyURLSeparator;
+
+				LayoutDisplayPageProvider<?> layoutDisplayPageProvider =
+					_layoutDisplayPageProviderRegistry.
+						getLayoutDisplayPageProviderByClassName(
+							themeDisplay.getCompanyId(),
+							AssetCategory.class.getName());
+
+				siteFriendlyURLSeparator =
+					layoutDisplayPageProvider.getURLSeparator();
+
+				String siteURLPath = _getSiteURLPath(
+					assetCategory, layoutDisplayPageProvider,
+					siteDefaultLocale);
+
+				int index = siteURLPath.lastIndexOf(CharPool.SLASH) + 1;
+
+				siteFriendlyURLBase =
+					groupFriendlyURL + siteFriendlyURLSeparator +
+						siteURLPath.substring(0, index);
+				siteURLTitle = siteURLPath.substring(index);
 			}
 		}
 		catch (Exception exception) {
 			_log.error(exception);
 		}
 
-		httpServletRequest.setAttribute("assetCategory", assetCategory);
 		httpServletRequest.setAttribute(
-			"assetCategoryURLSeparator",
-			_cpFriendlyURL.getAssetCategoryURLSeparator(
-				_portal.getCompanyId(httpServletRequest)));
-		httpServletRequest.setAttribute("titleMapAsXML", titleMapAsXML);
+			CPAssetCategoriesWebKeys.ASSET_CATEGORY, assetCategory);
+		httpServletRequest.setAttribute(
+			CPAssetCategoriesWebKeys.COMMERCE_FRIENDLY_URL_BASE,
+			commerceFriendlyURLBase);
+		httpServletRequest.setAttribute(
+			CPAssetCategoriesWebKeys.COMMERCE_FRIENDLY_URL_SEPARATOR,
+			commerceFriendlyURLSeparator);
+		httpServletRequest.setAttribute(
+			CPAssetCategoriesWebKeys.SITE_FRIENDLY_URL_BASE,
+			siteFriendlyURLBase);
+		httpServletRequest.setAttribute(
+			CPAssetCategoriesWebKeys.SITE_FRIENDLY_URL_SEPARATOR,
+			siteFriendlyURLSeparator);
+		httpServletRequest.setAttribute(
+			CPAssetCategoriesWebKeys.SITE_URL_TITLE, siteURLTitle);
+		httpServletRequest.setAttribute(
+			CPAssetCategoriesWebKeys.TITLE_MAP_AS_XML, titleMapAsXML);
+		httpServletRequest.setAttribute(
+			CPAssetCategoriesWebKeys.URL_TITLE, urlTitle);
 
 		_jspRenderer.renderJSP(
 			_servletContext, httpServletRequest, httpServletResponse,
 			"/friendly_url.jsp");
+	}
+
+	private String _getGroupFriendlyURL(ThemeDisplay themeDisplay)
+		throws PortalException {
+
+		Group group = _groupLocalService.getGroup(
+			themeDisplay.getScopeGroupId());
+
+		return _portal.getGroupFriendlyURL(
+			group.getPublicLayoutSet(), themeDisplay, false, false);
+	}
+
+	private String _getSiteURLPath(
+		AssetCategory assetCategory,
+		LayoutDisplayPageProvider<?> layoutDisplayPageProvider,
+		Locale siteDefaultLocale) {
+
+		LayoutDisplayPageObjectProvider<?> layoutDisplayPageObjectProvider =
+			layoutDisplayPageProvider.getLayoutDisplayPageObjectProvider(
+				new InfoItemReference(
+					AssetCategory.class.getName(),
+					assetCategory.getCategoryId()));
+
+		return layoutDisplayPageObjectProvider.getURLTitle(siteDefaultLocale);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -106,7 +199,14 @@ public class CategoryCPFriendlyURLScreenNavigationEntry
 	private FriendlyURLEntryLocalService _friendlyURLEntryLocalService;
 
 	@Reference
+	private GroupLocalService _groupLocalService;
+
+	@Reference
 	private JSPRenderer _jspRenderer;
+
+	@Reference
+	private LayoutDisplayPageProviderRegistry
+		_layoutDisplayPageProviderRegistry;
 
 	@Reference
 	private Portal _portal;

@@ -10,6 +10,7 @@ import {
 	IBulkActionTaskType,
 } from '../../../common/types/BulkActionTask';
 import {
+	BULK_ACTION_ADD_OBJECT_TO_PROJECT,
 	BULK_ACTION_ASSIGN_DEFAULT_WORKFLOW,
 	BULK_ACTION_ASSIGN_TO,
 	BULK_ACTION_CATEGORIES,
@@ -29,7 +30,9 @@ import {
 	BULK_ACTION_RESTORE,
 	BULK_ACTION_STATUS,
 	BULK_ACTION_TAGS,
+	BULK_ACTION_UPDATE_EXPIRATION_DATE,
 	BULK_ACTION_UPDATE_OBJECT_VALUES,
+	BULK_ACTION_UPDATE_REVIEW_DATE,
 } from './constants';
 
 type MessageType = 'danger' | 'info' | 'success' | 'warning';
@@ -45,6 +48,26 @@ type BulkActionMessage = {
 };
 
 const BULK_ACTION_MESSAGES: BulkActionMessage = {
+	[BULK_ACTION_ADD_OBJECT_TO_PROJECT]: {
+		info: {
+			all: Liferay.Language.get(
+				'add-assets-to-project-action-started-for-all-assets'
+			),
+			plural: Liferay.Language.get(
+				'add-assets-to-project-action-started-for-x-assets'
+			),
+			singular: Liferay.Language.get(
+				'add-assets-to-project-action-started-for-one-asset'
+			),
+		},
+		success: {
+			all: Liferay.Language.get('all-items-were-successfully-added-to-x'),
+			plural: Liferay.Language.get(
+				'x-assets-were-successfully-added-to-x'
+			),
+			singular: Liferay.Language.get('x-was-successfully-added-to-x'),
+		},
+	},
 	[BULK_ACTION_ASSIGN_DEFAULT_WORKFLOW]: {
 		info: {
 			all: Liferay.Language.get(
@@ -410,6 +433,30 @@ const BULK_ACTION_MESSAGES: BulkActionMessage = {
 			),
 		},
 	},
+	[BULK_ACTION_UPDATE_EXPIRATION_DATE]: {
+		info: {
+			all: Liferay.Language.get(
+				'expiration-date-update-action-started-for-all-assets'
+			),
+			plural: Liferay.Language.get(
+				'expiration-date-update-action-started-for-x-assets'
+			),
+			singular: Liferay.Language.get(
+				'expiration-date-update-action-started-for-one-asset'
+			),
+		},
+		success: {
+			all: Liferay.Language.get(
+				'expiration-date-was-successfully-updated-for-all-assets'
+			),
+			plural: Liferay.Language.get(
+				'expiration-date-was-successfully-updated-for-x-assets'
+			),
+			singular: Liferay.Language.get(
+				'expiration-date-was-successfully-updated-for-one-asset'
+			),
+		},
+	},
 	[BULK_ACTION_UPDATE_OBJECT_VALUES]: {
 		info: {
 			all: Liferay.Language.get('replacing-x-with-x'),
@@ -422,7 +469,79 @@ const BULK_ACTION_MESSAGES: BulkActionMessage = {
 			singular: Liferay.Language.get('replaced-x-with-x-for-one-asset'),
 		},
 	},
+	[BULK_ACTION_UPDATE_REVIEW_DATE]: {
+		info: {
+			all: Liferay.Language.get(
+				'review-date-update-action-started-for-all-assets'
+			),
+			plural: Liferay.Language.get(
+				'review-date-update-action-started-for-x-assets'
+			),
+			singular: Liferay.Language.get(
+				'review-date-update-action-started-for-one-asset'
+			),
+		},
+		success: {
+			all: Liferay.Language.get(
+				'review-date-was-successfully-updated-for-all-assets'
+			),
+			plural: Liferay.Language.get(
+				'review-date-was-successfully-updated-for-x-assets'
+			),
+			singular: Liferay.Language.get(
+				'review-date-was-successfully-updated-for-one-asset'
+			),
+		},
+	},
 };
+
+const BULK_ACTION_FAILURE_MESSAGES: {
+	[actionType in keyof IBulkActionTaskType]?: {
+		[taskResult: string]: string;
+	};
+} = {
+	[BULK_ACTION_COPY]: {
+		structureNotInDestinationSpace: Liferay.Language.get(
+			'some-items-could-not-be-copied.-please-ensure-their-structures-exist-in-the-destination-space'
+		),
+	},
+	[BULK_ACTION_MOVE]: {
+		structureNotInDestinationSpace: Liferay.Language.get(
+			'some-items-could-not-be-moved.-please-ensure-their-structures-exist-in-the-destination-space'
+		),
+	},
+};
+
+export function getBulkActionTaskFailureMessage(
+	actionType: keyof IBulkActionTaskType,
+	taskResult: string
+): string | null {
+	if (!taskResult) {
+		return null;
+	}
+
+	const failureMessages = BULK_ACTION_FAILURE_MESSAGES?.[actionType] ?? {};
+
+	for (const reason of _getTaskResultReasons(taskResult)) {
+		if (failureMessages[reason]) {
+			return failureMessages[reason];
+		}
+	}
+
+	return null;
+}
+
+function _getTaskResultReasons(taskResult: string): string[] {
+	const parsedTaskResult = JSON.parse(taskResult);
+
+	if (Array.isArray(parsedTaskResult)) {
+		return parsedTaskResult
+			.map((taskResultError) => taskResultError?.id)
+			.filter(Boolean);
+	}
+
+	return [];
+}
 
 export function getBulkActionTaskMessage(
 	actionType: keyof IBulkActionTaskType,

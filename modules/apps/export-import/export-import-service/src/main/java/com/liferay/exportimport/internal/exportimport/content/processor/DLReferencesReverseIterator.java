@@ -320,12 +320,9 @@ public class DLReferencesReverseIterator
 
 			map = HttpComponentsUtil.parameterMapFromString(dlReference);
 
-			String[] imageIds = null;
+			String[] imageIds = map.get("img_id");
 
-			if (map.containsKey("img_id")) {
-				imageIds = map.get("img_id");
-			}
-			else if (map.containsKey("i_id")) {
+			if (imageIds == null) {
 				imageIds = map.get("i_id");
 			}
 
@@ -394,18 +391,11 @@ public class DLReferencesReverseIterator
 					String title = MapUtil.getString(map, "title");
 
 					if (Validator.isNotNull(title)) {
-						try {
-							fileEntry =
-								DLAppLocalServiceUtil.getFileEntryByFileName(
-									groupId, folderId, title);
-						}
-						catch (NoSuchFileEntryException
-									noSuchFileEntryException) {
+						fileEntry =
+							DLAppLocalServiceUtil.fetchFileEntryByFileName(
+								groupId, folderId, title);
 
-							if (_log.isDebugEnabled()) {
-								_log.debug(noSuchFileEntryException);
-							}
-
+						if (fileEntry == null) {
 							fileEntry = DLAppLocalServiceUtil.getFileEntry(
 								groupId, folderId, title);
 						}

@@ -5,4 +5,15 @@
  */
 --%>
 
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+
 <%@ include file="/init.jsp" %>
+
+<%
+LayoutContentVersionDisplayContext layoutContentVersionDisplayContext = (LayoutContentVersionDisplayContext)request.getAttribute(LayoutContentVersionWebKeys.LAYOUT_CONTENT_VERSION_DISPLAY_CONTEXT);
+%>
+
+<react:component
+	module="{VersionHistory} from layout-content-web"
+	props="<%= layoutContentVersionDisplayContext.getContext() %>"
+/>

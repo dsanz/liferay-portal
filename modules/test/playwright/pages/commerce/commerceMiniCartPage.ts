@@ -13,10 +13,16 @@ export class CommerceMiniCartPage {
 	readonly editUnitOfMeasureLabel: Locator;
 	readonly miniCartButton: Locator;
 	readonly miniCartButtonClose: Locator;
+	readonly miniCartEditItemPanel: Locator;
+	readonly miniCartEditItemPrice: (priceName: string) => Locator;
 	readonly miniCartInvalidQuantityMessage: Locator;
+	readonly miniCartPriceOnApplicationInfoMessage: Locator;
 	readonly miniCartItem: (productName: string) => Locator;
+	readonly miniCartItemShowOptionsButton: (productName: string) => Locator;
 	readonly miniCartItemsContainer: Locator;
-	readonly miniCartItemPrice: (text: RegExp) => Locator;
+	readonly miniCartItemPrice: (text: RegExp, productName?: string) => Locator;
+	readonly miniCartItemReplacementLabel: (productName: string) => Locator;
+	readonly miniCartReplacementInfoMessage: Locator;
 	readonly miniCartSaveButton: Locator;
 	readonly miniCartSku: (skuName: string) => Locator;
 	readonly miniCartTotalPrice: Locator;
@@ -60,15 +66,40 @@ export class CommerceMiniCartPage {
 		});
 		this.miniCartButton = page.getByTestId('miniCartButton');
 		this.miniCartButtonClose = page.locator('.mini-cart-close');
+		this.miniCartEditItemPanel = page.locator('.mini-cart-edit-item');
+		this.miniCartEditItemPrice = (priceName: string) =>
+			this.miniCartEditItemPanel
+				.locator('.mini-cart-prices > div')
+				.filter({hasText: priceName})
+				.locator('span')
+				.last();
 		this.miniCartInvalidQuantityMessage = page.getByText(
 			'The product quantity is not valid.',
 			{exact: true}
 		);
+		this.miniCartPriceOnApplicationInfoMessage = page.getByText(
+			'Your cart has products that require a quote to complete the checkout.'
+		);
 		this.miniCartItemsContainer = page.locator('div.mini-cart-cart-items');
 		this.miniCartItem = (productName: string) =>
 			page.locator('div.mini-cart-item').filter({hasText: productName});
-		this.miniCartItemPrice = (text: RegExp) =>
-			page.locator('div').filter({hasText: text}).first();
+		this.miniCartItemShowOptionsButton = (productName: string) =>
+			this.miniCartItem(productName).getByRole('button', {
+				exact: true,
+				name: 'Show Options',
+			});
+		this.miniCartItemPrice = (text: RegExp, productName?: string) =>
+			(productName ? this.miniCartItem(productName) : page)
+				.locator('div')
+				.filter({hasText: text})
+				.first();
+		this.miniCartItemReplacementLabel = (productName: string) =>
+			this.miniCartItem(productName).getByText('Replacement', {
+				exact: true,
+			});
+		this.miniCartReplacementInfoMessage = page.getByText(
+			'There are replacement products in your cart.'
+		);
 		this.miniCartSaveButton = page
 			.locator('.mini-cart-footer')
 			.getByRole('button', {
@@ -76,7 +107,7 @@ export class CommerceMiniCartPage {
 				name: 'Save',
 			});
 		this.miniCartSku = (skuName: string) =>
-			page.getByText(skuName, {exact: true});
+			this.miniCartItemsContainer.getByText(skuName, {exact: true});
 		this.miniCartTotalPrice = page.locator(
 			`xpath=//div[text()='Total']/../following-sibling::div/div`
 		);
@@ -147,5 +178,19 @@ export class CommerceMiniCartPage {
 
 		await this.quickAddToCartSku(sku).click();
 		await this.quickAddToCartButton.click();
+	}
+
+	async selectEditItemOption(optionLabel: string, optionName: string) {
+		const optionSelect = this.miniCartEditItemPanel.getByLabel(optionName);
+
+		const optionLabels = await optionSelect
+			.locator('option')
+			.allTextContents();
+
+		await optionSelect.selectOption({
+			index: optionLabels.findIndex((currentOptionLabel) =>
+				currentOptionLabel.includes(optionLabel)
+			),
+		});
 	}
 }

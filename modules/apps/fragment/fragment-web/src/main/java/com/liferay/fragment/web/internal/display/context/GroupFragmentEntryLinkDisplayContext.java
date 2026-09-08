@@ -5,13 +5,17 @@
 
 package com.liferay.fragment.web.internal.display.context;
 
+import com.liferay.depot.model.DepotEntryGroupRel;
+import com.liferay.depot.service.DepotEntryGroupRelLocalService;
+import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.fragment.constants.FragmentActionKeys;
 import com.liferay.fragment.constants.FragmentPortletKeys;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLinkTable;
-import com.liferay.fragment.service.FragmentEntryLinkLocalServiceUtil;
-import com.liferay.fragment.service.FragmentEntryLocalServiceUtil;
+import com.liferay.fragment.service.FragmentEntryLinkLocalService;
+import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.fragment.web.internal.security.permission.resource.FragmentPermission;
+import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.sql.dsl.DSLFunctionFactoryUtil;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.petra.sql.dsl.expression.Predicate;
@@ -21,8 +25,9 @@ import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
-import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -44,8 +49,18 @@ import java.util.Objects;
 public class GroupFragmentEntryLinkDisplayContext {
 
 	public GroupFragmentEntryLinkDisplayContext(
-		RenderRequest renderRequest, RenderResponse renderResponse) {
+		DepotEntryGroupRelLocalService depotEntryGroupRelLocalService,
+		DepotEntryLocalService depotEntryLocalService,
+		FragmentEntryLinkLocalService fragmentEntryLinkLocalService,
+		FragmentEntryLocalService fragmentEntryLocalService,
+		GroupLocalService groupLocalService, RenderRequest renderRequest,
+		RenderResponse renderResponse) {
 
+		_depotEntryGroupRelLocalService = depotEntryGroupRelLocalService;
+		_depotEntryLocalService = depotEntryLocalService;
+		_fragmentEntryLinkLocalService = fragmentEntryLinkLocalService;
+		_fragmentEntryLocalService = fragmentEntryLocalService;
+		_groupLocalService = groupLocalService;
 		_renderRequest = renderRequest;
 		_renderResponse = renderResponse;
 	}
@@ -67,7 +82,7 @@ public class GroupFragmentEntryLinkDisplayContext {
 		}
 
 		try {
-			_fragmentEntry = FragmentEntryLocalServiceUtil.getFragmentEntry(
+			_fragmentEntry = _fragmentEntryLocalService.getFragmentEntry(
 				getFragmentEntryId());
 		}
 		catch (PortalException portalException) {
@@ -177,6 +192,46 @@ public class GroupFragmentEntryLinkDisplayContext {
 		return _searchContainer;
 	}
 
+	private Predicate _getFragmentEntryScopePredicate(Group group)
+		throws PortalException {
+
+		Predicate emptyScopePredicate = Predicate.withParentheses(
+			FragmentEntryLinkTable.INSTANCE.fragmentEntryScopeERC.isNull(
+			).and(
+				FragmentEntryLinkTable.INSTANCE.groupId.eq(group.getGroupId())
+			));
+
+		if (!group.isDepot()) {
+			return Predicate.withParentheses(
+				FragmentEntryLinkTable.INSTANCE.fragmentEntryScopeERC.eq(
+					group.getExternalReferenceCode()
+				).or(
+					emptyScopePredicate
+				));
+		}
+
+		Long[] connectedSiteGroupIds = TransformUtil.transformToArray(
+			_depotEntryGroupRelLocalService.getDepotEntryGroupRels(
+				_depotEntryLocalService.getGroupDepotEntry(group.getGroupId())),
+			DepotEntryGroupRel::getToGroupId, Long.class);
+
+		if (ArrayUtil.isEmpty(connectedSiteGroupIds)) {
+			return emptyScopePredicate;
+		}
+
+		return Predicate.withParentheses(
+			Predicate.withParentheses(
+				FragmentEntryLinkTable.INSTANCE.fragmentEntryScopeERC.eq(
+					group.getExternalReferenceCode()
+				).and(
+					FragmentEntryLinkTable.INSTANCE.groupId.in(
+						connectedSiteGroupIds)
+				)
+			).or(
+				emptyScopePredicate
+			));
+	}
+
 	private Map<Group, Integer> _getGroupFragmentEntryUsages()
 		throws PortalException {
 
@@ -186,8 +241,7 @@ public class GroupFragmentEntryLinkDisplayContext {
 
 		FragmentEntry fragmentEntry = getFragmentEntry();
 
-		Group group = GroupLocalServiceUtil.getGroup(
-			fragmentEntry.getGroupId());
+		Group group = _groupLocalService.getGroup(fragmentEntry.getGroupId());
 
 		Map<Group, Integer> groupFragmentEntryUsages = new HashMap<>();
 
@@ -204,18 +258,7 @@ public class GroupFragmentEntryLinkDisplayContext {
 			FragmentEntryLinkTable.INSTANCE.fragmentEntryERC.eq(
 				fragmentEntry.getExternalReferenceCode()
 			).and(
-				Predicate.withParentheses(
-					FragmentEntryLinkTable.INSTANCE.fragmentEntryScopeERC.eq(
-						group.getExternalReferenceCode()
-					).or(
-						Predicate.withParentheses(
-							FragmentEntryLinkTable.INSTANCE.
-								fragmentEntryScopeERC.isNull(
-								).and(
-									FragmentEntryLinkTable.INSTANCE.groupId.eq(
-										fragmentEntry.getGroupId())
-								))
-					))
+				_getFragmentEntryScopePredicate(group)
 			).and(
 				FragmentEntryLinkTable.INSTANCE.deleted.eq(false)
 			)
@@ -223,7 +266,7 @@ public class GroupFragmentEntryLinkDisplayContext {
 			FragmentEntryLinkTable.INSTANCE.groupId
 		);
 
-		List<Object[]> results = FragmentEntryLinkLocalServiceUtil.dslQuery(
+		List<Object[]> results = _fragmentEntryLinkLocalService.dslQuery(
 			dslQuery);
 
 		for (Object[] result : results) {
@@ -231,7 +274,7 @@ public class GroupFragmentEntryLinkDisplayContext {
 			Number count = (Number)result[1];
 
 			groupFragmentEntryUsages.put(
-				GroupLocalServiceUtil.getGroup(groupId), count.intValue());
+				_groupLocalService.getGroup(groupId), count.intValue());
 		}
 
 		_groupFragmentEntryUsages = groupFragmentEntryUsages;
@@ -239,10 +282,16 @@ public class GroupFragmentEntryLinkDisplayContext {
 		return _groupFragmentEntryUsages;
 	}
 
+	private final DepotEntryGroupRelLocalService
+		_depotEntryGroupRelLocalService;
+	private final DepotEntryLocalService _depotEntryLocalService;
 	private Long _fragmentCollectionId;
 	private FragmentEntry _fragmentEntry;
 	private Long _fragmentEntryId;
+	private final FragmentEntryLinkLocalService _fragmentEntryLinkLocalService;
+	private final FragmentEntryLocalService _fragmentEntryLocalService;
 	private Map<Group, Integer> _groupFragmentEntryUsages;
+	private final GroupLocalService _groupLocalService;
 	private String _orderByCol;
 	private String _orderByType;
 	private String _redirect;

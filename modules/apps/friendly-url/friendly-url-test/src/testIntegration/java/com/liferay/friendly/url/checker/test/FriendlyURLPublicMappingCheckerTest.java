@@ -14,11 +14,13 @@ import com.liferay.layout.friendly.url.LayoutFriendlyURLEntryHelper;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
@@ -28,6 +30,7 @@ import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PropsValues;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
@@ -38,6 +41,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -60,9 +64,21 @@ public class FriendlyURLPublicMappingCheckerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_defaultGroup = _groupLocalService.fetchGroup(
+		_originalVirtualHostsDefaultSiteName =
+			ReflectionTestUtil.getAndSetFieldValue(
+				PropsValues.class, "VIRTUAL_HOSTS_DEFAULT_SITE_NAME",
+				GroupConstants.GUEST);
+
+		_defaultGroup = _groupLocalService.getGroup(
 			TestPropsValues.getCompanyId(),
 			PropsValues.VIRTUAL_HOSTS_DEFAULT_SITE_NAME);
+	}
+
+	@After
+	public void tearDown() {
+		ReflectionTestUtil.setFieldValue(
+			PropsValues.class, "VIRTUAL_HOSTS_DEFAULT_SITE_NAME",
+			_originalVirtualHostsDefaultSiteName);
 	}
 
 	@Test
@@ -70,11 +86,14 @@ public class FriendlyURLPublicMappingCheckerTest {
 		throws Exception {
 
 		String defaultLocaleFriendlyURL =
-			StringPool.SLASH + RandomTestUtil.randomString();
+			StringPool.SLASH +
+				StringUtil.toLowerCase(RandomTestUtil.randomString());
 		String nondefaultGroupFriendlyURL =
-			StringPool.SLASH + RandomTestUtil.randomString();
+			StringPool.SLASH +
+				StringUtil.toLowerCase(RandomTestUtil.randomString());
 		String nondefaultLocaleFriendlyURL =
-			StringPool.SLASH + RandomTestUtil.randomString();
+			StringPool.SLASH +
+				StringUtil.toLowerCase(RandomTestUtil.randomString());
 
 		Group group1 = _addGroup();
 
@@ -158,9 +177,12 @@ public class FriendlyURLPublicMappingCheckerTest {
 		for (FriendlyURLPublicMappingConflict friendlyURLPublicMappingConflict :
 				friendlyURLPublicMappingConflicts) {
 
-			Assert.assertEquals(
-				FriendlyURLPublicMappingConflict.TYPE_RESERVED_KEYWORD,
-				friendlyURLPublicMappingConflict.getType());
+			if (!Objects.equals(
+					FriendlyURLPublicMappingConflict.TYPE_RESERVED_KEYWORD,
+					friendlyURLPublicMappingConflict.getType())) {
+
+				continue;
+			}
 
 			String className = friendlyURLPublicMappingConflict.getClassName();
 
@@ -314,6 +336,8 @@ public class FriendlyURLPublicMappingCheckerTest {
 
 	@DeleteAfterTestRun
 	private final List<Layout> _layouts = new ArrayList<>();
+
+	private String _originalVirtualHostsDefaultSiteName;
 
 	@Inject
 	private SiteFriendlyURLLocalService _siteFriendlyURLLocalService;

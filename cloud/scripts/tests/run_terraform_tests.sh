@@ -11,12 +11,15 @@ function main {
 		aws/eks
 		aws/gitops/platform
 		aws/gitops/resources
+		azure/aks
+		azure/platform
 		gcp/gitops/platform
 		gcp/gitops/resources
 		gcp/gke
+		modules/argocd
 	)
 
-	if [[ -n "${requested_module}" ]]
+	if [[ -n ${requested_module} ]]
 	then
 		terraform_modules=("${requested_module}")
 	fi

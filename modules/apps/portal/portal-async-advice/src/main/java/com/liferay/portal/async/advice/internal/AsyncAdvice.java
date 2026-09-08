@@ -15,7 +15,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.Message;
 import com.liferay.portal.kernel.messaging.MessageBus;
 import com.liferay.portal.kernel.messaging.async.Async;
-import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
+import com.liferay.portal.kernel.transaction.TransactionCallbackUtil;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
@@ -40,7 +40,7 @@ public class AsyncAdvice extends ChainableMethodAdvice {
 
 	@Override
 	public Object createMethodContext(
-		Class<?> targetClass, Method method,
+		Object target, Method method,
 		Map<Class<? extends Annotation>, Annotation> annotations) {
 
 		Annotation annotation = annotations.get(Async.class);
@@ -62,6 +62,8 @@ public class AsyncAdvice extends ChainableMethodAdvice {
 		String destinationName = null;
 
 		if (_destinationNames != null) {
+			Class<?> targetClass = target.getClass();
+
 			destinationName = _destinationNames.get(targetClass.getName());
 		}
 
@@ -122,7 +124,7 @@ public class AsyncAdvice extends ChainableMethodAdvice {
 
 		String destinationName = aopMethodInvocation.getAdviceMethodContext();
 
-		TransactionCommitCallbackUtil.registerCallback(
+		TransactionCallbackUtil.registerCommitCallback(
 			() -> {
 				Message message = new Message();
 

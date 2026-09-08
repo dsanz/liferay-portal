@@ -9,14 +9,18 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
-import com.liferay.portal.kernel.service.ClassNameLocalService;
-import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
+
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * @author Tancredi Covioli
@@ -25,13 +29,9 @@ public class DSRDefaultPermissionObjectEntryModelResourcePermission
 	implements ModelResourcePermission<ObjectEntry> {
 
 	public DSRDefaultPermissionObjectEntryModelResourcePermission(
-		ClassNameLocalService classNameLocalService,
-		GroupLocalService groupLocalService,
 		ModelResourcePermission<ObjectEntry> modelResourcePermission,
 		ObjectEntryLocalService objectEntryLocalService) {
 
-		_classNameLocalService = classNameLocalService;
-		_groupLocalService = groupLocalService;
 		_modelResourcePermission = modelResourcePermission;
 		_objectEntryLocalService = objectEntryLocalService;
 	}
@@ -84,37 +84,26 @@ public class DSRDefaultPermissionObjectEntryModelResourcePermission
 			String actionId)
 		throws PortalException {
 
-		ObjectDefinition objectDefinition = objectEntry.getObjectDefinition();
+		if (Objects.equals(actionId, ActionKeys.VIEW) ||
+			(MapUtil.getInteger(objectEntry.getValues(), "roomStatus") !=
+				WorkflowConstants.STATUS_INACTIVE)) {
 
-		if (permissionChecker.hasOwnerPermission(
-				permissionChecker.getCompanyId(),
-				objectDefinition.getClassName(), objectEntry.getObjectEntryId(),
-				objectEntry.getUserId(), actionId) ||
-			permissionChecker.hasPermission(
-				objectEntry.getGroupId(), objectDefinition.getClassName(),
-				objectEntry.getObjectEntryId(), actionId)) {
+			return _contains(permissionChecker, objectEntry, actionId);
+		}
+
+		if (permissionChecker.isCompanyAdmin()) {
+			return true;
+		}
+
+		long siteId = MapUtil.getLong(objectEntry.getValues(), "siteId");
+
+		if ((siteId > 0) && permissionChecker.isGroupOwner(siteId) &&
+			_archivedRoomOwnerAllowedActionIds.contains(actionId)) {
 
 			return true;
 		}
 
-		if (actionId.equals(ActionKeys.ADD_DISCUSSION) ||
-			actionId.equals(ActionKeys.VIEW)) {
-
-			Group group = _groupLocalService.fetchGroup(
-				objectEntry.getCompanyId(),
-				_classNameLocalService.getClassNameId(
-					objectDefinition.getClassName()),
-				objectEntry.getObjectEntryId());
-
-			if ((group != null) &&
-				permissionChecker.isGroupMember(group.getGroupId())) {
-
-				return true;
-			}
-		}
-
-		return _modelResourcePermission.contains(
-			permissionChecker, objectEntry, actionId);
+		return false;
 	}
 
 	@Override
@@ -127,8 +116,66 @@ public class DSRDefaultPermissionObjectEntryModelResourcePermission
 		return _modelResourcePermission.getPortletResourcePermission();
 	}
 
-	private final ClassNameLocalService _classNameLocalService;
-	private final GroupLocalService _groupLocalService;
+	private boolean _contains(
+			PermissionChecker permissionChecker, ObjectEntry objectEntry,
+			String actionId)
+		throws PortalException {
+
+		ObjectDefinition objectDefinition = objectEntry.getObjectDefinition();
+
+		if (permissionChecker.hasOwnerPermission(
+				permissionChecker.getCompanyId(),
+				objectDefinition.getClassName(), objectEntry.getObjectEntryId(),
+				objectEntry.getUserId(), actionId) ||
+			permissionChecker.isCompanyAdmin()) {
+
+			return true;
+		}
+
+		boolean hasGroupPermission = false;
+
+		long siteId = MapUtil.getLong(objectEntry.getValues(), "siteId");
+
+		if ((siteId > 0) &&
+			(permissionChecker.isGroupMember(siteId) ||
+			 permissionChecker.isGroupOwner(siteId))) {
+
+			hasGroupPermission = true;
+		}
+
+		if (Objects.equals(actionId, ActionKeys.ADD_DISCUSSION) ||
+			Objects.equals(actionId, ActionKeys.VIEW)) {
+
+			if (hasGroupPermission) {
+				return true;
+			}
+
+			return _modelResourcePermission.contains(
+				permissionChecker, objectEntry, actionId);
+		}
+
+		if (!hasGroupPermission) {
+			return false;
+		}
+
+		if (permissionChecker.hasPermission(
+				objectEntry.getGroupId(), objectDefinition.getClassName(),
+				objectEntry.getObjectEntryId(), actionId)) {
+
+			return true;
+		}
+
+		return _modelResourcePermission.contains(
+			permissionChecker, objectEntry, actionId);
+	}
+
+	private static final Set<String> _archivedRoomOwnerAllowedActionIds =
+		new HashSet<>(
+			Arrays.asList(
+				ActionKeys.ADD_DISCUSSION, ActionKeys.DELETE,
+				ActionKeys.DELETE_DISCUSSION, ActionKeys.UPDATE,
+				ActionKeys.UPDATE_DISCUSSION));
+
 	private final ModelResourcePermission<ObjectEntry> _modelResourcePermission;
 	private final ObjectEntryLocalService _objectEntryLocalService;
 

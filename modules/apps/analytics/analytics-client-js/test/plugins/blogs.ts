@@ -11,7 +11,8 @@ import fetchMock from 'fetch-mock';
 
 import AnalyticsClient from '../../src/analytics';
 import {Analytics as AnalyticsTypes} from '../../src/types';
-import {INITIAL_ANALYTICS_CONFIG, wait} from '../helpers';
+import {DEBOUNCE} from '../../src/utils/constants';
+import {INITIAL_ANALYTICS_CONFIG, mockVisibleRect, wait} from '../helpers';
 
 const applicationId = 'Blog';
 
@@ -78,12 +79,14 @@ describe('Blogs Plugin', () => {
 	});
 
 	describe('blogViewed event', () => {
-		it('is fired for every blog on the page', async () => {
+		it('is fired for every visible blog on the page', async () => {
 			const blogElement = createBlogElement();
 
-			const domContentLoaded = new Event('DOMContentLoaded');
+			mockVisibleRect(blogElement);
 
-			await document.dispatchEvent(domContentLoaded);
+			document.dispatchEvent(new Event('DOMContentLoaded'));
+
+			await wait(300);
 
 			const events = Analytics.getEvents().filter(
 				({eventId}) => eventId === 'blogViewed'
@@ -110,9 +113,11 @@ describe('Blogs Plugin', () => {
 				' my asset title '
 			);
 
-			const domContentLoaded = new Event('DOMContentLoaded');
+			mockVisibleRect(blogElement);
 
-			await document.dispatchEvent(domContentLoaded);
+			document.dispatchEvent(new Event('DOMContentLoaded'));
+
+			await wait(300);
 
 			const events = Analytics.getEvents().filter(
 				({eventId}) => eventId === 'blogViewed'
@@ -144,9 +149,11 @@ describe('Blogs Plugin', () => {
 			blogElement.dataset.analyticsAssetVocabularies =
 				'[{"id":"voc1","name":"Vocabulary 1"}]';
 
-			const domContentLoaded = new Event('DOMContentLoaded');
+			mockVisibleRect(blogElement);
 
-			await document.dispatchEvent(domContentLoaded);
+			document.dispatchEvent(new Event('DOMContentLoaded'));
+
+			await wait(300);
 
 			const events = Analytics.getEvents().filter(
 				({eventId}) => eventId === 'blogViewed'
@@ -169,6 +176,110 @@ describe('Blogs Plugin', () => {
 					}),
 				})
 			);
+
+			document.body.removeChild(blogElement);
+		});
+
+		it('is not fired when a blog is in the viewport but hidden by CSS', async () => {
+			const blogElement = createBlogElement();
+
+			blogElement.style.visibility = 'hidden';
+
+			mockVisibleRect(blogElement);
+
+			document.dispatchEvent(new Event('DOMContentLoaded'));
+
+			await wait(300);
+
+			const events = Analytics.getEvents().filter(
+				({eventId}) => eventId === 'blogViewed'
+			);
+
+			expect(events.length).toBe(0);
+
+			document.body.removeChild(blogElement);
+		});
+
+		it('is fired when a hidden blog becomes visible after a reveal event', async () => {
+			const blogElement = createBlogElement();
+
+			blogElement.style.visibility = 'hidden';
+
+			mockVisibleRect(blogElement);
+
+			document.dispatchEvent(new Event('DOMContentLoaded'));
+
+			await wait(300);
+
+			expect(
+				Analytics.getEvents().filter(
+					({eventId}) => eventId === 'blogViewed'
+				).length
+			).toBe(0);
+
+			blogElement.style.visibility = 'visible';
+
+			blogElement.dispatchEvent(new Event('click', {bubbles: true}));
+
+			await wait(300);
+
+			expect(
+				Analytics.getEvents().filter(
+					({eventId}) => eventId === 'blogViewed'
+				).length
+			).toBe(1);
+
+			document.body.removeChild(blogElement);
+		});
+	});
+
+	describe('blogDepthReached event', () => {
+		beforeEach(() => {
+
+			// Recreate with a flush interval large enough that the queue is not
+			// drained before the debounced scroll depth event is asserted.
+
+			AnalyticsClient.dispose();
+
+			Analytics = AnalyticsClient.create({
+				...INITIAL_ANALYTICS_CONFIG,
+				flushInterval: 60000,
+			});
+		});
+
+		it('is fired on scroll after a viewed blog reaches a depth level', async () => {
+			const blogElement = createBlogElement();
+
+			mockVisibleRect(blogElement);
+
+			// The blog must be viewed first so it is tracked for scrolling
+
+			document.dispatchEvent(new Event('DOMContentLoaded'));
+
+			await wait(100);
+
+			document.dispatchEvent(new Event('scroll'));
+
+			await wait(DEBOUNCE + 200);
+
+			const events = Analytics.getEvents().filter(
+				({eventId}) => eventId === 'blogDepthReached'
+			);
+
+			expect(events.length).toBeGreaterThanOrEqual(1);
+
+			expect(events[0]).toEqual(
+				expect.objectContaining({
+					applicationId,
+					eventId: 'blogDepthReached',
+					properties: expect.objectContaining({
+						depth: expect.any(Number),
+						entryId: 'assetId',
+					}),
+				})
+			);
+
+			expect(events[0].properties.depth).toBeGreaterThan(0);
 
 			document.body.removeChild(blogElement);
 		});

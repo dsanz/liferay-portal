@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -590,6 +588,11 @@ public class CommercePricingClassCPDefinitionRelPersistenceImpl
 	}
 
 	@Override
+	protected String getPKFieldName() {
+		return "CommercePricingClassCPDefinitionRelId";
+	}
+
+	@Override
 	protected String getSelectSQL() {
 		return _SQL_SELECT_COMMERCEPRICINGCLASSCPDEFINITIONREL;
 	}
@@ -691,7 +694,7 @@ public class CommercePricingClassCPDefinitionRelPersistenceImpl
 				_SQL_SELECT_COMMERCEPRICINGCLASSCPDEFINITIONREL_WHERE,
 				_SQL_COUNT_COMMERCEPRICINGCLASSCPDEFINITIONREL_WHERE,
 				CommercePricingClassCPDefinitionRelModelImpl.ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"commercePricingClassCPDefinitionRel.",
 					"commercePricingClassId", FinderColumn.Type.LONG, "=", true,
@@ -723,7 +726,7 @@ public class CommercePricingClassCPDefinitionRelPersistenceImpl
 				_SQL_SELECT_COMMERCEPRICINGCLASSCPDEFINITIONREL_WHERE,
 				_SQL_COUNT_COMMERCEPRICINGCLASSCPDEFINITIONREL_WHERE,
 				CommercePricingClassCPDefinitionRelModelImpl.ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"commercePricingClassCPDefinitionRel.", "CPDefinitionId",
 					FinderColumn.Type.LONG, "=", true, true,
@@ -810,12 +813,6 @@ public class CommercePricingClassCPDefinitionRelPersistenceImpl
 		_SQL_COUNT_COMMERCEPRICINGCLASSCPDEFINITIONREL_WHERE =
 			"SELECT COUNT(commercePricingClassCPDefinitionRel) FROM CommercePricingClassCPDefinitionRel commercePricingClassCPDefinitionRel WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No CommercePricingClassCPDefinitionRel exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		CommercePricingClassCPDefinitionRelPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"CommercePricingClassCPDefinitionRelId"});
 
@@ -825,4 +822,4 @@ public class CommercePricingClassCPDefinitionRelPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1421678538
+// LIFERAY-SERVICE-BUILDER-HASH:-381322852

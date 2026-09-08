@@ -40,6 +40,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -118,6 +119,8 @@ public abstract class BaseProductConfigurationResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -216,6 +219,8 @@ public abstract class BaseProductConfigurationResourceTestCase {
 		ProductConfiguration productConfiguration =
 			randomProductConfiguration();
 
+		productConfiguration.setAvailabilityEstimateExternalReferenceCode(
+			regex);
 		productConfiguration.setEntityExternalReferenceCode(regex);
 		productConfiguration.setEntityName(regex);
 		productConfiguration.setExternalReferenceCode(regex);
@@ -228,6 +233,10 @@ public abstract class BaseProductConfigurationResourceTestCase {
 
 		productConfiguration = ProductConfigurationSerDes.toDTO(json);
 
+		Assert.assertEquals(
+			regex,
+			productConfiguration.
+				getAvailabilityEstimateExternalReferenceCode());
 		Assert.assertEquals(
 			regex, productConfiguration.getEntityExternalReferenceCode());
 		Assert.assertEquals(regex, productConfiguration.getEntityName());
@@ -1227,7 +1236,7 @@ public abstract class BaseProductConfigurationResourceTestCase {
 			productConfigurationResource.
 				getProductConfigurationListByExternalReferenceCodeProductConfigurationsPage(
 					externalReferenceCode, null, null, null,
-					Pagination.of(1, 10), null);
+					Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1722,7 +1731,8 @@ public abstract class BaseProductConfigurationResourceTestCase {
 		page =
 			productConfigurationResource.
 				getProductConfigurationListIdProductConfigurationsPage(
-					id, null, null, null, Pagination.of(1, 10), null);
+					id, null, null, null, Pagination.of(1, (int)totalCount + 2),
+					null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -2679,6 +2689,20 @@ public abstract class BaseProductConfigurationResourceTestCase {
 			}
 
 			if (Objects.equals(
+					"availabilityEstimateExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (productConfiguration.
+						getAvailabilityEstimateExternalReferenceCode() ==
+							null) {
+
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
 					"availabilityEstimateId", additionalAssertFieldName)) {
 
 				if (productConfiguration.getAvailabilityEstimateId() == null) {
@@ -3008,6 +3032,22 @@ public abstract class BaseProductConfigurationResourceTestCase {
 				if (!Objects.deepEquals(
 						productConfiguration1.getAllowedOrderQuantities(),
 						productConfiguration2.getAllowedOrderQuantities())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"availabilityEstimateExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						productConfiguration1.
+							getAvailabilityEstimateExternalReferenceCode(),
+						productConfiguration2.
+							getAvailabilityEstimateExternalReferenceCode())) {
 
 					return false;
 				}
@@ -3382,6 +3422,56 @@ public abstract class BaseProductConfigurationResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals(
+				"availabilityEstimateExternalReferenceCode")) {
+
+			Object object =
+				productConfiguration.
+					getAvailabilityEstimateExternalReferenceCode();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("availabilityEstimateId")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -3738,6 +3828,8 @@ public abstract class BaseProductConfigurationResourceTestCase {
 		return new ProductConfiguration() {
 			{
 				allowBackOrder = RandomTestUtil.randomBoolean();
+				availabilityEstimateExternalReferenceCode =
+					StringUtil.toLowerCase(RandomTestUtil.randomString());
 				availabilityEstimateId = RandomTestUtil.randomLong();
 				displayAvailability = RandomTestUtil.randomBoolean();
 				displayStockQuantity = RandomTestUtil.randomBoolean();
@@ -4028,4 +4120,4 @@ public abstract class BaseProductConfigurationResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:160042386
+// LIFERAY-REST-BUILDER-HASH:1639619659

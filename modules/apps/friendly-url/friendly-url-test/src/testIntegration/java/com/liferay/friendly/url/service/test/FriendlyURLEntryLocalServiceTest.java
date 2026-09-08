@@ -39,6 +39,7 @@ import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.Inject;
+import com.liferay.portal.test.rule.LanguageIds;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 
 import java.util.Collections;
@@ -57,6 +58,10 @@ import org.junit.runner.RunWith;
 /**
  * @author Adolfo Pérez
  */
+@LanguageIds(
+	availableLanguageIds = {"en_US", "es_ES", "pt_BR", "zh_CN"},
+	defaultLanguageId = "en_US"
+)
 @RunWith(Arquillian.class)
 public class FriendlyURLEntryLocalServiceTest {
 
@@ -856,7 +861,7 @@ public class FriendlyURLEntryLocalServiceTest {
 			).put(
 				new Locale("es", "ES"), "cat1-es"
 			).build(),
-			new HashMap<>(), assetVocabulary.getVocabularyId(), null,
+			new HashMap<>(), assetVocabulary.getVocabularyId(), false, null,
 			serviceContext);
 		AssetCategory assetCategory2 = _assetCategoryLocalService.addCategory(
 			null, TestPropsValues.getUserId(), _group.getGroupId(), 0,
@@ -865,7 +870,7 @@ public class FriendlyURLEntryLocalServiceTest {
 			).put(
 				new Locale("es", "ES"), "cat2-es"
 			).build(),
-			new HashMap<>(), assetVocabulary.getVocabularyId(), null,
+			new HashMap<>(), assetVocabulary.getVocabularyId(), false, null,
 			serviceContext);
 
 		serviceContext.setAttribute(

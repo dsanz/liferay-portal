@@ -236,8 +236,13 @@ public class EditDispatchTriggerMVCActionCommand extends BaseMVCActionCommand {
 			startDateYear, startDateHour, startDateMinute, timeZoneId);
 	}
 
-	private void _sendMessage(long dispatchTriggerId) {
+	private void _sendMessage(long dispatchTriggerId) throws PortalException {
 		Message message = new Message();
+
+		DispatchTrigger dispatchTrigger =
+			_dispatchTriggerLocalService.getDispatchTrigger(dispatchTriggerId);
+
+		message.put("companyId", dispatchTrigger.getCompanyId());
 
 		message.setPayload(
 			JSONUtil.put(

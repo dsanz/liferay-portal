@@ -1,0 +1,41 @@
+@import 'atlas-variables';
+
+.cms-dashboard {
+	&__base-card {
+		&:after {
+			margin: 0;
+		}
+
+		&__header {
+			min-height: 32px;
+		}
+	}
+
+	&__volume-chart {
+		background-color: $light-d1;
+		border-radius: 8px;
+		height: 42px;
+		overflow: hidden;
+		position: relative;
+		width: 100%;
+
+		&__bar {
+			background-color: $blue-l1;
+			border-radius: 8px;
+			height: 100%;
+			left: 0;
+			position: absolute;
+			top: 0;
+		}
+
+		&__value {
+			align-items: center;
+			bottom: 0;
+			display: flex;
+			margin: auto;
+			position: absolute;
+			right: 24px;
+			top: 0;
+		}
+	}
+}

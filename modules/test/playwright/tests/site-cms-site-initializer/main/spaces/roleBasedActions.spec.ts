@@ -6,24 +6,16 @@
 import {expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../../../fixtures/dataApiHelpersTest';
-import {featureFlagsTest} from '../../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../../fixtures/loginTest';
 import {DataApiHelpers} from '../../../../helpers/ApiHelpers';
 import getRandomString from '../../../../utils/getRandomString';
 import {PORTLET_URLS} from '../../../../utils/portletUrls';
 import {waitForAlert} from '../../../../utils/waitForAlert';
+import {PermissionsPage} from '../../permissions/pages/PermissionsPage';
 import {cmsPagesTest} from '../fixtures/cmsPagesTest';
 import {addRoleMemberAndSwitch} from './helpers/roleMembership';
 
-const test = mergeTests(
-	cmsPagesTest,
-	dataApiHelpersTest,
-	featureFlagsTest({
-		'LPD-17564': {enabled: true},
-		'LPD-34594': {enabled: true},
-	}),
-	loginTest()
-);
+const test = mergeTests(cmsPagesTest, dataApiHelpersTest, loginTest());
 
 function createSpace(apiHelpers: DataApiHelpers, spaceName: string) {
 	return apiHelpers.headlessAssetLibrary.createAssetLibrary({
@@ -174,14 +166,9 @@ test(
 				.getByRole('button', {name: 'Actions'})
 				.click();
 
-			await page
-				.getByRole('menuitem', {exact: true, name: 'Permissions'})
-				.click();
+			const permissionsPage = new PermissionsPage(page);
 
-			await page
-				.getByRole('menuitem', {exact: true, name: 'Permissions'})
-				.last()
-				.click();
+			await permissionsPage.openFromActionsMenu();
 
 			await expect(
 				page

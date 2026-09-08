@@ -7,12 +7,16 @@ import React from 'react';
 
 const markerEndId = 'arrowclosed';
 
-export default function MarkerEndDefinition({color}) {
+function getMarkerEndId(edgeId) {
+	return `${markerEndId}-${edgeId}`;
+}
+
+export default function MarkerEndDefinition({edgeId}) {
 	return (
 		<defs>
 			<marker
 				className="react-flow__arrowhead"
-				id={markerEndId}
+				id={getMarkerEndId(edgeId)}
 				markerHeight="8"
 				markerWidth="20"
 				orient="auto"
@@ -21,9 +25,7 @@ export default function MarkerEndDefinition({color}) {
 				viewBox="-5 -5 10 10"
 			>
 				<polyline
-					fill={color}
 					points="-4,-3 0,0 -4,3 -4,-3"
-					stroke={color}
 					strokeLinecap="round"
 					strokeLinejoin="round"
 					strokeWidth="1"
@@ -33,4 +35,4 @@ export default function MarkerEndDefinition({color}) {
 	);
 }
 
-export {markerEndId};
+export {getMarkerEndId};

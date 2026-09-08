@@ -7,6 +7,7 @@ package com.liferay.commerce.internal.search.spi.model.index.contributor;
 
 import com.liferay.commerce.address.CommerceAddressFormatter;
 import com.liferay.commerce.model.CommerceAddress;
+import com.liferay.commerce.model.CommerceOrder;
 import com.liferay.commerce.model.CommerceOrderItem;
 import com.liferay.commerce.model.CommerceShipment;
 import com.liferay.commerce.model.CommerceShipmentItem;
@@ -14,12 +15,14 @@ import com.liferay.commerce.product.model.CommerceChannel;
 import com.liferay.commerce.product.service.CommerceChannelLocalService;
 import com.liferay.commerce.service.CommerceAddressLocalService;
 import com.liferay.commerce.service.CommerceOrderItemLocalService;
+import com.liferay.commerce.service.CommerceOrderLocalService;
 import com.liferay.commerce.service.CommerceShipmentItemLocalService;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.search.spi.model.index.contributor.ModelDocumentContributor;
 
 import java.util.Date;
@@ -64,9 +67,28 @@ public class CommerceShipmentModelDocumentContributor
 			document.addKeyword(
 				"commerceChannelName", commerceChannel.getName(), true);
 
+			Set<Long> commerceOrderIds = _getCommerceOrderIds(
+				commerceShipment.getCommerceShipmentId());
+
 			document.addKeyword(
-				"commerceOrderIds",
-				_getCommerceOrderIds(commerceShipment.getCommerceShipmentId()));
+				"commerceOrderIds", ArrayUtil.toStringArray(commerceOrderIds));
+
+			Set<String> commerceOrderUserIds = new HashSet<>();
+
+			for (long commerceOrderId : commerceOrderIds) {
+				CommerceOrder commerceOrder =
+					_commerceOrderLocalService.fetchCommerceOrder(
+						commerceOrderId);
+
+				if (commerceOrder != null) {
+					commerceOrderUserIds.add(
+						String.valueOf(commerceOrder.getUserId()));
+				}
+			}
+
+			document.addKeyword(
+				"commerceOrderUserIds",
+				commerceOrderUserIds.toArray(new String[0]));
 
 			Date expectedDate = commerceShipment.getExpectedDate();
 
@@ -115,8 +137,8 @@ public class CommerceShipmentModelDocumentContributor
 		}
 	}
 
-	private String[] _getCommerceOrderIds(long commerceShipmentId) {
-		Set<String> commerceOrderIds = new HashSet<>();
+	private Set<Long> _getCommerceOrderIds(long commerceShipmentId) {
+		Set<Long> commerceOrderIds = new HashSet<>();
 
 		for (CommerceShipmentItem commerceShipmentItem :
 				_commerceShipmentItemLocalService.getCommerceShipmentItems(
@@ -131,11 +153,10 @@ public class CommerceShipmentModelDocumentContributor
 				continue;
 			}
 
-			commerceOrderIds.add(
-				String.valueOf(commerceOrderItem.getCommerceOrderId()));
+			commerceOrderIds.add(commerceOrderItem.getCommerceOrderId());
 		}
 
-		return commerceOrderIds.toArray(new String[0]);
+		return commerceOrderIds;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
@@ -152,6 +173,9 @@ public class CommerceShipmentModelDocumentContributor
 
 	@Reference
 	private CommerceOrderItemLocalService _commerceOrderItemLocalService;
+
+	@Reference
+	private CommerceOrderLocalService _commerceOrderLocalService;
 
 	@Reference
 	private CommerceShipmentItemLocalService _commerceShipmentItemLocalService;

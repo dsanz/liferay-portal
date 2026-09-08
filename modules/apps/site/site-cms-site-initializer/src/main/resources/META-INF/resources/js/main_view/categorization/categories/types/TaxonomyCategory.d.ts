@@ -13,6 +13,10 @@ interface TaxonomyCategory {
 		[key: string]: string;
 	};
 	externalReferenceCode?: string;
+	friendlyUrlPath?: string;
+	friendlyUrlPath_i18n?: {
+		[key: string]: string;
+	};
 	id?: string;
 	name: string;
 	name_i18n: {
@@ -37,6 +41,7 @@ interface TaxonomyCategory {
 	};
 	siteExternalReferenceCode?: string;
 	siteId?: number;
+	system?: boolean;
 	taxonomyCategoryProperties?: TaxonomyCategoryProperty[];
 	taxonomyCategoryUsageCount?: number;
 	taxonomyVocabularyId?: number;

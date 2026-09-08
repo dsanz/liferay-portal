@@ -1,0 +1,25 @@
+{
+	"devDependencies": {
+		"@liferay/eslint-plugin": "1.9.1",
+		"@liferay/prettier-plugin": "1.1.5",
+		"@liferay/stylelint-plugin": "1.1.0",
+		"babel-eslint": "^10.1.0",
+		"prettier": "3.2.5"
+	},
+	"private": true,
+	"resolutions": {
+		"@types/minimatch": "5.1.2",
+		"@types/react": "18.3.30",
+		"@types/react-dom": "18.3.7"
+	},
+	"workspaces": {
+		"nohoist": [
+			"**/osb-faro-web/@clayui/css",
+			"**/osb-faro-web/@clayui/css/**"
+		],
+		"packages": [
+			"modules/osb-faro-theme",
+			"modules/osb-faro-web"
+		]
+	}
+}

@@ -1,0 +1,632 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Sites Dashboard Overview render 1`] = `
+<div>
+  <div
+    class="sites-dashboard-overview-root overview-root"
+  >
+    <div
+      aria-hidden="true"
+      class="row"
+      data-aria-hidden="true"
+    >
+      <div
+        class="col-xl-12"
+      >
+        <div
+          class="card card-root analytics-metrics-card"
+          id="container.report.siteActivityCard"
+          style="min-height: 605px;"
+        >
+          <div
+            class="card-header align-items-center d-flex justify-content-between"
+          >
+            <div>
+              <div
+                class="card-title"
+              >
+                Test Channel Activities
+              </div>
+              <span
+                class="text-4 text-secondary"
+              />
+            </div>
+            <div
+              class="d-flex"
+            >
+              <div
+                class="interval-selector-root mr-3 btn-group"
+                role="group"
+              >
+                <button
+                  class="button-root interval-option text-uppercase active btn btn-sm btn-secondary"
+                  type="button"
+                >
+                  D
+                </button>
+                <button
+                  class="button-root interval-option text-uppercase btn btn-sm btn-secondary"
+                  type="button"
+                >
+                  W
+                </button>
+                <button
+                  class="button-root interval-option text-uppercase btn btn-sm btn-secondary"
+                  type="button"
+                >
+                  M
+                </button>
+              </div>
+              <span
+                aria-hidden="true"
+                class="loading-root loading-animation"
+              />
+            </div>
+          </div>
+          <div
+            class="card-body analytics-metrics"
+          >
+            <span
+              aria-hidden="true"
+              class="loading-root spacer loading-animation"
+            />
+            <span
+              aria-hidden="true"
+              class="loading-root center loading-animation"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      aria-hidden="true"
+      class="row"
+      data-aria-hidden="true"
+    >
+      <div
+        class="col-xl-6"
+      >
+        <div
+          class="card card-root top-pages-card-root"
+          id="container.report.topPagesCard"
+          style="min-height: 575px;"
+        >
+          <div
+            class="card-header align-items-center d-flex justify-content-between"
+          >
+            <div>
+              <div
+                class="card-title"
+              >
+                Top Pages
+              </div>
+              <span
+                class="text-4 text-secondary"
+              />
+            </div>
+            <div
+              class="d-flex"
+            >
+              <span
+                aria-hidden="true"
+                class="loading-root loading-animation"
+              />
+            </div>
+          </div>
+          <div
+            class="card-body w-100 d-flex flex-column flex-grow-1 no-padding"
+          >
+            <ul
+              class="nav nav-tabs mb-3"
+              role="tablist"
+            >
+              <li
+                class="nav-item"
+                role="none"
+              >
+                <button
+                  aria-selected="true"
+                  class="nav-link active btn btn-unstyled"
+                  data-testid="tabItem"
+                  role="tab"
+                  tabindex="0"
+                  type="button"
+                >
+                  Visited Pages
+                </button>
+              </li>
+              <li
+                class="nav-item"
+                role="none"
+              >
+                <button
+                  aria-selected="false"
+                  class="nav-link btn btn-unstyled"
+                  data-testid="tabItem"
+                  role="tab"
+                  tabindex="-1"
+                  type="button"
+                >
+                  Entrance Pages
+                </button>
+              </li>
+              <li
+                class="nav-item"
+                role="none"
+              >
+                <button
+                  aria-selected="false"
+                  class="nav-link btn btn-unstyled"
+                  data-testid="tabItem"
+                  role="tab"
+                  tabindex="-1"
+                  type="button"
+                >
+                  Exit Pages
+                </button>
+              </li>
+            </ul>
+            <span
+              aria-hidden="true"
+              class="loading-root spacer loading-animation"
+            />
+          </div>
+          <div
+            class="card-footer d-flex"
+          >
+            <a
+              aria-label="View All Pages"
+              class="ml-auto rounded-lg btn btn-outline-borderless btn-sm btn-outline-primary"
+              href="/workspace/23/123123/sites/pages?rangeKey=30&field=visitorsMetric&sortOrder=DESC"
+            >
+              View All
+            </a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="col-xl-6"
+      >
+        <div
+          class="card card-root acquisitions-card-root"
+          id="container.report.acquisitionsCard"
+          style="min-height: 575px;"
+        >
+          <div
+            class="card-header align-items-center d-flex justify-content-between"
+          >
+            <div>
+              <div
+                class="card-title"
+              >
+                Acquisitions
+              </div>
+              <span
+                class="text-4 text-secondary"
+              />
+            </div>
+            <div
+              class="d-flex"
+            >
+              <span
+                aria-hidden="true"
+                class="loading-root loading-animation"
+              />
+            </div>
+          </div>
+          <div
+            class="card-body w-100 d-flex flex-column flex-grow-1 no-padding"
+          >
+            <ul
+              class="nav nav-tabs mb-3"
+              role="tablist"
+            >
+              <li
+                class="nav-item"
+                role="none"
+              >
+                <button
+                  aria-selected="true"
+                  class="nav-link active btn btn-unstyled"
+                  data-testid="tabItem"
+                  role="tab"
+                  tabindex="0"
+                  type="button"
+                >
+                  Channels
+                </button>
+              </li>
+              <li
+                class="nav-item"
+                role="none"
+              >
+                <button
+                  aria-selected="false"
+                  class="nav-link btn btn-unstyled"
+                  data-testid="tabItem"
+                  role="tab"
+                  tabindex="-1"
+                  type="button"
+                >
+                  Source | Medium
+                </button>
+              </li>
+              <li
+                class="nav-item"
+                role="none"
+              >
+                <button
+                  aria-selected="false"
+                  class="nav-link btn btn-unstyled"
+                  data-testid="tabItem"
+                  role="tab"
+                  tabindex="-1"
+                  type="button"
+                >
+                  Referrers
+                </button>
+              </li>
+            </ul>
+            <span
+              aria-hidden="true"
+              class="loading-root center loading-animation"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      aria-hidden="true"
+      class="row"
+      data-aria-hidden="true"
+    >
+      <div
+        class="col-xl-4"
+      >
+        <div
+          class="card card-root visitors-by-time-card"
+          id="container.report.visitorsByTimeCard"
+          style="min-height: 545px;"
+        >
+          <div
+            class="card-header align-items-center d-flex justify-content-between"
+          >
+            <div>
+              <div
+                class="card-title"
+              >
+                Visitors by Day and Time
+              </div>
+              <span
+                class="text-4 text-secondary"
+              />
+            </div>
+            <div
+              class="d-flex"
+            >
+              <span
+                aria-hidden="true"
+                class="loading-root loading-animation"
+              />
+            </div>
+          </div>
+          <div
+            class="card-body"
+          >
+            <span
+              aria-hidden="true"
+              class="loading-root center loading-animation"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="col-xl-4"
+      >
+        <div
+          class="card card-root search-terms-card-root"
+          id="container.report.searchTermsCard"
+          style="min-height: 545px;"
+        >
+          <div
+            class="card-header align-items-center d-flex justify-content-between"
+          >
+            <div>
+              <div
+                class="card-title"
+              >
+                Search Terms
+              </div>
+              <span
+                class="text-4 text-secondary"
+              />
+            </div>
+            <div
+              class="d-flex"
+            >
+              <span
+                aria-hidden="true"
+                class="loading-root loading-animation"
+              />
+            </div>
+          </div>
+          <div
+            class="flex-grow-1 mx-4 table-root"
+          >
+            <span
+              aria-hidden="true"
+              class="loading-root spacer loading-animation"
+            />
+          </div>
+          <div
+            class="card-footer d-flex"
+          >
+            <a
+              aria-label="View All Search Terms"
+              class="ml-auto rounded-lg btn btn-outline-borderless btn-sm btn-outline-primary"
+              href="/workspace/23/123123/sites/search-terms?rangeKey=30"
+            >
+              View All
+            </a>
+          </div>
+        </div>
+      </div>
+      <div
+        class="col-xl-4"
+      >
+        <div
+          class="card card-root interests-card-root"
+          id="container.report.interestsCard"
+          style="min-height: 545px;"
+        >
+          <div
+            class="card-header align-items-center d-flex justify-content-between"
+          >
+            <div>
+              <div
+                class="card-title"
+              >
+                Interests
+              </div>
+              <span
+                class="text-4 text-secondary"
+              />
+            </div>
+            <div
+              class="d-flex"
+            >
+              <span
+                aria-hidden="true"
+                class="loading-root loading-animation"
+              />
+            </div>
+          </div>
+          <div
+            class="flex-grow-1 mx-4 table-root"
+          >
+            <span
+              aria-hidden="true"
+              class="loading-root spacer loading-animation"
+            />
+          </div>
+          <div
+            class="card-footer d-flex"
+          >
+            <a
+              aria-label="View All Interests"
+              class="ml-auto rounded-lg btn btn-outline-borderless btn-sm btn-outline-primary"
+              href="/workspace/23/123123/sites/interests?rangeKey=30"
+            >
+              View All
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      aria-hidden="true"
+      class="row"
+      data-aria-hidden="true"
+    >
+      <div
+        class="col-xl-6"
+      >
+        <div
+          class="card card-root analytics-locations-card"
+          id="container.report.sessionsByLocationCard"
+          style="min-height: 536px;"
+        >
+          <div
+            class="card-header align-items-center d-flex justify-content-between"
+          >
+            <div>
+              <div
+                class="card-title"
+              >
+                Sessions by Location
+              </div>
+              <span
+                class="text-4 text-secondary"
+              />
+            </div>
+            <div
+              class="d-flex"
+            >
+              <span
+                aria-hidden="true"
+                class="loading-root loading-animation"
+              />
+            </div>
+          </div>
+          <div
+            class="card-body"
+          >
+            <span
+              aria-hidden="true"
+              class="loading-root center loading-animation"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        class="col-xl-6"
+      >
+        <div
+          class="card card-root analytics-devices-card"
+          id="container.report.sessionTechnologyCard"
+          style="min-height: 536px;"
+        >
+          <div
+            class="card-header align-items-center d-flex justify-content-between"
+          >
+            <div>
+              <div
+                class="card-title"
+              >
+                Session Technology
+              </div>
+              <span
+                class="text-4 text-secondary"
+              />
+            </div>
+            <div
+              class="d-flex"
+            >
+              <span
+                aria-hidden="true"
+                class="loading-root loading-animation"
+              />
+            </div>
+          </div>
+          <div
+            class="card-body w-100 d-flex flex-column flex-grow-1 no-padding"
+          >
+            <ul
+              class="nav nav-tabs mb-3"
+              role="tablist"
+            >
+              <li
+                class="nav-item"
+                role="none"
+              >
+                <button
+                  aria-selected="true"
+                  class="nav-link active btn btn-unstyled"
+                  data-testid="tabItem"
+                  role="tab"
+                  tabindex="0"
+                  type="button"
+                >
+                  Devices
+                </button>
+              </li>
+              <li
+                class="nav-item"
+                role="none"
+              >
+                <button
+                  aria-selected="false"
+                  class="nav-link btn btn-unstyled"
+                  data-testid="tabItem"
+                  role="tab"
+                  tabindex="-1"
+                  type="button"
+                >
+                  Browsers
+                </button>
+              </li>
+            </ul>
+            <div
+              class="px-4 pb-4"
+            >
+              <span
+                aria-hidden="true"
+                class="loading-root center loading-animation"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="row"
+    >
+      <div
+        class="col-xl-12"
+      >
+        <div
+          class="card card-root cohort-analysis-card-root"
+          id="container.report.cohortAnalysisCard"
+        >
+          <div
+            aria-hidden="true"
+            class="card-header"
+            data-aria-hidden="true"
+          >
+            <div
+              class="card-title"
+            >
+              Cohort Analysis
+            </div>
+          </div>
+          <div
+            class="card-body"
+          >
+            <div
+              class="form-group form-group-autofit"
+            >
+              <div
+                class="form-group-item form-group-item-shrink"
+              >
+                <button
+                  aria-activedescendant="visitors"
+                  aria-controls="clay-id-19"
+                  aria-expanded="true"
+                  aria-haspopup="listbox"
+                  aria-owns="clay-id-19"
+                  class="form-control form-control-select form-control-select-secondary visitors-type-select show"
+                  role="combobox"
+                  style=""
+                  tabindex="0"
+                  type="button"
+                >
+                  All Visitors
+                </button>
+              </div>
+              <div
+                aria-hidden="true"
+                class="form-group-item form-group-item-label form-group-item-shrink"
+                data-aria-hidden="true"
+              >
+                Broken Down By
+              </div>
+              <div
+                aria-hidden="true"
+                class="form-group-item form-group-item-shrink"
+                data-aria-hidden="true"
+              >
+                <button
+                  aria-activedescendant=""
+                  aria-expanded="false"
+                  aria-haspopup="listbox"
+                  class="form-control form-control-select form-control-select-secondary interval-select"
+                  role="combobox"
+                  tabindex="0"
+                  type="button"
+                >
+                  Day
+                </button>
+              </div>
+            </div>
+            <span
+              aria-hidden="true"
+              class="loading-root center loading-animation"
+              data-aria-hidden="true"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+`;

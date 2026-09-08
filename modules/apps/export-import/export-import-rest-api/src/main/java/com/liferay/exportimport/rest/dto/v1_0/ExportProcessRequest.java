@@ -99,6 +99,64 @@ public class ExportProcessRequest implements Serializable {
 	@JsonIgnore
 	private Supplier<Boolean> _commentsSupplier;
 
+	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "The recipe used to resolve the export window at every run. ALL exports everything, DATE_RANGE exports the window between the start and end dates, resolving a missing end date as the run time, and LAST exports a window of whole hours ending at the run time, derived from the start date. When absent, the type is inferred from the given dates."
+	)
+	@JsonGetter("dateRangeType")
+	@Valid
+	public DateRangeType getDateRangeType() {
+		if (_dateRangeTypeSupplier != null) {
+			dateRangeType = _dateRangeTypeSupplier.get();
+
+			_dateRangeTypeSupplier = null;
+		}
+
+		return dateRangeType;
+	}
+
+	@JsonIgnore
+	public String getDateRangeTypeAsString() {
+		DateRangeType dateRangeType = getDateRangeType();
+
+		if (dateRangeType == null) {
+			return null;
+		}
+
+		return dateRangeType.toString();
+	}
+
+	public void setDateRangeType(DateRangeType dateRangeType) {
+		this.dateRangeType = dateRangeType;
+
+		_dateRangeTypeSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setDateRangeType(
+		UnsafeSupplier<DateRangeType, Exception> dateRangeTypeUnsafeSupplier) {
+
+		_dateRangeTypeSupplier = () -> {
+			try {
+				return dateRangeTypeUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(
+		description = "The recipe used to resolve the export window at every run. ALL exports everything, DATE_RANGE exports the window between the start and end dates, resolving a missing end date as the run time, and LAST exports a window of whole hours ending at the run time, derived from the start date. When absent, the type is inferred from the given dates."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected DateRangeType dateRangeType;
+
+	@JsonIgnore
+	private Supplier<DateRangeType> _dateRangeTypeSupplier;
+
 	@io.swagger.v3.oas.annotations.media.Schema
 	public Boolean getDeletions() {
 		if (_deletionsSupplier != null) {
@@ -180,45 +238,6 @@ public class ExportProcessRequest implements Serializable {
 
 	@JsonIgnore
 	private Supplier<Date> _endDateSupplier;
-
-	@io.swagger.v3.oas.annotations.media.Schema
-	public Integer getLast() {
-		if (_lastSupplier != null) {
-			last = _lastSupplier.get();
-
-			_lastSupplier = null;
-		}
-
-		return last;
-	}
-
-	public void setLast(Integer last) {
-		this.last = last;
-
-		_lastSupplier = null;
-	}
-
-	@JsonIgnore
-	public void setLast(UnsafeSupplier<Integer, Exception> lastUnsafeSupplier) {
-		_lastSupplier = () -> {
-			try {
-				return lastUnsafeSupplier.get();
-			}
-			catch (RuntimeException runtimeException) {
-				throw runtimeException;
-			}
-			catch (Exception exception) {
-				throw new RuntimeException(exception);
-			}
-		};
-	}
-
-	@GraphQLField
-	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	protected Integer last;
-
-	@JsonIgnore
-	private Supplier<Integer> _lastSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
 	public Boolean getLogo() {
@@ -339,58 +358,6 @@ public class ExportProcessRequest implements Serializable {
 
 	@JsonIgnore
 	private Supplier<Boolean> _permissionsSupplier;
-
-	@io.swagger.v3.oas.annotations.media.Schema
-	@JsonGetter("range")
-	@Valid
-	public Range getRange() {
-		if (_rangeSupplier != null) {
-			range = _rangeSupplier.get();
-
-			_rangeSupplier = null;
-		}
-
-		return range;
-	}
-
-	@JsonIgnore
-	public String getRangeAsString() {
-		Range range = getRange();
-
-		if (range == null) {
-			return null;
-		}
-
-		return range.toString();
-	}
-
-	public void setRange(Range range) {
-		this.range = range;
-
-		_rangeSupplier = null;
-	}
-
-	@JsonIgnore
-	public void setRange(UnsafeSupplier<Range, Exception> rangeUnsafeSupplier) {
-		_rangeSupplier = () -> {
-			try {
-				return rangeUnsafeSupplier.get();
-			}
-			catch (RuntimeException runtimeException) {
-				throw runtimeException;
-			}
-			catch (Exception exception) {
-				throw new RuntimeException(exception);
-			}
-		};
-	}
-
-	@GraphQLField
-	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
-	protected Range range;
-
-	@JsonIgnore
-	private Supplier<Range> _rangeSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema
 	public Boolean getRatings() {
@@ -687,6 +654,20 @@ public class ExportProcessRequest implements Serializable {
 			sb.append(comments);
 		}
 
+		DateRangeType dateRangeType = getDateRangeType();
+
+		if (dateRangeType != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"dateRangeType\": ");
+
+			sb.append("\"");
+			sb.append(dateRangeType);
+			sb.append("\"");
+		}
+
 		Boolean deletions = getDeletions();
 
 		if (deletions != null) {
@@ -713,18 +694,6 @@ public class ExportProcessRequest implements Serializable {
 			sb.append(liferayToJSONDateFormat.format(endDate));
 
 			sb.append("\"");
-		}
-
-		Integer last = getLast();
-
-		if (last != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"last\": ");
-
-			sb.append(last);
 		}
 
 		Boolean logo = getLogo();
@@ -765,20 +734,6 @@ public class ExportProcessRequest implements Serializable {
 			sb.append("\"permissions\": ");
 
 			sb.append(permissions);
-		}
-
-		Range range = getRange();
-
-		if (range != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"range\": ");
-
-			sb.append("\"");
-			sb.append(range);
-			sb.append("\"");
 		}
 
 		Boolean ratings = getRatings();
@@ -880,20 +835,20 @@ public class ExportProcessRequest implements Serializable {
 	)
 	public String xClassName;
 
-	@GraphQLName("Range")
-	public static enum Range {
+	@GraphQLName("DateRangeType")
+	public static enum DateRangeType {
 
-		ALL("all"), DATE_RANGE("dateRange"), LAST("last");
+		ALL("ALL"), DATE_RANGE("DATE_RANGE"), LAST("LAST");
 
 		@JsonCreator
-		public static Range create(String value) {
+		public static DateRangeType create(String value) {
 			if ((value == null) || value.equals("")) {
 				return null;
 			}
 
-			for (Range range : values()) {
-				if (Objects.equals(range.getValue(), value)) {
-					return range;
+			for (DateRangeType dateRangeType : values()) {
+				if (Objects.equals(dateRangeType.getValue(), value)) {
+					return dateRangeType;
 				}
 			}
 
@@ -910,7 +865,7 @@ public class ExportProcessRequest implements Serializable {
 			return _value;
 		}
 
-		private Range(String value) {
+		private DateRangeType(String value) {
 			_value = value;
 		}
 
@@ -1007,4 +962,4 @@ public class ExportProcessRequest implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-149618300
+// LIFERAY-REST-BUILDER-HASH:-1417832215

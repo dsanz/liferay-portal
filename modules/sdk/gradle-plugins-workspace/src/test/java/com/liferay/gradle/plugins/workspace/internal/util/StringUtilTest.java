@@ -47,6 +47,20 @@ public class StringUtilTest {
 	}
 
 	@Test
+	public void testNormalizeFilePath() {
+		Assert.assertNull(StringUtil.normalizeFilePath(null));
+		Assert.assertEquals("", StringUtil.normalizeFilePath(""));
+		Assert.assertEquals(
+			"/opt/build/upgradeJakarta/dependencies.txt",
+			StringUtil.normalizeFilePath(
+				"/opt/build/upgradeJakarta/dependencies.txt"));
+		Assert.assertEquals(
+			"C:/build/upgradeJakarta/dependencies.txt",
+			StringUtil.normalizeFilePath(
+				"C:\\build\\upgradeJakarta\\dependencies.txt"));
+	}
+
+	@Test
 	public void testSuffix() {
 		Assert.assertEquals("foo", StringUtil.suffixIfNotBlank("foo", ""));
 		Assert.assertEquals(

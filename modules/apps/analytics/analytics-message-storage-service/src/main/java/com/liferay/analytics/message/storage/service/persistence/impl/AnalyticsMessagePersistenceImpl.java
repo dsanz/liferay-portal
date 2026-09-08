@@ -292,11 +292,8 @@ public class AnalyticsMessagePersistenceImpl
 				session.save(analyticsMessage);
 			}
 			else {
-				session.evict(
-					AnalyticsMessageImpl.class,
-					analyticsMessage.getPrimaryKeyObj());
-
-				session.saveOrUpdate(analyticsMessage);
+				analyticsMessage = (AnalyticsMessage)session.merge(
+					analyticsMessage);
 			}
 
 			session.flush();
@@ -451,7 +448,7 @@ public class AnalyticsMessagePersistenceImpl
 				_SQL_SELECT_ANALYTICSMESSAGE_WHERE,
 				_SQL_COUNT_ANALYTICSMESSAGE_WHERE,
 				AnalyticsMessageModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"analyticsMessage.", "companyId", FinderColumn.Type.LONG,
 					"=", true, true, AnalyticsMessage::getCompanyId));
@@ -513,13 +510,10 @@ public class AnalyticsMessagePersistenceImpl
 	private static final String _SQL_COUNT_ANALYTICSMESSAGE_WHERE =
 		"SELECT COUNT(analyticsMessage) FROM AnalyticsMessage analyticsMessage WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No AnalyticsMessage exists with the key {";
-
 	@Override
 	protected FinderCache getFinderCache() {
 		return finderCache;
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-317890152
+// LIFERAY-SERVICE-BUILDER-HASH:1611696876

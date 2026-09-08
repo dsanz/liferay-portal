@@ -11,6 +11,7 @@ import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
+import com.liferay.bulk.rest.client.dto.v1_0.AddObjectToProjectBulkSelectionAction;
 import com.liferay.bulk.rest.client.dto.v1_0.AssignStructureDefaultWorkflowBulkSelectionAction;
 import com.liferay.bulk.rest.client.dto.v1_0.AssignToObjectBulkSelectionAction;
 import com.liferay.bulk.rest.client.dto.v1_0.BulkAction;
@@ -78,6 +79,7 @@ import com.liferay.portal.kernel.model.WorkflowDefinitionLink;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.module.util.BundleUtil;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -85,6 +87,7 @@ import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalServiceUtil;
 import com.liferay.portal.kernel.service.persistence.GroupUtil;
 import com.liferay.portal.kernel.test.constants.TestDataConstants;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
@@ -100,12 +103,11 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.FeatureFlag;
-import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
+import com.liferay.site.cmp.site.initializer.test.util.CMPTestUtil;
 import com.liferay.site.cms.site.initializer.util.CMSDefaultPermissionUtil;
 
 import java.io.ByteArrayInputStream;
@@ -132,9 +134,7 @@ import org.osgi.framework.FrameworkUtil;
 /**
  * @author Alejandro Tardín
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-34594")}
-)
+@FeatureFlag("LPD-58677")
 @RunWith(Arquillian.class)
 public class BulkActionResourceTest extends BaseBulkActionResourceTestCase {
 
@@ -149,8 +149,6 @@ public class BulkActionResourceTest extends BaseBulkActionResourceTestCase {
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
-
-		CMSTestUtil.getOrAddGroup(BulkActionResourceTest.class);
 
 		_cmsAdministratorRole = _getOrAddCMSAdministratorRole(
 			TestPropsValues.getCompanyId(), TestPropsValues.getUserId());
@@ -175,6 +173,7 @@ public class BulkActionResourceTest extends BaseBulkActionResourceTestCase {
 	@Override
 	@Test
 	public void testPostBulkAction() throws Exception {
+		_testPostBulkActionWithTypeAddObjectToProject();
 		_testPostBulkActionWithTypeAssignStructureDefaultWorkflow();
 		_testPostBulkActionWithTypeAssignTo();
 		_testPostBulkActionWithTypeCopy();
@@ -196,6 +195,7 @@ public class BulkActionResourceTest extends BaseBulkActionResourceTestCase {
 	public void testPostBulkActionItemPreviewPage() throws Exception {
 		_testPostBulkActionItemPreviewPage(_depotEntry1, "RECYCLE_BIN");
 		_testPostBulkActionItemPreviewPage(_depotEntry2, "PERMANENT_DELETION");
+		_testPostBulkActionItemPreviewPageWithNonexistentClassPK();
 	}
 
 	private DepotEntry _addDepotEntry(boolean trashEnabled) throws Exception {
@@ -214,6 +214,7 @@ public class BulkActionResourceTest extends BaseBulkActionResourceTestCase {
 
 		return _depotEntryLocalService.updateDepotEntry(
 			depotEntry.getDepotEntryId(), nameMap, null, Collections.emptyMap(),
+			null,
 			UnicodePropertiesBuilder.put(
 				"trashEnabled", trashEnabled
 			).build(),
@@ -283,6 +284,49 @@ public class BulkActionResourceTest extends BaseBulkActionResourceTestCase {
 		Assert.assertEquals(expectedName, bulkActionItem.getName());
 	}
 
+	private void _assertCMPProjectLinks(
+			ObjectDefinition cmpProjectLinkObjectDefinition, long groupId,
+			ObjectEntry[] objectEntries)
+		throws Exception {
+
+		List<ObjectEntry> cmpProjectLinkObjectEntries =
+			_objectEntryLocalService.getObjectEntries(
+				groupId, cmpProjectLinkObjectDefinition.getObjectDefinitionId(),
+				QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+
+		Assert.assertEquals(
+			cmpProjectLinkObjectEntries.toString(), objectEntries.length,
+			cmpProjectLinkObjectEntries.size());
+
+		Map<String, Map<String, Serializable>> valuesMaps = new HashMap<>();
+
+		for (ObjectEntry cmpProjectLinkObjectEntry :
+				cmpProjectLinkObjectEntries) {
+
+			Map<String, Serializable> values =
+				cmpProjectLinkObjectEntry.getValues();
+
+			valuesMaps.put(
+				GetterUtil.getString(values.get("classExternalReferenceCode")),
+				values);
+		}
+
+		for (ObjectEntry objectEntry : objectEntries) {
+			Group group = GroupLocalServiceUtil.getGroup(
+				objectEntry.getGroupId());
+
+			Map<String, Serializable> values = valuesMaps.get(
+				objectEntry.getExternalReferenceCode());
+
+			Assert.assertEquals(
+				objectEntry.getModelClassName(),
+				GetterUtil.getString(values.get("className")));
+			Assert.assertEquals(
+				group.getExternalReferenceCode(),
+				GetterUtil.getString(values.get("groupExternalReferenceCode")));
+		}
+	}
+
 	private void _assertHasActionIds(
 		ResourcePermission resourcePermission, String... actionIds) {
 
@@ -294,6 +338,20 @@ public class BulkActionResourceTest extends BaseBulkActionResourceTestCase {
 				Assert.assertFalse(resourcePermission.hasActionId(actionId));
 			}
 		}
+	}
+
+	private void _assertNumberOfFailedItems(
+			BulkActionTask bulkActionTask, int expectedNumberOfFailedItems)
+		throws Exception {
+
+		ObjectEntry objectEntry = _objectEntryLocalService.getObjectEntry(
+			GetterUtil.getLong(bulkActionTask.getId()));
+
+		Map<String, Serializable> values = objectEntry.getValues();
+
+		Assert.assertEquals(
+			expectedNumberOfFailedItems,
+			GetterUtil.getInteger(values.get("numberOfFailedItems")));
 	}
 
 	private JSONObject _getDefaultPermissionsJSONObject(
@@ -364,7 +422,9 @@ public class BulkActionResourceTest extends BaseBulkActionResourceTestCase {
 			RoleConstants.TYPE_REGULAR, null, null);
 	}
 
-	private void _postBulkAction(BulkAction bulkAction) throws Exception {
+	private BulkActionTask _postBulkAction(BulkAction bulkAction)
+		throws Exception {
+
 		BulkActionTask bulkActionTask = bulkActionResource.postBulkAction(
 			null, null, null, null, null, null, null, null, bulkAction);
 
@@ -382,6 +442,8 @@ public class BulkActionResourceTest extends BaseBulkActionResourceTestCase {
 		Assert.assertEquals(
 			bulkActionItems.length,
 			GetterUtil.getInteger(values.get("numberOfItems")));
+
+		return bulkActionTask;
 	}
 
 	private BulkAction _testBulkDeleteFilterValidation(BulkAction.Type type)
@@ -611,6 +673,42 @@ public class BulkActionResourceTest extends BaseBulkActionResourceTestCase {
 			"FOLDER", null);
 	}
 
+	private void _testPostBulkActionItemPreviewPageWithNonexistentClassPK()
+		throws Exception {
+
+		BulkAction bulkAction = new DeleteObjectBulkSelectionAction();
+
+		bulkAction.setBulkActionItems(
+			new BulkActionItem[] {
+				new BulkActionItem() {
+					{
+						setClassName(
+							_cmsBasicWebContentObjectDefinition.getClassName());
+						setClassPK(RandomTestUtil.randomLong());
+					}
+				}
+			});
+
+		SelectionScope selectionScope = new SelectionScope();
+
+		selectionScope.setSelectAll(false);
+
+		bulkAction.setSelectionScope(selectionScope);
+
+		bulkAction.setType(BulkAction.Type.DELETE_OBJECT_BULK_SELECTION_ACTION);
+
+		Page<BulkActionItem> page =
+			bulkActionResource.postBulkActionItemPreviewPage(
+				false, null, null, Pagination.of(1, 10), "name:desc",
+				bulkAction);
+
+		List<BulkActionItem> items = ListUtil.fromCollection(page.getItems());
+
+		Assert.assertEquals(items.toString(), 0, items.size());
+
+		Assert.assertEquals(0, page.getTotalCount());
+	}
+
 	private void _testPostBulkActionItemPreviewPageWithSelectAllAndFilter(
 			BulkAction bulkAction, String expectedDeletionType,
 			ObjectEntryFolder objectEntryFolder1,
@@ -639,6 +737,97 @@ public class BulkActionResourceTest extends BaseBulkActionResourceTestCase {
 			items.get(0), objectEntryFolder2.getObjectEntryFolderId(),
 			expectedDeletionType, 0L, null, objectEntryFolder2.getName(),
 			"FOLDER", null);
+	}
+
+	private void _testPostBulkActionWithTypeAddObjectToProject()
+		throws Exception {
+
+		// Invalid project scope key
+
+		ObjectEntry cmsBasicWebContentObjectEntry1 =
+			ObjectEntryTestUtil.addObjectEntry(
+				_depotEntry2.getGroupId(), _cmsBasicWebContentObjectDefinition,
+				_getObjectEntryValues());
+		ObjectEntry cmsBasicWebContentObjectEntry2 =
+			ObjectEntryTestUtil.addObjectEntry(
+				_depotEntry2.getGroupId(), _cmsBasicWebContentObjectDefinition,
+				_getObjectEntryValues());
+
+		AddObjectToProjectBulkSelectionAction bulkAction =
+			new AddObjectToProjectBulkSelectionAction();
+
+		bulkAction.setBulkActionItems(
+			_toBulkActionItems(
+				_cmsBasicWebContentObjectDefinition,
+				cmsBasicWebContentObjectEntry1,
+				cmsBasicWebContentObjectEntry2));
+		bulkAction.setProjectScopeKeys(
+			new String[] {RandomTestUtil.randomString()});
+		bulkAction.setType(
+			BulkAction.Type.ADD_OBJECT_TO_PROJECT_BULK_SELECTION_ACTION);
+
+		_assertNumberOfFailedItems(_postBulkAction(bulkAction), 2);
+
+		// Link basic web content to projects
+
+		bulkAction = new AddObjectToProjectBulkSelectionAction();
+
+		bulkAction.setBulkActionItems(
+			_toBulkActionItems(
+				_cmsBasicWebContentObjectDefinition,
+				cmsBasicWebContentObjectEntry1,
+				cmsBasicWebContentObjectEntry2));
+
+		CMPTestUtil.getOrAddGroup(BulkActionResourceTest.class);
+
+		ObjectEntry cmpProjectObjectEntry1 =
+			CMPTestUtil.addCMPProjectObjectEntry();
+
+		_projectDepotEntry1 = _depotEntryLocalService.fetchGroupDepotEntry(
+			cmpProjectObjectEntry1.getGroupId());
+
+		ObjectEntry cmpProjectObjectEntry2 =
+			CMPTestUtil.addCMPProjectObjectEntry();
+
+		_projectDepotEntry2 = _depotEntryLocalService.fetchGroupDepotEntry(
+			cmpProjectObjectEntry2.getGroupId());
+
+		bulkAction.setProjectScopeKeys(
+			new String[] {
+				String.valueOf(cmpProjectObjectEntry1.getGroupId()),
+				String.valueOf(cmpProjectObjectEntry2.getGroupId())
+			});
+
+		bulkAction.setType(
+			BulkAction.Type.ADD_OBJECT_TO_PROJECT_BULK_SELECTION_ACTION);
+
+		_assertNumberOfFailedItems(_postBulkAction(bulkAction), 0);
+
+		ObjectDefinition cmpProjectLinkObjectDefinition =
+			_objectDefinitionLocalService.
+				getObjectDefinitionByExternalReferenceCode(
+					"L_CMP_PROJECT_LINK", testCompany.getCompanyId());
+		ObjectEntry[] cmsBasicWebContentObjectEntries = {
+			cmsBasicWebContentObjectEntry1, cmsBasicWebContentObjectEntry2
+		};
+
+		_assertCMPProjectLinks(
+			cmpProjectLinkObjectDefinition, cmpProjectObjectEntry1.getGroupId(),
+			cmsBasicWebContentObjectEntries);
+		_assertCMPProjectLinks(
+			cmpProjectLinkObjectDefinition, cmpProjectObjectEntry2.getGroupId(),
+			cmsBasicWebContentObjectEntries);
+
+		// Skip duplicate basic web content
+
+		_assertNumberOfFailedItems(_postBulkAction(bulkAction), 0);
+
+		_assertCMPProjectLinks(
+			cmpProjectLinkObjectDefinition, cmpProjectObjectEntry1.getGroupId(),
+			cmsBasicWebContentObjectEntries);
+		_assertCMPProjectLinks(
+			cmpProjectLinkObjectDefinition, cmpProjectObjectEntry2.getGroupId(),
+			cmsBasicWebContentObjectEntries);
 	}
 
 	private void _testPostBulkActionWithTypeAssignStructureDefaultWorkflow()
@@ -2125,6 +2314,12 @@ public class BulkActionResourceTest extends BaseBulkActionResourceTestCase {
 
 	@Inject
 	private Portal _portal;
+
+	@DeleteAfterTestRun
+	private DepotEntry _projectDepotEntry1;
+
+	@DeleteAfterTestRun
+	private DepotEntry _projectDepotEntry2;
 
 	@Inject
 	private ResourcePermissionLocalService _resourcePermissionLocalService;

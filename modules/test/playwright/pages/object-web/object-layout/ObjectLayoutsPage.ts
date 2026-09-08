@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {FrameLocator, Locator, Page} from '@playwright/test';
+import {FrameLocator, Locator, Page, expect} from '@playwright/test';
 
 import {ViewObjectDefinitionsPage} from '../ViewObjectDefinitionsPage';
 
@@ -204,7 +204,14 @@ export class ObjectLayoutsPage {
 
 		await this.addRelationshipTab(objectLayoutTabName, relationshipField);
 
+		const reload = this.page.waitForNavigation({
+			timeout: 10000,
+			waitUntil: 'load',
+		});
+
 		await this.saveUpdateLayoutButton.click();
+
+		return {reload};
 	}
 
 	async createObjectLayoutContent({
@@ -247,6 +254,23 @@ export class ObjectLayoutsPage {
 		);
 
 		await this.layoutsTabItem.click();
+	}
+
+	async saveObjectLayoutReturningReload() {
+		const reload = this.page.waitForNavigation({
+			timeout: 10000,
+			waitUntil: 'load',
+		});
+
+		const saveButton = this.iframeLocator
+			.getByRole('button', {name: 'Save'})
+			.first();
+
+		await expect(saveButton).toBeVisible();
+
+		await saveButton.dispatchEvent('click');
+
+		return {reload};
 	}
 
 	async openObjectLayoutConfiguration(objectLayoutName: string) {

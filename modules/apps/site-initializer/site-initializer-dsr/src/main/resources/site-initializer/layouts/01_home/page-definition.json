@@ -16,18 +16,27 @@
 				"pageElements": [
 					{
 						"definition": {
+							"cssClasses": [
+								"font-weight-semi-bold",
+								"mb-0",
+								"text-7",
+								"text-dark"
+							],
 							"fragment": {
-								"key": "BASIC_COMPONENT-html"
+								"key": "BASIC_COMPONENT-heading"
 							},
 							"fragmentConfig": {
+								"headingLevel": "h2"
 							},
 							"fragmentFields": [
 								{
-									"id": "element-html",
+									"id": "element-text",
 									"value": {
-										"html": {
+										"fragmentLink": {
+										},
+										"text": {
 											"value_i18n": {
-												"en_US": "<h2 class=\"font-weight-semi-bold mb-0 text-7 text-dark\">Home</h2>\n"
+												"[$FOR_EACH_LANGUAGE_ID$]": "home"
 											}
 										}
 									}
@@ -108,18 +117,26 @@
 										"pageElements": [
 											{
 												"definition": {
+													"cssClasses": [
+														"font-weight-semi-bold",
+														"m-0",
+														"text-4"
+													],
 													"fragment": {
-														"key": "BASIC_COMPONENT-html"
+														"key": "BASIC_COMPONENT-heading"
 													},
 													"fragmentConfig": {
+														"headingLevel": "h2"
 													},
 													"fragmentFields": [
 														{
-															"id": "element-html",
+															"id": "element-text",
 															"value": {
-																"html": {
+																"fragmentLink": {
+																},
+																"text": {
 																	"value_i18n": {
-																		"en_US": "\n<h2 class=\"font-weight-semi-bold m-0 text-4\">Digital Sales Rooms</h2>\n"
+																		"[$FOR_EACH_LANGUAGE_ID$]": "digital-sales-rooms"
 																	}
 																}
 															}
@@ -192,7 +209,7 @@
 																},
 																"text": {
 																	"value_i18n": {
-																		"en_US": "View All"
+																		"[$FOR_EACH_LANGUAGE_ID$]": "view-all"
 																	}
 																}
 															}
@@ -214,7 +231,7 @@
 							{
 								"definition": {
 									"fragment": {
-										"key": "com.liferay.site.dsr.site.initializer.internal.fragment.renderer.ViewRoomsJSPSectionFragmentRenderer"
+										"key": "dsr-view-rooms"
 									},
 									"fragmentConfig": {
 										"isHomePage": true
@@ -235,7 +252,7 @@
 				"definition": {
 					"customCSS": ".[$FRAGMENT_CLASS$] .dsr-section {\npadding: 0.75rem 1.5rem;\n}",
 					"fragment": {
-						"key": "com.liferay.site.dsr.site.initializer.internal.fragment.renderer.ViewAnalyticsRoomStatisticsJSPSectionFragmentRenderer"
+						"key": "dsr-view-analytics-room-statistics"
 					},
 					"fragmentConfig": {
 					},
@@ -300,7 +317,7 @@
 								"definition": {
 									"customCSS": ".[$FRAGMENT_CLASS$] .dsr-section {\npadding: 0.75rem 0.75rem 0.75rem 1.5rem;\n}",
 									"fragment": {
-										"key": "com.liferay.site.dsr.site.initializer.internal.fragment.renderer.ViewAnalyticsDocumentsStatisticsJSPSectionFragmentRenderer"
+										"key": "dsr-view-analytics-documents-statistics"
 									},
 									"fragmentConfig": {
 									},
@@ -340,7 +357,7 @@
 								"definition": {
 									"customCSS": ".[$FRAGMENT_CLASS$] .dsr-section {\npadding: 0.75rem 1.5rem 0.75rem 0.75rem;\n}",
 									"fragment": {
-										"key": "com.liferay.site.dsr.site.initializer.internal.fragment.renderer.ViewAnalyticsLatestActivityJSPSectionFragmentRenderer"
+										"key": "dsr-view-analytics-latest-activity"
 									},
 									"fragmentConfig": {
 									},

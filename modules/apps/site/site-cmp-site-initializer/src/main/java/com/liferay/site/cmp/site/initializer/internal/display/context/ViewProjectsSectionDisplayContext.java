@@ -24,6 +24,7 @@ import com.liferay.site.cmp.site.initializer.internal.frontend.data.set.filter.P
 import com.liferay.site.cmp.site.initializer.internal.frontend.data.set.filter.StateSelectionFDSFilter;
 import com.liferay.site.cmp.site.initializer.internal.frontend.data.set.filter.TagSelectionFDSFilter;
 import com.liferay.site.cmp.site.initializer.internal.util.ActionUtil;
+import com.liferay.site.cmp.site.initializer.internal.util.CMPDepotEntryGroupUtil;
 import com.liferay.site.cmp.site.initializer.internal.util.ObjectEntryUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,18 +51,28 @@ public class ViewProjectsSectionDisplayContext
 		_depotEntryLocalService = depotEntryLocalService;
 	}
 
+	public Map<String, Object> getAdditionalProps() {
+		return HashMapBuilder.<String, Object>put(
+			"filter", CMPDepotEntryGroupUtil.getFilterString()
+		).build();
+	}
+
+	@Override
 	public String getAPIURL() {
-		StringBundler sb = new StringBundler(5);
+		StringBundler sb = new StringBundler(4);
 
 		sb.append("/o/search/v1.0/search?emptySearch=true&");
 		sb.append("filter=objectDefinitionId eq ");
 		sb.append(objectDefinition.getObjectDefinitionId());
-		sb.append("&nestedFields=embedded,r_userToCMPProjectManager_user");
-		sb.append(",r_userToCMPProjectSponsor_user");
+		sb.append(
+			getNestedFieldsAPIURLParameters(
+				"r_userToCMPProjectManager_user",
+				"r_userToCMPProjectSponsor_user"));
 
 		return sb.toString();
 	}
 
+	@Override
 	public CreationMenu getCreationMenu() throws Exception {
 		if (!hasAddObjectEntryPortletResourcePermission()) {
 			return null;
@@ -88,6 +99,7 @@ public class ViewProjectsSectionDisplayContext
 		).build();
 	}
 
+	@Override
 	public Map<String, Object> getEmptyState() {
 		return HashMapBuilder.<String, Object>put(
 			"description",
@@ -100,6 +112,7 @@ public class ViewProjectsSectionDisplayContext
 		).build();
 	}
 
+	@Override
 	public List<FDSActionDropdownItem> getFDSActionDropdownItems() {
 		String baseViewProjectURL = ActionUtil.getBaseViewProjectURL(
 			objectDefinition, themeDisplay);
@@ -148,9 +161,9 @@ public class ViewProjectsSectionDisplayContext
 			new ProjectSponsorSelectionFDSFilter(),
 			new StateSelectionFDSFilter(),
 			new TagSelectionFDSFilter(
-				_assetTagLocalService, _depotEntryLocalService,
-				ObjectEntryUtil.getObjectEntry(httpServletRequest),
-				objectDefinition));
+				_assetTagLocalService, objectDefinition,
+				_depotEntryLocalService,
+				ObjectEntryUtil.getObjectEntry(httpServletRequest)));
 	}
 
 	private final AssetTagLocalService _assetTagLocalService;

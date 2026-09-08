@@ -29,10 +29,11 @@ import com.liferay.sharing.security.permission.SharingEntryAction;
 import com.liferay.sharing.security.permission.resource.SharingModelResourcePermissionConfigurator;
 import com.liferay.sharing.service.SharingEntryLocalService;
 
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 
 import org.osgi.framework.BundleContext;
@@ -40,6 +41,7 @@ import org.osgi.framework.ServiceRegistration;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Deactivate;
+import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -96,6 +98,12 @@ public class SharingModelResourcePermissionConfiguratorImpl
 		_sharingPermissionSQLContributorServiceRegistration.unregister();
 	}
 
+	@Modified
+	protected void modified(Map<String, Object> properties) {
+		_sharingSystemConfiguration = ConfigurableUtil.createConfigurable(
+			SharingSystemConfiguration.class, properties);
+	}
+
 	private static Map<String, SharingEntryAction> _getSharingEntryActions() {
 		Map<String, SharingEntryAction> sharingEntryActions = new HashMap<>();
 
@@ -121,7 +129,8 @@ public class SharingModelResourcePermissionConfiguratorImpl
 	@Reference
 	private GroupLocalService _groupLocalService;
 
-	private final Set<String> _modelClassNames = new HashSet<>();
+	private final Set<String> _modelClassNames = Collections.newSetFromMap(
+		new ConcurrentHashMap<>());
 
 	@Reference
 	private SharingConfigurationFactory _sharingConfigurationFactory;
@@ -131,7 +140,7 @@ public class SharingModelResourcePermissionConfiguratorImpl
 
 	private ServiceRegistration<PermissionSQLContributor>
 		_sharingPermissionSQLContributorServiceRegistration;
-	private SharingSystemConfiguration _sharingSystemConfiguration;
+	private volatile SharingSystemConfiguration _sharingSystemConfiguration;
 
 	@Reference
 	private UserGroupLocalService _userGroupLocalService;

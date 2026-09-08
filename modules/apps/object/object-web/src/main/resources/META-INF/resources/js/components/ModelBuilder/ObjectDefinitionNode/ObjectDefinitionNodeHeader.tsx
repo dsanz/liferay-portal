@@ -95,52 +95,45 @@ export default function ObjectDefinitionNodeHeader({
 				</div>
 
 				<div>
-					{Liferay.FeatureFlags['LPD-34594'] && (
-						<ClayTooltipProvider>
-							<ClayLabel
-								className={classNames(
-									'label-inverse-secondary',
-									{
-										'label-inverse-info':
-											isRootDescendantNode || isRootNode,
-									}
-								)}
-								title={
-									Liferay.FeatureFlags['LPD-69877'] &&
-									isRootDescendantNode
-										? allowStandaloneObjectEntry
-											? Liferay.Language.get(
-													'flexible-inheritance-tooltip'
-												)
-											: Liferay.Language.get(
-													'strict-inheritance-tooltip'
-												)
-										: undefined
-								}
-							>
-								<span className="align-items-center d-inline-flex">
-									{isRootNode
-										? Liferay.Language.get('root-object')
-										: isRootDescendantNode
-											? Liferay.Language.get('inherited')
-											: Liferay.Language.get('standard')}
+					<ClayTooltipProvider>
+						<ClayLabel
+							className={classNames('label-inverse-secondary', {
+								'label-inverse-info':
+									isRootDescendantNode || isRootNode,
+							})}
+							title={
+								isRootDescendantNode
+									? allowStandaloneObjectEntry
+										? Liferay.Language.get(
+												'flexible-inheritance-tooltip'
+											)
+										: Liferay.Language.get(
+												'strict-inheritance-tooltip'
+											)
+									: undefined
+							}
+						>
+							<span className="align-items-center d-inline-flex">
+								{isRootNode
+									? Liferay.Language.get('root-object')
+									: isRootDescendantNode
+										? Liferay.Language.get('inherited')
+										: Liferay.Language.get('standard')}
 
-									{Liferay.FeatureFlags['LPD-69877'] &&
-										isRootDescendantNode && (
-											<ClayIcon
-												aria-hidden="true"
-												className="c-ml-1"
-												symbol={
-													allowStandaloneObjectEntry
-														? 'unlock'
-														: 'lock'
-												}
-											/>
-										)}
-								</span>
-							</ClayLabel>
-						</ClayTooltipProvider>
-					)}
+								{isRootDescendantNode && (
+									<ClayIcon
+										aria-hidden="true"
+										className="c-ml-1"
+										symbol={
+											allowStandaloneObjectEntry
+												? 'unlock'
+												: 'lock'
+										}
+									/>
+								)}
+							</span>
+						</ClayLabel>
+					</ClayTooltipProvider>
 
 					<ClayLabel displayType={system ? 'info' : 'warning'}>
 						{system

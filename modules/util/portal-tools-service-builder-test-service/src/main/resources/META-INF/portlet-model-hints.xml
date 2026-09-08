@@ -32,6 +32,21 @@
 		<field name="companyId" type="long" />
 		<field name="name" type="String" />
 	</model>
+	<model name="com.liferay.portal.tools.service.builder.test.model.ClobEntry">
+		<field name="clobEntryId" type="long" />
+		<field name="content" type="String">
+			<hint-collection name="CLOB" />
+		</field>
+	</model>
+	<model name="com.liferay.portal.tools.service.builder.test.model.ColumnNameEntry">
+		<field name="columnNameEntryId" type="long" />
+		<field name="name" type="String" />
+	</model>
+	<model name="com.liferay.portal.tools.service.builder.test.model.CompoundPKEntry">
+		<field name="companyId" type="long" />
+		<field name="classNameId" type="long" />
+		<field name="name" type="String" />
+	</model>
 	<model name="com.liferay.portal.tools.service.builder.test.model.DataLimitEntry">
 		<field name="dataLimitEntryId" type="long" />
 		<field name="companyId" type="long" />
@@ -39,6 +54,11 @@
 		<field name="userName" type="String" />
 		<field name="createDate" type="Date" />
 		<field name="modifiedDate" type="Date" />
+	</model>
+	<model name="com.liferay.portal.tools.service.builder.test.model.DateEntry">
+		<field name="dateEntryId" type="long" />
+		<field name="companyId" type="long" />
+		<field name="snapshotDate" type="Date" />
 	</model>
 	<model name="com.liferay.portal.tools.service.builder.test.model.DefinedDefaultOrderEntry">
 		<field name="definedDefaultOrderEntryId" type="long" />
@@ -52,6 +72,7 @@
 	<model name="com.liferay.portal.tools.service.builder.test.model.DSLQueryStatusEntry">
 		<field name="dslQueryStatusEntryId" type="long" />
 		<field name="dslQueryEntryId" type="long" />
+		<field name="weight" type="double" />
 		<field name="status" type="String" />
 		<field name="statusDate" type="Date" />
 	</model>
@@ -94,6 +115,7 @@
 		<field name="ercVersionedEntryId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
+		<field name="blob" type="Blob" />
 	</model>
 	<model name="com.liferay.portal.tools.service.builder.test.model.ERCVersionedEntryVersion">
 		<field name="ercVersionedEntryVersionId" type="long" />
@@ -103,6 +125,7 @@
 		<field name="ercVersionedEntryId" type="long" />
 		<field name="groupId" type="long" />
 		<field name="companyId" type="long" />
+		<field name="blob" type="Blob" />
 	</model>
 	<model name="com.liferay.portal.tools.service.builder.test.model.FinderWhereClauseEntry">
 		<field name="finderWhereClauseEntryId" type="long" />
@@ -266,6 +289,10 @@
 		<field name="integer" type="int" />
 		<field name="name" type="String" />
 		<field name="type" type="String" />
+	</model>
+	<model name="com.liferay.portal.tools.service.builder.test.model.ReassociateEntry">
+		<field name="reassociateEntryId" type="long" />
+		<field name="name" type="String" />
 	</model>
 	<model name="com.liferay.portal.tools.service.builder.test.model.RedundantIndexEntry">
 		<field name="redundantIndexEntryId" type="long" />

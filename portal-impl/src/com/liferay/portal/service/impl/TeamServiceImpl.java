@@ -5,7 +5,6 @@
 
 package com.liferay.portal.service.impl;
 
-import com.liferay.portal.kernel.bean.BeanReference;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Team;
@@ -16,7 +15,6 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.permission.GroupPermissionUtil;
 import com.liferay.portal.kernel.service.permission.TeamPermissionUtil;
 import com.liferay.portal.kernel.service.permission.UserPermissionUtil;
-import com.liferay.portal.kernel.service.persistence.UserPersistence;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.service.base.TeamServiceBaseImpl;
 
@@ -54,12 +52,12 @@ public class TeamServiceImpl extends TeamServiceBaseImpl {
 		GroupPermissionUtil.check(
 			getPermissionChecker(), groupId, ActionKeys.MANAGE_TEAMS);
 
-		return teamLocalService.getGroupTeams(groupId);
+		return teamPersistence.findByGroupId(groupId);
 	}
 
 	@Override
 	public Team getTeam(long teamId) throws PortalException {
-		Team team = teamLocalService.getTeam(teamId);
+		Team team = teamPersistence.findByPrimaryKey(teamId);
 
 		TeamPermissionUtil.check(getPermissionChecker(), team, ActionKeys.VIEW);
 
@@ -68,7 +66,7 @@ public class TeamServiceImpl extends TeamServiceBaseImpl {
 
 	@Override
 	public Team getTeam(long groupId, String name) throws PortalException {
-		Team team = teamLocalService.getTeam(groupId, name);
+		Team team = teamPersistence.findByG_N(groupId, name);
 
 		TeamPermissionUtil.check(getPermissionChecker(), team, ActionKeys.VIEW);
 
@@ -121,7 +119,7 @@ public class TeamServiceImpl extends TeamServiceBaseImpl {
 				ActionKeys.MANAGE_TEAMS, ActionKeys.UPDATE);
 		}
 
-		return _userPersistence.containsTeam(userId, teamId);
+		return userPersistence.containsTeam(userId, teamId);
 	}
 
 	@Override
@@ -152,8 +150,5 @@ public class TeamServiceImpl extends TeamServiceBaseImpl {
 
 		return teamLocalService.updateTeam(teamId, name, description);
 	}
-
-	@BeanReference(type = UserPersistence.class)
-	private UserPersistence _userPersistence;
 
 }

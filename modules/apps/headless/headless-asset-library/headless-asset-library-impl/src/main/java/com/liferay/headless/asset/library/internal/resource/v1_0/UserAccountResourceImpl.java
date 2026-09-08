@@ -10,8 +10,6 @@ import com.liferay.headless.asset.library.resource.v1_0.UserAccountResource;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
 import com.liferay.portal.kernel.exception.NoSuchUserException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
-import com.liferay.portal.kernel.model.Contact;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.UserTable;
@@ -27,7 +25,6 @@ import com.liferay.portal.kernel.service.ServiceContextFactory;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.service.UserService;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.OrderByComparator;
 import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
@@ -38,11 +35,8 @@ import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -63,15 +57,15 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 			String userAccountExternalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
-
 		Group group = _getGroup(assetLibraryExternalReferenceCode);
 		User user = _userService.getUserByExternalReferenceCode(
 			userAccountExternalReferenceCode, contextCompany.getCompanyId());
 
-		_updateUser(group.getGroupId(), user.getUserId(), false);
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			User.class.getName(), contextHttpServletRequest);
+
+		_userService.unsetGroupUsers(
+			group.getGroupId(), new long[] {user.getUserId()}, serviceContext);
 	}
 
 	@Override
@@ -79,10 +73,6 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 			String assetLibraryExternalReferenceCode,
 			String userAccountExternalReferenceCode)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
 
 		Group group = _getGroup(assetLibraryExternalReferenceCode);
 
@@ -102,10 +92,6 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 			String search, Pagination pagination, Sort[] sorts)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
-
 		Group group = _getGroup(assetLibraryExternalReferenceCode);
 
 		_checkAssetLibraryAdminOrAssetLibraryMember(group.getGroupId());
@@ -120,17 +106,17 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 			String userAccountExternalReferenceCode)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled("LPD-17564")) {
-			throw new UnsupportedOperationException();
-		}
-
 		Group group = _getGroup(assetLibraryExternalReferenceCode);
 		User user = _userService.getUserByExternalReferenceCode(
 			userAccountExternalReferenceCode, contextCompany.getCompanyId());
 
-		return _toUserAccount(
-			group.getGroupId(),
-			_updateUser(group.getGroupId(), user.getUserId(), true));
+		ServiceContext serviceContext = ServiceContextFactory.getInstance(
+			User.class.getName(), contextHttpServletRequest);
+
+		_userService.addGroupUsers(
+			group.getGroupId(), new long[] {user.getUserId()}, serviceContext);
+
+		return _toUserAccount(group.getGroupId(), user);
 	}
 
 	private void _checkAssetLibraryAdminOrAssetLibraryMember(long groupId)
@@ -206,25 +192,6 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 				keywords));
 	}
 
-	private long[] _getUserGroupIds(
-		User user, long assetLibraryId, boolean add) {
-
-		Set<Long> groupIds = new HashSet<>();
-
-		for (long groupId : user.getGroupIds()) {
-			groupIds.add(groupId);
-		}
-
-		if (add) {
-			groupIds.add(assetLibraryId);
-		}
-		else {
-			groupIds.remove(assetLibraryId);
-		}
-
-		return ArrayUtil.toLongArray(groupIds);
-	}
-
 	private OrderByComparator<User> _toOrderByComparator(Sort[] sorts) {
 		if (ArrayUtil.isEmpty(sorts)) {
 			return null;
@@ -282,37 +249,6 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 			"assetLibraryId", assetLibraryId);
 
 		return _userAccountDTOConverter.toDTO(defaultDTOConverterContext);
-	}
-
-	private User _updateUser(
-			Long assetLibraryId, Long userAccountId, boolean add)
-		throws Exception {
-
-		User user = _userService.getUserById(userAccountId);
-
-		Contact contact = user.getContact();
-
-		Calendar calendar = CalendarFactoryUtil.getCalendar();
-
-		calendar.setTime(user.getBirthday());
-
-		ServiceContext serviceContext = ServiceContextFactory.getInstance(
-			User.class.getName(), contextHttpServletRequest);
-
-		return _userService.updateUser(
-			user.getUserId(), user.getPassword(), null, null,
-			user.isPasswordReset(), null, null, user.getScreenName(),
-			user.getEmailAddress(), user.getLanguageId(), user.getTimeZoneId(),
-			user.getGreeting(), user.getComments(), user.getFirstName(),
-			user.getMiddleName(), user.getLastName(),
-			contact.getPrefixListTypeId(), contact.getSuffixListTypeId(),
-			user.isMale(), calendar.get(Calendar.MONTH),
-			calendar.get(Calendar.DATE), calendar.get(Calendar.YEAR),
-			contact.getSmsSn(), contact.getFacebookSn(), contact.getJabberSn(),
-			contact.getSkypeSn(), contact.getTwitterSn(), user.getJobTitle(),
-			_getUserGroupIds(user, assetLibraryId, add),
-			user.getOrganizationIds(), null, null, user.getUserGroupIds(),
-			serviceContext);
 	}
 
 	@Reference

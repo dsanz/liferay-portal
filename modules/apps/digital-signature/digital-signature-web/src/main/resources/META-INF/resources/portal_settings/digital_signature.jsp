@@ -70,7 +70,7 @@ DigitalSignatureConfiguration digitalSignatureConfiguration = (DigitalSignatureC
 
 	<div class="form-group row">
 		<div class="col-md-6">
-			<aui:select label="environment" name="environment" required="<%= true %>" value="<%= digitalSignatureConfiguration.environment() %>">
+			<aui:select label="environment" name="environment" required='<%= !Objects.equals(digitalSignatureConfiguration.siteSettingsStrategy(), "always-override") %>' value="<%= digitalSignatureConfiguration.environment() %>">
 				<aui:option label="" value="" />
 
 				<%
@@ -106,13 +106,28 @@ DigitalSignatureConfiguration digitalSignatureConfiguration = (DigitalSignatureC
 			'<portlet:namespace />siteSettingsStrategy'
 		);
 
-		if (
-			digitalSignatureSiteSettingsStrategyElement.value === 'always-override'
-		) {
+		var alwaysOverride =
+			digitalSignatureSiteSettingsStrategyElement.value === 'always-override';
+
+		if (alwaysOverride) {
 			digitalSignatureProviderCredentialsElement.classList.add('hide');
 		}
 		else {
 			digitalSignatureProviderCredentialsElement.classList.remove('hide');
+		}
+
+		// The credentials are hidden when every site overrides them, but a hidden
+		// field is still validated, and its message renders inside the hidden
+		// block. Keep the rule in step with the block so the form can submit.
+
+		var form = Liferay.Form.get('<portlet:namespace />fm');
+
+		if (form) {
+			var rules = form.formValidator._getAttr('rules');
+
+			rules['<portlet:namespace />environment'] = {
+				required: !alwaysOverride,
+			};
 		}
 	}
 

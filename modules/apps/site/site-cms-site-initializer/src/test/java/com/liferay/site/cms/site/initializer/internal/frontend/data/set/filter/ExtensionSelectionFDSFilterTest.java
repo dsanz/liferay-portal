@@ -8,14 +8,19 @@ package com.liferay.site.cms.site.initializer.internal.frontend.data.set.filter;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.frontend.data.set.constants.FDSEntityFieldTypes;
 import com.liferay.frontend.data.set.filter.SelectionFDSFilterItem;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.service.ObjectDefinitionService;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.search.aggregation.Aggregations;
 import com.liferay.portal.search.aggregation.bucket.Bucket;
 import com.liferay.portal.search.aggregation.bucket.TermsAggregation;
 import com.liferay.portal.search.aggregation.bucket.TermsAggregationResult;
-import com.liferay.portal.search.legacy.searcher.SearchRequestBuilderFactory;
+import com.liferay.portal.search.filter.ComplexQueryPartBuilder;
+import com.liferay.portal.search.filter.ComplexQueryPartBuilderFactory;
 import com.liferay.portal.search.searcher.SearchRequestBuilder;
+import com.liferay.portal.search.searcher.SearchRequestBuilderFactory;
 import com.liferay.portal.search.searcher.SearchResponse;
 import com.liferay.portal.search.searcher.Searcher;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
@@ -30,6 +35,7 @@ import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 
+import org.mockito.Answers;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -51,8 +57,14 @@ public class ExtensionSelectionFDSFilterTest {
 		ReflectionTestUtil.setFieldValue(
 			_extensionSelectionFDSFilter, "_aggregations", _aggregations);
 		ReflectionTestUtil.setFieldValue(
+			_extensionSelectionFDSFilter, "_complexQueryPartBuilderFactory",
+			_complexQueryPartBuilderFactory);
+		ReflectionTestUtil.setFieldValue(
 			_extensionSelectionFDSFilter, "_depotEntryLocalService",
 			_depotEntryLocalService);
+		ReflectionTestUtil.setFieldValue(
+			_extensionSelectionFDSFilter, "_objectDefinitionService",
+			_objectDefinitionService);
 		ReflectionTestUtil.setFieldValue(
 			_extensionSelectionFDSFilter, "_searcher", _searcher);
 		ReflectionTestUtil.setFieldValue(
@@ -66,10 +78,29 @@ public class ExtensionSelectionFDSFilterTest {
 		);
 
 		Mockito.when(
+			_complexQueryPartBuilderFactory.builder()
+		).thenReturn(
+			Mockito.mock(ComplexQueryPartBuilder.class, Mockito.RETURNS_SELF)
+		);
+
+		Mockito.when(
 			_depotEntryLocalService.getDepotEntries(
 				Mockito.anyLong(), Mockito.anyInt())
 		).thenReturn(
 			Collections.emptyList()
+		);
+
+		Mockito.when(
+			_objectDefinition.getClassName()
+		).thenReturn(
+			_OBJECT_DEFINITION_CLASS_NAME
+		);
+
+		Mockito.when(
+			_objectDefinitionService.getCMSObjectDefinitions(
+				Mockito.anyLong(), Mockito.any())
+		).thenReturn(
+			List.of(_objectDefinition)
 		);
 
 		Mockito.when(
@@ -78,13 +109,10 @@ public class ExtensionSelectionFDSFilterTest {
 			_searchResponse
 		);
 
-		SearchRequestBuilder searchRequestBuilder = Mockito.mock(
-			SearchRequestBuilder.class, Mockito.RETURNS_SELF);
-
 		Mockito.when(
-			_searchRequestBuilderFactory.builder(Mockito.any())
+			_searchRequestBuilderFactory.builder()
 		).thenReturn(
-			searchRequestBuilder
+			_searchRequestBuilder
 		);
 	}
 
@@ -99,7 +127,30 @@ public class ExtensionSelectionFDSFilterTest {
 	}
 
 	@Test
-	public void testGetSelectionFDSFilterItems1() {
+	public void testGetSelectionFDSFilterItemsWhenNoCMSObjectDefinitions() {
+		Mockito.when(
+			_objectDefinitionService.getCMSObjectDefinitions(
+				Mockito.anyLong(), Mockito.any())
+		).thenReturn(
+			Collections.emptyList()
+		);
+
+		List<SelectionFDSFilterItem> selectionFDSFilterItems =
+			_extensionSelectionFDSFilter.getSelectionFDSFilterItems(_locale);
+
+		Assert.assertTrue(
+			selectionFDSFilterItems.toString(),
+			selectionFDSFilterItems.isEmpty());
+
+		Mockito.verify(
+			_searcher, Mockito.never()
+		).search(
+			Mockito.any()
+		);
+	}
+
+	@Test
+	public void testGetSelectionFDSFilterItemsWhenNoExtensions() {
 		Mockito.when(
 			_searchResponse.getAggregationResult("extensions")
 		).thenReturn(
@@ -115,7 +166,33 @@ public class ExtensionSelectionFDSFilterTest {
 	}
 
 	@Test
-	public void testGetSelectionFDSFilterItems2() {
+	public void testGetSelectionFDSFilterItemsWithCMSObjectDefinitions() {
+		TermsAggregationResult termsAggregationResult = Mockito.mock(
+			TermsAggregationResult.class);
+
+		Mockito.when(
+			termsAggregationResult.getBuckets()
+		).thenReturn(
+			Collections.emptyList()
+		);
+
+		Mockito.when(
+			_searchResponse.getAggregationResult("extensions")
+		).thenReturn(
+			termsAggregationResult
+		);
+
+		_extensionSelectionFDSFilter.getSelectionFDSFilterItems(_locale);
+
+		Mockito.verify(
+			_searchRequestBuilder
+		).entryClassNames(
+			_OBJECT_DEFINITION_CLASS_NAME
+		);
+	}
+
+	@Test
+	public void testGetSelectionFDSFilterItemsWithExtensions() {
 		Bucket pdfBucket = Mockito.mock(Bucket.class);
 
 		Mockito.when(
@@ -167,8 +244,15 @@ public class ExtensionSelectionFDSFilterTest {
 		Assert.assertEquals("png", pngSelectionFDSFilterItem.getValue());
 	}
 
+	private static final String _OBJECT_DEFINITION_CLASS_NAME =
+		"com.liferay.object.model.ObjectDefinition#" +
+			RandomTestUtil.randomString();
+
 	@Mock
 	private Aggregations _aggregations;
+
+	@Mock
+	private ComplexQueryPartBuilderFactory _complexQueryPartBuilderFactory;
 
 	@Mock
 	private DepotEntryLocalService _depotEntryLocalService;
@@ -178,7 +262,16 @@ public class ExtensionSelectionFDSFilterTest {
 	private final Locale _locale = LocaleUtil.US;
 
 	@Mock
+	private ObjectDefinition _objectDefinition;
+
+	@Mock
+	private ObjectDefinitionService _objectDefinitionService;
+
+	@Mock
 	private Searcher _searcher;
+
+	@Mock(answer = Answers.RETURNS_SELF)
+	private SearchRequestBuilder _searchRequestBuilder;
 
 	@Mock
 	private SearchRequestBuilderFactory _searchRequestBuilderFactory;

@@ -290,6 +290,8 @@ public interface StyleBookEntryLocalService
 
 	public String generateStyleBookEntryKey(long groupId, String name);
 
+	public String generateStyleBookEntryName(long groupId, String name);
+
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public ActionableDynamicQuery getActionableDynamicQuery();
 
@@ -362,6 +364,16 @@ public interface StyleBookEntryLocalService
 		long[] groupIds, String themeId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<StyleBookEntry> getStyleBookEntries(
+		long[] groupIds, String themeId, int start, int end,
+		OrderByComparator<StyleBookEntry> orderByComparator);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public List<StyleBookEntry> getStyleBookEntries(
+		long[] groupIds, String name, String themeId, int start, int end,
+		OrderByComparator<StyleBookEntry> orderByComparator);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<StyleBookEntry> getStyleBookEntriesByUuidAndCompanyId(
 		String uuid, long companyId);
 
@@ -378,6 +390,13 @@ public interface StyleBookEntryLocalService
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public int getStyleBookEntriesCount(long groupId, String name);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getStyleBookEntriesCount(long[] groupIds, String themeId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public int getStyleBookEntriesCount(
+		long[] groupIds, String name, String themeId);
 
 	/**
 	 * Returns the style book entry with the primary key.
@@ -434,6 +453,11 @@ public interface StyleBookEntryLocalService
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
 	public StyleBookEntry updateDraft(StyleBookEntry draftStyleBookEntry)
+		throws PortalException;
+
+	@Indexable(type = IndexableType.REINDEX)
+	public StyleBookEntry updateFrontendTokenDefinition(
+			long styleBookEntryId, String frontendTokenDefinition)
 		throws PortalException;
 
 	@Indexable(type = IndexableType.REINDEX)
@@ -495,4 +519,4 @@ public interface StyleBookEntryLocalService
 		throws E;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-913531733
+// LIFERAY-SERVICE-BUILDER-HASH:1439227441

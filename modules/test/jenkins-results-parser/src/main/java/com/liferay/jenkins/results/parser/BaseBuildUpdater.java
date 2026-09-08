@@ -14,6 +14,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.json.JSONObject;
+
 /**
  * @author Michael Hashimoto
  */
@@ -69,18 +71,18 @@ public abstract class BaseBuildUpdater implements BuildUpdater {
 	}
 
 	protected void runMissing() {
-		if (isBuildQueued()) {
-			_missingTickCount = 0;
-
-			_build.setStatus("queued");
-
-			return;
-		}
-
 		if (isBuildRunning()) {
 			_missingTickCount = 0;
 
 			_build.setStatus("running");
+
+			return;
+		}
+
+		if (isBuildQueued()) {
+			_missingTickCount = 0;
+
+			_build.setStatus("queued");
 
 			return;
 		}
@@ -100,12 +102,15 @@ public abstract class BaseBuildUpdater implements BuildUpdater {
 		}
 
 		if (_missingReinvocationCount < _getMissingMaximumReinvocationCount()) {
-			_missingReinvocationCount++;
 			_missingTickCount = 0;
 
-			_build.reset();
+			if (!_reattachMatchingBuild()) {
+				_missingReinvocationCount++;
 
-			reinvoke();
+				_build.reset();
+
+				reinvoke();
+			}
 
 			_build.setStatus("queued");
 
@@ -118,13 +123,13 @@ public abstract class BaseBuildUpdater implements BuildUpdater {
 	}
 
 	protected void runQueued() {
-		if (isBuildQueued()) {
-			return;
-		}
-
 		if (isBuildRunning()) {
 			_build.setStatus("running");
 
+			return;
+		}
+
+		if (isBuildQueued()) {
 			return;
 		}
 
@@ -297,6 +302,61 @@ public abstract class BaseBuildUpdater implements BuildUpdater {
 			}
 
 			_takeSlaveOffline(slaveOfflineRule);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private boolean _reattachMatchingBuild() {
+		Build build = getBuild();
+
+		Build.Invocation currentInvocation = build.getCurrentInvocation();
+
+		if (currentInvocation == null) {
+			return false;
+		}
+
+		JenkinsMaster jenkinsMaster = currentInvocation.getJenkinsMaster();
+
+		if (jenkinsMaster == null) {
+			return false;
+		}
+
+		Map<String, String> parameters = build.getParameters();
+
+		if (parameters.isEmpty()) {
+			return false;
+		}
+
+		String jobName = build.getJobName();
+
+		JSONObject buildJSONObject = jenkinsMaster.getInProgressBuildJSONObject(
+			jobName, parameters);
+
+		if (buildJSONObject != null) {
+			currentInvocation.setQueueId(buildJSONObject.getLong("queueId"));
+
+			System.out.println(
+				JenkinsResultsParserUtil.combine(
+					"[", build.getBuildName(),
+					"] Reattached to the running build ",
+					buildJSONObject.getString("url")));
+
+			return true;
+		}
+
+		JSONObject queueItemJSONObject = jenkinsMaster.getQueuedBuildJSONObject(
+			jobName, parameters);
+
+		if (queueItemJSONObject != null) {
+			currentInvocation.setQueueId(queueItemJSONObject.getLong("id"));
+
+			System.out.println(
+				JenkinsResultsParserUtil.combine(
+					"[", build.getBuildName(),
+					"] Reattached to the queued build"));
 
 			return true;
 		}

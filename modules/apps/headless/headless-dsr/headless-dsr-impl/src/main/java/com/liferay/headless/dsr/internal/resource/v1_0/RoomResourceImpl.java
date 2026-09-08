@@ -13,9 +13,9 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.object.service.ObjectEntryService;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
@@ -26,6 +26,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.site.dsr.site.initializer.thread.local.DSRRoomThreadLocal;
+import com.liferay.site.dsr.site.initializer.util.DSRRoomUtil;
 
 import java.io.Serializable;
 
@@ -44,12 +45,6 @@ public class RoomResourceImpl extends BaseRoomResourceImpl {
 
 	@Override
 	public Room postRoomDuplicate(Long roomId, Room room) throws Exception {
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-66359")) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		ObjectEntry objectEntry = _objectEntryService.getObjectEntry(roomId);
 
 		_checkPermission(objectEntry);
@@ -98,6 +93,9 @@ public class RoomResourceImpl extends BaseRoomResourceImpl {
 		if (permissionChecker.isCompanyAdmin()) {
 			return;
 		}
+
+		DSRRoomUtil.checkPermission(
+			objectEntry, permissionChecker, ActionKeys.UPDATE);
 
 		ObjectDefinition objectDefinition = objectEntry.getObjectDefinition();
 

@@ -483,6 +483,7 @@ public class DispatchLogPersistenceImpl
 					new String[] {"dispatchTriggerId"}, false),
 				_SQL_SELECT_DISPATCHLOG_WHERE, _SQL_COUNT_DISPATCHLOG_WHERE,
 				DispatchLogModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"dispatchLog.", "dispatchTriggerId", FinderColumn.Type.LONG,
 					"=", true, true, DispatchLog::getDispatchTriggerId));
@@ -506,7 +507,8 @@ public class DispatchLogPersistenceImpl
 				new String[] {Long.class.getName(), Integer.class.getName()},
 				new String[] {"dispatchTriggerId", "status"}, false),
 			_SQL_SELECT_DISPATCHLOG_WHERE, _SQL_COUNT_DISPATCHLOG_WHERE,
-			DispatchLogModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			DispatchLogModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"dispatchLog.", "dispatchTriggerId", FinderColumn.Type.LONG,
 				"=", true, true, DispatchLog::getDispatchTriggerId),
@@ -568,9 +570,6 @@ public class DispatchLogPersistenceImpl
 	private static final String _SQL_COUNT_DISPATCHLOG_WHERE =
 		"SELECT COUNT(dispatchLog) FROM DispatchLog dispatchLog WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No DispatchLog exists with the key {";
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"output"});
 
@@ -580,4 +579,4 @@ public class DispatchLogPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-344027382
+// LIFERAY-SERVICE-BUILDER-HASH:1926173064

@@ -263,6 +263,26 @@ public class ObjectEntryValuesException extends PortalException {
 
 	}
 
+	public static class InvalidLanguageId extends ObjectEntryValuesException {
+
+		public InvalidLanguageId(String languageId, String objectFieldName) {
+			super(
+				StringBundler.concat(
+					"The language ID \"", languageId,
+					"\" is invalid for object field \"", objectFieldName,
+					"\""));
+
+			_objectFieldName = objectFieldName;
+		}
+
+		public String getObjectFieldName() {
+			return _objectFieldName;
+		}
+
+		private final String _objectFieldName;
+
+	}
+
 	public static class InvalidObjectField extends ObjectEntryValuesException {
 
 		public InvalidObjectField(
@@ -452,7 +472,15 @@ public class ObjectEntryValuesException extends PortalException {
 					"No value was provided for the language ID \"%s\" in the " +
 						"required object field \"%s\".",
 					languageId, objectFieldName));
+
+			_objectFieldName = objectFieldName;
 		}
+
+		public String getObjectFieldName() {
+			return _objectFieldName;
+		}
+
+		private final String _objectFieldName;
 
 	}
 

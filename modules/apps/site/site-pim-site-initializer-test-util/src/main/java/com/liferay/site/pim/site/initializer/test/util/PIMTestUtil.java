@@ -1,0 +1,103 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.site.pim.site.initializer.test.util;
+
+import com.liferay.depot.constants.DepotConstants;
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.service.DepotEntryLocalServiceUtil;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
+import com.liferay.petra.lang.SafeCloseable;
+import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.module.service.Snapshot;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.site.initializer.SiteInitializer;
+import com.liferay.site.initializer.SiteInitializerRegistry;
+import com.liferay.site.pim.site.initializer.constants.PIMObjectDefinitionConstants;
+
+import java.util.Collections;
+
+/**
+ * @author Stefano Motta
+ */
+public class PIMTestUtil {
+
+	public static DepotEntry addSpaceDepotEntry() throws Exception {
+		return DepotEntryLocalServiceUtil.addDepotEntry(
+			Collections.singletonMap(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+			Collections.singletonMap(
+				LocaleUtil.getDefault(), RandomTestUtil.randomString()),
+			DepotConstants.TYPE_SPACE,
+			ServiceContextTestUtil.getServiceContext());
+	}
+
+	public static Group getOrAddGroup() throws Exception {
+		Group group = GroupLocalServiceUtil.getGroup(
+			TestPropsValues.getCompanyId(), GroupConstants.CMS);
+
+		ObjectDefinition pimBaseSkuObjectDefinition =
+			ObjectDefinitionLocalServiceUtil.
+				fetchObjectDefinitionByExternalReferenceCode(
+					PIMObjectDefinitionConstants.
+						EXTERNAL_REFERENCE_CODE_BASE_SKU,
+					TestPropsValues.getCompanyId());
+		ObjectDefinition pimLinkObjectDefinition =
+			ObjectDefinitionLocalServiceUtil.
+				fetchObjectDefinitionByExternalReferenceCode(
+					PIMObjectDefinitionConstants.EXTERNAL_REFERENCE_CODE_LINK,
+					TestPropsValues.getCompanyId());
+
+		if ((pimBaseSkuObjectDefinition != null) &&
+			(pimLinkObjectDefinition != null)) {
+
+			return group;
+		}
+
+		_initialize(group);
+
+		return group;
+	}
+
+	private static void _initialize(Group group) throws Exception {
+		try {
+			ServiceContextThreadLocal.pushServiceContext(
+				ServiceContextTestUtil.getServiceContext(group.getGroupId()));
+
+			try (SafeCloseable safeCloseable =
+					CompanyThreadLocal.setCompanyIdWithSafeCloseable(
+						group.getCompanyId())) {
+
+				SiteInitializerRegistry siteInitializerRegistry =
+					_siteInitializerRegistrySnapshot.get();
+
+				SiteInitializer siteInitializer =
+					siteInitializerRegistry.getSiteInitializer(
+						_BUNDLE_SYMBOLIC_NAME);
+
+				siteInitializer.initialize(group.getGroupId());
+			}
+		}
+		finally {
+			ServiceContextThreadLocal.popServiceContext();
+		}
+	}
+
+	private static final String _BUNDLE_SYMBOLIC_NAME =
+		"com.liferay.site.initializer.pim";
+
+	private static final Snapshot<SiteInitializerRegistry>
+		_siteInitializerRegistrySnapshot = new Snapshot<>(
+			PIMTestUtil.class, SiteInitializerRegistry.class);
+
+}

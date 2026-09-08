@@ -31,6 +31,7 @@ import com.liferay.segments.constants.SegmentsPortletKeys;
 import com.liferay.segments.criteria.Criteria;
 import com.liferay.segments.criteria.CriteriaSerializer;
 import com.liferay.segments.criteria.contributor.SegmentsCriteriaContributorRegistry;
+import com.liferay.segments.exception.LockedSegmentsEntryException;
 import com.liferay.segments.exception.NoSuchEntryException;
 import com.liferay.segments.exception.SegmentsEntryCriteriaException;
 import com.liferay.segments.exception.SegmentsEntryKeyException;
@@ -100,15 +101,18 @@ public class UpdateSegmentsEntryMVCActionCommand extends BaseMVCActionCommand {
 				String source = null;
 
 				segmentsEntry = _segmentsEntryService.addSegmentsEntry(
-					segmentsEntryKey, nameMap, descriptionMap, active,
+					null, segmentsEntryKey, nameMap, descriptionMap, active,
 					CriteriaSerializer.serialize(criteria), source,
 					serviceContext);
 			}
 			else {
+				segmentsEntry = _segmentsEntryService.getSegmentsEntry(
+					segmentsEntryId);
+
 				segmentsEntry = _segmentsEntryService.updateSegmentsEntry(
-					segmentsEntryId, segmentsEntryKey, nameMap, descriptionMap,
-					active, CriteriaSerializer.serialize(criteria),
-					serviceContext);
+					segmentsEntry.getExternalReferenceCode(), segmentsEntryId,
+					segmentsEntryKey, nameMap, descriptionMap, active,
+					CriteriaSerializer.serialize(criteria), serviceContext);
 			}
 
 			String redirect = ParamUtil.getString(actionRequest, "redirect");
@@ -137,7 +141,8 @@ public class UpdateSegmentsEntryMVCActionCommand extends BaseMVCActionCommand {
 
 				actionResponse.setRenderParameter("mvcPath", "/error.jsp");
 			}
-			else if (exception instanceof NestableRuntimeException ||
+			else if (exception instanceof LockedSegmentsEntryException ||
+					 exception instanceof NestableRuntimeException ||
 					 exception instanceof SegmentsEntryCriteriaException ||
 					 exception instanceof SegmentsEntryKeyException ||
 					 exception instanceof SegmentsEntryNameException) {

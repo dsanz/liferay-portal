@@ -34,14 +34,6 @@ export function fetchAccountGroups(params: TTableRequestParams) {
 	});
 }
 
-export function fetchChannels(params: TTableRequestParams) {
-	const queryString = serializeTableRequestParams(params);
-
-	return request(`/commerce-channels?${queryString}`, {
-		method: 'GET',
-	});
-}
-
 export function fetchConnection(token: string) {
 	return request(
 		'/data-sources',
@@ -95,46 +87,24 @@ export function fetchSites(params: TTableRequestParams) {
 
 interface IProperty {
 	channelId: string;
-	commerceChannelIds?: number[];
-	commerceSyncEnabled: boolean;
 	dataSourceId?: string;
 	siteIds?: number[];
 }
 
 export function updateProperty({
 	channelId,
-	commerceChannelIds = [],
-	commerceSyncEnabled,
 	dataSourceId,
 	siteIds = [],
 }: IProperty) {
 	return request('/channels', {
 		body: JSON.stringify({
 			channelId,
-			commerceSyncEnabled,
 			dataSources: [
 				{
-					commerceChannelIds,
 					dataSourceId,
 					siteIds,
 				},
 			],
-		}),
-		method: 'PATCH',
-	});
-}
-
-export function updatecommerceSyncEnabled({
-	channelId,
-	commerceSyncEnabled,
-}: {
-	channelId: string;
-	commerceSyncEnabled: boolean;
-}) {
-	return request('/channels', {
-		body: JSON.stringify({
-			channelId,
-			commerceSyncEnabled,
 		}),
 		method: 'PATCH',
 	});
@@ -178,29 +148,11 @@ export function fetchAccountsFields(params: TTableRequestParams) {
 	);
 }
 
-export function fetchOrdersFields(params: TTableRequestParams) {
-	const queryString = serializeTableRequestParams(params);
-
-	return request(
-		`/fields/orders?${queryString.replace('keywords', 'keyword')}`,
-		{method: 'GET'}
-	);
-}
-
 export function fetchPeopleFields(params: TTableRequestParams) {
 	const queryString = serializeTableRequestParams(params);
 
 	return request(
 		`/fields/people?${queryString.replace('keywords', 'keyword')}`,
-		{method: 'GET'}
-	);
-}
-
-export function fetchProductsFields(params: TTableRequestParams) {
-	const queryString = serializeTableRequestParams(params);
-
-	return request(
-		`/fields/products?${queryString.replace('keywords', 'keyword')}`,
 		{method: 'GET'}
 	);
 }
@@ -221,22 +173,8 @@ export function updateAccountsFields(fields: TField[]) {
 	});
 }
 
-export function updateOrdersFields(fields: TField[]) {
-	return request('/fields/orders', {
-		body: JSON.stringify(fields),
-		method: 'PATCH',
-	});
-}
-
 export function updatePeopleFields(fields: TField[]) {
 	return request('/fields/people', {
-		body: JSON.stringify(fields),
-		method: 'PATCH',
-	});
-}
-
-export function updateProductsFields(fields: TField[]) {
-	return request('/fields/products', {
 		body: JSON.stringify(fields),
 		method: 'PATCH',
 	});

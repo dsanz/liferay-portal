@@ -28,7 +28,7 @@ export class ObjectAdminApiHelper {
 
 	async getAllObjectDefinitions() {
 		return this.apiHelpers.get(
-			`${this.apiHelpers.baseUrl}${this.basePath}/object-definitions`
+			`${this.apiHelpers.baseUrl}${this.basePath}/object-definitions?page=-1`
 		);
 	}
 

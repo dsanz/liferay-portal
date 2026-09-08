@@ -13,7 +13,7 @@ String redirect = ParamUtil.getString(request, "redirect");
 OAuth2Application oAuth2Application = oAuth2AdminPortletDisplayContext.getOAuth2Application();
 
 String clientId = (oAuth2Application == null) ? "" : oAuth2Application.getClientId();
-String clientSecret = (oAuth2Application == null) ? "" : oAuth2Application.getClientSecret();
+String clientSecret = (oAuth2Application == null) ? "" : oAuth2AdminPortletDisplayContext.getClientSecret(oAuth2Application);
 String externalReferenceCode = (oAuth2Application == null) ? "" : oAuth2Application.getExternalReferenceCode();
 %>
 
@@ -40,6 +40,7 @@ String externalReferenceCode = (oAuth2Application == null) ? "" : oAuth2Applicat
 
 					<liferay-ui:error exception="<%= OAuth2ApplicationHomePageURLException.class %>" focusField="homePageURL" message="home-page-url-is-invalid" />
 					<liferay-ui:error exception="<%= OAuth2ApplicationHomePageURLSchemeException.class %>" focusField="homePageURL" message="home-page-url-scheme-is-invalid" />
+					<liferay-ui:error exception="<%= OAuth2ApplicationJWKSException.class %>" focusField="jwks" message="the-json-web-key-set-is-not-fips-compliant" />
 					<liferay-ui:error exception="<%= OAuth2ApplicationNameException.class %>" focusField="name" message="missing-application-name" />
 					<liferay-ui:error exception="<%= OAuth2ApplicationPrivacyPolicyURLException.class %>" focusField="privacyPolicyURL" message="privacy-policy-url-is-invalid" />
 

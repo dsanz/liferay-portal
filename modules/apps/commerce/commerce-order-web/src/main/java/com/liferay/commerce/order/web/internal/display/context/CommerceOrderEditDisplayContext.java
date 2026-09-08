@@ -5,7 +5,10 @@
 
 package com.liferay.commerce.order.web.internal.display.context;
 
+import com.liferay.account.constants.AccountEntryValidatorConstants;
 import com.liferay.account.model.AccountEntry;
+import com.liferay.account.validator.AccountEntryValidatorRegistry;
+import com.liferay.account.validator.AccountEntryValidatorResult;
 import com.liferay.commerce.configuration.CommerceOrderItemDecimalQuantityConfiguration;
 import com.liferay.commerce.constants.CommerceOrderActionKeys;
 import com.liferay.commerce.constants.CommerceOrderConstants;
@@ -47,6 +50,8 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -75,6 +80,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author Andrea Di Giorgi
@@ -85,6 +92,7 @@ import java.util.List;
 public class CommerceOrderEditDisplayContext {
 
 	public CommerceOrderEditDisplayContext(
+			AccountEntryValidatorRegistry accountEntryValidatorRegistry,
 			CommerceChannelLocalService commerceChannelLocalService,
 			CommerceNotificationQueueEntryLocalService
 				commerceNotificationQueueEntryLocalService,
@@ -110,6 +118,7 @@ public class CommerceOrderEditDisplayContext {
 			RenderRequest renderRequest)
 		throws PortalException {
 
+		_accountEntryValidatorRegistry = accountEntryValidatorRegistry;
 		_commerceChannelLocalService = commerceChannelLocalService;
 		_commerceNotificationQueueEntryLocalService =
 			commerceNotificationQueueEntryLocalService;
@@ -675,6 +684,66 @@ public class CommerceOrderEditDisplayContext {
 		).buildPortletURL();
 	}
 
+	public String getValidationButtonCssClass() throws PortalException {
+		if (_commerceOrder == null) {
+			return "text-success";
+		}
+
+		AccountEntry accountEntry = _commerceOrder.getAccountEntry();
+
+		if (accountEntry == null) {
+			return "text-success";
+		}
+
+		Map<String, AccountEntryValidatorResult>
+			accountEntryValidatorResultsMap =
+				_getAccountEntryValidatorResultsMap(accountEntry);
+
+		boolean pending = false;
+		boolean skipped = false;
+
+		for (AccountEntryValidatorResult accountEntryValidatorResult :
+				accountEntryValidatorResultsMap.values()) {
+
+			if (accountEntryValidatorResult == null) {
+				pending = true;
+
+				continue;
+			}
+
+			String resultStatus = accountEntryValidatorResult.getResultStatus();
+
+			if (Objects.equals(
+					AccountEntryValidatorConstants.RESULT_SKIPPED,
+					resultStatus)) {
+
+				skipped = true;
+
+				continue;
+			}
+
+			if (!Objects.equals(
+					AccountEntryValidatorConstants.RESULT_MANUAL,
+					resultStatus) &&
+				!Objects.equals(
+					AccountEntryValidatorConstants.RESULT_SUCCESS,
+					resultStatus)) {
+
+				return "text-danger";
+			}
+		}
+
+		if (pending) {
+			return "text-secondary";
+		}
+
+		if (skipped) {
+			return "text-info";
+		}
+
+		return "text-success";
+	}
+
 	public boolean hasManageCommerceOrderDeliveryTermsPermission() {
 		ThemeDisplay themeDisplay =
 			_commerceOrderRequestHelper.getThemeDisplay();
@@ -731,9 +800,69 @@ public class CommerceOrderEditDisplayContext {
 			themeDisplay.getPermissionChecker(), commerceOrder, actionId);
 	}
 
+	public boolean isValidationButtonVisible() throws PortalException {
+		if (_commerceOrder == null) {
+			return false;
+		}
+
+		AccountEntry accountEntry = _commerceOrder.getAccountEntry();
+
+		if ((accountEntry == null) ||
+			!FeatureFlagManagerUtil.isEnabled(
+				accountEntry.getCompanyId(), "LPD-89850")) {
+
+			return false;
+		}
+
+		ThemeDisplay themeDisplay =
+			_commerceOrderRequestHelper.getThemeDisplay();
+
+		if (!_commerceOrderPortletResourcePermission.contains(
+				themeDisplay.getPermissionChecker(),
+				accountEntry.getAccountEntryGroupId(),
+				CommerceOrderActionKeys.
+					MANAGE_ACCOUNTS_SCOPED_COMMERCE_ORDERS)) {
+
+			return false;
+		}
+
+		Map<String, AccountEntryValidatorResult>
+			accountEntryValidatorResultsMap =
+				_getAccountEntryValidatorResultsMap(accountEntry);
+
+		return !accountEntryValidatorResultsMap.isEmpty();
+	}
+
+	private Map<String, AccountEntryValidatorResult>
+			_getAccountEntryValidatorResultsMap(AccountEntry accountEntry)
+		throws PortalException {
+
+		if (_accountEntryValidatorResultsMap != null) {
+			return _accountEntryValidatorResultsMap;
+		}
+
+		_accountEntryValidatorResultsMap =
+			_accountEntryValidatorRegistry.
+				getLastAccountEntryValidatorResultsMap(
+					accountEntry,
+					JSONUtil.put(
+						"billingAddressId", _commerceOrder.getBillingAddressId()
+					).put(
+						"commerceOrderId", _commerceOrder.getCommerceOrderId()
+					).put(
+						"shippingAddressId",
+						_commerceOrder.getShippingAddressId()
+					));
+
+		return _accountEntryValidatorResultsMap;
+	}
+
 	private static final Log _log = LogFactoryUtil.getLog(
 		CommerceOrderEditDisplayContext.class);
 
+	private final AccountEntryValidatorRegistry _accountEntryValidatorRegistry;
+	private Map<String, AccountEntryValidatorResult>
+		_accountEntryValidatorResultsMap;
 	private final CommerceChannelLocalService _commerceChannelLocalService;
 	private final CommerceNotificationQueueEntryLocalService
 		_commerceNotificationQueueEntryLocalService;

@@ -542,6 +542,24 @@ function appendXMLTaskTimers(buffer, taskTimers) {
 	}
 }
 
+function appendXMLLabels(buffer, label) {
+	const xmlLabels = XMLUtil.createObj('labels');
+
+	buffer.push(xmlLabels.open);
+
+	Object.entries(label).map(([key, value]) => {
+		const xmlLabel = XMLUtil.createObj('label', {
+			'language-id': `${key}`,
+		});
+
+		buffer.push(xmlLabel.open, value);
+
+		buffer.push(xmlLabel.close);
+	});
+
+	buffer.push(xmlLabels.close);
+}
+
 function appendXMLTransitions(buffer, transitions) {
 	if (transitions.length) {
 		const xmlTransitions = XMLUtil.createObj('transitions');
@@ -553,20 +571,7 @@ function appendXMLTransitions(buffer, transitions) {
 		transitions.forEach((item) => {
 			buffer.push(xmlTransition.open);
 
-			const xmlLabels = XMLUtil.createObj('labels');
-
-			buffer.push(xmlLabels.open);
-
-			Object.entries(item.data.label).map(([key, value]) => {
-				const xmlLabel = XMLUtil.createObj('label', {
-					'language-id': `${key}`,
-				});
-				buffer.push(xmlLabel.open, value);
-
-				buffer.push(xmlLabel.close);
-			});
-
-			buffer.push(xmlLabels.close);
+			appendXMLLabels(buffer, item.data.label);
 
 			buffer.push(createTagWithEscapedContent('name', item.data.name));
 
@@ -667,20 +672,9 @@ function serializeDefinition(xmlNamespace, metadata, nodes, transitions) {
 			buffer.push(createTagWithEscapedContent('initial', initial));
 		}
 
-		const xmlLabels = XMLUtil.createObj('labels');
-
-		buffer.push(xmlLabels.open);
-
-		Object.entries(item.data.label).map(([key, value]) => {
-			const xmlLabel = XMLUtil.createObj('label', {
-				'language-id': `${key}`,
-			});
-			buffer.push(xmlLabel.open, value);
-
-			buffer.push(xmlLabel.close);
-		});
-
-		buffer.push(xmlLabels.close);
+		if (item.type !== 'service') {
+			appendXMLLabels(buffer, item.data.label);
+		}
 
 		appendXMLTaskTimers(buffer, item.data.taskTimers);
 
@@ -688,16 +682,7 @@ function serializeDefinition(xmlNamespace, metadata, nodes, transitions) {
 			buffer.push(XMLUtil.create('script', cdata(script)));
 		}
 
-		if (xmlType === 'condition') {
-			buffer.push(
-				createTagWithEscapedContent(
-					'scriptLanguage',
-					scriptLanguage || DEFAULT_LANGUAGE
-				)
-			);
-		}
-
-		if (item.type === 'llm' || item.type === 'ai-decision') {
+		if (item.type === 'ai-decision' || item.type === 'llm') {
 			buffer.push(
 				XMLUtil.create(
 					'input-variables',
@@ -719,11 +704,85 @@ function serializeDefinition(xmlNamespace, metadata, nodes, transitions) {
 			);
 		}
 
+		if (item.type === 'ai-hub-agent') {
+			buffer.push(
+				createTagWithEscapedContent(
+					'agent-definition-external-reference-code',
+					item.data.agentDefinitionExternalReferenceCode || ''
+				)
+			);
+
+			if (item.data.timeout) {
+				buffer.push(
+					createTagWithEscapedContent('timeout', item.data.timeout)
+				);
+			}
+		}
+
+		if (xmlType === 'condition') {
+			buffer.push(
+				createTagWithEscapedContent(
+					'scriptLanguage',
+					scriptLanguage || DEFAULT_LANGUAGE
+				)
+			);
+		}
+
+		if (item.type === 'http-request') {
+			buffer.push(
+				createTagWithEscapedContent(
+					'http-method',
+					item.data.httpMethod || 'GET'
+				)
+			);
+			buffer.push(
+				XMLUtil.create(
+					'input-variables',
+					cdata(jsonStringify(item.data.inputVariables))
+				)
+			);
+			buffer.push(
+				XMLUtil.create(
+					'output-variables',
+					cdata(jsonStringify(item.data.outputVariables))
+				)
+			);
+			buffer.push(
+				XMLUtil.create(
+					'request-body',
+					cdata(item.data.requestBody || '')
+				)
+			);
+
+			if (item.data.timeout) {
+				buffer.push(
+					createTagWithEscapedContent('timeout', item.data.timeout)
+				);
+			}
+		}
+
+		if (item.type === 'service') {
+			buffer.push(
+				createTagWithEscapedContent(
+					'java-delegate',
+					item.data.javaDelegate || ''
+				)
+			);
+
+			appendXMLLabels(buffer, item.data.label);
+		}
+
 		const nodeTransitions = transitions.filter(
 			(transition) => transition.source === name
 		);
 
 		appendXMLTransitions(buffer, nodeTransitions);
+
+		if (item.type === 'http-request') {
+			buffer.push(
+				createTagWithEscapedContent('url', item.data.url || '')
+			);
+		}
 
 		if (item.type === 'llm' || item.type === 'ai-decision') {
 			buffer.push(

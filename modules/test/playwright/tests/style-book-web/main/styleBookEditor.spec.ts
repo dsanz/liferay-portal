@@ -17,6 +17,7 @@ import {productMenuPageTest} from '../../../fixtures/productMenuPageTest';
 import {styleBookPageTest} from '../../../fixtures/styleBookPageTest';
 import {PageEditorPage} from '../../../pages/layout-content-page-editor-web/PageEditorPage';
 import {StyleBooksPage} from '../../../pages/style-book-web/StyleBooksPage';
+import {checkAccessibility} from '../../../utils/checkAccessibility';
 import getRandomString from '../../../utils/getRandomString';
 import {
 	disableSystemFeatureFlag,
@@ -341,6 +342,25 @@ test(
 	}
 );
 
+test(
+	'Style book editor page preview iframe has an accessible title',
+	{tag: '@LPD-102257'},
+	async ({page, site, styleBooksPage}) => {
+		await test.step('Open the Style Book editor', async () => {
+			await styleBooksPage.goto(site.friendlyUrlPath);
+
+			await styleBooksPage.create(getRandomString());
+		});
+
+		await test.step('Assert the preview iframe has an accessible title', async () => {
+			await checkAccessibility({
+				page,
+				selectors: ['iframe.style-book-editor__page-preview-frame'],
+			});
+		});
+	}
+);
+
 test.describe('Cannot preview style book', () => {
 	async function addHeadingAndPublishChanges(pageEditorPage: PageEditorPage) {
 		await test.step('Add a default heading component and publish the changes', async () => {
@@ -559,13 +579,13 @@ const themeScopedTest = mergeTests(
 themeScopedTest(
 	'Fragment collection preview applies the theme in which the style book is based on',
 	async ({page, site, styleBooksPage}) => {
-		await test.step('Create a style book based on the Dialect theme', async () => {
+		await test.step('Create a style book based on the CMS theme', async () => {
 			await styleBooksPage.goto(site.friendlyUrlPath);
 
-			await styleBooksPage.create('New style book', 'Dialect Theme');
+			await styleBooksPage.create('New style book', 'CMS Theme');
 		});
 
-		await test.step("Assert that the tokens applied to the preview page of the 'Basic Components' fragment collection are from the dialect theme", async () => {
+		await test.step("Assert that the preview page of the 'Basic Components' fragment collection uses the CMS theme", async () => {
 			await styleBooksPage.previewFragmentCollection('Basic Components');
 
 			const previewIframe = page.frameLocator(
@@ -580,10 +600,11 @@ themeScopedTest(
 
 			await firstButton.waitFor();
 
-			expect(firstButton).toHaveCSS(
-				'background-color',
-				'rgb(89, 36, 235)'
-			);
+			await expect(
+				previewIframe
+					.locator('link.lfr-css-file[href*="/o/cms-theme/"]')
+					.first()
+			).toBeAttached();
 		});
 	}
 );

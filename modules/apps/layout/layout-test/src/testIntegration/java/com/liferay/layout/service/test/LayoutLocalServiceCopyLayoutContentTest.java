@@ -35,9 +35,13 @@ import com.liferay.layout.model.LayoutClassedModelUsage;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.model.LayoutPageTemplateStructure;
+import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRel;
+import com.liferay.layout.page.template.model.LayoutPageTemplateStructureRelElementVariation;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
+import com.liferay.layout.page.template.service.LayoutPageTemplateStructureRelElementVariationAudienceEntryRelLocalService;
+import com.liferay.layout.page.template.service.LayoutPageTemplateStructureRelElementVariationLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureRelLocalService;
 import com.liferay.layout.provider.LayoutStructureProvider;
 import com.liferay.layout.seo.model.LayoutSEOEntry;
@@ -816,6 +820,47 @@ public class LayoutLocalServiceCopyLayoutContentTest {
 	}
 
 	@Test
+	@TestInfo("LPD-97443")
+	public void testCopyLayoutContentToWidgetPageCreatesValidSegmentsExperience()
+		throws Exception {
+
+		Layout sourceLayout = LayoutTestUtil.addTypeContentLayout(_group);
+
+		Layout targetLayout = LayoutTestUtil.addTypePortletLayout(
+			_group.getGroupId(), StringPool.BLANK);
+
+		Assert.assertNull(
+			_layoutPageTemplateStructureLocalService.
+				fetchLayoutPageTemplateStructure(
+					targetLayout.getGroupId(), targetLayout.getPlid()));
+
+		_layoutLocalService.copyLayoutContent(sourceLayout, targetLayout);
+
+		LayoutPageTemplateStructure layoutPageTemplateStructure =
+			_layoutPageTemplateStructureLocalService.
+				fetchLayoutPageTemplateStructure(
+					targetLayout.getGroupId(), targetLayout.getPlid());
+
+		List<LayoutPageTemplateStructureRel> layoutPageTemplateStructureRels =
+			_layoutPageTemplateStructureRelLocalService.
+				getLayoutPageTemplateStructureRels(
+					layoutPageTemplateStructure.
+						getLayoutPageTemplateStructureId());
+
+		Assert.assertEquals(
+			layoutPageTemplateStructureRels.toString(), 1,
+			layoutPageTemplateStructureRels.size());
+
+		LayoutPageTemplateStructureRel layoutPageTemplateStructureRel =
+			layoutPageTemplateStructureRels.get(0);
+
+		Assert.assertEquals(
+			_segmentsExperienceLocalService.fetchDefaultSegmentsExperienceId(
+				targetLayout.getPlid()),
+			layoutPageTemplateStructureRel.getSegmentsExperienceId());
+	}
+
+	@Test
 	public void testCopyLayoutContentUpdateAndPublishDraftWithinPublication()
 		throws Exception {
 
@@ -1055,6 +1100,149 @@ public class LayoutLocalServiceCopyLayoutContentTest {
 			sourceLayout.getThemeId(), targetLayout.getThemeId());
 
 		Assert.assertEquals(sourceLayout.getCss(), targetLayout.getCss());
+	}
+
+	@Test
+	public void testCopyLayoutPageTemplateStructureRelElementVariations()
+		throws Exception {
+
+		Layout targetLayout = LayoutTestUtil.addTypeContentLayout(_group);
+
+		Layout sourceLayout = targetLayout.fetchDraftLayout();
+
+		LayoutPageTemplateStructure layoutPageTemplateStructure =
+			_layoutPageTemplateStructureLocalService.
+				fetchLayoutPageTemplateStructure(
+					_group.getGroupId(), sourceLayout.getPlid());
+
+		SegmentsExperience sourceSegmentsExperience =
+			SegmentsTestUtil.addSegmentsExperience(
+				_group.getGroupId(), sourceLayout.getPlid());
+
+		_layoutPageTemplateStructureRelLocalService.
+			addLayoutPageTemplateStructureRel(
+				TestPropsValues.getUserId(), _group.getGroupId(),
+				layoutPageTemplateStructure.getLayoutPageTemplateStructureId(),
+				sourceSegmentsExperience.getSegmentsExperienceId(),
+				layoutPageTemplateStructure.getDefaultSegmentsExperienceData(),
+				ServiceContextTestUtil.getServiceContext(
+					_group.getGroupId(), TestPropsValues.getUserId()));
+
+		LayoutPageTemplateStructureRelElementVariation
+			sourceLayoutPageTemplateStructureRelElementVariation =
+				_addLayoutPageTemplateStructureRelElementVariation(
+					sourceLayout,
+					sourceSegmentsExperience.getExternalReferenceCode());
+
+		_layoutLocalService.copyLayoutContent(sourceLayout, targetLayout);
+
+		List<LayoutPageTemplateStructureRelElementVariation>
+			targetLayoutPageTemplateStructureRelElementVariations =
+				_layoutPageTemplateStructureRelElementVariationLocalService.
+					getLayoutPageTemplateStructureRelElementVariations(
+						targetLayout.getPlid());
+
+		Assert.assertEquals(
+			targetLayoutPageTemplateStructureRelElementVariations.toString(), 1,
+			targetLayoutPageTemplateStructureRelElementVariations.size());
+
+		LayoutPageTemplateStructureRelElementVariation
+			targetLayoutPageTemplateStructureRelElementVariation =
+				targetLayoutPageTemplateStructureRelElementVariations.get(0);
+
+		Assert.assertEquals(
+			sourceLayoutPageTemplateStructureRelElementVariation.
+				getAudienceEntryERCs(),
+			targetLayoutPageTemplateStructureRelElementVariation.
+				getAudienceEntryERCs());
+		Assert.assertNotEquals(
+			sourceLayoutPageTemplateStructureRelElementVariation.
+				getExternalReferenceCode(),
+			targetLayoutPageTemplateStructureRelElementVariation.
+				getExternalReferenceCode());
+		Assert.assertEquals(
+			sourceLayoutPageTemplateStructureRelElementVariation.getName(),
+			targetLayoutPageTemplateStructureRelElementVariation.getName());
+
+		SegmentsExperience targetSegmentsExperience =
+			_segmentsExperienceLocalService.fetchSegmentsExperience(
+				targetLayout.getGroupId(),
+				sourceSegmentsExperience.getSegmentsExperienceKey(),
+				targetLayout.getPlid());
+
+		Assert.assertNotNull(targetSegmentsExperience);
+		Assert.assertEquals(
+			targetSegmentsExperience.getExternalReferenceCode(),
+			targetLayoutPageTemplateStructureRelElementVariation.
+				getSegmentsExperienceERC());
+
+		Assert.assertNotEquals(
+			sourceSegmentsExperience.getExternalReferenceCode(),
+			targetLayoutPageTemplateStructureRelElementVariation.
+				getSegmentsExperienceERC());
+		Assert.assertEquals(
+			sourceLayoutPageTemplateStructureRelElementVariation.
+				getTargetElement(),
+			targetLayoutPageTemplateStructureRelElementVariation.
+				getTargetElement());
+	}
+
+	@Test
+	public void testCopyLayoutPageTemplateStructureRelElementVariationsWithDeletedAudiencesEntry()
+		throws Exception {
+
+		Layout targetLayout = LayoutTestUtil.addTypeContentLayout(_group);
+
+		Layout sourceLayout = targetLayout.fetchDraftLayout();
+
+		LayoutPageTemplateStructure layoutPageTemplateStructure =
+			_layoutPageTemplateStructureLocalService.
+				fetchLayoutPageTemplateStructure(
+					_group.getGroupId(), sourceLayout.getPlid());
+
+		SegmentsExperience sourceSegmentsExperience =
+			SegmentsTestUtil.addSegmentsExperience(
+				_group.getGroupId(), sourceLayout.getPlid());
+
+		_layoutPageTemplateStructureRelLocalService.
+			addLayoutPageTemplateStructureRel(
+				TestPropsValues.getUserId(), _group.getGroupId(),
+				layoutPageTemplateStructure.getLayoutPageTemplateStructureId(),
+				sourceSegmentsExperience.getSegmentsExperienceId(),
+				layoutPageTemplateStructure.getDefaultSegmentsExperienceData(),
+				ServiceContextTestUtil.getServiceContext(
+					_group.getGroupId(), TestPropsValues.getUserId()));
+
+		String audienceEntryERC = RandomTestUtil.randomString();
+
+		_layoutPageTemplateStructureRelElementVariationLocalService.
+			addOrUpdateLayoutPageTemplateStructureRelElementVariation(
+				RandomTestUtil.randomString(), TestPropsValues.getUserId(),
+				sourceLayout.getGroupId(), RandomTestUtil.randomBoolean(),
+				RandomTestUtil.randomString(),
+				Collections.<Locale, String>emptyMap(),
+				Collections.<Locale, String>emptyMap(),
+				RandomTestUtil.randomString(), sourceLayout.getPlid(),
+				sourceSegmentsExperience.getExternalReferenceCode(),
+				RandomTestUtil.randomString(), new String[] {audienceEntryERC},
+				ServiceContextTestUtil.getServiceContext(
+					sourceLayout.getGroupId(), TestPropsValues.getUserId()));
+
+		_layoutPageTemplateStructureRelElementVariationAudienceEntryRelLocalService.
+			deleteLayoutPageTemplateStructureRelElementVariationAudienceEntryRelsByAudienceEntryERC(
+				_group.getCompanyId(), audienceEntryERC);
+
+		_layoutLocalService.copyLayoutContent(sourceLayout, targetLayout);
+
+		List<LayoutPageTemplateStructureRelElementVariation>
+			targetLayoutPageTemplateStructureRelElementVariations =
+				_layoutPageTemplateStructureRelElementVariationLocalService.
+					getLayoutPageTemplateStructureRelElementVariations(
+						targetLayout.getPlid());
+
+		Assert.assertEquals(
+			targetLayoutPageTemplateStructureRelElementVariations.toString(), 0,
+			targetLayoutPageTemplateStructureRelElementVariations.size());
 	}
 
 	@Test
@@ -1553,6 +1741,25 @@ public class LayoutLocalServiceCopyLayoutContentTest {
 		return _layoutLocalService.getLayout(layout.getPlid());
 	}
 
+	private LayoutPageTemplateStructureRelElementVariation
+			_addLayoutPageTemplateStructureRelElementVariation(
+				Layout layout, String segmentsExperienceERC)
+		throws Exception {
+
+		return _layoutPageTemplateStructureRelElementVariationLocalService.
+			addOrUpdateLayoutPageTemplateStructureRelElementVariation(
+				RandomTestUtil.randomString(), TestPropsValues.getUserId(),
+				layout.getGroupId(), RandomTestUtil.randomBoolean(),
+				RandomTestUtil.randomString(),
+				Collections.<Locale, String>emptyMap(),
+				Collections.<Locale, String>emptyMap(),
+				RandomTestUtil.randomString(), layout.getPlid(),
+				segmentsExperienceERC, RandomTestUtil.randomString(),
+				new String[] {RandomTestUtil.randomString()},
+				ServiceContextTestUtil.getServiceContext(
+					layout.getGroupId(), TestPropsValues.getUserId()));
+	}
+
 	private void _addPortletPreferenceValue(
 			String name, Layout layout, String portletId, String value)
 		throws Exception {
@@ -1849,6 +2056,15 @@ public class LayoutLocalServiceCopyLayoutContentTest {
 	@Inject
 	private LayoutPageTemplateStructureLocalService
 		_layoutPageTemplateStructureLocalService;
+
+	@Inject
+	private
+		LayoutPageTemplateStructureRelElementVariationAudienceEntryRelLocalService
+			_layoutPageTemplateStructureRelElementVariationAudienceEntryRelLocalService;
+
+	@Inject
+	private LayoutPageTemplateStructureRelElementVariationLocalService
+		_layoutPageTemplateStructureRelElementVariationLocalService;
 
 	@Inject
 	private LayoutPageTemplateStructureRelLocalService

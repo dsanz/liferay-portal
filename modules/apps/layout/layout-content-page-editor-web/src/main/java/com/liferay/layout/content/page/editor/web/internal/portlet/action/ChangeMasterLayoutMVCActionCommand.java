@@ -5,7 +5,6 @@
 
 package com.liferay.layout.content.page.editor.web.internal.portlet.action;
 
-import com.liferay.exportimport.kernel.staging.Staging;
 import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.frontend.token.definition.FrontendTokenDefinition;
@@ -28,6 +27,7 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.permission.LayoutPermissionUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.UnicodeProperties;
@@ -35,7 +35,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.kernel.util.WebKeys;
 import com.liferay.segments.constants.SegmentsExperienceConstants;
 import com.liferay.style.book.model.StyleBookEntry;
-import com.liferay.style.book.service.StyleBookEntryLocalService;
 import com.liferay.style.book.util.DefaultStyleBookEntryUtil;
 import com.liferay.style.book.util.StyleBookUtil;
 
@@ -99,6 +98,9 @@ public class ChangeMasterLayoutMVCActionCommand
 			return JSONUtil.put(
 				"styleBookEntryERC", _getStyleBookEntryERC(updatedLayout)
 			).put(
+				"styleBookEntryScopeERC",
+				GetterUtil.getString(updatedLayout.getStyleBookEntryScopeERC())
+			).put(
 				"styleBooks",
 				_getStyleBooksJSONArray(updatedLayout, themeDisplay)
 			);
@@ -145,6 +147,9 @@ public class ChangeMasterLayoutMVCActionCommand
 			"masterLayoutData", layoutStructure.toJSONObject()
 		).put(
 			"styleBookEntryERC", _getStyleBookEntryERC(updatedLayout)
+		).put(
+			"styleBookEntryScopeERC",
+			GetterUtil.getString(updatedLayout.getStyleBookEntryScopeERC())
 		).put(
 			"styleBooks", _getStyleBooksJSONArray(updatedLayout, themeDisplay)
 		);
@@ -217,31 +222,12 @@ public class ChangeMasterLayoutMVCActionCommand
 					defaultStyleBookEntry)
 			));
 
-		List<StyleBookEntry> styleBookEntries =
-			_styleBookEntryLocalService.getStyleBookEntries(
-				_staging.getLiveGroupId(layout.getGroupId()),
-				frontendTokenDefinition.getThemeId());
-
-		for (StyleBookEntry styleBookEntry : styleBookEntries) {
-			styleBooksJSONArray.put(
-				JSONUtil.put(
-					"imagePreviewURL",
-					styleBookEntry.getImagePreviewURL(themeDisplay)
-				).put(
-					"name", styleBookEntry.getName()
-				).put(
-					"styleBookEntryERC",
-					styleBookEntry.getExternalReferenceCode()
-				).put(
-					"tokenValues",
-					StyleBookEntryUtil.getFrontendTokensValues(
-						_frontendTokenDefinitionRegistry.
-							getFrontendTokenDefinition(layout),
-						themeDisplay.getLocale(), styleBookEntry)
-				));
-		}
-
-		return styleBooksJSONArray;
+		return JSONUtil.concat(
+			styleBooksJSONArray,
+			JSONUtil.toJSONArray(
+				StyleBookEntryUtil.getStyleBookEntryMaps(
+					frontendTokenDefinition, true, layout, themeDisplay),
+				map -> _jsonFactory.createJSONObject(map)));
 	}
 
 	@Reference
@@ -265,11 +251,5 @@ public class ChangeMasterLayoutMVCActionCommand
 
 	@Reference
 	private Portal _portal;
-
-	@Reference
-	private Staging _staging;
-
-	@Reference
-	private StyleBookEntryLocalService _styleBookEntryLocalService;
 
 }

@@ -13,10 +13,17 @@ import com.liferay.portal.kernel.exception.PwdEncryptorException;
 import com.liferay.portal.kernel.module.util.SystemBundleUtil;
 import com.liferay.portal.kernel.security.pwd.PasswordEncryptor;
 import com.liferay.portal.kernel.security.pwd.PasswordEncryptorUtil;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.test.util.FIPSAlgorithmTestUtil;
 import com.liferay.portal.kernel.test.util.PropsValuesTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.util.DigesterUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
+
+import java.lang.reflect.Constructor;
+
+import java.security.MessageDigest;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -98,6 +105,22 @@ public class PasswordEncryptorUtilTest {
 	}
 
 	@Test
+	public void testEncryptBCryptWithFIPSMode() throws Exception {
+		String encryptedPassword = PasswordEncryptorUtil.encrypt(
+			PasswordEncryptor.TYPE_BCRYPT, RandomTestUtil.randomString(), null);
+
+		try (SafeCloseable safeCloseable =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"FIPS_ENABLED", true)) {
+
+			Assert.assertThrows(
+				PwdEncryptorException.UnavailableAlgorithm.class,
+				() -> PasswordEncryptorUtil.encrypt(
+					RandomTestUtil.randomString(), encryptedPassword));
+		}
+	}
+
+	@Test
 	public void testEncryptCRYPT() throws Exception {
 		_runTests(
 			PasswordEncryptor.TYPE_UFC_CRYPT, "password", "SNbUMVY9kKQpY",
@@ -107,28 +130,19 @@ public class PasswordEncryptorUtilTest {
 	@Test
 	public void testEncryptFailure() throws Exception {
 		_testEncryptFailure(
-			"Some Nonexistent Algorithm", StringPool.BLANK, StringPool.BLANK);
-
-		_testEncryptFailure(null, null, null);
-
-		_testEncryptFailure(null, null, StringPool.BLANK);
-
-		_testEncryptFailure(null, StringPool.BLANK, null);
-
-		_testEncryptFailure(StringPool.BLANK, null, null);
-
-		_testEncryptFailure(StringPool.BLANK, null, StringPool.BLANK);
-
-		_testEncryptFailure(StringPool.BLANK, StringPool.BLANK, null);
-
-		_testEncryptFailure(null, StringPool.BLANK, StringPool.BLANK);
-
-		_testEncryptFailure(
-			StringPool.BLANK, StringPool.BLANK, StringPool.BLANK);
-
-		_testEncryptFailure(
 			PasswordEncryptor.TYPE_SHA, "password",
 			"W6ph5Mm5Pz8GgiULbPgzG37mj9g=");
+		_testEncryptFailure(
+			RandomTestUtil.randomString(), StringPool.BLANK, StringPool.BLANK);
+		_testEncryptFailure(
+			StringPool.BLANK, StringPool.BLANK, StringPool.BLANK);
+		_testEncryptFailure(StringPool.BLANK, StringPool.BLANK, null);
+		_testEncryptFailure(StringPool.BLANK, null, StringPool.BLANK);
+		_testEncryptFailure(StringPool.BLANK, null, null);
+		_testEncryptFailure(null, StringPool.BLANK, StringPool.BLANK);
+		_testEncryptFailure(null, StringPool.BLANK, null);
+		_testEncryptFailure(null, null, StringPool.BLANK);
+		_testEncryptFailure(null, null, null);
 	}
 
 	@Test
@@ -217,6 +231,14 @@ public class PasswordEncryptorUtilTest {
 	}
 
 	@Test
+	public void testEncryptPBKDF2WithHmacSHA3256() throws Exception {
+		_runTests(
+			PasswordEncryptor.TYPE_PBKDF2 + "WithHmacSHA3-256", "password",
+			"AAAAoAAT1iCgULNySMUK0wAAAAAAAAAAia+80Zp66bXQTJhPBXWCYtcezSo=",
+			PasswordEncryptor.TYPE_PBKDF2 + "WithHmacSHA3-256");
+	}
+
+	@Test
 	public void testEncryptSHA() throws Exception {
 		_runTests(
 			PasswordEncryptor.TYPE_SHA, "password",
@@ -250,6 +272,22 @@ public class PasswordEncryptorUtilTest {
 			PasswordEncryptor.TYPE_SSHA, "password",
 			"2EWEKeVpSdd79PkTX5vaGXH5uQ028Smy/H1NmA==",
 			PasswordEncryptor.TYPE_SSHA);
+
+		try (SafeCloseable safeCloseable =
+				PropsValuesTestUtil.swapWithSafeCloseable(
+					"FIPS_ENABLED", true)) {
+
+			_runTests(
+				PasswordEncryptor.TYPE_SSHA, "password",
+				"q0elUchHiEgZAZww57UMs6Jt+L45+785Q8YcVUf8VfcAAQIDBAUGBw==",
+				PasswordEncryptor.TYPE_SSHA);
+		}
+
+		FIPSAlgorithmTestUtil.assertAlgorithmSwitch(
+			DigesterUtil.SHA_1, MessageDigest.class, DigesterUtil.SHA_256,
+			MessageDigest::getInstance,
+			() -> PasswordEncryptorUtil.encrypt(
+				PasswordEncryptor.TYPE_SSHA, "password", null));
 	}
 
 	@Test
@@ -259,10 +297,60 @@ public class PasswordEncryptorUtilTest {
 			PasswordEncryptor.TYPE_UFC_CRYPT);
 	}
 
+	@Test
+	public void testEncryptUnavailableAlgorithm() throws Exception {
+		DefaultPasswordEncryptor defaultPasswordEncryptor =
+			new DefaultPasswordEncryptor();
+
+		Assert.assertThrows(
+			PwdEncryptorException.UnavailableAlgorithm.class,
+			() -> defaultPasswordEncryptor.encrypt(
+				RandomTestUtil.randomString(), RandomTestUtil.randomString(),
+				null, false));
+	}
+
 	@Test(expected = PwdEncryptorException.MustSetLegacyAlgorithmProperty.class)
 	public void testEncryptWithLegacyAlgorithm() throws Exception {
 		_testEncryptWithLegacyAlgorithm(
 			null, RandomTestUtil.randomString(), RandomTestUtil.randomString());
+	}
+
+	@Test
+	public void testGetMacAlgorithm() throws Exception {
+		Assert.assertEquals("HmacSHA1", _getMacAlgorithm("PBKDF2WithHmacSHA1"));
+		Assert.assertEquals(
+			"HmacSHA256", _getMacAlgorithm("PBKDF2WithHmacSHA-256"));
+		Assert.assertEquals(
+			"HmacSHA256", _getMacAlgorithm("PBKDF2WithHmacSHA256"));
+		Assert.assertEquals(
+			"HmacSHA256", _getMacAlgorithm("PBKDF2WithHmacSHA256/128/1300000"));
+		Assert.assertEquals(
+			"HmacSHA3-256", _getMacAlgorithm("PBKDF2WithHmacSHA3-256"));
+		Assert.assertEquals(
+			"HmacSHA3-512", _getMacAlgorithm("PBKDF2WithHmacSHA3-512"));
+		Assert.assertEquals(
+			"HmacSHA384", _getMacAlgorithm("PBKDF2WithHmacSHA-384"));
+		Assert.assertEquals(
+			"HmacSHA512", _getMacAlgorithm("PBKDF2WithHmacSHA-512"));
+	}
+
+	private String _getMacAlgorithm(String algorithm) throws Exception {
+		Class<?> clazz = Class.forName(
+			PBKDF2PasswordEncryptor.class.getName() +
+				"$PBKDF2EncryptionConfiguration");
+
+		Constructor<?> constructor = clazz.getDeclaredConstructor();
+
+		constructor.setAccessible(true);
+
+		Object pbkdf2EncryptionConfiguration = constructor.newInstance();
+
+		ReflectionTestUtil.invoke(
+			pbkdf2EncryptionConfiguration, "configure",
+			new Class<?>[] {String.class, String.class}, algorithm, null);
+
+		return ReflectionTestUtil.invoke(
+			pbkdf2EncryptionConfiguration, "getMacAlgorithm", new Class<?>[0]);
 	}
 
 	private void _runTests(
@@ -300,11 +388,11 @@ public class PasswordEncryptorUtilTest {
 	}
 
 	private void _testEncryptFailure(
-		String algorithm, String plainTextPassword, String encryptedPassword) {
+		String algorithm, String plaintextPassword, String encryptedPassword) {
 
 		try {
 			PasswordEncryptorUtil.encrypt(
-				algorithm, plainTextPassword, encryptedPassword);
+				algorithm, plaintextPassword, encryptedPassword);
 
 			Assert.fail();
 		}
@@ -335,15 +423,15 @@ public class PasswordEncryptorUtilTest {
 
 		@Override
 		public String encrypt(
-			String algorithm, String plainTextPassword,
+			String algorithm, String plaintextPassword,
 			String encryptedPassword, boolean upgradeHashSecurity) {
 
 			if (encryptedPassword != null) {
-				return plainTextPassword +
+				return plaintextPassword +
 					encryptedPassword.substring(encryptedPassword.indexOf(':'));
 			}
 
-			return plainTextPassword + ':' +
+			return plaintextPassword + ':' +
 				algorithm.substring(algorithm.indexOf('/') + 1);
 		}
 

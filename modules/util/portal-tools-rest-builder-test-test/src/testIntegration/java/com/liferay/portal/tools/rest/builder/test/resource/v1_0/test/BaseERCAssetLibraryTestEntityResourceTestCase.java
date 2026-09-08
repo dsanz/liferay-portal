@@ -32,6 +32,7 @@ import com.liferay.portal.kernel.model.RoleConstants;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -100,6 +101,8 @@ public abstract class BaseERCAssetLibraryTestEntityResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -565,17 +568,9 @@ public abstract class BaseERCAssetLibraryTestEntityResourceTestCase {
 		String assetLibraryExternalReferenceCode =
 			testGetAssetLibraryERCAssetLibraryTestEntitiesPage_getAssetLibraryExternalReferenceCode();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"assetLibraryERCAssetLibraryTestEntities",
-			new HashMap<String, Object>() {
-				{
-					put(
-						"assetLibraryExternalReferenceCode",
-						"\"" + assetLibraryExternalReferenceCode + "\"");
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetAssetLibraryERCAssetLibraryTestEntitiesPageAssetLibraryERCAssetLibraryTestEntity_getGraphQLField(
+				assetLibraryExternalReferenceCode);
 
 		// No namespace
 
@@ -647,6 +642,24 @@ public abstract class BaseERCAssetLibraryTestEntityResourceTestCase {
 				ERCAssetLibraryTestEntitySerDes.toDTOs(
 					assetLibraryERCAssetLibraryTestEntitiesJSONObject.getString(
 						"items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetAssetLibraryERCAssetLibraryTestEntitiesPageAssetLibraryERCAssetLibraryTestEntity_getGraphQLField(
+				String assetLibraryExternalReferenceCode)
+		throws Exception {
+
+		return new GraphQLField(
+			"assetLibraryERCAssetLibraryTestEntities",
+			new HashMap<String, Object>() {
+				{
+					put(
+						"assetLibraryExternalReferenceCode",
+						"\"" + assetLibraryExternalReferenceCode + "\"");
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -2295,4 +2308,4 @@ public abstract class BaseERCAssetLibraryTestEntityResourceTestCase {
 		ERCAssetLibraryTestEntityResource _ercAssetLibraryTestEntityResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-2019162337
+// LIFERAY-REST-BUILDER-HASH:2032910613

@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.dao.orm.FinderCacheUtil;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -1761,7 +1759,8 @@ public class AssetEntryPersistenceImpl
 					new String[] {Long.class.getName()},
 					new String[] {"groupId"}, false),
 				_SQL_SELECT_ASSETENTRY_WHERE, _SQL_COUNT_ASSETENTRY_WHERE,
-				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"assetEntry.", "groupId", FinderColumn.Type.LONG, "=", true,
 					true, AssetEntry::getGroupId));
@@ -1786,7 +1785,8 @@ public class AssetEntryPersistenceImpl
 					"countByCompanyId", new String[] {Long.class.getName()},
 					new String[] {"companyId"}, false),
 				_SQL_SELECT_ASSETENTRY_WHERE, _SQL_COUNT_ASSETENTRY_WHERE,
-				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"assetEntry.", "companyId", FinderColumn.Type.LONG, "=",
 					true, true, AssetEntry::getCompanyId));
@@ -1811,7 +1811,8 @@ public class AssetEntryPersistenceImpl
 					"countByClassUuid", new String[] {String.class.getName()},
 					new String[] {"classUuid"}, 0, 1, false, null),
 				_SQL_SELECT_ASSETENTRY_WHERE, _SQL_COUNT_ASSETENTRY_WHERE,
-				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"assetEntry.", "classUuid", FinderColumn.Type.STRING, "=",
 					true, true, AssetEntry::getClassUuid));
@@ -1836,7 +1837,8 @@ public class AssetEntryPersistenceImpl
 					new String[] {Boolean.class.getName()},
 					new String[] {"visible"}, false),
 				_SQL_SELECT_ASSETENTRY_WHERE, _SQL_COUNT_ASSETENTRY_WHERE,
-				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"assetEntry.", "visible", FinderColumn.Type.BOOLEAN, "=",
 					true, true, AssetEntry::isVisible));
@@ -1861,7 +1863,8 @@ public class AssetEntryPersistenceImpl
 					"countByPublishDate", new String[] {Date.class.getName()},
 					new String[] {"publishDate"}, false),
 				_SQL_SELECT_ASSETENTRY_WHERE, _SQL_COUNT_ASSETENTRY_WHERE,
-				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"assetEntry.", "publishDate", FinderColumn.Type.DATE, "=",
 					true, true, AssetEntry::getPublishDate));
@@ -1888,7 +1891,8 @@ public class AssetEntryPersistenceImpl
 					new String[] {Date.class.getName()},
 					new String[] {"expirationDate"}, false),
 				_SQL_SELECT_ASSETENTRY_WHERE, _SQL_COUNT_ASSETENTRY_WHERE,
-				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"assetEntry.", "expirationDate", FinderColumn.Type.DATE,
 					"=", true, true, AssetEntry::getExpirationDate));
@@ -1913,7 +1917,8 @@ public class AssetEntryPersistenceImpl
 					"countByLayoutUuid", new String[] {String.class.getName()},
 					new String[] {"layoutUuid"}, 0, 1, false, null),
 				_SQL_SELECT_ASSETENTRY_WHERE, _SQL_COUNT_ASSETENTRY_WHERE,
-				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"assetEntry.", "layoutUuid", FinderColumn.Type.STRING, "=",
 					true, true, AssetEntry::getLayoutUuid));
@@ -1953,7 +1958,8 @@ public class AssetEntryPersistenceImpl
 				new String[] {Long.class.getName(), Long.class.getName()},
 				new String[] {"companyId", "classNameId"}, false),
 			_SQL_SELECT_ASSETENTRY_WHERE, _SQL_COUNT_ASSETENTRY_WHERE,
-			AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"assetEntry.", "companyId", FinderColumn.Type.LONG, "=", true,
 				true, AssetEntry::getCompanyId),
@@ -2001,7 +2007,8 @@ public class AssetEntryPersistenceImpl
 				},
 				new String[] {"groupId", "classNameId", "visible"}, false),
 			_SQL_SELECT_ASSETENTRY_WHERE, _SQL_COUNT_ASSETENTRY_WHERE,
-			AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"assetEntry.", "groupId", FinderColumn.Type.LONG, "=", true,
 				true, AssetEntry::getGroupId),
@@ -2051,7 +2058,8 @@ public class AssetEntryPersistenceImpl
 					},
 					false),
 				_SQL_SELECT_ASSETENTRY_WHERE, _SQL_COUNT_ASSETENTRY_WHERE,
-				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				AssetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"assetEntry.", "groupId", FinderColumn.Type.LONG, "=", true,
 					true, AssetEntry::getGroupId),
@@ -2094,16 +2102,10 @@ public class AssetEntryPersistenceImpl
 	private static final String _SQL_COUNT_ASSETENTRY_WHERE =
 		"SELECT COUNT(assetEntry) FROM AssetEntry assetEntry WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No AssetEntry exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		AssetEntryPersistenceImpl.class);
-
 	@Override
 	protected FinderCache getFinderCache() {
 		return FinderCacheUtil.getFinderCache();
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1350121234
+// LIFERAY-SERVICE-BUILDER-HASH:-325774449

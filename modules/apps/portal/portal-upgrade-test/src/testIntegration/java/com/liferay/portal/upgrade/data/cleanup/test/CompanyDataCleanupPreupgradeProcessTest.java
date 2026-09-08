@@ -11,20 +11,15 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.cache.MultiVMPool;
 import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.instance.PortalInstancePool;
 import com.liferay.portal.kernel.instance.lifecycle.PortalInstanceLifecycleManager;
-import com.liferay.portal.kernel.model.ClassName;
 import com.liferay.portal.kernel.model.Company;
-import com.liferay.portal.kernel.model.ResourceAction;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
-import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
-import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DataGuard;
+import com.liferay.portal.kernel.test.util.DataCleanupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LoggerTestUtil;
@@ -67,38 +62,24 @@ public class CompanyDataCleanupPreupgradeProcessTest
 
 	@Before
 	public void setUp() throws Exception {
-		_classNames = _classNameLocalService.getClassNames(
-			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+		_classNamesSavepointSafeCloseable =
+			DataCleanupTestUtil.getClassNamesSavepointSafeCloseable();
 
 		_connection = DataAccess.getConnection();
 
 		_dbInspector = new DBInspector(_connection);
 
-		_resourceActions = _resourceActionLocalService.getResourceActions(
-			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+		_resourceActionsSavepointSafeCloseable =
+			DataCleanupTestUtil.getResourceActionsSavepointSafeCloseable();
 	}
 
 	@After
 	public void tearDown() throws Exception {
+		_classNamesSavepointSafeCloseable.close();
+
 		DataAccess.cleanUp(_connection);
 
-		List<ClassName> classNames = ListUtil.remove(
-			_classNameLocalService.getClassNames(
-				QueryUtil.ALL_POS, QueryUtil.ALL_POS),
-			_classNames);
-
-		for (ClassName className : classNames) {
-			_classNameLocalService.deleteClassName(className);
-		}
-
-		List<ResourceAction> resourceActions = ListUtil.remove(
-			_resourceActionLocalService.getResourceActions(
-				QueryUtil.ALL_POS, QueryUtil.ALL_POS),
-			_resourceActions);
-
-		for (ResourceAction resourceAction : resourceActions) {
-			_resourceActionLocalService.deleteResourceAction(resourceAction);
-		}
+		_resourceActionsSavepointSafeCloseable.close();
 	}
 
 	@Test
@@ -248,10 +229,7 @@ public class CompanyDataCleanupPreupgradeProcessTest
 		}
 	}
 
-	@Inject
-	private ClassNameLocalService _classNameLocalService;
-
-	private List<ClassName> _classNames;
+	private SafeCloseable _classNamesSavepointSafeCloseable;
 
 	@Inject
 	private CompanyLocalService _companyLocalService;
@@ -262,9 +240,6 @@ public class CompanyDataCleanupPreupgradeProcessTest
 	@Inject
 	private MultiVMPool _multiVMPool;
 
-	@Inject
-	private ResourceActionLocalService _resourceActionLocalService;
-
-	private List<ResourceAction> _resourceActions;
+	private SafeCloseable _resourceActionsSavepointSafeCloseable;
 
 }

@@ -16,6 +16,7 @@ import com.liferay.commerce.product.service.CPDefinitionSpecificationOptionValue
 import com.liferay.commerce.product.service.CPSpecificationOptionListTypeDefinitionRelLocalService;
 import com.liferay.commerce.product.service.base.CPSpecificationOptionLocalServiceBaseImpl;
 import com.liferay.expando.kernel.service.ExpandoRowLocalService;
+import com.liferay.exportimport.kernel.empty.model.EmptyModelManager;
 import com.liferay.petra.string.CharPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.dao.orm.IndexableActionableDynamicQuery;
@@ -43,7 +44,7 @@ import com.liferay.portal.kernel.service.ResourceLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
-import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
+import com.liferay.portal.kernel.transaction.TransactionCallbackUtil;
 import com.liferay.portal.kernel.util.FriendlyURLNormalizer;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -52,10 +53,12 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -108,6 +111,14 @@ public class CPSpecificationOptionLocalServiceImpl
 		cpSpecificationOption.setKey(key);
 		cpSpecificationOption.setPriority(priority);
 		cpSpecificationOption.setVisible(visible);
+
+		if (_emptyModelManager.isEmptyModel()) {
+			cpSpecificationOption.setStatus(WorkflowConstants.STATUS_EMPTY);
+		}
+		else {
+			cpSpecificationOption.setStatus(WorkflowConstants.STATUS_APPROVED);
+		}
+
 		cpSpecificationOption.setExpandoBridgeAttributes(serviceContext);
 
 		cpSpecificationOption = cpSpecificationOptionPersistence.update(
@@ -216,6 +227,29 @@ public class CPSpecificationOptionLocalServiceImpl
 	}
 
 	@Override
+	public CPSpecificationOption getOrAddEmptyCPSpecificationOption(
+			String externalReferenceCode, long companyId, long userId)
+		throws PortalException {
+
+		ServiceContext serviceContext = new ServiceContext();
+
+		serviceContext.setCompanyId(companyId);
+		serviceContext.setUserId(userId);
+
+		return _emptyModelManager.getOrAddEmptyModel(
+			CPSpecificationOption.class, companyId,
+			() -> cpSpecificationOptionLocalService.addCPSpecificationOption(
+				externalReferenceCode, userId, 0, null,
+				Collections.singletonMap(
+					LocaleUtil.getSiteDefault(), externalReferenceCode),
+				null, false, externalReferenceCode, 0, false, serviceContext),
+			externalReferenceCode,
+			this::fetchCPSpecificationOptionByExternalReferenceCode,
+			this::getCPSpecificationOptionByExternalReferenceCode,
+			CPSpecificationOption.class.getName());
+	}
+
+	@Override
 	public BaseModelSearchResult<CPSpecificationOption>
 			searchCPSpecificationOptions(
 				long companyId, Boolean facetable, Boolean visible,
@@ -271,6 +305,13 @@ public class CPSpecificationOptionLocalServiceImpl
 		cpSpecificationOption.setKey(key);
 		cpSpecificationOption.setPriority(priority);
 		cpSpecificationOption.setVisible(visible);
+		cpSpecificationOption.setStatus(
+			_emptyModelManager.solveEmptyModel(
+				cpSpecificationOption.getExternalReferenceCode(),
+				cpSpecificationOption.getModelClassName(),
+				cpSpecificationOption.getCompanyId(), 0,
+				cpSpecificationOption.getStatus(),
+				() -> WorkflowConstants.STATUS_APPROVED));
 		cpSpecificationOption.setExpandoBridgeAttributes(serviceContext);
 
 		cpSpecificationOption = cpSpecificationOptionPersistence.update(
@@ -391,7 +432,7 @@ public class CPSpecificationOptionLocalServiceImpl
 	private void _reindexCPDefinitions1(
 		long companyId, long cpSpecificationOptionId) {
 
-		TransactionCommitCallbackUtil.registerCallback(
+		TransactionCallbackUtil.registerCommitCallback(
 			() -> {
 				_reindexCPDefinitions2(companyId, cpSpecificationOptionId);
 
@@ -516,6 +557,9 @@ public class CPSpecificationOptionLocalServiceImpl
 	@Reference
 	private CPSpecificationOptionListTypeDefinitionRelLocalService
 		_cpSpecificationOptionListTypeDefinitionRelLocalService;
+
+	@Reference
+	private EmptyModelManager _emptyModelManager;
 
 	@Reference
 	private ExpandoRowLocalService _expandoRowLocalService;

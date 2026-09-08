@@ -1,0 +1,28 @@
+@import '../variables';
+
+.categorization-suggestions {
+	.categorization-suggestions__labels {
+		display: flex;
+		flex-wrap: wrap;
+	}
+}
+
+.categorization-suggestions__loading-text,
+html:not(#__):not(#___) .cadmin .categorization-suggestions__loading-text {
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	background-image: $ai-loading-gradient;
+	color: transparent;
+}
+
+.categorization-suggestion-label--new.label,
+html:not(#__):not(#___) .cadmin .categorization-suggestion-label--new.label {
+	background-color: $categorization-new-label-background-color;
+	border-color: $categorization-new-label-border-color;
+	color: $categorization-new-label-color;
+
+	.lexicon-icon {
+		color: $categorization-new-label-color;
+	}
+}

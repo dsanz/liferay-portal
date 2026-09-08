@@ -1,0 +1,33 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+@import 'atlas-custom-properties/_variables';
+
+.charts-trend-indicator {
+	align-items: center;
+	display: inline-flex;
+	font-variant-numeric: tabular-nums;
+	font-weight: 600;
+	gap: 0.125rem;
+	white-space: nowrap;
+
+	&--up {
+		color: $chart-trend-positive;
+	}
+
+	&--down {
+		color: $chart-trend-negative;
+	}
+
+	&--neutral {
+		color: $chart-trend-neutral;
+	}
+
+	&__label {
+		color: $secondary;
+		font-weight: 400;
+		margin-left: 0.25rem;
+	}
+}

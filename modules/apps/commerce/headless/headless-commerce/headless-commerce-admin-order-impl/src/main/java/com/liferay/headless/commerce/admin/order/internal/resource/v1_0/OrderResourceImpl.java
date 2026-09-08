@@ -319,10 +319,7 @@ public class OrderResourceImpl extends BaseOrderResourceImpl {
 			accountEntry = _accountEntryService.getAccountEntry(
 				order.getAccountId());
 		}
-
-		if ((accountEntry == null) &&
-			Validator.isNotNull(order.getAccountExternalReferenceCode())) {
-
+		else {
 			accountEntry =
 				_accountEntryService.getAccountEntryByExternalReferenceCode(
 					order.getAccountExternalReferenceCode(),

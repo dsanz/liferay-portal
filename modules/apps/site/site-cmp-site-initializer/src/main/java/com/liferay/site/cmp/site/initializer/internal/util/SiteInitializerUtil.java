@@ -5,10 +5,18 @@
 
 package com.liferay.site.cmp.site.initializer.internal.util;
 
+import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
+import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalServiceUtil;
+import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.service.ObjectDefinitionLocalServiceUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.license.util.App;
+import com.liferay.portal.kernel.license.util.LicenseManagerUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.LayoutConstants;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.role.RoleConstants;
@@ -17,10 +25,12 @@ import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
+import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.site.initializer.SiteInitializer;
 
 import java.util.List;
@@ -40,6 +50,33 @@ public class SiteInitializerUtil {
 
 		Group group = GroupLocalServiceUtil.getGroup(
 			companyId, GroupConstants.CMS);
+
+		Layout defaultLayout = LayoutLocalServiceUtil.fetchFirstLayout(
+			group.getGroupId(), false, LayoutConstants.DEFAULT_PARENT_LAYOUT_ID,
+			false);
+
+		if (defaultLayout == null) {
+			return;
+		}
+
+		ObjectDefinition objectDefinition =
+			ObjectDefinitionLocalServiceUtil.
+				fetchObjectDefinitionByExternalReferenceCode(
+					"L_CMP_PROJECT", companyId);
+
+		if (objectDefinition != null) {
+			LayoutPageTemplateEntry layoutPageTemplateEntry =
+				LayoutPageTemplateEntryLocalServiceUtil.
+					fetchDefaultLayoutPageTemplateEntry(
+						group.getGroupId(),
+						PortalUtil.getClassNameId(
+							objectDefinition.getClassName()),
+						0);
+
+			if (layoutPageTemplateEntry != null) {
+				return;
+			}
+		}
 
 		String name = PrincipalThreadLocal.getName();
 
@@ -65,6 +102,23 @@ public class SiteInitializerUtil {
 
 			ServiceContextThreadLocal.popServiceContext();
 		}
+	}
+
+	public static void initialize(
+			SiteInitializer cmpSiteInitializer,
+			SiteInitializer cmsSiteInitializer, long companyId)
+		throws PortalException {
+
+		if (!FeatureFlagManagerUtil.isEnabled(companyId, "LPD-58677") ||
+			!LicenseManagerUtil.isAppEnabled(App.CMP)) {
+
+			return;
+		}
+
+		com.liferay.site.cms.site.initializer.util.SiteInitializerUtil.
+			initialize(companyId, cmsSiteInitializer);
+
+		initialize(companyId, cmpSiteInitializer);
 	}
 
 	private static User _getUser(long companyId) throws PortalException {

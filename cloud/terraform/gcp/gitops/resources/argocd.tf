@@ -155,6 +155,10 @@ resource "kubernetes_manifest" "infrastructure_appproject" {
 					server="https://kubernetes.default.svc"
 				},
 				{
+					namespace="dxp-operator-system"
+					server="https://kubernetes.default.svc"
+				},
+				{
 					namespace="elastic-system"
 					server="https://kubernetes.default.svc"
 				},
@@ -168,6 +172,10 @@ resource "kubernetes_manifest" "infrastructure_appproject" {
 				},
 				{
 					namespace=var.gateway_namespace
+					server="https://kubernetes.default.svc"
+				},
+				{
+					namespace=var.observability_config.namespace
 					server="https://kubernetes.default.svc"
 				},
 			]
@@ -216,7 +224,7 @@ resource "kubernetes_manifest" "infrastructure_provider_application" {
 				merge(
 					{
 						helm={
-							parameters=[
+							parameters=concat([
 								{
 									name="crossplaneGsaEmail"
 									value=google_service_account.cloudplatform_gsa.email
@@ -249,7 +257,15 @@ resource "kubernetes_manifest" "infrastructure_provider_application" {
 									name="global.gcp.vpcName"
 									value=local.vpc_name
 								},
-							]
+								{
+									name="liferay-dxp-operator.marketplace.csi.volumeAttributes.ip"
+									value=local.filestore_ip
+								},
+								{
+									name="liferay-dxp-operator.marketplace.csi.volumeHandle"
+									value="modeInstance/${local.filestore_zone}/${var.deployment_name}-marketplace/marketplace"
+								},
+							], local.dxp_operator_parameters)
 							valueFiles=[
 								"$values/${var.infrastructure_git_repo_config.source_paths.system}/${var.infrastructure_git_repo_config.source_paths.infrastructure_provider_values_filename}",
 							]
@@ -358,6 +374,14 @@ resource "kubernetes_manifest" "liferay_applicationset" {
 											value=var.liferay_git_repo_config.target.slugEnvironmentId
 										},
 										{
+											name="${local.liferay_helm_chart_config.values_scope_prefix}marketplace.csi.volumeAttributes.ip"
+											value=local.filestore_ip
+										},
+										{
+											name="${local.liferay_helm_chart_config.values_scope_prefix}marketplace.csi.volumeHandle"
+											value="modeInstance/${local.filestore_zone}/${var.deployment_name}-marketplace/marketplace"
+										},
+										{
 											name="${local.liferay_helm_chart_config.values_scope_prefix}network.gatewayName"
 											value=local.gateway_name
 										},
@@ -405,6 +429,11 @@ resource "kubernetes_manifest" "liferay_applicationset" {
 							kind="Secret"
 							name="liferay-default"
 						},
+						{
+							group="apps"
+							kind="StatefulSet"
+							managedFieldsManagers=["liferay-dxp-operator"]
+						},
 					]
 					syncPolicy={
 						automated={
@@ -413,6 +442,7 @@ resource "kubernetes_manifest" "liferay_applicationset" {
 						}
 						managedNamespaceMetadata={
 							labels={
+								"liferay.com/observable"="true"
 								"pod-security.kubernetes.io/enforce"="restricted"
 							}
 						}
@@ -466,6 +496,117 @@ resource "kubernetes_manifest" "liferay_appproject" {
 				"${local.liferay_helm_chart_config.chart_url}/*",
 				var.liferay_git_repo_url,
 			]
+		}
+	}
+}
+resource "kubernetes_manifest" "observability_application" {
+	count=var.observability_config.enabled ? 1 : 0
+	depends_on=[
+		kubernetes_manifest.git_repo_credentials_external_secret,
+		kubernetes_manifest.infrastructure_appproject,
+	]
+	field_manager {
+		force_conflicts=true
+		name=local.terraform_manager_name
+	}
+	manifest={
+		apiVersion="argoproj.io/v1alpha1"
+		kind="Application"
+		metadata={
+			annotations={
+				"argocd.argoproj.io/compare-options"="IgnoreExtraneous"
+			}
+			finalizers=["resources-finalizer.argocd.argoproj.io"]
+			labels=merge(
+				local.common_labels,
+				{
+					"app.kubernetes.io/name"="liferay-observability"
+				})
+			name="liferay-observability"
+			namespace=var.argocd_namespace
+		}
+		spec={
+			destination={
+				namespace=var.observability_config.namespace
+				server="https://kubernetes.default.svc"
+			}
+			ignoreDifferences=[
+				{
+					group=""
+					jsonPointers=["/data"]
+					kind="Secret"
+					name="liferay-observability-grafana"
+				},
+			]
+			project=local.infrastructure_appproject_name
+			sources=[
+				merge(
+					{
+						helm={
+							parameters=[
+								{
+									name="centralHub.argocdURL"
+									value=local.argocd_external_url
+								},
+								{
+									name="centralHub.gitURL"
+									value=var.liferay_git_repo_url
+								},
+								{
+									name="cloudProvider"
+									value="gcp"
+								},
+								{
+									name="gcp.projectId"
+									value=var.project_id
+								},
+								{
+									name="grafana.namespaceOverride"
+									value=var.observability_config.namespace
+								},
+								{
+									name="kube-state-metrics.namespaceOverride"
+									value=var.observability_config.namespace
+								},
+								{
+									name="namespaceOverride"
+									value=var.observability_config.namespace
+								},
+								{
+									name="prometheus-node-exporter.namespaceOverride"
+									value=var.observability_config.namespace
+								},
+							]
+							valueFiles=[
+								"$values/${var.infrastructure_git_repo_config.source_paths.system}/${var.infrastructure_git_repo_config.source_paths.observability_values_filename}",
+							]
+						}
+						repoURL=var.observability_helm_chart_config.chart_url
+						targetRevision=var.observability_helm_chart_version
+					},
+					var.observability_helm_chart_config.path == null ? {
+						chart=var.observability_helm_chart_config.chart_name
+					} : {
+						path=var.observability_helm_chart_config.path
+					}
+				),
+				{
+					ref="values"
+					repoURL=local.infrastructure_git_repo_url
+					targetRevision=var.infrastructure_git_repo_config.revision
+				},
+			]
+			syncPolicy={
+				automated={
+					prune=true
+					selfHeal=true
+				}
+				syncOptions=[
+					"CreateNamespace=true",
+					"RespectIgnoreDifferences=true",
+					"SkipDryRunOnMissingResource=true",
+				]
+			}
 		}
 	}
 }

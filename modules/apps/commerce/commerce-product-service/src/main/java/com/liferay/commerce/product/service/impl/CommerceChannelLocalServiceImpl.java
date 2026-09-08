@@ -24,6 +24,7 @@ import com.liferay.commerce.product.model.CommerceChannelTable;
 import com.liferay.commerce.product.service.CommerceChannelAccountEntryRelLocalService;
 import com.liferay.commerce.product.service.CommerceChannelRelLocalService;
 import com.liferay.commerce.product.service.base.CommerceChannelLocalServiceBaseImpl;
+import com.liferay.exportimport.kernel.empty.model.EmptyModelManager;
 import com.liferay.petra.sql.dsl.DSLFunctionFactoryUtil;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.petra.sql.dsl.expression.Expression;
@@ -64,6 +65,7 @@ import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ContentTypes;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.Validator;
@@ -130,6 +132,13 @@ public class CommerceChannelLocalServiceImpl
 		commerceChannel.setPriceDisplayType(
 			CommercePricingConstants.TAX_EXCLUDED_FROM_PRICE);
 		commerceChannel.setDiscountsTargetNetPrice(true);
+
+		if (_emptyModelManager.isEmptyModel()) {
+			commerceChannel.setStatus(WorkflowConstants.STATUS_EMPTY);
+		}
+		else {
+			commerceChannel.setStatus(WorkflowConstants.STATUS_APPROVED);
+		}
 
 		commerceChannel = commerceChannelPersistence.update(commerceChannel);
 
@@ -268,8 +277,7 @@ public class CommerceChannelLocalServiceImpl
 			return null;
 		}
 
-		return commerceChannelLocalService.fetchCommerceChannel(
-			group.getClassPK());
+		return commerceChannelPersistence.fetchByPrimaryKey(group.getClassPK());
 	}
 
 	@Override
@@ -283,7 +291,7 @@ public class CommerceChannelLocalServiceImpl
 		throws PortalException {
 
 		CommerceChannel commerceChannel =
-			commerceChannelLocalService.getCommerceChannel(commerceChannelId);
+			commerceChannelPersistence.findByPrimaryKey(commerceChannelId);
 
 		return _groupLocalService.fetchGroup(
 			commerceChannel.getCompanyId(),
@@ -298,8 +306,7 @@ public class CommerceChannelLocalServiceImpl
 
 		Group group = _groupLocalService.getGroup(groupId);
 
-		return commerceChannelLocalService.getCommerceChannel(
-			group.getClassPK());
+		return commerceChannelPersistence.findByPrimaryKey(group.getClassPK());
 	}
 
 	@Override
@@ -429,6 +436,31 @@ public class CommerceChannelLocalServiceImpl
 	}
 
 	@Override
+	public CommerceChannel getOrAddEmptyCommerceChannel(
+			String externalReferenceCode, long companyId, long userId)
+		throws PortalException {
+
+		ServiceContext serviceContext = new ServiceContext();
+
+		serviceContext.setCompanyId(companyId);
+		serviceContext.setLanguageId(
+			LocaleUtil.toLanguageId(LocaleUtil.getSiteDefault()));
+		serviceContext.setUserId(userId);
+
+		return _emptyModelManager.getOrAddEmptyModel(
+			CommerceChannel.class, companyId,
+			() -> commerceChannelLocalService.addCommerceChannel(
+				externalReferenceCode, 0, 0, externalReferenceCode,
+				CommerceChannelConstants.CHANNEL_TYPE_SITE,
+				new UnicodeProperties(true), externalReferenceCode,
+				serviceContext),
+			externalReferenceCode,
+			this::fetchCommerceChannelByExternalReferenceCode,
+			this::getCommerceChannelByExternalReferenceCode,
+			CommerceChannel.class.getName());
+	}
+
+	@Override
 	public List<CommerceChannel> search(long companyId) throws PortalException {
 		return search(
 			companyId, StringPool.BLANK, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
@@ -496,6 +528,12 @@ public class CommerceChannelLocalServiceImpl
 		commerceChannel.setCommerceCurrencyCode(commerceCurrencyCode);
 		commerceChannel.setPriceDisplayType(priceDisplayType);
 		commerceChannel.setDiscountsTargetNetPrice(discountsTargetNetPrice);
+		commerceChannel.setStatus(
+			_emptyModelManager.solveEmptyModel(
+				commerceChannel.getExternalReferenceCode(),
+				commerceChannel.getModelClassName(),
+				commerceChannel.getCompanyId(), 0, commerceChannel.getStatus(),
+				() -> WorkflowConstants.STATUS_APPROVED));
 
 		commerceChannel = commerceChannelPersistence.update(commerceChannel);
 
@@ -730,6 +768,9 @@ public class CommerceChannelLocalServiceImpl
 
 	@Reference
 	private CustomSQL _customSQL;
+
+	@Reference
+	private EmptyModelManager _emptyModelManager;
 
 	@Reference
 	private GroupLocalService _groupLocalService;

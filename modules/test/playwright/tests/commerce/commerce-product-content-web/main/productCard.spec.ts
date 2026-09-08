@@ -8,7 +8,6 @@ import {expect, mergeTests} from '@playwright/test';
 import {apiHelpersTest} from '../../../../fixtures/apiHelpersTest';
 import {commercePagesTest} from '../../../../fixtures/commercePagesTest';
 import {dataApiHelpersTest} from '../../../../fixtures/dataApiHelpersTest';
-import {featureFlagsTest} from '../../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../../fixtures/loginTest';
 import {usersAndOrganizationsPagesTest} from '../../../../fixtures/usersAndOrganizationsPagesTest';
 import getRandomString from '../../../../utils/getRandomString';
@@ -22,9 +21,6 @@ export const test = mergeTests(
 	apiHelpersTest,
 	commercePagesTest,
 	dataApiHelpersTest,
-	featureFlagsTest({
-		'LPD-20379': {enabled: true},
-	}),
 	loginTest(),
 	usersAndOrganizationsPagesTest
 );
@@ -109,7 +105,7 @@ test(
 			product2 = (
 				await apiHelpers.headlessCommerceAdminCatalog.getProducts(
 					new URLSearchParams({
-						filter: `name eq 'Transmission Cooler Line Assembly'`,
+						filter: `name eq 'Wear Sensors'`,
 					})
 				)
 			).items[0];
@@ -117,7 +113,7 @@ test(
 			product3 = (
 				await apiHelpers.headlessCommerceAdminCatalog.getProducts(
 					new URLSearchParams({
-						filter: `name eq 'Torque Converters'`,
+						filter: `name eq 'Timing Belt'`,
 					})
 				)
 			).items[0];
@@ -227,6 +223,10 @@ test(
 			await performLogout(page);
 			await performLoginViaApi({page, screenName: 'demo.unprivileged'});
 
+			await page.context().clearCookies({
+				name: /^com\.liferay\.commerce\.currency\.model\.CommerceCurrency/,
+			});
+
 			await page.goto(`/web/${site.name}`);
 
 			await expect(
@@ -258,6 +258,10 @@ test(
 			await performLogout(page);
 			await performLoginViaApi({page, screenName: 'demo.unprivileged'});
 
+			await page.context().clearCookies({
+				name: /^com\.liferay\.commerce\.currency\.model\.CommerceCurrency/,
+			});
+
 			await page.goto(`/web/${site.name}`);
 
 			await expect(
@@ -277,7 +281,7 @@ test(
 			await expect(
 				commerceThemeClassicCatalogPage.productCardPrice(
 					product2.name['en_US'],
-					'$ 15.00'
+					'$ 60.00'
 				)
 			).toHaveClass(/price-value-inactive/);
 			await expect(
@@ -290,13 +294,13 @@ test(
 			await expect(
 				commerceThemeClassicCatalogPage.productCardPrice(
 					product3.name['en_US'],
-					'$ 34.00'
+					'$ 600.00'
 				)
 			).toHaveClass(/price-value-inactive/);
 			await expect(
 				commerceThemeClassicCatalogPage.productCardPrice(
 					product3.name['en_US'],
-					'$ 30.60'
+					'$ 540.00'
 				)
 			).toHaveClass(/price-value-final/);
 

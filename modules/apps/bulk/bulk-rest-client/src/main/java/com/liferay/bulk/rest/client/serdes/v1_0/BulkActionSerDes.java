@@ -5,6 +5,7 @@
 
 package com.liferay.bulk.rest.client.serdes.v1_0;
 
+import com.liferay.bulk.rest.client.dto.v1_0.AddObjectToProjectBulkSelectionAction;
 import com.liferay.bulk.rest.client.dto.v1_0.AssignStructureDefaultWorkflowBulkSelectionAction;
 import com.liferay.bulk.rest.client.dto.v1_0.AssignToObjectBulkSelectionAction;
 import com.liferay.bulk.rest.client.dto.v1_0.BulkAction;
@@ -24,7 +25,9 @@ import com.liferay.bulk.rest.client.dto.v1_0.PermissionObjectBulkSelectionAction
 import com.liferay.bulk.rest.client.dto.v1_0.ResetPermissionObjectBulkSelectionAction;
 import com.liferay.bulk.rest.client.dto.v1_0.RestoreObjectBulkSelectionAction;
 import com.liferay.bulk.rest.client.dto.v1_0.StatusObjectBulkSelectionAction;
+import com.liferay.bulk.rest.client.dto.v1_0.UpdateExpirationDateObjectBulkSelectionAction;
 import com.liferay.bulk.rest.client.dto.v1_0.UpdateObjectValuesBulkSelectionAction;
+import com.liferay.bulk.rest.client.dto.v1_0.UpdateReviewDateObjectBulkSelectionAction;
 import com.liferay.bulk.rest.client.json.BaseJSONParser;
 
 import jakarta.annotation.Generated;
@@ -63,6 +66,11 @@ public class BulkActionSerDes {
 
 		if (type != null) {
 			String typeString = type.toString();
+
+			if (typeString.equals("AddObjectToProjectBulkSelectionAction")) {
+				return AddObjectToProjectBulkSelectionActionSerDes.toJSON(
+					(AddObjectToProjectBulkSelectionAction)bulkAction);
+			}
 
 			if (typeString.equals(
 					"AssignStructureDefaultWorkflowBulkSelectionAction")) {
@@ -157,9 +165,25 @@ public class BulkActionSerDes {
 					(StatusObjectBulkSelectionAction)bulkAction);
 			}
 
+			if (typeString.equals(
+					"UpdateExpirationDateObjectBulkSelectionAction")) {
+
+				return UpdateExpirationDateObjectBulkSelectionActionSerDes.
+					toJSON(
+						(UpdateExpirationDateObjectBulkSelectionAction)
+							bulkAction);
+			}
+
 			if (typeString.equals("UpdateObjectValuesBulkSelectionAction")) {
 				return UpdateObjectValuesBulkSelectionActionSerDes.toJSON(
 					(UpdateObjectValuesBulkSelectionAction)bulkAction);
+			}
+
+			if (typeString.equals(
+					"UpdateReviewDateObjectBulkSelectionAction")) {
+
+				return UpdateReviewDateObjectBulkSelectionActionSerDes.toJSON(
+					(UpdateReviewDateObjectBulkSelectionAction)bulkAction);
 			}
 
 			throw new IllegalArgumentException("Unknown type " + typeString);
@@ -248,6 +272,12 @@ public class BulkActionSerDes {
 				String typeString = type.toString();
 
 				if (typeString.equals(
+						"AddObjectToProjectBulkSelectionAction")) {
+
+					return AddObjectToProjectBulkSelectionAction.toDTO(json);
+				}
+
+				if (typeString.equals(
 						"AssignStructureDefaultWorkflowBulkSelectionAction")) {
 
 					return AssignStructureDefaultWorkflowBulkSelectionAction.
@@ -329,9 +359,23 @@ public class BulkActionSerDes {
 				}
 
 				if (typeString.equals(
+						"UpdateExpirationDateObjectBulkSelectionAction")) {
+
+					return UpdateExpirationDateObjectBulkSelectionAction.toDTO(
+						json);
+				}
+
+				if (typeString.equals(
 						"UpdateObjectValuesBulkSelectionAction")) {
 
 					return UpdateObjectValuesBulkSelectionAction.toDTO(json);
+				}
+
+				if (typeString.equals(
+						"UpdateReviewDateObjectBulkSelectionAction")) {
+
+					return UpdateReviewDateObjectBulkSelectionAction.toDTO(
+						json);
 				}
 
 				throw new IllegalArgumentException(
@@ -457,4 +501,4 @@ public class BulkActionSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:1739271268
+// LIFERAY-REST-BUILDER-HASH:327525141

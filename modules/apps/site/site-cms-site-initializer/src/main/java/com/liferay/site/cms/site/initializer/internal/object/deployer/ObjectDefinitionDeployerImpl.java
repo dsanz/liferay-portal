@@ -11,17 +11,10 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectEntryFolderLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.model.ResourceConstants;
-import com.liferay.portal.kernel.model.Role;
-import com.liferay.portal.kernel.model.role.RoleConstants;
-import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.module.service.Snapshot;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
-import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionRegistryUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
-import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
-import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.site.cms.site.initializer.internal.security.permission.resource.CMSDefaultPermissionObjectEntryModelResourcePermission;
@@ -53,42 +46,25 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 			return Collections.emptyList();
 		}
 
-		try {
-			Role role = _roleLocalService.fetchRole(
-				objectDefinition.getCompanyId(), RoleConstants.USER);
+		String className = objectDefinition.getClassName();
 
-			if (role != null) {
-				_resourcePermissionLocalService.addResourcePermission(
-					objectDefinition.getCompanyId(),
-					objectDefinition.getClassName(),
-					ResourceConstants.SCOPE_COMPANY,
-					String.valueOf(objectDefinition.getCompanyId()),
-					role.getRoleId(), ActionKeys.VIEW);
-			}
-		}
-		catch (Exception exception) {
-			if (_log.isWarnEnabled()) {
-				_log.warn(exception);
-			}
-		}
-
-		ModelResourcePermission<ObjectEntry> modelResourcePermission =
-			ModelResourcePermissionRegistryUtil.getModelResourcePermission(
-				objectDefinition.getClassName());
-
-		if (modelResourcePermission == null) {
-			return Collections.emptyList();
-		}
+		Snapshot<ModelResourcePermission<ObjectEntry>>
+			modelResourcePermissionSnapshot = new Snapshot<>(
+				CMSDefaultPermissionObjectEntryModelResourcePermission.class,
+				Snapshot.cast(ModelResourcePermission.class),
+				StringBundler.concat(
+					"(&(com.liferay.object=true)(model.class.name=", className,
+					"))"));
 
 		return ListUtil.fromArray(
 			_bundleContext.registerService(
 				ModelResourcePermission.class,
 				new CMSDefaultPermissionObjectEntryModelResourcePermission(
-					_depotEntryLocalService, _groupLocalService,
-					modelResourcePermission, _objectEntryFolderLocalService,
-					_objectEntryLocalService),
+					className, _depotEntryLocalService, _groupLocalService,
+					modelResourcePermissionSnapshot,
+					_objectEntryFolderLocalService, _objectEntryLocalService),
 				HashMapDictionaryBuilder.<String, Object>put(
-					"model.class.name", objectDefinition.getClassName()
+					"model.class.name", className
 				).put(
 					"service.ranking", Integer.valueOf(200)
 				).build()));
@@ -98,9 +74,6 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 	protected void activate(BundleContext bundleContext) {
 		_bundleContext = bundleContext;
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		ObjectDefinitionDeployerImpl.class);
 
 	private BundleContext _bundleContext;
 
@@ -115,11 +88,5 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 
 	@Reference
 	private ObjectEntryLocalService _objectEntryLocalService;
-
-	@Reference
-	private ResourcePermissionLocalService _resourcePermissionLocalService;
-
-	@Reference
-	private RoleLocalService _roleLocalService;
 
 }

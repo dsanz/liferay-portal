@@ -21,6 +21,7 @@ import com.liferay.object.internal.upgrade.v10_8_0.util.ObjectDefinitionSettingT
 import com.liferay.object.internal.upgrade.v10_8_1.ObjectEntryAssetEntryTitleUpgradeProcess;
 import com.liferay.object.internal.upgrade.v10_9_0.util.ObjectEntryVersionTable;
 import com.liferay.object.internal.upgrade.v10_9_1.ClassNameUpgradeProcess;
+import com.liferay.object.internal.upgrade.v13_3_0.AttachmentObjectFieldDownloadPermissionUpgradeProcess;
 import com.liferay.object.internal.upgrade.v1_2_0.util.ObjectViewColumnTable;
 import com.liferay.object.internal.upgrade.v1_2_0.util.ObjectViewTable;
 import com.liferay.object.internal.upgrade.v2_1_0.ObjectFieldBusinessTypeUpgradeProcess;
@@ -42,6 +43,7 @@ import com.liferay.object.internal.upgrade.v9_0_1.ObjectFolderUpgradeProcess;
 import com.liferay.object.model.impl.ObjectFieldSettingModelImpl;
 import com.liferay.object.system.SystemObjectDefinitionManagerRegistry;
 import com.liferay.petra.string.StringBundler;
+import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -54,6 +56,7 @@ import com.liferay.portal.kernel.upgrade.BaseExternalReferenceCodeUpgradeProcess
 import com.liferay.portal.kernel.upgrade.DummyUpgradeStep;
 import com.liferay.portal.kernel.upgrade.UpgradeProcessFactory;
 import com.liferay.portal.kernel.util.Localization;
+import com.liferay.portal.language.override.service.PLOEntryLocalService;
 import com.liferay.portal.upgrade.registry.UpgradeStepRegistrator;
 
 import org.osgi.service.component.annotations.Component;
@@ -236,7 +239,7 @@ public class ObjectServiceUpgradeStepRegistrator
 		registry.register(
 			"3.23.0", "3.23.1",
 			UpgradeProcessFactory.runSQL(
-				"update ObjectField set indexed = [$TRUE$], indexedAsKeyWord " +
+				"update ObjectField set indexed = [$TRUE$], indexedAsKeyword " +
 					"= [$TRUE$] where indexed = [$FALSE$] and name = 'id' " +
 						"and system_ = [$TRUE$]"));
 
@@ -704,8 +707,10 @@ public class ObjectServiceUpgradeStepRegistrator
 			new com.liferay.object.internal.upgrade.v12_0_0.
 				ObjectFieldUpgradeProcess());
 
+		registry.register("12.0.0", "12.0.1", new DummyUpgradeStep());
+
 		registry.register(
-			"12.0.0", "12.1.0",
+			"12.0.1", "12.1.0",
 			new com.liferay.object.internal.upgrade.v12_1_0.
 				ObjectDefinitionSettingUpgradeProcess());
 
@@ -715,9 +720,38 @@ public class ObjectServiceUpgradeStepRegistrator
 				ObjectEntryPicklistDefaultValueUpgradeProcess());
 
 		registry.register(
-			"12.1.1", "12.2.0",
-			new com.liferay.object.internal.upgrade.v12_2_0.
+			"12.1.1", "13.0.0",
+			new com.liferay.object.internal.upgrade.v13_0_0.
 				ObjectEntryIndexedColumnSizeUpgradeProcess());
+
+		registry.register(
+			"13.0.0", "13.1.0",
+			new com.liferay.object.internal.upgrade.v13_1_0.
+				ObjectDefinitionExternalReferenceCodeUpgradeProcess(
+					_systemObjectDefinitionManagerRegistry));
+
+		registry.register(
+			"13.1.0", "13.2.0",
+			new com.liferay.object.internal.upgrade.v13_2_0.
+				ObjectDefinitionExternalReferenceCodeUpgradeProcess(
+					_systemObjectDefinitionManagerRegistry));
+
+		registry.register(
+			"13.2.0", "13.3.0",
+			new AttachmentObjectFieldDownloadPermissionUpgradeProcess(
+				_language, _localization, _ploEntryLocalService,
+				_resourceActionLocalService));
+
+		registry.register(
+			"13.3.0", "13.4.0",
+			new BaseExternalReferenceCodeUpgradeProcess() {
+
+				@Override
+				protected String[] getTableNames() {
+					return new String[] {"ObjectView"};
+				}
+
+			});
 	}
 
 	@Reference
@@ -734,10 +768,16 @@ public class ObjectServiceUpgradeStepRegistrator
 	private GroupLocalService _groupLocalService;
 
 	@Reference
+	private Language _language;
+
+	@Reference
 	private Localization _localization;
 
 	@Reference
 	private NotificationTemplateLocalService _notificationTemplateLocalService;
+
+	@Reference
+	private PLOEntryLocalService _ploEntryLocalService;
 
 	@Reference
 	private ResourceActionLocalService _resourceActionLocalService;

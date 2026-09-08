@@ -9,6 +9,7 @@ import com.liferay.exportimport.kernel.lar.StagedModelType;
 import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalServiceUtil;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
+import com.liferay.object.entry.util.ObjectEntryThreadLocal;
 import com.liferay.object.entry.util.ObjectEntryValuesUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
@@ -21,7 +22,6 @@ import com.liferay.object.service.ObjectEntryLocalServiceUtil;
 import com.liferay.object.service.ObjectFieldLocalServiceUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -128,6 +128,13 @@ public class ObjectEntryImpl extends ObjectEntryBaseImpl {
 
 	@Override
 	public ObjectDefinition getObjectDefinition() {
+		if (ObjectEntryThreadLocal.isSkipObjectDefinitionCache()) {
+			_objectDefinition = null;
+
+			return ObjectDefinitionLocalServiceUtil.fetchObjectDefinition(
+				getObjectDefinitionId());
+		}
+
 		if (_objectDefinition == null) {
 			_objectDefinition =
 				ObjectDefinitionLocalServiceUtil.fetchObjectDefinition(
@@ -139,9 +146,7 @@ public class ObjectEntryImpl extends ObjectEntryBaseImpl {
 
 	@Override
 	public Date getPublishDate() {
-		if (!FeatureFlagManagerUtil.isEnabled(getCompanyId(), "LPD-17564") ||
-			!isApproved()) {
-
+		if (!isApproved()) {
 			return null;
 		}
 

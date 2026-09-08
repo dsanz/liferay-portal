@@ -15,10 +15,12 @@ if (liveGroup == null) {
 	liveGroupId = groupId;
 }
 
-ExportImportPreviewDisplayContext exportImportPreviewDisplayContext = new ExportImportPreviewDisplayContext("/export_import/view_export_layouts", request, liferayPortletResponse, group, groupId, liveGroupId, privateLayout, stagingGroupHelper);
+ExportImportProcessDisplayContext exportImportProcessDisplayContext = (ExportImportProcessDisplayContext)request.getAttribute(ExportImportWebKeys.EXPORT_IMPORT_PROCESS_DISPLAY_CONTEXT);
 
 portletDisplay.setShowBackIcon(true);
-portletDisplay.setURLBack(exportImportPreviewDisplayContext.getBackURL());
+portletDisplay.setURLBack(exportImportProcessDisplayContext.getBackURL());
+
+renderResponse.setTitle(exportImportProcessDisplayContext.getExportTitle());
 %>
 
 <clay:container-fluid
@@ -32,23 +34,25 @@ portletDisplay.setURLBack(exportImportPreviewDisplayContext.getBackURL());
 		module="{NewExport} from exportimport-web"
 		props='<%=
 			HashMapBuilder.<String, Object>put(
-				"backURL", exportImportPreviewDisplayContext.getBackURL()
+				"backURL", exportImportProcessDisplayContext.getBackURL()
 			).put(
-				"commentsAndRatingsEnabled", exportImportPreviewDisplayContext.isCommentsAndRatingsEnabled()
+				"commentsAndRatingsEnabled", exportImportProcessDisplayContext.isCommentsAndRatingsEnabled()
 			).put(
-				"exportPreviewAPIURL", exportImportPreviewDisplayContext.getExportPreviewAPIURL()
+				"exportPreview", exportImportProcessDisplayContext.getExportPreviewJSONObject()
 			).put(
-				"exportProcessAPIURL", exportImportPreviewDisplayContext.getExportProcessAPIURL()
+				"exportPreviewAPIURL", exportImportProcessDisplayContext.getExportPreviewAPIURL()
 			).put(
-				"lookAndFeelEnabled", exportImportPreviewDisplayContext.isLookAndFeelEnabled()
+				"exportProcessAPIURL", exportImportProcessDisplayContext.getExportProcessAPIURL()
+			).put(
+				"lookAndFeelEnabled", exportImportProcessDisplayContext.isLookAndFeelEnabled()
 			).put(
 				"pageTreeModalConfiguration",
 				HashMapBuilder.<String, Object>put(
-					"liveGroupId", liveGroupId
+					"groupId", liveGroupId
 				).put(
 					"pageSize", PropsValues.LAYOUT_MANAGE_PAGES_INITIAL_CHILDREN
 				).put(
-					"privateLayoutsEnabled", liveGroup.isPrivateLayoutsEnabled()
+					"privateLayoutsAvailable", liveGroup.isPrivateLayoutsEnabled() && liveGroup.hasPrivateLayouts()
 				).build()
 			).build()
 		%>'

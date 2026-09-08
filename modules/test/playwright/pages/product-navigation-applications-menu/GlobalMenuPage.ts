@@ -21,12 +21,12 @@ type ApplicationsMenuItem =
 	| 'Data Migration Center'
 	| 'Export'
 	| 'Import'
-	| 'Metrics'
 	| 'Process Builder'
 	| 'Publications'
 	| 'Result Rankings'
 	| 'Submissions'
-	| 'Synonyms';
+	| 'Synonyms'
+	| 'Workflow Metrics';
 
 type ControlPanelMenuItem =
 	| 'App Manager'
@@ -132,20 +132,28 @@ export class GlobalMenuPage {
 		});
 
 		await expect(async () => {
-			if (!(await this.categoriesList.isVisible())) {
+			if (
+				(await this.globalMenuButton.getAttribute('aria-expanded', {
+					timeout: 5000,
+				})) !== 'true'
+			) {
 				await this.globalMenuButton.click();
+
+				await expect(this.globalMenuButton).toHaveAttribute(
+					'aria-expanded',
+					'true',
+					{timeout: 5000}
+				);
 			}
 
-			await expect(menuItem).toBeVisible({timeout: 2000});
+			await expect(menuItem).toBeVisible({timeout: 5000});
 
-			const isActive = (
-				(await menuItem.getAttribute('class', {timeout: 2000})) || ''
-			).includes('active');
-
-			if (!isActive) {
-				await menuItem.click();
-
-				await expect(this.categoriesList).toBeHidden({timeout: 2000});
+			if (
+				(await menuItem.getAttribute('aria-current', {
+					timeout: 5000,
+				})) !== 'page'
+			) {
+				await menuItem.click({timeout: 5000});
 			}
 		}).toPass();
 

@@ -330,7 +330,7 @@ export class EditUserPage {
 		this.categoryGridCell = (categoryName: string) =>
 			page.getByRole('gridcell', {exact: true, name: categoryName});
 		this.categoryInput = (vocabularyName: string) =>
-			page.getByRole('combobox', {exact: true, name: vocabularyName});
+			page.getByRole('combobox', {name: vocabularyName});
 		this.categoryOption = (categoryName: string) =>
 			page.getByRole('option', {name: categoryName});
 		this.changeImageButton = page.getByLabel('Change Image');
@@ -848,6 +848,25 @@ export class EditUserPage {
 			});
 		this.yourPasswordInput =
 			this.passwordConfirmationFrame.getByLabel('Your Password');
+	}
+
+	async linkSiteTemplate(
+		siteTemplateName: string,
+		{propagationEnabled = false}: {propagationEnabled?: boolean} = {}
+	) {
+		await this.profileAndDashboardLink.click();
+
+		await this.page
+			.locator('select[name$="publicLayoutSetPrototypeId"]')
+			.selectOption({label: siteTemplateName});
+
+		await this.page
+			.locator('input[name$="publicLayoutSetPrototypeLinkEnabled"]')
+			.setChecked(propagationEnabled, {force: true});
+
+		await this.saveButton.click();
+
+		await waitForAlert(this.page);
 	}
 
 	async addNewAddress(makePrimary: boolean, streetName: string) {

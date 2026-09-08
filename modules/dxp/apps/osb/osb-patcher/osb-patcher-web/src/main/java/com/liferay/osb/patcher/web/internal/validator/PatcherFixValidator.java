@@ -373,16 +373,13 @@ public class PatcherFixValidator {
 				PatcherFixPackLocalServiceUtil.getPatcherFixPack(
 					patcherFixPackId);
 
-			if (patcherFixComponentIds.contains(
+			if (!patcherFixComponentIds.add(
 					patcherFixPack.getPatcherFixComponentId())) {
 
 				throw new PortalException(
 					"the-fix-cannot-be-in-multiple-fix-packs-with-the-same-" +
 						"component");
 			}
-
-			patcherFixComponentIds.add(
-				patcherFixPack.getPatcherFixComponentId());
 
 			PatcherFixComponent patcherFixComponent =
 				PatcherFixComponentLocalServiceUtil.getPatcherFixComponent(
@@ -396,25 +393,13 @@ public class PatcherFixValidator {
 				continue;
 			}
 
-			Set<String> patcherFixComponentNameDependencies = new HashSet<>();
+			Set<String> patcherFixComponentNameDependencies =
+				patcherFixComponentDependencies.getOrDefault(
+					patcherFixComponent.getName(), Collections.emptySet());
 
-			if (patcherFixComponentDependencies.containsKey(
-					patcherFixComponent.getName())) {
-
-				patcherFixComponentNameDependencies =
-					patcherFixComponentDependencies.get(
-						patcherFixComponent.getName());
-			}
-
-			Set<String> requestComponentNameDependencies = new HashSet<>();
-
-			if (requestComponentDependencies.containsKey(
-					patcherFixComponent.getName())) {
-
-				requestComponentNameDependencies =
-					requestComponentDependencies.get(
-						patcherFixComponent.getName());
-			}
+			Set<String> requestComponentNameDependencies =
+				requestComponentDependencies.getOrDefault(
+					patcherFixComponent.getName(), Collections.emptySet());
 
 			if (!requestComponentNameDependencies.equals(
 					patcherFixComponentNameDependencies)) {

@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -120,6 +121,8 @@ public abstract class BaseDataRecordResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -400,7 +403,8 @@ public abstract class BaseDataRecordResourceTestCase {
 				dataDefinitionId, randomDataRecord());
 
 		page = dataRecordResource.getDataDefinitionDataRecordsPage(
-			dataDefinitionId, null, null, Pagination.of(1, 10), null);
+			dataDefinitionId, null, null, Pagination.of(1, (int)totalCount + 2),
+			null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -706,18 +710,9 @@ public abstract class BaseDataRecordResourceTestCase {
 		Long dataDefinitionId =
 			testGetDataDefinitionDataRecordsPage_getDataDefinitionId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"dataDefinitionDataRecords",
-			new HashMap<String, Object>() {
-				{
-					put("dataDefinitionId", dataDefinitionId);
-					put("keywords", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetDataDefinitionDataRecordsPageDataDefinitionDataRecord_getGraphQLField(
+				dataDefinitionId);
 
 		// No namespace
 
@@ -778,6 +773,25 @@ public abstract class BaseDataRecordResourceTestCase {
 			Arrays.asList(
 				DataRecordSerDes.toDTOs(
 					dataDefinitionDataRecordsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetDataDefinitionDataRecordsPageDataDefinitionDataRecord_getGraphQLField(
+				Long dataDefinitionId)
+		throws Exception {
+
+		return new GraphQLField(
+			"dataDefinitionDataRecords",
+			new HashMap<String, Object>() {
+				{
+					put("dataDefinitionId", dataDefinitionId);
+					put("keywords", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -1130,7 +1144,8 @@ public abstract class BaseDataRecordResourceTestCase {
 				dataRecordCollectionId, randomDataRecord());
 
 		page = dataRecordResource.getDataRecordCollectionDataRecordsPage(
-			dataRecordCollectionId, null, null, Pagination.of(1, 10), null);
+			dataRecordCollectionId, null, null,
+			Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1440,18 +1455,9 @@ public abstract class BaseDataRecordResourceTestCase {
 		Long dataRecordCollectionId =
 			testGetDataRecordCollectionDataRecordsPage_getDataRecordCollectionId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"dataRecordCollectionDataRecords",
-			new HashMap<String, Object>() {
-				{
-					put("dataRecordCollectionId", dataRecordCollectionId);
-					put("keywords", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetDataRecordCollectionDataRecordsPageDataRecordCollectionDataRecord_getGraphQLField(
+				dataRecordCollectionId);
 
 		// No namespace
 
@@ -1518,6 +1524,25 @@ public abstract class BaseDataRecordResourceTestCase {
 				DataRecordSerDes.toDTOs(
 					dataRecordCollectionDataRecordsJSONObject.getString(
 						"items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetDataRecordCollectionDataRecordsPageDataRecordCollectionDataRecord_getGraphQLField(
+				Long dataRecordCollectionId)
+		throws Exception {
+
+		return new GraphQLField(
+			"dataRecordCollectionDataRecords",
+			new HashMap<String, Object>() {
+				{
+					put("dataRecordCollectionId", dataRecordCollectionId);
+					put("keywords", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -2626,4 +2651,4 @@ public abstract class BaseDataRecordResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:952592255
+// LIFERAY-REST-BUILDER-HASH:464182490

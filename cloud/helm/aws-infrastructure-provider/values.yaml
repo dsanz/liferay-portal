@@ -14,5 +14,15 @@ crossplaneNamespace: crossplane-system
 gateway:
     internetFacing: true
     namespace: envoy-gateway-system
+liferay-dxp-operator:
+    enabled: true
+    fullnameOverride: dxp-operator
+    marketplace:
+        claimName: dxp-operator-marketplace
+        csi:
+            driver: efs.csi.aws.com
+        enabled: true
+        mountPath: /marketplace
+    namespaceOverride: dxp-operator-system
 liferay-subchart-backup-restore:
     enabled: true

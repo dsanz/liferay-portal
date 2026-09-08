@@ -8,7 +8,11 @@
 	<import class="com.liferay.portal.tools.service.builder.test.model.CacheFieldEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.CacheMissEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.CacheReplicatorEntry" />
+	<import class="com.liferay.portal.tools.service.builder.test.model.ClobEntry" />
+	<import class="com.liferay.portal.tools.service.builder.test.model.ColumnNameEntry" />
+	<import class="com.liferay.portal.tools.service.builder.test.model.CompoundPKEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.DataLimitEntry" />
+	<import class="com.liferay.portal.tools.service.builder.test.model.DateEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.DefinedDefaultOrderEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.DSLQueryEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.DSLQueryStatusEntry" />
@@ -31,6 +35,7 @@
 	<import class="com.liferay.portal.tools.service.builder.test.model.NestedSetsTreeEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.NullConvertibleEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.PermissionCheckFinderEntry" />
+	<import class="com.liferay.portal.tools.service.builder.test.model.ReassociateEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.RedundantIndexEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.RenameFinderColumnEntry" />
 	<import class="com.liferay.portal.tools.service.builder.test.model.UADPartialEntry" />
@@ -79,6 +84,25 @@
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="companyId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="name" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 	</class>
+	<class name="com.liferay.portal.tools.service.builder.test.model.impl.ClobEntryImpl" table="ClobEntry">
+		<id access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="clobEntryId" type="long">
+			<generator class="assigned" />
+		</id>
+		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="content" type="com.liferay.portal.dao.orm.hibernate.StringClobType" />
+	</class>
+	<class name="com.liferay.portal.tools.service.builder.test.model.impl.ColumnNameEntryImpl" table="ColumnNameEntry">
+		<id access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" column="cNameEntryId" name="columnNameEntryId" type="long">
+			<generator class="assigned" />
+		</id>
+		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="name" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+	</class>
+	<class name="com.liferay.portal.tools.service.builder.test.model.impl.CompoundPKEntryImpl" table="CompoundPKEntry">
+		<composite-id class="com.liferay.portal.tools.service.builder.test.service.persistence.CompoundPKEntryPK" name="primaryKey">
+			<key-property access="com.liferay.portal.dao.orm.hibernate.PublicFieldPropertyAccessor" name="companyId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+			<key-property access="com.liferay.portal.dao.orm.hibernate.PublicFieldPropertyAccessor" name="classNameId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+		</composite-id>
+		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="name" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+	</class>
 	<class name="com.liferay.portal.tools.service.builder.test.model.impl.DataLimitEntryImpl" table="DataLimitEntry">
 		<id access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="dataLimitEntryId" type="long">
 			<generator class="assigned" />
@@ -88,6 +112,13 @@
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="userName" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="createDate" type="timestamp" />
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="modifiedDate" type="timestamp" />
+	</class>
+	<class name="com.liferay.portal.tools.service.builder.test.model.impl.DateEntryImpl" table="DateEntry">
+		<id access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="dateEntryId" type="long">
+			<generator class="assigned" />
+		</id>
+		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="companyId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="snapshotDate" type="timestamp" />
 	</class>
 	<class name="com.liferay.portal.tools.service.builder.test.model.impl.DefinedDefaultOrderEntryImpl" table="DefinedDefaultOrderEntry">
 		<id access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="definedDefaultOrderEntryId" type="long">
@@ -107,6 +138,7 @@
 			<generator class="assigned" />
 		</id>
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="dslQueryEntryId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="weight" type="com.liferay.portal.dao.orm.hibernate.DoubleType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="status" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="statusDate" type="timestamp" />
 	</class>
@@ -160,6 +192,7 @@
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="head" type="com.liferay.portal.dao.orm.hibernate.BooleanType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="groupId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="companyId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" column="blob_" name="blob" type="blob" />
 	</class>
 	<class name="com.liferay.portal.tools.service.builder.test.model.impl.ERCVersionedEntryVersionImpl" table="ERCVersionedEntryVersion">
 		<id access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="ercVersionedEntryVersionId" type="long">
@@ -171,6 +204,7 @@
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="ercVersionedEntryId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="groupId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="companyId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
+		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" column="blob_" name="blob" type="blob" />
 	</class>
 	<class name="com.liferay.portal.tools.service.builder.test.model.impl.FinderWhereClauseEntryImpl" table="FinderWhereClauseEntry">
 		<id access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="finderWhereClauseEntryId" type="long">
@@ -199,8 +233,8 @@
 		<version access="com.liferay.portal.dao.orm.hibernate.PrivateFieldPropertyAccessor" name="mvccVersion" type="long" />
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" column="uuid_" name="uuid" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="groupId" type="com.liferay.portal.dao.orm.hibernate.LongType" />
-		<one-to-one access="com.liferay.portal.dao.orm.hibernate.PrivateFieldPropertyAccessor" cascade="save-update" class="com.liferay.portal.tools.service.builder.test.model.LazyBlobEntryBlob1BlobModel" constrained="false" name="blob1BlobModel" outer-join="false" />
-		<one-to-one access="com.liferay.portal.dao.orm.hibernate.PrivateFieldPropertyAccessor" cascade="save-update" class="com.liferay.portal.tools.service.builder.test.model.LazyBlobEntryBlob2BlobModel" constrained="false" name="blob2BlobModel" outer-join="false" />
+		<one-to-one access="com.liferay.portal.dao.orm.hibernate.PrivateFieldPropertyAccessor" cascade="merge,persist,save-update" class="com.liferay.portal.tools.service.builder.test.model.LazyBlobEntryBlob1BlobModel" constrained="false" name="blob1BlobModel" outer-join="false" />
+		<one-to-one access="com.liferay.portal.dao.orm.hibernate.PrivateFieldPropertyAccessor" cascade="merge,persist,save-update" class="com.liferay.portal.tools.service.builder.test.model.LazyBlobEntryBlob2BlobModel" constrained="false" name="blob2BlobModel" outer-join="false" />
 	</class>
 	<class dynamic-update="true" lazy="true" name="com.liferay.portal.tools.service.builder.test.model.LazyBlobEntryBlob1BlobModel" table="LazyBlobEntry">
 		<id column="lazyBlobEntryId" name="lazyBlobEntryId">
@@ -378,6 +412,12 @@
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" column="integer_" name="integer" type="com.liferay.portal.dao.orm.hibernate.IntegerType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="name" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" column="type_" name="type" type="com.liferay.portal.dao.orm.hibernate.StringType" />
+	</class>
+	<class name="com.liferay.portal.tools.service.builder.test.model.impl.ReassociateEntryImpl" table="ReassociateEntry">
+		<id access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="reassociateEntryId" type="long">
+			<generator class="assigned" />
+		</id>
+		<property access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="name" type="com.liferay.portal.dao.orm.hibernate.StringType" />
 	</class>
 	<class name="com.liferay.portal.tools.service.builder.test.model.impl.RedundantIndexEntryImpl" table="RedundantIndexEntry">
 		<id access="com.liferay.portal.dao.orm.hibernate.MethodPropertyAccessor" name="redundantIndexEntryId" type="long">

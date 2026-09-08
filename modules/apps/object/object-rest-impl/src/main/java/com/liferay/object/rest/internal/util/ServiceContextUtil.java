@@ -6,8 +6,15 @@
 package com.liferay.object.rest.internal.util;
 
 import com.liferay.asset.kernel.model.AssetCategory;
+import com.liferay.asset.kernel.model.AssetVocabulary;
+import com.liferay.asset.kernel.model.AssetVocabularyGroupRel;
+import com.liferay.asset.kernel.service.AssetCategoryLocalServiceUtil;
 import com.liferay.asset.kernel.service.AssetCategoryServiceUtil;
+import com.liferay.asset.kernel.service.AssetVocabularyGroupRelLocalServiceUtil;
+import com.liferay.asset.kernel.service.AssetVocabularyLocalServiceUtil;
+import com.liferay.depot.util.SiteConnectedGroupGroupProviderUtil;
 import com.liferay.object.comment.ObjectEntryComment;
+import com.liferay.object.exception.ObjectEntryGroupIdException;
 import com.liferay.object.rest.dto.v1_0.ObjectEntry;
 import com.liferay.object.rest.dto.v1_0.ParentTaxonomyCategory;
 import com.liferay.object.rest.dto.v1_0.ParentTaxonomyVocabulary;
@@ -18,7 +25,10 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
+import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.permission.ModelPermissions;
@@ -63,12 +73,14 @@ public class ServiceContextUtil {
 	}
 
 	public static ServiceContext createServiceContext(
-		long companyId, long groupId, Locale locale,
-		ModelPermissions modelPermissions, ObjectEntry objectEntry,
-		List<ObjectEntryComment> objectEntryComments, long userId) {
+			long companyId, boolean enableCategorization, long groupId,
+			Locale locale, ModelPermissions modelPermissions,
+			ObjectEntry objectEntry,
+			List<ObjectEntryComment> objectEntryComments, long userId)
+		throws PortalException {
 
 		ServiceContext serviceContext = createServiceContext(
-			companyId, groupId, objectEntry, userId);
+			companyId, enableCategorization, groupId, objectEntry, userId);
 
 		serviceContext.setAttribute(
 			"friendlyUrlMap",
@@ -86,20 +98,30 @@ public class ServiceContextUtil {
 	}
 
 	public static ServiceContext createServiceContext(
-		long companyId, long groupId, ObjectEntry objectEntry, long userId) {
+			long companyId, boolean enableCategorization, long groupId,
+			ObjectEntry objectEntry, long userId)
+		throws PortalException {
 
 		ServiceContext serviceContext = new ServiceContext();
 
 		serviceContext.setAddGroupPermissions(true);
 		serviceContext.setAddGuestPermissions(true);
 
-		if (objectEntry.getTaxonomyCategoryIds() == null) {
-			_setObjectEntryTaxonomyCategoryIds(companyId, groupId, objectEntry);
-		}
+		if (enableCategorization) {
+			if (objectEntry.getTaxonomyCategoryIds() == null) {
+				_setObjectEntryTaxonomyCategoryIds(
+					companyId, groupId, objectEntry);
+			}
 
-		if (objectEntry.getTaxonomyCategoryIds() != null) {
-			serviceContext.setAssetCategoryIds(
-				ArrayUtil.toArray(objectEntry.getTaxonomyCategoryIds()));
+			if (objectEntry.getTaxonomyCategoryIds() != null) {
+				long[] assetCategoryIds = ArrayUtil.toArray(
+					objectEntry.getTaxonomyCategoryIds());
+
+				_validateAssetCategoryGroupIds(
+					assetCategoryIds, companyId, groupId);
+
+				serviceContext.setAssetCategoryIds(assetCategoryIds);
+			}
 		}
 
 		if (Validator.isNotNull(objectEntry.getKeywords())) {
@@ -116,6 +138,47 @@ public class ServiceContextUtil {
 		}
 
 		return serviceContext;
+	}
+
+	private static AssetVocabulary _fetchAssetVocabulary(
+		long groupId, TaxonomyCategoryBrief taxonomyCategoryBrief) {
+
+		ParentTaxonomyVocabulary parentTaxonomyVocabulary =
+			taxonomyCategoryBrief.getParentTaxonomyVocabulary();
+
+		if (parentTaxonomyVocabulary != null) {
+			return AssetVocabularyLocalServiceUtil.
+				fetchAssetVocabularyByExternalReferenceCode(
+					parentTaxonomyVocabulary.getExternalReferenceCode(),
+					groupId);
+		}
+
+		AssetCategory assetCategory =
+			AssetCategoryLocalServiceUtil.
+				fetchAssetCategoryByExternalReferenceCode(
+					taxonomyCategoryBrief.
+						getTaxonomyCategoryExternalReferenceCode(),
+					groupId);
+
+		if (assetCategory == null) {
+			return null;
+		}
+
+		return AssetVocabularyLocalServiceUtil.fetchAssetVocabulary(
+			assetCategory.getVocabularyId());
+	}
+
+	private static long[] _getAllowedGroupIds(long companyId, long groupId)
+		throws PortalException {
+
+		if (groupId <= 0) {
+			Company company = CompanyLocalServiceUtil.getCompany(companyId);
+
+			groupId = company.getGroupId();
+		}
+
+		return SiteConnectedGroupGroupProviderUtil.
+			getCurrentAndAncestorSiteAndDepotGroupIds(groupId);
 	}
 
 	private static long _getGroupId(
@@ -158,6 +221,27 @@ public class ServiceContextUtil {
 		return status.getCode();
 	}
 
+	private static boolean _isAssetVocabularyAvailable(
+		long assetVocabularyId, long groupId) {
+
+		List<AssetVocabularyGroupRel> assetVocabularyGroupRels =
+			AssetVocabularyGroupRelLocalServiceUtil.
+				getAssetVocabularyGroupRelsByVocabularyId(assetVocabularyId);
+
+		for (AssetVocabularyGroupRel assetVocabularyGroupRel :
+				assetVocabularyGroupRels) {
+
+			if ((assetVocabularyGroupRel.getGroupId() ==
+					GroupConstants.ANY_PARENT_GROUP_ID) ||
+				(assetVocabularyGroupRel.getGroupId() == groupId)) {
+
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	private static boolean _isObjectEntryDraft(Status status) {
 		if ((status != null) &&
 			(status.getCode() == WorkflowConstants.STATUS_DRAFT)) {
@@ -169,7 +253,8 @@ public class ServiceContextUtil {
 	}
 
 	private static void _setObjectEntryTaxonomyCategoryIds(
-		long companyId, long groupId, ObjectEntry objectEntry) {
+			long companyId, long groupId, ObjectEntry objectEntry)
+		throws PortalException {
 
 		TaxonomyCategoryBrief[] taxonomyCategoryBriefs =
 			objectEntry.getTaxonomyCategoryBriefs();
@@ -180,7 +265,11 @@ public class ServiceContextUtil {
 
 		if (ArrayUtil.isEmpty(taxonomyCategoryBriefs)) {
 			objectEntry.setTaxonomyCategoryIds(() -> new Long[0]);
+
+			return;
 		}
+
+		long[] groupIds = _getAllowedGroupIds(companyId, groupId);
 
 		Set<Long> assetCategoryIds = new HashSet<>();
 
@@ -191,9 +280,23 @@ public class ServiceContextUtil {
 				taxonomyCategoryBrief.
 					getTaxonomyCategoryExternalReferenceCode();
 
-			groupId = _getGroupId(
+			long scopeGroupId = _getGroupId(
 				companyId, groupId, externalReferenceCode,
 				taxonomyCategoryBrief);
+
+			if (!ArrayUtil.contains(groupIds, scopeGroupId)) {
+				AssetVocabulary assetVocabulary = _fetchAssetVocabulary(
+					scopeGroupId, taxonomyCategoryBrief);
+
+				if ((assetVocabulary == null) ||
+					!_isAssetVocabularyAvailable(
+						assetVocabulary.getVocabularyId(), groupId)) {
+
+					throw new ObjectEntryGroupIdException.
+						InvalidGroupIdForAssetCategoryBrief(
+							externalReferenceCode);
+				}
+			}
 
 			try {
 				String parentTaxonomyCategoryExternalReferenceCode = null;
@@ -218,7 +321,7 @@ public class ServiceContextUtil {
 
 				AssetCategory assetCategory =
 					AssetCategoryServiceUtil.getOrAddEmptyCategoryWithAncestors(
-						externalReferenceCode, groupId,
+						externalReferenceCode, scopeGroupId,
 						parentTaxonomyCategoryExternalReferenceCode,
 						parentTaxonomyVocabularyExternalReferenceCode);
 
@@ -228,7 +331,7 @@ public class ServiceContextUtil {
 				_log.error(
 					StringBundler.concat(
 						"Invalid asset category with external reference code  ",
-						externalReferenceCode, " and group ", groupId),
+						externalReferenceCode, " and group ", scopeGroupId),
 					portalException);
 
 				throw new RuntimeException(portalException);
@@ -238,6 +341,32 @@ public class ServiceContextUtil {
 		if (SetUtil.isNotEmpty(assetCategoryIds)) {
 			objectEntry.setTaxonomyCategoryIds(
 				() -> assetCategoryIds.toArray(new Long[0]));
+		}
+	}
+
+	private static void _validateAssetCategoryGroupIds(
+			long[] assetCategoryIds, long companyId, long groupId)
+		throws PortalException {
+
+		if (ArrayUtil.isEmpty(assetCategoryIds)) {
+			return;
+		}
+
+		long[] groupIds = _getAllowedGroupIds(companyId, groupId);
+
+		for (long assetCategoryId : assetCategoryIds) {
+			AssetCategory assetCategory =
+				AssetCategoryLocalServiceUtil.fetchAssetCategory(
+					assetCategoryId);
+
+			if ((assetCategory == null) ||
+				(!ArrayUtil.contains(groupIds, assetCategory.getGroupId()) &&
+				 !_isAssetVocabularyAvailable(
+					 assetCategory.getVocabularyId(), groupId))) {
+
+				throw new ObjectEntryGroupIdException.
+					InvalidGroupIdForAssetCategory(assetCategoryId);
+			}
 		}
 	}
 

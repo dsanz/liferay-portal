@@ -11,7 +11,7 @@ import fetchMock from 'fetch-mock';
 
 import AnalyticsClient from '../../src/analytics';
 import {Analytics as AnalyticsTypes} from '../../src/types';
-import {INITIAL_ANALYTICS_CONFIG, wait} from '../helpers';
+import {INITIAL_ANALYTICS_CONFIG, mockVisibleRect, wait} from '../helpers';
 
 const createElement = (tmpl: string) =>
 	new DOMParser().parseFromString(tmpl, 'text/html').body.firstChild;
@@ -21,9 +21,11 @@ const createElementTitle = () => {
 		<div data-analytics-asset-id="myDocumentId" data-analytics-asset-title="my document title" data-analytics-asset-type="${AnalyticsTypes.ElementType.FileEntry}" data-analytics-asset-action="impression">
 			this is a title
 		</div>
-	`) as AnalyticsTypes.HTMLElement;
+	`) as unknown as HTMLElement;
 
 	document.body.appendChild(node);
+
+	mockVisibleRect(node);
 
 	return node;
 };
@@ -37,6 +39,8 @@ const createFragmentWithLink = () => {
 
 	document.body.appendChild(node);
 
+	mockVisibleRect(node as unknown as HTMLElement);
+
 	return node;
 };
 
@@ -46,6 +50,22 @@ const createHeadingFragmentWithLink = () => {
 			<a href="#">
 				this is a link
 			</a>
+		</div>
+	`) as AnalyticsTypes.HTMLElement;
+
+	document.body.appendChild(node);
+
+	return node;
+};
+
+const createCardFragmentWithLink = () => {
+	const node = createElement(`
+		<div data-analytics-asset-id="myDocumentId" data-analytics-asset-title="my document with link" data-analytics-asset-type="${AnalyticsTypes.ElementType.FileEntry}" data-analytics-asset-action="download">
+			<h5>
+				<a href="#">
+					this is a link
+				</a>
+			</h5>
 		</div>
 	`) as AnalyticsTypes.HTMLElement;
 
@@ -97,12 +117,12 @@ describe('Documents Plugin', () => {
 	});
 
 	describe('documentImpressionMade event', () => {
-		it('is fired when there is a document with a title on the page', async () => {
+		it('is fired when there is a visible document with a title on the page', async () => {
 			const documentsElement = createElementTitle();
 
-			const domContentLoaded = new Event('DOMContentLoaded');
+			document.dispatchEvent(new Event('DOMContentLoaded'));
 
-			await document.dispatchEvent(domContentLoaded);
+			await wait(300);
 
 			const events = Analytics.getEvents().filter(
 				({eventId}) => eventId === 'documentImpressionMade'
@@ -125,12 +145,12 @@ describe('Documents Plugin', () => {
 			document.body.removeChild(documentsElement);
 		});
 
-		it('is fired when there is a document with a link on the page', async () => {
+		it('is fired when there is a visible document with a link on the page', async () => {
 			const documentsElement = createFragmentWithLink();
 
-			const domContentLoaded = new Event('DOMContentLoaded');
+			document.dispatchEvent(new Event('DOMContentLoaded'));
 
-			await document.dispatchEvent(domContentLoaded);
+			await wait(300);
 
 			const events = Analytics.getEvents().filter(
 				({eventId}) => eventId === 'documentImpressionMade'
@@ -163,9 +183,9 @@ describe('Documents Plugin', () => {
 			documentsElement.dataset.analyticsAssetVocabularies =
 				'[{"id":"voc1","name":"Vocabulary 1"}]';
 
-			const domContentLoaded = new Event('DOMContentLoaded');
+			document.dispatchEvent(new Event('DOMContentLoaded'));
 
-			await document.dispatchEvent(domContentLoaded);
+			await wait(300);
 
 			const events = Analytics.getEvents().filter(
 				({eventId}) => eventId === 'documentImpressionMade'
@@ -191,6 +211,54 @@ describe('Documents Plugin', () => {
 
 			document.body.removeChild(documentsElement);
 		});
+
+		it('is not fired when a document is in the viewport but hidden by CSS', async () => {
+			const documentsElement = createElementTitle();
+
+			documentsElement.style.visibility = 'hidden';
+
+			document.dispatchEvent(new Event('DOMContentLoaded'));
+
+			await wait(300);
+
+			const events = Analytics.getEvents().filter(
+				({eventId}) => eventId === 'documentImpressionMade'
+			);
+
+			expect(events.length).toBe(0);
+
+			document.body.removeChild(documentsElement);
+		});
+
+		it('is fired when a hidden document becomes visible after a reveal event', async () => {
+			const documentsElement = createElementTitle();
+
+			documentsElement.style.visibility = 'hidden';
+
+			document.dispatchEvent(new Event('DOMContentLoaded'));
+
+			await wait(300);
+
+			expect(
+				Analytics.getEvents().filter(
+					({eventId}) => eventId === 'documentImpressionMade'
+				).length
+			).toBe(0);
+
+			documentsElement.style.visibility = 'visible';
+
+			documentsElement.dispatchEvent(new Event('click', {bubbles: true}));
+
+			await wait(300);
+
+			expect(
+				Analytics.getEvents().filter(
+					({eventId}) => eventId === 'documentImpressionMade'
+				).length
+			).toBe(1);
+
+			document.body.removeChild(documentsElement);
+		});
 	});
 
 	describe('documentDownloaded event', () => {
@@ -198,6 +266,28 @@ describe('Documents Plugin', () => {
 			const documentsElement = createFragmentWithLink();
 
 			await userEvent.click(documentsElement);
+
+			expect(Analytics.getEvents()).toEqual([
+				expect.objectContaining({
+					applicationId: 'Document',
+					eventId: 'documentDownloaded',
+					properties: expect.objectContaining({
+						fileEntryId: 'myDocumentId',
+						title: 'my document with link',
+						type: AnalyticsTypes.ElementType.FileEntry,
+					}),
+				}),
+			]);
+
+			document.body.removeChild(documentsElement);
+		});
+
+		it('is fired when clicking in a card fragment with a nested link', async () => {
+			const documentsElement = createCardFragmentWithLink();
+
+			await userEvent.click(
+				documentsElement.querySelector('a') as HTMLElement
+			);
 
 			expect(Analytics.getEvents()).toEqual([
 				expect.objectContaining({
@@ -310,6 +400,8 @@ describe('Documents Plugin', () => {
 			documentElement.appendChild(linkElement);
 			document.body.appendChild(documentElement);
 
+			mockVisibleRect(documentElement as unknown as HTMLElement);
+
 			return documentElement;
 		};
 
@@ -341,6 +433,10 @@ describe('Documents Plugin', () => {
 			{
 				action: AnalyticsTypes.ElementAction.Download,
 				eventId: AnalyticsTypes.EventId.DocumentImpressionMade,
+			},
+			{
+				action: AnalyticsTypes.ElementAction.View,
+				eventId: AnalyticsTypes.EventId.DocumentPreviewed,
 			},
 		].forEach(async (props) => {
 			it(`is fired ${props.eventId} when view a document with action ${props.action} and type: ${AnalyticsTypes.ElementType.FileEntry}`, async () => {

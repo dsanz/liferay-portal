@@ -26,7 +26,8 @@ public class DepotRolesConstantsTest {
 	public void testGetSubtype() {
 		Assert.assertNull(
 			DepotRolesConstants.getSubtype(DepotConstants.TYPE_ASSET_LIBRARY));
-		Assert.assertNull(
+		Assert.assertEquals(
+			DepotRolesConstants.SUBTYPE_DESIGN_LIBRARY,
 			DepotRolesConstants.getSubtype(DepotConstants.TYPE_DESIGN_LIBRARY));
 		Assert.assertEquals(
 			DepotRolesConstants.SUBTYPE_PROJECT,

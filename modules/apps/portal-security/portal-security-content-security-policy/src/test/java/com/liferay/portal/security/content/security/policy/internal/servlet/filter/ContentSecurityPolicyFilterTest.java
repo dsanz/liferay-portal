@@ -11,6 +11,7 @@ import com.liferay.portal.security.content.security.policy.internal.configuratio
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -32,27 +33,53 @@ public class ContentSecurityPolicyFilterTest {
 
 	@Before
 	public void setUp() {
-		_contentSecurityPolicyConfiguration = Mockito.mock(
-			ContentSecurityPolicyConfiguration.class);
-
-		Mockito.when(
-			_contentSecurityPolicyConfiguration.excludedPaths()
-		).thenReturn(
-			new String[] {"/group"}
-		);
-
 		_contentSecurityPolicyFilter = new ContentSecurityPolicyFilter();
 	}
 
 	@Test
 	public void testIsExcludedURIPath() {
-		_testIsExcludedURIPath(false, null, "/c/portal/layout");
-		_testIsExcludedURIPath(true, "/group/guest/home", "/c/portal/layout");
-		_testIsExcludedURIPath(true, null, "/group/guest/home");
+		_testIsExcludedURIPath(
+			new String[] {"/group"}, false, null, "/c/portal/layout");
+		_testIsExcludedURIPath(
+			new String[] {"/group"}, false, "/web/mysite/home",
+			"/c/portal/layout");
+		_testIsExcludedURIPath(
+			new String[] {"/group"}, true, "/group/guest/home",
+			"/c/portal/layout");
+		_testIsExcludedURIPath(
+			new String[] {"/group"}, true, null, "/group/guest/home");
+		_testIsExcludedURIPath(new String[0], true, null, "/GROUP/guest/home");
+	}
+
+	@Test
+	public void testIsFilterEnabledSkipsAlreadyFilteredRequest() {
+		HttpServletRequest httpServletRequest = Mockito.mock(
+			HttpServletRequest.class);
+
+		Mockito.when(
+			httpServletRequest.getAttribute(
+				ContentSecurityPolicyFilter.SKIP_FILTER)
+		).thenReturn(
+			Boolean.TRUE
+		);
+
+		Assert.assertFalse(
+			_contentSecurityPolicyFilter.isFilterEnabled(
+				httpServletRequest, Mockito.mock(HttpServletResponse.class)));
 	}
 
 	private void _testIsExcludedURIPath(
-		boolean excludedURIPath, String forwardRequestURI, String requestURI) {
+		String[] excludedPaths, boolean excludedURIPath,
+		String forwardRequestURI, String requestURI) {
+
+		ContentSecurityPolicyConfiguration contentSecurityPolicyConfiguration =
+			Mockito.mock(ContentSecurityPolicyConfiguration.class);
+
+		Mockito.when(
+			contentSecurityPolicyConfiguration.excludedPaths()
+		).thenReturn(
+			excludedPaths
+		);
 
 		HttpServletRequest httpServletRequest = Mockito.mock(
 			HttpServletRequest.class);
@@ -78,11 +105,9 @@ public class ContentSecurityPolicyFilterTest {
 					ContentSecurityPolicyConfiguration.class,
 					HttpServletRequest.class
 				},
-				_contentSecurityPolicyConfiguration, httpServletRequest));
+				contentSecurityPolicyConfiguration, httpServletRequest));
 	}
 
-	private ContentSecurityPolicyConfiguration
-		_contentSecurityPolicyConfiguration;
 	private ContentSecurityPolicyFilter _contentSecurityPolicyFilter;
 
 }

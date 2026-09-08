@@ -5,6 +5,7 @@
 
 import Label from '@clayui/label';
 import ClayPanel from '@clayui/panel';
+import {AIAssistantTriggerButton} from '@liferay/ai-hub-cell-js-components-web';
 import {ItemSelector} from '@liferay/frontend-js-item-selector-web';
 import classNames from 'classnames';
 import {sub} from 'frontend-js-web';
@@ -13,8 +14,13 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import ApiHelper from '../../../common/services/ApiHelper';
 import TagService from '../../../common/services/TagService';
 import {IAssetObjectEntry} from '../../../common/types/AssetType';
+import {AI_ASSISTANT_TOOLBAR_TRIGGER_ID} from '../../../common/utils/constants';
 import {EntryCategorizationDTO} from '../services/ObjectEntryService';
 import {CategorizationInputSize} from './AssetCategorization';
+import {
+	CATEGORIZE_EVENT,
+	GENERATE_TAGS_AGENT,
+} from './categorizationAgentEvents';
 
 type TKeyword = {
 	name: string;
@@ -24,6 +30,7 @@ const AssetTags = ({
 	assetLibraryId,
 	cmsGroupId,
 	collapsable = true,
+	getContent,
 	hasUpdatePermission,
 	inputSize,
 	objectEntry,
@@ -33,6 +40,9 @@ const AssetTags = ({
 	assetLibraryId?: number | string | null | undefined;
 	cmsGroupId: number | string;
 	collapsable?: boolean;
+	getContent?: (
+		objectDefinitionExternalReferenceCode?: string
+	) => Promise<string>;
 	hasUpdatePermission?: boolean;
 	inputSize?: CategorizationInputSize;
 	objectEntry: IAssetObjectEntry | EntryCategorizationDTO;
@@ -53,7 +63,7 @@ const AssetTags = ({
 	const apiURL = useMemo(() => {
 		const baseURL = `${Liferay.ThemeDisplay.getPortalURL()}/o/headless-admin-taxonomy/v1.0/sites`;
 
-		if (scopeId >= 0) {
+		if (scopeId > 0) {
 			return `${baseURL}/${scopeId}/keywords`;
 		}
 
@@ -133,6 +143,21 @@ const AssetTags = ({
 		[objectEntry, updateObjectEntry]
 	);
 
+	const handleGenerateTags = useCallback(async () => {
+		Liferay.fire(CATEGORIZE_EVENT, {
+			agent: GENERATE_TAGS_AGENT,
+			cmsGroupId,
+			content:
+				(await getContent?.(
+					(objectEntry as IAssetObjectEntry).systemProperties
+						?.objectDefinitionBrief?.externalReferenceCode
+				)) ||
+				(objectEntry as IAssetObjectEntry).contentRawText ||
+				'',
+			scopeId,
+		});
+	}, [cmsGroupId, getContent, objectEntry, scopeId]);
+
 	return (
 		<ClayPanel
 			collapsable={collapsable}
@@ -151,52 +176,77 @@ const AssetTags = ({
 			showCollapseIcon={collapsable}
 		>
 			<ClayPanel.Body>
-				<ItemSelector<TKeyword>
-					apiURL={apiURL}
-					disabled={!hasUpdatePermission}
-					items={selectedKeywords}
-					locator={{
-						id: 'id',
-						label: 'name',
-						value: 'name',
-					}}
-					onChange={setValue}
-					onItemsChange={(newItems: TKeyword[]) => {
-						if (newItems[0]) {
-							addKeyword(newItems[0]);
+				<div className="align-items-end d-flex">
+					<div className="flex-grow-1">
+						<ItemSelector<TKeyword>
+							apiURL={apiURL}
+							disabled={!hasUpdatePermission}
+							items={selectedKeywords}
+							locator={{
+								id: 'id',
+								label: 'name',
+								value: 'name',
+							}}
+							onChange={setValue}
+							onItemsChange={(newItems: TKeyword[]) => {
+								if (newItems[0]) {
+									addKeyword(newItems[0]);
 
-							// The reason for this timeout is because of react's
-							// batch rendering. Clay internals set the value of
-							// the input, but we need to wait for the next 'tick' to set the value.
+									// The reason for this timeout is because of react's
+									// batch rendering. Clay internals set the value of
+									// the input, but we need to wait for the next 'tick' to set the value.
 
-							setTimeout(() => setValue(''));
-						}
-					}}
-					placeholder={Liferay.Language.get('add-tag')}
-					primaryAction={
-						canCreate &&
-						!!value.length &&
-						!(objectEntry?.keywords || []).includes(value) && {
-							label: sub(
-								Liferay.Language.get('create-new-tag-x'),
-								value
-							),
-							onClick: createAndAddKeyword,
-						}
-					}
-					refetchOnActive
-					sizing={inputSize}
-					value={value}
-				>
-					{(item) => (
-						<ItemSelector.Item
-							key={item.name}
-							textValue={item.name}
+									setTimeout(() => setValue(''));
+								}
+							}}
+							placeholder={Liferay.Language.get('add-tag')}
+							primaryAction={
+								canCreate &&
+								!!value.length &&
+								!(objectEntry?.keywords || []).includes(
+									value
+								) && {
+									label: sub(
+										Liferay.Language.get(
+											'create-new-tag-x'
+										),
+										value
+									),
+									onClick: createAndAddKeyword,
+								}
+							}
+							refetchOnActive
+							sizing={inputSize}
+							value={value}
 						>
-							{item.name}
-						</ItemSelector.Item>
-					)}
-				</ItemSelector>
+							{(item) => (
+								<ItemSelector.Item
+									key={item.name}
+									textValue={item.name}
+								>
+									{item.name}
+								</ItemSelector.Item>
+							)}
+						</ItemSelector>
+					</div>
+
+					{Liferay.FeatureFlags?.['LPD-62272'] &&
+					hasUpdatePermission &&
+					(getContent ||
+						(objectEntry as IAssetObjectEntry).contentRawText) ? (
+						<AIAssistantTriggerButton
+							anchorId={AI_ASSISTANT_TOOLBAR_TRIGGER_ID}
+							className="ai-assistant-chat__trigger--categorization ml-2"
+							hideLabel
+							instructionDefinitionScope="cms"
+							label={Liferay.Language.get(
+								'generate-tags-with-ai'
+							)}
+							onOpen={handleGenerateTags}
+							presentation="dropdown"
+						/>
+					) : null}
+				</div>
 
 				<div className="asset-tags mt-3">
 					{objectEntry?.keywords?.map((keyword, index) => {

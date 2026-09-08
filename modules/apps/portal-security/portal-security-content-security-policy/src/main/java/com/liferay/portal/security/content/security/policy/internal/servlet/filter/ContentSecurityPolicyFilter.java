@@ -9,6 +9,7 @@ import com.liferay.portal.configuration.module.configuration.ConfigurationProvid
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.JavaConstants;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -47,10 +48,17 @@ import org.osgi.service.component.annotations.Reference;
 )
 public class ContentSecurityPolicyFilter extends BasePortalFilter {
 
+	public static final String SKIP_FILTER =
+		ContentSecurityPolicyFilter.class.getName() + "#SKIP_FILTER";
+
 	@Override
 	public boolean isFilterEnabled(
 		HttpServletRequest httpServletRequest,
 		HttpServletResponse httpServletResponse) {
+
+		if (httpServletRequest.getAttribute(SKIP_FILTER) != null) {
+			return false;
+		}
 
 		if (CompanyThreadLocal.getCompanyId() == 0) {
 			if (_log.isDebugEnabled()) {
@@ -83,6 +91,8 @@ public class ContentSecurityPolicyFilter extends BasePortalFilter {
 			HttpServletRequest httpServletRequest,
 			HttpServletResponse httpServletResponse, FilterChain filterChain)
 		throws Exception {
+
+		httpServletRequest.setAttribute(SKIP_FILTER, Boolean.TRUE);
 
 		String nonce = _contentSecurityPolicyNonceManager.setNonce(
 			httpServletRequest);
@@ -120,24 +130,28 @@ public class ContentSecurityPolicyFilter extends BasePortalFilter {
 		ContentSecurityPolicyConfiguration contentSecurityPolicyConfiguration,
 		HttpServletRequest httpServletRequest) {
 
-		String requestURI = (String)httpServletRequest.getAttribute(
-			JavaConstants.JAKARTA_SERVLET_FORWARD_REQUEST_URI);
+		String requestURI = httpServletRequest.getRequestURI();
 
-		if (Validator.isNull(requestURI)) {
-			requestURI = httpServletRequest.getRequestURI();
+		if (Validator.isNotNull(requestURI)) {
+			requestURI = StringUtil.toLowerCase(requestURI);
+
+			for (String internallyExcludedPath : _INTERNALLY_EXCLUDED_PATHS) {
+				if (Validator.isNotNull(internallyExcludedPath) &&
+					requestURI.startsWith(
+						StringUtil.toLowerCase(internallyExcludedPath))) {
+
+					return true;
+				}
+			}
 		}
+
+		requestURI = GetterUtil.getString(
+			httpServletRequest.getAttribute(
+				JavaConstants.JAKARTA_SERVLET_FORWARD_REQUEST_URI),
+			requestURI);
 
 		if (Validator.isNull(requestURI)) {
 			return false;
-		}
-
-		for (String internallyExcludedPath : _INTERNALLY_EXCLUDED_PATHS) {
-			if (Validator.isNotNull(internallyExcludedPath) &&
-				requestURI.startsWith(
-					StringUtil.toLowerCase(internallyExcludedPath))) {
-
-				return true;
-			}
 		}
 
 		requestURI = StringUtil.toLowerCase(requestURI);

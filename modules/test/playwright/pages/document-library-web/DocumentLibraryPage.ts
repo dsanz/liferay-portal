@@ -16,6 +16,8 @@ export type TVocabularyCategory = {
 
 export class DocumentLibraryPage {
 	readonly exportImportOptionsMenuItem: Locator;
+	readonly filterButton: Locator;
+	readonly filterByCategoriesFrameLocator: FrameLocator;
 	readonly infoPanel: Locator;
 	readonly infoPanelButton: Locator;
 	readonly infoPanelTab: Locator;
@@ -30,6 +32,10 @@ export class DocumentLibraryPage {
 		this.exportImportOptionsMenuItem = page.getByRole('menuitem', {
 			name: 'Export / Import',
 		});
+		this.filterButton = page.getByLabel('Filter', {exact: true});
+		this.filterByCategoriesFrameLocator = page.frameLocator(
+			'iframe[title="Filter by Categories"]'
+		);
 		this.infoPanel = page.getByLabel('Info Panel');
 		this.infoPanelButton = page.locator(
 			'[id="_com_liferay_document_library_web_portlet_DLAdminPortlet_infoPanelId_trigger"]'
@@ -101,15 +107,27 @@ export class DocumentLibraryPage {
 	}
 
 	async changeView(viewName: string) {
+		const trigger = this.page.getByLabel(
+			'Select View, Currently Selected: '
+		);
+
+		await trigger.waitFor({state: 'visible'});
+
+		const currentViewLabel = this.page.getByLabel(
+			`Select View, Currently Selected: ${viewName}`
+		);
+
+		if (await currentViewLabel.isVisible()) {
+			return;
+		}
+
 		await clickAndExpectToBeVisible({
 			autoClick: true,
 			target: this.page.getByRole('menuitem', {name: viewName}),
-			trigger: this.page.getByLabel('Select View, Currently Selected: '),
+			trigger,
 		});
 
-		await expect(
-			this.page.getByLabel(`Select View, Currently Selected: ${viewName}`)
-		).toBeVisible();
+		await expect(currentViewLabel).toBeVisible();
 	}
 
 	async deleteAllFileEntries() {
@@ -284,6 +302,35 @@ export class DocumentLibraryPage {
 		});
 	}
 
+	async assertFileEntryActionAbsent(action: string, entryTitle: string) {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {
+				exact: true,
+				name: 'Delete',
+			}),
+			trigger: this.page
+				.locator(`.card-body:has-text('${entryTitle}')`)
+				.getByLabel('Actions'),
+		});
+
+		await expect(
+			this.page.getByRole('menuitem', {exact: true, name: action})
+		).toBeHidden();
+	}
+
+	async moveFolderToRecycleBin(folderName: string) {
+		await this.goToFolderAction('Delete', folderName);
+
+		await waitForAlert(this.page, 'was moved to the Recycle Bin');
+	}
+
+	async moveToRecycleBin(entryTitle: string) {
+		await this.goToFileEntryAction('Delete', entryTitle);
+
+		await waitForAlert(this.page, 'was moved to the Recycle Bin');
+	}
+
 	async openBulkEditCategoriesModal(titles: string[]) {
 		await this.selectFileEntries(titles);
 		await this.page.getByRole('button', {name: 'Edit Categories'}).click();
@@ -300,6 +347,14 @@ export class DocumentLibraryPage {
 				name: 'Create AI Image',
 			})
 			.click();
+	}
+
+	async openFilter(filterName: string) {
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {name: filterName}),
+			trigger: this.filterButton,
+		});
 	}
 
 	async openNewButton() {
@@ -333,8 +388,9 @@ export class DocumentLibraryPage {
 		for (const vocabularyCategory of vocabularyCategories) {
 			for (const categoryName of vocabularyCategory.categoryNames) {
 				await this.page
-					.getByLabel(vocabularyCategory.vocabularyName, {
+					.getByRole('combobox', {
 						exact: true,
+						name: vocabularyCategory.vocabularyName,
 					})
 					.fill(categoryName);
 				await this.page

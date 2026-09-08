@@ -7,6 +7,7 @@ package com.liferay.headless.admin.taxonomy.client.serdes.v1_0;
 
 import com.liferay.headless.admin.taxonomy.client.dto.v1_0.AssetLibrary;
 import com.liferay.headless.admin.taxonomy.client.dto.v1_0.AssetType;
+import com.liferay.headless.admin.taxonomy.client.dto.v1_0.Project;
 import com.liferay.headless.admin.taxonomy.client.dto.v1_0.TaxonomyVocabulary;
 import com.liferay.headless.admin.taxonomy.client.json.BaseJSONParser;
 
@@ -305,6 +306,26 @@ public class TaxonomyVocabularySerDes {
 			sb.append("]");
 		}
 
+		if (taxonomyVocabulary.getProjects() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"projects\": ");
+
+			sb.append("[");
+
+			for (int i = 0; i < taxonomyVocabulary.getProjects().length; i++) {
+				sb.append(String.valueOf(taxonomyVocabulary.getProjects()[i]));
+
+				if ((i + 1) < taxonomyVocabulary.getProjects().length) {
+					sb.append(", ");
+				}
+			}
+
+			sb.append("]");
+		}
+
 		if (taxonomyVocabulary.getSiteExternalReferenceCode() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -328,6 +349,16 @@ public class TaxonomyVocabularySerDes {
 			sb.append("\"siteId\": ");
 
 			sb.append(taxonomyVocabulary.getSiteId());
+		}
+
+		if (taxonomyVocabulary.getSystem() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"system\": ");
+
+			sb.append(taxonomyVocabulary.getSystem());
 		}
 
 		if (taxonomyVocabulary.getUuid() != null) {
@@ -539,6 +570,14 @@ public class TaxonomyVocabularySerDes {
 				String.valueOf(taxonomyVocabulary.getPermissions()));
 		}
 
+		if (taxonomyVocabulary.getProjects() == null) {
+			map.put("projects", null);
+		}
+		else {
+			map.put(
+				"projects", String.valueOf(taxonomyVocabulary.getProjects()));
+		}
+
 		if (taxonomyVocabulary.getSiteExternalReferenceCode() == null) {
 			map.put("siteExternalReferenceCode", null);
 		}
@@ -554,6 +593,13 @@ public class TaxonomyVocabularySerDes {
 		}
 		else {
 			map.put("siteId", String.valueOf(taxonomyVocabulary.getSiteId()));
+		}
+
+		if (taxonomyVocabulary.getSystem() == null) {
+			map.put("system", null);
+		}
+		else {
+			map.put("system", String.valueOf(taxonomyVocabulary.getSystem()));
 		}
 
 		if (taxonomyVocabulary.getUuid() == null) {
@@ -656,12 +702,18 @@ public class TaxonomyVocabularySerDes {
 			else if (Objects.equals(jsonParserFieldName, "permissions")) {
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "projects")) {
+				return false;
+			}
 			else if (Objects.equals(
 						jsonParserFieldName, "siteExternalReferenceCode")) {
 
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "siteId")) {
+				return false;
+			}
+			else if (Objects.equals(jsonParserFieldName, "system")) {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "uuid")) {
@@ -823,6 +875,22 @@ public class TaxonomyVocabularySerDes {
 					taxonomyVocabulary.setPermissions(permissionsArray);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "projects")) {
+				if (jsonParserFieldValue != null) {
+					Object[] jsonParserFieldValues =
+						(Object[])jsonParserFieldValue;
+
+					Project[] projectsArray =
+						new Project[jsonParserFieldValues.length];
+
+					for (int i = 0; i < projectsArray.length; i++) {
+						projectsArray[i] = ProjectSerDes.toDTO(
+							(String)jsonParserFieldValues[i]);
+					}
+
+					taxonomyVocabulary.setProjects(projectsArray);
+				}
+			}
 			else if (Objects.equals(
 						jsonParserFieldName, "siteExternalReferenceCode")) {
 
@@ -835,6 +903,11 @@ public class TaxonomyVocabularySerDes {
 				if (jsonParserFieldValue != null) {
 					taxonomyVocabulary.setSiteId(
 						Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "system")) {
+				if (jsonParserFieldValue != null) {
+					taxonomyVocabulary.setSystem((Boolean)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "uuid")) {
@@ -937,4 +1010,4 @@ public class TaxonomyVocabularySerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1582454682
+// LIFERAY-REST-BUILDER-HASH:85600847

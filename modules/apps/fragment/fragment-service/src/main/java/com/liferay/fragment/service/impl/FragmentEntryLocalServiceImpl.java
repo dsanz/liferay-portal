@@ -5,8 +5,13 @@
 
 package com.liferay.fragment.service.impl;
 
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.model.DepotEntryGroupRel;
+import com.liferay.depot.service.DepotEntryGroupRelLocalService;
+import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.document.library.kernel.service.DLAppLocalService;
 import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
+import com.liferay.fragment.configuration.FragmentEntryVersionConfiguration;
 import com.liferay.fragment.configuration.FragmentServiceConfiguration;
 import com.liferay.fragment.constants.FragmentPortletKeys;
 import com.liferay.fragment.exception.DuplicateFragmentEntryKeyException;
@@ -16,11 +21,13 @@ import com.liferay.fragment.exception.RequiredFragmentEntryException;
 import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.fragment.model.FragmentEntry;
 import com.liferay.fragment.model.FragmentEntryLink;
+import com.liferay.fragment.model.FragmentEntryVersion;
 import com.liferay.fragment.processor.FragmentEntryProcessorRegistry;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.fragment.service.base.FragmentEntryLocalServiceBaseImpl;
 import com.liferay.fragment.service.persistence.FragmentCollectionPersistence;
 import com.liferay.fragment.validator.FragmentEntryValidator;
+import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
@@ -385,9 +392,18 @@ public class FragmentEntryLocalServiceImpl
 	public FragmentEntry fetchFragmentEntry(
 		long groupId, String fragmentEntryKey) {
 
+		fragmentEntryKey = _getFragmentEntryKey(fragmentEntryKey);
+
+		int fragmentEntryKeyMaxLength = ModelHintsUtil.getMaxLength(
+			FragmentEntry.class.getName(), "fragmentEntryKey");
+
+		if (fragmentEntryKey.length() > fragmentEntryKeyMaxLength) {
+			return null;
+		}
+
 		FragmentEntry fragmentEntry =
 			fragmentEntryPersistence.fetchByG_FEK_First(
-				groupId, _getFragmentEntryKey(fragmentEntryKey), null);
+				groupId, fragmentEntryKey, null);
 
 		if (fragmentEntry == null) {
 			return null;
@@ -895,6 +911,46 @@ public class FragmentEntryLocalServiceImpl
 		}
 	}
 
+	private void _deleteExcessFragmentEntryVersions(FragmentEntry fragmentEntry)
+		throws PortalException {
+
+		FragmentEntryVersionConfiguration fragmentEntryVersionConfiguration =
+			_configurationProvider.getCompanyConfiguration(
+				FragmentEntryVersionConfiguration.class,
+				fragmentEntry.getCompanyId());
+
+		int maximumVersionsPerEntry =
+			fragmentEntryVersionConfiguration.maximumVersionsPerEntry();
+
+		if (maximumVersionsPerEntry <= 0) {
+			return;
+		}
+
+		int count = fragmentEntryVersionPersistence.countByFragmentEntryId(
+			fragmentEntry.getFragmentEntryId());
+
+		if (count <= maximumVersionsPerEntry) {
+			return;
+		}
+
+		List<FragmentEntryVersion> fragmentEntryVersions = getVersions(
+			fragmentEntry);
+
+		for (int i = maximumVersionsPerEntry; i < fragmentEntryVersions.size();
+			 i++) {
+
+			deleteVersion(fragmentEntryVersions.get(i));
+		}
+	}
+
+	private DepotEntry _fetchGroupDepotEntry(Group group) {
+		if (!group.isDepot()) {
+			return null;
+		}
+
+		return _depotEntryLocalService.fetchGroupDepotEntry(group.getGroupId());
+	}
+
 	private Map<String, FileEntry> _getFileEntries(
 		long fragmentCollectionId, FragmentEntry fragmentEntry) {
 
@@ -933,8 +989,10 @@ public class FragmentEntryLocalServiceImpl
 			long userId)
 		throws Exception {
 
-		if (folderIdMap.containsKey(folderPath)) {
-			return folderIdMap.get(folderPath);
+		Long folderId = folderIdMap.get(folderPath);
+
+		if (folderId != null) {
+			return folderId;
 		}
 
 		String folderName = folderPath;
@@ -981,14 +1039,28 @@ public class FragmentEntryLocalServiceImpl
 	private void _propagateChanges(FragmentEntry fragmentEntry)
 		throws PortalException {
 
+		Group group = _groupLocalService.getGroup(fragmentEntry.getGroupId());
+
 		ActionableDynamicQuery actionableDynamicQuery =
 			_fragmentEntryLinkLocalService.getActionableDynamicQuery();
-
-		Group group = _groupLocalService.getGroup(fragmentEntry.getGroupId());
 
 		actionableDynamicQuery.setAddCriteriaMethod(
 			dynamicQuery -> {
 				Conjunction conjunction = RestrictionsFactoryUtil.conjunction();
+
+				DepotEntry depotEntry = _fetchGroupDepotEntry(group);
+
+				if (depotEntry != null) {
+					List<Long> groupIds = TransformUtil.transform(
+						_depotEntryGroupRelLocalService.getDepotEntryGroupRels(
+							depotEntry),
+						DepotEntryGroupRel::getToGroupId);
+
+					groupIds.add(group.getGroupId());
+
+					conjunction.add(
+						RestrictionsFactoryUtil.in("groupId", groupIds));
+				}
 
 				conjunction.add(
 					RestrictionsFactoryUtil.eq(
@@ -1054,6 +1126,8 @@ public class FragmentEntryLocalServiceImpl
 
 		FragmentEntry updatedPublishedFragmentEntry = super.publishDraft(
 			draftFragmentEntry);
+
+		_deleteExcessFragmentEntryVersions(updatedPublishedFragmentEntry);
 
 		FragmentServiceConfiguration fragmentServiceConfiguration =
 			_configurationProvider.getCompanyConfiguration(
@@ -1124,6 +1198,12 @@ public class FragmentEntryLocalServiceImpl
 
 	@Reference
 	private CustomSQL _customSQL;
+
+	@Reference
+	private DepotEntryGroupRelLocalService _depotEntryGroupRelLocalService;
+
+	@Reference
+	private DepotEntryLocalService _depotEntryLocalService;
 
 	@Reference
 	private DLAppLocalService _dlAppLocalService;

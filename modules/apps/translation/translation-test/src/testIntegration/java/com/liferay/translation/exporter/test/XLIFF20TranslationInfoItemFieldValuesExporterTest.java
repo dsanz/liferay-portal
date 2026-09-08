@@ -45,6 +45,35 @@ public class XLIFF20TranslationInfoItemFieldValuesExporterTest {
 	}
 
 	@Test
+	public void testExportReturnsEmptyTargetForUntranslatedField()
+		throws Exception {
+
+		InfoItemFieldValuesProvider<JournalArticle>
+			infoItemFieldValuesProvider =
+				(InfoItemFieldValuesProvider<JournalArticle>)
+					_infoItemServiceRegistry.getFirstInfoItemService(
+						InfoItemFieldValuesProvider.class,
+						JournalArticle.class.getName());
+
+		String xliff = StreamUtil.toString(
+			_xliffTranslationInfoItemFieldValuesExporter.
+				exportInfoItemFieldValues(
+					infoItemFieldValuesProvider.getInfoItemFieldValues(
+						TranslationTestUtil.getJournalArticle(
+							_group, _ddmFormDeserializer)),
+					LocaleUtil.getDefault(),
+					LocaleUtil.fromLanguageId("es_ES")));
+
+		Assert.assertTrue(
+			xliff, xliff.contains("<![CDATA[Test Article]]></source>"));
+		Assert.assertFalse(
+			xliff, xliff.contains("<![CDATA[Test Article]]></target>"));
+		Assert.assertTrue(xliff, xliff.contains("<target></target>"));
+		Assert.assertTrue(
+			xliff, xliff.contains("<![CDATA[Un poco de texto]]></target>"));
+	}
+
+	@Test
 	public void testExportReturnsTheXLIFFRepresentationOfAJournalArticle()
 		throws Exception {
 
@@ -59,18 +88,20 @@ public class XLIFF20TranslationInfoItemFieldValuesExporterTest {
 			_group, _ddmFormDeserializer);
 
 		Assert.assertEquals(
-			StringUtil.replace(
-				TranslationTestUtil.readFileToString(
-					"test-journal-article.xlf"),
-				"[$JOURNAL_ARTICLE_ID$]",
-				String.valueOf(journalArticle.getResourcePrimKey())),
-			StreamUtil.toString(
-				_xliffTranslationInfoItemFieldValuesExporter.
-					exportInfoItemFieldValues(
-						infoItemFieldValuesProvider.getInfoItemFieldValues(
-							journalArticle),
-						LocaleUtil.getDefault(),
-						LocaleUtil.fromLanguageId("es_ES"))));
+			TranslationTestUtil.toFormattedString(
+				StringUtil.replace(
+					TranslationTestUtil.readFileToString(
+						"test-journal-article.xlf"),
+					"[$JOURNAL_ARTICLE_ID$]",
+					String.valueOf(journalArticle.getResourcePrimKey()))),
+			TranslationTestUtil.toFormattedString(
+				StreamUtil.toString(
+					_xliffTranslationInfoItemFieldValuesExporter.
+						exportInfoItemFieldValues(
+							infoItemFieldValuesProvider.getInfoItemFieldValues(
+								journalArticle),
+							LocaleUtil.getDefault(),
+							LocaleUtil.fromLanguageId("es_ES")))));
 	}
 
 	@Inject(filter = "ddm.form.deserializer.type=json")

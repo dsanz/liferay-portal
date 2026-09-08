@@ -24,6 +24,8 @@ import com.liferay.portal.kernel.dao.search.EmptyOnClickRowChecker;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.portlet.SearchOrderByUtil;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
@@ -102,18 +104,14 @@ public class FragmentEntryLinkDisplayContext {
 	public String getFragmentEntryLinkName(
 		FragmentEntryLink fragmentEntryLink) {
 
-		long layoutPageTemplateEntryPlid = fragmentEntryLink.getPlid();
+		Layout layout = _fetchLayout(fragmentEntryLink);
 
-		Layout layout = LayoutLocalServiceUtil.fetchLayout(
-			fragmentEntryLink.getPlid());
-
-		if (layout.isDraftLayout()) {
-			layoutPageTemplateEntryPlid = layout.getClassPK();
+		if (layout == null) {
+			return StringPool.BLANK;
 		}
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
-			LayoutPageTemplateEntryLocalServiceUtil.
-				fetchLayoutPageTemplateEntryByPlid(layoutPageTemplateEntryPlid);
+			_fetchLayoutPageTemplateEntry(layout);
 
 		ThemeDisplay themeDisplay = _getThemeDisplay();
 
@@ -138,18 +136,14 @@ public class FragmentEntryLinkDisplayContext {
 	public String getFragmentEntryLinkTypeLabel(
 		FragmentEntryLink fragmentEntryLink) {
 
-		long layoutPageTemplateEntryPlid = fragmentEntryLink.getPlid();
+		Layout layout = _fetchLayout(fragmentEntryLink);
 
-		Layout layout = LayoutLocalServiceUtil.fetchLayout(
-			fragmentEntryLink.getPlid());
-
-		if (layout.isDraftLayout()) {
-			layoutPageTemplateEntryPlid = layout.getClassPK();
+		if (layout == null) {
+			return StringPool.BLANK;
 		}
 
 		LayoutPageTemplateEntry layoutPageTemplateEntry =
-			LayoutPageTemplateEntryLocalServiceUtil.
-				fetchLayoutPageTemplateEntryByPlid(layoutPageTemplateEntryPlid);
+			_fetchLayoutPageTemplateEntry(layout);
 
 		if (layoutPageTemplateEntry != null) {
 			if (layoutPageTemplateEntry.getType() ==
@@ -462,6 +456,34 @@ public class FragmentEntryLinkDisplayContext {
 		).build();
 	}
 
+	private Layout _fetchLayout(FragmentEntryLink fragmentEntryLink) {
+		Layout layout = LayoutLocalServiceUtil.fetchLayout(
+			fragmentEntryLink.getPlid());
+
+		if ((layout == null) && _log.isWarnEnabled()) {
+			_log.warn(
+				StringBundler.concat(
+					"Unable to find layout with PLID ",
+					fragmentEntryLink.getPlid(), " for fragment entry link ",
+					fragmentEntryLink.getFragmentEntryLinkId()));
+		}
+
+		return layout;
+	}
+
+	private LayoutPageTemplateEntry _fetchLayoutPageTemplateEntry(
+		Layout layout) {
+
+		long layoutPageTemplateEntryPlid = layout.getPlid();
+
+		if (layout.isDraftLayout()) {
+			layoutPageTemplateEntryPlid = layout.getClassPK();
+		}
+
+		return LayoutPageTemplateEntryLocalServiceUtil.
+			fetchLayoutPageTemplateEntryByPlid(layoutPageTemplateEntryPlid);
+	}
+
 	private long _getScopeGroupId() {
 		ThemeDisplay themeDisplay = _getThemeDisplay();
 
@@ -478,6 +500,9 @@ public class FragmentEntryLinkDisplayContext {
 
 		return _themeDisplay;
 	}
+
+	private static final Log _log = LogFactoryUtil.getLog(
+		FragmentEntryLinkDisplayContext.class);
 
 	private Long _fragmentCollectionId;
 	private FragmentEntry _fragmentEntry;

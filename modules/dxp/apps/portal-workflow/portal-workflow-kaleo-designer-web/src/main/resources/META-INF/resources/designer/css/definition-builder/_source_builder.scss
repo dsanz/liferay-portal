@@ -15,11 +15,11 @@
 }
 
 .source-toolbar {
-	background-color: white;
+	background-color: $white;
 
 	.error {
 		span {
-			color: red;
+			color: $danger;
 			font-size: 16px;
 			font-weight: normal;
 		}
@@ -47,7 +47,7 @@
 	}
 
 	span {
-		color: #272833;
+		color: $dark;
 		font-size: 20px;
 		font-weight: 700;
 	}

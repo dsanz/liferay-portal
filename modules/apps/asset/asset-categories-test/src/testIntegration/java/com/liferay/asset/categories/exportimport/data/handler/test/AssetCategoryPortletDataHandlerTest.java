@@ -16,7 +16,6 @@ import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
 import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
-import com.liferay.depot.service.DepotEntryLocalServiceUtil;
 import com.liferay.exportimport.kernel.configuration.ExportImportConfigurationSettingsMapFactoryUtil;
 import com.liferay.exportimport.kernel.configuration.constants.ExportImportConfigurationConstants;
 import com.liferay.exportimport.kernel.lar.DataLevel;
@@ -24,19 +23,14 @@ import com.liferay.exportimport.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.exportimport.kernel.model.ExportImportConfiguration;
 import com.liferay.exportimport.kernel.service.ExportImportConfigurationLocalService;
 import com.liferay.exportimport.kernel.service.ExportImportLocalService;
-import com.liferay.exportimport.kernel.service.StagingLocalServiceUtil;
-import com.liferay.exportimport.kernel.staging.constants.StagingConstants;
 import com.liferay.exportimport.report.constants.ExportImportReportEntryConstants;
 import com.liferay.exportimport.report.model.ExportImportReportEntry;
 import com.liferay.exportimport.report.service.ExportImportReportEntryLocalService;
 import com.liferay.exportimport.test.util.lar.BasePortletDataHandlerTestCase;
-import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
 import com.liferay.portal.kernel.service.GroupServiceUtil;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.util.FeatureFlagTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
@@ -77,7 +71,6 @@ public class AssetCategoryPortletDataHandlerTest
 			new LiferayIntegrationTestRule(),
 			PermissionCheckerMethodTestRule.INSTANCE);
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testAssetCategoryExportImportReportEntriesDuplicateExternalReferenceCode()
 		throws Exception {
@@ -127,7 +120,6 @@ public class AssetCategoryPortletDataHandlerTest
 						ExportImportReportEntryConstants.TYPE_ERROR)));
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testAssetVocabularyExportImportReportEntriesDuplicateTitle()
 		throws Exception {
@@ -175,7 +167,6 @@ public class AssetCategoryPortletDataHandlerTest
 						ExportImportReportEntryConstants.TYPE_ERROR)));
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testExportImportAssetCategory() throws Exception {
 		AssetVocabulary assetVocabulary = _addAssetVocabulary();
@@ -201,7 +192,6 @@ public class AssetCategoryPortletDataHandlerTest
 					stagingGroup.getGroupId()));
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Test
 	public void testExportImportAssetVocabulary() throws Exception {
 		AssetVocabulary assetVocabulary = _addAssetVocabulary();
@@ -224,16 +214,10 @@ public class AssetCategoryPortletDataHandlerTest
 	}
 
 	@FeatureFlags(
-		featureFlags = {
-			@FeatureFlag(enable = false, value = "LPD-11235"),
-			@FeatureFlag(value = "LPD-17564"), @FeatureFlag(value = "LPD-34594")
-		}
+		featureFlags = {@FeatureFlag(enable = false, value = "LPD-11235")}
 	)
 	@Test
 	public void testExportImportCMSAssetVocabulary() throws Exception {
-		FeatureFlagTestUtil.invokeFeatureFlagListeners(
-			TestPropsValues.getCompanyId(), true, "LPD-17564");
-
 		Group originalStagingGroup = stagingGroup;
 
 		try {
@@ -244,13 +228,13 @@ public class AssetCategoryPortletDataHandlerTest
 
 			AssetVocabulary assetVocabulary = _addAssetVocabulary();
 
-			DepotEntry depotEntry = _addStagedDepotEntry();
+			DepotEntry depotEntry = _addDepotEntry();
 
 			Group depotGroup = depotEntry.getGroup();
 
 			_assetVocabularyGroupRelLocalService.setAssetVocabularyGroupRels(
 				assetVocabulary.getVocabularyId(),
-				new long[] {depotGroup.getGroupId()});
+				new long[] {depotGroup.getGroupId()}, depotEntry.getType());
 
 			File larFile = _exportLayoutsAsFile();
 
@@ -285,9 +269,6 @@ public class AssetCategoryPortletDataHandlerTest
 		finally {
 			stagingGroup = originalStagingGroup;
 		}
-
-		FeatureFlagTestUtil.invokeFeatureFlagListeners(
-			TestPropsValues.getCompanyId(), false, "LPD-17564");
 	}
 
 	@Override
@@ -334,18 +315,16 @@ public class AssetCategoryPortletDataHandlerTest
 			"vocabulary", ServiceContextTestUtil.getServiceContext());
 	}
 
-	private DepotEntry _addStagedDepotEntry() throws Exception {
-		DepotEntry depotEntry = _depotEntryLocalService.addDepotEntry(
+	private DepotEntry _addDepotEntry() throws Exception {
+		return _depotEntryLocalService.addDepotEntry(
 			HashMapBuilder.put(
 				LocaleUtil.getDefault(), RandomTestUtil.randomString()
 			).build(),
 			HashMapBuilder.put(
 				LocaleUtil.getDefault(), RandomTestUtil.randomString()
 			).build(),
-			DepotConstants.TYPE_ASSET_LIBRARY,
+			DepotConstants.TYPE_SPACE,
 			ServiceContextTestUtil.getServiceContext());
-
-		return _enableLocalStaging(depotEntry);
 	}
 
 	private void _assertBatchEngineImportTaskError(LogCapture logCapture) {
@@ -356,29 +335,6 @@ public class AssetCategoryPortletDataHandlerTest
 		LogEntry logEntry = logEntries.get(0);
 
 		Assert.assertEquals(LoggerTestUtil.ERROR, logEntry.getPriority());
-	}
-
-	private DepotEntry _enableLocalStaging(DepotEntry depotEntry)
-		throws Exception {
-
-		Group stagingGroup = _enableLocalStaging(depotEntry.getGroup());
-
-		return DepotEntryLocalServiceUtil.fetchGroupDepotEntry(
-			stagingGroup.getGroupId());
-	}
-
-	private Group _enableLocalStaging(Group group) throws Exception {
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(group.getGroupId());
-
-		_setStagingAttributes(serviceContext);
-
-		serviceContext.setAttribute("staging", Boolean.TRUE);
-
-		StagingLocalServiceUtil.enableLocalStaging(
-			TestPropsValues.getUserId(), group, false, false, serviceContext);
-
-		return group.getStagingGroup();
 	}
 
 	private File _exportLayoutsAsFile() throws Exception {
@@ -400,25 +356,6 @@ public class AssetCategoryPortletDataHandlerTest
 										ASSET_CATEGORIES_ADMIN,
 								new String[] {Boolean.TRUE.toString()}
 							).build())));
-	}
-
-	private void _setStagingAttribute(
-		ServiceContext serviceContext, String key) {
-
-		serviceContext.setAttribute(
-			StagingConstants.STAGED_PREFIX + key + StringPool.DOUBLE_DASH,
-			String.valueOf(Boolean.TRUE));
-	}
-
-	private void _setStagingAttributes(ServiceContext serviceContext) {
-		_setStagingAttribute(
-			serviceContext, PortletDataHandlerKeys.DATA_STRATEGY_MIRROR);
-		_setStagingAttribute(
-			serviceContext, PortletDataHandlerKeys.PORTLET_CONFIGURATION_ALL);
-		_setStagingAttribute(
-			serviceContext, PortletDataHandlerKeys.PORTLET_DATA_ALL);
-		_setStagingAttribute(
-			serviceContext, PortletDataHandlerKeys.PORTLET_SETUP_ALL);
 	}
 
 	private ExportImportConfiguration _setUpExportImportConfiguration()

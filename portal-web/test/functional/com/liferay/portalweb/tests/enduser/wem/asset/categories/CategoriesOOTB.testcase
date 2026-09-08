@@ -64,6 +64,14 @@ definition {
 		task ("Add categories from Audience and Stage Vocabularies") {
 			Blogs.expandPanel(panel = "Categorization");
 
+			AssertElementPresent(
+				key_categoryName = "Audience",
+				locator1 = "Categories#VOCABULARY_CATEGORY");
+
+			AssertElementPresent(
+				key_categoryName = "Stage",
+				locator1 = "Categories#VOCABULARY_CATEGORY");
+
 			Click(
 				key_fieldName = "Audience",
 				locator1 = "Button#SELECT_BUTTON");
@@ -264,7 +272,7 @@ definition {
 
 	@description = ""
 	@priority = 4
-	test CheckBlogCategoriesColumnAtContentDashboard {
+	test CheckBlogCategoriesAtContentDashboard {
 		property portal.acceptance = "true";
 
 		task ("Add a global category") {
@@ -286,9 +294,13 @@ definition {
 				title = "Blogs Entry Title");
 		}
 
-		task ("Go to Content Dashboard and check the asset's categories under the respective column") {
-			ContentDashboard.goToContentDashboard();
+		task ("Go to Content Dashboard") {
+			ApplicationsMenu.gotoSite(site = "Test Site Name");
 
+			ContentDashboard.goToContentDashboard();
+		}
+
+		task ("Assert the categories are shown as columns") {
 			AssertElementPresent(
 				key_tableHeader = "Audience",
 				locator1 = "LexiconTable#TABLE_HEADER");
@@ -297,78 +309,25 @@ definition {
 				key_tableHeader = "Stage",
 				locator1 = "LexiconTable#TABLE_HEADER");
 		}
-	}
 
-	@description = ""
-	@priority = 4
-	test CheckBlogCategoriesGraphAtContentDashboard {
-		property portal.acceptance = "true";
-
-		task ("Add a global category") {
-			var categoryId1 = JSONCategory.addCategory(
-				groupName = "Global",
-				title = "Audience 1",
-				vocabularyName = "Audience");
-			var categoryId2 = JSONCategory.addCategory(
-				groupName = "Global",
-				title = "Stage 1",
-				vocabularyName = "Stage");
-		}
-
-		task ("Create a blog") {
-			HeadlessBlog.addBlogEntry(
-				assetCategoryIds = "${categoryId1},${categoryId2}",
-				content = "Blogs Entry Content",
-				groupName = "Test Site Name",
-				title = "Blogs Entry Title");
-		}
-
-		task ("Go to Content Dashboard and check the asset is being counted at graph") {
-			ApplicationsMenu.gotoSite(site = "Test Site Name");
-
-			ContentDashboard.goToContentDashboard();
-
+		task ("Assert the asset is counted in the graph x-axis") {
 			AssertTextEquals(
 				categoryIndex = 1,
 				locator1 = "ContentDashboard#X_AXIS_CATEGORIES_NAME",
 				value1 = "Audience 1");
+		}
 
-			ContentDashboard.moveVocabularyDisplayConfiguration(vocabularyName = "Audience");
+		task ("Assert the asset is listed when clicking on the first bar") {
+			ContentDashboard.clickOnFirstBar();
+
+			WaitForPageLoad();
 
 			AssertTextEquals(
-				categoryIndex = 1,
-				locator1 = "ContentDashboard#X_AXIS_CATEGORIES_NAME",
-				value1 = "Stage 1");
-		}
-	}
-
-	@description = ""
-	@priority = 4
-	test CheckBlogFilterByCategory {
-		property portal.acceptance = "true";
-
-		task ("Add a global category") {
-			var categoryId1 = JSONCategory.addCategory(
-				groupName = "Global",
-				title = "Audience 1",
-				vocabularyName = "Audience");
-			var categoryId2 = JSONCategory.addCategory(
-				groupName = "Global",
-				title = "Stage 1",
-				vocabularyName = "Stage");
+				locator1 = "ContentDashboard#FIRST_ELEMENT_LISTED",
+				value1 = "Blogs Entry Title");
 		}
 
-		task ("Create a blog") {
-			HeadlessBlog.addBlogEntry(
-				assetCategoryIds = "${categoryId1},${categoryId2}",
-				content = "Blogs Entry Content",
-				groupName = "Test Site Name",
-				title = "Blogs Entry Title");
-		}
-
-		task ("Go to Content Dashboard and check the asset is being counted at graph") {
-			ApplicationsMenu.gotoSite(site = "Test Site Name");
-
+		task ("Assert the asset is listed when filtering by category") {
 			ContentDashboard.goToContentDashboard();
 
 			ContentDashboard.filterByCategory(
@@ -379,6 +338,17 @@ definition {
 				key_tableEntry = "Blogs Entry Title",
 				locator1 = "LexiconTable#TABLE_ENTRY_TITLE",
 				value1 = "Blogs Entry Title");
+		}
+
+		task ("Assert the graph x-axis updates when a vocabulary is removed") {
+			ContentDashboard.goToContentDashboard();
+
+			ContentDashboard.moveVocabularyDisplayConfiguration(vocabularyName = "Audience");
+
+			AssertTextEquals(
+				categoryIndex = 1,
+				locator1 = "ContentDashboard#X_AXIS_CATEGORIES_NAME",
+				value1 = "Stage 1");
 		}
 	}
 
@@ -592,45 +562,6 @@ definition {
 
 	@description = ""
 	@priority = 4
-	test CheckBlogFilterByCategoryBar {
-		property portal.acceptance = "true";
-
-		task ("Add a global category") {
-			var categoryId1 = JSONCategory.addCategory(
-				groupName = "Global",
-				title = "Audience 1",
-				vocabularyName = "Audience");
-			var categoryId2 = JSONCategory.addCategory(
-				groupName = "Global",
-				title = "Stage 1",
-				vocabularyName = "Stage");
-		}
-
-		task ("Create a blog") {
-			HeadlessBlog.addBlogEntry(
-				assetCategoryIds = "${categoryId1},${categoryId2}",
-				content = "Blogs Entry Content",
-				groupName = "Test Site Name",
-				title = "Blogs Entry Title");
-		}
-
-		task ("Go to Content Dashboard and check the asset is being counted at graph") {
-			ApplicationsMenu.gotoSite(site = "Test Site Name");
-
-			ContentDashboard.goToContentDashboard();
-
-			ContentDashboard.clickOnFirstBar();
-
-			WaitForPageLoad();
-
-			AssertTextEquals(
-				locator1 = "ContentDashboard#FIRST_ELEMENT_LISTED",
-				value1 = "Blogs Entry Title");
-		}
-	}
-
-	@description = ""
-	@priority = 4
 	@uitest
 	test CheckBlogsCategoriesMoreThanOneSite {
 		property portal.acceptance = "true";
@@ -729,37 +660,6 @@ definition {
 	}
 
 	@description = ""
-	@priority = 5
-	test CheckCategoriesAtBlogs {
-		property portal.acceptance = "true";
-
-		task ("Create a blog") {
-			HeadlessBlog.addBlogEntry(
-				content = "Blogs Entry Content",
-				groupName = "Test Site Name",
-				title = "Blogs Entry Title");
-		}
-
-		task ("Go to Blogs Admin and click to edit") {
-			BlogsNavigator.openBlogsAdmin(siteURLKey = "test-site-name");
-
-			BlogsNavigator.gotoEditCP(entryTitle = "Blogs Entry Title");
-		}
-
-		task ("Click to see categorization, assert if Audience and Stage are visible") {
-			Blogs.expandPanel(panel = "Categorization");
-
-			AssertElementPresent(
-				key_categoryName = "Audience",
-				locator1 = "Categories#VOCABULARY_CATEGORY");
-
-			AssertElementPresent(
-				key_categoryName = "Stage",
-				locator1 = "Categories#VOCABULARY_CATEGORY");
-		}
-	}
-
-	@description = ""
 	@priority = 4
 	test CheckDMVocabularyAssetSubtypeBasicDocument {
 		task ("Create a vocabulary with Associated Asset Type of Document > Basic Document") {
@@ -814,136 +714,6 @@ definition {
 
 			AssertElementNotPresent(
 				key_vocabularyName = "Basic Document Vocabulary",
-				locator1 = "AssetCategorization#CATEGORIES_FIELD");
-
-			for (var vocabulary : list "Topic,Audience,Stage") {
-				AssertVisible(
-					key_vocabularyName = ${vocabulary},
-					locator1 = "AssetCategorization#CATEGORIES_FIELD");
-			}
-		}
-	}
-
-	@description = ""
-	@priority = 4
-	test CheckDMVocabularyAssetSubtypeExternalVideoShortcut {
-		task ("Create a vocabulary with Associated Asset Type of Document > External Video Shortcut") {
-			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
-
-			Vocabulary.addWithAssociatedAssetTypeCP(
-				assetSubtype = "External Video Shortcut",
-				assetType = "Document",
-				vocabularyName = "External Video Shortcut Vocabulary");
-		}
-
-		task ("Check avaliable vocabularies to External Video Shortcut") {
-			DMNavigator.openToAddEntry(
-				documentTypeName = "External Video Shortcut",
-				groupName = "Test Site Name",
-				siteURLKey = "test-site-name");
-
-			Panel.expandPanel(panel = "Categorization");
-
-			for (var vocabulary : list "External Video Shortcut Vocabulary,Topic,Audience,Stage") {
-				AssertVisible(
-					key_vocabularyName = ${vocabulary},
-					locator1 = "AssetCategorization#CATEGORIES_FIELD");
-			}
-		}
-
-		task ("Check avaliable vocabularies to Basic Documents") {
-			DMNavigator.openToAddEntry(
-				groupName = "Test Site Name",
-				siteURLKey = "test-site-name");
-
-			Panel.expandPanel(panel = "Categorization");
-
-			AssertElementNotPresent(
-				key_vocabularyName = "External Video Shortcut Vocabulary",
-				locator1 = "AssetCategorization#CATEGORIES_FIELD");
-
-			for (var vocabulary : list "Topic,Audience,Stage") {
-				AssertVisible(
-					key_vocabularyName = ${vocabulary},
-					locator1 = "AssetCategorization#CATEGORIES_FIELD");
-			}
-		}
-
-		task ("Check avaliable vocabularies to Google Drive Shortcut") {
-			DMNavigator.openToAddEntry(
-				documentTypeName = "Google Drive Shortcut",
-				groupName = "Test Site Name",
-				siteURLKey = "test-site-name");
-
-			Panel.expandPanel(panel = "Categorization");
-
-			AssertElementNotPresent(
-				key_vocabularyName = "External Video Shortcut Vocabulary",
-				locator1 = "AssetCategorization#CATEGORIES_FIELD");
-
-			for (var vocabulary : list "Topic,Audience,Stage") {
-				AssertVisible(
-					key_vocabularyName = ${vocabulary},
-					locator1 = "AssetCategorization#CATEGORIES_FIELD");
-			}
-		}
-	}
-
-	@description = ""
-	@priority = 4
-	test CheckDMVocabularyAssetSubtypeGoogleDriveShortcut {
-		task ("Create a vocabulary with Associated Asset Type of Document > Google Drive Shortcut") {
-			Category.openCategoriesAdmin(siteURLKey = "test-site-name");
-
-			Vocabulary.addWithAssociatedAssetTypeCP(
-				assetSubtype = "Google Drive Shortcut",
-				assetType = "Document",
-				vocabularyName = "Google Drive Shortcut Vocabulary");
-		}
-
-		task ("Check avaliable vocabularies to Google Drive Shortcut") {
-			DMNavigator.openToAddEntry(
-				documentTypeName = "Google Drive Shortcut",
-				groupName = "Test Site Name",
-				siteURLKey = "test-site-name");
-
-			Panel.expandPanel(panel = "Categorization");
-
-			for (var vocabulary : list "Google Drive Shortcut Vocabulary,Topic,Audience,Stage") {
-				AssertVisible(
-					key_vocabularyName = ${vocabulary},
-					locator1 = "AssetCategorization#CATEGORIES_FIELD");
-			}
-		}
-
-		task ("Check avaliable vocabularies to Basic Documents") {
-			DMNavigator.openToAddEntry(
-				groupName = "Test Site Name",
-				siteURLKey = "test-site-name");
-
-			Panel.expandPanel(panel = "Categorization");
-
-			AssertElementNotPresent(
-				key_vocabularyName = "Google Drive Shortcut Vocabulary",
-				locator1 = "AssetCategorization#CATEGORIES_FIELD");
-
-			for (var vocabulary : list "Topic,Audience,Stage") {
-				AssertVisible(
-					key_vocabularyName = ${vocabulary},
-					locator1 = "AssetCategorization#CATEGORIES_FIELD");
-			}
-		}
-
-		task ("Check avaliable vocabularies to External Video Shortcut") {
-			DMNavigator.openToAddEntry(
-				documentTypeName = "External Video Shortcut",
-				groupName = "Test Site Name",
-				siteURLKey = "test-site-name");
-
-			Panel.expandPanel(panel = "Categorization");
-
-			AssertElementNotPresent(
-				key_vocabularyName = "Google Drive Shortcut Vocabulary",
 				locator1 = "AssetCategorization#CATEGORIES_FIELD");
 
 			for (var vocabulary : list "Topic,Audience,Stage") {
@@ -1191,9 +961,9 @@ definition {
 		}
 	}
 
-	@description = "When the user opens the "Categorization" section and there's a vocabulary marked as internal, that vocabulary is shown in the Internal categories section"
+	@description = "When the user opens the "Categorization" section, vocabularies not marked as internal are shown in the Public categories section and vocabularies marked as internal are shown in the Internal categories section"
 	@priority = 5
-	test ViewInternalVocabularyInWebContentEditor {
+	test ViewPublicAndInternalVocabulariesInWebContentEditor {
 		property portal.acceptance = "true";
 
 		task ("Add a web content based on Basic Web Content") {
@@ -1202,8 +972,16 @@ definition {
 			WebContentNavigator.gotoAddCP();
 		}
 
-		task ("View internal vocabularies in sidebar panel") {
+		task ("View public and internal vocabularies in sidebar panel") {
 			Panel.expandPanel(panel = "Categorization");
+
+			AssertVisible(
+				key_text = "Public Categories",
+				locator1 = "Sidebar#SUBTITLE");
+
+			AssertVisible(
+				key_vocabularyName = "Topic",
+				locator1 = "AssetCategorization#CATEGORIES_FIELD");
 
 			AssertVisible(
 				key_text = "Internal Categories",
@@ -1214,30 +992,6 @@ definition {
 					key_vocabularyName = ${vocabularyName},
 					locator1 = "AssetCategorization#CATEGORIES_FIELD");
 			}
-		}
-	}
-
-	@description = "When the user opens the "Categorization" section and there's a vocabulary not marked as internal, that vocabulary is shown in the Public categories section"
-	@priority = 5
-	test ViewPublicVocabularyInWebContentEditor {
-		property portal.acceptance = "true";
-
-		task ("Add a web content based on Basic Web Content") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "test-site-name");
-
-			WebContentNavigator.gotoAddCP();
-		}
-
-		task ("View internal vocabularies in sidebar panel") {
-			Panel.expandPanel(panel = "Categorization");
-
-			AssertVisible(
-				key_text = "Public Categories",
-				locator1 = "Sidebar#SUBTITLE");
-
-			AssertVisible(
-				key_vocabularyName = "Topic",
-				locator1 = "AssetCategorization#CATEGORIES_FIELD");
 		}
 	}
 

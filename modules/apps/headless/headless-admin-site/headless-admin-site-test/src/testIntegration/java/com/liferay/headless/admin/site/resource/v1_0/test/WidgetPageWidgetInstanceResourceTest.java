@@ -11,6 +11,8 @@ import com.liferay.headless.admin.site.client.dto.v1_0.BasicWidgetPageWidgetInst
 import com.liferay.headless.admin.site.client.dto.v1_0.WidgetPageWidgetInstance;
 import com.liferay.headless.admin.site.client.problem.Problem;
 import com.liferay.layout.test.util.LayoutTestUtil;
+import com.liferay.petra.function.UnsafeRunnable;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutTypePortlet;
 import com.liferay.portal.kernel.portlet.PortletIdCodec;
@@ -51,152 +53,41 @@ public class WidgetPageWidgetInstanceResourceTest
 	@Override
 	@Test
 	public void testDeleteSiteSitePageWidgetInstance() throws Exception {
-		WidgetPageWidgetInstance widgetPageWidgetInstance =
-			testPostSiteSitePageWidgetInstance_addWidgetPageWidgetInstance(
-				randomWidgetPageWidgetInstance());
-
-		_layout = _layoutLocalService.fetchLayout(_layout.getPlid());
-
-		LayoutTypePortlet layoutTypePortlet =
-			(LayoutTypePortlet)_layout.getLayoutType();
-
-		String portletId = PortletIdCodec.encode(
-			widgetPageWidgetInstance.getWidgetName(),
-			widgetPageWidgetInstance.getWidgetInstanceId());
-
-		Assert.assertTrue(layoutTypePortlet.hasPortletId(portletId));
-
-		widgetPageWidgetInstanceResource.deleteSiteSitePageWidgetInstance(
-			testGroup.getExternalReferenceCode(),
-			_layout.getExternalReferenceCode(), portletId);
-
-		_layout = _layoutLocalService.fetchLayout(_layout.getPlid());
-
-		layoutTypePortlet = (LayoutTypePortlet)_layout.getLayoutType();
-
-		Assert.assertFalse(layoutTypePortlet.hasPortletId(portletId));
-
-		try {
-			widgetPageWidgetInstanceResource.deleteSiteSitePageWidgetInstance(
-				testGroup.getExternalReferenceCode(),
-				_layout.getExternalReferenceCode(), portletId);
-
-			Assert.fail();
-		}
-		catch (Problem.ProblemException problemException) {
-			Problem problem = problemException.getProblem();
-
-			Assert.assertEquals("NOT_FOUND", problem.getStatus());
-			Assert.assertNull(problem.getTitle());
-		}
+		_testDeleteSiteSitePageWidgetInstance();
+		_testDeleteSiteSitePageWidgetInstanceWithNonexistentWidgetInstance();
 	}
 
 	@Override
 	@Test
 	public void testGetSiteSitePageWidgetInstance() throws Exception {
-		WidgetPageWidgetInstance postWidgetPageWidgetInstance =
-			testPostSiteSitePageWidgetInstance_addWidgetPageWidgetInstance(
-				randomWidgetPageWidgetInstance());
-
-		String portletId = PortletIdCodec.encode(
-			postWidgetPageWidgetInstance.getWidgetName(),
-			postWidgetPageWidgetInstance.getWidgetInstanceId());
-
-		WidgetPageWidgetInstance getWidgetPageWidgetInstance =
-			widgetPageWidgetInstanceResource.getSiteSitePageWidgetInstance(
-				testGroup.getExternalReferenceCode(),
-				_layout.getExternalReferenceCode(), portletId);
-
-		assertEquals(postWidgetPageWidgetInstance, getWidgetPageWidgetInstance);
-		assertValid(getWidgetPageWidgetInstance);
-
-		try {
-			widgetPageWidgetInstanceResource.getSiteSitePageWidgetInstance(
-				testGroup.getExternalReferenceCode(),
-				_layout.getExternalReferenceCode(),
-				RandomTestUtil.randomString());
-
-			Assert.fail();
-		}
-		catch (Problem.ProblemException problemException) {
-			Problem problem = problemException.getProblem();
-
-			Assert.assertEquals("NOT_FOUND", problem.getStatus());
-			Assert.assertNull(problem.getTitle());
-		}
+		_testGetSiteSitePageWidgetInstance();
+		_testGetSiteSitePageWidgetInstanceWithContentPage();
+		_testGetSiteSitePageWidgetInstanceWithNonexistentSitePage();
+		_testGetSiteSitePageWidgetInstanceWithNonexistentWidgetInstance();
 	}
 
 	@Override
 	@Test
 	public void testPatchSiteSitePageWidgetInstance() throws Exception {
-		WidgetPageWidgetInstance postWidgetPageWidgetInstance =
-			testPostSiteSitePageWidgetInstance_addWidgetPageWidgetInstance(
-				randomWidgetPageWidgetInstance());
-
-		String portletId = PortletIdCodec.encode(
-			postWidgetPageWidgetInstance.getWidgetName(),
-			postWidgetPageWidgetInstance.getWidgetInstanceId());
-
-		WidgetPageWidgetInstance patchWidgetPageWidgetInstance =
-			widgetPageWidgetInstanceResource.patchSiteSitePageWidgetInstance(
-				testGroup.getExternalReferenceCode(),
-				_layout.getExternalReferenceCode(), portletId,
-				postWidgetPageWidgetInstance);
-
-		assertEquals(
-			postWidgetPageWidgetInstance, patchWidgetPageWidgetInstance);
-		assertValid(patchWidgetPageWidgetInstance);
-
-		try {
-			widgetPageWidgetInstanceResource.patchSiteSitePageWidgetInstance(
-				testGroup.getExternalReferenceCode(),
-				_layout.getExternalReferenceCode(),
-				RandomTestUtil.randomString(),
-				randomWidgetPageWidgetInstance());
-
-			Assert.fail();
-		}
-		catch (Problem.ProblemException problemException) {
-			Problem problem = problemException.getProblem();
-
-			Assert.assertEquals("NOT_FOUND", problem.getStatus());
-			Assert.assertNull(problem.getTitle());
-		}
+		_testPatchSiteSitePageWidgetInstance();
+		_testPatchSiteSitePageWidgetInstanceWithNonexistentParentSectionId();
+		_testPatchSiteSitePageWidgetInstanceWithNonexistentWidgetInstance();
 	}
 
 	@Override
 	@Test
 	public void testPostSiteSitePageWidgetInstance() throws Exception {
-		WidgetPageWidgetInstance randomWidgetPageWidgetInstance =
-			randomWidgetPageWidgetInstance();
-
-		WidgetPageWidgetInstance postWidgetPageWidgetInstance =
-			testPostSiteSitePageWidgetInstance_addWidgetPageWidgetInstance(
-				randomWidgetPageWidgetInstance);
-
-		assertEquals(
-			randomWidgetPageWidgetInstance, postWidgetPageWidgetInstance);
-		assertValid(postWidgetPageWidgetInstance);
+		_testPostSiteSitePageWidgetInstance();
+		_testPostSiteSitePageWidgetInstanceWithNonexistentParentSectionId();
+		_testPostSiteSitePageWidgetInstanceWithUnregisteredWidget();
 	}
 
 	@Override
 	@Test
 	public void testPutSiteSitePageWidgetInstance() throws Exception {
-		WidgetPageWidgetInstance widgetPageWidgetInstance =
-			randomWidgetPageWidgetInstance();
-
-		String portletId = PortletIdCodec.encode(
-			widgetPageWidgetInstance.getWidgetName(),
-			widgetPageWidgetInstance.getWidgetInstanceId());
-
-		WidgetPageWidgetInstance putWidgetPageWidgetInstance =
-			widgetPageWidgetInstanceResource.putSiteSitePageWidgetInstance(
-				testGroup.getExternalReferenceCode(),
-				_layout.getExternalReferenceCode(), portletId,
-				widgetPageWidgetInstance);
-
-		assertEquals(widgetPageWidgetInstance, putWidgetPageWidgetInstance);
-		assertValid(putWidgetPageWidgetInstance);
+		_testPutSiteSitePageWidgetInstance();
+		_testPutSiteSitePageWidgetInstanceWithNonexistentParentSectionId();
+		_testPutSiteSitePageWidgetInstanceWithUnregisteredWidget();
 	}
 
 	@Override
@@ -269,6 +160,333 @@ public class WidgetPageWidgetInstanceResourceTest
 		return widgetPageWidgetInstanceResource.postSiteSitePageWidgetInstance(
 			testGroup.getExternalReferenceCode(),
 			_layout.getExternalReferenceCode(), widgetPageWidgetInstance);
+	}
+
+	private void _assertProblemException(
+			String expectedStatus, String expectedTitle,
+			UnsafeRunnable<Exception> unsafeRunnable)
+		throws Exception {
+
+		try {
+			unsafeRunnable.run();
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals(expectedStatus, problem.getStatus());
+			Assert.assertEquals(expectedTitle, problem.getTitle());
+		}
+	}
+
+	private void _testDeleteSiteSitePageWidgetInstance() throws Exception {
+		WidgetPageWidgetInstance widgetPageWidgetInstance =
+			testPostSiteSitePageWidgetInstance_addWidgetPageWidgetInstance(
+				randomWidgetPageWidgetInstance());
+
+		_layout = _layoutLocalService.fetchLayout(_layout.getPlid());
+
+		LayoutTypePortlet layoutTypePortlet =
+			(LayoutTypePortlet)_layout.getLayoutType();
+
+		String portletId = PortletIdCodec.encode(
+			widgetPageWidgetInstance.getWidgetName(),
+			widgetPageWidgetInstance.getWidgetInstanceId());
+
+		Assert.assertTrue(layoutTypePortlet.hasPortletId(portletId));
+
+		widgetPageWidgetInstanceResource.deleteSiteSitePageWidgetInstance(
+			testGroup.getExternalReferenceCode(),
+			_layout.getExternalReferenceCode(), portletId);
+
+		_layout = _layoutLocalService.fetchLayout(_layout.getPlid());
+
+		layoutTypePortlet = (LayoutTypePortlet)_layout.getLayoutType();
+
+		Assert.assertFalse(layoutTypePortlet.hasPortletId(portletId));
+	}
+
+	private void _testDeleteSiteSitePageWidgetInstanceWithNonexistentWidgetInstance()
+		throws Exception {
+
+		String widgetInstanceExternalReferenceCode =
+			RandomTestUtil.randomString();
+
+		_assertProblemException(
+			"NOT_FOUND", null,
+			() ->
+				widgetPageWidgetInstanceResource.
+					deleteSiteSitePageWidgetInstance(
+						testGroup.getExternalReferenceCode(),
+						_layout.getExternalReferenceCode(),
+						widgetInstanceExternalReferenceCode));
+	}
+
+	private void _testGetSiteSitePageWidgetInstance() throws Exception {
+		WidgetPageWidgetInstance postWidgetPageWidgetInstance =
+			testPostSiteSitePageWidgetInstance_addWidgetPageWidgetInstance(
+				randomWidgetPageWidgetInstance());
+
+		String portletId = PortletIdCodec.encode(
+			postWidgetPageWidgetInstance.getWidgetName(),
+			postWidgetPageWidgetInstance.getWidgetInstanceId());
+
+		WidgetPageWidgetInstance getWidgetPageWidgetInstance =
+			widgetPageWidgetInstanceResource.getSiteSitePageWidgetInstance(
+				testGroup.getExternalReferenceCode(),
+				_layout.getExternalReferenceCode(), portletId);
+
+		assertEquals(postWidgetPageWidgetInstance, getWidgetPageWidgetInstance);
+		assertValid(getWidgetPageWidgetInstance);
+	}
+
+	private void _testGetSiteSitePageWidgetInstanceWithContentPage()
+		throws Exception {
+
+		Layout layout = LayoutTestUtil.addTypeContentLayout(testGroup);
+
+		_assertProblemException(
+			"BAD_REQUEST",
+			"The site page with external reference code \"" +
+				layout.getExternalReferenceCode() + "\" is not a widget page",
+			() ->
+				widgetPageWidgetInstanceResource.getSiteSitePageWidgetInstance(
+					testGroup.getExternalReferenceCode(),
+					layout.getExternalReferenceCode(),
+					RandomTestUtil.randomString()));
+	}
+
+	private void _testGetSiteSitePageWidgetInstanceWithNonexistentSitePage()
+		throws Exception {
+
+		String sitePageExternalReferenceCode = RandomTestUtil.randomString();
+
+		_assertProblemException(
+			"NOT_FOUND", null,
+			() ->
+				widgetPageWidgetInstanceResource.getSiteSitePageWidgetInstance(
+					testGroup.getExternalReferenceCode(),
+					sitePageExternalReferenceCode,
+					RandomTestUtil.randomString()));
+	}
+
+	private void _testGetSiteSitePageWidgetInstanceWithNonexistentWidgetInstance()
+		throws Exception {
+
+		String widgetInstanceExternalReferenceCode =
+			RandomTestUtil.randomString();
+
+		_assertProblemException(
+			"NOT_FOUND", null,
+			() ->
+				widgetPageWidgetInstanceResource.getSiteSitePageWidgetInstance(
+					testGroup.getExternalReferenceCode(),
+					_layout.getExternalReferenceCode(),
+					widgetInstanceExternalReferenceCode));
+	}
+
+	private void _testPatchSiteSitePageWidgetInstance() throws Exception {
+		WidgetPageWidgetInstance postWidgetPageWidgetInstance =
+			testPostSiteSitePageWidgetInstance_addWidgetPageWidgetInstance(
+				randomWidgetPageWidgetInstance());
+
+		String portletId = PortletIdCodec.encode(
+			postWidgetPageWidgetInstance.getWidgetName(),
+			postWidgetPageWidgetInstance.getWidgetInstanceId());
+
+		WidgetPageWidgetInstance patchWidgetPageWidgetInstance =
+			widgetPageWidgetInstanceResource.patchSiteSitePageWidgetInstance(
+				testGroup.getExternalReferenceCode(),
+				_layout.getExternalReferenceCode(), portletId,
+				postWidgetPageWidgetInstance);
+
+		assertEquals(
+			postWidgetPageWidgetInstance, patchWidgetPageWidgetInstance);
+		assertValid(patchWidgetPageWidgetInstance);
+	}
+
+	private void _testPatchSiteSitePageWidgetInstanceWithNonexistentParentSectionId()
+		throws Exception {
+
+		WidgetPageWidgetInstance widgetPageWidgetInstance =
+			testPostSiteSitePageWidgetInstance_addWidgetPageWidgetInstance(
+				randomWidgetPageWidgetInstance());
+
+		String portletId = PortletIdCodec.encode(
+			widgetPageWidgetInstance.getWidgetName(),
+			widgetPageWidgetInstance.getWidgetInstanceId());
+
+		String parentSectionId = RandomTestUtil.randomString();
+
+		widgetPageWidgetInstance.setParentSectionId(parentSectionId);
+
+		_assertProblemException(
+			"BAD_REQUEST",
+			"The widget page section " + parentSectionId + " does not exist",
+			() ->
+				widgetPageWidgetInstanceResource.
+					patchSiteSitePageWidgetInstance(
+						testGroup.getExternalReferenceCode(),
+						_layout.getExternalReferenceCode(), portletId,
+						widgetPageWidgetInstance));
+	}
+
+	private void _testPatchSiteSitePageWidgetInstanceWithNonexistentWidgetInstance()
+		throws Exception {
+
+		String widgetInstanceExternalReferenceCode =
+			RandomTestUtil.randomString();
+
+		_assertProblemException(
+			"NOT_FOUND", null,
+			() ->
+				widgetPageWidgetInstanceResource.
+					patchSiteSitePageWidgetInstance(
+						testGroup.getExternalReferenceCode(),
+						_layout.getExternalReferenceCode(),
+						widgetInstanceExternalReferenceCode,
+						randomWidgetPageWidgetInstance()));
+	}
+
+	private void _testPostSiteSitePageWidgetInstance() throws Exception {
+		WidgetPageWidgetInstance randomWidgetPageWidgetInstance =
+			randomWidgetPageWidgetInstance();
+
+		WidgetPageWidgetInstance postWidgetPageWidgetInstance =
+			testPostSiteSitePageWidgetInstance_addWidgetPageWidgetInstance(
+				randomWidgetPageWidgetInstance);
+
+		assertEquals(
+			randomWidgetPageWidgetInstance, postWidgetPageWidgetInstance);
+		assertValid(postWidgetPageWidgetInstance);
+	}
+
+	private void _testPostSiteSitePageWidgetInstanceWithNonexistentParentSectionId()
+		throws Exception {
+
+		WidgetPageWidgetInstance widgetPageWidgetInstance =
+			randomWidgetPageWidgetInstance();
+
+		String parentSectionId = RandomTestUtil.randomString();
+
+		widgetPageWidgetInstance.setParentSectionId(parentSectionId);
+
+		_assertProblemException(
+			"BAD_REQUEST",
+			"The widget page section " + parentSectionId + " does not exist",
+			() ->
+				widgetPageWidgetInstanceResource.postSiteSitePageWidgetInstance(
+					testGroup.getExternalReferenceCode(),
+					_layout.getExternalReferenceCode(),
+					widgetPageWidgetInstance));
+	}
+
+	private void _testPostSiteSitePageWidgetInstanceWithUnregisteredWidget()
+		throws Exception {
+
+		String widgetInstanceId = RandomTestUtil.randomString();
+		String widgetName = "com_liferay_test_FakePortlet";
+
+		WidgetPageWidgetInstance widgetPageWidgetInstance =
+			new BasicWidgetPageWidgetInstance();
+
+		widgetPageWidgetInstance.setParentSectionId("column-1");
+		widgetPageWidgetInstance.setPosition(0);
+		widgetPageWidgetInstance.setType(
+			WidgetPageWidgetInstance.Type.BASIC_WIDGET_PAGE_WIDGET_INSTANCE);
+		widgetPageWidgetInstance.setWidgetInstanceId(widgetInstanceId);
+		widgetPageWidgetInstance.setWidgetName(widgetName);
+
+		_assertProblemException(
+			"BAD_REQUEST",
+			StringBundler.concat(
+				"The widget ",
+				PortletIdCodec.encode(widgetName, widgetInstanceId),
+				" could not be added to the site page ",
+				_layout.getExternalReferenceCode()),
+			() ->
+				widgetPageWidgetInstanceResource.postSiteSitePageWidgetInstance(
+					testGroup.getExternalReferenceCode(),
+					_layout.getExternalReferenceCode(),
+					widgetPageWidgetInstance));
+	}
+
+	private void _testPutSiteSitePageWidgetInstance() throws Exception {
+		WidgetPageWidgetInstance widgetPageWidgetInstance =
+			randomWidgetPageWidgetInstance();
+
+		String portletId = PortletIdCodec.encode(
+			widgetPageWidgetInstance.getWidgetName(),
+			widgetPageWidgetInstance.getWidgetInstanceId());
+
+		WidgetPageWidgetInstance putWidgetPageWidgetInstance =
+			widgetPageWidgetInstanceResource.putSiteSitePageWidgetInstance(
+				testGroup.getExternalReferenceCode(),
+				_layout.getExternalReferenceCode(), portletId,
+				widgetPageWidgetInstance);
+
+		assertEquals(widgetPageWidgetInstance, putWidgetPageWidgetInstance);
+		assertValid(putWidgetPageWidgetInstance);
+	}
+
+	private void _testPutSiteSitePageWidgetInstanceWithNonexistentParentSectionId()
+		throws Exception {
+
+		WidgetPageWidgetInstance widgetPageWidgetInstance =
+			testPostSiteSitePageWidgetInstance_addWidgetPageWidgetInstance(
+				randomWidgetPageWidgetInstance());
+
+		String portletId = PortletIdCodec.encode(
+			widgetPageWidgetInstance.getWidgetName(),
+			widgetPageWidgetInstance.getWidgetInstanceId());
+
+		String parentSectionId = RandomTestUtil.randomString();
+
+		widgetPageWidgetInstance.setParentSectionId(parentSectionId);
+
+		_assertProblemException(
+			"BAD_REQUEST",
+			"The widget page section " + parentSectionId + " does not exist",
+			() ->
+				widgetPageWidgetInstanceResource.putSiteSitePageWidgetInstance(
+					testGroup.getExternalReferenceCode(),
+					_layout.getExternalReferenceCode(), portletId,
+					widgetPageWidgetInstance));
+	}
+
+	private void _testPutSiteSitePageWidgetInstanceWithUnregisteredWidget()
+		throws Exception {
+
+		WidgetPageWidgetInstance widgetPageWidgetInstance =
+			new BasicWidgetPageWidgetInstance();
+
+		widgetPageWidgetInstance.setParentSectionId("column-1");
+		widgetPageWidgetInstance.setPosition(0);
+		widgetPageWidgetInstance.setType(
+			WidgetPageWidgetInstance.Type.BASIC_WIDGET_PAGE_WIDGET_INSTANCE);
+
+		String widgetInstanceId = RandomTestUtil.randomString();
+
+		widgetPageWidgetInstance.setWidgetInstanceId(widgetInstanceId);
+
+		String widgetName = "com_liferay_test_FakePortlet";
+
+		widgetPageWidgetInstance.setWidgetName(widgetName);
+
+		String portletId = PortletIdCodec.encode(widgetName, widgetInstanceId);
+
+		_assertProblemException(
+			"BAD_REQUEST",
+			StringBundler.concat(
+				"The widget ", portletId,
+				" could not be added to the site page ",
+				_layout.getExternalReferenceCode()),
+			() ->
+				widgetPageWidgetInstanceResource.putSiteSitePageWidgetInstance(
+					testGroup.getExternalReferenceCode(),
+					_layout.getExternalReferenceCode(), portletId,
+					widgetPageWidgetInstance));
 	}
 
 	private Layout _layout;

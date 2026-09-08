@@ -81,14 +81,14 @@ $input: () !default;
 $input: map-deep-merge(
 	(
 		background-color: $input-bg,
-		border-color: $input-border-color,
-		border-style: $input-border-style,
-		border-width: $input-border-width,
 		border-bottom-width: $input-border-bottom-width,
+		border-color: $input-border-color,
 		border-left-width: $input-border-left-width,
-		border-right-width: $input-border-right-width,
-		border-top-width: $input-border-top-width,
 		border-radius: $input-border-radius,
+		border-right-width: $input-border-right-width,
+		border-style: $input-border-style,
+		border-top-width: $input-border-top-width,
+		border-width: $input-border-width,
 		box-shadow: $input-box-shadow,
 		color: $input-color,
 		display: block,
@@ -1436,6 +1436,7 @@ $has-success: map-deep-merge(
 					border-color: $input-success-border-color,
 					box-shadow: $input-success-box-shadow,
 				),
+
 				focus: (
 					box-shadow: none,
 
@@ -1862,8 +1863,8 @@ $input-group-item: map-deep-merge(
 		dropdown: (
 			display: flex,
 			flex-wrap: wrap,
-			word-wrap: break-word,
 			width: 100%,
+			word-wrap: break-word,
 		),
 	),
 	$input-group-item
@@ -1962,18 +1963,11 @@ $input-group-addon-padding-y-lg: null !default;
 $input-group-lg-item-btn: () !default;
 $input-group-lg-item-btn: map-deep-merge(
 	(
-		breakpoint-down: null,
 		font-size: $btn-font-size-lg,
 
 		inline-item-font-size: $btn-inline-item-font-size-lg,
 
 		section-font-size: $btn-section-font-size-lg,
-
-		// font-size-mobile: $btn-font-size-lg-mobile,
-		// padding-bottom-mobile: $btn-padding-y-lg-mobile,
-		// padding-left-mobile: $btn-padding-x-lg-mobile,
-		// padding-right-mobile: $btn-padding-x-lg-mobile,
-		// padding-top-mobile: $btn-padding-y-lg-mobile,
 	),
 	$input-group-lg-item-btn
 );
@@ -1981,16 +1975,8 @@ $input-group-lg-item-btn: map-deep-merge(
 $input-group-lg-item-btn-monospaced: () !default;
 $input-group-lg-item-btn-monospaced: map-deep-merge(
 	(
-		breakpoint-down: null,
 		height: $btn-monospaced-size-lg,
 		line-height: 1,
-		// padding-bottom: $btn-monospaced-padding-y-lg,
-		// padding-left: $btn-monospaced-padding-x-lg,
-		// padding-right: $btn-monospaced-padding-x-lg,
-		// padding-top: $btn-monospaced-padding-y-lg,
-		// width: $btn-monospaced-size-lg,
-		// height-mobile: $btn-monospaced-size-lg-mobile,
-		// width-mobile: $btn-monospaced-size-lg-mobile,
 	),
 	$input-group-lg-item-btn-monospaced
 );
@@ -2002,7 +1988,6 @@ $input-group-lg-inset-item-btn-monospaced: () !default;
 $input-group-lg-inset-item-form-file-btn: () !default;
 $input-group-lg-inset-item-form-file-btn: map-deep-merge(
 	(
-		breakpoint-down: null,
 		height: 100%,
 		line-height: 1,
 		padding-bottom: 0px,
@@ -2328,4 +2313,95 @@ $input-group-stacked-sm-down: map-deep-merge(
 		shrink-margin-right: 8px,
 	),
 	$input-group-stacked-sm-down
+);
+
+$input-group-ai: () !default;
+$input-group-ai: map-deep-merge(
+	(
+		'.input-group-item-shrink': (
+			padding-top: 0.25rem,
+		),
+
+		'.form-control': (
+			padding: 0 0 0 $input-padding-x,
+
+			'&:focus-within:has(.form-control-inset:focus)': (
+				border-color: $purple-l2,
+				box-shadow:
+					unquote('0 0 10px hsl(from #{$purple} h s l / 0.15)'),
+			),
+		),
+
+		'&[data-ai-state="focused"]': (
+			'.form-control': (
+				border-color: $purple-l2,
+				box-shadow:
+					unquote('0 0 10px hsl(from #{$purple} h s l / 0.15)'),
+			),
+		),
+
+		'&[data-ai-state="working"]': (
+			'.form-control': (
+				background-color: $purple-l5,
+				border-color: $purple-l1,
+				box-shadow:
+					unquote('0 0 10px hsl(from #{$purple} h s l / 0.15)'),
+				color: $purple-d2,
+			),
+		),
+
+		'&[data-ai-state="result"], &[data-ai-state="result-readonly"]': (
+			'.form-control': (
+				background-color: $gray-100,
+				border-color: $purple-l1,
+				box-shadow: none,
+				color: $purple,
+			),
+		),
+
+		'.form-control-inset': (
+			color: inherit,
+			height: 2.375rem,
+			margin: 0,
+			min-height: 0,
+			padding: $input-padding-y $input-padding-x $input-padding-y 0,
+			resize: none,
+			width: 100%,
+
+			'&[aria-hidden="true"]::placeholder': (
+				background-image:
+					linear-gradient(to right, $primary, $purple-d2),
+				border-radius: $input-border-radius,
+				color: transparent,
+				opacity: 0.25,
+			),
+		),
+
+		'.autofit-row': (
+			margin-left: -0.25rem,
+			margin-right: -0.25rem,
+
+			'.autofit-col': (
+				padding: 0.75rem 0.25rem,
+			),
+
+			'.autofit-col-expand': (
+				padding-bottom: 0,
+				padding-top: 0,
+			),
+
+			'.lexicon-icon': (
+				margin-top: 0,
+			),
+		),
+	),
+	$input-group-ai
+);
+
+$input-group-palette: () !default;
+$input-group-palette: map-deep-merge(
+	(
+		'.input-group-ai': $input-group-ai,
+	),
+	$input-group-palette
 );

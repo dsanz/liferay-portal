@@ -8,6 +8,7 @@ package com.liferay.jenkins.results.parser;
 import com.liferay.jenkins.results.parser.aws.AWSFactory;
 import com.liferay.jenkins.results.parser.aws.AWSFleetCloud;
 
+import java.io.File;
 import java.io.IOException;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.TimeoutException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -39,11 +41,7 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 	public static final Integer SLAVES_PER_HOST_DEFAULT = 2;
 
 	public static synchronized JenkinsMaster getInstance(String masterName) {
-		if (!_jenkinsMasters.containsKey(masterName)) {
-			_jenkinsMasters.put(masterName, new JenkinsMaster(masterName));
-		}
-
-		return _jenkinsMasters.get(masterName);
+		return _jenkinsMasters.computeIfAbsent(masterName, JenkinsMaster::new);
 	}
 
 	public static Integer getSlaveRAMMinimumDefault() {
@@ -170,27 +168,120 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		}
 	}
 
+	public void copyFileFromJenkinsMaster(
+		String sourceFilePath, File targetFile) {
+
+		String targetFilePath = JenkinsResultsParserUtil.getCanonicalPath(
+			targetFile);
+
+		if (!_isRunningOnJenkinsMaster()) {
+			sourceFilePath = JenkinsResultsParserUtil.combine(
+				_SSH_USER_NAME, "@", getName(), ":", sourceFilePath);
+		}
+
+		_executeSCPCommand(sourceFilePath, targetFilePath);
+	}
+
+	public void copyFileToJenkinsMaster(
+		File sourceFile, String targetFilePath) {
+
+		String sourceFilePath = JenkinsResultsParserUtil.getCanonicalPath(
+			sourceFile);
+
+		if (!_isRunningOnJenkinsMaster()) {
+			targetFilePath = JenkinsResultsParserUtil.combine(
+				_SSH_USER_NAME, "@", getName(), ":", targetFilePath);
+		}
+
+		_executeSCPCommand(sourceFilePath, targetFilePath);
+	}
+
+	@Override
+	public boolean equals(Object object) {
+		if (!(object instanceof JenkinsMaster)) {
+			return false;
+		}
+
+		JenkinsMaster jenkinsMaster = (JenkinsMaster)object;
+
+		return Objects.equals(jenkinsMaster.getName(), getName());
+	}
+
+	public String executeBashCommand(String command) {
+		String sshCommand = JenkinsResultsParserUtil.combine(
+			"ssh ", _SSH_OPTIONS, " ", _SSH_USER_NAME, "@", getName(), " \"",
+			command, "\"");
+
+		Process process = null;
+
+		try {
+			if (_isRunningOnJenkinsMaster()) {
+				process = JenkinsResultsParserUtil.executeBashCommands(
+					new File("."), true, false, _SSH_COMMAND_TIMEOUT, command);
+			}
+			else {
+				process = JenkinsResultsParserUtil.executeBashCommands(
+					new File("."), true, false, _SSH_COMMAND_TIMEOUT,
+					sshCommand);
+			}
+		}
+		catch (IOException | TimeoutException exception) {
+			throw new RuntimeException(
+				"Unable to execute command " + sshCommand, exception);
+		}
+
+		if (process.exitValue() != 0) {
+			throw new RuntimeException(
+				JenkinsResultsParserUtil.combine(
+					"Unable to execute command ", command, " on ", getName()));
+		}
+
+		try {
+			String output = JenkinsResultsParserUtil.readInputStream(
+				process.getInputStream());
+
+			return output.replace("Finished executing Bash commands.", "");
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(
+				"Unable to read output of command " + sshCommand, ioException);
+		}
+	}
+
+	public List<JenkinsUser.APIToken> getAPITokens(String jenkinsUserName) {
+		if (JenkinsResultsParserUtil.isNullOrEmpty(jenkinsUserName)) {
+			return null;
+		}
+
+		JenkinsUser jenkinsUser = JenkinsUserFactory.getJenkinsUser(
+			this, jenkinsUserName);
+
+		return jenkinsUser.getAPITokens();
+	}
+
 	@Override
 	public List<String> getAssignedLabels() {
 		return _assignedLabels;
 	}
 
 	public int getAvailableSlavesCount(String labelExpression) {
-		int idleNodeCount = _getIdleNodeCount(labelExpression);
-		int queueCount = _getQueueCount(labelExpression);
+		int idleNodesCount = _getIdleNodesCount(labelExpression);
+		int queueItemsCount = _getQueueItemsCount(labelExpression);
 		int recentBatchSizesTotal = _getRecentBatchSizesTotal(labelExpression);
 
-		return idleNodeCount - queueCount - recentBatchSizesTotal;
+		return idleNodesCount - queueItemsCount - recentBatchSizesTotal;
 	}
 
 	public float getAverageQueueLength(String labelExpression) {
-		int busyNodeCount = _getBusyNodeCount(labelExpression);
-		int queueCount = _getQueueCount(labelExpression);
+		int busyNodesCount = _getBusyNodesCount(labelExpression);
+		int queueItemsCount = _getQueueItemsCount(labelExpression);
 		int recentBatchSizesTotal = _getRecentBatchSizesTotal(labelExpression);
-		int usableNodeCount = _getUsableNodeCount(labelExpression);
+		int usableNodesCount = _getUsableNodesCount(labelExpression);
 
-		return ((float)busyNodeCount + queueCount + recentBatchSizesTotal) /
-			usableNodeCount;
+		float queueLength =
+			(float)busyNodesCount + queueItemsCount + recentBatchSizesTotal;
+
+		return queueLength / usableNodesCount;
 	}
 
 	public List<AWSFleetCloud> getAWSFleetClouds() {
@@ -284,11 +375,8 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		List<DefaultBuild> oldDefaultBuilds = new ArrayList<>();
 
 		for (DefaultBuild defaultBuild : _defaultBuilds) {
-			if (!buildURLs.contains(defaultBuild.getBuildURL())) {
+			if (!buildURLs.remove(defaultBuild.getBuildURL())) {
 				oldDefaultBuilds.add(defaultBuild);
-			}
-			else {
-				buildURLs.remove(defaultBuild.getBuildURL());
 			}
 		}
 
@@ -401,6 +489,61 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		return idleSlavesCount;
 	}
 
+	public JSONObject getInProgressBuildJSONObject(
+		String jobName, Map<String, String> buildParameters) {
+
+		try {
+			JSONObject jobJSONObject = JenkinsResultsParserUtil.toJSONObject(
+				JenkinsResultsParserUtil.combine(
+					getURL(), "/job/", jobName, "/api/json?",
+					"tree=builds[actions[parameters[name,value]],queueId,",
+					"result,url]"),
+				false, 5000);
+
+			JSONArray buildsJSONArray = jobJSONObject.optJSONArray("builds");
+
+			for (int i = 0; i < buildsJSONArray.length(); i++) {
+				JSONObject buildJSONObject = buildsJSONArray.optJSONObject(i);
+
+				if ((buildJSONObject == JSONObject.NULL) ||
+					!JenkinsResultsParserUtil.isNullOrEmpty(
+						buildJSONObject.optString("result"))) {
+
+					continue;
+				}
+
+				Map<String, String> parameters = _getParameters(
+					buildJSONObject);
+
+				boolean matchingBuildParameters = true;
+
+				for (Map.Entry<String, String> buildParameter :
+						buildParameters.entrySet()) {
+
+					String parameterValue = parameters.get(
+						buildParameter.getKey());
+
+					if (!Objects.equals(
+							buildParameter.getValue(), parameterValue)) {
+
+						matchingBuildParameters = false;
+
+						break;
+					}
+				}
+
+				if (matchingBuildParameters) {
+					return buildJSONObject;
+				}
+			}
+		}
+		catch (Exception exception) {
+			return null;
+		}
+
+		return null;
+	}
+
 	@Override
 	public JenkinsCohort getJenkinsCohort() {
 		if (_jenkinsCohort != null) {
@@ -455,6 +598,10 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		}
 
 		return new ArrayList<>(_jenkinsSlavesMap.values());
+	}
+
+	public int getMaxRunningBuildsCount() {
+		return Math.max(_busyExecutorsCount, _runningBuilds.size());
 	}
 
 	@Override
@@ -512,6 +659,65 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		return onlineJenkinsSlavesCount;
 	}
 
+	public JSONObject getQueuedBuildJSONObject(
+		String jobName, Map<String, String> buildParameters) {
+
+		try {
+			JSONObject queueJSONObject = JenkinsResultsParserUtil.toJSONObject(
+				JenkinsResultsParserUtil.combine(
+					getURL(), "/queue/api/json?",
+					"tree=items[actions[parameters[name,value]],id,task[url]]"),
+				false, 5000);
+
+			JSONArray itemsJSONArray = queueJSONObject.optJSONArray("items");
+
+			for (int i = 0; i < itemsJSONArray.length(); i++) {
+				JSONObject itemJSONObject = itemsJSONArray.optJSONObject(i);
+
+				if (itemJSONObject == JSONObject.NULL) {
+					continue;
+				}
+
+				JSONObject taskJSONObject = itemJSONObject.optJSONObject(
+					"task");
+
+				String taskURL = taskJSONObject.optString("url", "");
+
+				if (!taskURL.contains("/" + jobName + "/")) {
+					continue;
+				}
+
+				boolean matchingBuildParameters = true;
+
+				Map<String, String> parameters = _getParameters(itemJSONObject);
+
+				for (Map.Entry<String, String> buildParameter :
+						buildParameters.entrySet()) {
+
+					String parameterValue = parameters.get(
+						buildParameter.getKey());
+
+					if (!Objects.equals(
+							buildParameter.getValue(), parameterValue)) {
+
+						matchingBuildParameters = false;
+
+						break;
+					}
+				}
+
+				if (matchingBuildParameters) {
+					return itemJSONObject;
+				}
+			}
+		}
+		catch (Exception exception) {
+			return null;
+		}
+
+		return null;
+	}
+
 	public Map<String, JSONObject> getQueuedBuildURLs() {
 		Map<String, JSONObject> queuedBuildURLs = new HashMap<>();
 
@@ -539,18 +745,23 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 	}
 
 	public QueueItem getQueueItem(long queueId) {
+		String queueItemAPIURL = JenkinsResultsParserUtil.combine(
+			getURL(), "/queue/item/", String.valueOf(queueId),
+			"/api/json?tree=actions[parameters[name,value]],",
+			"id,inQueueSince,task[name,url],url,why");
+
 		try {
+			String response = JenkinsResultsParserUtil.toString(
+				queueItemAPIURL, false, 0, 0, 5000);
+
+			if (JenkinsResultsParserUtil.isNullOrEmpty(response)) {
+				return null;
+			}
+
 			JSONObject queueItemJSONObject =
-				JenkinsResultsParserUtil.toJSONObject(
-					JenkinsResultsParserUtil.combine(
-						getURL(), "/queue/item/", String.valueOf(queueId),
-						"/api/json?tree=actions[parameters[name,value]],",
-						"id,inQueueSince,task[name,url],url,why"),
-					false, 5000);
+				JenkinsResultsParserUtil.createJSONObject(response);
 
-			if ((queueItemJSONObject == null) ||
-				!queueItemJSONObject.has("id")) {
-
+			if (!queueItemJSONObject.has("id")) {
 				return null;
 			}
 
@@ -643,6 +854,10 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		return _masterRemoteURL;
 	}
 
+	public List<RunningBuild> getRunningBuilds() {
+		return new ArrayList<>(_runningBuilds);
+	}
+
 	public Integer getSlaveRAM() {
 		return _slaveRAM;
 	}
@@ -651,10 +866,10 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		return _slavesPerHost;
 	}
 
-	public int getStartedBuildCountAfter(Date date, boolean topLevelBuilds) {
-		if (_buildCountJSONObject == null) {
+	public int getStartedBuildsCountAfter(Date date, boolean topLevelBuilds) {
+		if (_buildsCountJSONObject == null) {
 			try {
-				_buildCountJSONObject = JenkinsResultsParserUtil.toJSONObject(
+				_buildsCountJSONObject = JenkinsResultsParserUtil.toJSONObject(
 					getURL() + "api/json?tree=jobs[name,allBuilds[timestamp]]");
 			}
 			catch (IOException ioException) {
@@ -662,13 +877,13 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 			}
 		}
 
-		JSONArray jobsJSONArray = _buildCountJSONObject.optJSONArray("jobs");
+		JSONArray jobsJSONArray = _buildsCountJSONObject.optJSONArray("jobs");
 
 		if (jobsJSONArray == null) {
 			return 0;
 		}
 
-		int buildCount = 0;
+		int buildsCount = 0;
 
 		for (int i = 0; i < jobsJSONArray.length(); i++) {
 			JSONObject jobJSONObject = jobsJSONArray.optJSONObject(i);
@@ -706,45 +921,34 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 				Date buildDate = new Date(buildJSONObject.getLong("timestamp"));
 
 				if (buildDate.after(date)) {
-					buildCount++;
+					buildsCount++;
 				}
 			}
 		}
 
-		return buildCount;
+		return buildsCount;
 	}
 
 	public String getURL() {
 		return _masterURL;
 	}
 
-	public synchronized boolean isAvailable() {
-		if ((_availableTimestamp == -1) ||
-			((System.currentTimeMillis() - _availableTimestamp) >
-				_AVAILABLE_TIMEOUT)) {
+	@Override
+	public int hashCode() {
+		String name = getName();
 
-			try {
-				if (!isBlackListed()) {
-					JenkinsResultsParserUtil.toJSONObject(
-						getURL() + "/api/json?tree=mode", false, 1, 1, 1000);
-
-					_available = true;
-				}
-			}
-			catch (Exception exception) {
-				System.out.println(getName() + " is unreachable.");
-
-				_available = false;
-			}
-			finally {
-				_availableTimestamp = System.currentTimeMillis();
-			}
-		}
-
-		return _available;
+		return name.hashCode();
 	}
 
-	public boolean isBlackListed() {
+	public synchronized boolean isAvailable() {
+		if (isBlacklisted()) {
+			return false;
+		}
+
+		return _isReachable();
+	}
+
+	public boolean isBlacklisted() {
 		if (_jenkinsMastersBlacklist.contains(getName())) {
 			_blacklisted = true;
 		}
@@ -755,52 +959,8 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 	public boolean isBuildInProgress(
 		String jobName, Map<String, String> buildParameters) {
 
-		try {
-			JSONObject jobJSONObject = JenkinsResultsParserUtil.toJSONObject(
-				JenkinsResultsParserUtil.combine(
-					getURL(), "/job/", jobName, "/api/json?",
-					"tree=builds[actions[parameters[name,value]],result,url]"),
-				false, 5000);
-
-			JSONArray buildsJSONArray = jobJSONObject.optJSONArray("builds");
-
-			for (int i = 0; i < buildsJSONArray.length(); i++) {
-				JSONObject buildJSONObject = buildsJSONArray.optJSONObject(i);
-
-				if ((buildJSONObject == JSONObject.NULL) ||
-					!JenkinsResultsParserUtil.isNullOrEmpty(
-						buildJSONObject.optString("result"))) {
-
-					continue;
-				}
-
-				Map<String, String> parameters = _getParameters(
-					buildJSONObject);
-
-				boolean matchingBuildParameters = true;
-
-				for (Map.Entry<String, String> buildParameter :
-						buildParameters.entrySet()) {
-
-					String parameterValue = parameters.get(
-						buildParameter.getKey());
-
-					if (!Objects.equals(
-							buildParameter.getValue(), parameterValue)) {
-
-						matchingBuildParameters = false;
-
-						break;
-					}
-				}
-
-				if (matchingBuildParameters) {
-					return true;
-				}
-			}
-		}
-		catch (Exception exception) {
-			return false;
+		if (getInProgressBuildJSONObject(jobName, buildParameters) != null) {
+			return true;
 		}
 
 		return false;
@@ -809,57 +969,8 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 	public boolean isBuildQueued(
 		String jobName, Map<String, String> buildParameters) {
 
-		try {
-			JSONObject queueJSONObject = JenkinsResultsParserUtil.toJSONObject(
-				JenkinsResultsParserUtil.combine(
-					getURL(), "/queue/api/json?",
-					"tree=items[actions[parameters[name,value]],task[url]]"),
-				false, 5000);
-
-			JSONArray itemsJSONArray = queueJSONObject.optJSONArray("items");
-
-			for (int i = 0; i < itemsJSONArray.length(); i++) {
-				JSONObject itemJSONObject = itemsJSONArray.optJSONObject(i);
-
-				if (itemJSONObject == JSONObject.NULL) {
-					continue;
-				}
-
-				JSONObject taskJSONObject = itemJSONObject.optJSONObject(
-					"task");
-
-				String taskURL = taskJSONObject.optString("url", "");
-
-				if (!taskURL.contains("/" + jobName + "/")) {
-					continue;
-				}
-
-				Map<String, String> parameters = _getParameters(itemJSONObject);
-
-				boolean matchingBuildParameters = true;
-
-				for (Map.Entry<String, String> buildParameter :
-						buildParameters.entrySet()) {
-
-					String parameterValue = parameters.get(
-						buildParameter.getKey());
-
-					if (!Objects.equals(
-							buildParameter.getValue(), parameterValue)) {
-
-						matchingBuildParameters = false;
-
-						break;
-					}
-				}
-
-				if (matchingBuildParameters) {
-					return true;
-				}
-			}
-		}
-		catch (Exception exception) {
-			return false;
+		if (getQueuedBuildJSONObject(jobName, buildParameters) != null) {
+			return true;
 		}
 
 		return false;
@@ -903,6 +1014,30 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		return false;
 	}
 
+	public void reloadJenkinsUser(String jenkinsUserName) {
+		JenkinsUser jenkinsUser = JenkinsUserFactory.getJenkinsUser(
+			this, jenkinsUserName);
+
+		String jenkinsUserID = jenkinsUser.getJenkinsUserID();
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(jenkinsUserID)) {
+			throw new RuntimeException(
+				"Unable to find Jenkins user ID for " + jenkinsUserName);
+		}
+
+		JenkinsResultsParserUtil.executeJenkinsScript(
+			getName(),
+			JenkinsResultsParserUtil.combine(
+				"hudson.model.User user = hudson.model.User.getById('",
+				jenkinsUserID, "', false)\n", "if (user == null) {\n",
+				"throw new RuntimeException('Unable to find user ",
+				jenkinsUserID, "')\n", "}\n", "user.load()"));
+
+		System.out.println(
+			JenkinsResultsParserUtil.combine(
+				"Successfully reloaded ", jenkinsUserName, " for ", getURL()));
+	}
+
 	@Override
 	public String toString() {
 		return JenkinsResultsParserUtil.combine(
@@ -919,16 +1054,18 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 	}
 
 	public synchronized void update(boolean minimal) {
-		if (_isUpdated()) {
+		if (_isUpdated(minimal)) {
 			return;
 		}
 
 		_labelExpressionLabels.clear();
 
-		if (!isAvailable()) {
+		if (!_isReachable()) {
 			_assignedLabels.clear();
 			_buildURLs.clear();
+			_busyExecutorsCount = 0;
 			_jenkinsSlavesMap.clear();
+			_runningBuilds.clear();
 
 			return;
 		}
@@ -938,19 +1075,33 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		JSONObject computerAPIJSONObject = null;
 
 		try {
+			String treeQuery = JenkinsResultsParserUtil.combine(
+				"/computer/api/json?tree=computer[assignedLabels[name],",
+				"displayName,executors[currentExecutable[url]],idle,offline,",
+				"offlineCauseReason]");
+
+			if (!minimal) {
+				treeQuery = JenkinsResultsParserUtil.combine(
+					"/computer/api/json?tree=busyExecutors,computer",
+					"[assignedLabels[name],displayName,executors",
+					"[currentExecutable[building,estimatedDuration,",
+					"fullDisplayName,timestamp,url],likelyStuck],idle,",
+					"offline,offlineCause[timestamp],offlineCauseReason,",
+					"oneOffExecutors[currentExecutable[building,",
+					"estimatedDuration,fullDisplayName,timestamp,url],",
+					"likelyStuck],temporarilyOffline]");
+			}
+
 			computerAPIJSONObject = JenkinsResultsParserUtil.toJSONObject(
-				JenkinsResultsParserUtil.combine(
-					getURL(), "/computer/api/json?tree=computer",
-					"[assignedLabels[name],displayName,",
-					"executors[currentExecutable[url]],idle,offline,",
-					"offlineCauseReason]"),
-				false, 5000);
+				getURL() + treeQuery, false, 5000);
 		}
 		catch (Exception exception) {
 			_assignedLabels.clear();
 			_buildURLs.clear();
+			_busyExecutorsCount = 0;
 			_jenkinsSlavesMap.clear();
 			_labelExpressionLabels.clear();
+			_runningBuilds.clear();
 
 			System.out.println("Unable to read " + _masterURL);
 
@@ -958,6 +1109,7 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		}
 
 		List<String> buildURLs = new ArrayList<>();
+		List<RunningBuild> runningBuilds = new ArrayList<>();
 
 		JSONArray computerJSONArray = computerAPIJSONObject.getJSONArray(
 			"computer");
@@ -967,6 +1119,11 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 
 			String jenkinsSlaveName = JenkinsSlave.getDisplayName(
 				computerJSONObject);
+
+			if (!minimal) {
+				_addRunningBuilds(
+					computerJSONObject, jenkinsSlaveName, runningBuilds);
+			}
 
 			if (jenkinsSlaveName.equals("Built-In Node") ||
 				jenkinsSlaveName.equals("master")) {
@@ -1043,9 +1200,48 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		_buildURLs.clear();
 
 		_buildURLs.addAll(buildURLs);
+
+		if (minimal) {
+			_busyExecutorsCount = 0;
+
+			_runningBuilds.clear();
+
+			return;
+		}
+
+		_busyExecutorsCount = computerAPIJSONObject.optInt("busyExecutors", 0);
+
+		_runningBuilds.clear();
+
+		_runningBuilds.addAll(runningBuilds);
 	}
 
-	public static class QueueItem {
+	public static class QueueItem implements Comparable<QueueItem> {
+
+		@Override
+		public int compareTo(QueueItem queueItem) {
+			return Long.compare(getInQueueSince(), queueItem.getInQueueSince());
+		}
+
+		public AWSFleetCloud getAWSFleetCloud() {
+			if (_awsFleetCloud != null) {
+				return _awsFleetCloud;
+			}
+
+			for (AWSFleetCloud awsFleetCloud :
+					_jenkinsMaster.getAWSFleetClouds()) {
+
+				if (_jenkinsMaster._matchesLabels(
+						getLabelExpression(), awsFleetCloud.getLabels())) {
+
+					_awsFleetCloud = awsFleetCloud;
+
+					return _awsFleetCloud;
+				}
+			}
+
+			return null;
+		}
 
 		public long getId() {
 			return _jsonObject.getLong("id");
@@ -1053,6 +1249,10 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 
 		public long getInQueueSince() {
 			return _jsonObject.getLong("inQueueSince");
+		}
+
+		public JenkinsMaster getJenkinsMaster() {
+			return _jenkinsMaster;
 		}
 
 		public JSONObject getJSONObject() {
@@ -1083,6 +1283,16 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 
 		public Map<String, String> getParameters() {
 			return _getParameters(_jsonObject);
+		}
+
+		public String getPrimaryLabel() {
+			AWSFleetCloud awsFleetCloud = getAWSFleetCloud();
+
+			if (awsFleetCloud == null) {
+				return null;
+			}
+
+			return awsFleetCloud.getPrimaryLabel();
 		}
 
 		public String getTaskName() {
@@ -1154,8 +1364,136 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 			_jsonObject = jsonObject;
 		}
 
+		private AWSFleetCloud _awsFleetCloud;
 		private final JenkinsMaster _jenkinsMaster;
 		private final JSONObject _jsonObject;
+
+	}
+
+	public static class RunningBuild {
+
+		public long getDuration(long currentTimeMillis) {
+			long startTime = _getStartTime();
+
+			if (startTime <= 0) {
+				return 0;
+			}
+
+			return currentTimeMillis - startTime;
+		}
+
+		public long getEstimatedDuration() {
+			return _currentExecutableJSONObject.optLong(
+				"estimatedDuration", -1);
+		}
+
+		public String getFullDisplayName() {
+			return _currentExecutableJSONObject.optString("fullDisplayName");
+		}
+
+		public JenkinsMaster getJenkinsMaster() {
+			return _jenkinsMaster;
+		}
+
+		public String getJenkinsSlaveName() {
+			return _jenkinsSlaveName;
+		}
+
+		public long getJenkinsSlaveOfflineDuration(long currentTimeMillis) {
+			long jenkinsSlaveOfflineTime = _getJenkinsSlaveOfflineTime();
+
+			if (!_isJenkinsSlaveOffline() || (jenkinsSlaveOfflineTime <= 0)) {
+				return 0;
+			}
+
+			return currentTimeMillis - jenkinsSlaveOfflineTime;
+		}
+
+		public String getURL() {
+			return _currentExecutableJSONObject.optString("url");
+		}
+
+		public boolean isBuilding() {
+			return _currentExecutableJSONObject.optBoolean("building", false);
+		}
+
+		public boolean isJenkinsSlaveBeingRemoved() {
+			String offlineCauseReason = _getOfflineCauseReason();
+
+			if (!_isJenkinsSlaveOffline() ||
+				JenkinsResultsParserUtil.isNullOrEmpty(offlineCauseReason)) {
+
+				return false;
+			}
+
+			return offlineCauseReason.contains("is being removed");
+		}
+
+		public boolean isJenkinsSlaveOfflineUnexpectedly() {
+			if (_isJenkinsSlaveOffline() &&
+				!_isJenkinsSlaveTemporarilyOffline()) {
+
+				return true;
+			}
+
+			return false;
+		}
+
+		public boolean isLikelyStuck() {
+			return _likelyStuck;
+		}
+
+		@Override
+		public String toString() {
+			return JenkinsResultsParserUtil.combine(
+				_jenkinsMaster.getName(), " ", getFullDisplayName(), " (",
+				getURL(), ")");
+		}
+
+		protected RunningBuild(
+			JSONObject computerJSONObject,
+			JSONObject currentExecutableJSONObject, JenkinsMaster jenkinsMaster,
+			String jenkinsSlaveName, boolean likelyStuck) {
+
+			_computerJSONObject = computerJSONObject;
+			_currentExecutableJSONObject = currentExecutableJSONObject;
+			_jenkinsMaster = jenkinsMaster;
+			_jenkinsSlaveName = jenkinsSlaveName;
+			_likelyStuck = likelyStuck;
+		}
+
+		private long _getJenkinsSlaveOfflineTime() {
+			JSONObject offlineCauseJSONObject =
+				_computerJSONObject.optJSONObject("offlineCause");
+
+			if (offlineCauseJSONObject == null) {
+				return -1;
+			}
+
+			return offlineCauseJSONObject.optLong("timestamp", -1);
+		}
+
+		private String _getOfflineCauseReason() {
+			return _computerJSONObject.optString("offlineCauseReason");
+		}
+
+		private long _getStartTime() {
+			return _currentExecutableJSONObject.optLong("timestamp", -1);
+		}
+
+		private boolean _isJenkinsSlaveOffline() {
+			return _computerJSONObject.optBoolean("offline", false);
+		}
+
+		private boolean _isJenkinsSlaveTemporarilyOffline() {
+			return _computerJSONObject.optBoolean("temporarilyOffline", true);
+		}
+
+		private final JSONObject _computerJSONObject;
+		private final JSONObject _currentExecutableJSONObject;
+		private final JenkinsMaster _jenkinsMaster;
+		private final String _jenkinsSlaveName;
+		private final boolean _likelyStuck;
 
 	}
 
@@ -1271,6 +1609,62 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		}
 	}
 
+	private void _addRunningBuilds(
+		JSONObject computerJSONObject, String jenkinsSlaveName,
+		List<RunningBuild> runningBuilds) {
+
+		for (String key : new String[] {"executors", "oneOffExecutors"}) {
+			JSONArray executorsJSONArray = computerJSONObject.optJSONArray(key);
+
+			if (executorsJSONArray == null) {
+				continue;
+			}
+
+			for (int i = 0; i < executorsJSONArray.length(); i++) {
+				JSONObject executorJSONObject =
+					executorsJSONArray.getJSONObject(i);
+
+				JSONObject currentExecutableJSONObject =
+					executorJSONObject.optJSONObject("currentExecutable");
+
+				if ((currentExecutableJSONObject == null) ||
+					!currentExecutableJSONObject.has("url")) {
+
+					continue;
+				}
+
+				runningBuilds.add(
+					new RunningBuild(
+						computerJSONObject, currentExecutableJSONObject, this,
+						jenkinsSlaveName,
+						executorJSONObject.optBoolean("likelyStuck", false)));
+			}
+		}
+	}
+
+	private void _executeSCPCommand(
+		String sourceFilePath, String targetFilePath) {
+
+		String scpCommand = JenkinsResultsParserUtil.combine(
+			"scp ", _SSH_OPTIONS, " ", sourceFilePath, " ", targetFilePath);
+
+		Process process = null;
+
+		try {
+			process = JenkinsResultsParserUtil.executeBashCommands(
+				true, new File("."), _SSH_COMMAND_TIMEOUT, scpCommand);
+		}
+		catch (IOException | TimeoutException exception) {
+			throw new RuntimeException(
+				"Unable to execute command " + scpCommand, exception);
+		}
+
+		if (process.exitValue() != 0) {
+			throw new RuntimeException(
+				"Unable to execute command " + scpCommand);
+		}
+	}
+
 	private JSONArray _getBuildsJSONArray(
 		final String jobName, final int page) {
 
@@ -1303,8 +1697,8 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		return retryable.executeWithRetries();
 	}
 
-	private int _getBusyNodeCount(String labelExpression) {
-		int busyNodeCount = 0;
+	private int _getBusyNodesCount(String labelExpression) {
+		int busyNodesCount = 0;
 
 		List<JenkinsNode> jenkinsNodes = new ArrayList<>();
 
@@ -1317,15 +1711,15 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 					labelExpression, jenkinsNode.getAssignedLabels()) &&
 				!jenkinsNode.isIdle() && !jenkinsNode.isOffline()) {
 
-				busyNodeCount++;
+				busyNodesCount++;
 			}
 		}
 
-		return busyNodeCount;
+		return busyNodesCount;
 	}
 
-	private int _getIdleNodeCount(String labelExpression) {
-		int idleNodeCount = 0;
+	private int _getIdleNodesCount(String labelExpression) {
+		int idleNodesCount = 0;
 
 		List<JenkinsNode> jenkinsNodes = new ArrayList<>();
 
@@ -1346,14 +1740,14 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 					labelExpression, jenkinsNode.getAssignedLabels()) &&
 				jenkinsNode.isIdle() && !jenkinsNode.isOffline()) {
 
-				idleNodeCount++;
+				idleNodesCount++;
 			}
 		}
 
 		List<AWSFleetCloud> awsFleetClouds = getAWSFleetClouds();
 
 		if (awsFleetClouds.isEmpty()) {
-			return idleNodeCount;
+			return idleNodesCount;
 		}
 
 		for (AWSFleetCloud awsFleetCloud : awsFleetClouds) {
@@ -1361,23 +1755,26 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 				continue;
 			}
 
-			int idleAWSFleetCloudSlaveCount = awsFleetCloud.getMaxSize();
+			int idleAWSFleetCloudSlavesCount = awsFleetCloud.getMaxSize();
 
 			for (JenkinsSlave jenkinsSlave : awsFleetCloud.getJenkinsSlaves()) {
 				if (!jenkinsSlave.isIdle() || jenkinsSlave.isOffline()) {
-					idleAWSFleetCloudSlaveCount--;
+					idleAWSFleetCloudSlavesCount--;
 				}
 			}
 
-			idleNodeCount += idleAWSFleetCloudSlaveCount;
+			idleNodesCount += idleAWSFleetCloudSlavesCount;
 		}
 
-		return idleNodeCount;
+		return idleNodesCount;
 	}
 
 	private List<String> _getLabels(String labelExpression) {
-		if (_labelExpressionLabels.containsKey(labelExpression)) {
-			return _labelExpressionLabels.get(labelExpression);
+		List<String> labelExpressionLabels = _labelExpressionLabels.get(
+			labelExpression);
+
+		if (labelExpressionLabels != null) {
+			return labelExpressionLabels;
 		}
 
 		Set<String> labels = new HashSet<>();
@@ -1409,8 +1806,8 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		return _labelExpressionLabels.get(labelExpression);
 	}
 
-	private int _getQueueCount(String labelExpression) {
-		int queueCount = 0;
+	private int _getQueueItemsCount(String labelExpression) {
+		int queueItemsCount = 0;
 
 		List<String> labels = _getLabels(labelExpression);
 
@@ -1420,11 +1817,11 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 			}
 
 			if (_matchesLabels(queueItem.getLabelExpression(), labels)) {
-				queueCount++;
+				queueItemsCount++;
 			}
 		}
 
-		return queueCount;
+		return queueItemsCount;
 	}
 
 	private synchronized int _getRecentBatchSizesTotal(String labelExpression) {
@@ -1477,11 +1874,11 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		return recentBatchSizesTotal;
 	}
 
-	private int _getUsableNodeCount(String labelExpression) {
-		int usableNodeCount = 0;
+	private int _getUsableNodesCount(String labelExpression) {
+		int usableNodesCount = 0;
 
 		if (_matchesLabels(labelExpression, getAssignedLabels())) {
-			usableNodeCount++;
+			usableNodesCount++;
 		}
 
 		for (JenkinsSlave jenkinsSlave : getJenkinsSlaves()) {
@@ -1490,17 +1887,45 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 				_matchesLabels(
 					labelExpression, jenkinsSlave.getAssignedLabels())) {
 
-				usableNodeCount++;
+				usableNodesCount++;
 			}
 		}
 
 		for (AWSFleetCloud awsFleetCloud : getAWSFleetClouds()) {
 			if (_matchesLabels(labelExpression, awsFleetCloud.getLabels())) {
-				usableNodeCount += awsFleetCloud.getMaxSize();
+				usableNodesCount += awsFleetCloud.getMaxSize();
 			}
 		}
 
-		return usableNodeCount;
+		return usableNodesCount;
+	}
+
+	private synchronized boolean _isReachable() {
+		if ((_availableTimestamp == -1) ||
+			((System.currentTimeMillis() - _availableTimestamp) >
+				_AVAILABLE_TIMEOUT)) {
+
+			try {
+				JenkinsResultsParserUtil.toJSONObject(
+					getURL() + "/api/json?tree=mode", false, 1, 1, 1000);
+
+				_available = true;
+			}
+			catch (Exception exception) {
+				System.out.println(getName() + " is unreachable.");
+
+				_available = false;
+			}
+			finally {
+				_availableTimestamp = System.currentTimeMillis();
+			}
+		}
+
+		return _available;
+	}
+
+	private boolean _isRunningOnJenkinsMaster() {
+		return Objects.equals(System.getenv("HOSTNAME"), getName());
 	}
 
 	private boolean _isTopLevelJobName(String jobName) {
@@ -1538,11 +1963,13 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 		return _topLevelJobNames.contains(jobName);
 	}
 
-	private synchronized boolean _isUpdated() {
+	private synchronized boolean _isUpdated(boolean minimal) {
 		if ((_updateTimestamp == -1) ||
 			((System.currentTimeMillis() - _updateTimestamp) >
-				_MAXIMUM_UPDATE_DURATION)) {
+				_MAXIMUM_UPDATE_DURATION) ||
+			(_updateMinimal && !minimal)) {
 
+			_updateMinimal = minimal;
 			_updateTimestamp = System.currentTimeMillis();
 
 			return false;
@@ -1598,6 +2025,13 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 
 	private static final long _MAXIMUM_UPDATE_DURATION = 1000 * 15;
 
+	private static final long _SSH_COMMAND_TIMEOUT = 1000 * 60 * 5;
+
+	private static final String _SSH_OPTIONS =
+		"-o ConnectTimeout=60 -o NumberOfPasswordPrompts=0";
+
+	private static final String _SSH_USER_NAME = "root";
+
 	private static final Pattern _globalEnvironmentVariablesPattern =
 		Pattern.compile("[^\\{]+(?<json>\\{.*\\})\\s+");
 	private static final Map<String, JenkinsMaster> _jenkinsMasters =
@@ -1632,11 +2066,12 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 	private long _awsFleetCloudLastUpdateTimestamp;
 	private List<AWSFleetCloud> _awsFleetClouds;
 	private boolean _blacklisted;
-	private JSONObject _buildCountJSONObject;
 	private final Map<String, List<JSONObject>> _buildJSONObjectsMap =
 		new HashMap<>();
+	private JSONObject _buildsCountJSONObject;
 	private final Map<String, Long> _buildsUpdateTimes = new HashMap<>();
 	private final List<String> _buildURLs = new CopyOnWriteArrayList<>();
+	private int _busyExecutorsCount;
 	private final List<DefaultBuild> _defaultBuilds = new ArrayList<>();
 	private Map<String, String> _globalEnvironmentVariables;
 	private boolean _idle;
@@ -1653,9 +2088,12 @@ public class JenkinsMaster implements JenkinsNode<JenkinsMaster> {
 	private boolean _offline;
 	private final List<QueueItem> _queueItems = new ArrayList<>();
 	private Long _queueUpdateTime;
+	private final List<RunningBuild> _runningBuilds =
+		new CopyOnWriteArrayList<>();
 	private final Integer _slaveRAM;
 	private final Integer _slavesPerHost;
 	private List<String> _topLevelJobNames;
+	private boolean _updateMinimal = true;
 	private long _updateTimestamp = -1;
 
 }

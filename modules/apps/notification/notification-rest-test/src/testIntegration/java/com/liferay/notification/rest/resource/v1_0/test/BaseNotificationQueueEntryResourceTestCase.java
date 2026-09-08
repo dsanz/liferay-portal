@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -121,6 +122,8 @@ public abstract class BaseNotificationQueueEntryResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -427,7 +430,7 @@ public abstract class BaseNotificationQueueEntryResourceTestCase {
 				randomNotificationQueueEntry());
 
 		page = notificationQueueEntryResource.getNotificationQueueEntriesPage(
-			null, null, Pagination.of(1, 10), null);
+			null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -827,17 +830,8 @@ public abstract class BaseNotificationQueueEntryResourceTestCase {
 
 	@Test
 	public void testGraphQLGetNotificationQueueEntriesPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"notificationQueueEntries",
-			new HashMap<String, Object>() {
-				{
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetNotificationQueueEntriesPageNotificationQueueEntry_getGraphQLField();
 
 		// No namespace
 
@@ -898,6 +892,23 @@ public abstract class BaseNotificationQueueEntryResourceTestCase {
 			Arrays.asList(
 				NotificationQueueEntrySerDes.toDTOs(
 					notificationQueueEntriesJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetNotificationQueueEntriesPageNotificationQueueEntry_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"notificationQueueEntries",
+			new HashMap<String, Object>() {
+				{
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -2733,4 +2744,4 @@ public abstract class BaseNotificationQueueEntryResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:685001564
+// LIFERAY-REST-BUILDER-HASH:-686226840

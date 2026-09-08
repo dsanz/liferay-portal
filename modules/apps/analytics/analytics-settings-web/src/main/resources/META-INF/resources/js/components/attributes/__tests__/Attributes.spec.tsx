@@ -18,9 +18,7 @@ import Modal from '../Modal';
 
 const response = {
 	account: 25,
-	order: 0,
 	people: 44,
-	product: 34,
 };
 
 const responseModal = {
@@ -97,13 +95,9 @@ describe('Attributes', () => {
 		expect(screen.getByText('people')).toBeInTheDocument();
 
 		expect(screen.getByText('account')).toBeInTheDocument();
-
-		expect(screen.getByText('products')).toBeInTheDocument();
-
-		expect(screen.getByText('order')).toBeInTheDocument();
 	});
 
-	it('renders Attributes with values for account, order, people, product', async () => {
+	it('renders Attributes with values for account and people', async () => {
 		fetch.mockResponseOnce(JSON.stringify(response));
 
 		render(<Attributes />);
@@ -122,18 +116,6 @@ describe('Attributes', () => {
 		expect(await screen.findByRole('account')).toHaveTextContent(
 			/selected/i
 		);
-
-		expect(await screen.findByRole('products')).toHaveTextContent(
-			/products34/i
-		);
-
-		expect(await screen.findByRole('products')).toHaveTextContent(
-			/selected/i
-		);
-
-		expect(await screen.findByRole('order')).toHaveTextContent(/order0/i);
-
-		expect(await screen.findByRole('order')).toHaveTextContent(/selected/i);
 	});
 
 	it('renders Attributes with select buttons', async () => {
@@ -149,13 +131,9 @@ describe('Attributes', () => {
 
 		expect(buttons[1]).toBeInTheDocument();
 
-		expect(buttons[2]).toBeInTheDocument();
-
 		expect(buttons[0]).toHaveAttribute('type', 'button');
 
 		expect(buttons[1]).toHaveAttribute('type', 'button');
-
-		expect(buttons[2]).toHaveAttribute('type', 'button');
 	});
 
 	// This test works but its printing some warnings in the console.

@@ -5,7 +5,6 @@
 
 package com.liferay.style.book.service.persistence.impl;
 
-import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.change.tracking.CTColumnResolutionType;
 import com.liferay.portal.kernel.configuration.Configuration;
 import com.liferay.portal.kernel.dao.orm.EntityCache;
@@ -15,8 +14,6 @@ import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.sanitizer.Sanitizer;
 import com.liferay.portal.kernel.sanitizer.SanitizerException;
 import com.liferay.portal.kernel.sanitizer.SanitizerUtil;
@@ -660,23 +657,9 @@ public class StyleBookEntryPersistenceImpl
 			long groupId, OrderByComparator<StyleBookEntry> orderByComparator)
 		throws NoSuchEntryException {
 
-		StyleBookEntry styleBookEntry = fetchByGroupId_First(
-			groupId, orderByComparator);
-
-		if (styleBookEntry != null) {
-			return styleBookEntry;
-		}
-
-		StringBundler sb = new StringBundler(4);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append("}");
-
-		throw new NoSuchEntryException(sb.toString());
+		return _collectionPersistenceFinderByGroupId.findFirst(
+			finderCache, new Object[] {new long[] {groupId}},
+			orderByComparator);
 	}
 
 	/**
@@ -799,26 +782,9 @@ public class StyleBookEntryPersistenceImpl
 			OrderByComparator<StyleBookEntry> orderByComparator)
 		throws NoSuchEntryException {
 
-		StyleBookEntry styleBookEntry = fetchByGroupId_Head_First(
-			groupId, head, orderByComparator);
-
-		if (styleBookEntry != null) {
-			return styleBookEntry;
-		}
-
-		StringBundler sb = new StringBundler(6);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append(", head=");
-		sb.append(head);
-
-		sb.append("}");
-
-		throw new NoSuchEntryException(sb.toString());
+		return _collectionPersistenceFinderByGroupId_Head.findFirst(
+			finderCache, new Object[] {new long[] {groupId}, head},
+			orderByComparator);
 	}
 
 	/**
@@ -1794,26 +1760,9 @@ public class StyleBookEntryPersistenceImpl
 			OrderByComparator<StyleBookEntry> orderByComparator)
 		throws NoSuchEntryException {
 
-		StyleBookEntry styleBookEntry = fetchByG_T_First(
-			groupId, themeId, orderByComparator);
-
-		if (styleBookEntry != null) {
-			return styleBookEntry;
-		}
-
-		StringBundler sb = new StringBundler(6);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append(", themeId=");
-		sb.append(themeId);
-
-		sb.append("}");
-
-		throw new NoSuchEntryException(sb.toString());
+		return _collectionPersistenceFinderByG_T.findFirst(
+			finderCache, new Object[] {new long[] {groupId}, themeId},
+			orderByComparator);
 	}
 
 	/**
@@ -1946,29 +1895,9 @@ public class StyleBookEntryPersistenceImpl
 			OrderByComparator<StyleBookEntry> orderByComparator)
 		throws NoSuchEntryException {
 
-		StyleBookEntry styleBookEntry = fetchByG_T_Head_First(
-			groupId, themeId, head, orderByComparator);
-
-		if (styleBookEntry != null) {
-			return styleBookEntry;
-		}
-
-		StringBundler sb = new StringBundler(8);
-
-		sb.append(_NO_SUCH_ENTITY_WITH_KEY);
-
-		sb.append("groupId=");
-		sb.append(groupId);
-
-		sb.append(", themeId=");
-		sb.append(themeId);
-
-		sb.append(", head=");
-		sb.append(head);
-
-		sb.append("}");
-
-		throw new NoSuchEntryException(sb.toString());
+		return _collectionPersistenceFinderByG_T_Head.findFirst(
+			finderCache, new Object[] {new long[] {groupId}, themeId, head},
+			orderByComparator);
 	}
 
 	/**
@@ -2275,6 +2204,573 @@ public class StyleBookEntryPersistenceImpl
 		return _collectionPersistenceFinderByG_D_T_Head.count(
 			finderCache,
 			new Object[] {groupId, defaultStyleBookEntry, themeId, head});
+	}
+
+	private CollectionPersistenceFinder<StyleBookEntry, NoSuchEntryException>
+		_collectionPersistenceFinderByG_LikeN_T;
+
+	/**
+	 * Returns all the style book entries where groupId = &#63; and name LIKE &#63; and themeId = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @return the matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T(
+		long groupId, String name, String themeId) {
+
+		return findByG_LikeN_T(
+			groupId, name, themeId, QueryUtil.ALL_POS, QueryUtil.ALL_POS, null);
+	}
+
+	/**
+	 * Returns a range of all the style book entries where groupId = &#63; and name LIKE &#63; and themeId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>StyleBookEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param start the lower bound of the range of style book entries
+	 * @param end the upper bound of the range of style book entries (not inclusive)
+	 * @return the range of matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T(
+		long groupId, String name, String themeId, int start, int end) {
+
+		return findByG_LikeN_T(groupId, name, themeId, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the style book entries where groupId = &#63; and name LIKE &#63; and themeId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>StyleBookEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param start the lower bound of the range of style book entries
+	 * @param end the upper bound of the range of style book entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T(
+		long groupId, String name, String themeId, int start, int end,
+		OrderByComparator<StyleBookEntry> orderByComparator) {
+
+		return findByG_LikeN_T(
+			groupId, name, themeId, start, end, orderByComparator, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the style book entries where groupId = &#63; and name LIKE &#63; and themeId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>StyleBookEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param start the lower bound of the range of style book entries
+	 * @param end the upper bound of the range of style book entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T(
+		long groupId, String name, String themeId, int start, int end,
+		OrderByComparator<StyleBookEntry> orderByComparator,
+		boolean useFinderCache) {
+
+		return _collectionPersistenceFinderByG_LikeN_T.find(
+			finderCache, new Object[] {new long[] {groupId}, name, themeId},
+			start, end, orderByComparator, useFinderCache);
+	}
+
+	/**
+	 * Returns the first style book entry in the ordered set where groupId = &#63; and name LIKE &#63; and themeId = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching style book entry
+	 * @throws NoSuchEntryException if a matching style book entry could not be found
+	 */
+	@Override
+	public StyleBookEntry findByG_LikeN_T_First(
+			long groupId, String name, String themeId,
+			OrderByComparator<StyleBookEntry> orderByComparator)
+		throws NoSuchEntryException {
+
+		return _collectionPersistenceFinderByG_LikeN_T.findFirst(
+			finderCache, new Object[] {new long[] {groupId}, name, themeId},
+			orderByComparator);
+	}
+
+	/**
+	 * Returns the first style book entry in the ordered set where groupId = &#63; and name LIKE &#63; and themeId = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching style book entry, or <code>null</code> if a matching style book entry could not be found
+	 */
+	@Override
+	public StyleBookEntry fetchByG_LikeN_T_First(
+		long groupId, String name, String themeId,
+		OrderByComparator<StyleBookEntry> orderByComparator) {
+
+		return _collectionPersistenceFinderByG_LikeN_T.fetchFirst(
+			finderCache, new Object[] {new long[] {groupId}, name, themeId},
+			orderByComparator);
+	}
+
+	/**
+	 * Returns all the style book entries where groupId = any &#63; and name LIKE &#63; and themeId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>StyleBookEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupIds the group IDs
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @return the matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T(
+		long[] groupIds, String name, String themeId) {
+
+		return findByG_LikeN_T(
+			groupIds, name, themeId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+			null);
+	}
+
+	/**
+	 * Returns a range of all the style book entries where groupId = any &#63; and name LIKE &#63; and themeId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>StyleBookEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupIds the group IDs
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param start the lower bound of the range of style book entries
+	 * @param end the upper bound of the range of style book entries (not inclusive)
+	 * @return the range of matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T(
+		long[] groupIds, String name, String themeId, int start, int end) {
+
+		return findByG_LikeN_T(groupIds, name, themeId, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the style book entries where groupId = any &#63; and name LIKE &#63; and themeId = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>StyleBookEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupIds the group IDs
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param start the lower bound of the range of style book entries
+	 * @param end the upper bound of the range of style book entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T(
+		long[] groupIds, String name, String themeId, int start, int end,
+		OrderByComparator<StyleBookEntry> orderByComparator) {
+
+		return findByG_LikeN_T(
+			groupIds, name, themeId, start, end, orderByComparator, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the style book entries where groupId = &#63; and name LIKE &#63; and themeId = &#63;, optionally using the finder cache.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>StyleBookEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupIds the group IDs
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param start the lower bound of the range of style book entries
+	 * @param end the upper bound of the range of style book entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T(
+		long[] groupIds, String name, String themeId, int start, int end,
+		OrderByComparator<StyleBookEntry> orderByComparator,
+		boolean useFinderCache) {
+
+		return _collectionPersistenceFinderByG_LikeN_T.find(
+			finderCache,
+			new Object[] {ArrayUtil.sortedUnique(groupIds), name, themeId},
+			start, end, orderByComparator, useFinderCache);
+	}
+
+	/**
+	 * Removes all the style book entries where groupId = &#63; and name LIKE &#63; and themeId = &#63; from the database.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 */
+	@Override
+	public void removeByG_LikeN_T(long groupId, String name, String themeId) {
+		_collectionPersistenceFinderByG_LikeN_T.remove(
+			finderCache, new Object[] {new long[] {groupId}, name, themeId});
+	}
+
+	/**
+	 * Returns the number of style book entries where groupId = &#63; and name LIKE &#63; and themeId = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @return the number of matching style book entries
+	 */
+	@Override
+	public int countByG_LikeN_T(long groupId, String name, String themeId) {
+		return _collectionPersistenceFinderByG_LikeN_T.count(
+			finderCache, new Object[] {new long[] {groupId}, name, themeId});
+	}
+
+	/**
+	 * Returns the number of style book entries where groupId = any &#63; and name LIKE &#63; and themeId = &#63;.
+	 *
+	 * @param groupIds the group IDs
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @return the number of matching style book entries
+	 */
+	@Override
+	public int countByG_LikeN_T(long[] groupIds, String name, String themeId) {
+		return _collectionPersistenceFinderByG_LikeN_T.count(
+			finderCache,
+			new Object[] {ArrayUtil.sortedUnique(groupIds), name, themeId});
+	}
+
+	private CollectionPersistenceFinder<StyleBookEntry, NoSuchEntryException>
+		_collectionPersistenceFinderByG_LikeN_T_Head;
+
+	/**
+	 * Returns all the style book entries where groupId = &#63; and name LIKE &#63; and themeId = &#63; and head = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param head the head
+	 * @return the matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T_Head(
+		long groupId, String name, String themeId, boolean head) {
+
+		return findByG_LikeN_T_Head(
+			groupId, name, themeId, head, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+			null);
+	}
+
+	/**
+	 * Returns a range of all the style book entries where groupId = &#63; and name LIKE &#63; and themeId = &#63; and head = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>StyleBookEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param head the head
+	 * @param start the lower bound of the range of style book entries
+	 * @param end the upper bound of the range of style book entries (not inclusive)
+	 * @return the range of matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T_Head(
+		long groupId, String name, String themeId, boolean head, int start,
+		int end) {
+
+		return findByG_LikeN_T_Head(
+			groupId, name, themeId, head, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the style book entries where groupId = &#63; and name LIKE &#63; and themeId = &#63; and head = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>StyleBookEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param head the head
+	 * @param start the lower bound of the range of style book entries
+	 * @param end the upper bound of the range of style book entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T_Head(
+		long groupId, String name, String themeId, boolean head, int start,
+		int end, OrderByComparator<StyleBookEntry> orderByComparator) {
+
+		return findByG_LikeN_T_Head(
+			groupId, name, themeId, head, start, end, orderByComparator, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the style book entries where groupId = &#63; and name LIKE &#63; and themeId = &#63; and head = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>StyleBookEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param head the head
+	 * @param start the lower bound of the range of style book entries
+	 * @param end the upper bound of the range of style book entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T_Head(
+		long groupId, String name, String themeId, boolean head, int start,
+		int end, OrderByComparator<StyleBookEntry> orderByComparator,
+		boolean useFinderCache) {
+
+		return _collectionPersistenceFinderByG_LikeN_T_Head.find(
+			finderCache,
+			new Object[] {new long[] {groupId}, name, themeId, head}, start,
+			end, orderByComparator, useFinderCache);
+	}
+
+	/**
+	 * Returns the first style book entry in the ordered set where groupId = &#63; and name LIKE &#63; and themeId = &#63; and head = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param head the head
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching style book entry
+	 * @throws NoSuchEntryException if a matching style book entry could not be found
+	 */
+	@Override
+	public StyleBookEntry findByG_LikeN_T_Head_First(
+			long groupId, String name, String themeId, boolean head,
+			OrderByComparator<StyleBookEntry> orderByComparator)
+		throws NoSuchEntryException {
+
+		return _collectionPersistenceFinderByG_LikeN_T_Head.findFirst(
+			finderCache,
+			new Object[] {new long[] {groupId}, name, themeId, head},
+			orderByComparator);
+	}
+
+	/**
+	 * Returns the first style book entry in the ordered set where groupId = &#63; and name LIKE &#63; and themeId = &#63; and head = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param head the head
+	 * @param orderByComparator the comparator to order the set by (optionally <code>null</code>)
+	 * @return the first matching style book entry, or <code>null</code> if a matching style book entry could not be found
+	 */
+	@Override
+	public StyleBookEntry fetchByG_LikeN_T_Head_First(
+		long groupId, String name, String themeId, boolean head,
+		OrderByComparator<StyleBookEntry> orderByComparator) {
+
+		return _collectionPersistenceFinderByG_LikeN_T_Head.fetchFirst(
+			finderCache,
+			new Object[] {new long[] {groupId}, name, themeId, head},
+			orderByComparator);
+	}
+
+	/**
+	 * Returns all the style book entries where groupId = any &#63; and name LIKE &#63; and themeId = &#63; and head = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>StyleBookEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupIds the group IDs
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param head the head
+	 * @return the matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T_Head(
+		long[] groupIds, String name, String themeId, boolean head) {
+
+		return findByG_LikeN_T_Head(
+			groupIds, name, themeId, head, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
+			null);
+	}
+
+	/**
+	 * Returns a range of all the style book entries where groupId = any &#63; and name LIKE &#63; and themeId = &#63; and head = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>StyleBookEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupIds the group IDs
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param head the head
+	 * @param start the lower bound of the range of style book entries
+	 * @param end the upper bound of the range of style book entries (not inclusive)
+	 * @return the range of matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T_Head(
+		long[] groupIds, String name, String themeId, boolean head, int start,
+		int end) {
+
+		return findByG_LikeN_T_Head(
+			groupIds, name, themeId, head, start, end, null);
+	}
+
+	/**
+	 * Returns an ordered range of all the style book entries where groupId = any &#63; and name LIKE &#63; and themeId = &#63; and head = &#63;.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>StyleBookEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupIds the group IDs
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param head the head
+	 * @param start the lower bound of the range of style book entries
+	 * @param end the upper bound of the range of style book entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @return the ordered range of matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T_Head(
+		long[] groupIds, String name, String themeId, boolean head, int start,
+		int end, OrderByComparator<StyleBookEntry> orderByComparator) {
+
+		return findByG_LikeN_T_Head(
+			groupIds, name, themeId, head, start, end, orderByComparator, true);
+	}
+
+	/**
+	 * Returns an ordered range of all the style book entries where groupId = &#63; and name LIKE &#63; and themeId = &#63; and head = &#63;, optionally using the finder cache.
+	 *
+	 * <p>
+	 * Useful when paginating results. Returns a maximum of <code>end - start</code> instances. <code>start</code> and <code>end</code> are not primary keys, they are indexes in the result set. Thus, <code>0</code> refers to the first result in the set. Setting both <code>start</code> and <code>end</code> to <code>QueryUtil#ALL_POS</code> will return the full result set. If <code>orderByComparator</code> is specified, then the query will include the given ORDER BY logic. If <code>orderByComparator</code> is absent, then the query will include the default ORDER BY logic from <code>StyleBookEntryModelImpl</code>.
+	 * </p>
+	 *
+	 * @param groupIds the group IDs
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param head the head
+	 * @param start the lower bound of the range of style book entries
+	 * @param end the upper bound of the range of style book entries (not inclusive)
+	 * @param orderByComparator the comparator to order the results by (optionally <code>null</code>)
+	 * @param useFinderCache whether to use the finder cache
+	 * @return the ordered range of matching style book entries
+	 */
+	@Override
+	public List<StyleBookEntry> findByG_LikeN_T_Head(
+		long[] groupIds, String name, String themeId, boolean head, int start,
+		int end, OrderByComparator<StyleBookEntry> orderByComparator,
+		boolean useFinderCache) {
+
+		return _collectionPersistenceFinderByG_LikeN_T_Head.find(
+			finderCache,
+			new Object[] {
+				ArrayUtil.sortedUnique(groupIds), name, themeId, head
+			},
+			start, end, orderByComparator, useFinderCache);
+	}
+
+	/**
+	 * Removes all the style book entries where groupId = &#63; and name LIKE &#63; and themeId = &#63; and head = &#63; from the database.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param head the head
+	 */
+	@Override
+	public void removeByG_LikeN_T_Head(
+		long groupId, String name, String themeId, boolean head) {
+
+		_collectionPersistenceFinderByG_LikeN_T_Head.remove(
+			finderCache,
+			new Object[] {new long[] {groupId}, name, themeId, head});
+	}
+
+	/**
+	 * Returns the number of style book entries where groupId = &#63; and name LIKE &#63; and themeId = &#63; and head = &#63;.
+	 *
+	 * @param groupId the group ID
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param head the head
+	 * @return the number of matching style book entries
+	 */
+	@Override
+	public int countByG_LikeN_T_Head(
+		long groupId, String name, String themeId, boolean head) {
+
+		return _collectionPersistenceFinderByG_LikeN_T_Head.count(
+			finderCache,
+			new Object[] {new long[] {groupId}, name, themeId, head});
+	}
+
+	/**
+	 * Returns the number of style book entries where groupId = any &#63; and name LIKE &#63; and themeId = &#63; and head = &#63;.
+	 *
+	 * @param groupIds the group IDs
+	 * @param name the name
+	 * @param themeId the theme ID
+	 * @param head the head
+	 * @return the number of matching style book entries
+	 */
+	@Override
+	public int countByG_LikeN_T_Head(
+		long[] groupIds, String name, String themeId, boolean head) {
+
+		return _collectionPersistenceFinderByG_LikeN_T_Head.count(
+			finderCache,
+			new Object[] {
+				ArrayUtil.sortedUnique(groupIds), name, themeId, head
+			});
 	}
 
 	private CollectionPersistenceFinder<StyleBookEntry, NoSuchEntryException>
@@ -2844,6 +3340,7 @@ public class StyleBookEntryPersistenceImpl
 		ctStrictColumnNames.add("createDate");
 		ctIgnoreColumnNames.add("modifiedDate");
 		ctMergeColumnNames.add("defaultStyleBookEntry");
+		ctMergeColumnNames.add("frontendTokenDefinition");
 		ctMergeColumnNames.add("frontendTokensValues");
 		ctMergeColumnNames.add("name");
 		ctMergeColumnNames.add("previewFileEntryId");
@@ -2895,7 +3392,8 @@ public class StyleBookEntryPersistenceImpl
 				new String[] {String.class.getName()}, new String[] {"uuid_"},
 				0, 1, false, null),
 			_SQL_SELECT_STYLEBOOKENTRY_WHERE, _SQL_COUNT_STYLEBOOKENTRY_WHERE,
-			StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"styleBookEntry.", "uuid", "uuid_", FinderColumn.Type.STRING,
 				"=", true, true, StyleBookEntry::getUuid));
@@ -2928,6 +3426,7 @@ public class StyleBookEntryPersistenceImpl
 				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
 				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
 				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"styleBookEntry.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -2958,6 +3457,7 @@ public class StyleBookEntryPersistenceImpl
 				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
 				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
 				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"styleBookEntry.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -3010,6 +3510,7 @@ public class StyleBookEntryPersistenceImpl
 				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
 				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
 				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"styleBookEntry.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -3051,6 +3552,7 @@ public class StyleBookEntryPersistenceImpl
 				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
 				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
 				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"styleBookEntry.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -3084,6 +3586,7 @@ public class StyleBookEntryPersistenceImpl
 				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
 				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
 				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new ArrayableFinderColumn<>(
 					"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					false, true, true, StyleBookEntry::getGroupId));
@@ -3117,6 +3620,7 @@ public class StyleBookEntryPersistenceImpl
 				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
 				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
 				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new ArrayableFinderColumn<>(
 					"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					false, true, true, StyleBookEntry::getGroupId),
@@ -3143,7 +3647,8 @@ public class StyleBookEntryPersistenceImpl
 				new String[] {Long.class.getName(), Boolean.class.getName()},
 				new String[] {"groupId", "defaultStyleBookEntry"}, false),
 			_SQL_SELECT_STYLEBOOKENTRY_WHERE, _SQL_COUNT_STYLEBOOKENTRY_WHERE,
-			StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=", true,
 				true, StyleBookEntry::getGroupId),
@@ -3185,6 +3690,7 @@ public class StyleBookEntryPersistenceImpl
 				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
 				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
 				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					true, true, StyleBookEntry::getGroupId),
@@ -3215,7 +3721,8 @@ public class StyleBookEntryPersistenceImpl
 				new String[] {Long.class.getName(), String.class.getName()},
 				new String[] {"groupId", "name"}, 0, 2, false, null),
 			_SQL_SELECT_STYLEBOOKENTRY_WHERE, _SQL_COUNT_STYLEBOOKENTRY_WHERE,
-			StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=", true,
 				true, StyleBookEntry::getGroupId),
@@ -3254,6 +3761,7 @@ public class StyleBookEntryPersistenceImpl
 				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
 				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
 				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					true, true, StyleBookEntry::getGroupId),
@@ -3283,6 +3791,7 @@ public class StyleBookEntryPersistenceImpl
 				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
 				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
 				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					true, true, StyleBookEntry::getGroupId),
@@ -3315,6 +3824,7 @@ public class StyleBookEntryPersistenceImpl
 				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
 				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
 				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					true, true, StyleBookEntry::getGroupId),
@@ -3349,6 +3859,7 @@ public class StyleBookEntryPersistenceImpl
 				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
 				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
 				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					true, true, StyleBookEntry::getGroupId),
@@ -3400,7 +3911,8 @@ public class StyleBookEntryPersistenceImpl
 				new String[] {Long.class.getName(), String.class.getName()},
 				new String[] {"groupId", "themeId"}, 0, 2, false, null),
 			_SQL_SELECT_STYLEBOOKENTRY_WHERE, _SQL_COUNT_STYLEBOOKENTRY_WHERE,
-			StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new ArrayableFinderColumn<>(
 				"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=",
 				false, true, true, StyleBookEntry::getGroupId),
@@ -3439,6 +3951,7 @@ public class StyleBookEntryPersistenceImpl
 				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
 				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
 				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new ArrayableFinderColumn<>(
 					"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					false, true, true, StyleBookEntry::getGroupId),
@@ -3477,7 +3990,8 @@ public class StyleBookEntryPersistenceImpl
 				new String[] {"groupId", "defaultStyleBookEntry", "themeId"}, 0,
 				4, false, null),
 			_SQL_SELECT_STYLEBOOKENTRY_WHERE, _SQL_COUNT_STYLEBOOKENTRY_WHERE,
-			StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=", true,
 				true, StyleBookEntry::getGroupId),
@@ -3529,6 +4043,7 @@ public class StyleBookEntryPersistenceImpl
 				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
 				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
 				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					true, true, StyleBookEntry::getGroupId),
@@ -3536,6 +4051,79 @@ public class StyleBookEntryPersistenceImpl
 					"styleBookEntry.", "defaultStyleBookEntry",
 					FinderColumn.Type.BOOLEAN, "=", true, true,
 					StyleBookEntry::isDefaultStyleBookEntry),
+				new FinderColumn<>(
+					"styleBookEntry.", "themeId", FinderColumn.Type.STRING, "=",
+					true, true, StyleBookEntry::getThemeId),
+				new FinderColumn<>(
+					"styleBookEntry.", "head", FinderColumn.Type.BOOLEAN, "=",
+					true, true, StyleBookEntry::isHead));
+
+		_collectionPersistenceFinderByG_LikeN_T =
+			new CollectionPersistenceFinder<>(
+				this,
+				new FinderPath(
+					FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "findByG_LikeN_T",
+					new String[] {
+						Long.class.getName(), String.class.getName(),
+						String.class.getName(), Integer.class.getName(),
+						Integer.class.getName(),
+						OrderByComparator.class.getName()
+					},
+					new String[] {"groupId", "name", "themeId"}, true),
+				null,
+				new FinderPath(
+					FINDER_CLASS_NAME_LIST_WITH_PAGINATION, "countByG_LikeN_T",
+					new String[] {
+						Long.class.getName(), String.class.getName(),
+						String.class.getName()
+					},
+					new String[] {"groupId", "name", "themeId"}, false),
+				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
+				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
+				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
+				new ArrayableFinderColumn<>(
+					"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=",
+					false, true, true, StyleBookEntry::getGroupId),
+				new FinderColumn<>(
+					"styleBookEntry.", "name", FinderColumn.Type.STRING, "LIKE",
+					true, true, StyleBookEntry::getName),
+				new FinderColumn<>(
+					"styleBookEntry.", "themeId", FinderColumn.Type.STRING, "=",
+					true, true, StyleBookEntry::getThemeId));
+
+		_collectionPersistenceFinderByG_LikeN_T_Head =
+			new CollectionPersistenceFinder<>(
+				this,
+				new FinderPath(
+					FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
+					"findByG_LikeN_T_Head",
+					new String[] {
+						Long.class.getName(), String.class.getName(),
+						String.class.getName(), Boolean.class.getName(),
+						Integer.class.getName(), Integer.class.getName(),
+						OrderByComparator.class.getName()
+					},
+					new String[] {"groupId", "name", "themeId", "head"}, true),
+				null,
+				new FinderPath(
+					FINDER_CLASS_NAME_LIST_WITH_PAGINATION,
+					"countByG_LikeN_T_Head",
+					new String[] {
+						Long.class.getName(), String.class.getName(),
+						String.class.getName(), Boolean.class.getName()
+					},
+					new String[] {"groupId", "name", "themeId", "head"}, false),
+				_SQL_SELECT_STYLEBOOKENTRY_WHERE,
+				_SQL_COUNT_STYLEBOOKENTRY_WHERE,
+				StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
+				new ArrayableFinderColumn<>(
+					"styleBookEntry.", "groupId", FinderColumn.Type.LONG, "=",
+					false, true, true, StyleBookEntry::getGroupId),
+				new FinderColumn<>(
+					"styleBookEntry.", "name", FinderColumn.Type.STRING, "LIKE",
+					true, true, StyleBookEntry::getName),
 				new FinderColumn<>(
 					"styleBookEntry.", "themeId", FinderColumn.Type.STRING, "=",
 					true, true, StyleBookEntry::getThemeId),
@@ -3564,7 +4152,8 @@ public class StyleBookEntryPersistenceImpl
 				new String[] {"externalReferenceCode", "groupId"}, 0, 1, false,
 				null),
 			_SQL_SELECT_STYLEBOOKENTRY_WHERE, _SQL_COUNT_STYLEBOOKENTRY_WHERE,
-			StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			StyleBookEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"styleBookEntry.", "externalReferenceCode",
 				FinderColumn.Type.STRING, "=", true, true,
@@ -3665,12 +4254,6 @@ public class StyleBookEntryPersistenceImpl
 	private static final String _SQL_COUNT_STYLEBOOKENTRY_WHERE =
 		"SELECT COUNT(styleBookEntry) FROM StyleBookEntry styleBookEntry WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No StyleBookEntry exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		StyleBookEntryPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid"});
 
@@ -3680,4 +4263,4 @@ public class StyleBookEntryPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:745950
+// LIFERAY-SERVICE-BUILDER-HASH:-1858693601

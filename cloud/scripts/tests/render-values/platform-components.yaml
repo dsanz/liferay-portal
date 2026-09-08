@@ -1,0 +1,17 @@
+clusterSecretStore:
+    name: liferay-render-secret-store
+deploymentContext:
+    deploymentName: liferay-render
+    region: local
+gitops:
+    repository:
+        url: https://github.com/example/liferay-gitops.git
+infrastructure:
+    repoURL: oci://example-registry/liferay-helm-chart/liferay-azure-infrastructure
+    targetRevision: 1.0.0
+infrastructureProvider:
+    repoURL: oci://example-registry/liferay-helm-chart/liferay-azure-infrastructure-provider
+    targetRevision: 1.0.0
+liferay:
+    repoURL: oci://example-registry/liferay-helm-chart/liferay-azure
+    targetRevision: 1.0.0

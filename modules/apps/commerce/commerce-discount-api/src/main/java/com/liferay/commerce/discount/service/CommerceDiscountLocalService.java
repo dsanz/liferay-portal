@@ -582,6 +582,11 @@ public interface CommerceDiscountLocalService
 	public IndexableActionableDynamicQuery getIndexableActionableDynamicQuery();
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public CommerceDiscount getOrAddEmptyCommerceDiscount(
+			String externalReferenceCode, long companyId, long userId)
+		throws PortalException;
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public List<CommerceDiscount> getOrderTypeCommerceDiscounts(
 		long commerceOrderTypeId, long cpDefinitionId, long cpInstanceId,
 		String unitOfMeasureKey);
@@ -804,4 +809,4 @@ public interface CommerceDiscountLocalService
 		throws PortalException;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-945277930
+// LIFERAY-SERVICE-BUILDER-HASH:2107546501

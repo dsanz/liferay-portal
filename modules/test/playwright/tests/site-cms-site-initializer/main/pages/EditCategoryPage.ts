@@ -8,13 +8,14 @@ import {Locator, Page, expect} from '@playwright/test';
 import {PORTLET_URLS} from '../../../../utils/portletUrls';
 
 export class EditCategoryPage {
+	readonly descriptionInput: Locator;
+	readonly nameInput: Locator;
 	readonly page: Page;
 	readonly saveButton: Locator;
 	readonly saveAndAddAnotherButton: Locator;
+	readonly slugInput: Locator;
 
-	private readonly descriptionInput: Locator;
 	private readonly editConfirmationModal: Locator;
-	private readonly nameInput: Locator;
 	private readonly permissionsFormGroup: Locator;
 	private readonly permissionsTable: Locator;
 	private readonly permissionsTableViewableByDropdown: Locator;
@@ -31,6 +32,7 @@ export class EditCategoryPage {
 		this.descriptionInput = page.getByTestId('description-input');
 		this.editConfirmationModal = page.locator('.modal-content');
 		this.nameInput = page.getByTestId('name-input');
+		this.slugInput = page.getByRole('textbox', {name: 'Slug'});
 
 		this.permissionsFormGroup = page.getByTestId(
 			'categorization-permissions-form-group'
@@ -194,6 +196,11 @@ export class EditCategoryPage {
 	async fillName(name: string) {
 		await this.nameInput.waitFor();
 		await this.nameInput.fill(name);
+	}
+
+	async fillSlug(slug: string) {
+		await this.slugInput.waitFor();
+		await this.slugInput.fill(slug);
 	}
 
 	async fillProperties(propertyRows: {key: string; value: string}[]) {

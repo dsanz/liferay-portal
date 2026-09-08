@@ -37,15 +37,21 @@ export {getInternalRenderer as getFDSInternalRenderer} from './renderers/getInte
 
 export {ACTION_ITEM_TARGETS} from './utils/actionItems/constants';
 
+export {default as filterItemActions} from './utils/actionItems/filterItemActions';
 export {default as findAction} from './utils/actionItems/findAction';
 
-export {replaceTokens} from './utils/actionItems/formatActionURL';
+export {
+	default as formatActionURL,
+	replaceTokens,
+	rewriteRedirectParams,
+} from './utils/actionItems/formatActionURL';
+export {default as getItemActionURL} from './utils/actionItems/getItemActionURL';
 export {readConfigFromURL} from './utils/configInURL';
 
 export {getConfigParamName, serializeFDSConfig} from './utils/configInURL';
 export {default as FDS_EVENT} from './utils/eventsDefinitions';
 
-export {getFDSAtom} from './utils/getFDSAtom';
+export {getOrCreateFDSAtom} from './utils/getOrCreateFDSAtom';
 
 export {
 	DisplayType,

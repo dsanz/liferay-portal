@@ -30,9 +30,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 /**
  * @author Fábio Alves
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-58677")}
-)
+@FeatureFlags(featureFlags = @FeatureFlag("LPD-58677"))
 @RunWith(Arquillian.class)
 public class ProjectSelectorComponentSectionFragmentRendererTest
 	extends BaseComponentSectionFragmentRendererTestCase {
@@ -50,7 +48,7 @@ public class ProjectSelectorComponentSectionFragmentRendererTest
 		super.setUp();
 
 		mockHttpServletRequest = getMockHttpServletRequest(
-			taskObjectDefinition, taskObjectEntry);
+			cmpTaskObjectDefinition, cmpTaskObjectEntry);
 	}
 
 	@Test
@@ -62,9 +60,10 @@ public class ProjectSelectorComponentSectionFragmentRendererTest
 		JSONAssert.assertEquals(
 			JSONUtil.put(
 				"label",
-				MapUtil.getString(projectObjectEntry.getValues(), "title")
+				MapUtil.getString(cmpProjectObjectEntry.getValues(), "title")
 			).put(
-				"value", String.valueOf(projectObjectEntry.getObjectEntryId())
+				"value",
+				String.valueOf(cmpProjectObjectEntry.getObjectEntryId())
 			).toString(),
 			String.valueOf(jsonArray.getJSONObject(0)), true);
 	}

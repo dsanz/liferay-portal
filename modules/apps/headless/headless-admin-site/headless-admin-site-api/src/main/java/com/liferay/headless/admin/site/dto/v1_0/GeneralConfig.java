@@ -108,6 +108,51 @@ public class GeneralConfig implements Serializable {
 	@JsonIgnore
 	private Supplier<ApplicationDecorator> _applicationDecoratorSupplier;
 
+	@io.swagger.v3.oas.annotations.media.Schema
+	public String getCustomApplicationDecorator() {
+		if (_customApplicationDecoratorSupplier != null) {
+			customApplicationDecorator =
+				_customApplicationDecoratorSupplier.get();
+
+			_customApplicationDecoratorSupplier = null;
+		}
+
+		return customApplicationDecorator;
+	}
+
+	public void setCustomApplicationDecorator(
+		String customApplicationDecorator) {
+
+		this.customApplicationDecorator = customApplicationDecorator;
+
+		_customApplicationDecoratorSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setCustomApplicationDecorator(
+		UnsafeSupplier<String, Exception>
+			customApplicationDecoratorUnsafeSupplier) {
+
+		_customApplicationDecoratorSupplier = () -> {
+			try {
+				return customApplicationDecoratorUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected String customApplicationDecorator;
+
+	@JsonIgnore
+	private Supplier<String> _customApplicationDecoratorSupplier;
+
 	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "The localized custom titles."
 	)
@@ -234,6 +279,22 @@ public class GeneralConfig implements Serializable {
 
 			sb.append("\"");
 			sb.append(applicationDecorator);
+			sb.append("\"");
+		}
+
+		String customApplicationDecorator = getCustomApplicationDecorator();
+
+		if (customApplicationDecorator != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"customApplicationDecorator\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(customApplicationDecorator));
+
 			sb.append("\"");
 		}
 
@@ -400,4 +461,4 @@ public class GeneralConfig implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:709702621
+// LIFERAY-REST-BUILDER-HASH:1889198987

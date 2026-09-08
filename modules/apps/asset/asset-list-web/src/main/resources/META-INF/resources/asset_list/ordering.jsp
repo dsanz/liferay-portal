@@ -43,6 +43,10 @@
 
 					<%
 					String orderByColumn1 = editAssetListDisplayContext.getOrderByColumn1();
+
+					if (orderByColumn1.startsWith(StringPool.OPEN_CURLY_BRACE)) {
+						orderByColumn1 = "modified";
+					}
 					%>
 
 					<div class="h5"><liferay-ui:message key="order-by" /></div>
@@ -52,7 +56,7 @@
 
 						<aui:option label="create-date" selected='<%= Objects.equals(orderByColumn1, "createDate") %>' value="createDate" />
 
-						<aui:option label="modified-date" selected='<%= Objects.equals(orderByColumn1, "modifiedDate") %>' value="modifiedDate" />
+						<aui:option label="modified-date" selected='<%= Objects.equals(orderByColumn1, "modified") %>' value="modified" />
 
 						<aui:option label="publish-date" selected='<%= Objects.equals(orderByColumn1, "publishDate") %>' value="publishDate" />
 
@@ -94,6 +98,10 @@
 
 					<%
 					String orderByColumn2 = editAssetListDisplayContext.getOrderByColumn2();
+
+					if (orderByColumn2.startsWith(StringPool.OPEN_CURLY_BRACE)) {
+						orderByColumn2 = "title";
+					}
 					%>
 
 					<div class="h5">
@@ -105,7 +113,7 @@
 
 						<aui:option label="create-date" selected='<%= Objects.equals(orderByColumn2, "createDate") %>' value="createDate" />
 
-						<aui:option label="modified-date" selected='<%= Objects.equals(orderByColumn2, "modifiedDate") %>' value="modifiedDate" />
+						<aui:option label="modified-date" selected='<%= Objects.equals(orderByColumn2, "modified") %>' value="modified" />
 
 						<aui:option label="publish-date" selected='<%= Objects.equals(orderByColumn2, "publishDate") %>' value="publishDate" />
 

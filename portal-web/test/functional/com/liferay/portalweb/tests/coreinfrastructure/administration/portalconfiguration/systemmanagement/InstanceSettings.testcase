@@ -285,6 +285,7 @@ definition {
 
 	@priority = 4
 	test ExportedFactoryConfigurationCanBeImported {
+		property custom.properties = "module.framework.export.password.attributes=true";
 		property portal.acceptance = "true";
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
@@ -352,7 +353,7 @@ definition {
 		SystemSettings.gotoConfiguration(
 			configurationCategory = "SSO",
 			configurationName = "OpenID Connect Provider Connection",
-			configurationScope = "Virtual Instance Scope");
+			configurationScope = "System Scope");
 
 		LexiconEntry.viewNoEntry(rowEntry = "Google");
 

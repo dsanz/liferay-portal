@@ -45,7 +45,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Alicia García
  */
-@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 public class ViewAllSpacesDisplayContextTest
 	extends BaseDisplayContextTestCase {
@@ -144,7 +143,8 @@ public class ViewAllSpacesDisplayContextTest
 		throws Exception {
 
 		_fragmentRenderer.render(
-			null, httpServletRequest, new MockHttpServletResponse());
+			fragmentRendererContext, httpServletRequest,
+			new MockHttpServletResponse());
 
 		Object viewAllSpacesDisplayContext = httpServletRequest.getAttribute(
 			"com.liferay.site.cms.site.initializer.internal.display.context." +

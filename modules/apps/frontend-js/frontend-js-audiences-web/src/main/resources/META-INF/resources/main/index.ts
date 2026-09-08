@@ -5,7 +5,9 @@
 
 import {
 	clear,
+	clearHandlers,
 	get,
+	getPriority,
 	on,
 	runDetection,
 	runHandlers,
@@ -20,14 +22,13 @@ export interface AudiencesDefinition {
 
 export interface Audience {
 	conjunction: Conjunction;
-	id: string;
-	retentionType: RetentionType;
+	id: AudienceId;
 	rules: Rule[];
 }
 
-export type Conjunction = 'AND' | 'OR';
+export type AudienceId = string;
 
-export type RetentionType = 'BROWSER' | 'PAGE' | 'TAB';
+export type Conjunction = 'AND' | 'OR';
 
 export type Rule = LeafRule | RuleGroup;
 
@@ -47,6 +48,7 @@ export type Attribute =
 	| 'browser_version'
 	| 'cookies'
 	| `custom:${string}`
+	| 'device_type'
 	| 'hostname'
 	| 'language'
 	| 'local_date'
@@ -54,7 +56,7 @@ export type Attribute =
 	| 'pathname'
 	| 'referrer'
 	| `request_parameters`
-	| 'segments'
+	| 'segment'
 	| 'timezone'
 	| 'url'
 	| 'user_agent';
@@ -81,9 +83,11 @@ export interface Handler {
 }
 
 export interface AudiencesAPI {
-	clear(retentionType?: RetentionType): void;
-	get(): Set<string>;
-	on(audienceId: string, handler: Handler): void;
+	clear(): void;
+	clearHandlers(): void;
+	get(): Set<AudienceId>;
+	getPriority(audienceId: AudienceId): number;
+	on(audienceId: AudienceId, handler: Handler): void;
 	runDetection(audiencesDefinitionURL: string): Promise<void>;
 	runHandlers(): Promise<void>;
 	setLogEnabled(enabled: boolean): void;
@@ -91,7 +95,9 @@ export interface AudiencesAPI {
 
 export const audiences: AudiencesAPI = {
 	clear,
+	clearHandlers,
 	get,
+	getPriority,
 	on,
 	runDetection,
 	runHandlers,

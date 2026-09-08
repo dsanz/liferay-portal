@@ -13,8 +13,7 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
  * @author Christian Moura
  */
 @ExtendedObjectClassDefinition(
-	category = "privacy", featureFlagKey = "LPD-65299",
-	scope = ExtendedObjectClassDefinition.Scope.GROUP
+	category = "privacy", scope = ExtendedObjectClassDefinition.Scope.GROUP
 )
 @Meta.OCD(
 	id = "com.liferay.consent.management.platform.integration.configuration.ConsentManagementPlatformConfiguration",
@@ -22,6 +21,13 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 	name = "consent-management-platform-configuration-name"
 )
 public interface ConsentManagementPlatformConfiguration {
+
+	@Meta.AD(
+		description = "consent-management-platform-consent-mapping-script-help",
+		name = "consent-management-platform-consent-mapping-script",
+		required = false
+	)
+	public String consentMappingScript();
 
 	@Meta.AD(deflt = "false", name = "enabled", required = false)
 	public boolean enabled();

@@ -13,6 +13,7 @@ import {featureFlagsTest} from '../../../../fixtures/featureFlagsTest';
 import {isolatedSiteTest} from '../../../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../../../fixtures/loginTest';
 import {pageEditorPagesTest} from '../../../../fixtures/pageEditorPagesTest';
+import {clickAndExpectToBeHidden} from '../../../../utils/clickAndExpectToBeHidden';
 import {getRandomInt} from '../../../../utils/getRandomInt';
 import getRandomString from '../../../../utils/getRandomString';
 import {
@@ -27,6 +28,7 @@ import getWidgetDefinition from '../../../layout-content-page-editor-web/main/ut
 import {
 	classicCommerceSetUp,
 	configureBuyerUserForSite,
+	createAccountWithBuyerUser,
 } from '../../utils/commerce';
 
 export const test = mergeTests(
@@ -34,7 +36,6 @@ export const test = mergeTests(
 	dataApiHelpersTest,
 	displayPageTemplatesPagesTest,
 	featureFlagsTest({
-		'LPD-20379': {enabled: true},
 		'LPS-178052': {enabled: true},
 	}),
 	isolatedSiteTest,
@@ -1423,6 +1424,298 @@ test(
 						)
 					).row
 				).toBeVisible();
+			});
+		}
+		finally {
+			await performLogout(page);
+			await performLoginViaApi({page, screenName: 'test'});
+
+			const orders =
+				await apiHelpers.headlessCommerceAdminOrder.getOrdersPage();
+
+			if (orders.items[0]) {
+				apiHelpers.data.push({id: orders.items[0].id, type: 'order'});
+			}
+		}
+	}
+);
+
+test(
+	'Can add to cart a static price bundled product whose option values are linked to a SKU unit of measure',
+	{tag: ['@COMMERCE-12543']},
+	async ({
+		apiHelpers,
+		commerceAdminChannelsPage,
+		commerceAdminProductDetailsPage,
+		commerceAdminProductDetailsProductOptionsPage,
+		commerceAdminProductPage,
+		commerceMiniCartPage,
+		page,
+		productDetailsPage,
+		site,
+	}) => {
+		const bundleName = getRandomString();
+		const productName = 'Product' + getRandomInt();
+		const unitOfMeasure1Key = 'uom1';
+		const unitOfMeasure2Key = 'uom2';
+
+		let buyerUser;
+		let catalog;
+		let productBundle;
+		let sku;
+
+		await test.step('Create a channel, a catalog and a storefront page via API', async () => {
+			const channel =
+				await apiHelpers.headlessCommerceAdminChannel.postChannel({
+					siteGroupId: site.id,
+				});
+
+			await commerceAdminChannelsPage.changeCommerceChannelSiteType(
+				channel.name,
+				'B2B'
+			);
+
+			await waitForAlert(page);
+
+			await apiHelpers.headlessDelivery.createSitePage({
+				pageDefinition: getPageDefinition([
+					getWidgetDefinition({
+						id: getRandomString(),
+						widgetName:
+							'com_liferay_commerce_product_content_web_internal_portlet_CPContentPortlet',
+					}),
+					getFragmentDefinition({
+						id: getRandomString(),
+						key: 'COMMERCE_CART_FRAGMENTS-mini-cart',
+					}),
+				]),
+				siteId: site.id,
+				title: getRandomString(),
+			});
+
+			catalog = await apiHelpers.headlessCommerceAdminCatalog.postCatalog(
+				{
+					name: getRandomString(),
+				}
+			);
+
+			({buyerUser} = await createAccountWithBuyerUser(
+				apiHelpers,
+				site.id
+			));
+		});
+
+		await test.step('Create a product with a SKU carrying two units of measure', async () => {
+			const product =
+				await apiHelpers.headlessCommerceAdminCatalog.postProduct({
+					catalogId: catalog.id,
+					name: {en_US: productName},
+				});
+
+			sku = product.skus[0];
+
+			for (const key of [unitOfMeasure1Key, unitOfMeasure2Key]) {
+				await apiHelpers.headlessCommerceAdminCatalog.postSkuUnitOfMeasure(
+					sku.id,
+					{
+						incrementalOrderQuantity: 1,
+						key,
+						name: {en_US: key.toUpperCase()},
+						priority: 1,
+						rate: 1,
+					}
+				);
+			}
+		});
+
+		await test.step('Create a bundled product with a static price option', async () => {
+			const optionKey = getRandomString();
+
+			const option =
+				await apiHelpers.headlessCommerceAdminCatalog.postOption(
+					'select',
+					optionKey,
+					'Color'
+				);
+
+			productBundle =
+				await apiHelpers.headlessCommerceAdminCatalog.postProduct({
+					catalogId: catalog.id,
+					name: {en_US: bundleName},
+					productConfiguration: {
+						allowBackOrder: true,
+					},
+					productOptions: [
+						{
+							fieldType: 'select',
+							key: optionKey,
+							name: {en_US: 'Color'},
+							optionId: option.id,
+							priceType: 'static',
+							priority: 1,
+							productOptionValues: [
+								{
+									key: 'blue',
+									name: {en_US: 'Blue'},
+									priority: 1,
+								},
+								{
+									key: 'white',
+									name: {en_US: 'White'},
+									priority: 2,
+								},
+							],
+							required: true,
+							skuContributor: true,
+						},
+					],
+				});
+
+			await commerceAdminProductPage.gotoProduct(bundleName);
+
+			await commerceAdminProductDetailsPage.goToProductOptions();
+
+			await commerceAdminProductDetailsProductOptionsPage.openOption(
+				'Color'
+			);
+		});
+
+		await test.step('Assert the SKU autocomplete suggests each unit of measure once', async () => {
+			await commerceAdminProductDetailsProductOptionsPage.openOptionValue(
+				'Blue'
+			);
+			await commerceAdminProductDetailsProductOptionsPage.searchSku(
+				sku.sku
+			);
+
+			await expect(
+				commerceAdminProductDetailsProductOptionsPage.optionValueSkuDropdownItems
+			).toContainText([
+				`${sku.sku} - ${unitOfMeasure1Key}`,
+				`${sku.sku} - ${unitOfMeasure2Key}`,
+			]);
+
+			await commerceAdminProductDetailsProductOptionsPage.closeOptionValue();
+		});
+
+		await test.step('Link each option value to a SKU unit of measure', async () => {
+			await commerceAdminProductDetailsProductOptionsPage.editOptionValue(
+				'Blue',
+				{
+					deltaPrice: '40',
+					quantity: '1',
+					sku: sku.sku,
+					unitOfMeasureKey: unitOfMeasure1Key,
+				}
+			);
+			await commerceAdminProductDetailsProductOptionsPage.editOptionValue(
+				'White',
+				{
+					deltaPrice: '20',
+					quantity: '1',
+					sku: sku.sku,
+					unitOfMeasureKey: unitOfMeasure2Key,
+				}
+			);
+			await commerceAdminProductDetailsProductOptionsPage.closeOption();
+		});
+
+		await test.step('Generate all SKU combinations and set a price for each', async () => {
+			await commerceAdminProductPage.generateSkus();
+
+			const bundleSkus =
+				await apiHelpers.headlessCommerceAdminCatalog.getProduct(
+					productBundle.productId
+				);
+
+			const basePriceList =
+				await apiHelpers.headlessCommerceAdminPricing.getBasePriceListId(
+					catalog.id
+				);
+			await apiHelpers.headlessCommerceAdminPricing.postPriceEntry({
+				price: 30,
+				priceListId: basePriceList.items[0].id,
+				skuId: bundleSkus.skus.find(
+					(bundleSku) => bundleSku.sku === 'BLUE'
+				).id,
+			});
+			await apiHelpers.headlessCommerceAdminPricing.postPriceEntry({
+				price: 40,
+				priceListId: basePriceList.items[0].id,
+				skuId: bundleSkus.skus.find(
+					(bundleSku) => bundleSku.sku === 'WHITE'
+				).id,
+			});
+		});
+
+		try {
+			await test.step('As a buyer, assert the list price is the SKU price plus the delta price', async () => {
+				await performLogout(page);
+				await performLoginViaApi({
+					page,
+					screenName: buyerUser.alternateName,
+				});
+
+				await page.goto(`/web/${site.name}/p/${bundleName}`, {
+					waitUntil: 'networkidle',
+				});
+
+				await expect(
+					productDetailsPage.optionSelector('Color').locator('option')
+				).toHaveText(['Choose an Option', 'Blue', 'White - $ 10.00']);
+
+				for (const [optionLabel, skuName, price] of [
+					['Blue', 'BLUE', '$ 70.00'],
+					['White - $ 10.00', 'WHITE', '$ 60.00'],
+				]) {
+					await productDetailsPage.selectOption(optionLabel, 'Color');
+
+					await expect(
+						await productDetailsPage.priceField(
+							price,
+							productDetailsPage.priceContainer
+						)
+					).toBeVisible();
+
+					await productDetailsPage.addToCartButton.click();
+
+					await page.waitForLoadState('networkidle');
+
+					await commerceMiniCartPage.miniCartButton.click();
+
+					await expect(
+						commerceMiniCartPage.miniCartItem(skuName)
+					).toBeVisible();
+
+					await clickAndExpectToBeHidden({
+						target: commerceMiniCartPage.miniCartItemsContainer,
+						trigger: commerceMiniCartPage.miniCartButtonClose,
+					});
+				}
+			});
+
+			await test.step('Assert the mini cart shows each bundled item with its unit of measure', async () => {
+				await commerceMiniCartPage.miniCartButton.click();
+
+				for (const [skuName, unitOfMeasureKey, price] of [
+					['BLUE', unitOfMeasure1Key, /^List Price\$ 70\.00$/],
+					['WHITE', unitOfMeasure2Key, /^List Price\$ 60\.00$/],
+				] as Array<[string, string, RegExp]>) {
+					await commerceMiniCartPage
+						.miniCartItemShowOptionsButton(skuName)
+						.click();
+
+					await expect(
+						commerceMiniCartPage
+							.miniCartItem(skuName)
+							.getByLabel(
+								`1 × ${productName} ${unitOfMeasureKey}`
+							)
+					).toBeVisible();
+					await expect(
+						commerceMiniCartPage.miniCartItemPrice(price, skuName)
+					).toBeVisible();
+				}
 			});
 		}
 		finally {

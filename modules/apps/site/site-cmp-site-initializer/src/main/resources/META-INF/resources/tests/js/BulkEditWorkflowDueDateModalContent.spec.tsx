@@ -10,22 +10,34 @@ import React from 'react';
 import BulkEditWorkflowDueDateModalContent from '../../js/components/modal/BulkEditWorkflowDueDateModalContent';
 
 jest.mock('../../js/components/DateField', () => ({
+	...(jest.requireActual('../../js/components/DateField') as object),
 	__esModule: true,
-	dateConfig: {momentFormat: 'MM/DD/YYYY'},
 	default: ({
+		errorMessage,
 		id,
 		onChange,
 	}: {
+		errorMessage?: string;
 		id: string;
 		onChange: (value: string) => Promise<void> | void;
 	}) => (
-		<input
-			data-testid="mock-date-field"
-			id={id}
-			onChange={(event) => onChange(event.target.value)}
-			type="text"
-		/>
+		<>
+			<input
+				data-testid="mock-date-field"
+				id={id}
+				onChange={(event) => onChange(event.target.value)}
+				type="text"
+			/>
+
+			{errorMessage ? <span>{errorMessage}</span> : null}
+		</>
 	),
+}));
+
+const mockOpenToast = jest.fn();
+
+jest.mock('frontend-js-components-web', () => ({
+	openToast: (...args: any[]) => mockOpenToast(...args),
 }));
 
 const mockBulkUpdateWorkflowTaskDueDate = jest.fn();
@@ -58,22 +70,6 @@ describe('BulkEditWorkflowDueDateModalContent', () => {
 		fireEvent.click(getByText('cancel'));
 
 		expect(mockCloseModal).toHaveBeenCalled();
-	});
-
-	it('does not submit when no date is selected', async () => {
-		const {getByText} = render(
-			<BulkEditWorkflowDueDateModalContent
-				closeModal={mockCloseModal}
-				loadData={mockLoadData}
-				selectedData={mockSelectedData as any}
-			/>
-		);
-
-		fireEvent.submit(getByText('save').closest('form')!);
-
-		await waitFor(() => {
-			expect(mockBulkUpdateWorkflowTaskDueDate).not.toHaveBeenCalled();
-		});
 	});
 
 	it('keeps modal open and re-enables save button when patch fails', async () => {
@@ -125,7 +121,7 @@ describe('BulkEditWorkflowDueDateModalContent', () => {
 		});
 	});
 
-	it('renders the modal with save button disabled when no date is selected', () => {
+	it('requires a date instead of silently ignoring the submit', async () => {
 		const {getByText} = render(
 			<BulkEditWorkflowDueDateModalContent
 				closeModal={mockCloseModal}
@@ -134,6 +130,36 @@ describe('BulkEditWorkflowDueDateModalContent', () => {
 			/>
 		);
 
-		expect(getByText('save')).toBeDisabled();
+		fireEvent.submit(getByText('save').closest('form')!);
+
+		await waitFor(() => {
+			expect(getByText('this-field-is-required')).toBeInTheDocument();
+		});
+
+		expect(mockBulkUpdateWorkflowTaskDueDate).not.toHaveBeenCalled();
+	});
+
+	it('shows a success toast on success', async () => {
+		mockBulkUpdateWorkflowTaskDueDate.mockResolvedValueOnce({error: null});
+
+		const {getByTestId, getByText} = render(
+			<BulkEditWorkflowDueDateModalContent
+				closeModal={mockCloseModal}
+				loadData={mockLoadData}
+				selectedData={mockSelectedData as any}
+			/>
+		);
+
+		fireEvent.change(getByTestId('mock-date-field'), {
+			target: {value: '06/05/2026'},
+		});
+
+		fireEvent.submit(getByText('save').closest('form')!);
+
+		await waitFor(() =>
+			expect(mockOpenToast).toHaveBeenCalledWith(
+				expect.objectContaining({type: 'success'})
+			)
+		);
 	});
 });

@@ -16,7 +16,7 @@ export async function clickAndExpectToBeHidden({
 }) {
 	await expect(async () => {
 		if (await trigger.isVisible()) {
-			await trigger.click();
+			await trigger.click({timeout});
 		}
 
 		await expect(target).toBeHidden({timeout});

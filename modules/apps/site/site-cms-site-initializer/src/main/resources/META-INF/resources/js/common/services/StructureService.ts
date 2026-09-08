@@ -9,22 +9,21 @@ import buildGroupObjectDefinitions from '../../structure_builder/utils/buildGrou
 import buildObjectDefinition from '../../structure_builder/utils/buildObjectDefinition';
 import buildObjectRelationships from '../../structure_builder/utils/buildObjectRelationships';
 import getRandomId from '../../structure_builder/utils/getRandomId';
+import {ObjectDefinition} from '../types/ObjectDefinition';
 import ApiHelper from './ApiHelper';
 
-export type StructureServiceError = 'in-use' | 'unexpected';
-
-const NAME_COLLISION_EXCEPTION_TYPES = [
-	'ObjectDefinitionFriendlyURLSeparatorException',
-	'ObjectDefinitionNameException',
-];
+export type StructureServiceError = 'slug-in-use' | 'in-use' | 'unexpected';
 
 function classifyError(type?: string | null): StructureServiceError {
-	if (
-		type &&
-		NAME_COLLISION_EXCEPTION_TYPES.some((collisionType) =>
-			type.startsWith(collisionType)
-		)
-	) {
+	if (!type) {
+		return 'unexpected';
+	}
+
+	if (type.startsWith('ObjectDefinitionFriendlyURLSeparatorException')) {
+		return 'slug-in-use';
+	}
+
+	if (type.startsWith('ObjectDefinitionNameException')) {
 		return 'in-use';
 	}
 
@@ -36,6 +35,9 @@ async function createStructure({
 	erc = getRandomId(),
 	label,
 	name,
+	publishedChildren,
+	settings,
+	slug,
 	spaces,
 	status,
 	workflows,
@@ -44,6 +46,9 @@ async function createStructure({
 	erc?: Structure['erc'];
 	label: Structure['label'];
 	name: Structure['name'];
+	publishedChildren: State['publishedChildren'];
+	settings: Structure['settings'];
+	slug: Structure['slug'];
 	spaces: Structure['spaces'];
 	status: Structure['status'];
 	workflows: Structure['workflows'];
@@ -51,7 +56,10 @@ async function createStructure({
 
 	// Publish object definitions for repeatable groups
 
-	const objectDefinitions = buildGroupObjectDefinitions({children});
+	const objectDefinitions = buildGroupObjectDefinitions({
+		children,
+		publishedChildren,
+	});
 
 	for (const objectDefinition of objectDefinitions) {
 		const {error, type} = await ApiHelper.put(
@@ -71,6 +79,8 @@ async function createStructure({
 		erc,
 		label,
 		name,
+		settings,
+		slug,
 		spaces,
 		status,
 		workflows,
@@ -114,6 +124,9 @@ async function updateStructure({
 	id,
 	label,
 	name,
+	publishedChildren,
+	settings,
+	slug,
 	spaces,
 	status,
 	workflows,
@@ -124,11 +137,17 @@ async function updateStructure({
 	id: Structure['id'];
 	label: Structure['label'];
 	name: Structure['name'];
+	publishedChildren: State['publishedChildren'];
+	settings: Structure['settings'];
+	slug: Structure['slug'];
 	spaces: Structure['spaces'];
 	status: Structure['status'];
 	workflows: Structure['workflows'];
 }) {
-	const groupObjectDefinitions = buildGroupObjectDefinitions({children});
+	const groupObjectDefinitions = buildGroupObjectDefinitions({
+		children,
+		publishedChildren,
+	});
 
 	const mainObjectDefinition = buildObjectDefinition({
 		children,
@@ -136,6 +155,8 @@ async function updateStructure({
 		id,
 		label,
 		name,
+		settings,
+		slug,
 		spaces,
 		status,
 		workflows,
@@ -217,9 +238,16 @@ async function updateStructureWorkflow({
 	};
 }
 
+async function getStructure(externalReferenceCode: string) {
+	return ApiHelper.get<ObjectDefinition>(
+		`/o/object-admin/v1.0/object-definitions/by-external-reference-code/${externalReferenceCode}`
+	);
+}
+
 export default {
 	createStructure,
 	deleteStructure,
+	getStructure,
 	updateStructure,
 	updateStructureWorkflow,
 };

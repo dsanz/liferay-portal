@@ -33,22 +33,24 @@ import java.util.jar.JarFile;
 public class ProjectTemplatesUtil {
 
 	public static File getArchetypeFile(String artifactId) throws IOException {
-		if (_archetypeFiles.containsKey(artifactId)) {
-			return _archetypeFiles.get(artifactId);
+		File archetypeFile = _archetypeFiles.get(artifactId);
+
+		if (archetypeFile != null) {
+			return archetypeFile;
 		}
 
 		Properties projectTemplateJarVersionsProperties =
 			getProjectTemplateJarVersionsProperties();
 
-		if (!projectTemplateJarVersionsProperties.containsKey(artifactId)) {
+		Object version = projectTemplateJarVersionsProperties.get(artifactId);
+
+		if (version == null) {
 			return null;
 		}
 
-		String version = String.valueOf(
-			projectTemplateJarVersionsProperties.get(artifactId));
-
 		try {
-			String jarName = getArchetypeJarName(artifactId, version);
+			String jarName = getArchetypeJarName(
+				artifactId, String.valueOf(version));
 
 			InputStream inputStream =
 				ProjectTemplatesUtil.class.getResourceAsStream(jarName);
@@ -59,7 +61,7 @@ public class ProjectTemplatesUtil {
 				inputStream, archetypePath,
 				StandardCopyOption.REPLACE_EXISTING);
 
-			File archetypeFile = archetypePath.toFile();
+			archetypeFile = archetypePath.toFile();
 
 			_archetypeFiles.put(artifactId, archetypeFile);
 

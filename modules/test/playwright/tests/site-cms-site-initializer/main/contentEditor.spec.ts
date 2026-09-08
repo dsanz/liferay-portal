@@ -37,7 +37,6 @@ const test = mergeTests(
 	dataApiHelpersTest,
 	featureFlagsTest({
 		'LPD-11235': {enabled: false},
-		'LPD-17564': {enabled: true},
 	}),
 	fragmentsPagesTest,
 	loginTest(),
@@ -189,8 +188,8 @@ test(
 		await apiHelpers.headlessAssetLibrary.createAssetLibrary({
 			name: spaceName,
 			settings: {
-				availableLanguageIds: ['es-ES'],
-				defaultLanguageId: 'es-ES',
+				availableLanguageIds: ['es_ES'],
+				defaultLanguageId: 'es_ES',
 				useCustomLanguages: true,
 			},
 			type: 'Space',
@@ -889,6 +888,33 @@ test.describe('Schedule Panel', () => {
 });
 
 test.describe('Categorization Panel', () => {
+	const selectAutocompleteOption = async ({
+		option,
+		page,
+		placeholder,
+		value,
+	}: {
+		option: Locator;
+		page: Page;
+		placeholder: string;
+		value: string;
+	}) => {
+		const autocomplete = page.getByPlaceholder(placeholder);
+
+		const selectedLabel = page.locator('.label-item', {hasText: value});
+
+		await expect(async () => {
+			await autocomplete.fill('', {timeout: 3000});
+			await autocomplete.fill(value, {timeout: 3000});
+
+			await option.waitFor({timeout: 3000});
+
+			await option.dispatchEvent('click', undefined, {timeout: 3000});
+
+			await expect(selectedLabel).toBeAttached({timeout: 3000});
+		}).toPass();
+	};
+
 	const selectCategory = async ({
 		categoryName,
 		page,
@@ -896,14 +922,12 @@ test.describe('Categorization Panel', () => {
 		categoryName: string;
 		page: Page;
 	}) => {
-		const categoriesAutocomplete = page.getByPlaceholder('Add category');
-
-		await categoriesAutocomplete.fill(categoryName);
-
-		const option = page.getByRole('option', {name: categoryName});
-
-		await option.waitFor();
-		await option.click();
+		await selectAutocompleteOption({
+			option: page.getByRole('option', {name: categoryName}),
+			page,
+			placeholder: 'Add category',
+			value: categoryName,
+		});
 	};
 
 	const selectTag = async ({
@@ -913,16 +937,14 @@ test.describe('Categorization Panel', () => {
 		page: Page;
 		tagName: string;
 	}) => {
-		const tagsAutocomplete = page.getByPlaceholder('Add tag');
-
-		await tagsAutocomplete.fill(tagName);
-
-		const newTagOption = page.getByRole('option', {
-			name: 'Create New Tag:',
+		await selectAutocompleteOption({
+			option: page.getByRole('option', {
+				name: `Create New Tag: ${tagName}`,
+			}),
+			page,
+			placeholder: 'Add tag',
+			value: tagName,
 		});
-
-		await newTagOption.waitFor();
-		await newTagOption.click();
 	};
 
 	test(
@@ -1032,8 +1054,6 @@ test.describe('Categorization Panel', () => {
 
 				const firstTagName = getRandomString();
 
-				tagNames.push(firstTagName);
-
 				await selectTag({page, tagName: firstTagName});
 
 				let tagLabel = page.locator('.label-item', {
@@ -1060,8 +1080,6 @@ test.describe('Categorization Panel', () => {
 
 				const secondTagName = getRandomString();
 
-				tagNames.push(secondTagName);
-
 				tagLabel = page.locator('.label-item', {
 					hasText: secondTagName,
 				});
@@ -1072,6 +1090,8 @@ test.describe('Categorization Panel', () => {
 				await expect(tagLabel).toBeAttached();
 
 				await contentsPage.publishButton.click();
+
+				tagNames.push(secondTagName);
 
 				// Edit the content and check that the categorization is still there
 
@@ -1555,8 +1575,15 @@ test.describe('Schedule Publication', () => {
 
 			await page.getByRole('button', {name: 'Schedule'}).click();
 
-			// After the failed submit the side panel is closed. Reopen it
-			// and check that the expiration and review dates are preserved.
+			// The failed submit moves the side panel to Categorization. Wait
+			// for that switch before going back to Schedule, otherwise the
+			// assertions below race it and the date fields are removed from
+			// the DOM while they are still polling.
+
+			await contentsPage.waitForSidePanel('Categorization');
+
+			// Go back to the Schedule panel and check that the expiration and
+			// review dates are preserved.
 
 			await contentsPage.openSidePanel('Schedule');
 
@@ -1701,35 +1728,52 @@ test(
 
 		await page.getByPlaceholder(`New ${structureLabel}`).fill(title);
 
-		// Add Repeatable Groups
+		// Add Repeatable Groups, waiting for each new row to render before
+		// clicking again
 
-		await page.getByRole('button', {name: 'Add New'}).first().click();
+		const addNewButtons = page.getByRole('button', {name: 'Add New'});
+		const groupFields = page.getByRole('textbox', {
+			name: /^(Text|Long Text)$/,
+		});
 
-		await page.getByRole('button', {name: 'Add New'}).last().click();
+		await expect(addNewButtons).toHaveCount(2);
+		await expect(groupFields).toHaveCount(2);
+
+		await addNewButtons.first().click();
+
+		await expect(groupFields).toHaveCount(3);
+
+		await addNewButtons.last().click();
+
+		await expect(groupFields).toHaveCount(4);
 
 		// Fill the fields
 
-		const firstText = page
-			.getByRole('textbox', {exact: true, name: 'Text'})
-			.first();
+		const textFields = page.getByRole('textbox', {
+			exact: true,
+			name: 'Text',
+		});
+		const longTextFields = page.getByRole('textbox', {
+			exact: true,
+			name: 'Long Text',
+		});
+
+		await expect(textFields).toHaveCount(2);
+		await expect(longTextFields).toHaveCount(2);
+
+		const firstText = textFields.first();
 
 		await firstText.fill('First Text');
 
-		const secondText = page
-			.getByRole('textbox', {exact: true, name: 'Text'})
-			.last();
+		const secondText = textFields.last();
 
 		await secondText.fill('Second Text');
 
-		const firstLongText = page
-			.getByRole('textbox', {exact: true, name: 'Long Text'})
-			.first();
+		const firstLongText = longTextFields.first();
 
 		await firstLongText.fill('First Long Text');
 
-		const secondLongText = page
-			.getByRole('textbox', {exact: true, name: 'Long Text'})
-			.last();
+		const secondLongText = longTextFields.last();
 
 		await secondLongText.fill('Second Long Text');
 

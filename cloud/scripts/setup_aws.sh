@@ -9,9 +9,9 @@ _SCRIPTS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 _ROOT_CLOUD_DIR=$(cd "${_SCRIPTS_DIR}/.." && pwd)
 
 function main {
-	if [ "${#}" -ne 2 ]
+	if [ ${#} -eq 0 ]
 	then
-		echo "Usage: ${0} <configuration-json-file> <versions-tfvars-file>" >&2
+		echo "Usage: ${0} <configuration-json-file>" >&2
 		echo "" >&2
 		echo "See cloud/scripts/config.json.example_aws for a sample." >&2
 
@@ -23,8 +23,6 @@ function main {
 	_check_terraform_version "1.10.0"
 
 	_validate_config_json "${1}"
-
-	_validate_versions_tfvars "${2}"
 
 	_generate_tfvars "${1}" "${_SCRIPTS_DIR}/global_terraform.tfvars"
 
@@ -41,7 +39,7 @@ function main {
 	while IFS= read -r terraform_arg
 	do
 		terraform_args+=("${terraform_arg}")
-	done < <(_get_terraform_apply_args "${1}" "${2}")
+	done < <(_get_terraform_apply_args "${1}")
 
 	if jq --exit-status '.variables.tfstate_bucket_name' "${1}" &> /dev/null
 	then
@@ -87,7 +85,7 @@ function _check_terraform_version {
 
 	lowest_version=$(printf "%s\n%s\n" "${required_version}" "${found_version}" | sort --version-sort | head -n 1)
 
-	if [ "${lowest_version}" != "${required_version}" ]
+	if [[ ${lowest_version} != ${required_version} ]]
 	then
 		echo "The installed Terraform version ${found_version} is older than ${required_version}." >&2
 
@@ -216,7 +214,7 @@ function _create_s3_bucket {
 	local bucket_name="${1}"
 	local region="${2}"
 
-	if [ "${region}" == "us-east-1" ]
+	if [[ ${region} == us-east-1 ]]
 	then
 		aws s3api create-bucket \
 			--bucket "${bucket_name}" \
@@ -257,7 +255,7 @@ function _generate_tfvars {
 		  	"\(.key) = \(.value)"
 		  end' "${configuration_json_file}")
 
-	if [ -z "${tfvars_content}" ]
+	if [[ -z ${tfvars_content} ]]
 	then
 		echo "The \"variables\" object in the configuration JSON file is empty. You will be prompted for all required variables."
 
@@ -279,17 +277,10 @@ function _get_terraform_apply_args {
 		auto_approve=$(jq --raw-output '.options.auto_approve' "${configuration_json_file}")
 	fi
 
-	local versions_tfvars_file="${2}"
-
-	local versions_tfvars_file_path
-
-	versions_tfvars_file_path=$(_resolve_path "${versions_tfvars_file}")
-
 	local apply_args=(
-		"-var-file=${versions_tfvars_file_path}"
 		"-var-file=${_SCRIPTS_DIR}/global_terraform.tfvars")
 
-	if [[ "${auto_approve}" == "true" ]]
+	if [[ ${auto_approve} == true ]]
 	then
 		apply_args+=("-auto-approve")
 	fi
@@ -349,28 +340,6 @@ function _port_forward_argo_cd {
 
 function _pushd {
 	pushd "${1}" > /dev/null
-}
-
-function _resolve_path {
-	local file_path="${1}"
-
-	if [ ! -e "${file_path}" ]
-	then
-		echo "Path ${file_path} does not exist." >&2
-
-		exit 1
-	fi
-
-	local dir_path
-
-	if ! dir_path=$(cd "$(dirname "${file_path}")" && pwd)
-	then
-		echo "Failed to resolve directory for ${file_path}." >&2
-
-		exit 1
-	fi
-
-	printf '%s/%s\n' "${dir_path}" "$(basename "${file_path}")"
 }
 
 function _set_up_aws_eks {
@@ -451,7 +420,7 @@ function _terraform_init_and_apply {
 
 	_pushd "${1}"
 
-	if [ -n "${bucket_name}" ]
+	if [[ -n ${bucket_name} ]]
 	then
 	terraform init \
 		-backend-config="bucket=${bucket_name}" \
@@ -476,7 +445,7 @@ EOF
 function _validate_config_json {
 	local configuration_json_file="${1}"
 
-	if [ ! -f "${configuration_json_file}" ]
+	if [[ ! -f ${configuration_json_file} ]]
 	then
 		echo "Configuration JSON file ${configuration_json_file} does not exist." >&2
 
@@ -493,17 +462,6 @@ function _validate_config_json {
 	if ! jq --exit-status '.variables | objects' "${configuration_json_file}" > /dev/null
 	then
 		echo "The configuration JSON file must contain a root object named \"variables\"." >&2
-
-		exit 1
-	fi
-}
-
-function _validate_versions_tfvars {
-	local versions_tfvars_file="${1}"
-
-	if [ ! -f "${versions_tfvars_file}" ]
-	then
-		echo "Versions tfvars file ${versions_tfvars_file} does not exist." >&2
 
 		exit 1
 	fi

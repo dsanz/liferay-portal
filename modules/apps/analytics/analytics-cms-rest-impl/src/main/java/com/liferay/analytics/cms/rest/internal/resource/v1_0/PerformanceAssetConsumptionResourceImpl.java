@@ -6,18 +6,22 @@
 package com.liferay.analytics.cms.rest.internal.resource.v1_0;
 
 import com.liferay.analytics.cms.rest.dto.v1_0.PerformanceAssetConsumption;
+import com.liferay.analytics.cms.rest.dto.v1_0.PerformanceAssetConsumptionItem;
 import com.liferay.analytics.cms.rest.internal.client.AnalyticsCloudClient;
 import com.liferay.analytics.cms.rest.internal.depot.entry.util.DepotEntryUtil;
 import com.liferay.analytics.cms.rest.resource.v1_0.PerformanceAssetConsumptionResource;
 import com.liferay.analytics.settings.rest.manager.AnalyticsSettingsManager;
+import com.liferay.analytics.settings.rest.util.AnalyticsSettingsManagerUtil;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.portal.kernel.license.util.LicenseManagerUtil;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
-import jakarta.ws.rs.BadRequestException;
+import jakarta.validation.ValidationException;
 
 import java.util.Arrays;
 
@@ -47,9 +51,26 @@ public class PerformanceAssetConsumptionResourceImpl
 
 		_validateGroupBy(groupBy);
 
+		AnalyticsSettingsManagerUtil.checkAnalyticsEnabled(
+			_analyticsSettingsManager, contextCompany.getCompanyId());
+
 		Long[] groupIds = DepotEntryUtil.getGroupIds(
 			DepotEntryUtil.getDepotEntries(
+				ActionKeys.VIEW_SITE_ADMINISTRATION,
 				contextCompany.getCompanyId(), depotEntryIds));
+
+		if (ArrayUtil.isEmpty(groupIds)) {
+			PerformanceAssetConsumption performanceAssetConsumption =
+				new PerformanceAssetConsumption();
+
+			performanceAssetConsumption.setPerformanceAssetConsumptionItems(
+				() -> new PerformanceAssetConsumptionItem[0]);
+			performanceAssetConsumption.
+				setPerformanceAssetConsumptionItemsCount(() -> 0L);
+			performanceAssetConsumption.setTotalCount(() -> 0L);
+
+			return performanceAssetConsumption;
+		}
 
 		String objectType = null;
 
@@ -71,7 +92,7 @@ public class PerformanceAssetConsumptionResourceImpl
 				contextCompany.getCompanyId()),
 			categoryId, groupBy, Arrays.asList(groupIds),
 			contextAcceptLanguage.getPreferredLocale(), "viewsMetric",
-			objectType, pagination.getPage(), rangeKey,
+			objectType, pagination.getPage() - 1, rangeKey,
 			pagination.getPageSize(), tagId, vocabularyId);
 	}
 
@@ -81,7 +102,7 @@ public class PerformanceAssetConsumptionResourceImpl
 			!StringUtil.equalsIgnoreCase(groupBy, "tag") &&
 			!StringUtil.equalsIgnoreCase(groupBy, "vocabulary")) {
 
-			throw new BadRequestException("Invalid group by: " + groupBy);
+			throw new ValidationException("Invalid group by: " + groupBy);
 		}
 	}
 

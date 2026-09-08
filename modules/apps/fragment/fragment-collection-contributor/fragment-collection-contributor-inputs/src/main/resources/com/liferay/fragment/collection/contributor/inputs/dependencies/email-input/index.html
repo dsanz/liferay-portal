@@ -1,4 +1,4 @@
-[#assign preferredDomains=(input.attributes.preferredDomains)!["@gmail.com", "@hotmail.com", "@liferay.com", "@outlook.com"] /]
+[#assign preferredDomains=(input.attributes.preferredDomains)![] /]
 
 <div class="email-input">
 	<div class="form-group [#if input.errorMessage?has_content]has-error[/#if] mb-0" id="${fragmentElementId}-form-group">
@@ -28,12 +28,6 @@
 				</div>
 			[/#if]
 		</div>
-
-		[#if configuration.showCharactersCount]
-			<p class="mt-1 text-secondary" id="${fragmentElementId}-length-info">
-				<span id="${fragmentElementId}-current-length">0</span> / [#if input.attributes.maxLength??]${input.attributes.maxLength}[/#if]
-			</p>
-		[/#if]
 
 		<p class="font-weight-semi-bold mt-1 text-3 text-danger[#if !input.errorMessage?has_content] sr-only[/#if]" id="${fragmentElementId}-email-input-error">
 			[@clay["icon"] symbol="info-circle" /]

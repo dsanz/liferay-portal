@@ -13,6 +13,7 @@ import jakarta.annotation.Generated;
 import java.io.Serializable;
 
 import java.util.Date;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -25,6 +26,28 @@ public class StyleBook implements Cloneable, Serializable {
 	public static StyleBook toDTO(String json) {
 		return StyleBookSerDes.toDTO(json);
 	}
+
+	public Map<String, Map<String, String>> getActions() {
+		return actions;
+	}
+
+	public void setActions(Map<String, Map<String, String>> actions) {
+		this.actions = actions;
+	}
+
+	public void setActions(
+		UnsafeSupplier<Map<String, Map<String, String>>, Exception>
+			actionsUnsafeSupplier) {
+
+		try {
+			actions = actionsUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Map<String, Map<String, String>> actions;
 
 	public Creator getCreator() {
 		return creator;
@@ -152,6 +175,25 @@ public class StyleBook implements Cloneable, Serializable {
 
 	protected String frontendTokensValues;
 
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public void setId(UnsafeSupplier<Long, Exception> idUnsafeSupplier) {
+		try {
+			id = idUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Long id;
+
 	public String getKey() {
 		return key;
 	}
@@ -216,6 +258,31 @@ public class StyleBook implements Cloneable, Serializable {
 
 	protected String previewFileEntryExternalReferenceCode;
 
+	public com.liferay.headless.admin.site.client.scope.Scope getScope() {
+		return scope;
+	}
+
+	public void setScope(
+		com.liferay.headless.admin.site.client.scope.Scope scope) {
+
+		this.scope = scope;
+	}
+
+	public void setScope(
+		UnsafeSupplier
+			<com.liferay.headless.admin.site.client.scope.Scope, Exception>
+				scopeUnsafeSupplier) {
+
+		try {
+			scope = scopeUnsafeSupplier.get();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected com.liferay.headless.admin.site.client.scope.Scope scope;
+
 	public String getThemeId() {
 		return themeId;
 	}
@@ -269,4 +336,4 @@ public class StyleBook implements Cloneable, Serializable {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-683943060
+// LIFERAY-REST-BUILDER-HASH:642849199

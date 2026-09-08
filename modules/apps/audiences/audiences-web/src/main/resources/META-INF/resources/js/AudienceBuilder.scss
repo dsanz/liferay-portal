@@ -1,0 +1,155 @@
+@import 'atlas-variables';
+
+$sidebar-width: 320px;
+$toolbar-height: 55px;
+
+.audience-builder-content {
+	height: calc(100vh - #{$toolbar-height});
+}
+
+.audience-builder-attribute {
+	border: 2px solid transparent;
+	border-radius: 0.5rem;
+	cursor: grab;
+	height: 55px;
+
+	&:focus,
+	&:hover {
+		background-color: var(--primary-l3);
+		border-color: $primary;
+	}
+
+	&--dragging {
+		opacity: 0.5;
+	}
+
+	&__icon {
+		height: 32px;
+		width: 32px;
+
+		&--indigo {
+			background-color: $indigo-l5;
+			color: $indigo;
+		}
+
+		&--orange {
+			background-color: $orange-l5;
+			color: $orange;
+		}
+
+		&--teal {
+			background-color: $teal-l5;
+			color: $teal;
+		}
+	}
+}
+
+.audience-builder-drop-zone {
+	background-color: $white;
+	border: 2px dashed transparent;
+	border-radius: 0.5rem;
+	min-height: 240px;
+	transition: background-color 0.1s ease-in-out;
+
+	&--active {
+		border-color: $primary;
+	}
+
+	&--over {
+		background-color: var(--primary-l3);
+	}
+}
+
+.audience-builder-group {
+	position: relative;
+
+	&--drop-bottom::after,
+	&--drop-top::before {
+		background-color: $primary;
+		content: '';
+		height: 4px;
+		left: 0;
+		position: absolute;
+		right: 0;
+		z-index: 1;
+	}
+
+	&--drop-bottom::after {
+		bottom: 0;
+	}
+
+	&--drop-top::before {
+		top: 0;
+	}
+}
+
+.audience-builder-general-settings {
+	.collapse-icon.collapse-icon-middle .collapse-icon-closed,
+	.collapse-icon.collapse-icon-middle .collapse-icon-open {
+		position: static;
+		transform: none;
+	}
+}
+
+.audience-builder-grip {
+	cursor: grab;
+}
+
+.audience-builder-rule {
+	border: 2px solid var(--secondary-l3);
+	border-left: 4px solid $indigo;
+	border-radius: 0.5rem;
+
+	&:focus-within {
+		background-color: var(--primary-l3);
+		border-bottom-color: $primary;
+		border-right-color: $primary;
+		border-top-color: $primary;
+	}
+
+	&--dragging {
+		opacity: 0.5;
+	}
+
+	&--drop-bottom {
+		background-color: var(--primary-l3);
+		box-shadow: inset 0 -4px 0 0 $primary;
+	}
+
+	&--drop-group {
+		background-color: var(--primary-l3);
+		box-shadow: inset 0 0 0 4px $primary;
+	}
+
+	&--drop-top {
+		background-color: var(--primary-l3);
+		box-shadow: inset 0 4px 0 0 $primary;
+	}
+
+	&--error {
+		border-left-color: var(--secondary-l1);
+
+		&:focus-within {
+			background-color: $gray-100;
+			border-bottom-color: var(--secondary-l3);
+			border-right-color: var(--secondary-l3);
+			border-top-color: var(--secondary-l3);
+		}
+	}
+
+	&--indigo {
+		border-left-color: $indigo;
+	}
+
+	&--orange {
+		border-left-color: $orange;
+	}
+
+	&--teal {
+		border-left-color: $teal;
+	}
+}
+
+.audience-builder-sidebar {
+	width: $sidebar-width;
+}

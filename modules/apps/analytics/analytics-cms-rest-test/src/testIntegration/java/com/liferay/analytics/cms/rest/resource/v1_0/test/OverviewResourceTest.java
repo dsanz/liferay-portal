@@ -7,6 +7,9 @@ package com.liferay.analytics.cms.rest.resource.v1_0.test;
 
 import com.liferay.analytics.cms.rest.client.dto.v1_0.Overview;
 import com.liferay.analytics.cms.rest.client.dto.v1_0.Trend;
+import com.liferay.analytics.cms.rest.client.problem.Problem;
+import com.liferay.analytics.cms.rest.resource.v1_0.OverviewResource;
+import com.liferay.analytics.cms.rest.resource.v1_0.test.util.DepotEntryTestUtil;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.asset.entry.rel.model.AssetEntryAssetCategoryRel;
 import com.liferay.asset.entry.rel.service.AssetEntryAssetCategoryRelLocalService;
@@ -28,27 +31,30 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.rest.test.util.ObjectEntryTestUtil;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.petra.function.UnsafeRunnable;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.service.ServiceContext;
+import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.ContentTypes;
+import com.liferay.portal.kernel.util.DateFormatFactoryUtil;
 import com.liferay.portal.kernel.util.FileUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LocaleUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
-import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.Serializable;
 
+import java.text.DateFormat;
+
+import java.util.Calendar;
 import java.util.Map;
 
 import org.junit.Assert;
@@ -60,9 +66,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Rachael Koestartyo
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-34594")}
-)
 @RunWith(Arquillian.class)
 public class OverviewResourceTest extends BaseOverviewResourceTestCase {
 
@@ -166,6 +169,60 @@ public class OverviewResourceTest extends BaseOverviewResourceTestCase {
 				}
 			},
 			overviewResource.getContentOverview(null, null, null, 7, null));
+
+		Trend neutralTrend = new Trend();
+
+		neutralTrend.setClassification(Trend.Classification.NEUTRAL);
+		neutralTrend.setPercentage(0.0);
+
+		Assert.assertEquals(
+			new Overview() {
+				{
+					categoriesCount = 2L;
+					tagsCount = 1L;
+					totalCount = 3L;
+					trend = neutralTrend;
+					vocabulariesCount = 1L;
+				}
+			},
+			overviewResource.getContentOverview(null, null, null, null, null));
+
+		Assert.assertEquals(
+			new Overview() {
+				{
+					categoriesCount = 2L;
+					tagsCount = 1L;
+					totalCount = 3L;
+					trend = neutralTrend;
+					vocabulariesCount = 1L;
+				}
+			},
+			overviewResource.getContentOverview(
+				null, null, null, null, _getRangeDate(-7)));
+
+		Assert.assertEquals(
+			new Overview() {
+				{
+					categoriesCount = 2L;
+					tagsCount = 1L;
+					totalCount = 3L;
+					trend = neutralTrend;
+					vocabulariesCount = 1L;
+				}
+			},
+			overviewResource.getContentOverview(
+				null, null, _getRangeDate(0), null, null));
+
+		_assertBadRequest(
+			"Invalid range end: not a date",
+			() -> overviewResource.getContentOverview(
+				null, null, "not a date", null, _getRangeDate(-7)));
+		_assertBadRequest(
+			"Invalid range start: not a date",
+			() -> overviewResource.getContentOverview(
+				null, null, _getRangeDate(0), null, "not a date"));
+
+		_testGetContentOverviewWithDepotEntryMemberUser();
 	}
 
 	@Override
@@ -219,11 +276,69 @@ public class OverviewResourceTest extends BaseOverviewResourceTestCase {
 				}
 			},
 			overviewResource.getFileOverview(null, null, null, 7, null));
+
+		Trend neutralTrend = new Trend();
+
+		neutralTrend.setClassification(Trend.Classification.NEUTRAL);
+		neutralTrend.setPercentage(0.0);
+
+		Assert.assertEquals(
+			new Overview() {
+				{
+					categoriesCount = 0L;
+					tagsCount = 0L;
+					totalCount = 1L;
+					trend = neutralTrend;
+					vocabulariesCount = 0L;
+				}
+			},
+			overviewResource.getFileOverview(null, null, null, null, null));
+
+		Assert.assertEquals(
+			new Overview() {
+				{
+					categoriesCount = 0L;
+					tagsCount = 0L;
+					totalCount = 1L;
+					trend = neutralTrend;
+					vocabulariesCount = 0L;
+				}
+			},
+			overviewResource.getFileOverview(
+				null, null, null, null, _getRangeDate(-7)));
+
+		_testGetFileOverviewWithDepotEntryMemberUser();
+	}
+
+	private void _assertBadRequest(
+			String expectedTitle, UnsafeRunnable<Exception> unsafeRunnable)
+		throws Exception {
+
+		try {
+			unsafeRunnable.run();
+
+			Assert.fail();
+		}
+		catch (Problem.ProblemException problemException) {
+			Problem problem = problemException.getProblem();
+
+			Assert.assertEquals("BAD_REQUEST", problem.getStatus());
+			Assert.assertEquals(expectedTitle, problem.getTitle());
+		}
+	}
+
+	private String _getRangeDate(int days) {
+		Calendar calendar = Calendar.getInstance();
+
+		calendar.add(Calendar.DAY_OF_MONTH, days);
+
+		DateFormat dateFormat = DateFormatFactoryUtil.getSimpleDateFormat(
+			"yyyy-MM-dd");
+
+		return dateFormat.format(calendar.getTime());
 	}
 
 	private void _setUpCMSContext() throws Exception {
-		CMSTestUtil.getOrAddGroup(OverviewResourceTest.class);
-
 		_serviceContext = ServiceContextTestUtil.getServiceContext(
 			testGroup.getGroupId(), TestPropsValues.getUserId());
 
@@ -235,6 +350,44 @@ public class OverviewResourceTest extends BaseOverviewResourceTestCase {
 				LocaleUtil.getDefault(), RandomTestUtil.randomString()
 			).build(),
 			DepotConstants.TYPE_SPACE, _serviceContext);
+	}
+
+	private void _testGetContentOverviewWithDepotEntryMemberUser()
+		throws Exception {
+
+		OverviewResource overviewResource = ReflectionTestUtil.getFieldValue(
+			this, "_overviewResource");
+
+		Assert.assertEquals(
+			3L,
+			(long)DepotEntryTestUtil.withDepotEntryMemberUser(
+				_depotEntry,
+				() -> {
+					com.liferay.analytics.cms.rest.dto.v1_0.Overview overview =
+						overviewResource.getContentOverview(
+							_depotEntry.getDepotEntryId(), null, null, 7, null);
+
+					return overview.getTotalCount();
+				}));
+	}
+
+	private void _testGetFileOverviewWithDepotEntryMemberUser()
+		throws Exception {
+
+		OverviewResource overviewResource = ReflectionTestUtil.getFieldValue(
+			this, "_overviewResource");
+
+		Assert.assertEquals(
+			1L,
+			(long)DepotEntryTestUtil.withDepotEntryMemberUser(
+				_depotEntry,
+				() -> {
+					com.liferay.analytics.cms.rest.dto.v1_0.Overview overview =
+						overviewResource.getFileOverview(
+							_depotEntry.getDepotEntryId(), null, null, 7, null);
+
+					return overview.getTotalCount();
+				}));
 	}
 
 	@DeleteAfterTestRun

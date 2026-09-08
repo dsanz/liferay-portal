@@ -55,13 +55,10 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.test.rule.FeatureFlag;
-import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 
 import java.io.ByteArrayInputStream;
 import java.io.Serializable;
@@ -81,9 +78,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Thiago Buarque
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-34594")}
-)
 @RunWith(Arquillian.class)
 public class AssetUsageResourceTest extends BaseAssetUsageResourceTestCase {
 
@@ -98,8 +92,6 @@ public class AssetUsageResourceTest extends BaseAssetUsageResourceTestCase {
 	@Override
 	public void setUp() throws Exception {
 		super.setUp();
-
-		CMSTestUtil.getOrAddGroup(AssetUsageResourceTest.class);
 
 		_cmsBasicDocumentObjectDefinition =
 			_objectDefinitionLocalService.

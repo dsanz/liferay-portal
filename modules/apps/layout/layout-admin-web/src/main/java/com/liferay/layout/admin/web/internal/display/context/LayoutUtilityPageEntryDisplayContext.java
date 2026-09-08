@@ -20,6 +20,8 @@ import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.LayoutLocalServiceUtil;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.OrderByComparator;
+import com.liferay.portal.kernel.util.OrderByComparatorFactoryUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
@@ -31,6 +33,7 @@ import jakarta.portlet.RenderResponse;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author Jürgen Kappler
@@ -83,6 +86,13 @@ public class LayoutUtilityPageEntryDisplayContext {
 				"there-are-no-utility-pages");
 
 		layoutUtilityPageEntrySearchContainer.setOrderByCol(getOrderByCol());
+
+		OrderByComparator<LayoutUtilityPageEntry> orderByComparator =
+			_getOrderByComparator();
+
+		layoutUtilityPageEntrySearchContainer.setOrderByComparator(
+			orderByComparator);
+
 		layoutUtilityPageEntrySearchContainer.setOrderByType(getOrderByType());
 
 		String[] types = TransformUtil.transformToArray(
@@ -99,7 +109,7 @@ public class LayoutUtilityPageEntryDisplayContext {
 							types,
 							layoutUtilityPageEntrySearchContainer.getStart(),
 							layoutUtilityPageEntrySearchContainer.getEnd(),
-							null),
+							orderByComparator),
 				LayoutUtilityPageEntryServiceUtil.
 					getLayoutUtilityPageEntriesCount(
 						_themeDisplay.getScopeGroupId(), _getKeywords(),
@@ -113,7 +123,7 @@ public class LayoutUtilityPageEntryDisplayContext {
 							_themeDisplay.getScopeGroupId(), types,
 							layoutUtilityPageEntrySearchContainer.getStart(),
 							layoutUtilityPageEntrySearchContainer.getEnd(),
-							null),
+							orderByComparator),
 				LayoutUtilityPageEntryServiceUtil.
 					getLayoutUtilityPageEntriesCount(
 						_themeDisplay.getScopeGroupId(), types));
@@ -135,7 +145,7 @@ public class LayoutUtilityPageEntryDisplayContext {
 
 		_orderByCol = ParamUtil.getString(
 			_renderRequest, SearchContainer.DEFAULT_ORDER_BY_COL_PARAM,
-			"modified-date");
+			"create-date");
 
 		return _orderByCol;
 	}
@@ -159,6 +169,26 @@ public class LayoutUtilityPageEntryDisplayContext {
 		_keywords = ParamUtil.getString(_renderRequest, "keywords");
 
 		return _keywords;
+	}
+
+	private OrderByComparator<LayoutUtilityPageEntry> _getOrderByComparator() {
+		boolean orderByAsc = false;
+
+		if (Objects.equals(getOrderByType(), "asc")) {
+			orderByAsc = true;
+		}
+
+		if (Objects.equals(getOrderByCol(), "create-date")) {
+			return OrderByComparatorFactoryUtil.create(
+				"LayoutUtilityPageEntry", "createDate", orderByAsc);
+		}
+
+		if (Objects.equals(getOrderByCol(), "name")) {
+			return OrderByComparatorFactoryUtil.create(
+				"LayoutUtilityPageEntry", "name", orderByAsc);
+		}
+
+		return null;
 	}
 
 	private PortletURL _getPortletURL() {

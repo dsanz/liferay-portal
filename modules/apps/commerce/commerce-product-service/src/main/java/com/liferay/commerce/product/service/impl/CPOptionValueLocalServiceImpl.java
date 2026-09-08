@@ -13,6 +13,7 @@ import com.liferay.commerce.product.model.CPOptionValue;
 import com.liferay.commerce.product.service.base.CPOptionValueLocalServiceBaseImpl;
 import com.liferay.commerce.product.service.persistence.CPOptionPersistence;
 import com.liferay.expando.kernel.service.ExpandoRowLocalService;
+import com.liferay.exportimport.kernel.empty.model.EmptyModelManager;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
@@ -46,10 +47,12 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.TimeZoneUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 
 import java.io.Serializable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -92,9 +95,13 @@ public class CPOptionValueLocalServiceImpl
 
 		User user = _userLocalService.getUser(serviceContext.getUserId());
 
+		CPOption cpOption = _cpOptionPersistence.findByPrimaryKey(cpOptionId);
+
 		key = _friendlyURLNormalizer.normalize(key);
 
-		_validateKey(_cpOptionPersistence.findByPrimaryKey(cpOptionId), 0, key);
+		if (!_emptyModelManager.isEmptyModel()) {
+			_validateKey(cpOption, 0, key);
+		}
 
 		_validateName(nameMap);
 
@@ -111,6 +118,14 @@ public class CPOptionValueLocalServiceImpl
 		cpOptionValue.setNameMap(nameMap);
 		cpOptionValue.setPriority(priority);
 		cpOptionValue.setKey(key);
+
+		if (_emptyModelManager.isEmptyModel()) {
+			cpOptionValue.setStatus(WorkflowConstants.STATUS_EMPTY);
+		}
+		else {
+			cpOptionValue.setStatus(WorkflowConstants.STATUS_APPROVED);
+		}
+
 		cpOptionValue.setExpandoBridgeAttributes(serviceContext);
 
 		cpOptionValue = cpOptionValuePersistence.update(cpOptionValue);
@@ -175,7 +190,7 @@ public class CPOptionValueLocalServiceImpl
 	@Override
 	public void deleteCPOptionValues(long cpOptionId) throws PortalException {
 		List<CPOptionValue> cpOptionValues =
-			cpOptionValueLocalService.getCPOptionValues(
+			cpOptionValuePersistence.findByCPOptionId(
 				cpOptionId, QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 
 		for (CPOptionValue cpOptionValue : cpOptionValues) {
@@ -210,6 +225,30 @@ public class CPOptionValueLocalServiceImpl
 	@Override
 	public int getCPOptionValuesCount(long cpOptionId) {
 		return cpOptionValuePersistence.countByCPOptionId(cpOptionId);
+	}
+
+	@Override
+	public CPOptionValue getOrAddEmptyCPOptionValue(
+			String externalReferenceCode, long cpOptionId, long companyId,
+			long userId)
+		throws PortalException {
+
+		ServiceContext serviceContext = new ServiceContext();
+
+		serviceContext.setCompanyId(companyId);
+		serviceContext.setUserId(userId);
+
+		return _emptyModelManager.getOrAddEmptyModel(
+			CPOptionValue.class, companyId,
+			() -> cpOptionValueLocalService.addCPOptionValue(
+				externalReferenceCode, cpOptionId,
+				Collections.singletonMap(
+					LocaleUtil.getSiteDefault(), externalReferenceCode),
+				0, externalReferenceCode, serviceContext),
+			externalReferenceCode,
+			this::fetchCPOptionValueByExternalReferenceCode,
+			this::getCPOptionValueByExternalReferenceCode,
+			CPOptionValue.class.getName());
 	}
 
 	@Override
@@ -272,6 +311,12 @@ public class CPOptionValueLocalServiceImpl
 		cpOptionValue.setNameMap(nameMap);
 		cpOptionValue.setPriority(priority);
 		cpOptionValue.setKey(key);
+		cpOptionValue.setStatus(
+			_emptyModelManager.solveEmptyModel(
+				cpOptionValue.getExternalReferenceCode(),
+				cpOptionValue.getModelClassName(), cpOptionValue.getCompanyId(),
+				0, cpOptionValue.getStatus(),
+				() -> WorkflowConstants.STATUS_APPROVED));
 		cpOptionValue.setExpandoBridgeAttributes(serviceContext);
 
 		cpOptionValue = cpOptionValuePersistence.update(cpOptionValue);
@@ -500,6 +545,9 @@ public class CPOptionValueLocalServiceImpl
 
 	@Reference
 	private CPOptionPersistence _cpOptionPersistence;
+
+	@Reference
+	private EmptyModelManager _emptyModelManager;
 
 	@Reference
 	private ExpandoRowLocalService _expandoRowLocalService;

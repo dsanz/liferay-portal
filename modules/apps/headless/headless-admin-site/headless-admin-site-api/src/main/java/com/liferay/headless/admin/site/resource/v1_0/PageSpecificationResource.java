@@ -70,6 +70,13 @@ public interface PageSpecificationResource {
 			String pageTemplateExternalReferenceCode)
 		throws Exception;
 
+	public PageSpecification
+			getSiteSitePagePageSpecificationVersionPageSpecification(
+				String siteExternalReferenceCode,
+				String sitePageExternalReferenceCode,
+				String pageSpecificationVersionExternalReferenceCode)
+		throws Exception;
+
 	public Page<PageSpecification> getSiteSitePagePageSpecificationsPage(
 			String siteExternalReferenceCode,
 			String sitePageExternalReferenceCode)
@@ -193,4 +200,4 @@ public interface PageSpecificationResource {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:-923725801
+// LIFERAY-REST-BUILDER-HASH:735240647

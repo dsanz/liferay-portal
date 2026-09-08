@@ -8,6 +8,13 @@ export interface ActionItem {
 	href?: string;
 }
 
+export interface ConfirmationMessage {
+	bodyHTML: string;
+	partialSuccessMessage: string;
+	successMessage: string;
+	title: string;
+}
+
 interface Creator {
 	additionalName: string;
 	contentType: string;
@@ -18,7 +25,20 @@ interface Creator {
 	name: string;
 }
 
+interface DeleteAction {
+	href: string;
+	method: string;
+}
+
+export interface DesignAsset {
+	actions?: EntryActions;
+	dateModified: string;
+	embedded: {externalReferenceCode: string; name: string};
+	entryClassName: string;
+}
+
 export interface DesignLibrary {
+	actions?: EntryActions;
 	assetLibraryKey: string;
 	creator: Creator;
 	dateModified: string;
@@ -27,6 +47,10 @@ export interface DesignLibrary {
 	id: number;
 	name: string;
 	siteId: number;
+}
+
+export interface EntryActions {
+	delete?: DeleteAction;
 }
 
 export interface Site {

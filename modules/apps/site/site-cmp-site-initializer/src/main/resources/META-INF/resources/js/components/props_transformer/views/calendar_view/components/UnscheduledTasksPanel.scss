@@ -1,0 +1,100 @@
+@import 'atlas-variables';
+
+$cms-breadcrumb-height: 72px;
+$cms-tab-navigation-height: 48px;
+
+.lfr__cmp-unscheduled-tasks-panel {
+	// Span the full right side of the page. The panel anchors to the top of
+	// the FDS container, so pull it up past the CMS breadcrumb and the
+	// project tab navigation above it.
+
+	top: -($cms-breadcrumb-height + $cms-tab-navigation-height);
+
+	// Match the panel width to the FDS container space. When the panel
+	// opens, the CMS pads the FDS container by --cms-info-panel-width;
+	// match the panel width to that padding (on the CMS breakpoint) so it
+	// fills the space, not the narrower default.
+
+	@media (min-width: 576px) {
+		--sidebar-layout-width: var(--cms-info-panel-width);
+	}
+
+	.sidebar-body {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+	}
+
+	&-list {
+		margin-bottom: 0;
+
+		.list-group-item {
+			align-items: center;
+			cursor: grab;
+		}
+
+		.list-group-title > a,
+		.list-group-title > span {
+			-webkit-box-orient: vertical;
+			display: -webkit-box;
+			-webkit-line-clamp: 2;
+			overflow: hidden;
+			overflow-wrap: anywhere;
+		}
+	}
+
+	&-pagination {
+		flex-shrink: 0;
+		flex-wrap: nowrap;
+		margin-top: 1rem;
+
+		.pagination {
+			flex-shrink: 0;
+			flex-wrap: nowrap;
+		}
+
+		.pagination-items-per-page {
+			flex-shrink: 0;
+		}
+
+		.pagination-results {
+			min-width: 0;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+	}
+
+	&-search {
+		flex-shrink: 0;
+		margin-bottom: 1rem;
+	}
+}
+
+// The row left in the list fades while its clone is dragged. The clone
+// carries the dragging class too, so leave it out here.
+
+.lfr__cmp-unscheduled-tasks-panel-item-dragging:not(.fc-event-dragging) {
+	opacity: 0.5;
+}
+
+// Style the dragged clone as a standalone card. FullCalendar moves it onto
+// the page body, outside the panel list, so it keeps none of the list styling.
+// The :not() matches FullCalendar's own .fc-event-dragging:not(.fc-event-selected)
+// rule so this selector outweighs it and the card stays fully opaque.
+
+.lfr__cmp-unscheduled-tasks-panel-item.fc-event-dragging:not(
+		.fc-event-selected
+	) {
+	background-color: $white;
+	border: 1px solid $primary-l0;
+	border-radius: $border-radius;
+	box-shadow: $box-shadow;
+	list-style: none;
+	opacity: 1;
+	transform: scale(0.75);
+}
+
+body.lfr__cmp-task-dragging .lfr__cmp-unscheduled-tasks-panel-item {
+	cursor: grabbing;
+}

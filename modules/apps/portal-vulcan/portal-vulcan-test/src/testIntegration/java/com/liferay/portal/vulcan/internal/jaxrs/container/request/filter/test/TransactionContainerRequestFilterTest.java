@@ -10,7 +10,9 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.NoSuchGroupException;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
+import com.liferay.portal.kernel.service.persistence.GroupUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.test.log.LogCapture;
@@ -21,6 +23,7 @@ import com.liferay.portal.vulcan.jaxrs.exception.mapper.BaseExceptionMapper;
 import com.liferay.portal.vulcan.jaxrs.exception.mapper.Problem;
 
 import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.QueryParam;
@@ -107,10 +110,33 @@ public class TransactionContainerRequestFilterTest {
 		Assert.assertEquals(
 			204,
 			_getResponseCode(
+				"DELETE",
 				StringBundler.concat(
 					"http://localhost:", PortalUtil.getPortalServerPort(false),
 					"/o/test-vulcan/commit/", group.getGroupId())));
 		Assert.assertNull(GroupLocalServiceUtil.getGroup(group.getGroupId()));
+	}
+
+	@Test
+	public void testGet() throws Exception {
+		Assert.assertEquals(
+			200,
+			_getResponseCode(
+				"GET",
+				StringBundler.concat(
+					"http://localhost:", PortalUtil.getPortalServerPort(false),
+					"/o/test-vulcan/read/", RandomTestUtil.randomLong())));
+	}
+
+	@Test
+	public void testHead() throws Exception {
+		Assert.assertEquals(
+			200,
+			_getResponseCode(
+				"HEAD",
+				StringBundler.concat(
+					"http://localhost:", PortalUtil.getPortalServerPort(false),
+					"/o/test-vulcan/read/", RandomTestUtil.randomLong())));
 	}
 
 	@Test
@@ -123,6 +149,7 @@ public class TransactionContainerRequestFilterTest {
 			Assert.assertEquals(
 				500,
 				_getResponseCode(
+					"DELETE",
 					StringBundler.concat(
 						"http://localhost:",
 						PortalUtil.getPortalServerPort(false),
@@ -135,6 +162,7 @@ public class TransactionContainerRequestFilterTest {
 			Assert.assertEquals(
 				500,
 				_getResponseCode(
+					"DELETE",
 					StringBundler.concat(
 						"http://localhost:",
 						PortalUtil.getPortalServerPort(false),
@@ -159,6 +187,16 @@ public class TransactionContainerRequestFilterTest {
 			throws Exception {
 
 			GroupLocalServiceUtil.deleteGroup(siteId);
+		}
+
+		@GET
+		@Path("/read/{siteId}")
+		public String testRead(@PathParam("siteId") long siteId) {
+
+			// Bypassing the local service leaves this endpoint dependent on
+			// the transaction executor the filter publishes
+
+			return String.valueOf(GroupUtil.fetchByPrimaryKey(siteId));
 		}
 
 		@DELETE
@@ -208,11 +246,13 @@ public class TransactionContainerRequestFilterTest {
 
 	}
 
-	private int _getResponseCode(String urlString) throws IOException {
+	private int _getResponseCode(String method, String urlString)
+		throws IOException {
+
 		HttpURLConnection httpURLConnection =
 			(HttpURLConnection)URLConnectionUtil.createURLConnection(urlString);
 
-		httpURLConnection.setRequestMethod("DELETE");
+		httpURLConnection.setRequestMethod(method);
 
 		return httpURLConnection.getResponseCode();
 	}

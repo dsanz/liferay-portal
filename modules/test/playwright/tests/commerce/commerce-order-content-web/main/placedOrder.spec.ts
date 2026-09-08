@@ -27,7 +27,7 @@ import performLogin, {
 import {waitForAlert} from '../../../../utils/waitForAlert';
 import getPageDefinition from '../../../layout-content-page-editor-web/main/utils/getPageDefinition';
 import getWidgetDefinition from '../../../layout-content-page-editor-web/main/utils/getWidgetDefinition';
-import {miniumSetUp} from '../../utils/commerce';
+import {createAccountWithBuyerUser, miniumSetUp} from '../../utils/commerce';
 import {
 	customFormatDateTimeYY,
 	customFormatDateTimeYYYY,
@@ -1929,45 +1929,16 @@ test('LPD-41398 Local date format', async ({
 });
 
 test(
-	'Can sort orders by order date',
-	{tag: ['@COMMERCE-10147', '@LPD-48664']},
-	async ({apiHelpers, page, placedOrdersPage, site}) => {
-		const account = await apiHelpers.headlessAdminUser.postAccount({
-			type: 'person',
-		});
-
-		const user = await apiHelpers.headlessAdminUser.postUserAccount();
-
-		userData[user.alternateName] = {
-			name: user.givenName,
-			password: 'test',
-			surname: user.familyName,
-		};
-
-		await apiHelpers.headlessAdminUser.assignUserToAccountByEmailAddress(
-			account.id,
-			[user.emailAddress]
-		);
-
-		const rolesResponse =
-			await apiHelpers.headlessAdminUser.getAccountRoles(account.id);
-
-		const buyerAccountRole = rolesResponse?.items?.filter((role) => {
-			return role.name === 'Buyer';
-		});
-
-		await apiHelpers.headlessAdminUser.assignAccountRoles(
-			account.externalReferenceCode,
-			buyerAccountRole[0].id,
-			user.emailAddress
-		);
-
-		await apiHelpers.jsonWebServicesUser.assignUsersToSite(
-			site.id,
-			user.id
-		);
-
-		await apiHelpers.headlessDelivery.createSitePage({
+	'ERC is displayed in the placed order details page',
+	{tag: ['@COMMERCE-8931', '@LPD-100094']},
+	async ({
+		apiHelpers,
+		commerceAdminChannelsPage,
+		page,
+		placedOrdersPage,
+		site,
+	}) => {
+		const layout = await apiHelpers.headlessDelivery.createSitePage({
 			pageDefinition: getPageDefinition([
 				getWidgetDefinition({
 					id: getRandomString(),
@@ -1979,99 +1950,44 @@ test(
 			title: getRandomString(),
 		});
 
-		const catalog =
-			await apiHelpers.headlessCommerceAdminCatalog.postCatalog();
-
-		const product =
-			await apiHelpers.headlessCommerceAdminCatalog.postProduct({
-				catalogId: catalog.id,
-			});
-		const productSkus = await apiHelpers.headlessCommerceAdminCatalog
-			.getProduct(product.productId)
-			.then((product) => {
-				return product.skus;
-			});
-
-		const sku = productSkus[0];
-
-		const address =
-			await apiHelpers.headlessCommerceAdminAccount.postAddress(
-				account.id,
-				{
-					phoneNumber: '12345',
-					regionISOCode: 'LA',
-				}
-			);
-
 		const channel =
 			await apiHelpers.headlessCommerceAdminChannel.postChannel({
 				siteGroupId: site.id,
 			});
 
-		const order1 = await apiHelpers.headlessCommerceAdminOrder.postOrder({
-			accountId: account.id,
-			billingAddressId: address.id,
-			channelId: channel.id,
-			orderItems: [
-				{
-					decimalQuantity: 10,
-					quantity: 2,
-					skuId: sku.id,
-				},
-			],
-			orderStatus: '0',
-			paymentMethod: 'paypal',
-			paymentStatus: '0',
-			shippingAddressId: address.id,
-		});
+		await commerceAdminChannelsPage.changeCommerceChannelSiteType(
+			channel.name,
+			'B2B'
+		);
 
-		await page.waitForTimeout(2000);
+		const {account, buyerUser} = await createAccountWithBuyerUser(
+			apiHelpers,
+			site.id
+		);
 
-		const order2 = await apiHelpers.headlessCommerceAdminOrder.postOrder({
+		const externalReferenceCode = getRandomString();
+
+		await apiHelpers.headlessCommerceAdminOrder.postOrder({
 			accountId: account.id,
-			billingAddressId: address.id,
 			channelId: channel.id,
-			orderItems: [
-				{
-					decimalQuantity: 10,
-					quantity: 2,
-					skuId: sku.id,
-				},
-			],
+			externalReferenceCode,
 			orderStatus: '0',
-			paymentMethod: 'paypal',
-			paymentStatus: '0',
-			shippingAddressId: address.id,
 		});
 
 		await performLogout(page);
-		await performLoginViaApi({page, screenName: user.alternateName});
+		await performLogin(page, buyerUser.alternateName);
 
-		await page.goto(`web/${site.name}`);
-
-		await expect(
-			placedOrdersPage.orderCell(String(order1.id))
-		).toBeVisible();
-		await expect(
-			placedOrdersPage.orderCell(String(order2.id))
-		).toBeVisible();
-
-		let date1 = await placedOrdersPage.orderColumn(1, 5).innerHTML();
-		let date2 = await placedOrdersPage.orderColumn(2, 5).innerHTML();
-
-		expect(new Date(date1).getTime()).toBeGreaterThanOrEqual(
-			new Date(date2).getTime()
+		await page.goto(
+			`${liferayConfig.environment.baseUrl}/web${site.friendlyUrlPath}${layout.friendlyUrlPath}`,
+			{waitUntil: 'networkidle'}
 		);
 
-		await expect(async () => {
-			await placedOrdersPage.orderDateSortButton.click();
+		await expect(placedOrdersPage.table).toBeVisible();
 
-			date1 = await placedOrdersPage.orderColumn(1, 5).innerHTML();
-			date2 = await placedOrdersPage.orderColumn(2, 5).innerHTML();
+		await placedOrdersPage.viewButton.click();
 
-			expect(new Date(date1).getTime()).toBeLessThanOrEqual(
-				new Date(date2).getTime()
-			);
-		}).toPass();
+		await expect(placedOrdersPage.orderDetailsValue('ERC')).toHaveText(
+			externalReferenceCode
+		);
 	}
 );

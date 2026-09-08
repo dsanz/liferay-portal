@@ -20,14 +20,14 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.portlet.LiferayPortletRequest;
 import com.liferay.portal.kernel.portlet.LiferayPortletResponse;
+import com.liferay.portal.kernel.portlet.LiferayPortletURL;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
+import com.liferay.portal.kernel.portlet.url.builder.ResourceURLBuilder;
 import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.WebKeys;
-
-import jakarta.portlet.ResourceURL;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -187,11 +187,14 @@ public class MasterLayoutManagementToolbarDisplayContext
 	}
 
 	private String _getExportMasterLayoutURL() {
-		ResourceURL exportMasterLayoutURL =
-			liferayPortletResponse.createResourceURL();
+		LiferayPortletURL exportMasterLayoutURL =
+			(LiferayPortletURL)ResourceURLBuilder.createResourceURL(
+				liferayPortletResponse
+			).setResourceID(
+				"/layout_page_template_admin/export_master_layouts"
+			).buildResourceURL();
 
-		exportMasterLayoutURL.setResourceID(
-			"/layout_page_template_admin/export_master_layouts");
+		exportMasterLayoutURL.setCopyCurrentRenderParameters(false);
 
 		return exportMasterLayoutURL.toString();
 	}

@@ -7,12 +7,14 @@ package com.liferay.commerce.wish.list.service.impl;
 
 import com.liferay.commerce.wish.list.exception.CommerceWishListNameException;
 import com.liferay.commerce.wish.list.exception.GuestWishListMaxAllowedException;
+import com.liferay.commerce.wish.list.exception.NoSuchWishListException;
 import com.liferay.commerce.wish.list.exception.RequiredCommerceWishListException;
 import com.liferay.commerce.wish.list.internal.configuration.CommerceWishListConfiguration;
 import com.liferay.commerce.wish.list.model.CommerceWishList;
 import com.liferay.commerce.wish.list.model.CommerceWishListItem;
 import com.liferay.commerce.wish.list.service.CommerceWishListItemLocalService;
 import com.liferay.commerce.wish.list.service.base.CommerceWishListLocalServiceBaseImpl;
+import com.liferay.commerce.wish.list.service.persistence.CommerceWishListItemPersistence;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.configuration.metatype.bnd.util.ConfigurableUtil;
 import com.liferay.portal.kernel.cache.thread.local.ThreadLocalCachable;
@@ -140,6 +142,57 @@ public class CommerceWishListLocalServiceImpl
 	}
 
 	@Override
+	@ThreadLocalCachable
+	public CommerceWishList fetchDefaultCommerceWishList(
+			long userId, long groupId, String guestUuid)
+		throws PortalException {
+
+		User user = _userLocalService.fetchUser(userId);
+
+		CommerceWishList guestCommerceWishList = null;
+
+		if (Validator.isNotNull(guestUuid)) {
+			guestCommerceWishList =
+				commerceWishListLocalService.
+					fetchCommerceWishListByUuidAndGroupId(guestUuid, groupId);
+
+			if ((guestCommerceWishList != null) &&
+				!guestCommerceWishList.isGuestWishList()) {
+
+				guestCommerceWishList = null;
+			}
+		}
+
+		if ((user == null) || user.isGuestUser()) {
+			return guestCommerceWishList;
+		}
+
+		CommerceWishList commerceWishList =
+			commerceWishListPersistence.fetchByG_U_D_First(
+				groupId, userId, true, null);
+
+		if (commerceWishList == null) {
+			commerceWishList = commerceWishListPersistence.fetchByG_U_D_First(
+				groupId, userId, false, null);
+
+			if (commerceWishList != null) {
+				commerceWishList.setDefaultWishList(true);
+
+				commerceWishList = commerceWishListPersistence.update(
+					commerceWishList);
+			}
+		}
+
+		if ((guestCommerceWishList != null) && (commerceWishList != null)) {
+			_mergeCommerceWishList(
+				guestCommerceWishList.getCommerceWishListId(),
+				commerceWishList.getCommerceWishListId());
+		}
+
+		return commerceWishList;
+	}
+
+	@Override
 	@SystemEvent(type = SystemEventConstants.TYPE_DELETE)
 	public CommerceWishList forceDeleteCommerceWishList(
 		CommerceWishList commerceWishList) {
@@ -186,46 +239,12 @@ public class CommerceWishListLocalServiceImpl
 			long userId, long groupId, String guestUuid)
 		throws PortalException {
 
-		User user = _userLocalService.getUser(userId);
-
-		CommerceWishList guestCommerceWishList = null;
-
-		if (Validator.isNotNull(guestUuid)) {
-			guestCommerceWishList =
-				commerceWishListLocalService.
-					fetchCommerceWishListByUuidAndGroupId(guestUuid, groupId);
-
-			if ((guestCommerceWishList != null) &&
-				!guestCommerceWishList.isGuestWishList()) {
-
-				guestCommerceWishList = null;
-			}
-		}
-
-		if (user.isGuestUser()) {
-			return guestCommerceWishList;
-		}
-
-		CommerceWishList commerceWishList =
-			commerceWishListPersistence.fetchByG_U_D_First(
-				groupId, userId, true, null);
+		CommerceWishList commerceWishList = fetchDefaultCommerceWishList(
+			userId, groupId, guestUuid);
 
 		if (commerceWishList == null) {
-			commerceWishList = commerceWishListPersistence.fetchByG_U_D_First(
-				groupId, userId, false, null);
-
-			if (commerceWishList != null) {
-				commerceWishList.setDefaultWishList(true);
-
-				commerceWishList = commerceWishListPersistence.update(
-					commerceWishList);
-			}
-		}
-
-		if (guestCommerceWishList != null) {
-			_mergeCommerceWishList(
-				guestCommerceWishList.getCommerceWishListId(),
-				commerceWishList.getCommerceWishListId());
+			throw new NoSuchWishListException(
+				"No default commerce wish list exists for user " + userId);
 		}
 
 		return commerceWishList;
@@ -263,12 +282,12 @@ public class CommerceWishListLocalServiceImpl
 		// Commerce wish list items
 
 		List<CommerceWishListItem> fromCommerceWishListItems =
-			_commerceWishListItemLocalService.getCommerceWishListItems(
+			_commerceWishListItemPersistence.findByCommerceWishListId(
 				fromCommerceWishListId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 				null);
 
 		List<CommerceWishListItem> toCommerceWishListItems =
-			_commerceWishListItemLocalService.getCommerceWishListItems(
+			_commerceWishListItemPersistence.findByCommerceWishListId(
 				toCommerceWishListId, QueryUtil.ALL_POS, QueryUtil.ALL_POS,
 				null);
 
@@ -347,6 +366,9 @@ public class CommerceWishListLocalServiceImpl
 
 	@Reference
 	private CommerceWishListItemLocalService _commerceWishListItemLocalService;
+
+	@Reference
+	private CommerceWishListItemPersistence _commerceWishListItemPersistence;
 
 	@Reference
 	private UserLocalService _userLocalService;

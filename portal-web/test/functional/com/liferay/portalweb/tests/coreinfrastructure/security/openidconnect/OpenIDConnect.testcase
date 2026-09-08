@@ -154,7 +154,7 @@ definition {
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "SSO",
 				configurationName = "OpenID Connect Provider Connection",
-				configurationScope = "Virtual Instance Scope");
+				configurationScope = "System Scope");
 
 			while (IsElementNotPresent(key_rowEntry = "Okta", locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME")) {
 
@@ -624,7 +624,7 @@ definition {
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "SSO",
 				configurationName = "OpenID Connect Provider Connection",
-				configurationScope = "Virtual Instance Scope");
+				configurationScope = "System Scope");
 
 			while (IsElementNotPresent(key_rowEntry = "Okta", locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME")) {
 
@@ -795,14 +795,16 @@ definition {
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
 
+		var discoveryEndpoint = PropsUtil.get("openid.provider.auth0.discovery.endpoint");
 		var openIdConnectClientId = PropsUtil.get("openid.provider.auth0.client.id");
 		var openIdConnectClientSecret = PropsUtil.get("openid.provider.auth0.client.password");
 		var osgiConfigFileName = "com.liferay.portal.security.sso.openid.connect.internal.configuration.OpenIdConnectProviderConfiguration~Auth0.config";
+		var providerName = "Auth0";
 		var userEmailAddress = PropsUtil.get("openid.provider.auth0.test.account.email.address");
 		var userPassword = PropsUtil.get("openid.provider.auth0.test.account.password");
 
 		task ("Add the OSGI configuration file") {
-			AntCommands.runCommand("build-test-openid-connect.xml", "prepare-openid-connect-osgi-configuration -DopenIdConnectClientId=${openIdConnectClientId} -DopenIdConnectClientSecret=${openIdConnectClientSecret} -Dosgi.config.file.name=${osgiConfigFileName}");
+			AntCommands.runCommand("build-test-openid-connect.xml", "deploy-openid-connect-osgi-configuration -Ddiscovery.endpoint=${discoveryEndpoint} -Dopen.id.connect.client.id=${openIdConnectClientId} -Dopen.id.connect.client.secret=${openIdConnectClientSecret} -Dosgi.config.file.name=${osgiConfigFileName} -Dprovider.name=${providerName}");
 
 			ApplicationsMenu.gotoPortlet(
 				category = "Configuration",
@@ -812,7 +814,7 @@ definition {
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "SSO",
 				configurationName = "OpenID Connect Provider Connection",
-				configurationScope = "Virtual Instance Scope");
+				configurationScope = "System Scope");
 
 			while (IsElementNotPresent(key_rowEntry = "Auth0", locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME")) {
 
@@ -869,7 +871,7 @@ definition {
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "SSO",
 				configurationName = "OpenID Connect Provider Connection",
-				configurationScope = "Virtual Instance Scope");
+				configurationScope = "System Scope");
 
 			while (IsElementNotPresent(key_rowEntry = "Azure", locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME")) {
 
@@ -963,7 +965,7 @@ definition {
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "SSO",
 				configurationName = "OpenID Connect Provider Connection",
-				configurationScope = "Virtual Instance Scope");
+				configurationScope = "System Scope");
 
 			while (IsElementNotPresent(key_rowEntry = "PingOne", locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME")) {
 
@@ -1028,7 +1030,7 @@ definition {
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "SSO",
 				configurationName = "OpenID Connect Provider Connection",
-				configurationScope = "Virtual Instance Scope");
+				configurationScope = "System Scope");
 
 			OpenIDConnect.addProvider(
 				customAuthorizationRequestParameters = ${customAuthorizationRequestParameters},
@@ -1460,7 +1462,7 @@ definition {
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "SSO",
 				configurationName = "OpenID Connect Provider Connection",
-				configurationScope = "Virtual Instance Scope");
+				configurationScope = "System Scope");
 
 			while (IsElementNotPresent(key_rowEntry = "liferay-pkce", locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME")) {
 
@@ -1516,7 +1518,7 @@ definition {
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "SSO",
 				configurationName = "OpenID Connect Provider Connection",
-				configurationScope = "Virtual Instance Scope");
+				configurationScope = "System Scope");
 
 			while (IsElementNotPresent(key_rowEntry = "liferay-system-level", locator1 = "ContentRow#ENTRY_CONTENT_ENTRY_NAME")) {
 

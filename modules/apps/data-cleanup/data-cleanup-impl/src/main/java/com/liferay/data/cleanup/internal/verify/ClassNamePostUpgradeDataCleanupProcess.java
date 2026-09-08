@@ -9,6 +9,8 @@ import com.liferay.data.cleanup.internal.verify.util.PostUpgradeDataCleanupProce
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.petra.concurrent.DCLSingleton;
+import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.db.BaseDBProcess;
@@ -20,6 +22,7 @@ import com.liferay.portal.kernel.model.ClassName;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.module.util.SystemBundleUtil;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.upgrade.data.cleanup.util.DataCleanupLoggingUtil;
@@ -30,14 +33,21 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
+import org.osgi.framework.wiring.BundleCapability;
+import org.osgi.framework.wiring.BundleRevision;
+import org.osgi.framework.wiring.BundleWiring;
 
 /**
  * @author Luis Ortiz
@@ -60,7 +70,7 @@ public class ClassNamePostUpgradeDataCleanupProcess
 	@Override
 	public void cleanUp() throws Exception {
 		if (!PostUpgradeDataCleanupProcessUtil.isEveryLiferayBundleResolved()) {
-			if (_log.isWarnEnabled()) {
+			if (_log.isWarnEnabled() && CompanyThreadLocal.isDefaultCompany()) {
 				_log.warn(
 					StringBundler.concat(
 						ClassNamePostUpgradeDataCleanupProcess.class.
@@ -73,11 +83,12 @@ public class ClassNamePostUpgradeDataCleanupProcess
 		}
 
 		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
-		List<ClassName> classNames = _classNameLocalService.getClassNames(
-			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
 		DBInspector dbInspector = new DBInspector(connection);
-		Set<String> models = new HashSet<>(ModelHintsUtil.getModels());
-
+		Map<String, List<Bundle>> packageNameBundlesMap =
+			_packageNameBundlesMapDCLSingleton.getSingleton(
+				ClassNamePostUpgradeDataCleanupProcess::
+					_createPackageNameBundlesMap);
+		StringBundler sb = new StringBundler();
 		List<String> tableNames = new ArrayList<>();
 
 		for (String tableName : dbInspector.getTableNames(null)) {
@@ -87,136 +98,223 @@ public class ClassNamePostUpgradeDataCleanupProcess
 				continue;
 			}
 
+			if (!tableNames.isEmpty()) {
+				sb.append(" union all ");
+			}
+
 			tableNames.add(tableName);
+
+			sb.append("select distinct '");
+			sb.append(tableName);
+			sb.append("' from ");
+			sb.append(tableName);
+			sb.append(" where classNameId = ?");
 		}
 
-		processConcurrently(
-			classNames.toArray(new ClassName[0]),
-			className -> {
-				String value = className.getValue();
+		String usedTableNamesSQL = sb.toString();
 
-				if (!value.startsWith("com.liferay.")) {
-					return;
-				}
+		List<ClassName> classNames = _classNameLocalService.getClassNames(
+			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+		Map<String, Boolean> definedClasses = new HashMap<>();
+		Set<String> models = new HashSet<>(ModelHintsUtil.getModels());
 
-				if (StringUtil.startsWith(
-						value,
-						ObjectDefinitionConstants.
-							CLASS_NAME_PREFIX_CUSTOM_OBJECT_DEFINITION)) {
+		for (ClassName className : classNames) {
+			String value = className.getValue();
 
-					AtomicReference<ObjectDefinition> objectDefinition =
-						new AtomicReference<>();
+			if (!value.startsWith("com.liferay.")) {
+				continue;
+			}
 
-					String finalValue = value;
+			if (StringUtil.startsWith(
+					value,
+					ObjectDefinitionConstants.
+						CLASS_NAME_PREFIX_CUSTOM_OBJECT_DEFINITION)) {
 
-					_companyLocalService.forEachCompanyId(
-						companyId -> {
-							if (objectDefinition.get() != null) {
-								return;
-							}
+				AtomicReference<ObjectDefinition> objectDefinition =
+					new AtomicReference<>();
 
-							objectDefinition.set(
-								_objectDefinitionLocalService.
-									fetchObjectDefinitionByClassName(
-										companyId, finalValue));
-						});
+				String finalValue = value;
 
-					if (objectDefinition.get() != null) {
-						return;
-					}
-				}
-
-				int index = value.indexOf(StringPool.DASH);
-
-				if ((index != -1) &&
-					StringUtil.startsWith(value, Layout.class.getName())) {
-
-					value = value.substring(0, index);
-				}
-
-				boolean missingClass = false;
-
-				for (String currentValue : value.split("[-_]")) {
-					if (models.contains(currentValue)) {
-						continue;
-					}
-
-					Class<?> clazz = null;
-
-					for (Bundle bundle : bundleContext.getBundles()) {
-						try {
-							clazz = bundle.loadClass(currentValue);
-
-							break;
-						}
-						catch (ClassNotFoundException classNotFoundException) {
-							if (_log.isDebugEnabled()) {
-								_log.debug(classNotFoundException);
-							}
-						}
-						catch (Exception exception) {
-							_log.error(exception);
-
+				_companyLocalService.forEachCompanyId(
+					companyId -> {
+						if (objectDefinition.get() != null) {
 							return;
 						}
+
+						objectDefinition.set(
+							_objectDefinitionLocalService.
+								fetchObjectDefinitionByClassName(
+									companyId, finalValue));
+					});
+
+				if (objectDefinition.get() != null) {
+					continue;
+				}
+			}
+
+			int index = value.indexOf(StringPool.DASH);
+
+			if ((index != -1) &&
+				StringUtil.startsWith(value, Layout.class.getName())) {
+
+				value = value.substring(0, index);
+			}
+
+			if (_isClassDefined(
+					bundleContext, definedClasses, models,
+					packageNameBundlesMap, value)) {
+
+				continue;
+			}
+
+			Set<String> usedTableNames = new HashSet<>();
+
+			try (PreparedStatement preparedStatement =
+					connection.prepareStatement(usedTableNamesSQL)) {
+
+				for (int i = 1; i <= tableNames.size(); i++) {
+					preparedStatement.setLong(i, className.getClassNameId());
+				}
+
+				try (ResultSet resultSet = preparedStatement.executeQuery()) {
+					while (resultSet.next()) {
+						usedTableNames.add(
+							StringUtil.trim(resultSet.getString(1)));
 					}
+				}
+			}
 
-					if (clazz == null) {
-						missingClass = true;
+			if (usedTableNames.isEmpty()) {
+				_classNameLocalService.deleteClassName(className);
 
-						break;
+				DataCleanupLoggingUtil.logDelete(
+					_log, 1, dbInspector.normalizeName("ClassName_"),
+					StringBundler.concat(
+						"\"", value,
+						"\" is not defined in any deployed module and is not ",
+						"in use"));
+			}
+			else if (_log.isWarnEnabled()) {
+				_log.warn(
+					StringBundler.concat(
+						"Class name ", value,
+						" is not defined in any deployed module but is ",
+						"referenced in the next tables: ",
+						String.join(", ", new TreeSet<>(usedTableNames))));
+			}
+		}
+	}
+
+	private static Map<String, List<Bundle>> _createPackageNameBundlesMap() {
+		Map<String, List<Bundle>> packageNameBundlesMap = new HashMap<>();
+
+		BundleContext bundleContext = SystemBundleUtil.getBundleContext();
+
+		for (Bundle bundle : bundleContext.getBundles()) {
+			BundleWiring bundleWiring = bundle.adapt(BundleWiring.class);
+
+			if (bundleWiring == null) {
+				continue;
+			}
+
+			for (BundleCapability bundleCapability :
+					bundleWiring.getCapabilities(
+						BundleRevision.PACKAGE_NAMESPACE)) {
+
+				Map<String, Object> attributes =
+					bundleCapability.getAttributes();
+
+				Object packageName = attributes.get(
+					BundleRevision.PACKAGE_NAMESPACE);
+
+				if (packageName == null) {
+					continue;
+				}
+
+				List<Bundle> bundles = packageNameBundlesMap.computeIfAbsent(
+					packageName.toString(), key -> new ArrayList<>());
+
+				bundles.add(bundle);
+			}
+		}
+
+		return packageNameBundlesMap;
+	}
+
+	private boolean _isClassDefined(
+		BundleContext bundleContext, Map<String, Boolean> definedClasses,
+		Set<String> models, Map<String, List<Bundle>> packageNameBundlesMap,
+		String value) {
+
+		for (String currentValue : value.split("[-_]")) {
+			if (models.contains(currentValue)) {
+				continue;
+			}
+
+			Boolean defined = definedClasses.get(currentValue);
+
+			if (defined != null) {
+				if (defined) {
+					continue;
+				}
+
+				return false;
+			}
+
+			Set<Bundle> candidateBundles = new LinkedHashSet<>();
+
+			int index = currentValue.lastIndexOf(CharPool.PERIOD);
+
+			if (index != -1) {
+				List<Bundle> exportingBundles = packageNameBundlesMap.get(
+					currentValue.substring(0, index));
+
+				if (exportingBundles != null) {
+					candidateBundles.addAll(exportingBundles);
+				}
+			}
+
+			Collections.addAll(candidateBundles, bundleContext.getBundles());
+
+			defined = false;
+
+			for (Bundle bundle : candidateBundles) {
+				try {
+					bundle.loadClass(currentValue);
+
+					defined = true;
+
+					break;
+				}
+				catch (ClassNotFoundException | IllegalStateException
+							exception) {
+
+					if (_log.isDebugEnabled()) {
+						_log.debug(exception);
 					}
 				}
+				catch (Exception exception) {
+					_log.error(exception);
 
-				if (!missingClass) {
-					return;
+					return true;
 				}
+			}
 
-				Set<String> usedTableNames = new HashSet<>();
+			definedClasses.put(currentValue, defined);
 
-				for (String tableName : tableNames) {
-					try (PreparedStatement preparedStatement =
-							connection.prepareStatement(
-								"select 1 from " + tableName +
-									" where classNameId = ?")) {
+			if (!defined) {
+				return false;
+			}
+		}
 
-						preparedStatement.setLong(
-							1, className.getClassNameId());
-
-						try (ResultSet resultSet =
-								preparedStatement.executeQuery()) {
-
-							if (resultSet.next()) {
-								usedTableNames.add(tableName);
-							}
-						}
-					}
-				}
-
-				if (usedTableNames.isEmpty()) {
-					_classNameLocalService.deleteClassName(className);
-
-					DataCleanupLoggingUtil.logDelete(
-						_log, 1, dbInspector.normalizeName("ClassName_"),
-						StringBundler.concat(
-							"\"", value,
-							"\" is not defined in any deployed module and is ",
-							"not in use"));
-				}
-				else if (_log.isWarnEnabled()) {
-					_log.warn(
-						StringBundler.concat(
-							"Class name ", value,
-							" is not defined in any deployed module but is ",
-							"referenced in the next tables: ",
-							String.join(", ", new TreeSet<>(usedTableNames))));
-				}
-			},
-			null);
+		return true;
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ClassNamePostUpgradeDataCleanupProcess.class);
+
+	private static final DCLSingleton<Map<String, List<Bundle>>>
+		_packageNameBundlesMapDCLSingleton = new DCLSingleton<>();
 
 	private final ClassNameLocalService _classNameLocalService;
 	private final CompanyLocalService _companyLocalService;

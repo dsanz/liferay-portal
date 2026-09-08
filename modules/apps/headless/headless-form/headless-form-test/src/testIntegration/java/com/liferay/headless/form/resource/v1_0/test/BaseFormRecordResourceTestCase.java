@@ -36,6 +36,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -115,6 +116,8 @@ public abstract class BaseFormRecordResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -378,7 +381,7 @@ public abstract class BaseFormRecordResourceTestCase {
 			formId, randomFormRecord());
 
 		page = formRecordResource.getFormFormRecordsPage(
-			formId, Pagination.of(1, 10));
+			formId, Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -506,17 +509,9 @@ public abstract class BaseFormRecordResourceTestCase {
 	public void testGraphQLGetFormFormRecordsPage() throws Exception {
 		Long formId = testGetFormFormRecordsPage_getFormId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"formFormRecords",
-			new HashMap<String, Object>() {
-				{
-					put("formId", formId);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetFormFormRecordsPageFormFormRecord_getGraphQLField(
+				formId);
 
 		// No namespace
 
@@ -571,6 +566,24 @@ public abstract class BaseFormRecordResourceTestCase {
 			Arrays.asList(
 				FormRecordSerDes.toDTOs(
 					formFormRecordsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetFormFormRecordsPageFormFormRecord_getGraphQLField(
+				Long formId)
+		throws Exception {
+
+		return new GraphQLField(
+			"formFormRecords",
+			new HashMap<String, Object>() {
+				{
+					put("formId", formId);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -1925,4 +1938,4 @@ public abstract class BaseFormRecordResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-313708047
+// LIFERAY-REST-BUILDER-HASH:890039045

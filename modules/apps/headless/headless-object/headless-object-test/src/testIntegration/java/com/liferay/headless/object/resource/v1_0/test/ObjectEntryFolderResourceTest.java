@@ -65,12 +65,10 @@ import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.odata.entity.EntityField;
 import com.liferay.portal.odata.entity.StringEntityField;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.sharing.model.SharingEntry;
 import com.liferay.sharing.security.permission.SharingEntryAction;
 import com.liferay.sharing.service.SharingEntryLocalService;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 import com.liferay.subscription.service.SubscriptionLocalService;
 
 import java.util.Collections;
@@ -80,7 +78,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -90,16 +87,9 @@ import org.osgi.framework.ServiceRegistration;
 /**
  * @author Alicia García
  */
-@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 public class ObjectEntryFolderResourceTest
 	extends BaseObjectEntryFolderResourceTestCase {
-
-	@BeforeClass
-	public static void setUpClass() throws Exception {
-		BaseObjectEntryFolderResourceTestCase.setUpClass();
-		CMSTestUtil.getOrAddGroup(ObjectEntryFolderResourceTest.class);
-	}
 
 	@Before
 	public void setUp() throws Exception {
@@ -133,6 +123,14 @@ public class ObjectEntryFolderResourceTest
 		_testGetObjectEntryFolderActionsWithSystemSharingDisabled();
 		_testGetObjectEntryFolderActionsWithoutUpdatePermission();
 		_testGetObjectEntryFolderShareAction();
+	}
+
+	@Override
+	@Test
+	public void testGetScopeScopeKeyObjectEntryFoldersPage() throws Exception {
+		super.testGetScopeScopeKeyObjectEntryFoldersPage();
+
+		_testGetScopeScopeKeyObjectEntryFoldersPageWithGroupKey();
 	}
 
 	@Override
@@ -214,7 +212,6 @@ public class ObjectEntryFolderResourceTest
 		_testPostScopeScopeKeyObjectEntryFolderWithNonexistentParentObjectEntryFolderByObjectEntryFolderId();
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Override
 	@Test
 	public void testPostScopeScopeKeyObjectEntryFolderByExternalReferenceCodeRestore()
@@ -1183,6 +1180,26 @@ public class ObjectEntryFolderResourceTest
 		assertEquals(
 			Collections.singletonList(objectEntryFolder2),
 			(List<ObjectEntryFolder>)page.getItems());
+	}
+
+	private void _testGetScopeScopeKeyObjectEntryFoldersPageWithGroupKey()
+		throws Exception {
+
+		ObjectEntryFolder objectEntryFolder =
+			testGetScopeScopeKeyObjectEntryFoldersPage_addObjectEntryFolder(
+				String.valueOf(_testDepotEntry.getGroupId()),
+				randomObjectEntryFolder());
+
+		Page<ObjectEntryFolder> page =
+			objectEntryFolderResource.getScopeScopeKeyObjectEntryFoldersPage(
+				_testDepotEntryGroup.getGroupKey(), null, null, null, null,
+				Pagination.of(1, 10), null);
+
+		assertContains(
+			objectEntryFolder, (List<ObjectEntryFolder>)page.getItems());
+
+		objectEntryFolderResource.deleteObjectEntryFolder(
+			objectEntryFolder.getId());
 	}
 
 	private void _testPatchScopeScopeKeyObjectEntryFolderByExternalReferenceCodeWithGroupKey()

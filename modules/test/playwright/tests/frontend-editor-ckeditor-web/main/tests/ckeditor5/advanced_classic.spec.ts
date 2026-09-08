@@ -42,6 +42,7 @@ test(
 				'Accessibility help',
 				'Undo',
 				'Redo',
+				'Find and replace',
 				'Styles',
 				'Normal',
 				'Bold',
@@ -62,7 +63,6 @@ test(
 				'Video',
 				'Horizontal line',
 				'Text alignment',
-				'AI Creator',
 				'Source',
 			];
 
@@ -75,7 +75,7 @@ test(
 		await test.step('Toolbar buttons have Clay icons', async () => {
 			await expect(
 				classicPage.toolbar.container.locator('svg use[href*="/clay/"]')
-			).toHaveCount(23);
+			).toHaveCount(22);
 		});
 	}
 );
@@ -288,27 +288,10 @@ test(
 	}
 );
 
-test('Open AI Creator popover', async ({classicPage, page}) => {
-	const AICreatorButton = classicPage.toolbar.container.getByRole('button', {
-		name: 'Create AI Content',
-	});
-
-	await AICreatorButton.click();
-
-	await expect(page.getByText('Configure OpenAI')).toBeVisible();
-});
-
 test(
 	'Opening source editing disables all custom controls',
 	{tag: '@LPD-11235'},
 	async ({classicPage}) => {
-		const AICreatorButton = classicPage.toolbar.container.getByRole(
-			'button',
-			{
-				name: 'Create AI Content',
-			}
-		);
-
 		const imageButton = classicPage.toolbar.container.getByRole('button', {
 			name: 'Image',
 		});
@@ -321,15 +304,29 @@ test(
 
 		await sourceButton.click();
 
-		await expect(AICreatorButton).toBeDisabled();
 		await expect(imageButton).toBeDisabled();
 		await expect(videoButton).toBeDisabled();
 
-		await sourceButton.click();
+		await classicPage.sourceEditingEnhancedDialog.cancelButton.click();
 
-		await expect(AICreatorButton).toBeEnabled();
 		await expect(imageButton).toBeEnabled();
 		await expect(videoButton).toBeEnabled();
+	}
+);
+
+test(
+	'Enhanced source editing opens the source view in a modal for DXP licensed installations',
+	{tag: '@LPD-83978'},
+	async ({classicPage, page}) => {
+		await classicPage.toolbar.container
+			.getByRole('button', {exact: true, name: 'Source'})
+			.click();
+
+		await expect(
+			page.getByRole('dialog', {name: 'Edit source'})
+		).toBeVisible();
+
+		await expect(page.locator('.cm-editor')).toBeVisible();
 	}
 );
 
@@ -343,11 +340,11 @@ test(
 
 		await sourceButton.click();
 
-		await classicPage.sourceEditable.fill(
+		await classicPage.sourceEditingEnhancedDialog.editable.fill(
 			'<h2>Heading Two</h2><p>Paragraph with <i>italic</i> text.</p>'
 		);
 
-		await sourceButton.click();
+		await classicPage.sourceEditingEnhancedDialog.saveButton.click();
 
 		await expect(classicPage.editable.locator('h2')).toContainText(
 			'Heading Two'
@@ -417,5 +414,67 @@ test(
 
 			await expect(hiddenInput).toHaveValue('');
 		});
+	}
+);
+
+test(
+	'Find and Replace button is shown in the toolbar',
+	{tag: '@LPD-95091'},
+	async ({classicPage}) => {
+		await expect(
+			classicPage.toolbar.container.getByRole('button', {
+				exact: true,
+				name: 'Find and replace',
+			})
+		).toBeVisible();
+	}
+);
+
+if (!process.env.CI) {
+	test(
+		'Enhanced Paste from Office plugin is registered for licensed DXP installations',
+		{tag: '@LPD-95090'},
+		async ({classicPage, page}) => {
+			await expect(classicPage.editable).toBeVisible();
+
+			const hasPasteFromOfficeEnhanced = await page.evaluate(() => {
+				const editorElement = Array.from(
+					document.querySelectorAll('.lfr-ck *')
+				).find((element) => (element as any).ckeditorInstance);
+
+				const editor = (editorElement as any)?.ckeditorInstance;
+
+				return editor?.plugins.has('PasteFromOfficeEnhanced') ?? false;
+			});
+
+			expect(hasPasteFromOfficeEnhanced).toBe(true);
+		}
+	);
+}
+
+test(
+	'Style Book text colors are available in the Styles dropdown',
+	{tag: '@LPD-11235'},
+	async ({classicPage, page}) => {
+		await classicPage.toolbar.container
+			.getByRole('button', {name: 'Styles'})
+			.click();
+
+		const textColors = [
+			'Primary',
+			'Secondary',
+			'Success',
+			'Danger',
+			'Warning',
+			'Info',
+			'Dark',
+			'Light',
+		];
+
+		for (const color of textColors) {
+			await expect(
+				page.getByRole('option', {exact: true, name: color})
+			).toBeVisible();
+		}
 	}
 );

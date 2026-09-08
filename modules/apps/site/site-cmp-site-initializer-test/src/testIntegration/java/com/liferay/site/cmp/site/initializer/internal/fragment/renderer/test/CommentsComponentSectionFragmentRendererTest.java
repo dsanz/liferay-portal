@@ -28,9 +28,7 @@ import org.junit.runner.RunWith;
 /**
  * @author Carolina Barbosa
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-58677")}
-)
+@FeatureFlags(featureFlags = @FeatureFlag("LPD-58677"))
 @RunWith(Arquillian.class)
 public class CommentsComponentSectionFragmentRendererTest
 	extends BaseComponentSectionFragmentRendererTestCase {
@@ -67,8 +65,8 @@ public class CommentsComponentSectionFragmentRendererTest
 			themeDisplay.getPortalURL(), themeDisplay.getPathMain(),
 			GroupConstants.CMS_FRIENDLY_URL, actionId, "?p_l_id=",
 			themeDisplay.getPlid(), "&classNameId=",
-			_portal.getClassNameId(projectObjectDefinition.getClassName()),
-			"&classPK=", projectObjectEntry.getObjectEntryId());
+			_portal.getClassNameId(cmpProjectObjectDefinition.getClassName()),
+			"&classPK=", cmpProjectObjectEntry.getObjectEntryId());
 	}
 
 	@Inject(

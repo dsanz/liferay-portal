@@ -5,14 +5,12 @@
 
 package com.liferay.site.cms.site.initializer.internal.display.context;
 
-import com.liferay.asset.kernel.service.AssetTagLocalService;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.document.library.configuration.DLConfiguration;
 import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectDefinitionService;
-import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.language.Language;
@@ -23,16 +21,13 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.translation.exporter.TranslationInfoItemFieldValuesExporterRegistry;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Carolina Barbosa
@@ -41,7 +36,6 @@ public abstract class BaseRelatedAssetsSectionDisplayContext
 	extends BaseSectionDisplayContext {
 
 	public BaseRelatedAssetsSectionDisplayContext(
-		AssetTagLocalService assetTagLocalService,
 		DepotEntryLocalService depotEntryLocalService,
 		DLConfiguration dlConfiguration, GroupLocalService groupLocalService,
 		HttpServletRequest httpServletRequest, Language language,
@@ -56,7 +50,6 @@ public abstract class BaseRelatedAssetsSectionDisplayContext
 			httpServletRequest, language, objectDefinitionService, portal,
 			translationInfoItemFieldValuesExporterRegistry);
 
-		this.assetTagLocalService = assetTagLocalService;
 		this.objectDefinition = objectDefinition;
 		this.objectEntry = objectEntry;
 	}
@@ -105,47 +98,27 @@ public abstract class BaseRelatedAssetsSectionDisplayContext
 
 	@Override
 	protected String getCMSSectionFilterString() {
-		String keywordsFilterString = getKeywordsFilterString();
-
-		if (Validator.isNull(keywordsFilterString)) {
-			keywordsFilterString = StringPool.DOUBLE_APOSTROPHE;
-		}
-
 		return appendStatus(
 			StringBundler.concat(
 				"(cmsSection eq 'contents' or cmsSection eq 'files') and ",
-				"keywords/any(k:k in (", keywordsFilterString, "))"));
+				getRelatedObjectEntriesFilterString(),
+				" and rootDescendantNode eq false"));
 	}
 
-	protected abstract String[] getKeywords();
+	protected abstract String getRelatedObjectEntriesFilterString();
 
-	protected String getKeywordsFilterString() {
-		return StringUtil.merge(
-			TransformUtil.transform(
-				getKeywords(), StringUtil::quote, String.class));
+	protected String getRelatedObjectEntriesFilterString(
+		String fieldName, long... objectEntryIds) {
+
+		if (objectEntryIds.length == 0) {
+			return StringPool.BLANK;
+		}
+
+		return StringBundler.concat(
+			fieldName, " in (",
+			StringUtil.merge(objectEntryIds, StringPool.COMMA), ")");
 	}
 
-	protected Set<String> getTagNames(
-		ObjectDefinition objectDefinition, ObjectEntry objectEntry) {
-
-		return SetUtil.fromList(
-			TransformUtil.transform(
-				assetTagLocalService.getTags(
-					objectDefinition.getClassName(),
-					objectEntry.getObjectEntryId()),
-				assetTag -> {
-					if (!StringUtil.startsWith(
-							assetTag.getName(),
-							objectDefinition.getExternalReferenceCode())) {
-
-						return null;
-					}
-
-					return assetTag.getName();
-				}));
-	}
-
-	protected final AssetTagLocalService assetTagLocalService;
 	protected final ObjectDefinition objectDefinition;
 	protected final ObjectEntry objectEntry;
 

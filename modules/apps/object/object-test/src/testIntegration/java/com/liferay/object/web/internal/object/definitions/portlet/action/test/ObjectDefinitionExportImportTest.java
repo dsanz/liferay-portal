@@ -11,8 +11,10 @@ import com.liferay.headless.admin.list.type.resource.v1_0.ListTypeDefinitionReso
 import com.liferay.object.admin.rest.dto.v1_0.ObjectDefinition;
 import com.liferay.object.admin.rest.dto.v1_0.Status;
 import com.liferay.object.constants.ObjectDefinitionConstants;
+import com.liferay.object.model.ObjectFolder;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.service.ObjectFieldLocalService;
+import com.liferay.object.service.ObjectFolderLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.object.web.internal.BaseExportImportTestCase;
@@ -26,6 +28,7 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.security.auth.PrincipalThreadLocal;
+import com.liferay.portal.kernel.test.portlet.MockLiferayPortletActionResponse;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
@@ -34,13 +37,12 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.SetUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
-import com.liferay.portal.test.rule.FeatureFlag;
-import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.junit.AfterClass;
@@ -51,14 +53,14 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.skyscreamer.jsonassert.JSONAssert;
+import org.skyscreamer.jsonassert.JSONCompareMode;
+
+import org.springframework.mock.web.MockHttpServletResponse;
+
 /**
  * @author Gabriel Albuquerque
  */
-@FeatureFlags(
-	featureFlags = {
-		@FeatureFlag(value = "LPD-17564"), @FeatureFlag(value = "LPD-34594")
-	}
-)
 @RunWith(Arquillian.class)
 public class ObjectDefinitionExportImportTest extends BaseExportImportTestCase {
 
@@ -396,10 +398,99 @@ public class ObjectDefinitionExportImportTest extends BaseExportImportTestCase {
 		ObjectDefinition objectDefinition = _getObjectDefinition(
 			"AccountEntry");
 
-		testExportImport(
-			"test-account-entry-system-object-definition.json",
+		_testExportImportSystemObjectDefinition(
 			"test-account-entry-system-object-definition.json",
 			objectDefinition.getExternalReferenceCode(), "AccountEntry");
+	}
+
+	@Test
+	public void testImportObjectDefinitionWithActive() throws Exception {
+		String json = JSONUtil.toString(
+			JSONUtil.putAll(
+				_getObjectDefinitionJSONObject(
+					true, "TESTIMPORTOBJECTDEFINITION",
+					"TestImportObjectDefinition", null)));
+
+		importJSON(
+			true, "TESTIMPORTOBJECTDEFINITION", json,
+			"TestImportObjectDefinition");
+
+		ObjectDefinition objectDefinition =
+			objectDefinitionResource.getObjectDefinitionByExternalReferenceCode(
+				"TESTIMPORTOBJECTDEFINITION");
+
+		Assert.assertTrue(objectDefinition.getActive());
+
+		importJSON(
+			false, "TESTIMPORTOBJECTDEFINITION", json,
+			"TestImportObjectDefinition");
+
+		objectDefinition =
+			objectDefinitionResource.getObjectDefinitionByExternalReferenceCode(
+				"TESTIMPORTOBJECTDEFINITION");
+
+		Assert.assertFalse(objectDefinition.getActive());
+
+		importJSON(
+			true, "TESTIMPORTOBJECTDEFINITION", json,
+			"TestImportObjectDefinition");
+
+		objectDefinition =
+			objectDefinitionResource.getObjectDefinitionByExternalReferenceCode(
+				"TESTIMPORTOBJECTDEFINITION");
+
+		Assert.assertTrue(objectDefinition.getActive());
+
+		objectDefinitionResource.deleteObjectDefinition(
+			getId("TestImportObjectDefinition"));
+	}
+
+	@Test
+	public void testImportObjectDefinitionWithObjectFolderExternalReferenceCode()
+		throws Exception {
+
+		ObjectFolder objectFolder1 = _addObjectFolder("TESTIMPORTFOLDER1");
+		ObjectFolder objectFolder2 = _addObjectFolder("TESTIMPORTFOLDER2");
+
+		String json = JSONUtil.toString(
+			JSONUtil.putAll(
+				_getObjectDefinitionJSONObject(
+					false, "TESTIMPORTOBJECTDEFINITION",
+					"TestImportObjectDefinition",
+					objectFolder1.getExternalReferenceCode())));
+
+		importJSON(
+			false, "TESTIMPORTOBJECTDEFINITION", json,
+			"TestImportObjectDefinition");
+
+		ObjectDefinition objectDefinition =
+			objectDefinitionResource.getObjectDefinitionByExternalReferenceCode(
+				"TESTIMPORTOBJECTDEFINITION");
+
+		Assert.assertEquals(
+			objectFolder1.getExternalReferenceCode(),
+			objectDefinition.getObjectFolderExternalReferenceCode());
+
+		importJSON(
+			false, "TESTIMPORTOBJECTDEFINITION", json,
+			"TestImportObjectDefinition",
+			objectFolder2.getExternalReferenceCode());
+
+		objectDefinition =
+			objectDefinitionResource.getObjectDefinitionByExternalReferenceCode(
+				"TESTIMPORTOBJECTDEFINITION");
+
+		Assert.assertEquals(
+			objectFolder2.getExternalReferenceCode(),
+			objectDefinition.getObjectFolderExternalReferenceCode());
+
+		objectDefinitionResource.deleteObjectDefinition(
+			getId("TestImportObjectDefinition"));
+
+		_objectFolderLocalService.deleteObjectFolder(
+			objectFolder1.getObjectFolderId());
+		_objectFolderLocalService.deleteObjectFolder(
+			objectFolder2.getObjectFolderId());
 	}
 
 	@Override
@@ -439,6 +530,16 @@ public class ObjectDefinitionExportImportTest extends BaseExportImportTestCase {
 		return _mvcResourceCommand;
 	}
 
+	private ObjectFolder _addObjectFolder(String externalReferenceCode)
+		throws Exception {
+
+		return _objectFolderLocalService.addObjectFolder(
+			externalReferenceCode, user.getUserId(),
+			Collections.singletonMap(
+				LocaleUtil.US, RandomTestUtil.randomString()),
+			RandomTestUtil.randomString());
+	}
+
 	private ObjectDefinition _getObjectDefinition(String name)
 		throws Exception {
 
@@ -449,6 +550,70 @@ public class ObjectDefinitionExportImportTest extends BaseExportImportTestCase {
 		List<ObjectDefinition> items = (List<ObjectDefinition>)page.getItems();
 
 		return items.get(0);
+	}
+
+	private JSONObject _getObjectDefinitionJSONObject(
+			boolean active, String externalReferenceCode, String name,
+			String objectFolderExternalReferenceCode)
+		throws Exception {
+
+		return JSONUtil.merge(
+			jsonFactory.createJSONObject(defaultObjectDefinitionJSON),
+			JSONUtil.put(
+				"active", active
+			).put(
+				"externalReferenceCode", externalReferenceCode
+			).put(
+				"name", name
+			).put(
+				"objectFolderExternalReferenceCode",
+				() -> objectFolderExternalReferenceCode
+			).put(
+				"status",
+				() -> {
+					if (active) {
+						return JSONUtil.put(
+							"code", WorkflowConstants.STATUS_APPROVED);
+					}
+
+					return null;
+				}
+			));
+	}
+
+	private void _testExportImportSystemObjectDefinition(
+			String fileName, String externalReferenceCode, String name)
+		throws Exception {
+
+		String json = read(fileName);
+
+		MockLiferayPortletActionResponse mockLiferayPortletActionResponse =
+			importJSON(externalReferenceCode, json, name);
+
+		MockHttpServletResponse mockHttpServletResponse =
+			(MockHttpServletResponse)
+				mockLiferayPortletActionResponse.getHttpServletResponse();
+
+		Assert.assertEquals("{}", mockHttpServletResponse.getContentAsString());
+
+		// A shared system object definition like account entry can be extended
+		// with relationships by other deployed modules: an account entry
+		// restricted object definition adds a relationship to account entry.
+		// Its relationship set is therefore not deterministic, so exclude it
+		// from the comparison.
+
+		JSONObject expectedJSONObject = jsonFactory.createJSONObject(json);
+
+		expectedJSONObject.remove("objectRelationships");
+
+		JSONObject exportJSONObject = jsonFactory.createJSONObject(
+			getExportJSON(name));
+
+		exportJSONObject.remove("objectRelationships");
+
+		JSONAssert.assertEquals(
+			expectedJSONObject.toString(), exportJSONObject.toString(),
+			JSONCompareMode.LENIENT);
 	}
 
 	private static ListTypeDefinitionResource _listTypeDefinitionResource;
@@ -469,6 +634,9 @@ public class ObjectDefinitionExportImportTest extends BaseExportImportTestCase {
 
 	@Inject
 	private ObjectFieldLocalService _objectFieldLocalService;
+
+	@Inject
+	private ObjectFolderLocalService _objectFolderLocalService;
 
 	@Inject
 	private ObjectRelationshipLocalService _objectRelationshipLocalService;

@@ -50,7 +50,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 
 	@Test
 	public void testCookieResponseApplicationCode() {
-		String applicationClientId = "oauthTestApplicationCode";
+		String applicationClientId = _CLIENT_ID_CODE;
 
 		Response response = getCodeResponse(
 			_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD, null,
@@ -74,7 +74,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 
 	@Test
 	public void testCookieResponseApplicationCodePKCE() {
-		String applicationClientId = "oauthTestApplicationCodePKCE";
+		String applicationClientId = _CLIENT_ID_CODE_PKCE;
 
 		Response response = getCodeResponse(
 			_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD, null,
@@ -101,7 +101,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 
 	@Test
 	public void testRememberApplicationCode() {
-		String applicationClientId = "oauthTestRememberApplicationCode";
+		String applicationClientId = _CLIENT_ID_REMEMBER_CODE;
 
 		String cookieName = _COOKIE_NAME_PREFIX.concat(applicationClientId);
 
@@ -136,7 +136,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 					new MultivaluedHashMap<>();
 
 				formData.add("client_id", applicationClientId);
-				formData.add("client_secret", "oauthTestApplicationSecret");
+				formData.add("client_secret", CLIENT_SECRET);
 				formData.add("code", authorizationCodeString);
 				formData.add("grant_type", "authorization_code");
 
@@ -171,7 +171,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 
 	@Test
 	public void testRememberApplicationCodePKCE() {
-		String applicationClientId = "oauthTestRememberApplicationCodePKCE";
+		String applicationClientId = _CLIENT_ID_REMEMBER_CODE_PKCE;
 
 		String cookieName = _COOKIE_NAME_PREFIX.concat(applicationClientId);
 
@@ -247,7 +247,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 
 	@Test
 	public void testRequestTokenInvalidatePreviousTokenRememberApplicationCode() {
-		String applicationClientId = "oauthTestRememberApplicationCode";
+		String applicationClientId = _CLIENT_ID_REMEMBER_CODE;
 
 		String cookieName = _COOKIE_NAME_PREFIX.concat(applicationClientId);
 
@@ -276,7 +276,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 					new MultivaluedHashMap<>();
 
 				formData.add("client_id", applicationClientId);
-				formData.add("client_secret", "oauthTestApplicationSecret");
+				formData.add("client_secret", CLIENT_SECRET);
 				formData.add("code", parseAuthorizationCodeString(response1));
 				formData.add("grant_type", "authorization_code");
 
@@ -309,7 +309,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 					new MultivaluedHashMap<>();
 
 				formData.add("client_id", applicationClientId);
-				formData.add("client_secret", "oauthTestApplicationSecret");
+				formData.add("client_secret", CLIENT_SECRET);
 				formData.add("code", parseAuthorizationCodeString(response2));
 				formData.add("grant_type", "authorization_code");
 
@@ -324,7 +324,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 
 	@Test
 	public void testRequestTokenInvalidatePreviousTokenRememberApplicationCodePKCE() {
-		String applicationClientId = "oauthTestRememberApplicationCodePKCE";
+		String applicationClientId = _CLIENT_ID_REMEMBER_CODE_PKCE;
 
 		String cookieName = _COOKIE_NAME_PREFIX.concat(applicationClientId);
 
@@ -392,7 +392,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 					new MultivaluedHashMap<>();
 
 				formData.add("client_id", applicationClientId);
-				formData.add("client_secret", "oauthTestApplicationSecret");
+				formData.add("client_secret", CLIENT_SECRET);
 				formData.add("code", parseAuthorizationCodeString(response2));
 				formData.add("grant_type", "authorization_code");
 
@@ -409,7 +409,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 	public void testRevokeTokenInvalidateCookieRememberApplicationCode()
 		throws PortalException {
 
-		String applicationClientId = "oauthTestRememberApplicationCode";
+		String applicationClientId = _CLIENT_ID_REMEMBER_CODE;
 
 		String cookieName = _COOKIE_NAME_PREFIX.concat(applicationClientId);
 
@@ -439,7 +439,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 						new MultivaluedHashMap<>();
 
 					formData.add("client_id", applicationClientId);
-					formData.add("client_secret", "oauthTestApplicationSecret");
+					formData.add("client_secret", CLIENT_SECRET);
 					formData.add(
 						"code", parseAuthorizationCodeString(response));
 					formData.add("grant_type", "authorization_code");
@@ -472,7 +472,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 	public void testRevokeTokenInvalidateCookieRememberApplicationCodePKCE()
 		throws PortalException {
 
-		String applicationClientId = "oauthTestRememberApplicationCodePKCE";
+		String applicationClientId = _CLIENT_ID_REMEMBER_CODE_PKCE;
 
 		String cookieName = _COOKIE_NAME_PREFIX.concat(applicationClientId);
 
@@ -540,7 +540,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 
 	@Test
 	public void testSingleUseCookieRememberApplicationCode() {
-		String applicationClientId = "oauthTestRememberApplicationCode";
+		String applicationClientId = _CLIENT_ID_REMEMBER_CODE;
 
 		String cookieName = _COOKIE_NAME_PREFIX.concat(applicationClientId);
 
@@ -569,7 +569,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 					new MultivaluedHashMap<>();
 
 				formData1.add("client_id", applicationClientId);
-				formData1.add("client_secret", "oauthTestApplicationSecret");
+				formData1.add("client_secret", CLIENT_SECRET);
 				formData1.add("code", parseAuthorizationCodeString(response1));
 				formData1.add("grant_type", "authorization_code");
 
@@ -601,7 +601,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 						new MultivaluedHashMap<>();
 
 					formData.add("client_id", applicationClientId);
-					formData.add("client_secret", "oauthTestApplicationSecret");
+					formData.add("client_secret", CLIENT_SECRET);
 					formData.add(
 						"code", parseAuthorizationCodeString(response2));
 					formData.add("grant_type", "authorization_code");
@@ -632,7 +632,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 
 	@Test
 	public void testSingleUseCookieRememberApplicationCodePKCE() {
-		String applicationClientId = "oauthTestRememberApplicationCodePKCE";
+		String applicationClientId = _CLIENT_ID_REMEMBER_CODE_PKCE;
 
 		String cookieName = _COOKIE_NAME_PREFIX.concat(applicationClientId);
 
@@ -736,7 +736,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 
 	@Test
 	public void testUseExistingDifferentCookieRememberApplicationCode() {
-		String applicationClientId = "oauthTestRememberApplicationCode";
+		String applicationClientId = _CLIENT_ID_REMEMBER_CODE;
 
 		String cookieName = _COOKIE_NAME_PREFIX.concat(applicationClientId);
 
@@ -767,7 +767,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 					new MultivaluedHashMap<>();
 
 				formData.add("client_id", applicationClientId);
-				formData.add("client_secret", "oauthTestApplicationSecret");
+				formData.add("client_secret", CLIENT_SECRET);
 				formData.add("grant_type", "authorization_code");
 				formData.add("code", authorizationCodeString);
 
@@ -775,7 +775,7 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 			},
 			this::parseTokenString);
 
-		String applicationClientIdPKCE = "oauthTestRememberApplicationCodePKCE";
+		String applicationClientIdPKCE = _CLIENT_ID_REMEMBER_CODE_PKCE;
 
 		Assert.assertNull(
 			parseAuthorizationCodeString(
@@ -816,6 +816,17 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 		return multivaluedMap;
 	}
 
+	private static final String _CLIENT_ID_CODE = RandomTestUtil.randomString();
+
+	private static final String _CLIENT_ID_CODE_PKCE =
+		RandomTestUtil.randomString();
+
+	private static final String _CLIENT_ID_REMEMBER_CODE =
+		RandomTestUtil.randomString();
+
+	private static final String _CLIENT_ID_REMEMBER_CODE_PKCE =
+		RandomTestUtil.randomString();
+
 	private static final String _COOKIE_NAME_PREFIX = "OAUTH2_REMEMBER_DEVICE_";
 
 	@Inject
@@ -833,22 +844,22 @@ public class RememberDeviceApplicationClientTest extends BaseClientTestCase {
 			_user = UserTestUtil.getAdminUser(companyId);
 
 			createOAuth2Application(
-				companyId, _user, "oauthTestApplicationCode",
+				companyId, _user, _CLIENT_ID_CODE,
 				Collections.singletonList(GrantType.AUTHORIZATION_CODE), false,
 				Collections.singletonList("everything"), false);
 			createOAuth2ApplicationWithNone(
-				companyId, _user, "oauthTestApplicationCodePKCE",
+				companyId, _user, _CLIENT_ID_CODE_PKCE,
 				Collections.singletonList(GrantType.AUTHORIZATION_CODE_PKCE),
 				Collections.singletonList(
 					"http://redirecturi:" +
 						PortalUtil.getPortalServerPort(false)),
 				false, Collections.singletonList("everything"), false);
 			createOAuth2Application(
-				companyId, _user, "oauthTestRememberApplicationCode",
+				companyId, _user, _CLIENT_ID_REMEMBER_CODE,
 				Collections.singletonList(GrantType.AUTHORIZATION_CODE), true,
 				Collections.singletonList("everything"), false);
 			createOAuth2ApplicationWithNone(
-				companyId, _user, "oauthTestRememberApplicationCodePKCE",
+				companyId, _user, _CLIENT_ID_REMEMBER_CODE_PKCE,
 				Collections.singletonList(GrantType.AUTHORIZATION_CODE_PKCE),
 				Collections.singletonList(
 					"http://redirecturi:" +

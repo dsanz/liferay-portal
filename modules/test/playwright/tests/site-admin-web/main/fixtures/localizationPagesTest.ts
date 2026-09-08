@@ -5,6 +5,7 @@
 
 import {test} from '@playwright/test';
 
+import {getHeader} from '../../../../helpers/ApiHelpers';
 import {LocalizationInstanceSettingsPage} from '../pages/LocalizationInstanceSettingsPage';
 
 const localizationPagesTest = test.extend<{
@@ -15,15 +16,38 @@ const localizationPagesTest = test.extend<{
 		await use(new LocalizationInstanceSettingsPage(page));
 	},
 	restoreInstanceDefaultLanguage: async (
-		{localizationInstanceSettingsPage},
+		{localizationInstanceSettingsPage, page},
 		use
 	) => {
 		try {
 			await use();
 		}
 		finally {
-			await localizationInstanceSettingsPage.goto('Language', false);
-			await localizationInstanceSettingsPage.setDefaultLanguage('en_US');
+			try {
+				const response = await page.request.get(
+					'/o/headless-admin-user/v1.0/my-user-account',
+					{headers: await getHeader(page)}
+				);
+
+				const myUserAccount = await response.json();
+
+				await page.request.patch(
+					`/o/headless-admin-user/v1.0/user-accounts/${myUserAccount.id}`,
+					{
+						data: {languageId: 'en_US'},
+						headers: await getHeader(page),
+					}
+				);
+
+				await page.reload();
+			}
+			finally {
+				await localizationInstanceSettingsPage.goto('Language', false);
+
+				await localizationInstanceSettingsPage.setDefaultLanguage(
+					'en_US'
+				);
+			}
 		}
 	},
 });

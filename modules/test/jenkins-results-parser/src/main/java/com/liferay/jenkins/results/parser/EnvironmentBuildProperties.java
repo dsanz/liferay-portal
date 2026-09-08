@@ -26,16 +26,22 @@ import java.util.regex.Pattern;
 public class EnvironmentBuildProperties extends Properties {
 
 	public static Environment getCurrentEnvironment() {
+		String jenkinsURL = System.getenv("JENKINS_URL");
+
+		if (!JenkinsResultsParserUtil.isURL(jenkinsURL)) {
+			return Environment.LOCAL;
+		}
+
 		String masterNetworkName = System.getenv("MASTER_NETWORK_NAME");
 
 		if (!JenkinsResultsParserUtil.isNullOrEmpty(masterNetworkName) &&
-			(masterNetworkName.equals("aws-network") ||
-			 masterNetworkName.equals("gcp-network"))) {
+			(masterNetworkName.equals("cloud-network") ||
+			 masterNetworkName.equals("nuc-network"))) {
 
-			return Environment.AWS;
+			return Environment.DB;
 		}
 
-		return Environment.DB;
+		return Environment.AWS;
 	}
 
 	public static String toURLString(File file) throws IOException {
@@ -64,6 +70,8 @@ public class EnvironmentBuildProperties extends Properties {
 			String contents = _toString(urlString, checkCache);
 
 			load(new StringReader(contents));
+
+			_loadLocalProperties(urlString, checkCache);
 
 			return;
 		}
@@ -99,6 +107,8 @@ public class EnvironmentBuildProperties extends Properties {
 		}
 		catch (IOException ioException) {
 		}
+
+		_loadLocalProperties(urlString, checkCache);
 	}
 
 	public EnvironmentBuildProperties(File file) throws IOException {
@@ -150,7 +160,7 @@ public class EnvironmentBuildProperties extends Properties {
 
 	public enum Environment {
 
-		AWS("aws-master", "aws"), DB("master", "db");
+		AWS("aws-master", "aws"), DB("master", "db"), LOCAL("master", "local");
 
 		public String getBranchName() {
 			return _branchName;
@@ -179,6 +189,37 @@ public class EnvironmentBuildProperties extends Properties {
 		sb.append(_simpleDateFormat.format(new Date()));
 
 		return sb.toString();
+	}
+
+	private boolean _isLocal() {
+		if (getCurrentEnvironment() == Environment.LOCAL) {
+			return true;
+		}
+
+		return false;
+	}
+
+	private void _loadLocalProperties(String urlString, boolean checkCache) {
+		if (!_isLocal()) {
+			return;
+		}
+
+		Matcher matcher = _propertiesURLPattern.matcher(urlString);
+
+		if (!matcher.matches()) {
+			return;
+		}
+
+		try {
+			String content = _toString(
+				JenkinsResultsParserUtil.combine(
+					matcher.group(1), "-local", matcher.group(2)),
+				checkCache);
+
+			load(new StringReader(content));
+		}
+		catch (IOException ioException) {
+		}
 	}
 
 	private String _toString(String url, boolean checkCache)

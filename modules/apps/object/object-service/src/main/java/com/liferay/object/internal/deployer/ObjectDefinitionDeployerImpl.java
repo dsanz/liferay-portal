@@ -8,6 +8,8 @@ package com.liferay.object.internal.deployer;
 import com.liferay.account.service.AccountEntryLocalService;
 import com.liferay.account.service.AccountEntryOrganizationRelLocalService;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.depot.service.DepotEntryGroupRelLocalService;
+import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.document.library.kernel.service.DLFileEntryLocalService;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
 import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationEntry;
@@ -43,6 +45,7 @@ import com.liferay.object.internal.uad.exporter.ObjectEntryUADExporter;
 import com.liferay.object.internal.workflow.ObjectEntryWorkflowHandler;
 import com.liferay.object.model.ObjectAction;
 import com.liferay.object.model.ObjectDefinition;
+import com.liferay.object.model.ObjectDefinitionSetting;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.model.ObjectField;
 import com.liferay.object.model.ObjectLayout;
@@ -71,7 +74,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.db.partition.util.DBPartitionUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.security.permission.ResourceActions;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermissionLogic;
@@ -132,6 +134,8 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 			accountEntryOrganizationRelLocalService,
 		AssetEntryLocalService assetEntryLocalService,
 		BundleContext bundleContext,
+		DepotEntryGroupRelLocalService depotEntryGroupRelLocalService,
+		DepotEntryLocalService depotEntryLocalService,
 		DLFileEntryLocalService dlFileEntryLocalService,
 		GroupLocalService groupLocalService,
 		KaleoDefinitionLocalService kaleoDefinitionLocalService,
@@ -168,6 +172,8 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 			accountEntryOrganizationRelLocalService;
 		_assetEntryLocalService = assetEntryLocalService;
 		_bundleContext = bundleContext;
+		_depotEntryGroupRelLocalService = depotEntryGroupRelLocalService;
+		_depotEntryLocalService = depotEntryLocalService;
 		_dlFileEntryLocalService = dlFileEntryLocalService;
 		_groupLocalService = groupLocalService;
 		_kaleoDefinitionLocalService = kaleoDefinitionLocalService;
@@ -215,15 +221,28 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 		Map<String, List<ServiceRegistration<?>>> serviceRegistrationsMap =
 			new ConcurrentHashMap<>();
 
-		if (FeatureFlagManagerUtil.isEnabled(companyId, "LPD-34594")) {
-			ObjectDefinitionTreeUtil.populateRootObjectDefinitionIds(
-				objectDefinitions,
+		Map<Long, List<ObjectRelationship>> objectRelationshipsMap =
+			_objectRelationshipLocalService.getObjectRelationshipsMap(
+				companyId);
+
+		// A root object definition IDs setting only holds a value while an edge
+		// object relationship exists, so skip the setting table read and pass
+		// an empty map when the company has no edge
+
+		Map<Long, ObjectDefinitionSetting> objectDefinitionSettingsMap =
+			Collections.emptyMap();
+
+		if (_hasEdgeObjectRelationship(objectRelationshipsMap)) {
+			objectDefinitionSettingsMap =
 				_objectDefinitionSettingLocalService.
 					getObjectDefinitionSettingsMap(
 						companyId,
 						ObjectDefinitionSettingConstants.
-							NAME_ROOT_OBJECT_DEFINITION_IDS));
+							NAME_ROOT_OBJECT_DEFINITION_IDS);
 		}
+
+		ObjectDefinitionTreeUtil.populateRootObjectDefinitionIds(
+			objectDefinitions, objectDefinitionSettingsMap);
 
 		Map<Long, List<ObjectAction>> objectActionsMap =
 			_objectActionLocalService.getObjectActionsMap(
@@ -232,9 +251,6 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 			_objectFieldLocalService.getObjectFieldsMap(companyId);
 		Map<Long, List<ObjectLayout>> objectLayoutsMap =
 			_objectLayoutLocalService.getObjectLayoutsMap(companyId);
-		Map<Long, List<ObjectRelationship>> objectRelationshipsMap =
-			_objectRelationshipLocalService.getObjectRelationshipsMap(
-				companyId);
 
 		for (ObjectDefinition objectDefinition : objectDefinitions) {
 			long objectDefinitionId = objectDefinition.getObjectDefinitionId();
@@ -264,6 +280,10 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 
 	@Override
 	public synchronized void undeploy(ObjectDefinition objectDefinition) {
+		_objectLayoutTabLocalService.
+			unregisterObjectLayoutTabScreenNavigationCategories(
+				objectDefinition);
+
 		_unregister(_getServiceRegistrationKey(objectDefinition, null));
 
 		for (String serviceRegistrationKey : _serviceRegistrations.keySet()) {
@@ -282,6 +302,9 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 		Map<Long, List<ObjectRelationship>> objectRelationshipsMap) {
 
 		if (objectDefinition.isUnmodifiableSystemObject()) {
+			_registerObjectRelationshipsRelatedInfoCollectionProviders(
+				objectDefinition, objectRelationshipsMap);
+
 			return Collections.emptyList();
 		}
 
@@ -461,12 +484,13 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 		ModelResourcePermission<ObjectEntry> modelResourcePermission =
 			new ObjectEntryModelResourcePermission(
 				_accountEntryLocalService,
-				_accountEntryOrganizationRelLocalService, _groupLocalService,
-				objectDefinition.getClassName(), _objectActionLocalService,
-				_objectDefinitionLocalService, _objectEntryLocalService,
-				consumerSupplier, _objectFieldLocalService,
-				portletResourcePermission, _resourcePermissionLocalService,
-				_userGroupRoleLocalService);
+				_accountEntryOrganizationRelLocalService,
+				_depotEntryGroupRelLocalService, _depotEntryLocalService,
+				_groupLocalService, objectDefinition.getClassName(),
+				_objectActionLocalService, _objectDefinitionLocalService,
+				_objectEntryLocalService, consumerSupplier,
+				_objectFieldLocalService, portletResourcePermission,
+				_resourcePermissionLocalService, _userGroupRoleLocalService);
 
 		serviceRegistrations.add(
 			_bundleContext.registerService(
@@ -537,18 +561,8 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 					objectDefinition, objectLayout.getObjectLayoutTabs());
 		}
 
-		List<ObjectRelationship> objectRelationships = null;
-
-		if (objectRelationshipsMap != null) {
-			objectRelationships = objectRelationshipsMap.getOrDefault(
-				objectDefinition.getObjectDefinitionId(),
-				Collections.emptyList());
-		}
-
-		_objectRelationshipLocalService.
-			registerObjectRelationshipsRelatedInfoCollectionProviders(
-				objectDefinition, _objectDefinitionLocalService,
-				objectRelationships);
+		_registerObjectRelationshipsRelatedInfoCollectionProviders(
+			objectDefinition, objectRelationshipsMap);
 
 		try {
 			if (ArrayUtil.isNotEmpty(
@@ -580,6 +594,44 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 		return StringBundler.concat(
 			serviceRegistrationKey, StringPool.POUND,
 			objectRelationship.getObjectRelationshipId());
+	}
+
+	private boolean _hasEdgeObjectRelationship(
+		Map<Long, List<ObjectRelationship>> objectRelationshipsMap) {
+
+		for (List<ObjectRelationship> objectRelationships :
+				objectRelationshipsMap.values()) {
+
+			for (ObjectRelationship objectRelationship : objectRelationships) {
+				if (objectRelationship.isEdge()) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private void _registerObjectRelationshipsRelatedInfoCollectionProviders(
+		ObjectDefinition objectDefinition,
+		Map<Long, List<ObjectRelationship>> objectRelationshipsMap) {
+
+		List<ObjectRelationship> objectRelationships = null;
+
+		if (objectRelationshipsMap != null) {
+			objectRelationships = objectRelationshipsMap.getOrDefault(
+				objectDefinition.getObjectDefinitionId(),
+				Collections.emptyList());
+		}
+
+		if ((objectRelationships != null) && objectRelationships.isEmpty()) {
+			return;
+		}
+
+		_objectRelationshipLocalService.
+			registerObjectRelationshipsRelatedInfoCollectionProviders(
+				objectDefinition, _objectDefinitionLocalService,
+				objectRelationships);
 	}
 
 	private void _registerRootObjectLayoutTabScreenNavigationCategories(
@@ -642,6 +694,9 @@ public class ObjectDefinitionDeployerImpl implements ObjectDefinitionDeployer {
 		_accountEntryOrganizationRelLocalService;
 	private final AssetEntryLocalService _assetEntryLocalService;
 	private final BundleContext _bundleContext;
+	private final DepotEntryGroupRelLocalService
+		_depotEntryGroupRelLocalService;
+	private final DepotEntryLocalService _depotEntryLocalService;
 	private final DLFileEntryLocalService _dlFileEntryLocalService;
 	private final GroupLocalService _groupLocalService;
 	private final KaleoDefinitionLocalService _kaleoDefinitionLocalService;

@@ -222,10 +222,22 @@ public interface PasswordPolicyLocalService
 		DynamicQuery dynamicQuery, Projection projection);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public PasswordPolicy fetchDefaultPasswordPolicy(long companyId);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public PasswordPolicy fetchPasswordPolicy(long passwordPolicyId);
 
 	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
 	public PasswordPolicy fetchPasswordPolicy(long companyId, String name);
+
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public PasswordPolicy fetchPasswordPolicyByUser(User user)
+		throws PortalException;
+
+	@ThreadLocalCachable
+	@Transactional(propagation = Propagation.SUPPORTS, readOnly = true)
+	public PasswordPolicy fetchPasswordPolicyByUserId(long userId)
+		throws PortalException;
 
 	/**
 	 * Returns the password policy with the matching UUID and company.
@@ -361,4 +373,4 @@ public interface PasswordPolicyLocalService
 	public PasswordPolicy updatePasswordPolicy(PasswordPolicy passwordPolicy);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:554307998
+// LIFERAY-SERVICE-BUILDER-HASH:-2089236586

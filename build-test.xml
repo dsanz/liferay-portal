@@ -2500,7 +2500,7 @@ war.path=${app.server.portal.dir}/</echo>
 
 					<get-poshi-java-jdk-opts />
 
-					<gradle-execute dir="@{build.gradle.dir}" failonerror="@{failonerror}" setupbinariescache="false" stacktrace="false" task="@{task}">
+					<gradle-execute dir="@{build.gradle.dir}" failonerror="@{failonerror}" stacktrace="false" task="@{task}">
 						<arg value="--build-file=@{build.gradle.file}" />
 						<arg value="-Ptmp.maven.repository.dir=../.m2-tmp" />
 						<env key="ANT_OPTS" value="${poshi.java.jdk.opts}" />
@@ -2508,7 +2508,7 @@ war.path=${app.server.portal.dir}/</echo>
 					</gradle-execute>
 				</then>
 				<else>
-					<gradle-execute dir="@{build.gradle.dir}" failonerror="@{failonerror}" setupbinariescache="false" stacktrace="false" task="@{task}">
+					<gradle-execute dir="@{build.gradle.dir}" failonerror="@{failonerror}" stacktrace="false" task="@{task}">
 						<arg value="--build-file=@{build.gradle.file}" />
 						<arg value="-Ptmp.maven.repository.dir=../.m2-tmp" />
 					</gradle-execute>
@@ -4688,100 +4688,6 @@ tell application "Safari" to quit
 		</sequential>
 	</macrodef>
 
-	<macrodef name="prepare-selenium-google-cloud-translation-properties">
-		<sequential>
-			<if>
-				<isset property="google.cloud.translation.service.key.type" />
-				<then>
-					<echo append="true" file="${test.ext.properties.file}">
-						google.cloud.translation.service.key.type=${google.cloud.translation.service.key.type}
-					</echo>
-				</then>
-			</if>
-
-			<if>
-				<isset property="google.cloud.translation.service.key.project.id" />
-				<then>
-					<echo append="true" file="${test.ext.properties.file}">
-						google.cloud.translation.service.key.project.id=${google.cloud.translation.service.key.project.id}
-					</echo>
-				</then>
-			</if>
-
-			<if>
-				<isset property="google.cloud.translation.service.key.private.key.id" />
-				<then>
-					<echo append="true" file="${test.ext.properties.file}">
-						google.cloud.translation.service.key.private.key.id=${google.cloud.translation.service.key.private.key.id}
-					</echo>
-				</then>
-			</if>
-
-			<if>
-				<isset property="google.cloud.translation.service.key.private.key" />
-				<then>
-					<echo append="true" file="${test.ext.properties.file}">
-						google.cloud.translation.service.key.private.key=${google.cloud.translation.service.key.private.key}
-					</echo>
-				</then>
-			</if>
-
-			<if>
-				<isset property="google.cloud.translation.service.key.client.email" />
-				<then>
-					<echo append="true" file="${test.ext.properties.file}">
-						google.cloud.translation.service.key.client.email=${google.cloud.translation.service.key.client.email}
-					</echo>
-				</then>
-			</if>
-
-			<if>
-				<isset property="google.cloud.translation.service.key.client.id" />
-				<then>
-					<echo append="true" file="${test.ext.properties.file}">
-						google.cloud.translation.service.key.client.id=${google.cloud.translation.service.key.client.id}
-					</echo>
-				</then>
-			</if>
-
-			<if>
-				<isset property="google.cloud.translation.service.key.auth.uri" />
-				<then>
-					<echo append="true" file="${test.ext.properties.file}">
-						google.cloud.translation.service.key.auth.uri=${google.cloud.translation.service.key.auth.uri}
-					</echo>
-				</then>
-			</if>
-
-			<if>
-				<isset property="google.cloud.translation.service.key.token.uri" />
-				<then>
-					<echo append="true" file="${test.ext.properties.file}">
-						google.cloud.translation.service.key.token.uri=${google.cloud.translation.service.key.token.uri}
-					</echo>
-				</then>
-			</if>
-
-			<if>
-				<isset property="google.cloud.translation.service.key.auth.provider.x509.cert.url" />
-				<then>
-					<echo append="true" file="${test.ext.properties.file}">
-						google.cloud.translation.service.key.auth.provider.x509.cert.url=${google.cloud.translation.service.key.auth.provider.x509.cert.url}
-					</echo>
-				</then>
-			</if>
-
-			<if>
-				<isset property="google.cloud.translation.service.key.client.x509.cert.url" />
-				<then>
-					<echo append="true" file="${test.ext.properties.file}">
-						google.cloud.translation.service.key.client.x509.cert.url=${google.cloud.translation.service.key.client.x509.cert.url}
-					</echo>
-				</then>
-			</if>
-		</sequential>
-	</macrodef>
-
 	<macrodef name="prepare-selenium-google-properties">
 		<sequential>
 			<if>
@@ -5136,6 +5042,15 @@ tell application "Safari" to quit
 				<then>
 					<echo append="true" file="${test.ext.properties.file}">
 						openid.provider.auth0.client.password=${openid.provider.auth0.client.password}
+					</echo>
+				</then>
+			</if>
+
+			<if>
+				<isset property="openid.provider.auth0.discovery.endpoint" />
+				<then>
+					<echo append="true" file="${test.ext.properties.file}">
+						openid.provider.auth0.discovery.endpoint=${openid.provider.auth0.discovery.endpoint}
 					</echo>
 				</then>
 			</if>
@@ -6633,7 +6548,7 @@ ${custom.upgrade.properties}</echo>
 											<os family="windows" />
 											<then>
 												<exec executable="${oracle.sqlplus.executable}" failonerror="true">
-													<arg value="${oracle.admin.user}/${oracle.admin.password} as sysdba" />
+													<arg value="sys/${oracle.admin.password} as sysdba" />
 													<arg value="@create.sql" />
 													<arg value="${database.username}" />
 													<arg value="${database.password}" />
@@ -7801,7 +7716,7 @@ log.sanitizer.enabled=false</echo>
 					</then>
 				</elseif>
 				<else>
-					<var name="app.server.tomcat.version" value="10.1.55" />
+					<var name="app.server.tomcat.version" value="10.1.57" />
 				</else>
 			</if>
 
@@ -7883,7 +7798,6 @@ log.sanitizer.enabled=false</echo>
 			</if>
 
 			<get-testcase-property property.name="remote.elasticsearch.enabled" />
-			<get-testcase-property property.name="solr.enabled" />
 
 			<condition else="${env.TEST_BATCH_NAME}" property="test.batch.name" value="${test.batch.name}">
 				<isset property="test.batch.name" />
@@ -7893,20 +7807,13 @@ log.sanitizer.enabled=false</echo>
 				<or>
 					<contains string="${test.batch.name}" substring="opensearch2" />
 					<contains string="${test.batch.name}" substring="remote-elasticsearch" />
-					<contains string="${test.batch.name}" substring="solr" />
 				</or>
 				<then>
 					<if>
-						<equals arg1="${test.batch.name}" arg2="solr" />
+						<contains string="${test.batch.name}" substring="opensearch2" />
 						<then>
-							<ant antfile="build-test-solr.xml" target="start-solr" />
+							<ant antfile="build-test-opensearch2.xml" target="start-opensearch" />
 						</then>
-						<elseif>
-							<contains string="${test.batch.name}" substring="opensearch2" />
-							<then>
-								<ant antfile="build-test-opensearch2.xml" target="start-opensearch" />
-							</then>
-						</elseif>
 						<elseif>
 							<contains string="${test.batch.name}" substring="remote-elasticsearch" />
 							<then>
@@ -7919,19 +7826,10 @@ log.sanitizer.enabled=false</echo>
 					<propertycopy from="search.engine[${env.CI_TEST_SUITE}]" name="suite.search.engine" silent="true" />
 
 					<if>
-						<or>
-							<equals arg1="${solr.enabled}" arg2="true" />
-							<equals arg1="${suite.search.engine}" arg2="solr" />
-						</or>
+						<contains string="${suite.search.engine}" substring="opensearch2" />
 						<then>
-							<ant antfile="build-test-solr.xml" target="start-solr" />
+							<ant antfile="build-test-opensearch2.xml" target="start-opensearch" />
 						</then>
-						<elseif>
-							<contains string="${suite.search.engine}" substring="opensearch2" />
-							<then>
-								<ant antfile="build-test-opensearch2.xml" target="start-opensearch" />
-							</then>
-						</elseif>
 						<elseif>
 							<or>
 								<contains string="${suite.search.engine}" substring="remote-elasticsearch" />
@@ -9504,24 +9402,14 @@ ${docker.start.error}</fail>
 			</if>
 
 			<get-testcase-property property.name="remote.elasticsearch.enabled" />
-			<get-testcase-property property.name="solr.enabled" />
 
 			<propertycopy from="search.engine[${env.CI_TEST_SUITE}]" name="suite.search.engine" silent="true" />
 
 			<if>
-				<or>
-					<equals arg1="${solr.enabled}" arg2="true" />
-					<equals arg1="${suite.search.engine}" arg2="solr" />
-				</or>
+				<contains string="${suite.search.engine}" substring="opensearch2" />
 				<then>
-					<ant antfile="build-test-solr.xml" target="stop-solr-core" />
+					<ant antfile="build-test-opensearch2.xml" target="stop-opensearch" />
 				</then>
-				<elseif>
-					<contains string="${suite.search.engine}" substring="opensearch2" />
-					<then>
-						<ant antfile="build-test-opensearch2.xml" target="stop-opensearch" />
-					</then>
-				</elseif>
 				<elseif>
 					<or>
 						<contains string="${suite.search.engine}" substring="remote-elasticsearch" />
@@ -14350,7 +14238,6 @@ enterprise.product.enterprise.search.enabled=false</echo>
 		<prepare-selenium-email-properties />
 		<prepare-selenium-facebook-properties />
 		<prepare-selenium-google-cloud-autotagging-properties />
-		<prepare-selenium-google-cloud-translation-properties />
 		<prepare-selenium-google-properties />
 		<prepare-selenium-object-storage-salesforce-properties />
 		<prepare-selenium-object-storage-sugarcrm-properties />
@@ -15837,7 +15724,7 @@ cluster.link.bind.addr["cluster-link-udp"]=127.0.0.1</echo>
 
 									sqlplus /nolog <<-'EOF'
 									whenever sqlerror exit failure
-									connect ${oracle.admin.user}/"${oracle.admin.password}" as sysdba
+									connect sys/"${oracle.admin.password}" as sysdba
 									grant select on sys.v_$session to ${database.username};
 									grant select on sys.v_$sql to ${database.username};
 									exit
@@ -16024,7 +15911,7 @@ cluster.link.bind.addr["cluster-link-udp"]=127.0.0.1</echo>
 					<elseif>
 						<equals arg1="${database.type}" arg2="oracle" />
 						<then>
-							<exec executable="${oracle.sqlplus.executable}" failonerror="true" inputstring="whenever sqlerror exit failure&#10;connect ${oracle.admin.user}/&quot;${oracle.admin.password}&quot; as sysdba&#10;whenever sqlerror continue&#10;set heading off&#10;set feedback off&#10;set pagesize 0&#10;set linesize 1000&#10;set trimspool on&#10;drop user lportal cascade;&#10;select directory_name || ',' || directory_path from dba_directories where directory_name='DATA_PUMP_DIR';&#10;exit&#10;" output="data.pump.log">
+							<exec executable="${oracle.sqlplus.executable}" failonerror="true" inputstring="whenever sqlerror exit failure&#10;connect sys/&quot;${oracle.admin.password}&quot; as sysdba&#10;whenever sqlerror continue&#10;set heading off&#10;set feedback off&#10;set pagesize 0&#10;set linesize 1000&#10;set trimspool on&#10;drop user lportal cascade;&#10;select directory_name || ',' || directory_path from dba_directories where directory_name='DATA_PUMP_DIR';&#10;exit&#10;" output="data.pump.log">
 								<arg value="/nolog" />
 							</exec>
 
@@ -16055,7 +15942,7 @@ cluster.link.bind.addr["cluster-link-udp"]=127.0.0.1</echo>
 								<arg value="table_exists_action=replace" />
 							</exec>
 
-							<exec executable="${oracle.sqlplus.executable}" failonerror="true" inputstring="whenever sqlerror exit failure&#10;connect ${oracle.admin.user}/&quot;${oracle.admin.password}&quot; as sysdba&#10;grant select on sys.v_$session to lportal;&#10;grant select on sys.v_$sql to lportal;&#10;exit&#10;">
+							<exec executable="${oracle.sqlplus.executable}" failonerror="true" inputstring="whenever sqlerror exit failure&#10;connect sys/&quot;${oracle.admin.password}&quot; as sysdba&#10;grant select on sys.v_$session to lportal;&#10;grant select on sys.v_$sql to lportal;&#10;exit&#10;">
 								<arg value="/nolog" />
 							</exec>
 
@@ -17979,6 +17866,74 @@ CATALINA_OPTS="$CATALINA_OPTS -Dcom.sun.management.jmxremote -Dcom.sun.managemen
 				</if>
 			</finally>
 		</trycatch>
+
+		<beanshell>
+			<![CDATA[
+				import java.io.BufferedReader;
+				import java.io.InputStreamReader;
+
+				public boolean hasLeftoverSidecarProcess() {
+					ProcessBuilder processBuilder = new ProcessBuilder(new String[] {"jps", "-v"});
+
+					processBuilder.redirectErrorStream(true);
+
+					Process process = processBuilder.start();
+
+					BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+					String liferayHome = project.getProperty("liferay.home");
+
+					boolean leftover = false;
+
+					String line = null;
+
+					while ((line = bufferedReader.readLine()) != null) {
+						if (line.contains("LocalProcessLauncher") && line.contains(liferayHome)) {
+							leftover = true;
+						}
+					}
+
+					bufferedReader.close();
+
+					process.waitFor();
+
+					return leftover;
+				}
+
+				if (hasLeftoverSidecarProcess()) {
+					System.out.println("Waiting for the Elasticsearch sidecar left behind by the upgrade JVM to exit");
+
+					long startTime = System.currentTimeMillis();
+
+					long timeoutTime = startTime + 60000;
+
+					while (hasLeftoverSidecarProcess()) {
+						if (System.currentTimeMillis() > timeoutTime) {
+							project.setProperty("leftover.sidecar.message", "The Elasticsearch sidecar started by the upgrade JVM is still running after 60 seconds. It holds the node lock the next portal needs.");
+
+							break;
+						}
+
+						Thread.sleep(5000);
+					}
+
+					if (project.getProperty("leftover.sidecar.message") == null) {
+						System.out.println("The Elasticsearch sidecar left behind by the upgrade JVM exited after " + ((System.currentTimeMillis() - startTime) / 1000) + " seconds");
+					}
+				}
+			]]>
+		</beanshell>
+
+		<if>
+			<isset property="leftover.sidecar.message" />
+			<then>
+				<antcall target="print-jstack-logs">
+					<param name="process.name" value="LocalProcessLauncher" />
+				</antcall>
+
+				<fail message="${leftover.sidecar.message}" />
+			</then>
+		</if>
 	</target>
 
 	<target name="validate-db-partition-schemas">

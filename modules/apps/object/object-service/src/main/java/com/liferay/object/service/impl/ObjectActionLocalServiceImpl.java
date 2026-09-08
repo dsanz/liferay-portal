@@ -21,7 +21,6 @@ import com.liferay.object.definition.security.permission.resource.util.ObjectDef
 import com.liferay.object.definition.util.ObjectDefinitionThreadLocal;
 import com.liferay.object.definition.util.ObjectDefinitionUtil;
 import com.liferay.object.exception.DuplicateObjectActionExternalReferenceCodeException;
-import com.liferay.object.exception.LockedObjectActionException;
 import com.liferay.object.exception.ObjectActionActiveException;
 import com.liferay.object.exception.ObjectActionConditionExpressionException;
 import com.liferay.object.exception.ObjectActionErrorMessageException;
@@ -44,18 +43,17 @@ import com.liferay.object.service.ObjectFieldLocalService;
 import com.liferay.object.service.ObjectFolderLocalService;
 import com.liferay.object.service.base.ObjectActionLocalServiceBaseImpl;
 import com.liferay.object.service.persistence.ObjectDefinitionPersistence;
+import com.liferay.object.service.persistence.ObjectFieldPersistence;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.lazy.referencing.LazyReferencingThreadLocal;
-import com.liferay.portal.kernel.lock.LockManagerUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.messaging.DestinationNames;
@@ -65,8 +63,11 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.search.Indexable;
 import com.liferay.portal.kernel.search.IndexableType;
 import com.liferay.portal.kernel.security.permission.ResourceActions;
+import com.liferay.portal.kernel.service.ExceptionRetryAcceptor;
 import com.liferay.portal.kernel.service.PortletLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.spring.aop.Property;
+import com.liferay.portal.kernel.spring.aop.Retry;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -77,7 +78,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.UnicodeProperties;
 import com.liferay.portal.kernel.util.UnicodePropertiesBuilder;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.kernel.uuid.PortalUUIDUtil;
 import com.liferay.portal.security.script.management.configuration.helper.ScriptManagementConfigurationHelper;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 
@@ -521,37 +521,33 @@ public class ObjectActionLocalServiceImpl
 
 	@Indexable(type = IndexableType.REINDEX)
 	@Override
-	public synchronized ObjectAction updateStatus(
-			long objectActionId, int status)
+	@Retry(
+		acceptor = ExceptionRetryAcceptor.class,
+		properties = {
+			@Property(
+				name = ExceptionRetryAcceptor.EXCEPTION_NAME,
+				value = "org.hibernate.StaleStateException"
+			)
+		}
+	)
+	public ObjectAction updateStatus(long objectActionId, int status)
 		throws PortalException {
 
-		boolean locked = LockManagerUtil.isLocked(
-			ObjectAction.class.getName(), objectActionId);
+		// Overlapping executions race to write this row, so this method
+		// retries. Call it outside a transaction. Inside a transaction, the
+		// conflict does not surface until that transaction commits, and by
+		// then the retry can no longer catch it.
 
-		if (locked) {
-			throw new LockedObjectActionException(
-				String.format(
-					"Unable to update the status of object action %d because " +
-						"it is being updated by another thread",
-					objectActionId));
+		ObjectAction objectAction = objectActionPersistence.findByPrimaryKey(
+			objectActionId);
+
+		if (objectAction.getStatus() == status) {
+			return objectAction;
 		}
 
-		try {
-			LockManagerUtil.lock(
-				ObjectAction.class.getName(), String.valueOf(objectActionId),
-				PortalUUIDUtil.generate());
+		objectAction.setStatus(status);
 
-			ObjectAction objectAction =
-				objectActionPersistence.findByPrimaryKey(objectActionId);
-
-			objectAction.setStatus(status);
-
-			return objectActionPersistence.update(objectAction);
-		}
-		finally {
-			LockManagerUtil.unlock(
-				ObjectAction.class.getName(), objectActionId);
-		}
+		return objectActionPersistence.update(objectAction);
 	}
 
 	private boolean _isUsePreferredLanguageForGuestsSupported(
@@ -620,10 +616,7 @@ public class ObjectActionLocalServiceImpl
 			ObjectDefinition objectDefinition)
 		throws PortalException {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				objectDefinition.getCompanyId(), "LPD-34594") ||
-			objectDefinition.isRootNode()) {
-
+		if (objectDefinition.isRootNode()) {
 			return;
 		}
 
@@ -784,9 +777,7 @@ public class ObjectActionLocalServiceImpl
 			ObjectDefinition objectDefinition)
 		throws PortalException {
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				objectDefinition.getCompanyId(), "LPD-34594") &&
-			StringUtil.equals(
+		if (StringUtil.equals(
 				objectActionTriggerKey,
 				ObjectActionTriggerConstants.KEY_ON_AFTER_ROOT_UPDATE) &&
 			!objectDefinition.isRootNode()) {
@@ -1112,7 +1103,8 @@ public class ObjectActionLocalServiceImpl
 		}
 
 		for (ObjectField objectField :
-				_objectFieldLocalService.getObjectFields(objectDefinitionId)) {
+				_objectFieldPersistence.findByObjectDefinitionId(
+					objectDefinitionId)) {
 
 			if (!objectField.isRequired() ||
 				Validator.isNotNull(
@@ -1157,6 +1149,9 @@ public class ObjectActionLocalServiceImpl
 
 	@Reference
 	private ObjectFieldLocalService _objectFieldLocalService;
+
+	@Reference
+	private ObjectFieldPersistence _objectFieldPersistence;
 
 	@Reference
 	private ObjectFolderLocalService _objectFolderLocalService;

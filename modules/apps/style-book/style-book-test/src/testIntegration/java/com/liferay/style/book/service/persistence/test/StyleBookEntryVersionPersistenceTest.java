@@ -142,6 +142,9 @@ public class StyleBookEntryVersionPersistenceTest {
 		newStyleBookEntryVersion.setDefaultStyleBookEntry(
 			RandomTestUtil.randomBoolean());
 
+		newStyleBookEntryVersion.setFrontendTokenDefinition(
+			RandomTestUtil.randomString());
+
 		newStyleBookEntryVersion.setFrontendTokensValues(
 			RandomTestUtil.randomString());
 
@@ -155,8 +158,10 @@ public class StyleBookEntryVersionPersistenceTest {
 
 		newStyleBookEntryVersion.setThemeId(RandomTestUtil.randomString());
 
-		_styleBookEntryVersions.add(
-			_persistence.update(newStyleBookEntryVersion));
+		newStyleBookEntryVersion = _persistence.update(
+			newStyleBookEntryVersion);
+
+		_styleBookEntryVersions.add(newStyleBookEntryVersion);
 
 		StyleBookEntryVersion existingStyleBookEntryVersion =
 			_persistence.findByPrimaryKey(
@@ -206,6 +211,9 @@ public class StyleBookEntryVersionPersistenceTest {
 		Assert.assertEquals(
 			existingStyleBookEntryVersion.isDefaultStyleBookEntry(),
 			newStyleBookEntryVersion.isDefaultStyleBookEntry());
+		Assert.assertEquals(
+			existingStyleBookEntryVersion.getFrontendTokenDefinition(),
+			newStyleBookEntryVersion.getFrontendTokenDefinition());
 		Assert.assertEquals(
 			existingStyleBookEntryVersion.getFrontendTokensValues(),
 			newStyleBookEntryVersion.getFrontendTokensValues());
@@ -424,6 +432,26 @@ public class StyleBookEntryVersionPersistenceTest {
 
 		_persistence.countByG_D_T_Version(
 			0L, RandomTestUtil.randomBoolean(), (String)null, 0);
+	}
+
+	@Test
+	public void testCountByG_LikeN_T() throws Exception {
+		_persistence.countByG_LikeN_T(RandomTestUtil.nextLong(), "", "");
+
+		_persistence.countByG_LikeN_T(0L, "null", "null");
+
+		_persistence.countByG_LikeN_T(0L, (String)null, (String)null);
+	}
+
+	@Test
+	public void testCountByG_LikeN_T_Version() throws Exception {
+		_persistence.countByG_LikeN_T_Version(
+			RandomTestUtil.nextLong(), "", "", RandomTestUtil.nextInt());
+
+		_persistence.countByG_LikeN_T_Version(0L, "null", "null", 0);
+
+		_persistence.countByG_LikeN_T_Version(
+			0L, (String)null, (String)null, 0);
 	}
 
 	@Test
@@ -806,6 +834,9 @@ public class StyleBookEntryVersionPersistenceTest {
 		styleBookEntryVersion.setDefaultStyleBookEntry(
 			RandomTestUtil.randomBoolean());
 
+		styleBookEntryVersion.setFrontendTokenDefinition(
+			RandomTestUtil.randomString());
+
 		styleBookEntryVersion.setFrontendTokensValues(
 			RandomTestUtil.randomString());
 
@@ -829,4 +860,4 @@ public class StyleBookEntryVersionPersistenceTest {
 	private ClassLoader _dynamicQueryClassLoader;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:621762665
+// LIFERAY-SERVICE-BUILDER-HASH:-1722767333

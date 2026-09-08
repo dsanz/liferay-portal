@@ -21,8 +21,6 @@ const test = mergeTests(
 	apiHelpersTest,
 	dataApiHelpersTest,
 	featureFlagsTest({
-		'LPD-17564': {enabled: true},
-		'LPD-34594': {enabled: true},
 		'LPS-178052': {enabled: true},
 	}),
 	itemSelectorSamplePageTest,
@@ -165,7 +163,6 @@ test('Item Selector Modal filters availability for CMS Files', async ({
 			'Display Date',
 			'Expiration Date',
 			'Modified Date',
-			'Publish Date',
 			'Review Date',
 		];
 

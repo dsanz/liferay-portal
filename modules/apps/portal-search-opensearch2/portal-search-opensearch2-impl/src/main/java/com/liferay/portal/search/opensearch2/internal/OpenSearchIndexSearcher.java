@@ -507,6 +507,17 @@ public class OpenSearchIndexSearcher extends BaseIndexSearcher {
 		return _searchResponseBuilderFactory.builder(searchContext);
 	}
 
+	private Integer _getTrackTotalHitsLimit(Integer trackTotalHitsLimit) {
+		int openSearchTrackTotalHitsLimit =
+			_openSearchConfigurationWrapper.trackTotalHitsLimit();
+
+		if (trackTotalHitsLimit == null) {
+			return openSearchTrackTotalHitsLimit;
+		}
+
+		return Math.min(trackTotalHitsLimit, openSearchTrackTotalHitsLimit);
+	}
+
 	private void _populateResponse(
 		BaseSearchResponse baseSearchResponse,
 		SearchResponseBuilder searchResponseBuilder) {
@@ -554,7 +565,7 @@ public class OpenSearchIndexSearcher extends BaseIndexSearcher {
 		baseSearchRequest.setRescores(searchRequest.getRescores());
 		baseSearchRequest.setStatsRequests(searchRequest.getStatsRequests());
 		baseSearchRequest.setTrackTotalHitsLimit(
-			_openSearchConfigurationWrapper.trackTotalHitsLimit());
+			_getTrackTotalHitsLimit(searchRequest.getTrackTotalHitsLimit()));
 
 		_setAggregations(baseSearchRequest, searchRequest);
 		_setConnectionId(baseSearchRequest, searchRequest);

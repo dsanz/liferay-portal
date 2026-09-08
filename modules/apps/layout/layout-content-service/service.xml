@@ -54,7 +54,7 @@
 			<finder-column name="groupId" />
 			<finder-column name="status" />
 		</finder>
-		<finder name="P_V" return-type="LayoutContentVersion">
+		<finder name="P_V" return-type="LayoutContentVersion" unique="true">
 			<finder-column name="plid" />
 			<finder-column name="version" />
 		</finder>
@@ -63,9 +63,57 @@
 			<finder-column name="status" />
 		</finder>
 	</entity>
+	<entity local-service="true" name="LayoutContentVersionPreview" remote-service="false">
+
+		<!-- PK fields -->
+
+		<column name="layoutContentVersionPreviewId" primary="true" type="long" />
+
+		<!-- Group instance -->
+
+		<column name="groupId" type="long" />
+
+		<!-- Audit fields -->
+
+		<column name="companyId" type="long" />
+		<column name="userId" type="long" />
+		<column name="userName" type="String" />
+		<column name="createDate" type="Date" />
+		<column name="modifiedDate" type="Date" />
+
+		<!-- Other fields -->
+
+		<column name="layoutContentVersionId" type="long" />
+		<column name="html" type="String" />
+		<column name="languageId" type="String" />
+		<column name="segmentsExperienceERC" type="String" />
+
+		<!-- Order -->
+
+		<order by="desc">
+			<order-column name="createDate" />
+		</order>
+
+		<!-- Finder methods -->
+
+		<finder name="LayoutContentVersionId" return-type="Collection">
+			<finder-column name="layoutContentVersionId" />
+		</finder>
+		<finder name="LCVI_SEERC" return-type="Collection">
+			<finder-column name="layoutContentVersionId" />
+			<finder-column name="segmentsExperienceERC" />
+		</finder>
+		<finder name="LCVI_L_SEERC" return-type="LayoutContentVersionPreview" unique="true">
+			<finder-column name="layoutContentVersionId" />
+			<finder-column name="languageId" />
+			<finder-column name="segmentsExperienceERC" />
+		</finder>
+	</entity>
 	<exceptions>
+		<exception>DuplicateLayoutContentVersionPreview</exception>
 		<exception>LayoutContentVersionExternalReferenceCode</exception>
 		<exception>LayoutContentVersionName</exception>
+		<exception>NoSuchLayoutContentVersionPreview</exception>
 		<exception>RequiredLayoutContentVersion</exception>
 		<exception>UnsupportedLayoutLayoutContentVersion</exception>
 	</exceptions>

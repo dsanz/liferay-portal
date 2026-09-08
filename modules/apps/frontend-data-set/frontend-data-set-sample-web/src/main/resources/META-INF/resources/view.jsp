@@ -48,6 +48,12 @@ String navigation = ParamUtil.getString(request, "navigation", "advanced");
 						});
 					add(
 						navigationItem -> {
+							navigationItem.setActive(navigation.equals("delegated-filters"));
+							navigationItem.setHref(renderResponse.createRenderURL(), "navigation", "delegated-filters");
+							navigationItem.setLabel("Delegated Filters");
+						});
+					add(
+						navigationItem -> {
 							navigationItem.setActive(navigation.equals("dynamic-actions"));
 							navigationItem.setHref(renderResponse.createRenderURL(), "navigation", "dynamic-actions");
 							navigationItem.setLabel("Dynamic Actions");
@@ -57,6 +63,12 @@ String navigation = ParamUtil.getString(request, "navigation", "advanced");
 							navigationItem.setActive(navigation.equals("empty"));
 							navigationItem.setHref(renderResponse.createRenderURL(), "navigation", "empty");
 							navigationItem.setLabel("Empty");
+						});
+					add(
+						navigationItem -> {
+							navigationItem.setActive(navigation.equals("hidden-exclude-toggle"));
+							navigationItem.setHref(renderResponse.createRenderURL(), "navigation", "hidden-exclude-toggle");
+							navigationItem.setLabel("Hidden Exclude Toggle");
 						});
 					add(
 						navigationItem -> {
@@ -94,11 +106,17 @@ String navigation = ParamUtil.getString(request, "navigation", "advanced");
 		<c:when test='<%= navigation.equals("custom-internal-view") %>'>
 			<liferay-util:include page="/partials/custom_internal_view.jsp" servletContext="<%= application %>" />
 		</c:when>
+		<c:when test='<%= navigation.equals("delegated-filters") %>'>
+			<liferay-util:include page="/partials/delegated_filters.jsp" servletContext="<%= application %>" />
+		</c:when>
 		<c:when test='<%= navigation.equals("dynamic-actions") %>'>
 			<liferay-util:include page="/partials/dynamic_actions.jsp" servletContext="<%= application %>" />
 		</c:when>
 		<c:when test='<%= navigation.equals("empty") %>'>
 			<liferay-util:include page="/partials/empty.jsp" servletContext="<%= application %>" />
+		</c:when>
+		<c:when test='<%= navigation.equals("hidden-exclude-toggle") %>'>
+			<liferay-util:include page="/partials/hidden_exclude_toggle.jsp" servletContext="<%= application %>" />
 		</c:when>
 		<c:when test='<%= navigation.equals("minimum") %>'>
 			<liferay-util:include page="/partials/minimum.jsp" servletContext="<%= application %>" />

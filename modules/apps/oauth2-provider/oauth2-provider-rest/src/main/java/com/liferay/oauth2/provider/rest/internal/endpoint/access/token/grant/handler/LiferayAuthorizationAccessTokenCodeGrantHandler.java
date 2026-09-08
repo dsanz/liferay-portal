@@ -67,7 +67,10 @@ public class LiferayAuthorizationAccessTokenCodeGrantHandler
 	protected ServerAccessToken doCreateAccessToken(
 		Client client, MultivaluedMap<String, String> params) {
 
-		return _authorizationCodeGrantHandler.createAccessToken(client, params);
+		return createAccessTokenWithResources(
+			client, params,
+			() -> _authorizationCodeGrantHandler.createAccessToken(
+				client, params));
 	}
 
 	@Override

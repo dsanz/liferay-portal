@@ -522,22 +522,28 @@ public class RoleResourceImpl
 			Role role, com.liferay.portal.kernel.model.Role serviceBuilderRole)
 		throws Exception {
 
-		if (ArrayUtil.isNotEmpty(role.getRolePermissions())) {
-			for (RolePermission rolePermission : role.getRolePermissions()) {
-				if (rolePermission.getScope() ==
-						ResourceConstants.SCOPE_INDIVIDUAL) {
+		if (ArrayUtil.isEmpty(role.getRolePermissions())) {
+			return;
+		}
 
-					continue;
-				}
+		for (RolePermission rolePermission : role.getRolePermissions()) {
+			int scope = Math.toIntExact(rolePermission.getScope());
 
-				for (String actionId : rolePermission.getActionIds()) {
-					_resourcePermissionService.addResourcePermission(
-						contextUser.getGroupId(), contextCompany.getCompanyId(),
-						rolePermission.getResourceName(),
-						Math.toIntExact(rolePermission.getScope()),
-						rolePermission.getPrimaryKey(),
-						serviceBuilderRole.getRoleId(), actionId);
-				}
+			if (scope == ResourceConstants.SCOPE_INDIVIDUAL) {
+				continue;
+			}
+
+			String primKey = rolePermission.getPrimaryKey();
+
+			if (scope == ResourceConstants.SCOPE_COMPANY) {
+				primKey = String.valueOf(contextCompany.getCompanyId());
+			}
+
+			for (String actionId : rolePermission.getActionIds()) {
+				_resourcePermissionService.addResourcePermission(
+					contextUser.getGroupId(), contextCompany.getCompanyId(),
+					rolePermission.getResourceName(), scope, primKey,
+					serviceBuilderRole.getRoleId(), actionId);
 			}
 		}
 	}

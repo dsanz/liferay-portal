@@ -74,6 +74,8 @@ import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.text.ParseException;
 
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.chrono.IsoChronology;
 import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.FormatStyle;
@@ -367,14 +369,8 @@ public class FragmentEntryProcessorHelperImpl
 					editableValueJSONObject.getLong("classPK"))) {
 
 				infoItemIdentifier = new ClassPKInfoItemIdentifier(
-					fragmentEntryProcessorContext.getPreviewClassPK());
-
-				if (Validator.isNotNull(
-						fragmentEntryProcessorContext.getPreviewVersion())) {
-
-					infoItemIdentifier.setVersion(
-						fragmentEntryProcessorContext.getPreviewVersion());
-				}
+					fragmentEntryProcessorContext.getPreviewClassPK(),
+					fragmentEntryProcessorContext.getPreviewVersion());
 
 				infoItemObjectProvider =
 					_infoItemServiceRegistry.getFirstInfoItemService(
@@ -629,6 +625,27 @@ public class FragmentEntryProcessorHelperImpl
 
 			return labeledFieldValue.getLabel(
 				fragmentEntryProcessorContext.getLocale());
+		}
+		else if (value instanceof LocalDateTime) {
+			HttpServletRequest httpServletRequest =
+				fragmentEntryProcessorContext.getHttpServletRequest();
+
+			ThemeDisplay themeDisplay =
+				(ThemeDisplay)httpServletRequest.getAttribute(
+					WebKeys.THEME_DISPLAY);
+
+			LocalDateTime localDateTime = (LocalDateTime)value;
+
+			TimeZone timeZone = themeDisplay.getTimeZone();
+
+			ZonedDateTime zonedDateTime = localDateTime.atZone(
+				timeZone.toZoneId());
+
+			return _getDateValue(
+				editableValueJSONObject, Date.from(zonedDateTime.toInstant()),
+				_getShortTimeStylePattern(
+					fragmentEntryProcessorContext.getLocale()),
+				fragmentEntryProcessorContext.getLocale(), timeZone);
 		}
 		else if (value instanceof String) {
 			infoField = infoFieldValue.getInfoField();
@@ -944,13 +961,14 @@ public class FragmentEntryProcessorHelperImpl
 	}
 
 	private String _getDefaultPattern(Locale locale) {
-		if (_defaultPatterns.containsKey(locale)) {
-			return _defaultPatterns.get(locale);
+		String defaultPattern = _defaultPatterns.get(locale);
+
+		if (defaultPattern != null) {
+			return defaultPattern;
 		}
 
-		String defaultPattern =
-			DateTimeFormatterBuilder.getLocalizedDateTimePattern(
-				FormatStyle.SHORT, null, IsoChronology.INSTANCE, locale);
+		defaultPattern = DateTimeFormatterBuilder.getLocalizedDateTimePattern(
+			FormatStyle.SHORT, null, IsoChronology.INSTANCE, locale);
 
 		_defaultPatterns.put(locale, defaultPattern);
 
@@ -1091,18 +1109,20 @@ public class FragmentEntryProcessorHelperImpl
 	}
 
 	private String _getShortTimeStylePattern(Locale locale) {
-		if (_shortTimeStylePatterns.containsKey(locale)) {
-			return _shortTimeStylePatterns.get(locale);
+		String shortTimeStylePattern = _shortTimeStylePatterns.get(locale);
+
+		if (shortTimeStylePattern != null) {
+			return shortTimeStylePattern;
 		}
 
-		String sortTimeStylePattern =
+		shortTimeStylePattern =
 			DateTimeFormatterBuilder.getLocalizedDateTimePattern(
 				FormatStyle.SHORT, FormatStyle.SHORT, IsoChronology.INSTANCE,
 				locale);
 
-		_shortTimeStylePatterns.put(locale, sortTimeStylePattern);
+		_shortTimeStylePatterns.put(locale, shortTimeStylePattern);
 
-		return sortTimeStylePattern;
+		return shortTimeStylePattern;
 	}
 
 	private <T> T _getSpecificIteration(

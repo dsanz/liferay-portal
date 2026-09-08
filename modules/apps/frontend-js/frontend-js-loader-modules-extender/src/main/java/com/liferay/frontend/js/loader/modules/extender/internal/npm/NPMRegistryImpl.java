@@ -24,7 +24,6 @@ import com.liferay.frontend.js.loader.modules.extender.npm.NPMRegistryUpdate;
 import com.liferay.frontend.js.loader.modules.extender.npm.NPMRegistryUpdatesListener;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
 import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
-import com.liferay.osgi.util.ServiceTrackerFactory;
 import com.liferay.petra.concurrent.DCLSingleton;
 import com.liferay.petra.lang.CentralizedThreadLocal;
 import com.liferay.petra.string.StringBundler;
@@ -64,7 +63,6 @@ import org.osgi.service.component.annotations.Modified;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.util.tracker.BundleTracker;
 import org.osgi.util.tracker.BundleTrackerCustomizer;
-import org.osgi.util.tracker.ServiceTracker;
 import org.osgi.util.tracker.ServiceTrackerCustomizer;
 
 /**
@@ -232,15 +230,19 @@ public class NPMRegistryImpl implements NPMRegistry {
 			}
 		}
 
-		for (Map.Entry<String, String> entry : _partialMatchMap.entrySet()) {
-			String resolvedId = entry.getKey();
+		for (JSConfigGeneratorPackage jsConfigGeneratorPackage :
+				_serviceTrackerList) {
 
-			if (resolvedId.equals(moduleName) ||
-				moduleName.startsWith(resolvedId + StringPool.SLASH)) {
+			String name = jsConfigGeneratorPackage.getName();
+
+			if (name.equals(moduleName) ||
+				moduleName.startsWith(name + StringPool.SLASH)) {
 
 				return mapModuleName(
-					entry.getValue() +
-						moduleName.substring(resolvedId.length()));
+					StringBundler.concat(
+						name, StringPool.AT,
+						jsConfigGeneratorPackage.getVersion(),
+						moduleName.substring(name.length())));
 			}
 		}
 
@@ -337,7 +339,7 @@ public class NPMRegistryImpl implements NPMRegistry {
 
 		_applyVersioning = details.applyVersioning();
 
-		_serviceTracker = _openServiceTracker();
+		_serviceTrackerList = _openServiceTrackerList();
 	}
 
 	@Deactivate
@@ -346,7 +348,7 @@ public class NPMRegistryImpl implements NPMRegistry {
 			_npmRegistryUpdatesListeners.close();
 		}
 
-		_serviceTracker.close();
+		_serviceTrackerList.close();
 
 		_activation.set(Boolean.TRUE);
 
@@ -363,9 +365,9 @@ public class NPMRegistryImpl implements NPMRegistry {
 		if (details.applyVersioning() != _applyVersioning) {
 			_applyVersioning = details.applyVersioning();
 
-			_serviceTracker.close();
+			_serviceTrackerList.close();
 
-			_serviceTracker = _openServiceTracker();
+			_serviceTrackerList = _openServiceTrackerList();
 		}
 	}
 
@@ -468,11 +470,11 @@ public class NPMRegistryImpl implements NPMRegistry {
 		}
 	}
 
-	private ServiceTracker<ServletContext, JSConfigGeneratorPackage>
-		_openServiceTracker() {
+	private ServiceTrackerList<JSConfigGeneratorPackage>
+		_openServiceTrackerList() {
 
-		return ServiceTrackerFactory.open(
-			_bundleContext,
+		return ServiceTrackerListFactory.open(
+			_bundleContext, ServletContext.class,
 			"(&(objectClass=" + ServletContext.class.getName() +
 				")(osgi.web.contextpath=*))",
 			new ServiceTrackerCustomizer
@@ -490,21 +492,10 @@ public class NPMRegistryImpl implements NPMRegistry {
 						return null;
 					}
 
-					JSConfigGeneratorPackage jsConfigGeneratorPackage =
-						new JSConfigGeneratorPackage(
-							_applyVersioning, serviceReference.getBundle(),
-							(String)serviceReference.getProperty(
-								"osgi.web.contextpath"));
-
-					String jsConfigGeneratorPackageResolvedId =
-						jsConfigGeneratorPackage.getName() + StringPool.AT +
-							jsConfigGeneratorPackage.getVersion();
-
-					_partialMatchMap.put(
-						jsConfigGeneratorPackage.getName(),
-						jsConfigGeneratorPackageResolvedId);
-
-					return jsConfigGeneratorPackage;
+					return new JSConfigGeneratorPackage(
+						_applyVersioning, bundle,
+						(String)serviceReference.getProperty(
+							"osgi.web.contextpath"));
 				}
 
 				@Override
@@ -517,8 +508,6 @@ public class NPMRegistryImpl implements NPMRegistry {
 				public void removedService(
 					ServiceReference<ServletContext> serviceReference,
 					JSConfigGeneratorPackage jsConfigGeneratorPackage) {
-
-					_partialMatchMap.remove(jsConfigGeneratorPackage.getName());
 				}
 
 			});
@@ -581,10 +570,8 @@ public class NPMRegistryImpl implements NPMRegistry {
 
 	private ServiceTrackerList<NPMRegistryUpdatesListener>
 		_npmRegistryUpdatesListeners;
-	private final Map<String, String> _partialMatchMap =
-		new ConcurrentHashMap<>();
-	private volatile ServiceTracker<ServletContext, JSConfigGeneratorPackage>
-		_serviceTracker;
+	private volatile ServiceTrackerList<JSConfigGeneratorPackage>
+		_serviceTrackerList;
 
 	private static class DataBag {
 

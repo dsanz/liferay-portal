@@ -21,9 +21,7 @@ import org.junit.runner.RunWith;
 /**
  * @author Carolina Barbosa
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-58677")}
-)
+@FeatureFlags(featureFlags = @FeatureFlag("LPD-58677"))
 @RunWith(Arquillian.class)
 public class UserGroupModelListenerTest extends BaseModelListenerTestCase {
 
@@ -37,7 +35,7 @@ public class UserGroupModelListenerTest extends BaseModelListenerTestCase {
 	@Test
 	public void testOnAfterAddAssociation() throws Exception {
 		_userGroupLocalService.setGroupUserGroups(
-			projectObjectEntry.getGroupId(),
+			cmpProjectObjectEntry.getGroupId(),
 			new long[] {_userGroup.getUserGroupId()});
 
 		assertAuditMessage("CMP_ADD_MEMBER");
@@ -46,13 +44,13 @@ public class UserGroupModelListenerTest extends BaseModelListenerTestCase {
 	@Test
 	public void testOnAfterRemoveAssociation() throws Exception {
 		_userGroupLocalService.setGroupUserGroups(
-			projectObjectEntry.getGroupId(),
+			cmpProjectObjectEntry.getGroupId(),
 			new long[] {_userGroup.getUserGroupId()});
 
 		assertAuditMessage("CMP_ADD_MEMBER");
 
 		_userGroupLocalService.unsetGroupUserGroups(
-			projectObjectEntry.getGroupId(),
+			cmpProjectObjectEntry.getGroupId(),
 			new long[] {_userGroup.getUserGroupId()});
 
 		assertAuditMessage("CMP_REMOVE_MEMBER");

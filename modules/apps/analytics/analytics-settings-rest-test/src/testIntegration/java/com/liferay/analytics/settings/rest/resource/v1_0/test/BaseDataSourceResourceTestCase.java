@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -86,6 +87,8 @@ public abstract class BaseDataSourceResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -293,16 +296,6 @@ public abstract class BaseDataSourceResourceTestCase {
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
 
-			if (Objects.equals(
-					"commerceChannelIds", additionalAssertFieldName)) {
-
-				if (dataSource.getCommerceChannelIds() == null) {
-					valid = false;
-				}
-
-				continue;
-			}
-
 			if (Objects.equals("dataSourceId", additionalAssertFieldName)) {
 				if (dataSource.getDataSourceId() == null) {
 					valid = false;
@@ -472,19 +465,6 @@ public abstract class BaseDataSourceResourceTestCase {
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
 
-			if (Objects.equals(
-					"commerceChannelIds", additionalAssertFieldName)) {
-
-				if (!Objects.deepEquals(
-						dataSource1.getCommerceChannelIds(),
-						dataSource2.getCommerceChannelIds())) {
-
-					return false;
-				}
-
-				continue;
-			}
-
 			if (Objects.equals("dataSourceId", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						dataSource1.getDataSourceId(),
@@ -645,11 +625,6 @@ public abstract class BaseDataSourceResourceTestCase {
 		sb.append(" ");
 		sb.append(operator);
 		sb.append(" ");
-
-		if (entityFieldName.equals("commerceChannelIds")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
-		}
 
 		if (entityFieldName.equals("dataSourceId")) {
 			Object object = dataSource.getDataSourceId();
@@ -986,4 +961,4 @@ public abstract class BaseDataSourceResourceTestCase {
 		_dataSourceResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:2100815809
+// LIFERAY-REST-BUILDER-HASH:225012269

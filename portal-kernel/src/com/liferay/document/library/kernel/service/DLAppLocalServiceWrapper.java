@@ -428,6 +428,14 @@ public class DLAppLocalServiceWrapper
 		return _dlAppLocalService.fetchFileEntry(fileEntryId);
 	}
 
+	@Override
+	public com.liferay.portal.kernel.repository.model.FileEntry fetchFileEntry(
+			long groupId, long folderId, String title)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dlAppLocalService.fetchFileEntry(groupId, folderId, title);
+	}
+
 	/**
 	 * Returns the document library file entry with the matching external
 	 * reference code and group.
@@ -448,6 +456,24 @@ public class DLAppLocalServiceWrapper
 	}
 
 	@Override
+	public com.liferay.portal.kernel.repository.model.FileEntry
+			fetchFileEntryByFileName(
+				long groupId, long folderId, String fileName)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dlAppLocalService.fetchFileEntryByFileName(
+			groupId, folderId, fileName);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.repository.model.FileEntry
+			fetchFileEntryByUuidAndGroupId(String uuid, long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dlAppLocalService.fetchFileEntryByUuidAndGroupId(uuid, groupId);
+	}
+
+	@Override
 	public com.liferay.portal.kernel.repository.model.FileShortcut
 			fetchFileShortcut(long fileShortcutId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -463,6 +489,14 @@ public class DLAppLocalServiceWrapper
 
 		return _dlAppLocalService.fetchFileShortcutByExternalReferenceCode(
 			externalReferenceCode, groupId);
+	}
+
+	@Override
+	public com.liferay.portal.kernel.repository.model.Folder fetchFolder(
+			long folderId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _dlAppLocalService.fetchFolder(folderId);
 	}
 
 	@Override
@@ -1075,4 +1109,4 @@ public class DLAppLocalServiceWrapper
 	private DLAppLocalService _dlAppLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1650995868
+// LIFERAY-SERVICE-BUILDER-HASH:-271478601

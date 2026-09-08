@@ -1,13 +1,16 @@
 apiVersion: v2
 appVersion: latest
 dependencies:
+    -   condition: liferay-dxp-operator.enabled
+        name: liferay-dxp-operator
+        repository: file://../dxp-operator
+        version: 0.1.0
     -   condition: liferay-subchart-backup-restore.enabled
         name: liferay-subchart-backup-restore
         version: 0.1.5
 description:
-    Liferay is an all-in-one DXP, LCAP, and Commerce platform. This chart provides cloud infrastructure resource
-    definitions to support Liferay cloud native infrastructure.
+    Liferay is an all-in-one DXP, LCAP, and Commerce platform. This chart provides cloud infrastructure resource definitions to support Liferay cloud native infrastructure.
 icon: https://www-cdn.liferay.com/documents/d/guest/liferay-logo
 name: liferay-aws-infrastructure-provider
 type: application
-version: 0.3.12
+version: 1.1.0

@@ -205,16 +205,19 @@ public class FreeMarkerTool {
 				List<String> tags = operation.getTags();
 
 				for (String tag : tags) {
-					if (!schemas.containsKey(tag)) {
-						if ((allExternalSchemas != null) &&
-							allExternalSchemas.containsKey(tag)) {
+					schemas.computeIfAbsent(
+						tag,
+						key -> {
+							if (allExternalSchemas != null) {
+								Schema schema = allExternalSchemas.get(key);
 
-							schemas.put(tag, allExternalSchemas.get(tag));
-						}
-						else {
-							schemas.put(tag, new Schema());
-						}
-					}
+								if (schema != null) {
+									return schema;
+								}
+							}
+
+							return new Schema();
+						});
 				}
 			}
 		}
@@ -1130,10 +1133,10 @@ public class FreeMarkerTool {
 	}
 
 	public boolean hasReadVulcanBatchImplementation(
-		List<JavaMethodSignature> javaMethodSignatures) {
+		ConfigYAML configYAML, List<JavaMethodSignature> javaMethodSignatures) {
 
 		return ResourceOpenAPIParser.hasReadVulcanBatchImplementation(
-			javaMethodSignatures);
+			configYAML, javaMethodSignatures);
 	}
 
 	public boolean hasRequestBodyMediaType(
@@ -1250,7 +1253,8 @@ public class FreeMarkerTool {
 		String methodName = javaMethodSignature.getMethodName();
 		String parentSchemaName = GetterUtil.getString(
 			javaMethodSignature.getParentSchemaName());
-		String pluralSchemaName = TextFormatter.formatPlural(schemaName);
+		String pluralSchemaName = OpenAPIUtil.formatPlural(
+			configYAML, schemaName);
 
 		if (!(methodName.equals(
 				StringBundler.concat(
@@ -1321,7 +1325,8 @@ public class FreeMarkerTool {
 	}
 
 	public boolean isParameterNameSchemaRelated(
-		String parameterName, String path, String schemaName) {
+		ConfigYAML configYAML, String parameterName, String path,
+		String schemaName) {
 
 		String schemaVarName = TextFormatter.format(
 			schemaName, TextFormatter.I);
@@ -1378,7 +1383,7 @@ public class FreeMarkerTool {
 		String formattedParameterSchemaName = TextFormatter.format(
 			parameterSchemaName, TextFormatter.K);
 		String formattedSchemaNamePlural = TextFormatter.format(
-			TextFormatter.formatPlural(schemaName), TextFormatter.K);
+			OpenAPIUtil.formatPlural(configYAML, schemaName), TextFormatter.K);
 		String formattedSchemaNameSingular = TextFormatter.format(
 			schemaName, TextFormatter.K);
 
@@ -1542,9 +1547,9 @@ public class FreeMarkerTool {
 			String returnSchema = returnType.substring(
 				returnType.lastIndexOf(".") + 1);
 
-			if (schemas.containsKey(returnSchema)) {
-				Schema schema = schemas.get(returnSchema);
+			Schema schema = schemas.get(returnSchema);
 
+			if (schema != null) {
 				Map<String, Schema> propertySchemas =
 					schema.getPropertySchemas();
 
@@ -1702,9 +1707,9 @@ public class FreeMarkerTool {
 			String schemaName = parameterType.substring(
 				parameterType.lastIndexOf(".") + 1);
 
-			if (schemas.containsKey(schemaName)) {
-				Schema schema = schemas.get(schemaName);
+			Schema schema = schemas.get(schemaName);
 
+			if (schema != null) {
 				Map<String, Schema> propertySchemas =
 					schema.getPropertySchemas();
 

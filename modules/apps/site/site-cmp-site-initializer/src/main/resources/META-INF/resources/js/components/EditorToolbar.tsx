@@ -6,28 +6,52 @@
 import ClayButton from '@clayui/button';
 import {ClayInput} from '@clayui/form';
 import ClayLink from '@clayui/link';
+import {AIAssistantTriggerButton} from '@liferay/ai-hub-cell-js-components-web';
 import {isCtrlOrMeta} from '@liferay/layout-js-components-web';
-import {Toolbar} from '@liferay/site-cms-site-initializer';
-import {sessionStorage, sub} from 'frontend-js-web';
-import React, {useEffect, useId, useState} from 'react';
+import {ApiHelper, Toolbar} from '@liferay/site-cms-site-initializer';
+import {navigate, sessionStorage, sub} from 'frontend-js-web';
+import React, {useEffect, useId, useRef, useState} from 'react';
 
 export default function EditorToolbar({
 	backURL,
+	discardURL,
 	formSubmitURL,
+	groupId,
+	hasUpdatePermission,
 	isNew,
 	title,
 }: {
 	backURL: string;
+	discardURL?: string;
 	formSubmitURL?: string;
+	groupId: number;
+	hasUpdatePermission: boolean;
 	isNew: boolean;
 	title: string;
 }) {
 	const [formId, setFormId] = useState<string | undefined>();
 
+	const discardingRef = useRef(false);
 	const submitLabelId = useId();
 	const submitTitle = getSubmitTitle(
 		sub(Liferay.Language.get('save-x'), title)
 	);
+
+	function discardDraft(event: React.MouseEvent) {
+		if (!discardURL) {
+			return;
+		}
+
+		event.preventDefault();
+
+		if (discardingRef.current) {
+			return;
+		}
+
+		discardingRef.current = true;
+
+		ApiHelper.delete(discardURL).finally(() => navigate(backURL));
+	}
 
 	function getForm(): HTMLFormElement {
 		let form = document.querySelector('.lfr-main-form-container');
@@ -59,7 +83,7 @@ export default function EditorToolbar({
 					event.preventDefault();
 				}
 
-				if (isShortcut) {
+				if (isShortcut && hasUpdatePermission) {
 					(form as HTMLFormElement).submit();
 				}
 			};
@@ -69,14 +93,27 @@ export default function EditorToolbar({
 			return () =>
 				window.removeEventListener('keydown', handlePublishShortcut);
 		}
-	}, []);
+	}, [hasUpdatePermission]);
 
 	return (
 		<Toolbar
 			backURL={backURL}
 			className="content-editor__toolbar position-fixed"
+			onBackClick={discardDraft}
 			title={title}
 		>
+			{Liferay.FeatureFlags['LPD-62272'] && (
+				<Toolbar.Item className="nav-divider-end">
+					<AIAssistantTriggerButton
+						context={{groupId}}
+						hideLabel
+						instructionDefinitionScope="cms"
+						presentation="dropdown"
+						round
+					/>
+				</Toolbar.Item>
+			)}
+
 			<Toolbar.Item>
 				<ClayLink
 					aria-label={Liferay.Language.get('cancel')}
@@ -84,6 +121,7 @@ export default function EditorToolbar({
 					button
 					displayType="secondary"
 					href={backURL}
+					onClick={discardDraft}
 					small
 				>
 					{Liferay.Language.get('cancel')}
@@ -95,6 +133,7 @@ export default function EditorToolbar({
 					aria-labelledby={submitLabelId}
 					data-title={submitTitle}
 					data-title-set-as-html
+					disabled={!hasUpdatePermission}
 					form={formId}
 					onClick={() => {
 						const form = getForm();

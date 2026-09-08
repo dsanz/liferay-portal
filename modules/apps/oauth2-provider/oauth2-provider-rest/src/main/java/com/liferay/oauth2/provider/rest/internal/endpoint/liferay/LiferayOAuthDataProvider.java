@@ -26,6 +26,7 @@ import com.liferay.oauth2.provider.service.OAuth2ApplicationLocalService;
 import com.liferay.oauth2.provider.service.OAuth2ApplicationScopeAliasesLocalService;
 import com.liferay.oauth2.provider.service.OAuth2AuthorizationLocalService;
 import com.liferay.oauth2.provider.service.OAuth2ScopeGrantLocalService;
+import com.liferay.oauth2.provider.util.OAuth2JWKValidatorUtil;
 import com.liferay.petra.concurrent.DCLSingleton;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringBundler;
@@ -844,7 +845,7 @@ public class LiferayOAuthDataProvider
 
 		if (oAuth2Application != null) {
 			clientId = oAuth2Application.getClientId();
-			clientSecret = oAuth2Application.getClientSecret();
+			clientSecret = _getPlaintextClientSecret(oAuth2Application);
 			externalReferenceCode =
 				oAuth2Application.getExternalReferenceCode();
 		}
@@ -1223,6 +1224,10 @@ public class LiferayOAuthDataProvider
 	private OAuthJoseJwtProducer _createJwtAccessTokenProducer() {
 		OAuthJoseJwtProducer oAuthJoseJwtProducer = new OAuthJoseJwtProducer();
 
+		OAuth2JWKValidatorUtil.validateJWK(
+			_oAuth2AuthorizationServerConfiguration.
+				jwtAccessTokenSigningJSONWebKey());
+
 		oAuthJoseJwtProducer.setSignatureProvider(
 			JwsUtils.getSignatureProvider(
 				JwkUtils.readJwkKey(
@@ -1427,6 +1432,18 @@ public class LiferayOAuthDataProvider
 			});
 	}
 
+	private String _getPlaintextClientSecret(
+		OAuth2Application oAuth2Application) {
+
+		try {
+			return _oAuth2ApplicationLocalService.getPlaintextClientSecret(
+				oAuth2Application);
+		}
+		catch (PortalException portalException) {
+			throw new RuntimeException(portalException);
+		}
+	}
+
 	private String _getRemoteIP() {
 		MessageContext messageContext = getMessageContext();
 
@@ -1536,7 +1553,7 @@ public class LiferayOAuthDataProvider
 	private Client _populateClient(
 		OAuth2Application oAuth2Application, MessageContext messageContext) {
 
-		String clientSecret = oAuth2Application.getClientSecret();
+		String clientSecret = _getPlaintextClientSecret(oAuth2Application);
 
 		if (Validator.isBlank(clientSecret)) {
 			clientSecret = null;

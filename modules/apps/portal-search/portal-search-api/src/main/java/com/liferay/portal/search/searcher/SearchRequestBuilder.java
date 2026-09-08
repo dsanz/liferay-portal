@@ -188,6 +188,9 @@ public interface SearchRequestBuilder {
 
 	public SearchRequestBuilder storedFields(String... storedFields);
 
+	public SearchRequestBuilder trackTotalHitsLimit(
+		Integer trackTotalHitsLimit);
+
 	public SearchRequestBuilder withFacetContext(
 		Consumer<FacetContext> facetContextConsumer);
 

@@ -63,6 +63,18 @@ public class ExportProcessRequestSerDes {
 			sb.append(exportProcessRequest.getComments());
 		}
 
+		if (exportProcessRequest.getDateRangeType() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"dateRangeType\": ");
+
+			sb.append("\"");
+			sb.append(exportProcessRequest.getDateRangeType());
+			sb.append("\"");
+		}
+
 		if (exportProcessRequest.getDeletions() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -87,16 +99,6 @@ public class ExportProcessRequestSerDes {
 					exportProcessRequest.getEndDate()));
 
 			sb.append("\"");
-		}
-
-		if (exportProcessRequest.getLast() != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"last\": ");
-
-			sb.append(exportProcessRequest.getLast());
 		}
 
 		if (exportProcessRequest.getLogo() != null) {
@@ -131,18 +133,6 @@ public class ExportProcessRequestSerDes {
 			sb.append("\"permissions\": ");
 
 			sb.append(exportProcessRequest.getPermissions());
-		}
-
-		if (exportProcessRequest.getRange() != null) {
-			if (sb.length() > 1) {
-				sb.append(", ");
-			}
-
-			sb.append("\"range\": ");
-
-			sb.append("\"");
-			sb.append(exportProcessRequest.getRange());
-			sb.append("\"");
 		}
 
 		if (exportProcessRequest.getRatings() != null) {
@@ -263,6 +253,15 @@ public class ExportProcessRequestSerDes {
 				"comments", String.valueOf(exportProcessRequest.getComments()));
 		}
 
+		if (exportProcessRequest.getDateRangeType() == null) {
+			map.put("dateRangeType", null);
+		}
+		else {
+			map.put(
+				"dateRangeType",
+				String.valueOf(exportProcessRequest.getDateRangeType()));
+		}
+
 		if (exportProcessRequest.getDeletions() == null) {
 			map.put("deletions", null);
 		}
@@ -280,13 +279,6 @@ public class ExportProcessRequestSerDes {
 				"endDate",
 				liferayToJSONDateFormat.format(
 					exportProcessRequest.getEndDate()));
-		}
-
-		if (exportProcessRequest.getLast() == null) {
-			map.put("last", null);
-		}
-		else {
-			map.put("last", String.valueOf(exportProcessRequest.getLast()));
 		}
 
 		if (exportProcessRequest.getLogo() == null) {
@@ -310,13 +302,6 @@ public class ExportProcessRequestSerDes {
 			map.put(
 				"permissions",
 				String.valueOf(exportProcessRequest.getPermissions()));
-		}
-
-		if (exportProcessRequest.getRange() == null) {
-			map.put("range", null);
-		}
-		else {
-			map.put("range", String.valueOf(exportProcessRequest.getRange()));
 		}
 
 		if (exportProcessRequest.getRatings() == null) {
@@ -395,13 +380,13 @@ public class ExportProcessRequestSerDes {
 			if (Objects.equals(jsonParserFieldName, "comments")) {
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "dateRangeType")) {
+				return false;
+			}
 			else if (Objects.equals(jsonParserFieldName, "deletions")) {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "endDate")) {
-				return false;
-			}
-			else if (Objects.equals(jsonParserFieldName, "last")) {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "logo")) {
@@ -411,9 +396,6 @@ public class ExportProcessRequestSerDes {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "permissions")) {
-				return false;
-			}
-			else if (Objects.equals(jsonParserFieldName, "range")) {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "ratings")) {
@@ -453,6 +435,13 @@ public class ExportProcessRequestSerDes {
 						(Boolean)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "dateRangeType")) {
+				if (jsonParserFieldValue != null) {
+					exportProcessRequest.setDateRangeType(
+						ExportProcessRequest.DateRangeType.create(
+							(String)jsonParserFieldValue));
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "deletions")) {
 				if (jsonParserFieldValue != null) {
 					exportProcessRequest.setDeletions(
@@ -463,12 +452,6 @@ public class ExportProcessRequestSerDes {
 				if (jsonParserFieldValue != null) {
 					exportProcessRequest.setEndDate(
 						toDate((String)jsonParserFieldValue));
-				}
-			}
-			else if (Objects.equals(jsonParserFieldName, "last")) {
-				if (jsonParserFieldValue != null) {
-					exportProcessRequest.setLast(
-						Integer.valueOf((String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "logo")) {
@@ -485,13 +468,6 @@ public class ExportProcessRequestSerDes {
 				if (jsonParserFieldValue != null) {
 					exportProcessRequest.setPermissions(
 						(Boolean)jsonParserFieldValue);
-				}
-			}
-			else if (Objects.equals(jsonParserFieldName, "range")) {
-				if (jsonParserFieldValue != null) {
-					exportProcessRequest.setRange(
-						ExportProcessRequest.Range.create(
-							(String)jsonParserFieldValue));
 				}
 			}
 			else if (Objects.equals(jsonParserFieldName, "ratings")) {
@@ -631,4 +607,4 @@ public class ExportProcessRequestSerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:1447166281
+// LIFERAY-REST-BUILDER-HASH:-994403164

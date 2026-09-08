@@ -7,6 +7,7 @@ import * as audiences from '../src/main/resources/META-INF/resources/main/implem
 
 import type {
 	Attribute,
+	Audience,
 	AudiencesDefinition,
 	Conjunction,
 	Operator,
@@ -16,25 +17,13 @@ import type {
 const URL = 'https://example.com/audiences.json';
 
 function mockAudiencesDefinition(conjunction: Conjunction, rules: Rule[]) {
-	const audiencesDefinition: AudiencesDefinition = {
-		audiences: [
-			{
-				conjunction,
-				id: 'the_audience',
-				retentionType: 'BROWSER',
-				rules,
-			},
-		],
-	};
-
-	(global as any).fetch = jest.fn(() =>
-		Promise.resolve({
-			json: () => Promise.resolve(audiencesDefinition),
-			ok: true,
-			status: 200,
-			statusText: 'OK',
-		})
-	);
+	return mockAudiencesDefinitionWithAudiences([
+		{
+			conjunction,
+			id: 'the_audience',
+			rules,
+		},
+	]);
 }
 
 function mockAudiencesDefinitionWithAttribute(
@@ -51,24 +40,45 @@ function mockAudiencesDefinitionWithAttribute(
 	]);
 }
 
+function mockAudiencesDefinitionWithAudiences(audiences: Audience[]) {
+	const audiencesDefinition: AudiencesDefinition = {audiences};
+
+	(global as any).fetch = jest.fn(() =>
+		Promise.resolve({
+			json: () => Promise.resolve(audiencesDefinition),
+			ok: true,
+			status: 200,
+			statusText: 'OK',
+		})
+	);
+}
+
 describe('detection', () => {
 	afterEach(() => {
 		jest.useRealTimers();
 
 		jest.dontMock('https://example.com/custom.js');
 
+		jest.dontMock('https://example.com/custom-error.js');
+
 		jest.restoreAllMocks();
 
-		delete (document as any).cookie;
+		for (const item of document.cookie.split(';')) {
+			document.cookie = `${item.split('=')[0].trim()}=; path=/; max-age=0`;
+		}
+
 		delete (document as any).referrer;
 
 		delete (global as any).Analytics;
 
 		delete (navigator as any).userAgent;
 
+		sessionStorage.clear();
+
 		window.history.replaceState({}, '', '/');
 
 		audiences.clear();
+		audiences.setLogEnabled(false);
 	});
 
 	beforeEach(() => {
@@ -84,15 +94,25 @@ describe('detection', () => {
 			{virtual: true}
 		);
 
+		jest.doMock(
+			'https://example.com/custom-error.js',
+			() => ({
+				__esModule: true,
+				getCountry: () => {
+					throw new Error('The custom attribute is broken');
+				},
+			}),
+			{virtual: true}
+		);
+
 		jest.spyOn(
 			Intl.DateTimeFormat.prototype,
 			'resolvedOptions'
 		).mockReturnValue({timeZone: 'America/New_York'} as any);
 
-		Object.defineProperty(document, 'cookie', {
-			configurable: true,
-			value: 'REMEMBER_ME=true; JSESSIONID=ba8e4d1c',
-		});
+		document.cookie = 'REMEMBER_ME=true';
+		document.cookie = 'JSESSIONID=ba8e4d1c';
+
 		Object.defineProperty(document, 'referrer', {
 			configurable: true,
 			value: 'https://www.wikipedia.org/',
@@ -380,11 +400,19 @@ describe('detection', () => {
 		});
 	});
 
-	describe('attribute segments', () => {
-		it('positive test', async () => {
+	describe('attribute segment', () => {
+		it('applies variations when a cached segment matches', async () => {
+			sessionStorage.setItem(
+				'liferay.audiences.acSegments',
+				JSON.stringify({
+					segments: ['SEGMENT_REAL_TIME'],
+					userId: '20164',
+				})
+			);
+
 			mockAudiencesDefinitionWithAttribute(
-				'segments',
-				'includes',
+				'segment',
+				'eq',
 				'SEGMENT_REAL_TIME'
 			);
 
@@ -393,11 +421,55 @@ describe('detection', () => {
 			expect(audiences.get()).toEqual(new Set(['the_audience']));
 		});
 
-		it('negative test', async () => {
+		it('shows the default experience when no cached segment matches', async () => {
+			sessionStorage.setItem(
+				'liferay.audiences.acSegments',
+				JSON.stringify({
+					segments: ['SEGMENT_REAL_TIME'],
+					userId: '20164',
+				})
+			);
+
 			mockAudiencesDefinitionWithAttribute(
-				'segments',
-				'includes',
+				'segment',
+				'eq',
 				'NON_EXISTENT_SEGMENT'
+			);
+
+			await audiences.runDetection(URL);
+
+			expect(audiences.get()).toEqual(new Set());
+		});
+
+		it('ignores segments cached for a different user', async () => {
+			delete (global as any).Analytics;
+
+			sessionStorage.setItem(
+				'liferay.audiences.acSegments',
+				JSON.stringify({
+					segments: ['SEGMENT_REAL_TIME'],
+					userId: '10000',
+				})
+			);
+
+			mockAudiencesDefinitionWithAttribute(
+				'segment',
+				'eq',
+				'SEGMENT_REAL_TIME'
+			);
+
+			await audiences.runDetection(URL);
+
+			expect(audiences.get()).toEqual(new Set());
+		});
+
+		it('shows the default experience on the first visit, before the segments are cached', async () => {
+			delete (global as any).Analytics;
+
+			mockAudiencesDefinitionWithAttribute(
+				'segment',
+				'eq',
+				'SEGMENT_REAL_TIME'
 			);
 
 			await audiences.runDetection(URL);
@@ -526,5 +598,47 @@ describe('detection', () => {
 		await audiences.runDetection(URL);
 
 		expect(audiences.get()).toEqual(new Set());
+	});
+
+	it('matches the remaining audiences when one audience throws', async () => {
+		audiences.setLogEnabled(true);
+
+		const consoleLog = jest
+			.spyOn(console, 'log')
+			.mockImplementation(() => {});
+
+		mockAudiencesDefinitionWithAudiences([
+			{
+				conjunction: 'AND',
+				id: 'the_broken_audience',
+				rules: [
+					{
+						attribute:
+							'custom:https://example.com/custom-error.js#getCountry',
+						operator: 'eq',
+						value: 'US',
+					},
+				],
+			},
+			{
+				conjunction: 'AND',
+				id: 'the_audience',
+				rules: [
+					{attribute: 'hostname', operator: 'eq', value: 'localhost'},
+				],
+			},
+		]);
+
+		await audiences.runDetection(URL);
+
+		expect(audiences.get()).toEqual(new Set(['the_audience']));
+
+		expect(consoleLog).toHaveBeenCalledWith(
+			expect.anything(),
+			expect.anything(),
+			expect.stringContaining(
+				"Unable to evaluate the rules of audience 'the_broken_audience'"
+			)
+		);
 	});
 });

@@ -17,21 +17,21 @@ import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.test.util.ObjectDefinitionTestUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.Portal;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
-import com.liferay.site.cms.site.initializer.test.util.CMSTestUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +46,6 @@ import org.junit.runner.RunWith;
 /**
  * @author Alicia García
  */
-@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 public class CMSAssetVocabularyLocalServiceWrapperTest {
 
@@ -59,8 +58,6 @@ public class CMSAssetVocabularyLocalServiceWrapperTest {
 
 	@Before
 	public void setUp() throws Exception {
-		_cmsGroup = CMSTestUtil.getOrAddGroup(
-			CMSAssetVocabularyLocalServiceWrapperTest.class);
 		_group = GroupTestUtil.addGroup();
 		_objectDefinition = ObjectDefinitionTestUtil.publishObjectDefinition();
 	}
@@ -79,15 +76,19 @@ public class CMSAssetVocabularyLocalServiceWrapperTest {
 			long classTypePK, long... groupIds)
 		throws Exception {
 
+		Group cmsGroup = _groupLocalService.getGroup(
+			TestPropsValues.getCompanyId(), GroupConstants.CMS);
+
 		AssetVocabulary assetVocabulary = AssetTestUtil.addVocabulary(
-			_cmsGroup.getGroupId(),
+			cmsGroup.getGroupId(),
 			_portal.getClassNameId(_objectDefinition.getClassName()),
 			classTypePK, false);
 
 		_cmsAssetVocabularies.add(assetVocabulary);
 
 		_assetVocabularyGroupRelLocalService.setAssetVocabularyGroupRels(
-			assetVocabulary.getVocabularyId(), groupIds);
+			assetVocabulary.getVocabularyId(), groupIds,
+			DepotConstants.TYPE_SPACE);
 
 		return assetVocabulary;
 	}
@@ -247,8 +248,6 @@ public class CMSAssetVocabularyLocalServiceWrapperTest {
 	private final List<AssetVocabulary> _cmsAssetVocabularies =
 		new ArrayList<>();
 
-	private Group _cmsGroup;
-
 	@DeleteAfterTestRun
 	private final List<DepotEntry> _depotEntries = new ArrayList<>();
 
@@ -257,6 +256,9 @@ public class CMSAssetVocabularyLocalServiceWrapperTest {
 
 	@DeleteAfterTestRun
 	private Group _group;
+
+	@Inject
+	private GroupLocalService _groupLocalService;
 
 	@DeleteAfterTestRun
 	private ObjectDefinition _objectDefinition;

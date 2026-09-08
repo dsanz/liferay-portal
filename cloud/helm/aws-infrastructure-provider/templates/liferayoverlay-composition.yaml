@@ -76,15 +76,12 @@ spec:
                         {{- $xr := .observed.composite.resource -}}
 
                         {{- $forceDestroy := $xr.spec.forceDestroy -}}
-                        {{- $overlayRegion := $xr.spec.region -}}
-                        {{- $projectId := $xr.spec.projectId -}}
-
                         {{- $managementPolicies := $xr.spec.orphanOnDelete | ternary (list "Create" "Observe" "Update") (list "*") | toJson -}}
                         {{- $namespace := $xr.metadata.namespace -}}
+                        {{- $projectId := $xr.spec.projectId -}}
+                        {{- $region := $xr.spec.region -}}
 
-                        `}}
-                        {{- include "aws-infrastructure-provider.overlayBucketName" . | nindent 24 }}
-                        {{`
+                        {{- $overlayBucketName := printf "%s-overlay-%s" $deploymentName (printf "%.18s-%s" $projectId (printf "%s-%s-%s" $accountId $deploymentName $projectId | sha256sum | trunc 6)) -}}
                         ---
                         apiVersion: s3.aws.m.upbound.io/v1beta1
                         kind: Bucket
@@ -101,7 +98,7 @@ spec:
                         spec:
                             forProvider:
                                 forceDestroy: {{ $forceDestroy }}
-                                region: {{ $overlayRegion }}
+                                region: {{ $region }}
                                 tags:
                                     Name: {{ $overlayBucketName }}
                             managementPolicies: {{ $managementPolicies }}
@@ -122,7 +119,7 @@ spec:
                                         app: liferay
                                         component: overlay
                                         projectId: {{ $projectId }}
-                                region: {{ $overlayRegion }}
+                                region: {{ $region }}
                                 rule:
                                     -   abortIncompleteMultipartUpload:
                                             -   daysAfterInitiation: 7
@@ -153,7 +150,7 @@ spec:
                                         component: overlay
                                         projectId: {{ $projectId }}
                                 ignorePublicAcls: true
-                                region: {{ $overlayRegion }}
+                                region: {{ $region }}
                                 restrictPublicBuckets: true
                             managementPolicies: {{ $managementPolicies }}
                         ---
@@ -177,7 +174,7 @@ spec:
                                         component: overlay
                                         projectId: {{ $projectId }}
                                     namespace: {{ $namespace }}
-                                region: {{ $overlayRegion }}
+                                region: {{ $region }}
                                 versioningConfiguration:
                                     status: Enabled
                             managementPolicies: {{ $managementPolicies }}
@@ -248,7 +245,8 @@ spec:
                             name: {{ $overlayBucketName }}-ci-uploader
                             namespace: {{ $namespace }}
                         spec:
-                            forProvider: {}
+                            forProvider:
+                                forceDestroy: {{ $forceDestroy }}
                         ---
                         apiVersion: iam.aws.m.upbound.io/v1beta1
                         kind: UserPolicyAttachment
@@ -271,7 +269,6 @@ spec:
                         kind: AccessKey
                         metadata:
                             annotations:
-                                crossplane.io/external-name: {{ $overlayBucketName }}-ci-uploader-access-key
                                 gotemplating.fn.crossplane.io/composition-resource-name: overlay-ci-uploader-access-key
                             name: {{ $overlayBucketName }}-ci-uploader
                             namespace: {{ $namespace }}

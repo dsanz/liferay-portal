@@ -17,6 +17,8 @@ import {ReactFieldBase as FieldBase} from 'dynamic-data-mapping-form-field-type/
 import {fetch} from 'frontend-js-web';
 import React, {useEffect, useRef, useState} from 'react';
 
+import {getItemValue} from './getItemValue';
+
 import type {
 	Locale,
 	LocalizedValue,
@@ -189,9 +191,11 @@ export default function ObjectRelationship({
 			let newURL: string | null = null;
 
 			if (!parameterObjectFieldName || parameterObjectFieldId) {
+				const searchSeparator = apiURL.includes('?') ? '&' : '?';
+
 				newURL = parameterObjectFieldId
 					? apiURL.replace(/{\w+}/, String(parameterObjectFieldId))
-					: `${apiURL}${searchTerm ? `?search=${searchTerm}` : ''}`;
+					: `${apiURL}${searchTerm ? `${searchSeparator}search=${encodeURIComponent(searchTerm)}` : ''}`;
 			}
 
 			if (!newURL || newURL === url) {
@@ -201,7 +205,8 @@ export default function ObjectRelationship({
 			setState((prevState) => ({...prevState, loading: true}));
 
 			try {
-				const {items} = await fetchOptions<Resource>(newURL);
+				const items =
+					(await fetchOptions<Resource>(newURL))?.items ?? [];
 
 				const state: State = {
 					list:
@@ -215,14 +220,22 @@ export default function ObjectRelationship({
 				};
 
 				if (value) {
-					let selected: Item | void = items.find(
-						({id}) => id === Number(value)
+					const matchesValue = (item?: Item) =>
+						Number(getItemValue(item, valueKey)) === Number(value);
+
+					let selected: Item | void = items.find((item) =>
+						matchesValue(item)
 					);
 
 					if (!selected && !parameterObjectFieldName) {
-						selected = await fetchOptions<Item>(
-							`${apiURL}/${value}`
+						const [baseAPIURL, apiURLQueryString] =
+							apiURL.split('?');
+
+						const item = await fetchOptions<Item>(
+							`${baseAPIURL}/${value}${apiURLQueryString ? `?${apiURLQueryString}` : ''}`
 						);
+
+						selected = matchesValue(item) ? item : undefined;
 					}
 
 					if (selected) {
@@ -258,6 +271,7 @@ export default function ObjectRelationship({
 		searchTerm,
 		value,
 		url,
+		valueKey,
 	]);
 
 	/**
@@ -293,14 +307,6 @@ export default function ObjectRelationship({
 				objectFieldBusinessType
 			)) ??
 		searchTerm;
-
-	const isSelected = (value: unknown): value is SelectedItem => {
-		if (!value || typeof value !== 'object') {
-			return false;
-		}
-
-		return 'id' in value;
-	};
 
 	return (
 		<FieldBase
@@ -352,7 +358,7 @@ export default function ObjectRelationship({
 							}
 
 							if (selected) {
-								return String(selected[valueKey]);
+								return String(getItemValue(selected, valueKey));
 							}
 
 							return null;
@@ -398,7 +404,9 @@ export default function ObjectRelationship({
 								onSelect={(selected) => {
 									onChangeRef.current({
 										target: {
-											value: String(selected[valueKey]),
+											value: String(
+												getItemValue(selected, valueKey)
+											),
 										},
 									});
 									setState((prevState) => ({
@@ -419,11 +427,7 @@ export default function ObjectRelationship({
 			<input
 				name={name}
 				type="hidden"
-				value={
-					isSelected(selected)
-						? selected?.[valueKey] ?? selected.id
-						: undefined
-				}
+				value={getItemValue(selected, valueKey)}
 			/>
 		</FieldBase>
 	);
@@ -469,8 +473,3 @@ interface State {
 	selected?: Item;
 	url: string | null;
 }
-
-type SelectedItem = {
-	id: string | number;
-	[key: string]: string | number | undefined;
-};

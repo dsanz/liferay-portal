@@ -84,111 +84,125 @@ public class FragmentEntryConfigurationParserTest {
 
 		Layout layout1 = LayoutTestUtil.addTypeContentLayout(group1);
 
-		ServiceContext serviceContext =
-			ServiceContextTestUtil.getServiceContext(group1.getGroupId());
+		ServiceContext serviceContext = _getAndPushServiceContext(
+			group1, layout1);
 
-		HttpServletRequest mockHttpServletRequest =
-			ContentLayoutTestUtil.getMockHttpServletRequest(
-				_companyLocalService.getCompany(group1.getCompanyId()), group1,
-				layout1);
+		String name = RandomTestUtil.randomString();
 
-		mockHttpServletRequest.setAttribute(
-			JavaConstants.JAKARTA_PORTLET_RESPONSE,
-			new MockLiferayPortletRenderResponse());
-
-		serviceContext.setRequest(mockHttpServletRequest);
-
-		ServiceContextThreadLocal.pushServiceContext(serviceContext);
-
-		try {
-			String name = RandomTestUtil.randomString();
-
-			JSONObject configurationValuesJSONObject =
-				_fragmentEntryConfigurationParser.getConfigurationJSONObject(
+		JSONObject configurationValuesJSONObject =
+			_fragmentEntryConfigurationParser.getConfigurationJSONObject(
+				JSONUtil.put(
+					"fieldSets",
 					JSONUtil.put(
-						"fieldSets",
 						JSONUtil.put(
+							"fields",
 							JSONUtil.put(
-								"fields",
 								JSONUtil.put(
-									JSONUtil.put(
-										"label", RandomTestUtil.randomString()
-									).put(
-										"name", name
-									).put(
-										"type", "url"
-									))))),
-					JSONUtil.put(
-						FragmentEntryProcessorConstants.
-							KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR,
-						JSONUtil.put(
-							name,
-							JSONUtil.put(
-								"layout",
-								JSONUtil.put(
-									"externalReferenceCode",
-									layout1.getExternalReferenceCode()
+									"label", RandomTestUtil.randomString()
 								).put(
-									"title", name
-								)))),
-					LocaleUtil.US);
-
-			Assert.assertEquals(
-				_portal.getLayoutFullURL(
-					layout1, serviceContext.getThemeDisplay()),
-				configurationValuesJSONObject.getString(name));
-
-			Group group2 = GroupTestUtil.addGroup();
-
-			Layout layout2 = _layoutLocalService.addLayout(
-				layout1.getExternalReferenceCode(), TestPropsValues.getUserId(),
-				group2.getGroupId(), false,
-				LayoutConstants.DEFAULT_PARENT_LAYOUT_ID,
-				RandomTestUtil.randomString(), StringPool.BLANK,
-				StringPool.BLANK, LayoutConstants.TYPE_CONTENT, false,
-				StringPool.BLANK, serviceContext);
-
-			configurationValuesJSONObject =
-				_fragmentEntryConfigurationParser.getConfigurationJSONObject(
-					JSONUtil.put(
-						"fieldSets",
-						JSONUtil.put(
-							JSONUtil.put(
-								"fields",
-								JSONUtil.put(
-									JSONUtil.put(
-										"label", RandomTestUtil.randomString()
-									).put(
-										"name", name
-									).put(
-										"type", "url"
-									))))),
-					JSONUtil.put(
-						FragmentEntryProcessorConstants.
-							KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR,
-						JSONUtil.put(
-							name,
-							JSONUtil.put(
-								"layout",
-								JSONUtil.put(
-									"externalReferenceCode",
-									layout1.getExternalReferenceCode()
+									"name", name
 								).put(
-									"scopeExternalReferenceCode",
-									group2.getExternalReferenceCode()
-								).put(
-									"title", name
-								)))),
-					LocaleUtil.US);
+									"type", "url"
+								))))),
+				JSONUtil.put(
+					FragmentEntryProcessorConstants.
+						KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR,
+					JSONUtil.put(
+						name,
+						JSONUtil.put(
+							"layout",
+							JSONUtil.put(
+								"externalReferenceCode",
+								layout1.getExternalReferenceCode()
+							).put(
+								"title", name
+							)))),
+				LocaleUtil.US);
 
-			Assert.assertEquals(
-				_portal.getLayoutFullURL(
-					layout2, serviceContext.getThemeDisplay()),
-				configurationValuesJSONObject.getString(name));
-		}
-		finally {
-			ServiceContextThreadLocal.popServiceContext();
-		}
+		Assert.assertEquals(
+			_portal.getLayoutFullURL(layout1, serviceContext.getThemeDisplay()),
+			configurationValuesJSONObject.getString(name));
+
+		Group group2 = GroupTestUtil.addGroup();
+
+		Layout layout2 = _layoutLocalService.addLayout(
+			layout1.getExternalReferenceCode(), TestPropsValues.getUserId(),
+			group2.getGroupId(), false,
+			LayoutConstants.DEFAULT_PARENT_LAYOUT_ID,
+			RandomTestUtil.randomString(), StringPool.BLANK, StringPool.BLANK,
+			LayoutConstants.TYPE_CONTENT, false, StringPool.BLANK,
+			serviceContext);
+
+		configurationValuesJSONObject =
+			_fragmentEntryConfigurationParser.getConfigurationJSONObject(
+				JSONUtil.put(
+					"fieldSets",
+					JSONUtil.put(
+						JSONUtil.put(
+							"fields",
+							JSONUtil.put(
+								JSONUtil.put(
+									"label", RandomTestUtil.randomString()
+								).put(
+									"name", name
+								).put(
+									"type", "url"
+								))))),
+				JSONUtil.put(
+					FragmentEntryProcessorConstants.
+						KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR,
+					JSONUtil.put(
+						name,
+						JSONUtil.put(
+							"layout",
+							JSONUtil.put(
+								"externalReferenceCode",
+								layout1.getExternalReferenceCode()
+							).put(
+								"scopeExternalReferenceCode",
+								group2.getExternalReferenceCode()
+							).put(
+								"title", name
+							)))),
+				LocaleUtil.US);
+
+		Assert.assertEquals(
+			_portal.getLayoutFullURL(layout2, serviceContext.getThemeDisplay()),
+			configurationValuesJSONObject.getString(name));
+
+		ServiceContextThreadLocal.popServiceContext();
+	}
+
+	@Test
+	@TestInfo("LPD-97996")
+	public void testGetFieldValueURLConfiguration() throws Exception {
+		_testGetFieldValueURLConfiguration(
+			StringPool.POUND,
+			JSONUtil.put(
+				"layout",
+				JSONUtil.put(
+					"externalReferenceCode", RandomTestUtil.randomString())
+			).toString());
+
+		Group group = _groupLocalService.getGroup(TestPropsValues.getGroupId());
+
+		Layout layout = LayoutTestUtil.addTypeContentLayout(group);
+
+		ServiceContext serviceContext = _getAndPushServiceContext(
+			group, layout);
+
+		_testGetFieldValueURLConfiguration(
+			_portal.getLayoutFullURL(layout, serviceContext.getThemeDisplay()),
+			JSONUtil.put(
+				"layout",
+				JSONUtil.put(
+					"externalReferenceCode", layout.getExternalReferenceCode())
+			).toString());
+
+		ServiceContextThreadLocal.popServiceContext();
+
+		_testGetFieldValueURLConfiguration(null, RandomTestUtil.randomString());
+		_testGetFieldValueURLConfiguration(null, StringPool.BLANK);
 	}
 
 	@Test
@@ -214,6 +228,28 @@ public class FragmentEntryConfigurationParserTest {
 		_testTranslateConfiguration("es");
 	}
 
+	private ServiceContext _getAndPushServiceContext(Group group, Layout layout)
+		throws Exception {
+
+		ServiceContext serviceContext =
+			ServiceContextTestUtil.getServiceContext(group.getGroupId());
+
+		HttpServletRequest mockHttpServletRequest =
+			ContentLayoutTestUtil.getMockHttpServletRequest(
+				_companyLocalService.getCompany(group.getCompanyId()), group,
+				layout);
+
+		mockHttpServletRequest.setAttribute(
+			JavaConstants.JAKARTA_PORTLET_RESPONSE,
+			new MockLiferayPortletRenderResponse());
+
+		serviceContext.setRequest(mockHttpServletRequest);
+
+		ServiceContextThreadLocal.pushServiceContext(serviceContext);
+
+		return serviceContext;
+	}
+
 	private ResourceBundle _getResourceBundle(String language) {
 		Class<?> clazz = getClass();
 
@@ -228,6 +264,34 @@ public class FragmentEntryConfigurationParserTest {
 		return JSONFactoryUtil.createJSONObject(
 			new String(
 				FileUtil.getBytes(getClass(), "dependencies/" + fileName)));
+	}
+
+	private void _testGetFieldValueURLConfiguration(
+		Object expectedValue, String value) {
+
+		String name = RandomTestUtil.randomString();
+
+		Assert.assertEquals(
+			expectedValue,
+			_fragmentEntryConfigurationParser.getFieldValue(
+				JSONUtil.put(
+					"fieldSets",
+					JSONUtil.put(
+						JSONUtil.put(
+							"fields",
+							JSONUtil.put(
+								JSONUtil.put(
+									"label", RandomTestUtil.randomString()
+								).put(
+									"name", name
+								).put(
+									"type", "url"
+								))))),
+				JSONUtil.put(
+					FragmentEntryProcessorConstants.
+						KEY_FREEMARKER_FRAGMENT_ENTRY_PROCESSOR,
+					JSONUtil.put(name, value)),
+				name));
 	}
 
 	private void _testGetFieldValueWithLocalizableField(

@@ -10,31 +10,25 @@
 <%
 EditAudiencesEntryDisplayContext editAudiencesEntryDisplayContext = (EditAudiencesEntryDisplayContext)request.getAttribute(EditAudiencesEntryDisplayContext.class.getName());
 
-String backURL = editAudiencesEntryDisplayContext.getBackURL();
-
-if (Validator.isNotNull(backURL)) {
-	portletDisplay.setShowBackIcon(true);
-	portletDisplay.setURLBack(backURL);
-	portletDisplay.setURLBackTitle(editAudiencesEntryDisplayContext.getBackURLTitle());
-}
-
 renderResponse.setTitle(editAudiencesEntryDisplayContext.getTitle());
 %>
 
-<liferay-ui:error embed="<%= false %>" exception="<%= AudiencesEntryJSONException.class %>" message="you-have-entered-invalid-json" />
-<liferay-ui:error embed="<%= false %>" exception="<%= AudiencesEntryNameException.class %>" message="please-enter-a-valid-name" />
+<liferay-util:html-top>
+	<aui:style type="text/css">
+		.control-menu,
+		.side-navigation-container {
+			display: none;
+		}
+	</aui:style>
+</liferay-util:html-top>
 
-<portlet:actionURL name="/audiences/update_audiences_entry" var="updateAudiencesEntryActionURL" />
+<div id="<%= liferayPortletResponse.getNamespace() %>-audience-builder-root">
+	<div class="inline-item my-5 p-5 w-100">
+		<span aria-hidden="true" class="loading-animation"></span>
+	</div>
 
-<aui:form action="<%= updateAudiencesEntryActionURL %>" method="post" name="fm">
-	<aui:input name="redirect" type="hidden" value="<%= editAudiencesEntryDisplayContext.getRedirect() %>" />
-	<aui:input name="audiencesEntryId" type="hidden" value="<%= editAudiencesEntryDisplayContext.getAudiencesEntryId() %>" />
-
-	<aui:input name="name" />
-
-	<aui:button-row>
-		<aui:button type="submit" />
-
-		<aui:button href="<%= editAudiencesEntryDisplayContext.getBackURL() %>" type="cancel" />
-	</aui:button-row>
-</aui:form>
+	<react:component
+		module="{AudienceBuilder} from audiences-web"
+		props="<%= editAudiencesEntryDisplayContext.getData() %>"
+	/>
+</div>

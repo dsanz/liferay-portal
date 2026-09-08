@@ -179,6 +179,30 @@ public class TaxonomyCategorySerDes {
 			sb.append("\"");
 		}
 
+		if (taxonomyCategory.getFriendlyUrlPath() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"friendlyUrlPath\": ");
+
+			sb.append("\"");
+
+			sb.append(_escape(taxonomyCategory.getFriendlyUrlPath()));
+
+			sb.append("\"");
+		}
+
+		if (taxonomyCategory.getFriendlyUrlPath_i18n() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"friendlyUrlPath_i18n\": ");
+
+			sb.append(_toJSON(taxonomyCategory.getFriendlyUrlPath_i18n()));
+		}
+
 		if (taxonomyCategory.getId() != null) {
 			if (sb.length() > 1) {
 				sb.append(", ");
@@ -305,6 +329,16 @@ public class TaxonomyCategorySerDes {
 			sb.append("\"siteId\": ");
 
 			sb.append(taxonomyCategory.getSiteId());
+		}
+
+		if (taxonomyCategory.getSystem() != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"system\": ");
+
+			sb.append(taxonomyCategory.getSystem());
 		}
 
 		if (taxonomyCategory.getTaxonomyCategoryProperties() != null) {
@@ -482,6 +516,24 @@ public class TaxonomyCategorySerDes {
 				String.valueOf(taxonomyCategory.getExternalReferenceCode()));
 		}
 
+		if (taxonomyCategory.getFriendlyUrlPath() == null) {
+			map.put("friendlyUrlPath", null);
+		}
+		else {
+			map.put(
+				"friendlyUrlPath",
+				String.valueOf(taxonomyCategory.getFriendlyUrlPath()));
+		}
+
+		if (taxonomyCategory.getFriendlyUrlPath_i18n() == null) {
+			map.put("friendlyUrlPath_i18n", null);
+		}
+		else {
+			map.put(
+				"friendlyUrlPath_i18n",
+				String.valueOf(taxonomyCategory.getFriendlyUrlPath_i18n()));
+		}
+
 		if (taxonomyCategory.getId() == null) {
 			map.put("id", null);
 		}
@@ -563,6 +615,13 @@ public class TaxonomyCategorySerDes {
 		}
 		else {
 			map.put("siteId", String.valueOf(taxonomyCategory.getSiteId()));
+		}
+
+		if (taxonomyCategory.getSystem() == null) {
+			map.put("system", null);
+		}
+		else {
+			map.put("system", String.valueOf(taxonomyCategory.getSystem()));
 		}
 
 		if (taxonomyCategory.getTaxonomyCategoryProperties() == null) {
@@ -658,6 +717,14 @@ public class TaxonomyCategorySerDes {
 
 				return false;
 			}
+			else if (Objects.equals(jsonParserFieldName, "friendlyUrlPath")) {
+				return false;
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "friendlyUrlPath_i18n")) {
+
+				return true;
+			}
 			else if (Objects.equals(jsonParserFieldName, "id")) {
 				return false;
 			}
@@ -694,6 +761,9 @@ public class TaxonomyCategorySerDes {
 				return false;
 			}
 			else if (Objects.equals(jsonParserFieldName, "siteId")) {
+				return false;
+			}
+			else if (Objects.equals(jsonParserFieldName, "system")) {
 				return false;
 			}
 			else if (Objects.equals(
@@ -784,6 +854,20 @@ public class TaxonomyCategorySerDes {
 						(String)jsonParserFieldValue);
 				}
 			}
+			else if (Objects.equals(jsonParserFieldName, "friendlyUrlPath")) {
+				if (jsonParserFieldValue != null) {
+					taxonomyCategory.setFriendlyUrlPath(
+						(String)jsonParserFieldValue);
+				}
+			}
+			else if (Objects.equals(
+						jsonParserFieldName, "friendlyUrlPath_i18n")) {
+
+				if (jsonParserFieldValue != null) {
+					taxonomyCategory.setFriendlyUrlPath_i18n(
+						(Map<String, String>)jsonParserFieldValue);
+				}
+			}
 			else if (Objects.equals(jsonParserFieldName, "id")) {
 				if (jsonParserFieldValue != null) {
 					taxonomyCategory.setId((String)jsonParserFieldValue);
@@ -863,6 +947,11 @@ public class TaxonomyCategorySerDes {
 				if (jsonParserFieldValue != null) {
 					taxonomyCategory.setSiteId(
 						Long.valueOf((String)jsonParserFieldValue));
+				}
+			}
+			else if (Objects.equals(jsonParserFieldName, "system")) {
+				if (jsonParserFieldValue != null) {
+					taxonomyCategory.setSystem((Boolean)jsonParserFieldValue);
 				}
 			}
 			else if (Objects.equals(
@@ -997,4 +1086,4 @@ public class TaxonomyCategorySerDes {
 	}
 
 }
-// LIFERAY-REST-BUILDER-HASH:1370171060
+// LIFERAY-REST-BUILDER-HASH:377068489

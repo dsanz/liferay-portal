@@ -249,36 +249,10 @@ public class FilePropagator {
 			commands.add(_getMkdirCommand(targetFileName));
 
 			if (sourceFileName.startsWith("http")) {
-				StringBuilder sb = new StringBuilder();
-
-				sb.append("curl ");
-
-				try {
-					if (sourceFileName.startsWith(
-							"https://release.liferay.com")) {
-
-						sb.append(" -u ");
-						sb.append(
-							JenkinsResultsParserUtil.getBuildProperty(
-								"jenkins.admin.user.name"));
-						sb.append(":");
-						sb.append(
-							JenkinsResultsParserUtil.getBuildProperty(
-								"jenkins.admin.user.password"));
-					}
-				}
-				catch (IOException ioException) {
-					throw new FilePropagatorRuntimeException(
-						this, "Unable to get jenkins-admin user credentials",
-						ioException);
-				}
-
-				sb.append("-o ");
-				sb.append(targetFileName);
-				sb.append(" ");
-				sb.append(sourceFileName);
-
-				commands.add(sb.toString());
+				commands.add(
+					JenkinsResultsParserUtil.combine(
+						"curl --fail --location --max-redirs 0 --output ",
+						targetFileName, " ", sourceFileName));
 			}
 			else {
 				commands.add(

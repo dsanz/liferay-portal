@@ -19,8 +19,6 @@ import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -433,7 +431,8 @@ public class EntryPersistenceImpl
 					new String[] {Long.class.getName()},
 					new String[] {"userId"}, false),
 				_SQL_SELECT_ENTRY_WHERE, _SQL_COUNT_ENTRY_WHERE,
-				EntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				EntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+				null,
 				new FinderColumn<>(
 					"entry.", "userId", FinderColumn.Type.LONG, "=", true, true,
 					Entry::getUserId));
@@ -507,16 +506,10 @@ public class EntryPersistenceImpl
 	private static final String _SQL_COUNT_ENTRY_WHERE =
 		"SELECT COUNT(entry) FROM Entry entry WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No Entry exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		EntryPersistenceImpl.class);
-
 	@Override
 	protected FinderCache getFinderCache() {
 		return finderCache;
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:367435114
+// LIFERAY-SERVICE-BUILDER-HASH:2066937214

@@ -63,13 +63,14 @@ public class AssetCategoryLocalServiceWrapper
 			long parentCategoryId,
 			java.util.Map<java.util.Locale, String> titleMap,
 			java.util.Map<java.util.Locale, String> descriptionMap,
-			long vocabularyId, String[] categoryProperties,
+			long vocabularyId, boolean system, String[] categoryProperties,
 			com.liferay.portal.kernel.service.ServiceContext serviceContext)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _assetCategoryLocalService.addCategory(
 			externalReferenceCode, userId, groupId, parentCategoryId, titleMap,
-			descriptionMap, vocabularyId, categoryProperties, serviceContext);
+			descriptionMap, vocabularyId, system, categoryProperties,
+			serviceContext);
 	}
 
 	@Override
@@ -665,6 +666,16 @@ public class AssetCategoryLocalServiceWrapper
 	}
 
 	@Override
+	public java.util.List<AssetCategory> getVocabularyCategories(
+		long groupId, String name, long vocabularyId, int start, int end,
+		com.liferay.portal.kernel.util.OrderByComparator<AssetCategory>
+			orderByComparator) {
+
+		return _assetCategoryLocalService.getVocabularyCategories(
+			groupId, name, vocabularyId, start, end, orderByComparator);
+	}
+
+	@Override
 	public int getVocabularyCategoriesCount(long vocabularyId) {
 		return _assetCategoryLocalService.getVocabularyCategoriesCount(
 			vocabularyId);
@@ -832,4 +843,4 @@ public class AssetCategoryLocalServiceWrapper
 	private AssetCategoryLocalService _assetCategoryLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-141568759
+// LIFERAY-SERVICE-BUILDER-HASH:605567399

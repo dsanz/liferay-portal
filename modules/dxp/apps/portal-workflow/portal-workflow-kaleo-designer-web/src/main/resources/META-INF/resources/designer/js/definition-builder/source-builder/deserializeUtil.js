@@ -16,6 +16,15 @@ import {
 } from './utils';
 import XMLDefinition from './xmlDefinition';
 
+function parseJSONArray(value) {
+	try {
+		return JSON.parse(value);
+	}
+	catch (error) {
+		return [];
+	}
+}
+
 export default function DeserializeUtil(content) {
 	const instance = this;
 
@@ -97,9 +106,56 @@ DeserializeUtil.prototype = {
 					script: node.script,
 				};
 
+				if (type === 'ai-decision' || type === 'llm') {
+					data.inputVariables = parseJSONArray(
+						node['input-variables']
+					);
+
+					data.outputVariables = parseJSONArray(
+						node['output-variables']
+					);
+
+					data.prompt = node.prompt || '';
+
+					data.rag = parseJSONArray(node.rag);
+
+					data.tools = parseJSONArray(node.tools);
+
+					data.userMessage = node['user-message'] || '';
+				}
+
+				if (type === 'ai-hub-agent') {
+					data.agentDefinitionExternalReferenceCode =
+						node['agent-definition-external-reference-code'] || '';
+
+					data.timeout = node.timeout || '';
+				}
+
 				if (type === 'condition') {
 					data.scriptLanguage =
 						node.scriptLanguage || DEFAULT_LANGUAGE;
+				}
+
+				if (type === 'http-request') {
+					data.httpMethod = node['http-method'] || 'GET';
+
+					data.inputVariables = parseJSONArray(
+						node['input-variables']
+					);
+
+					data.outputVariables = parseJSONArray(
+						node['output-variables']
+					);
+
+					data.requestBody = node['request-body'] || '';
+
+					data.timeout = node.timeout || '';
+
+					data.url = node.url || '';
+				}
+
+				if (type === 'service') {
+					data.javaDelegate = node['java-delegate'] || '';
 				}
 
 				if (type === 'task') {
@@ -112,48 +168,6 @@ DeserializeUtil.prototype = {
 
 					data.scriptLanguage =
 						node.scriptLanguage || DEFAULT_LANGUAGE;
-				}
-
-				if (type === 'llm' || type === 'ai-decision') {
-					data.inputVariables = (() => {
-						try {
-							return JSON.parse(node['input-variables']);
-						}
-						catch (error) {
-							return [];
-						}
-					})();
-
-					data.outputVariables = (() => {
-						try {
-							return JSON.parse(node['output-variables']);
-						}
-						catch (error) {
-							return [];
-						}
-					})();
-
-					data.prompt = node.prompt || '';
-
-					data.rag = (() => {
-						try {
-							return JSON.parse(node.rag);
-						}
-						catch (error) {
-							return [];
-						}
-					})();
-
-					data.tools = (() => {
-						try {
-							return JSON.parse(node.tools);
-						}
-						catch (error) {
-							return [];
-						}
-					})();
-
-					data.userMessage = node['user-message'] || '';
 				}
 
 				data.actions = node.actions?.length && parseActions(node);

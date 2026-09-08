@@ -48,6 +48,7 @@ import com.liferay.commerce.product.model.CommerceChannelAccountEntryRelTable;
 import com.liferay.commerce.product.model.CommerceChannelRelTable;
 import com.liferay.commerce.product.service.CommerceChannelAccountEntryRelLocalService;
 import com.liferay.expando.kernel.service.ExpandoRowLocalService;
+import com.liferay.exportimport.kernel.empty.model.EmptyModelManager;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.sql.dsl.DSLQueryFactoryUtil;
 import com.liferay.petra.sql.dsl.expression.Predicate;
@@ -84,6 +85,7 @@ import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
 import com.liferay.portal.kernel.service.WorkflowInstanceLinkLocalService;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.CalendarFactoryUtil;
 import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -98,6 +100,7 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -360,7 +363,10 @@ public class CommerceDiscountLocalServiceImpl
 		commerceDiscount.setDisplayDate(displayDate);
 		commerceDiscount.setExpirationDate(expirationDate);
 
-		if ((expirationDate == null) || expirationDate.after(date)) {
+		if (_emptyModelManager.isEmptyModel()) {
+			commerceDiscount.setStatus(WorkflowConstants.STATUS_EMPTY);
+		}
+		else if ((expirationDate == null) || expirationDate.after(date)) {
 			commerceDiscount.setStatus(WorkflowConstants.STATUS_DRAFT);
 		}
 		else {
@@ -377,6 +383,10 @@ public class CommerceDiscountLocalServiceImpl
 
 		_resourceLocalService.addModelResources(
 			commerceDiscount, serviceContext);
+
+		if (_emptyModelManager.isEmptyModel()) {
+			return commerceDiscount;
+		}
 
 		// Workflow
 
@@ -979,6 +989,36 @@ public class CommerceDiscountLocalServiceImpl
 	}
 
 	@Override
+	public CommerceDiscount getOrAddEmptyCommerceDiscount(
+			String externalReferenceCode, long companyId, long userId)
+		throws PortalException {
+
+		Calendar calendar = CalendarFactoryUtil.getCalendar();
+
+		ServiceContext serviceContext = new ServiceContext();
+
+		serviceContext.setCompanyId(companyId);
+		serviceContext.setUserId(userId);
+
+		return _emptyModelManager.getOrAddEmptyModel(
+			CommerceDiscount.class, companyId,
+			() -> commerceDiscountLocalService.addCommerceDiscount(
+				externalReferenceCode, userId, externalReferenceCode,
+				CommerceDiscountConstants.TARGET_TOTAL, false, null, false,
+				null, StringPool.BLANK, null, null, null, null,
+				CommerceDiscountConstants.LIMITATION_TYPE_UNLIMITED, 0, 0,
+				false, false, calendar.get(Calendar.MONTH),
+				calendar.get(Calendar.DATE), calendar.get(Calendar.YEAR),
+				calendar.get(Calendar.HOUR_OF_DAY),
+				calendar.get(Calendar.MINUTE), 0, 0, 0, 0, 0, true,
+				serviceContext),
+			externalReferenceCode,
+			this::fetchCommerceDiscountByExternalReferenceCode,
+			this::getCommerceDiscountByExternalReferenceCode,
+			CommerceDiscount.class.getName());
+	}
+
+	@Override
 	public List<CommerceDiscount> getOrderTypeCommerceDiscounts(
 		long commerceOrderTypeId, long cpDefinitionId, long cpInstanceId,
 		String unitOfMeasureKey) {
@@ -1215,7 +1255,16 @@ public class CommerceDiscountLocalServiceImpl
 		commerceDiscount.setDisplayDate(displayDate);
 		commerceDiscount.setExpirationDate(expirationDate);
 
-		if ((expirationDate == null) || expirationDate.after(date)) {
+		if (commerceDiscount.getStatus() == WorkflowConstants.STATUS_EMPTY) {
+			commerceDiscount.setStatus(
+				_emptyModelManager.solveEmptyModel(
+					commerceDiscount.getExternalReferenceCode(),
+					commerceDiscount.getModelClassName(),
+					commerceDiscount.getCompanyId(), 0,
+					commerceDiscount.getStatus(),
+					() -> WorkflowConstants.STATUS_DRAFT));
+		}
+		else if ((expirationDate == null) || expirationDate.after(date)) {
 			commerceDiscount.setStatus(WorkflowConstants.STATUS_DRAFT);
 		}
 		else {
@@ -1295,7 +1344,16 @@ public class CommerceDiscountLocalServiceImpl
 		commerceDiscount.setDisplayDate(displayDate);
 		commerceDiscount.setExpirationDate(expirationDate);
 
-		if ((expirationDate == null) || expirationDate.after(date)) {
+		if (commerceDiscount.getStatus() == WorkflowConstants.STATUS_EMPTY) {
+			commerceDiscount.setStatus(
+				_emptyModelManager.solveEmptyModel(
+					commerceDiscount.getExternalReferenceCode(),
+					commerceDiscount.getModelClassName(),
+					commerceDiscount.getCompanyId(), 0,
+					commerceDiscount.getStatus(),
+					() -> WorkflowConstants.STATUS_DRAFT));
+		}
+		else if ((expirationDate == null) || expirationDate.after(date)) {
 			commerceDiscount.setStatus(WorkflowConstants.STATUS_DRAFT);
 		}
 		else {
@@ -1334,8 +1392,7 @@ public class CommerceDiscountLocalServiceImpl
 		throws PortalException {
 
 		CommerceDiscount commerceDiscount =
-			commerceDiscountLocalService.getCommerceDiscount(
-				commerceDiscountId);
+			commerceDiscountPersistence.findByPrimaryKey(commerceDiscountId);
 
 		commerceDiscount.setExternalReferenceCode(externalReferenceCode);
 
@@ -2052,6 +2109,9 @@ public class CommerceDiscountLocalServiceImpl
 
 	@Reference
 	private CommercePricingClassLocalService _commercePricingClassLocalService;
+
+	@Reference
+	private EmptyModelManager _emptyModelManager;
 
 	@Reference
 	private ExpandoRowLocalService _expandoRowLocalService;

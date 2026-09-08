@@ -6,20 +6,15 @@
 import {Locator, Page, expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
-import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import getRandomString from '../../../utils/getRandomString';
-import {performUserSwitch, userData} from '../../../utils/performLogin';
+import {performUserSwitchViaApi, userData} from '../../../utils/performLogin';
 import {cmsPagesTest} from './fixtures/cmsPagesTest';
 
-const test = mergeTests(
-	cmsPagesTest,
-	dataApiHelpersTest,
-	featureFlagsTest({
-		'LPD-17564': {enabled: true},
-	}),
-	loginTest()
-);
+const _PNG_BASE64 =
+	'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgAAACAAEABToPCwAAAABJRU5ErkJggg==';
+
+const test = mergeTests(cmsPagesTest, dataApiHelpersTest, loginTest());
 
 async function expectViewModalToBeReadOnly(
 	page: Page,
@@ -160,7 +155,7 @@ test(
 		});
 
 		await test.step('Switch to the user', async () => {
-			await performUserSwitch(page, user.alternateName);
+			await performUserSwitchViaApi(page, user.alternateName);
 
 			await sharedWithMePage.goto();
 		});
@@ -275,7 +270,7 @@ test(
 		});
 
 		await test.step('Verify that the user can see the shared assets', async () => {
-			await performUserSwitch(page, user.alternateName);
+			await performUserSwitchViaApi(page, user.alternateName);
 
 			await sharedWithMePage.expectAssetEntryToBeVisible(
 				objectEntryTitle
@@ -286,7 +281,7 @@ test(
 		});
 
 		await test.step('Delete the content and the folder so they go into the Recycle Bin', async () => {
-			await performUserSwitch(page, 'test');
+			await performUserSwitchViaApi(page, 'test');
 
 			await expect(
 				await apiHelpers.objectEntry.deleteObjectEntry(
@@ -303,7 +298,7 @@ test(
 		});
 
 		await test.step('Verify that the user can see deleted shared assets as "Not Visible"', async () => {
-			await performUserSwitch(page, user.alternateName);
+			await performUserSwitchViaApi(page, user.alternateName);
 
 			await sharedWithMePage.expectAssetEntryNotToBeVisible(
 				objectEntryTitle
@@ -311,6 +306,326 @@ test(
 			await sharedWithMePage.expectAssetEntryNotToBeVisible(
 				objectEntryFolderTitle
 			);
+		});
+	}
+);
+
+test(
+	'Shared files open in a preview instead of a read-only form in the View modal',
+	{tag: ['@LPD-85555', '@LPD-90032']},
+	async ({apiHelpers, page, sharedWithMePage}) => {
+		const spaceName = `Space ${getRandomString()}`;
+		let space = null;
+
+		await test.step('Create a space', async () => {
+			space = await apiHelpers.headlessAssetLibrary.createAssetLibrary({
+				name: spaceName,
+				type: 'Space',
+			});
+		});
+
+		const objectEntryTitle = `Document ${getRandomString()}`;
+		let objectEntry = null;
+
+		await test.step('Create a file', async () => {
+			objectEntry = await apiHelpers.objectEntry.postObjectEntry(
+				{
+					file: {
+						fileBase64: _PNG_BASE64,
+						name: `${objectEntryTitle}.png`,
+					},
+					objectEntryFolderExternalReferenceCode: 'L_FILES',
+					title: objectEntryTitle,
+				},
+				'cms/basic-documents',
+				spaceName
+			);
+		});
+
+		let user = null;
+
+		await test.step('Create a user and add as member of the space', async () => {
+			user = await apiHelpers.headlessAdminUser.postUserAccount();
+
+			userData[user.alternateName] = {
+				name: user.givenName,
+				password: 'test',
+				surname: user.familyName,
+			};
+
+			await apiHelpers.jsonWebServicesUser.agreeToTermsOfUse(user.id);
+			await apiHelpers.jsonWebServicesUser.answerReminderQuery(user.id);
+
+			await apiHelpers.jsonWebServicesUser.addGroupUsers(space.siteId, [
+				user.id,
+			]);
+		});
+
+		await test.step('Share the file with the user', async () => {
+			await apiHelpers.objectEntry.postObjectEntryCollaborators(
+				[
+					{
+						actionIds: ['DOWNLOAD', 'VIEW'],
+						id: user.id,
+						share: false,
+						type: 'User',
+					},
+				],
+				'cms/basic-documents',
+				objectEntry.id
+			);
+		});
+
+		await test.step('Switch to the user', async () => {
+			await performUserSwitchViaApi(page, user.alternateName);
+
+			await sharedWithMePage.goto();
+		});
+
+		await test.step('The file opens in a preview modal', async () => {
+			const assetRow = page.getByRole('row', {name: objectEntryTitle});
+
+			await expect(assetRow).toBeVisible();
+
+			await assetRow.getByRole('button', {name: 'Actions'}).click();
+
+			await page
+				.getByRole('menuitem', {exact: true, name: 'View'})
+				.click();
+
+			await expect(page.getByTestId('modal-header-name')).toHaveText(
+				objectEntryTitle
+			);
+
+			await expect(
+				page.getByRole('link', {name: 'Download'})
+			).toBeVisible();
+
+			await expect(page.locator('iframe[title="Preview"]')).toBeHidden();
+		});
+	}
+);
+
+test(
+	'Content shared with Update can be edited from its title',
+	{tag: '@LPD-103028'},
+	async ({apiHelpers, contentsPage, page, sharedWithMePage}) => {
+		const spaceName = `Space ${getRandomString()}`;
+		let space = null;
+
+		await test.step('Create a new space', async () => {
+			space = await apiHelpers.headlessAssetLibrary.createAssetLibrary({
+				name: spaceName,
+				type: 'Space',
+			});
+		});
+
+		const editableTitle = `Content ${getRandomString()}`;
+		const updatedTitle = `Content ${getRandomString()}`;
+		const viewOnlyTitle = `Content ${getRandomString()}`;
+		let editableObjectEntry = null;
+		let viewOnlyObjectEntry = null;
+
+		await test.step('Create two contents in the space', async () => {
+			editableObjectEntry = await apiHelpers.objectEntry.postObjectEntry(
+				{
+					objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+					title: editableTitle,
+				},
+				'cms/basic-web-contents',
+				spaceName
+			);
+
+			viewOnlyObjectEntry = await apiHelpers.objectEntry.postObjectEntry(
+				{
+					objectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+					title: viewOnlyTitle,
+				},
+				'cms/basic-web-contents',
+				spaceName
+			);
+		});
+
+		let user = null;
+
+		await test.step('Create a user and add as space member', async () => {
+			user = await apiHelpers.headlessAdminUser.postUserAccount();
+
+			userData[user.alternateName] = {
+				name: user.givenName,
+				password: 'test',
+				surname: user.familyName,
+			};
+
+			await apiHelpers.jsonWebServicesUser.agreeToTermsOfUse(user.id);
+			await apiHelpers.jsonWebServicesUser.answerReminderQuery(user.id);
+
+			await apiHelpers.jsonWebServicesUser.addGroupUsers(space.siteId, [
+				user.id,
+			]);
+		});
+
+		await test.step('Share one content with UPDATE and the other with VIEW only', async () => {
+			await apiHelpers.objectEntry.postObjectEntryCollaborators(
+				[
+					{
+						actionIds: ['UPDATE', 'VIEW'],
+						id: user.id,
+						share: false,
+						type: 'User',
+					},
+				],
+				'cms/basic-web-contents',
+				editableObjectEntry.id
+			);
+
+			// Resharing is granted so that the view-only row still carries an
+			// Actions menu, leaving the Update permission as the only
+			// difference between the two rows.
+
+			await apiHelpers.objectEntry.postObjectEntryCollaborators(
+				[
+					{
+						actionIds: ['VIEW'],
+						id: user.id,
+						share: true,
+						type: 'User',
+					},
+				],
+				'cms/basic-web-contents',
+				viewOnlyObjectEntry.id
+			);
+		});
+
+		await test.step('Only the content shared with UPDATE offers the Edit action', async () => {
+			await performUserSwitchViaApi(page, user.alternateName);
+
+			await sharedWithMePage.goto();
+
+			const editMenuItem = page.getByRole('menuitem', {
+				exact: true,
+				name: 'Edit',
+			});
+
+			await page
+				.getByRole('row', {name: viewOnlyTitle})
+				.getByRole('button', {name: 'Actions'})
+				.click();
+
+			// Asserting Share proves the menu opened, so the absence of Edit
+			// below cannot pass on an unopened menu.
+
+			await expect(
+				page.getByRole('menuitem', {exact: true, name: 'Share'})
+			).toBeVisible();
+
+			await expect(editMenuItem).toHaveCount(0);
+
+			await page.keyboard.press('Escape');
+
+			await page
+				.getByRole('row', {name: editableTitle})
+				.getByRole('button', {name: 'Actions'})
+				.click();
+
+			await expect(editMenuItem).toBeVisible();
+
+			await page.keyboard.press('Escape');
+		});
+
+		await test.step('Clicking the title opens the editor and the change is published', async () => {
+			await page
+				.getByRole('row', {name: editableTitle})
+				.getByRole('link', {name: editableTitle})
+				.click();
+
+			await contentsPage.fillData([
+				{label: 'Title', value: updatedTitle},
+			]);
+
+			await contentsPage.publishButton.click();
+
+			await expect(
+				page.getByRole('row', {name: updatedTitle})
+			).toBeVisible();
+		});
+	}
+);
+
+test(
+	'A shared folder opens from its title in Shared With Me',
+	{tag: '@LPD-103028'},
+	async ({apiHelpers, page, sharedWithMePage}) => {
+		const spaceName = `Space ${getRandomString()}`;
+		let space = null;
+
+		await test.step('Create a new space', async () => {
+			space = await apiHelpers.headlessAssetLibrary.createAssetLibrary({
+				name: spaceName,
+				type: 'Space',
+			});
+		});
+
+		const folderTitle = `Folder ${getRandomString()}`;
+		let objectEntryFolder = null;
+
+		await test.step('Create a folder in the space', async () => {
+			objectEntryFolder =
+				await apiHelpers.objectFolder.createObjectEntryFolder({
+					parentObjectEntryFolderExternalReferenceCode: 'L_CONTENTS',
+					scopeKey: spaceName,
+					title: folderTitle,
+				});
+		});
+
+		let user = null;
+
+		await test.step('Create a user and add as space member', async () => {
+			user = await apiHelpers.headlessAdminUser.postUserAccount();
+
+			userData[user.alternateName] = {
+				name: user.givenName,
+				password: 'test',
+				surname: user.familyName,
+			};
+
+			await apiHelpers.jsonWebServicesUser.agreeToTermsOfUse(user.id);
+			await apiHelpers.jsonWebServicesUser.answerReminderQuery(user.id);
+
+			await apiHelpers.jsonWebServicesUser.addGroupUsers(space.siteId, [
+				user.id,
+			]);
+		});
+
+		await test.step('Share the folder with the user', async () => {
+			await apiHelpers.objectFolder.postObjectEntryFolderCollaborators(
+				[
+					{
+						actionIds: ['VIEW'],
+						id: user.id,
+						share: false,
+						type: 'User',
+					},
+				],
+				objectEntryFolder.id
+			);
+		});
+
+		await test.step('Clicking the folder title opens the folder', async () => {
+			await performUserSwitchViaApi(page, user.alternateName);
+
+			await sharedWithMePage.goto();
+
+			await page
+				.getByRole('row', {name: folderTitle})
+				.getByRole('link', {name: folderTitle})
+				.click();
+
+			await expect(page).toHaveURL(/\/e\/view-folder\//);
+
+			await expect(
+				page.getByTestId(`testId${folderTitle}`)
+			).toBeVisible();
 		});
 	}
 );

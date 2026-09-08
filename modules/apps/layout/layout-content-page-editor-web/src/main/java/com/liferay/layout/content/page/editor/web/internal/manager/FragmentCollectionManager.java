@@ -5,6 +5,9 @@
 
 package com.liferay.layout.content.page.editor.web.internal.manager;
 
+import com.liferay.depot.constants.DepotConstants;
+import com.liferay.depot.model.DepotEntry;
+import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.contributor.FragmentCollectionContributor;
 import com.liferay.fragment.contributor.FragmentCollectionContributorRegistry;
@@ -27,6 +30,9 @@ import com.liferay.layout.util.PortalPreferencesUtil;
 import com.liferay.layout.util.structure.DropZoneLayoutStructureItem;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.dao.orm.QueryUtil;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactory;
@@ -41,6 +47,7 @@ import com.liferay.portal.kernel.portlet.PortletPreferencesFactory;
 import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -56,6 +63,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -71,10 +79,11 @@ import org.osgi.service.component.annotations.Reference;
 public class FragmentCollectionManager {
 
 	public List<Map<String, Object>> getFragmentCollectionMapsList(
-		long groupId, HttpServletRequest httpServletRequest,
-		boolean includeEmpty, boolean includeSystem,
-		DropZoneLayoutStructureItem masterDropZoneLayoutStructureItem,
-		ThemeDisplay themeDisplay) {
+			long groupId, HttpServletRequest httpServletRequest,
+			boolean includeEmpty, boolean includeSystem,
+			DropZoneLayoutStructureItem masterDropZoneLayoutStructureItem,
+			ThemeDisplay themeDisplay)
+		throws PortalException {
 
 		List<Map<String, Object>> allFragmentCollectionMapsList =
 			new ArrayList<>();
@@ -100,10 +109,11 @@ public class FragmentCollectionManager {
 
 		List<FragmentCollection> fragmentCollections =
 			_fragmentCollectionService.getFragmentCollections(
-				new long[] {
-					themeDisplay.getCompanyGroupId(), groupId,
-					CompanyConstants.SYSTEM
-				});
+				getGroupIds(
+					themeDisplay.getCompanyId(),
+					themeDisplay.getCompanyGroupId(), groupId));
+
+		Map<Long, Map<String, Object>> scopeMapsByGroupId = new HashMap<>();
 
 		for (FragmentCollection fragmentCollection : fragmentCollections) {
 			if (!includeSystem &&
@@ -146,6 +156,12 @@ public class FragmentCollectionManager {
 					"fragmentEntries", fragmentEntryMapsList
 				).put(
 					"name", fragmentCollection.getName()
+				).put(
+					"scope",
+					_getScopeMap(
+						themeDisplay.getCompanyGroupId(),
+						fragmentCollection.getGroupId(),
+						themeDisplay.getLocale(), scopeMapsByGroupId)
 				).build());
 		}
 
@@ -211,6 +227,24 @@ public class FragmentCollectionManager {
 		}
 
 		return allFragmentCollectionMapsList;
+	}
+
+	public long[] getGroupIds(long companyId, long companyGroupId, long groupId)
+		throws PortalException {
+
+		long[] groupIds = {companyGroupId, groupId, CompanyConstants.SYSTEM};
+
+		if (!FeatureFlagManagerUtil.isEnabled(companyId, "LPD-57283")) {
+			return groupIds;
+		}
+
+		return ArrayUtil.append(
+			groupIds,
+			TransformUtil.transformToLongArray(
+				_depotEntryLocalService.getGroupConnectedDepotEntries(
+					groupId, DepotConstants.TYPE_DESIGN_LIBRARY,
+					QueryUtil.ALL_POS, QueryUtil.ALL_POS),
+				DepotEntry::getGroupId));
 	}
 
 	public Map<String, List<Map<String, Object>>> getLayoutElementMapsListMap(
@@ -509,6 +543,40 @@ public class FragmentCollectionManager {
 		return fragmentEntryKey + StringPool.POUND + group.getGroupKey();
 	}
 
+	private Map<String, Object> _getScopeMap(
+			long companyGroupId, long groupId, Locale locale,
+			Map<Long, Map<String, Object>> scopeMaps)
+		throws PortalException {
+
+		if ((groupId > 0) && !scopeMaps.containsKey(groupId)) {
+			Group group = _groupLocalService.getGroup(groupId);
+
+			scopeMaps.put(
+				groupId,
+				HashMapBuilder.<String, Object>put(
+					"id", String.valueOf(groupId)
+				).put(
+					"label", group.getDescriptiveName(locale)
+				).put(
+					"type", _getScopeType(companyGroupId, group)
+				).build());
+		}
+
+		return scopeMaps.get(groupId);
+	}
+
+	private String _getScopeType(long companyGroupId, Group group) {
+		if (group.getGroupId() == companyGroupId) {
+			return "global";
+		}
+
+		if (group.isDepot()) {
+			return "design-library";
+		}
+
+		return "site";
+	}
+
 	private List<Map<String, Object>> _getSortedFragmentCollectionMapsList(
 		Map<String, Map<String, Object>> fragmentCollectionMaps,
 		List<String> sortedFragmentCollectionKeys) {
@@ -691,6 +759,9 @@ public class FragmentCollectionManager {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		FragmentCollectionManager.class);
+
+	@Reference
+	private DepotEntryLocalService _depotEntryLocalService;
 
 	@Reference
 	private FragmentCollectionContributorRegistry

@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -121,6 +122,8 @@ public abstract class BaseUserAccountResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -1637,8 +1640,8 @@ public abstract class BaseUserAccountResourceTestCase {
 		page =
 			userAccountResource.
 				getAccountUserAccountsByExternalReferenceCodePage(
-					externalReferenceCode, null, null, Pagination.of(1, 10),
-					null);
+					externalReferenceCode, null, null,
+					Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -2060,20 +2063,9 @@ public abstract class BaseUserAccountResourceTestCase {
 		String externalReferenceCode =
 			testGetAccountUserAccountsByExternalReferenceCodePage_getExternalReferenceCode();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"accountUserAccountsByExternalReferenceCode",
-			new HashMap<String, Object>() {
-				{
-					put(
-						"externalReferenceCode",
-						"\"" + externalReferenceCode + "\"");
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetAccountUserAccountsByExternalReferenceCodePageAccountUserAccount_getGraphQLField(
+				externalReferenceCode);
 
 		// No namespace
 
@@ -2145,6 +2137,27 @@ public abstract class BaseUserAccountResourceTestCase {
 						getString("items"))));
 	}
 
+	protected GraphQLField
+			testGraphQLGetAccountUserAccountsByExternalReferenceCodePageAccountUserAccount_getGraphQLField(
+				String externalReferenceCode)
+		throws Exception {
+
+		return new GraphQLField(
+			"accountUserAccountsByExternalReferenceCode",
+			new HashMap<String, Object>() {
+				{
+					put(
+						"externalReferenceCode",
+						"\"" + externalReferenceCode + "\"");
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
+	}
+
 	protected UserAccount
 			testGraphQLGetAccountUserAccountsByExternalReferenceCodePageAccountUserAccount_addUserAccount(
 				String externalReferenceCode, UserAccount userAccount)
@@ -2193,7 +2206,7 @@ public abstract class BaseUserAccountResourceTestCase {
 				accountId, randomUserAccount());
 
 		page = userAccountResource.getAccountUserAccountsPage(
-			accountId, null, null, Pagination.of(1, 10), null);
+			accountId, null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -2591,18 +2604,9 @@ public abstract class BaseUserAccountResourceTestCase {
 	public void testGraphQLGetAccountUserAccountsPage() throws Exception {
 		Long accountId = testGetAccountUserAccountsPage_getAccountId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"accountUserAccounts",
-			new HashMap<String, Object>() {
-				{
-					put("accountId", accountId);
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetAccountUserAccountsPageAccountUserAccount_getGraphQLField(
+				accountId);
 
 		// No namespace
 
@@ -2660,6 +2664,25 @@ public abstract class BaseUserAccountResourceTestCase {
 			Arrays.asList(
 				UserAccountSerDes.toDTOs(
 					accountUserAccountsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetAccountUserAccountsPageAccountUserAccount_getGraphQLField(
+				Long accountId)
+		throws Exception {
+
+		return new GraphQLField(
+			"accountUserAccounts",
+			new HashMap<String, Object>() {
+				{
+					put("accountId", accountId);
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -2739,8 +2762,8 @@ public abstract class BaseUserAccountResourceTestCase {
 		page =
 			userAccountResource.
 				getOrganizationByExternalReferenceCodeUserAccountsPage(
-					externalReferenceCode, null, null, Pagination.of(1, 10),
-					null);
+					externalReferenceCode, null, null,
+					Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -3196,7 +3219,8 @@ public abstract class BaseUserAccountResourceTestCase {
 				organizationId, randomUserAccount());
 
 		page = userAccountResource.getOrganizationUserAccountsPage(
-			organizationId, null, null, Pagination.of(1, 10), null);
+			organizationId, null, null, Pagination.of(1, (int)totalCount + 2),
+			null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -3640,7 +3664,7 @@ public abstract class BaseUserAccountResourceTestCase {
 			siteId, randomUserAccount());
 
 		page = userAccountResource.getSiteUserAccountsPage(
-			siteId, null, null, Pagination.of(1, 10), null);
+			siteId, null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -4612,7 +4636,7 @@ public abstract class BaseUserAccountResourceTestCase {
 				status, randomUserAccount());
 
 		page = userAccountResource.getUserAccountsByStatusPage(
-			status, null, null, Pagination.of(1, 10), null);
+			status, null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -5001,18 +5025,9 @@ public abstract class BaseUserAccountResourceTestCase {
 	public void testGraphQLGetUserAccountsByStatusPage() throws Exception {
 		String status = testGetUserAccountsByStatusPage_getStatus();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"userAccountsByStatus",
-			new HashMap<String, Object>() {
-				{
-					put("status", "\"" + status + "\"");
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetUserAccountsByStatusPageUserAccount_getGraphQLField(
+				status);
 
 		// No namespace
 
@@ -5074,6 +5089,25 @@ public abstract class BaseUserAccountResourceTestCase {
 					userAccountsByStatusJSONObject.getString("items"))));
 	}
 
+	protected GraphQLField
+			testGraphQLGetUserAccountsByStatusPageUserAccount_getGraphQLField(
+				String status)
+		throws Exception {
+
+		return new GraphQLField(
+			"userAccountsByStatus",
+			new HashMap<String, Object>() {
+				{
+					put("status", "\"" + status + "\"");
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
+	}
+
 	protected UserAccount
 			testGraphQLGetUserAccountsByStatusPageUserAccount_addUserAccount(
 				String status, UserAccount userAccount)
@@ -5097,7 +5131,7 @@ public abstract class BaseUserAccountResourceTestCase {
 			randomUserAccount());
 
 		page = userAccountResource.getUserAccountsPage(
-			null, null, Pagination.of(1, 10), null);
+			null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -5425,17 +5459,8 @@ public abstract class BaseUserAccountResourceTestCase {
 
 	@Test
 	public void testGraphQLGetUserAccountsPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"userAccounts",
-			new HashMap<String, Object>() {
-				{
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetUserAccountsPageUserAccount_getGraphQLField();
 
 		// No namespace
 
@@ -5492,6 +5517,23 @@ public abstract class BaseUserAccountResourceTestCase {
 					userAccountsJSONObject.getString("items"))));
 	}
 
+	protected GraphQLField
+			testGraphQLGetUserAccountsPageUserAccount_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"userAccounts",
+			new HashMap<String, Object>() {
+				{
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
+	}
+
 	@Test
 	public void testGetUserGroupByExternalReferenceCodeUsersPage()
 		throws Exception {
@@ -5538,7 +5580,8 @@ public abstract class BaseUserAccountResourceTestCase {
 				externalReferenceCode, randomUserAccount());
 
 		page = userAccountResource.getUserGroupByExternalReferenceCodeUsersPage(
-			externalReferenceCode, null, null, Pagination.of(1, 10), null);
+			externalReferenceCode, null, null,
+			Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -5985,7 +6028,8 @@ public abstract class BaseUserAccountResourceTestCase {
 			userGroupId, randomUserAccount());
 
 		page = userAccountResource.getUserGroupUsersPage(
-			userGroupId, null, null, Pagination.of(1, 10), null);
+			userGroupId, null, null, Pagination.of(1, (int)totalCount + 2),
+			null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -9600,4 +9644,4 @@ public abstract class BaseUserAccountResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-82242425
+// LIFERAY-REST-BUILDER-HASH:-1670083259

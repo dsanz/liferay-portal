@@ -4,6 +4,7 @@
  */
 
 import ClayForm, {ClaySelect} from '@clayui/form';
+import {openToast} from 'frontend-js-components-web';
 import {fetch} from 'frontend-js-web';
 import React, {useEffect, useState} from 'react';
 
@@ -15,15 +16,39 @@ function Scope({portletNamespace}) {
 	useEffect(() => {
 		const handleSchemaUpdated = (event) => {
 			if (event.schemaName) {
-				fetch(
-					`${HEADLESS_BATCH_PLANNER_URL}/plans/${event.schemaName.replace(
-						'#',
-						encodeURIComponent('#')
-					)}/site-scopes?export=${event.isExport}`
+				const planURL = `${HEADLESS_BATCH_PLANNER_URL}/plans/${event.schemaName.replace(
+					'#',
+					encodeURIComponent('#')
+				)}`;
+
+				Promise.all(
+					['asset-library-scopes', 'site-scopes'].map((scopesPath) =>
+						fetch(
+							`${planURL}/${scopesPath}?export=${event.isExport}`
+						).then((response) => {
+							if (!response.ok) {
+								throw new Error();
+							}
+
+							return response.json();
+						})
+					)
 				)
-					.then((response) => response.json())
-					.then((json) => {
-						setScopes(json.items);
+					.then(([assetLibraryScopesJSON, siteScopesJSON]) => {
+						setScopes([
+							...(assetLibraryScopesJSON.items || []),
+							...(siteScopesJSON.items || []),
+						]);
+					})
+					.catch(() => {
+						setScopes([]);
+
+						openToast({
+							message: Liferay.Language.get(
+								'an-unexpected-error-occurred'
+							),
+							type: 'danger',
+						});
 					});
 			}
 			else {

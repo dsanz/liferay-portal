@@ -7,6 +7,8 @@ modules/apps/analytics/    @liferay-ac
 modules/apps/announcements/    @liferay-content-management
 modules/apps/application-list/    @liferay-platform-experience
 modules/apps/archived/
+modules/apps/archived/portal-search-solr8-api/    @liferay-search
+modules/apps/archived/portal-search-solr8-impl/    @liferay-search
 modules/apps/archived/youtube-web    @liferay-page-management
 modules/apps/asset/
 modules/apps/asset/asset-auto-tagger-google-cloud-natural-language-test    @liferay-content-management
@@ -92,7 +94,11 @@ modules/apps/frontend-data-set/    @liferay-frontend
 modules/apps/frontend-editor/    @liferay-frontend
 modules/apps/frontend-icons/    @liferay-frontend
 modules/apps/frontend-js/    @liferay-frontend
+modules/apps/frontend-js/frontend-js-charts-sample-web/    @liferay-platform-experience
+modules/apps/frontend-js/frontend-js-charts-web/    @liferay-platform-experience
 modules/apps/frontend-js/frontend-js-clay-web/    @liferay-platform-experience
+modules/apps/frontend-js/frontend-js-components-web/src/main/resources/META-INF/resources/ai-assistant-chat/    @liferay-platform-experience
+modules/apps/frontend-js/frontend-js-components-web/src/main/resources/META-INF/resources/manage_members_modal/    @liferay-platform-experience
 modules/apps/frontend-js/frontend-js-components-web/src/main/resources/META-INF/resources/multiple_file_uploader/    @liferay-platform-experience
 modules/apps/frontend-js/frontend-js-item-selector-sample-web/    @liferay-platform-experience
 modules/apps/frontend-js/frontend-js-item-selector-web/    @liferay-platform-experience
@@ -106,6 +112,7 @@ modules/apps/google-places/
 modules/apps/headless/headless-admin-address/    @liferay-commerce
 modules/apps/headless/headless-admin-content/    @liferay-content-management
 modules/apps/headless/headless-admin-list-type/    @liferay-bpm
+modules/apps/headless/headless-admin-server/    @liferay-database-infra
 modules/apps/headless/headless-admin-site/    @liferay-page-management
 modules/apps/headless/headless-admin-taxonomy/    @liferay-content-management
 modules/apps/headless/headless-admin-user/    @liferay-commerce
@@ -114,7 +121,6 @@ modules/apps/headless/headless-batch-engine/    @liferay-headless
 modules/apps/headless/headless-builder/    @liferay-headless
 modules/apps/headless/headless-common-spi/
 modules/apps/headless/headless-delivery/    @liferay-content-management
-modules/apps/headless/headless-design-library/    @liferay-platform-experience
 modules/apps/headless/headless-discovery/    @liferay-headless
 modules/apps/headless/headless-form/    @liferay-bpm
 modules/apps/headless/headless-portal-instances/    @liferay-database-infra
@@ -231,7 +237,8 @@ modules/apps/portal/portal-dao-orm-custom-sql-impl/    @liferay-core-infra
 modules/apps/portal/portal-dao-orm-custom-sql-test/    @liferay-core-infra
 modules/apps/portal/portal-dao-test    @liferay-database-infra
 modules/apps/portal/portal-db-index-test    @liferay-database-infra
-modules/apps/portal/portal-db-migration-schema-exporter    @liferay-database-infra
+modules/apps/portal/portal-db-migration-schema-exporter-api    @liferay-database-infra
+modules/apps/portal/portal-db-migration-schema-exporter-impl    @liferay-database-infra
 modules/apps/portal/portal-db-migration-schema-exporter-test    @liferay-database-infra
 modules/apps/portal/portal-db-partition    @liferay-database-infra
 modules/apps/portal/portal-db-partition-test    @liferay-database-infra
@@ -291,16 +298,19 @@ modules/apps/portal-portlet-bridge/portal-portlet-bridge-mvc-test/    @liferay-c
 modules/apps/portal-relationship/
 modules/apps/portal-remote/
 modules/apps/portal-reports-engine/    @liferay-bpm
-modules/apps/portal-rules-engine/
+modules/apps/portal-rules-engine/    @liferay-bpm
 modules/apps/portal-scheduler/    @liferay-core-infra
 modules/apps/portal-scripting/
 modules/apps/portal-search/    @liferay-search
 modules/apps/portal-search-elasticsearch8/    @liferay-search
 modules/apps/portal-search-opensearch2/    @liferay-search
-modules/apps/portal-search-solr8/    @liferay-search
 modules/apps/portal-security/    @liferay-appsec
 modules/apps/portal-security/portal-security-content-security-policy    @liferay-frontend
 modules/apps/portal-security/portal-security-content-security-policy-test    @liferay-frontend
+modules/apps/portal-security/portal-security-script-management-api    @liferay-bpm
+modules/apps/portal-security/portal-security-script-management-test    @liferay-bpm
+modules/apps/portal-security/portal-security-script-management-test-util    @liferay-bpm
+modules/apps/portal-security/portal-security-script-management-web    @liferay-bpm
 modules/apps/portal-security-audit/    @liferay-appsec
 modules/apps/portal-security-sso/    @liferay-appsec
 modules/apps/portal-settings/    @liferay-appsec

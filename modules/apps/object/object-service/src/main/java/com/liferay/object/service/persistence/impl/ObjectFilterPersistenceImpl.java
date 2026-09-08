@@ -575,7 +575,8 @@ public class ObjectFilterPersistenceImpl
 				new String[] {String.class.getName()}, new String[] {"uuid_"},
 				0, 1, false, null),
 			_SQL_SELECT_OBJECTFILTER_WHERE, _SQL_COUNT_OBJECTFILTER_WHERE,
-			ObjectFilterModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			ObjectFilterModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"objectFilter.", "uuid", "uuid_", FinderColumn.Type.STRING, "=",
 				true, true, ObjectFilter::getUuid));
@@ -601,6 +602,7 @@ public class ObjectFilterPersistenceImpl
 					new String[] {"uuid_", "companyId"}, 0, 1, false, null),
 				_SQL_SELECT_OBJECTFILTER_WHERE, _SQL_COUNT_OBJECTFILTER_WHERE,
 				ObjectFilterModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"objectFilter.", "uuid", "uuid_", FinderColumn.Type.STRING,
 					"=", true, true, ObjectFilter::getUuid),
@@ -630,6 +632,7 @@ public class ObjectFilterPersistenceImpl
 					new String[] {"objectFieldId"}, false),
 				_SQL_SELECT_OBJECTFILTER_WHERE, _SQL_COUNT_OBJECTFILTER_WHERE,
 				ObjectFilterModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"objectFilter.", "objectFieldId", FinderColumn.Type.LONG,
 					"=", true, true, ObjectFilter::getObjectFieldId));
@@ -688,9 +691,6 @@ public class ObjectFilterPersistenceImpl
 	private static final String _SQL_COUNT_OBJECTFILTER_WHERE =
 		"SELECT COUNT(objectFilter) FROM ObjectFilter objectFilter WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No ObjectFilter exists with the key {";
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid"});
 
@@ -700,4 +700,4 @@ public class ObjectFilterPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1137773419
+// LIFERAY-SERVICE-BUILDER-HASH:-2031880833

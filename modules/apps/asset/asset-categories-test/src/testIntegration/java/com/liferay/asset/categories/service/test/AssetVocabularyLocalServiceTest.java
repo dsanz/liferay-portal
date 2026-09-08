@@ -7,12 +7,14 @@ package com.liferay.asset.categories.service.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.asset.kernel.exception.NoSuchVocabularyException;
+import com.liferay.asset.kernel.exception.SystemVocabularyException;
 import com.liferay.asset.kernel.exception.VocabularyExternalReferenceCodeException;
 import com.liferay.asset.kernel.exception.VocabularyVisibilityTypeException;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.model.AssetVocabularyConstants;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
 import com.liferay.asset.test.util.AssetTestUtil;
+import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.lazy.referencing.LazyReferencingThreadLocal;
@@ -33,6 +35,7 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+import com.liferay.portlet.asset.util.AssetVocabularySettingsHelper;
 
 import java.util.HashMap;
 
@@ -64,12 +67,72 @@ public class AssetVocabularyLocalServiceTest {
 	@Test
 	@TestInfo("LPD-88752")
 	public void testAddVocabulary() throws Exception {
+		_testAddVocabularyWithInvalidVisibilityType();
+		_testAddVocabularyWithLongExternalReferenceCode();
+	}
+
+	@Test
+	public void testDeleteVocabulary() throws Exception {
+		_testDeleteVocabularySystem();
+		_testDeleteVocabularySystemWhenImporting();
+	}
+
+	@Test
+	public void testGetOrAddEmptyVocabulary() throws Exception {
+		_testGetOrAddEmptyVocabularyWithLazyReferencingDisabled();
+		_testGetOrAddEmptyVocabularyWithLazyReferencingEnabled();
+	}
+
+	@Test
+	public void testUpdateVocabulary() throws Exception {
+		_testUpdateVocabularySystemAssetTypes();
+		_testUpdateVocabularySystemDescription();
+		_testUpdateVocabularySystemMultiValued();
+		_testUpdateVocabularySystemRename();
+		_testUpdateVocabularySystemVisibilityType();
+		_testUpdateVocabularySystemWhenImporting();
+		_testUpdateVocabularySystemWithNullDescription();
+		_testUpdateVocabularyWithInvalidVisibilityType();
+		_testUpdateVocabularyWithLazyReferencingEnabled();
+	}
+
+	private AssetVocabulary _addSystemVocabulary() throws Exception {
+		return _addSystemVocabulary(_group.getGroupId());
+	}
+
+	private AssetVocabulary _addSystemVocabulary(long groupId)
+		throws Exception {
+
+		AssetVocabularySettingsHelper assetVocabularySettingsHelper =
+			new AssetVocabularySettingsHelper();
+
+		assetVocabularySettingsHelper.setMultiValued(true);
+		assetVocabularySettingsHelper.setSystem(true);
+
+		return _assetVocabularyLocalService.addVocabulary(
+			null, TestPropsValues.getUserId(), groupId,
+			RandomTestUtil.randomString(), null,
+			HashMapBuilder.put(
+				LocaleUtil.getSiteDefault(), RandomTestUtil.randomString()
+			).build(),
+			null, assetVocabularySettingsHelper.toString(),
+			AssetVocabularyConstants.VISIBILITY_TYPE_PUBLIC,
+			ServiceContextTestUtil.getServiceContext());
+	}
+
+	private void _testAddVocabularyWithInvalidVisibilityType()
+		throws Exception {
+
 		AssertUtils.assertFailure(
 			VocabularyVisibilityTypeException.class, null,
 			() -> _assetVocabularyLocalService.addVocabulary(
 				null, TestPropsValues.getUserId(), _group.getGroupId(),
 				RandomTestUtil.randomString(), null, new HashMap<>(), null,
 				null, 3, ServiceContextTestUtil.getServiceContext()));
+	}
+
+	private void _testAddVocabularyWithLongExternalReferenceCode()
+		throws Exception {
 
 		int maxLength = ModelHintsUtil.getMaxLength(
 			AssetVocabulary.class.getName(), "externalReferenceCode");
@@ -87,10 +150,38 @@ public class AssetVocabularyLocalServiceTest {
 				ServiceContextTestUtil.getServiceContext()));
 	}
 
-	@Test
-	public void testGetOrAddEmptyVocabulary() throws Exception {
+	private void _testDeleteVocabularySystem() throws Exception {
+		AssetVocabulary vocabulary = _addSystemVocabulary();
 
-		// Lazy referencing disabled
+		AssertUtils.assertFailure(
+			SystemVocabularyException.MustNotDelete.class,
+			StringBundler.concat(
+				"Vocabulary ", vocabulary.getVocabularyId(),
+				" cannot be deleted"),
+			() -> _assetVocabularyLocalService.deleteVocabulary(
+				vocabulary.getVocabularyId()));
+	}
+
+	private void _testDeleteVocabularySystemWhenImporting() throws Exception {
+		AssetVocabulary vocabulary = _addSystemVocabulary();
+
+		ExportImportThreadLocal.setPortletImportInProcess(true);
+
+		try {
+			_assetVocabularyLocalService.deleteVocabulary(
+				vocabulary.getVocabularyId());
+		}
+		finally {
+			ExportImportThreadLocal.setPortletImportInProcess(false);
+		}
+
+		Assert.assertNull(
+			_assetVocabularyLocalService.fetchAssetVocabulary(
+				vocabulary.getVocabularyId()));
+	}
+
+	private void _testGetOrAddEmptyVocabularyWithLazyReferencingDisabled()
+		throws Exception {
 
 		try {
 			_assetVocabularyLocalService.getOrAddEmptyVocabulary(
@@ -102,8 +193,10 @@ public class AssetVocabularyLocalServiceTest {
 		catch (NoSuchVocabularyException noSuchVocabularyException) {
 			Assert.assertNotNull(noSuchVocabularyException);
 		}
+	}
 
-		// Lazy referencing enabled
+	private void _testGetOrAddEmptyVocabularyWithLazyReferencingEnabled()
+		throws Exception {
 
 		try (SafeCloseable safeCloseable =
 				LazyReferencingThreadLocal.setEnabledWithSafeCloseable(true)) {
@@ -118,8 +211,155 @@ public class AssetVocabularyLocalServiceTest {
 		}
 	}
 
-	@Test
-	public void testUpdateAssetVocabularyWithLazyReferencingEnabled()
+	private void _testUpdateVocabularySystemAssetTypes() throws Exception {
+		AssetVocabulary vocabulary = _addSystemVocabulary();
+
+		AssetVocabularySettingsHelper assetVocabularySettingsHelper =
+			new AssetVocabularySettingsHelper(vocabulary.getSettings());
+
+		assetVocabularySettingsHelper.setClassNameIdsAndClassTypePKs(
+			new long[] {RandomTestUtil.randomLong()},
+			new long[] {RandomTestUtil.randomLong()},
+			new boolean[] {RandomTestUtil.randomBoolean()});
+
+		AssertUtils.assertFailure(
+			SystemVocabularyException.MustNotModify.class,
+			StringBundler.concat(
+				"Vocabulary ", vocabulary.getVocabularyId(),
+				" cannot be modified"),
+			() -> _assetVocabularyLocalService.updateVocabulary(
+				vocabulary.getExternalReferenceCode(),
+				vocabulary.getVocabularyId(), vocabulary.getTitleMap(),
+				vocabulary.getDescriptionMap(),
+				assetVocabularySettingsHelper.toString(),
+				vocabulary.getVisibilityType()));
+	}
+
+	private void _testUpdateVocabularySystemDescription() throws Exception {
+		AssetVocabulary vocabulary = _addSystemVocabulary();
+
+		AssertUtils.assertFailure(
+			SystemVocabularyException.MustNotModify.class,
+			StringBundler.concat(
+				"Vocabulary ", vocabulary.getVocabularyId(),
+				" cannot be modified"),
+			() -> _assetVocabularyLocalService.updateVocabulary(
+				vocabulary.getExternalReferenceCode(),
+				vocabulary.getVocabularyId(), vocabulary.getTitleMap(),
+				HashMapBuilder.put(
+					LocaleUtil.getSiteDefault(), RandomTestUtil.randomString()
+				).build(),
+				vocabulary.getSettings(), vocabulary.getVisibilityType()));
+	}
+
+	private void _testUpdateVocabularySystemMultiValued() throws Exception {
+		AssetVocabulary vocabulary = _addSystemVocabulary();
+
+		AssetVocabularySettingsHelper assetVocabularySettingsHelper =
+			new AssetVocabularySettingsHelper(vocabulary.getSettings());
+
+		assetVocabularySettingsHelper.setMultiValued(false);
+
+		vocabulary = _assetVocabularyLocalService.updateVocabulary(
+			vocabulary.getExternalReferenceCode(), vocabulary.getVocabularyId(),
+			vocabulary.getTitleMap(), vocabulary.getDescriptionMap(),
+			assetVocabularySettingsHelper.toString(),
+			vocabulary.getVisibilityType());
+
+		Assert.assertFalse(vocabulary.isMultiValued());
+		Assert.assertTrue(vocabulary.isSystem());
+	}
+
+	private void _testUpdateVocabularySystemRename() throws Exception {
+		AssetVocabulary vocabulary = _addSystemVocabulary();
+
+		AssertUtils.assertFailure(
+			SystemVocabularyException.MustNotRename.class,
+			StringBundler.concat(
+				"Vocabulary ", vocabulary.getVocabularyId(),
+				" cannot be renamed"),
+			() -> _assetVocabularyLocalService.updateVocabulary(
+				vocabulary.getExternalReferenceCode(),
+				vocabulary.getVocabularyId(),
+				HashMapBuilder.put(
+					LocaleUtil.getSiteDefault(), RandomTestUtil.randomString()
+				).build(),
+				vocabulary.getDescriptionMap(), vocabulary.getSettings(),
+				vocabulary.getVisibilityType()));
+	}
+
+	private void _testUpdateVocabularySystemVisibilityType() throws Exception {
+		AssetVocabulary vocabulary = _addSystemVocabulary();
+
+		AssertUtils.assertFailure(
+			SystemVocabularyException.MustNotModify.class,
+			StringBundler.concat(
+				"Vocabulary ", vocabulary.getVocabularyId(),
+				" cannot be modified"),
+			() -> _assetVocabularyLocalService.updateVocabulary(
+				vocabulary.getExternalReferenceCode(),
+				vocabulary.getVocabularyId(), vocabulary.getTitleMap(),
+				vocabulary.getDescriptionMap(), vocabulary.getSettings(),
+				AssetVocabularyConstants.VISIBILITY_TYPE_INTERNAL));
+	}
+
+	private void _testUpdateVocabularySystemWhenImporting() throws Exception {
+		AssetVocabulary vocabulary = _addSystemVocabulary();
+
+		ExportImportThreadLocal.setPortletImportInProcess(true);
+
+		try {
+			vocabulary = _assetVocabularyLocalService.updateVocabulary(
+				vocabulary.getExternalReferenceCode(),
+				vocabulary.getVocabularyId(),
+				HashMapBuilder.put(
+					LocaleUtil.getSiteDefault(), RandomTestUtil.randomString()
+				).build(),
+				vocabulary.getDescriptionMap(), vocabulary.getSettings(),
+				AssetVocabularyConstants.VISIBILITY_TYPE_INTERNAL);
+		}
+		finally {
+			ExportImportThreadLocal.setPortletImportInProcess(false);
+		}
+
+		Assert.assertTrue(vocabulary.isSystem());
+		Assert.assertEquals(
+			AssetVocabularyConstants.VISIBILITY_TYPE_INTERNAL,
+			vocabulary.getVisibilityType());
+	}
+
+	private void _testUpdateVocabularySystemWithNullDescription()
+		throws Exception {
+
+		AssetVocabulary vocabulary = _addSystemVocabulary();
+
+		_assetVocabularyLocalService.updateVocabulary(
+			vocabulary.getExternalReferenceCode(), vocabulary.getVocabularyId(),
+			vocabulary.getTitleMap(), null, vocabulary.getSettings(),
+			vocabulary.getVisibilityType());
+	}
+
+	private void _testUpdateVocabularyWithInvalidVisibilityType()
+		throws Exception {
+
+		AssetVocabulary assetVocabulary = AssetTestUtil.addVocabulary(
+			_group.getGroupId());
+
+		AssertUtils.assertFailure(
+			VocabularyVisibilityTypeException.class, null,
+			() -> _assetVocabularyLocalService.updateVocabulary(
+				assetVocabulary.getExternalReferenceCode(),
+				assetVocabulary.getVocabularyId(), null, null, null, 3));
+		AssertUtils.assertFailure(
+			VocabularyVisibilityTypeException.class, null,
+			() -> _assetVocabularyLocalService.updateVocabulary(
+				assetVocabulary.getExternalReferenceCode(),
+				assetVocabulary.getVocabularyId(),
+				RandomTestUtil.randomString(), null, null, null, 3,
+				ServiceContextTestUtil.getServiceContext()));
+	}
+
+	private void _testUpdateVocabularyWithLazyReferencingEnabled()
 		throws Exception {
 
 		try (SafeCloseable safeCloseable =
@@ -154,25 +394,6 @@ public class AssetVocabularyLocalServiceTest {
 			Assert.assertEquals(
 				WorkflowConstants.STATUS_APPROVED, vocabulary.getStatus());
 		}
-	}
-
-	@Test
-	public void testUpdateVocabulary() throws Exception {
-		AssetVocabulary assetVocabulary = AssetTestUtil.addVocabulary(
-			_group.getGroupId());
-
-		AssertUtils.assertFailure(
-			VocabularyVisibilityTypeException.class, null,
-			() -> _assetVocabularyLocalService.updateVocabulary(
-				assetVocabulary.getExternalReferenceCode(),
-				assetVocabulary.getVocabularyId(), null, null, null, 3));
-		AssertUtils.assertFailure(
-			VocabularyVisibilityTypeException.class, null,
-			() -> _assetVocabularyLocalService.updateVocabulary(
-				assetVocabulary.getExternalReferenceCode(),
-				assetVocabulary.getVocabularyId(),
-				RandomTestUtil.randomString(), null, null, null, 3,
-				ServiceContextTestUtil.getServiceContext()));
 	}
 
 	@Inject

@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -121,6 +122,8 @@ public abstract class BaseProductConfigurationListResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -227,6 +230,8 @@ public abstract class BaseProductConfigurationListResourceTestCase {
 		productConfigurationList.setCatalogExternalReferenceCode(regex);
 		productConfigurationList.setExternalReferenceCode(regex);
 		productConfigurationList.setName(regex);
+		productConfigurationList.
+			setParentProductConfigurationListExternalReferenceCode(regex);
 
 		String json = ProductConfigurationListSerDes.toJSON(
 			productConfigurationList);
@@ -240,6 +245,10 @@ public abstract class BaseProductConfigurationListResourceTestCase {
 		Assert.assertEquals(
 			regex, productConfigurationList.getExternalReferenceCode());
 		Assert.assertEquals(regex, productConfigurationList.getName());
+		Assert.assertEquals(
+			regex,
+			productConfigurationList.
+				getParentProductConfigurationListExternalReferenceCode());
 	}
 
 	@Test
@@ -1056,7 +1065,7 @@ public abstract class BaseProductConfigurationListResourceTestCase {
 
 		page =
 			productConfigurationListResource.getProductConfigurationListsPage(
-				null, null, null, Pagination.of(1, 10), null);
+				null, null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1480,17 +1489,8 @@ public abstract class BaseProductConfigurationListResourceTestCase {
 
 	@Test
 	public void testGraphQLGetProductConfigurationListsPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"productConfigurationLists",
-			new HashMap<String, Object>() {
-				{
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetProductConfigurationListsPageProductConfigurationList_getGraphQLField();
 
 		// No namespace
 
@@ -1552,6 +1552,23 @@ public abstract class BaseProductConfigurationListResourceTestCase {
 			Arrays.asList(
 				ProductConfigurationListSerDes.toDTOs(
 					productConfigurationListsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetProductConfigurationListsPageProductConfigurationList_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"productConfigurationLists",
+			new HashMap<String, Object>() {
+				{
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -2099,6 +2116,20 @@ public abstract class BaseProductConfigurationListResourceTestCase {
 			}
 
 			if (Objects.equals(
+					"parentProductConfigurationListExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (productConfigurationList.
+						getParentProductConfigurationListExternalReferenceCode() ==
+							null) {
+
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
 					"parentProductConfigurationListId",
 					additionalAssertFieldName)) {
 
@@ -2388,6 +2419,22 @@ public abstract class BaseProductConfigurationListResourceTestCase {
 				if (!Objects.deepEquals(
 						productConfigurationList1.getNeverExpire(),
 						productConfigurationList2.getNeverExpire())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals(
+					"parentProductConfigurationListExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						productConfigurationList1.
+							getParentProductConfigurationListExternalReferenceCode(),
+						productConfigurationList2.
+							getParentProductConfigurationListExternalReferenceCode())) {
 
 					return false;
 				}
@@ -2805,6 +2852,56 @@ public abstract class BaseProductConfigurationListResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals(
+				"parentProductConfigurationListExternalReferenceCode")) {
+
+			Object object =
+				productConfigurationList.
+					getParentProductConfigurationListExternalReferenceCode();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("parentProductConfigurationListId")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -2882,6 +2979,8 @@ public abstract class BaseProductConfigurationListResourceTestCase {
 				master = RandomTestUtil.randomBoolean();
 				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
 				neverExpire = RandomTestUtil.randomBoolean();
+				parentProductConfigurationListExternalReferenceCode =
+					StringUtil.toLowerCase(RandomTestUtil.randomString());
 				parentProductConfigurationListId = RandomTestUtil.randomLong();
 				priority = RandomTestUtil.randomDouble();
 			}
@@ -3160,4 +3259,4 @@ public abstract class BaseProductConfigurationListResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:278589690
+// LIFERAY-REST-BUILDER-HASH:183403122

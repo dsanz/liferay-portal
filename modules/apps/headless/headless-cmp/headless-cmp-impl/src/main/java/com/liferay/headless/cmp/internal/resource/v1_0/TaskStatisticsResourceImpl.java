@@ -16,11 +16,10 @@ import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.rest.filter.factory.FilterFactory;
 import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectEntryLocalService;
+import com.liferay.object.service.ObjectEntryService;
 import com.liferay.petra.sql.dsl.expression.Predicate;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
-import com.liferay.portal.kernel.search.filter.Filter;
-import com.liferay.portal.kernel.util.GetterUtil;
 
 import java.time.LocalDate;
 
@@ -41,8 +40,7 @@ import org.osgi.service.component.annotations.ServiceScope;
 public class TaskStatisticsResourceImpl extends BaseTaskStatisticsResourceImpl {
 
 	@Override
-	public TaskStatistics getProjectTaskStatistics(
-			Long projectId, Filter filter)
+	public TaskStatistics getProjectTaskStatistics(Long projectId)
 		throws Exception {
 
 		if (!FeatureFlagManagerUtil.isEnabled(
@@ -52,15 +50,14 @@ public class TaskStatisticsResourceImpl extends BaseTaskStatisticsResourceImpl {
 		}
 
 		return _toTaskStatistics(
-			_objectEntryLocalService.getObjectEntry(
-				GetterUtil.getLong(projectId)),
+			_objectEntryService.getObjectEntry(projectId),
 			_objectDefinitionLocalService.
 				getObjectDefinitionByExternalReferenceCode(
 					"L_CMP_TASK", contextCompany.getCompanyId()));
 	}
 
 	@Override
-	public TaskStatistics getTaskStatistics(Filter filter) throws Exception {
+	public TaskStatistics getTaskStatistics() throws Exception {
 		if (!FeatureFlagManagerUtil.isEnabled(
 				contextCompany.getCompanyId(), "LPD-58677")) {
 
@@ -75,51 +72,52 @@ public class TaskStatisticsResourceImpl extends BaseTaskStatisticsResourceImpl {
 	}
 
 	private long _getCount(
-			String filterString, ObjectEntry projectObjectEntry,
-			ObjectDefinition taskObjectDefinition)
+			ObjectEntry cmpProjectObjectEntry,
+			ObjectDefinition cmpTaskObjectDefinition, String filterString)
 		throws Exception {
 
 		List<Long> groupIds = new ArrayList<>();
 
-		if (projectObjectEntry == null) {
+		if (cmpProjectObjectEntry == null) {
 			groupIds = transform(
 				_depotEntryLocalService.getDepotEntries(
 					contextCompany.getCompanyId(), DepotConstants.TYPE_PROJECT),
 				DepotEntryModel::getGroupId);
 		}
 		else {
-			groupIds.add(projectObjectEntry.getGroupId());
+			groupIds.add(cmpProjectObjectEntry.getGroupId());
 		}
 
 		return _objectEntryLocalService.getValuesListCount(
 			groupIds.toArray(new Long[0]), 0, 0,
-			taskObjectDefinition.getObjectDefinitionId(),
-			_filterFactory.create(filterString, taskObjectDefinition), true,
+			cmpTaskObjectDefinition.getObjectDefinitionId(),
+			_filterFactory.create(filterString, cmpTaskObjectDefinition), true,
 			null);
 	}
 
 	private TaskStatistics _toTaskStatistics(
-		ObjectEntry projectObjectEntry, ObjectDefinition taskObjectDefinition) {
+		ObjectEntry cmpProjectObjectEntry,
+		ObjectDefinition cmpTaskObjectDefinition) {
 
 		return new TaskStatistics() {
 			{
 				setBlockedCount(
 					() -> _getCount(
-						"state eq 'blocked'", projectObjectEntry,
-						taskObjectDefinition));
+						cmpProjectObjectEntry, cmpTaskObjectDefinition,
+						"state eq 'blocked'"));
 				setInProgressCount(
 					() -> _getCount(
-						"state eq 'inProgress'", projectObjectEntry,
-						taskObjectDefinition));
+						cmpProjectObjectEntry, cmpTaskObjectDefinition,
+						"state eq 'inProgress'"));
 				setOverdueCount(
 					() -> _getCount(
+						cmpProjectObjectEntry, cmpTaskObjectDefinition,
 						"dueDate lt " + LocalDate.now() +
-							" and state ne 'done'",
-						projectObjectEntry, taskObjectDefinition));
+							" and state ne 'done'"));
 				setTotalCount(
 					() -> _getCount(
-						StringPool.BLANK, projectObjectEntry,
-						taskObjectDefinition));
+						cmpProjectObjectEntry, cmpTaskObjectDefinition,
+						StringPool.BLANK));
 			}
 		};
 	}
@@ -137,5 +135,8 @@ public class TaskStatisticsResourceImpl extends BaseTaskStatisticsResourceImpl {
 
 	@Reference
 	private ObjectEntryLocalService _objectEntryLocalService;
+
+	@Reference
+	private ObjectEntryService _objectEntryService;
 
 }

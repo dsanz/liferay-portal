@@ -5,33 +5,28 @@
 
 package com.liferay.analytics.reports.rest.resource.v1_0.test;
 
-import com.liferay.analytics.reports.rest.client.dto.v1_0.Trend.TrendClassification;
-import com.liferay.analytics.reports.rest.dto.v1_0.AssetMetric;
-import com.liferay.analytics.reports.rest.dto.v1_0.Metric;
-import com.liferay.analytics.reports.rest.dto.v1_0.Trend;
-import com.liferay.analytics.reports.rest.resource.v1_0.AssetMetricResource;
-import com.liferay.analytics.settings.configuration.AnalyticsConfiguration;
+import com.liferay.analytics.reports.rest.client.dto.v1_0.AssetMetric;
+import com.liferay.analytics.reports.rest.client.dto.v1_0.Metric;
+import com.liferay.analytics.reports.rest.client.dto.v1_0.Trend;
+import com.liferay.analytics.test.util.AnalyticsCloudHttpServer;
+import com.liferay.analytics.test.util.AnalyticsCompanyConfigurationTemporarySwapper;
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
-import com.liferay.portal.configuration.test.util.CompanyConfigurationTemporarySwapper;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.GroupLocalService;
-import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
-import com.liferay.portal.kernel.test.util.MockHttp;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
-import com.liferay.portal.kernel.test.util.TestPropsValues;
-import com.liferay.portal.kernel.util.HashMapDictionaryBuilder;
-import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.UnicodeProperties;
+import com.liferay.portal.test.log.LogCapture;
+import com.liferay.portal.test.log.LoggerTestUtil;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.net.HttpURLConnection;
 
-import org.junit.After;
+import java.util.Arrays;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.ClassRule;
@@ -56,61 +51,60 @@ public class AssetMetricResourceTest extends BaseAssetMetricResourceTestCase {
 	@Before
 	@Override
 	public void setUp() throws Exception {
-		Group group = _groupLocalService.getGroup(TestPropsValues.getGroupId());
+		super.setUp();
 
-		UnicodeProperties unicodeProperties = group.getTypeSettingsProperties();
+		UnicodeProperties unicodeProperties =
+			testGroup.getTypeSettingsProperties();
 
 		unicodeProperties.setProperty(
 			"analyticsChannelId", String.valueOf(RandomTestUtil.randomInt()));
 
-		group.setTypeSettingsProperties(unicodeProperties);
+		testGroup.setTypeSettingsProperties(unicodeProperties);
 
-		_group = _groupLocalService.updateGroup(group);
-	}
-
-	@After
-	@Override
-	public void tearDown() throws Exception {
-		UnicodeProperties unicodeProperties =
-			_group.getTypeSettingsProperties();
-
-		unicodeProperties.remove("analyticsChannelId");
-
-		_group = _groupLocalService.updateGroup(_group);
+		testGroup = _groupLocalService.updateGroup(testGroup);
 	}
 
 	@Override
 	@Test
 	public void testGetGroupAssetMetric() throws Exception {
-		try (CompanyConfigurationTemporarySwapper
-				companyConfigurationTemporarySwapper =
-					new CompanyConfigurationTemporarySwapper(
-						TestPropsValues.getCompanyId(),
-						AnalyticsConfiguration.class.getName(),
-						HashMapDictionaryBuilder.<String, Object>put(
-							"liferayAnalyticsDataSourceId",
-							RandomTestUtil.nextLong()
-						).put(
-							"liferayAnalyticsEnableAllGroupIds", true
-						).put(
-							"liferayAnalyticsFaroBackendSecuritySignature",
-							RandomTestUtil.randomString()
-						).put(
-							"liferayAnalyticsFaroBackendURL",
-							"http://" + RandomTestUtil.randomString()
-						).build())) {
+		_testGetGroupAssetMetric();
+		_testGetGroupAssetMetricWithAnalyticsCloudNotConnected();
+	}
 
-			ReflectionTestUtil.setFieldValue(
-				_assetMetricResource, "_http",
-				new MockHttp(
-					Collections.singletonMap(
-						"/api/1.0/asset-metric/blog",
-						() -> JSONUtil.put(
-							"assetId", "1"
+	@Ignore
+	@Override
+	@Test
+	public void testGraphQLGetGroupAssetMetric() throws Exception {
+		super.testGraphQLGetGroupAssetMetric();
+	}
+
+	private void _testGetGroupAssetMetric() throws Exception {
+		try (AnalyticsCloudHttpServer analyticsCloudHttpServer =
+				new AnalyticsCloudHttpServer(
+					"/api/1.0/asset-metric/blog",
+					() -> JSONUtil.put(
+						"assetId", "1"
+					).put(
+						"assetType", "blog"
+					).put(
+						"defaultMetric",
+						JSONUtil.put(
+							"metricType", "VIEWS"
 						).put(
-							"assetType", "blog"
+							"previousValue", 1
 						).put(
-							"defaultMetric",
+							"trend",
+							JSONUtil.put(
+								"percentage", 100
+							).put(
+								"trendClassification", "POSITIVE"
+							)
+						).put(
+							"value", 1
+						)
+					).put(
+						"selectedMetrics",
+						JSONUtil.put(
 							JSONUtil.put(
 								"metricType", "VIEWS"
 							).put(
@@ -124,28 +118,18 @@ public class AssetMetricResourceTest extends BaseAssetMetricResourceTestCase {
 								)
 							).put(
 								"value", 1
-							)
-						).put(
-							"selectedMetrics",
-							JSONUtil.put(
-								JSONUtil.put(
-									"metricType", "VIEWS"
-								).put(
-									"previousValue", 1
-								).put(
-									"trend",
-									JSONUtil.put(
-										"percentage", 100
-									).put(
-										"trendClassification", "POSITIVE"
-									)
-								).put(
-									"value", 1
-								))
-						).toString())));
+							))
+					).toString());
 
-			AssetMetric assetMetric = _assetMetricResource.getGroupAssetMetric(
-				TestPropsValues.getGroupId(), "blog", "1", "ALL", 30,
+			AnalyticsCompanyConfigurationTemporarySwapper
+				analyticsCompanyConfigurationTemporarySwapper =
+					new AnalyticsCompanyConfigurationTemporarySwapper(
+						testCompany.getCompanyId(),
+						RandomTestUtil.randomString(), true,
+						analyticsCloudHttpServer.getURL())) {
+
+			AssetMetric assetMetric = assetMetricResource.getGroupAssetMetric(
+				testGroup.getGroupId(), "blog", "1", "ALL", 30,
 				new String[] {"viewsMetric"});
 
 			Assert.assertEquals("1", assetMetric.getAssetId());
@@ -160,7 +144,7 @@ public class AssetMetricResourceTest extends BaseAssetMetricResourceTestCase {
 
 			Assert.assertEquals(100, trend.getPercentage(), 0);
 			Assert.assertEquals(
-				TrendClassification.POSITIVE.toString(),
+				Trend.TrendClassification.POSITIVE.toString(),
 				String.valueOf(trend.getTrendClassification()));
 
 			Metric[] selectedMetrics = assetMetric.getSelectedMetrics();
@@ -177,31 +161,32 @@ public class AssetMetricResourceTest extends BaseAssetMetricResourceTestCase {
 
 			Assert.assertEquals(100, trend.getPercentage(), 0);
 			Assert.assertEquals(
-				TrendClassification.POSITIVE.toString(),
+				Trend.TrendClassification.POSITIVE.toString(),
 				String.valueOf(trend.getTrendClassification()));
 		}
-		finally {
-			ReflectionTestUtil.setFieldValue(
-				_assetMetricResource, "_http", _http);
+	}
+
+	private void _testGetGroupAssetMetricWithAnalyticsCloudNotConnected()
+		throws Exception {
+
+		try (AnalyticsCompanyConfigurationTemporarySwapper
+				analyticsCompanyConfigurationTemporarySwapper =
+					new AnalyticsCompanyConfigurationTemporarySwapper(
+						testCompany.getCompanyId(), StringPool.BLANK);
+			LogCapture logCapture = LoggerTestUtil.configureLog4JLogger(
+				"com.liferay.portal.vulcan.internal.jaxrs.exception.mapper." +
+					"WebApplicationExceptionMapper",
+				LoggerTestUtil.WARN)) {
+
+			assertHttpResponseStatusCode(
+				HttpURLConnection.HTTP_FORBIDDEN,
+				assetMetricResource.getGroupAssetMetricHttpResponse(
+					testGroup.getGroupId(), "blog", "1", "ALL", 30,
+					new String[] {"viewsMetric"}));
 		}
 	}
-
-	@Ignore
-	@Override
-	@Test
-	public void testGraphQLGetGroupAssetMetric() throws Exception {
-		super.testGraphQLGetGroupAssetMetric();
-	}
-
-	@Inject
-	private AssetMetricResource _assetMetricResource;
-
-	private Group _group;
 
 	@Inject
 	private GroupLocalService _groupLocalService;
-
-	@Inject
-	private Http _http;
 
 }

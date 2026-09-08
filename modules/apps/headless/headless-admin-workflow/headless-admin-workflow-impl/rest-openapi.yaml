@@ -92,7 +92,7 @@ components:
                     # @review
                     description:
                         The workflow's node types.
-                    enum: [AI_DECISION, CONDITION, FORK, HTTP_REQUEST, INITIAL_STATE, JOIN, JOIN_XOR, LLM, STATE, TASK, TERMINAL_STATE]
+                    enum: [AI_DECISION, AI_HUB_AGENT, CONDITION, FORK, HTTP_REQUEST, INITIAL_STATE, JOIN, JOIN_XOR, LLM, SERVICE, STATE, TASK, TERMINAL_STATE]
                     readOnly: true
                     type: string
             type: object
@@ -242,6 +242,8 @@ components:
                     type: array
                 scope:
                     type: string
+                system:
+                    type: boolean
                 title:
                     type: string
                 title_i18n:
@@ -689,7 +691,7 @@ components:
             type: object
 info:
     description:
-        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.admin.workflow.client', and version '4.0.49'."
+        "A Java client JAR is available for use with the group ID 'com.liferay', artifact ID 'com.liferay.headless.admin.workflow.client', and version '4.0.51'."
     license:
         name: Apache 2.0
         url: http://www.apache.org/licenses/LICENSE-2.0.html

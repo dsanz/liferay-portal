@@ -6,6 +6,7 @@
 package com.liferay.style.book.service.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -154,6 +155,107 @@ public class StyleBookEntryLocalServiceTest {
 		Assert.assertNull(
 			_styleBookEntryLocalService.fetchStyleBookEntry(
 				styleBookEntry.getStyleBookEntryId()));
+	}
+
+	@Test
+	public void testUpdateDefaultStyleBookEntry() throws Exception {
+		String themeId = RandomTestUtil.randomString();
+
+		StyleBookEntry styleBookEntry1 =
+			_styleBookEntryLocalService.addStyleBookEntry(
+				RandomTestUtil.randomString(), TestPropsValues.getUserId(),
+				_group.getGroupId(), true, null, RandomTestUtil.randomString(),
+				null, themeId, _serviceContext);
+
+		Assert.assertTrue(styleBookEntry1.isDefaultStyleBookEntry());
+
+		StyleBookEntry draftStyleBookEntry =
+			_styleBookEntryLocalService.getDraft(styleBookEntry1);
+
+		Assert.assertTrue(draftStyleBookEntry.isDefaultStyleBookEntry());
+
+		StyleBookEntry styleBookEntry2 =
+			_styleBookEntryLocalService.addStyleBookEntry(
+				RandomTestUtil.randomString(), TestPropsValues.getUserId(),
+				_group.getGroupId(), false, null, RandomTestUtil.randomString(),
+				null, themeId, _serviceContext);
+
+		Assert.assertFalse(styleBookEntry2.isDefaultStyleBookEntry());
+
+		styleBookEntry2 =
+			_styleBookEntryLocalService.updateDefaultStyleBookEntry(
+				styleBookEntry2.getStyleBookEntryId(), true);
+
+		Assert.assertTrue(styleBookEntry2.isDefaultStyleBookEntry());
+
+		styleBookEntry1 = _styleBookEntryLocalService.getStyleBookEntry(
+			styleBookEntry1.getStyleBookEntryId());
+
+		Assert.assertFalse(styleBookEntry1.isDefaultStyleBookEntry());
+
+		draftStyleBookEntry = _styleBookEntryLocalService.getDraft(
+			styleBookEntry1);
+
+		Assert.assertFalse(draftStyleBookEntry.isDefaultStyleBookEntry());
+	}
+
+	@Test
+	public void testUpdateFrontendTokenDefinition() throws Exception {
+		StyleBookEntry styleBookEntry =
+			_styleBookEntryLocalService.addStyleBookEntry(
+				RandomTestUtil.randomString(), TestPropsValues.getUserId(),
+				_group.getGroupId(), false, null, RandomTestUtil.randomString(),
+				null, RandomTestUtil.randomString(), _serviceContext);
+
+		long styleBookEntryId = styleBookEntry.getStyleBookEntryId();
+
+		String frontendTokenDefinition = JSONUtil.put(
+			"frontendTokenCategories",
+			JSONUtil.putAll(
+				JSONUtil.put(
+					"frontendTokenSets",
+					JSONUtil.putAll(
+						JSONUtil.put(
+							"frontendTokens",
+							JSONUtil.putAll(
+								JSONUtil.put(
+									"defaultValue",
+									RandomTestUtil.randomString()
+								).put(
+									"editorType", "ColorPicker"
+								).put(
+									"label", RandomTestUtil.randomString()
+								).put(
+									"mappings",
+									JSONUtil.putAll(
+										JSONUtil.put(
+											"type", "cssVariable"
+										).put(
+											"value",
+											RandomTestUtil.randomString()
+										))
+								).put(
+									"name", RandomTestUtil.randomString()
+								).put(
+									"type", "String"
+								))
+						).put(
+							"label", RandomTestUtil.randomString()
+						).put(
+							"name", RandomTestUtil.randomString()
+						))
+				).put(
+					"name", RandomTestUtil.randomString()
+				))
+		).toString();
+
+		styleBookEntry =
+			_styleBookEntryLocalService.updateFrontendTokenDefinition(
+				styleBookEntryId, frontendTokenDefinition);
+
+		Assert.assertEquals(
+			frontendTokenDefinition,
+			styleBookEntry.getFrontendTokenDefinition());
 	}
 
 	@DeleteAfterTestRun

@@ -11,6 +11,7 @@ import com.liferay.object.service.ObjectEntryFolderLocalService;
 import com.liferay.petra.string.CharPool;
 import com.liferay.portal.kernel.search.Document;
 import com.liferay.portal.kernel.search.Field;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.search.spi.model.index.contributor.ModelDocumentContributor;
@@ -42,18 +43,26 @@ public class ObjectEntryFolderModelDocumentContributor
 		String[] parts = StringUtil.split(
 			objectEntryFolder.getTreePath(), CharPool.SLASH);
 
-		document.addKeyword(Field.TREE_PATH, parts);
+		if (parts.length > 1) {
+			document.addKeyword(
+				Field.TREE_PATH, ArrayUtil.subset(parts, 0, parts.length - 1));
+		}
 
 		String cmsSection = _getCMSSection(parts);
 
 		if (cmsSection != null) {
-			document.addKeyword("cms_kind", "folder");
 			document.addKeyword("cms_root", parts.length == 3);
 			document.addKeyword("cms_section", cmsSection);
+			document.addKeyword(
+				"objectDefinitionExternalReferenceCode",
+				ObjectEntryFolderConstants.
+					EXTERNAL_REFERENCE_CODE_OBJECT_ENTRY_FOLDER,
+				true);
 		}
 
 		document.addLocalizedKeyword(
 			"localized_label", objectEntryFolder.getLabelMap(), true, true);
+		document.addKeyword("rootDescendantNode", false);
 	}
 
 	private String _getCMSSection(String[] parts) {

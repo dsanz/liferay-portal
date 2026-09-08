@@ -90,12 +90,12 @@ public class CollectionLayoutStructureItemImporter
 					collectionConfig, layoutStructureItemImporterContext));
 		}
 
-		if (definitionMap.containsKey("collectionViewports")) {
-			List<Map<String, Object>> collectionViewports =
-				(List<Map<String, Object>>)definitionMap.get(
-					"collectionViewports");
+		if (definitionMap.get("collectionViewports") instanceof
+				List<?> collectionViewports) {
 
-			for (Map<String, Object> collectionViewport : collectionViewports) {
+			for (Map<String, Object> collectionViewport :
+					(List<Map<String, Object>>)collectionViewports) {
+
 				_processCollectionViewportDefinition(
 					collectionStyledLayoutStructureItem,
 					(Map<String, Object>)collectionViewport.get(
@@ -161,12 +161,12 @@ public class CollectionLayoutStructureItemImporter
 		collectionStyledLayoutStructureItem.setTemplateKey(
 			(String)definitionMap.get("templateKey"));
 
-		if (definitionMap.containsKey("fragmentViewports")) {
-			List<Map<String, Object>> fragmentViewports =
-				(List<Map<String, Object>>)definitionMap.get(
-					"fragmentViewports");
+		if (definitionMap.get("fragmentViewports") instanceof
+				List<?> fragmentViewports) {
 
-			for (Map<String, Object> fragmentViewport : fragmentViewports) {
+			for (Map<String, Object> fragmentViewport :
+					(List<Map<String, Object>>)fragmentViewports) {
+
 				JSONObject jsonObject = JSONUtil.put(
 					(String)fragmentViewport.get("id"),
 					toFragmentViewportStylesJSONObject(fragmentViewport));
@@ -205,9 +205,10 @@ public class CollectionLayoutStructureItemImporter
 			}
 		}
 
-		if (definitionMap.containsKey("name")) {
-			collectionStyledLayoutStructureItem.setName(
-				GetterUtil.getString(definitionMap.get("name")));
+		String name = GetterUtil.getString(definitionMap.get("name"), null);
+
+		if (name != null) {
+			collectionStyledLayoutStructureItem.setName(name);
 		}
 
 		return collectionStyledLayoutStructureItem;
@@ -346,14 +347,16 @@ public class CollectionLayoutStructureItemImporter
 			{
 				setDisplayMessage(
 					() -> {
-						if (!emptyCollectionConfig.containsKey(
-								"displayMessage")) {
+						Map.Entry<String, Object> displayMessageEntry =
+							MapUtil.getEntry(
+								emptyCollectionConfig, "displayMessage");
 
+						if (displayMessageEntry == null) {
 							return null;
 						}
 
 						return GetterUtil.getBoolean(
-							emptyCollectionConfig.get("displayMessage"), true);
+							displayMessageEntry.getValue(), true);
 					});
 				setMessage(
 					() -> (Map<String, String>)emptyCollectionConfig.get(
@@ -389,14 +392,16 @@ public class CollectionLayoutStructureItemImporter
 			JSONUtil.put(
 				"numberOfColumns",
 				() -> {
-					if (!collectionViewportDefinitionMap.containsKey(
-							"numberOfColumns")) {
+					Map.Entry<String, Object> numberOfColumnsEntry =
+						MapUtil.getEntry(
+							collectionViewportDefinitionMap, "numberOfColumns");
 
+					if (numberOfColumnsEntry == null) {
 						return null;
 					}
 
 					return GetterUtil.getInteger(
-						collectionViewportDefinitionMap.get("numberOfColumns"));
+						numberOfColumnsEntry.getValue());
 				}));
 	}
 

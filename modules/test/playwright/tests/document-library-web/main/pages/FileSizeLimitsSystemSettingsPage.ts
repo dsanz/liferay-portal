@@ -7,15 +7,18 @@ import {Locator, Page} from '@playwright/test';
 
 import {SystemSettingsPage} from '../../../../pages/configuration-admin-web/SystemSettingsPage';
 import {waitForAlert} from '../../../../utils/waitForAlert';
+import {FileSizeMimetypesForm} from './FileSizeMimetypesForm';
 
 export class FileSizeLimitsSystemSettingsPage {
+	readonly mimeTypes: FileSizeMimetypesForm;
 	readonly page: Page;
 	readonly saveButton: Locator;
 	readonly systemSettingsPage: SystemSettingsPage;
 
 	constructor(page: Page) {
+		this.mimeTypes = new FileSizeMimetypesForm(page);
 		this.page = page;
-		this.saveButton = page.getByRole('button', {name: 'Save'});
+		this.saveButton = page.getByTestId('submitConfiguration');
 		this.systemSettingsPage = new SystemSettingsPage(page);
 	}
 
@@ -31,6 +34,14 @@ export class FileSizeLimitsSystemSettingsPage {
 		await inputField.click();
 		await inputField.fill(value);
 
+		await this.save();
+	}
+
+	async resetToDefaultValues() {
+		await this.systemSettingsPage.resetToDefaultValues();
+	}
+
+	async save() {
 		await this.saveButton.click();
 		await waitForAlert(this.page);
 	}

@@ -18,21 +18,21 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
 import java.util.Enumeration;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -57,6 +57,9 @@ public class MirrorsGetTask extends Task {
 		}
 		catch (IOException ioException) {
 			throw new BuildException(ioException);
+		}
+		finally {
+			_deleteReadLinkFiles();
 		}
 	}
 
@@ -117,6 +120,10 @@ public class MirrorsGetTask extends Task {
 		_src = project.replaceProperties(src);
 
 		if (_src.startsWith("file:")) {
+			File file = new File(_src.substring("file:".length()));
+
+			_fileName = file.getName();
+
 			return;
 		}
 
@@ -150,7 +157,7 @@ public class MirrorsGetTask extends Task {
 				_hostName = "storage.googleapis.com";
 			}
 
-			_path = matcher.group("path");
+			_path = _normalizePath(matcher.group("path"));
 
 			return;
 		}
@@ -213,6 +220,28 @@ public class MirrorsGetTask extends Task {
 		_verbose = verbose;
 	}
 
+	private File _addToCache(File tempFile, File cacheFile) throws IOException {
+		try {
+			Files.createLink(cacheFile.toPath(), tempFile.toPath());
+
+			return tempFile;
+		}
+		catch (IOException | UnsupportedOperationException exception) {
+			if (cacheFile.exists()) {
+				System.out.println(
+					cacheFile.getPath() + " was already cached.");
+
+				return tempFile;
+			}
+
+			if (_moveFile(tempFile, cacheFile)) {
+				return cacheFile;
+			}
+
+			return tempFile;
+		}
+	}
+
 	private void _copyFile(File sourceFile, File targetFile)
 		throws IOException {
 
@@ -226,11 +255,17 @@ public class MirrorsGetTask extends Task {
 
 		System.out.println(sb.toString());
 
-		URI sourceFileURI = sourceFile.toURI();
+		File readLinkFile = _getReadLinkFile(sourceFile);
+
+		if (readLinkFile == null) {
+			readLinkFile = sourceFile;
+		}
+
+		URI readLinkFileURI = readLinkFile.toURI();
 
 		long time = System.currentTimeMillis();
 
-		int size = _toFile(sourceFileURI.toURL(), targetFile);
+		int size = _toFile(readLinkFileURI.toString(), targetFile);
 
 		if (_verbose) {
 			sb = new StringBuilder();
@@ -245,7 +280,140 @@ public class MirrorsGetTask extends Task {
 		}
 	}
 
+	private boolean _copyFromMirrorsMount(File targetFile) throws IOException {
+		File mirrorsMountFile = _getMirrorsMountFile();
+
+		if (!mirrorsMountFile.isFile()) {
+			return false;
+		}
+
+		try {
+			_copyFile(mirrorsMountFile, targetFile);
+		}
+		catch (IOException ioException) {
+			if (_verbose) {
+				System.out.println(
+					"Unable to copy from mirrors mount " +
+						mirrorsMountFile.getPath() + ".");
+			}
+		}
+
+		if (_isValidFile(targetFile)) {
+			return true;
+		}
+
+		_deleteFile(targetFile);
+
+		return false;
+	}
+
+	private void _copyFromSrc(File targetFile) throws IOException {
+		if (_tryLocalNetwork && _copyFromMirrorsMount(targetFile)) {
+			return;
+		}
+
+		IOException ioException1 = null;
+
+		for (String url : _getSrcURLs()) {
+			if (url == null) {
+				continue;
+			}
+
+			try {
+				_downloadFile(url, targetFile, _retries);
+
+				return;
+			}
+			catch (IOException ioException2) {
+				ioException1 = ioException2;
+
+				if (_verbose) {
+					System.out.println("Unable to connect to " + url + ".");
+				}
+			}
+		}
+
+		throw new IOException(
+			_getUnableToCopyMessage(targetFile), ioException1);
+	}
+
+	private boolean _copyToDest(File file) throws IOException {
+		if (!file.exists()) {
+			return false;
+		}
+
+		File destFile = _dest;
+
+		if (_dest.exists() && _dest.isDirectory()) {
+			destFile = new File(_dest, _fileName);
+		}
+
+		_copyFile(file, destFile);
+
+		if (_isValidFile(destFile)) {
+			return true;
+		}
+
+		_deleteFile(destFile);
+
+		File readLinkFile = _getReadLinkFile(file);
+
+		if (readLinkFile == null) {
+			readLinkFile = file;
+		}
+
+		if (!_isValidFile(readLinkFile)) {
+			return false;
+		}
+
+		throw new IOException(
+			destFile.getAbsolutePath() + " is not a valid file");
+	}
+
+	private void _deleteExpiredTempFiles(File cacheFile) {
+		File parentFile = cacheFile.getParentFile();
+
+		if (parentFile == null) {
+			return;
+		}
+
+		File[] files = parentFile.listFiles();
+
+		if (files == null) {
+			return;
+		}
+
+		Pattern pattern = _getTempFilePattern(cacheFile.getName());
+		long thresholdTime = System.currentTimeMillis() - _MAX_AGE_MILLIS;
+
+		for (File file : files) {
+			Matcher matcher = pattern.matcher(file.getName());
+
+			if (!matcher.matches()) {
+				continue;
+			}
+
+			long time = Long.parseLong(matcher.group("timestamp"));
+
+			if (time > thresholdTime) {
+				continue;
+			}
+
+			file.delete();
+		}
+	}
+
 	private void _deleteFile(File file) {
+		if (file == null) {
+			return;
+		}
+
+		File readLinkFile = _readLinkFiles.remove(file);
+
+		if (readLinkFile != null) {
+			readLinkFile.delete();
+		}
+
 		if (!file.exists()) {
 			return;
 		}
@@ -263,13 +431,19 @@ public class MirrorsGetTask extends Task {
 		file.delete();
 	}
 
-	private void _downloadFile(URL sourceURL, File targetFile)
-		throws IOException {
+	private void _deleteReadLinkFiles() {
+		for (File readLinkFile : _readLinkFiles.values()) {
+			readLinkFile.delete();
+		}
 
+		_readLinkFiles.clear();
+	}
+
+	private void _downloadFile(String url, File targetFile) throws IOException {
 		StringBuilder sb = new StringBuilder();
 
 		sb.append("Downloading ");
-		sb.append(sourceURL.toExternalForm());
+		sb.append(url);
 		sb.append(" to ");
 		sb.append(targetFile.getPath());
 		sb.append(".");
@@ -281,7 +455,7 @@ public class MirrorsGetTask extends Task {
 		int size = 0;
 
 		try {
-			size = _toFile(sourceURL, targetFile);
+			size = _toFile(url, targetFile);
 		}
 		catch (IOException ioException) {
 			_deleteFile(targetFile);
@@ -295,7 +469,7 @@ public class MirrorsGetTask extends Task {
 			sb = new StringBuilder();
 
 			sb.append("Downloaded ");
-			sb.append(sourceURL.toExternalForm());
+			sb.append(url);
 			sb.append(". ");
 			sb.append(size);
 			sb.append(" bytes in ");
@@ -305,52 +479,42 @@ public class MirrorsGetTask extends Task {
 			System.out.println(sb.toString());
 		}
 
-		if (!_isValidMD5(
-				targetFile, new URL(sourceURL.toExternalForm() + ".md5"))) {
-
+		if (!_isValidMD5(targetFile, url + ".md5")) {
 			_deleteFile(targetFile);
 
 			throw new IOException(
 				targetFile.getAbsolutePath() + " failed checksum");
 		}
 
-		if (_isTarGzFileName(targetFile.getName()) &&
-			!_isTarGzFile(targetFile)) {
-
+		if (!_isValidFile(targetFile)) {
 			_deleteFile(targetFile);
 
 			throw new IOException(
-				targetFile.getAbsolutePath() + " is an invalid TAR GZ file");
-		}
-
-		if (_isZipFileName(targetFile.getName()) && !_isZipFile(targetFile)) {
-			_deleteFile(targetFile);
-
-			throw new IOException(
-				targetFile.getAbsolutePath() + " is an invalid ZIP file");
-		}
-
-		if (_is7zFileName(targetFile.getName()) && !_is7zFile(targetFile)) {
-			_deleteFile(targetFile);
-
-			throw new IOException(
-				targetFile.getAbsolutePath() + " is an invalid 7z file");
+				targetFile.getAbsolutePath() + " is not a valid file");
 		}
 	}
 
-	private void _downloadFile(URL sourceURL, File targetFile, int retries)
+	private void _downloadFile(String url, File targetFile, int retries)
 		throws IOException {
+
+		Matcher matcher = _gsURLPattern.matcher(url);
+
+		if (matcher.matches()) {
+			_downloadGCPFile(url, targetFile);
+
+			return;
+		}
 
 		if (retries > 0) {
 			for (int i = 0; i < retries; i++) {
 				try {
-					_downloadFile(sourceURL, targetFile);
+					_downloadFile(url, targetFile);
 
 					return;
 				}
 				catch (IOException ioException) {
 					System.out.println(
-						"Unable to connect to " + sourceURL +
+						"Unable to connect to " + url +
 							", will retry in 10 seconds.");
 
 					try {
@@ -362,16 +526,10 @@ public class MirrorsGetTask extends Task {
 			}
 		}
 
-		_downloadFile(sourceURL, targetFile);
+		_downloadFile(url, targetFile);
 	}
 
-	private void _downloadGCPFile(File targetFile) {
-		String gsURL = _getGSURL();
-
-		if (gsURL == null) {
-			return;
-		}
-
+	private void _downloadGCPFile(String gsURL, File targetFile) {
 		File gcpCredentialsFile = _getGCPCredentialsFile();
 
 		try {
@@ -396,13 +554,6 @@ public class MirrorsGetTask extends Task {
 					"gcloud", "storage", "cp", gsURL, targetFile.toString()
 				});
 
-			if (process.exitValue() == 0) {
-				return;
-			}
-
-			process = _executeCommands(
-				new String[] {"gsutil", "cp", gsURL, targetFile.toString()});
-
 			if (process.exitValue() != 0) {
 				System.out.println(
 					"Unable to download file from " + gsURL + ".");
@@ -420,15 +571,9 @@ public class MirrorsGetTask extends Task {
 
 	private void _execute() throws IOException {
 		if (_src.startsWith("file:")) {
-			File srcFile = new File(_src.substring("file:".length()));
-
-			File targetFile = _dest;
-
-			if (_dest.exists() && _dest.isDirectory()) {
-				targetFile = new File(_dest, srcFile.getName());
+			if (!_copyToDest(new File(_src.substring("file:".length())))) {
+				throw new IOException(_getUnableToCopyMessage(_dest));
 			}
-
-			_copyFile(srcFile, targetFile);
 
 			return;
 		}
@@ -447,112 +592,33 @@ public class MirrorsGetTask extends Task {
 
 		File mirrorsCacheFile = _getMirrorsCacheFile();
 
-		File mirrorsCacheTempFile = new File(
-			mirrorsCacheFile.getParentFile(),
-			System.currentTimeMillis() + mirrorsCacheFile.getName());
+		_deleteExpiredTempFiles(mirrorsCacheFile);
 
-		if (mirrorsCacheFile.exists() && !_force) {
-			if (_is7zFileName(_fileName)) {
-				_force = !_is7zFile(mirrorsCacheFile);
+		if (!_force) {
+			if (_copyToDest(mirrorsCacheFile)) {
+				return;
 			}
-			else if (_isTarGzFileName(_fileName)) {
-				_force = !_isTarGzFile(mirrorsCacheFile);
-			}
-			else if (_isZipFileName(_fileName)) {
-				_force = !_isZipFile(mirrorsCacheFile);
+
+			if (_isReadLinkFile(mirrorsCacheFile)) {
+				_deleteFile(mirrorsCacheFile);
 			}
 		}
 
-		if (mirrorsCacheFile.exists() && _force) {
-			_deleteFile(mirrorsCacheFile);
-		}
+		File tempFile = _generateTempFile(mirrorsCacheFile);
 
-		if (mirrorsCacheTempFile.exists()) {
-			_deleteFile(mirrorsCacheTempFile);
-		}
+		try {
+			_copyFromSrc(tempFile);
 
-		if (!mirrorsCacheFile.exists()) {
-			if (_tryLocalNetwork) {
-				File mirrorsMountFile = _getMirrorsMountFile();
-
-				if (mirrorsMountFile.isFile()) {
-					try {
-						_copyFile(mirrorsMountFile, mirrorsCacheTempFile);
-					}
-					catch (IOException ioException) {
-						_deleteFile(mirrorsCacheTempFile);
-
-						if (_verbose) {
-							System.out.println(
-								"Unable to copy from mirrors mount " +
-									mirrorsMountFile.getPath() + ".");
-						}
-					}
-				}
+			if (_force) {
+				_deleteFile(mirrorsCacheFile);
 			}
 
-			if (!mirrorsCacheTempFile.exists()) {
-				List<URL> urls = new ArrayList<>();
-
-				if (_tryLocalNetwork) {
-					String mirrorsHostname = _getMirrorsHostname();
-					URL nexusTomcatURL = _getNexusTomcatURL();
-
-					if (nexusTomcatURL != null) {
-						urls.add(nexusTomcatURL);
-					}
-					else if (!mirrorsHostname.isEmpty()) {
-						urls.add(_getMirrorsURL());
-					}
-				}
-
-				urls.add(_getLocalURL());
-
-				urls.removeAll(Collections.singleton(null));
-
-				for (URL url : urls) {
-					try {
-						_downloadFile(url, mirrorsCacheTempFile, _retries);
-					}
-					catch (IOException ioException) {
-						if (_verbose) {
-							System.out.println(
-								"Unable to connect to " + url + ".");
-						}
-					}
-
-					if (mirrorsCacheTempFile.exists()) {
-						break;
-					}
-				}
-
-				if (!mirrorsCacheTempFile.exists()) {
-					_downloadGCPFile(mirrorsCacheTempFile);
-
-					if (!mirrorsCacheTempFile.exists()) {
-						URL remoteURL = _getRemoteURL();
-
-						try {
-							_downloadFile(
-								remoteURL, mirrorsCacheTempFile, _retries);
-						}
-						catch (IOException ioException) {
-							_deleteFile(mirrorsCacheTempFile);
-
-							throw ioException;
-						}
-					}
-				}
+			if (!_copyToDest(_addToCache(tempFile, mirrorsCacheFile))) {
+				throw new IOException(_getUnableToCopyMessage(_dest));
 			}
-
-			_moveFile(mirrorsCacheTempFile, mirrorsCacheFile);
 		}
-
-		if (_dest.exists() && _dest.isDirectory()) {
-			_copyFile(mirrorsCacheFile, new File(_dest, _fileName));
-		}
-		else {
-			_copyFile(mirrorsCacheFile, _dest);
+		finally {
+			_deleteFile(tempFile);
 		}
 	}
 
@@ -566,6 +632,42 @@ public class MirrorsGetTask extends Task {
 		process.waitFor();
 
 		return process;
+	}
+
+	private File _generateTempFile(File baseFile) {
+		String fileName = baseFile.getName();
+
+		Matcher matcher = _tempFileNamePattern.matcher(fileName);
+
+		if (matcher.matches()) {
+			fileName = matcher.group("fileName");
+		}
+
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(System.currentTimeMillis());
+		sb.append("-");
+		sb.append(UUID.randomUUID());
+		sb.append("-");
+		sb.append(fileName);
+
+		File tempFile = new File(baseFile.getParentFile(), sb.toString());
+
+		tempFile.deleteOnExit();
+
+		return tempFile;
+	}
+
+	private Object _getFileKey(File file) {
+		try {
+			BasicFileAttributes basicFileAttributes = Files.readAttributes(
+				file.toPath(), BasicFileAttributes.class);
+
+			return basicFileAttributes.fileKey();
+		}
+		catch (IOException ioException) {
+			return null;
+		}
 	}
 
 	private String _getGCPBucketName() {
@@ -642,7 +744,7 @@ public class MirrorsGetTask extends Task {
 		return "gs://" + gcpBucketName + path + "/" + _fileName;
 	}
 
-	private URL _getLocalURL() {
+	private String _getLocalURL() {
 		StringBuilder sb = new StringBuilder();
 
 		Matcher releaseHostNameMatcher = _releaseHostNamePattern.matcher(
@@ -674,12 +776,7 @@ public class MirrorsGetTask extends Task {
 
 		sb.append(_fileName);
 
-		try {
-			return new URL(sb.toString());
-		}
-		catch (MalformedURLException malformedURLException) {
-			throw new RuntimeException(malformedURLException);
-		}
+		return sb.toString();
 	}
 
 	private File _getMirrorsCacheFile() {
@@ -726,7 +823,7 @@ public class MirrorsGetTask extends Task {
 		return new File(sb.toString(), _fileName);
 	}
 
-	private URL _getMirrorsURL() {
+	private String _getMirrorsURL() {
 		String mirrorsHostname = _getMirrorsHostname();
 
 		if (mirrorsHostname.isEmpty()) {
@@ -750,17 +847,17 @@ public class MirrorsGetTask extends Task {
 
 		sb.append(_fileName);
 
-		try {
-			return new URL(sb.toString());
-		}
-		catch (MalformedURLException malformedURLException) {
-			throw new RuntimeException(malformedURLException);
-		}
+		return sb.toString();
 	}
 
-	private URL _getNexusTomcatURL() {
-		Matcher matcher = _nexusTomcatURLPattern.matcher(
-			String.valueOf(_getRemoteURL()));
+	private String _getNexusTomcatURL() {
+		String remoteURL = _getRemoteURL();
+
+		if (remoteURL == null) {
+			return null;
+		}
+
+		Matcher matcher = _nexusTomcatURLPattern.matcher(remoteURL);
 
 		if (!matcher.find()) {
 			return null;
@@ -775,12 +872,7 @@ public class MirrorsGetTask extends Task {
 		sb.append("/");
 		sb.append(matcher.group("tomcatFileName"));
 
-		try {
-			return new URL(sb.toString());
-		}
-		catch (MalformedURLException malformedURLException) {
-			throw new RuntimeException(malformedURLException);
-		}
+		return sb.toString();
 	}
 
 	private String _getPassword() {
@@ -847,7 +939,28 @@ public class MirrorsGetTask extends Task {
 		return processOutput.toString();
 	}
 
-	private URL _getRemoteURL() {
+	private File _getReadLinkFile(File file) {
+		File readLinkFile = _readLinkFiles.get(file);
+
+		if (readLinkFile != null) {
+			return readLinkFile;
+		}
+
+		readLinkFile = _generateTempFile(file);
+
+		try {
+			Files.createLink(readLinkFile.toPath(), file.toPath());
+		}
+		catch (IOException | UnsupportedOperationException exception) {
+			return null;
+		}
+
+		_readLinkFiles.put(file, readLinkFile);
+
+		return readLinkFile;
+	}
+
+	private String _getRemoteURL() {
 		if (_hostName == null) {
 			return null;
 		}
@@ -876,12 +989,42 @@ public class MirrorsGetTask extends Task {
 
 		sb.append(_fileName);
 
-		try {
-			return new URL(sb.toString());
+		return sb.toString();
+	}
+
+	private String[] _getSrcURLs() {
+		String localNetworkURL = null;
+
+		if (_tryLocalNetwork) {
+			localNetworkURL = _getNexusTomcatURL();
+
+			String mirrorsHostname = _getMirrorsHostname();
+
+			if ((localNetworkURL == null) && !mirrorsHostname.isEmpty()) {
+				localNetworkURL = _getMirrorsURL();
+			}
 		}
-		catch (MalformedURLException malformedURLException) {
-			throw new RuntimeException(malformedURLException);
-		}
+
+		return new String[] {
+			localNetworkURL, _getLocalURL(), _getGSURL(), _getRemoteURL()
+		};
+	}
+
+	private Pattern _getTempFilePattern(String fileName) {
+		return Pattern.compile(
+			"(?<timestamp>" + _REGEX_TIMESTAMP + ")(-" + _REGEX_UUID + "-)?" +
+				Pattern.quote(fileName));
+	}
+
+	private String _getUnableToCopyMessage(File targetFile) {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append("Unable to copy ");
+		sb.append(_src);
+		sb.append(" to ");
+		sb.append(targetFile.getPath());
+
+		return sb.toString();
 	}
 
 	private String _getURLScheme() {
@@ -1004,6 +1147,22 @@ public class MirrorsGetTask extends Task {
 		return trimmedString.isEmpty();
 	}
 
+	private boolean _isReadLinkFile(File file) {
+		File readLinkFile = _readLinkFiles.get(file);
+
+		if (readLinkFile == null) {
+			return true;
+		}
+
+		Object fileKey = _getFileKey(file);
+
+		if (fileKey == null) {
+			return false;
+		}
+
+		return fileKey.equals(_getFileKey(readLinkFile));
+	}
+
 	private boolean _isTarGzFile(File file) throws IOException {
 		if (!file.exists()) {
 			return false;
@@ -1049,7 +1208,27 @@ public class MirrorsGetTask extends Task {
 		return false;
 	}
 
-	private boolean _isValidMD5(File file, URL url) throws IOException {
+	private boolean _isValidFile(File file) throws IOException {
+		if (!file.exists()) {
+			return false;
+		}
+
+		if (_is7zFileName(_fileName)) {
+			return _is7zFile(file);
+		}
+
+		if (_isTarGzFileName(_fileName)) {
+			return _isTarGzFile(file);
+		}
+
+		if (_isZipFileName(_fileName)) {
+			return _isZipFile(file);
+		}
+
+		return true;
+	}
+
+	private boolean _isValidMD5(File file, String url) throws IOException {
 		if (_skipChecksum) {
 			return true;
 		}
@@ -1140,18 +1319,25 @@ public class MirrorsGetTask extends Task {
 		return false;
 	}
 
-	private void _moveFile(File sourceFile, File destFile) throws IOException {
+	private boolean _moveFile(File tempFile, File cacheFile)
+		throws IOException {
+
+		if (tempFile.renameTo(cacheFile)) {
+			return true;
+		}
+
+		if (cacheFile.exists()) {
+			return false;
+		}
+
 		StringBuilder sb = new StringBuilder();
 
-		sb.append("Moving ");
-		sb.append(sourceFile.getPath());
+		sb.append("Unable to move ");
+		sb.append(tempFile.getPath());
 		sb.append(" to ");
-		sb.append(destFile.getPath());
-		sb.append(".");
+		sb.append(cacheFile.getPath());
 
-		System.out.println(sb.toString());
-
-		sourceFile.renameTo(destFile);
+		throw new IOException(sb.toString());
 	}
 
 	private String _normalizePath(String path) {
@@ -1216,7 +1402,7 @@ public class MirrorsGetTask extends Task {
 		return urlConnection;
 	}
 
-	private int _toFile(URL url, File file) throws IOException {
+	private int _toFile(String url, File file) throws IOException {
 		if (file.exists()) {
 			_deleteFile(file);
 		}
@@ -1246,10 +1432,10 @@ public class MirrorsGetTask extends Task {
 		}
 	}
 
-	private int _toOutputStream(URL url, OutputStream outputStream)
+	private int _toOutputStream(String url, OutputStream outputStream)
 		throws IOException {
 
-		URLConnection urlConnection = _openConnection(url);
+		URLConnection urlConnection = _openConnection(new URL(url));
 
 		InputStream inputStream = urlConnection.getInputStream();
 
@@ -1283,7 +1469,7 @@ public class MirrorsGetTask extends Task {
 		}
 	}
 
-	private String _toString(URL url) throws IOException {
+	private String _toString(String url) throws IOException {
 		OutputStream outputStream = new ByteArrayOutputStream();
 
 		try {
@@ -1298,13 +1484,19 @@ public class MirrorsGetTask extends Task {
 		}
 	}
 
+	private static final long _MAX_AGE_MILLIS = 24 * 60 * 60 * 1000;
+
+	private static final String _REGEX_TIMESTAMP = "\\d{13,18}";
+
+	private static final String _REGEX_UUID = "[0-9a-fA-F-]{36}";
+
 	private static final Pattern _basicAuthenticationURLPattern =
 		Pattern.compile("(https?://)([^:]+):([^@]+)@(.+)");
 	private static final Pattern _gcpBucketHostNamePropertyPattern =
 		Pattern.compile(
 			"mirrors.gcp.bucket.hostname\\[(?<bucketName>[^\\]]+)\\]");
 	private static final Pattern _gsURLPattern = Pattern.compile(
-		"gs://(?<bucketName>[^/]+)/(?<path>.+/)(?<fileName>.+)");
+		"gs://(?<bucketName>[^/]+)/(?<path>.+/)?(?<fileName>[^/]+)");
 	private static final Pattern _httpURLPattern = Pattern.compile(
 		"https?://(?<mirrorsHostname>mirrors(\\.[^\\.]+\\.liferay.com)?/)?" +
 			"(?<hostName>[^/]+(/\\d+)?)/(?<path>.+/)(?<fileName>.+)");
@@ -1316,6 +1508,8 @@ public class MirrorsGetTask extends Task {
 				"apache-(?<tomcatFileName>.+(\\.tar\\.gz|\\.zip))");
 	private static final Pattern _releaseHostNamePattern = Pattern.compile(
 		"(release-\\d+|release.liferay.com)/(?<id>\\d+)");
+	private static final Pattern _tempFileNamePattern = Pattern.compile(
+		_REGEX_TIMESTAMP + "-" + _REGEX_UUID + "-(?<fileName>.+)");
 	private static final Pattern _testHostNamePattern = Pattern.compile(
 		"test-\\d+-\\d+");
 
@@ -1329,6 +1523,7 @@ public class MirrorsGetTask extends Task {
 	private String _mirrorsHostname;
 	private String _password;
 	private String _path;
+	private final Map<File, File> _readLinkFiles = new HashMap<>();
 	private int _retries = 1;
 	private boolean _skipChecksum;
 	private String _src;

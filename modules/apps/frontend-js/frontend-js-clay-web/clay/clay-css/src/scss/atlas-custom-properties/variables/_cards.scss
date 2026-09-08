@@ -88,6 +88,7 @@ $card-section-header: map-deep-merge(
 		color: $card-section-header-color,
 		font-size: $card-section-header-font-size,
 		font-weight: $card-section-header-font-weight,
+		grid-column: unquote('1 / -1'),
 		line-height: $card-section-header-line-height,
 		margin-bottom: $card-section-header-margin-bottom,
 		padding: $card-section-header-padding,
@@ -220,8 +221,10 @@ $card: map-deep-merge(
 			margin-right: 0,
 		),
 
-		hover: (
-			box-shadow: clay-enable-shadows($card-hover-box-shadow),
+		disabled: (
+			cursor: $disabled-cursor,
+			opacity: $component-disabled-opacity,
+			pointer-events: none,
 		),
 	),
 	$card
@@ -388,14 +391,14 @@ $card-footer: map-deep-merge(
 
 // .rounded-*
 
-$card-rounded-inner-border-radius: calc(
-	#{$rounded-border-radius} - #{$card-border-width}
-) !default;
 $card-rounded-0-inner-border-radius: calc(
 	#{$rounded-0-border-radius} - #{$card-border-width}
 ) !default;
 $card-rounded-circle-inner-border-radius: calc(
 	#{$rounded-circle-border-radius} - #{$card-border-width}
+) !default;
+$card-rounded-inner-border-radius: calc(
+	#{$rounded-border-radius} - #{$card-border-width}
 ) !default;
 
 $checkbox-left-card-padding: var(--checkbox-left-card-padding, 50px) !default;
@@ -442,8 +445,8 @@ $form-check-card: map-deep-merge(
 			transform: none,
 
 			card: (
-				box-shadow: none,
 				border-color: $card-border-color,
+				box-shadow: none,
 				outline-color: transparent,
 			),
 		),
@@ -774,6 +777,9 @@ $card-interactive: map-deep-merge(
 
 		hover: (
 			background-color: $gray-100,
+			border-color: $primary-l1,
+			box-shadow: clay-enable-shadows($card-hover-box-shadow),
+			outline-color: $primary-l1,
 			text-decoration: none,
 		),
 
@@ -788,6 +794,8 @@ $card-interactive: map-deep-merge(
 
 		active: (
 			background-color: $gray-200,
+			border-color: $primary,
+			outline-color: $primary,
 		),
 
 		after-highlight: c-unset,
@@ -835,6 +843,7 @@ $card-interactive-primary: map-deep-merge(
 		active: (
 			box-shadow: $card-interactive-primary-hover-box-shadow,
 		),
+
 		after-highlight: c-unset,
 	),
 	$card-interactive-primary
@@ -877,19 +886,8 @@ $card-type-asset: map-deep-merge(
 	(
 		transition: $card-transition,
 
-		hover: (
-			transform: translateY(-0.25rem),
-			after: (
-				bottom: -0.25rem,
-				content: '',
-				height: 0.25rem,
-				left: 0,
-				position: absolute,
-				right: 0,
-			),
-		),
-
 		aspect-ratio: (
+			background-color: $gray-100,
 			border-color: $gray-300,
 			border-style: solid,
 			border-width: 0 0 1px 0,
@@ -1026,14 +1024,53 @@ $user-card: map-deep-merge(
 	$user-card
 );
 
+// These mirror the base defaults; atlas-custom-properties variables are
+// imported before the base layer, so they must be declared here for the maps
+// below to resolve.
+
+$card-page-dense-min-column-width: 190px !default;
+$card-page-horizontal-min-column-width: 288px !default;
+$card-page-min-column-width: 296px !default;
+
 $card-page: () !default;
 $card-page: map-deep-merge(
 	(
-		container-name: c-card-page,
-		container-type: inline-size,
-		extend: '%clay-custom-grid-wrapper',
+		display: grid,
+		gap: 0 $grid-gutter-width,
+		grid-template-columns:
+			repeat(auto-fill, minmax($card-page-min-column-width, 1fr)),
+		grid-template-rows: auto,
+		list-style: none,
+		margin-bottom: 0,
+		padding-left: 0,
+
+		'.card-page-item': (
+			max-width: none,
+			padding: 0,
+		),
 	),
 	$card-page
+);
+
+$card-page-dense: () !default;
+$card-page-dense: map-deep-merge(
+	(
+		grid-template-columns:
+			repeat(auto-fill, minmax($card-page-dense-min-column-width, 1fr)),
+	),
+	$card-page-dense
+);
+
+$card-page-horizontal: () !default;
+$card-page-horizontal: map-deep-merge(
+	(
+		grid-template-columns:
+			repeat(
+				auto-fill,
+				minmax($card-page-horizontal-min-column-width, 1fr)
+			),
+	),
+	$card-page-horizontal
 );
 
 // Card Page Item Asset
@@ -1041,33 +1078,7 @@ $card-page: map-deep-merge(
 $card-page-item-asset: () !default;
 $card-page-item-asset: map-deep-merge(
 	(
-		flex-basis: 100%,
-		max-width: 100%,
-		padding-left: calc(#{$grid-gutter-width} * 0.5),
-		padding-right: calc(#{$grid-gutter-width} * 0.5),
-		'@container #{map-get($card-page, container-name)} (min-width: #{map-get($container-max-widths, sm)})':
-		(
-			flex-basis: 50%,
-			max-width: 50%,
-		),
-
-		'@container #{map-get($card-page, container-name)} (min-width: #{map-get($container-max-widths, md)})':
-		(
-			flex-basis: 33.33333%,
-			max-width: 33.33333%,
-		),
-
-		'@container #{map-get($card-page, container-name)} (min-width: #{map-get($container-max-widths, lg)})':
-		(
-			flex-basis: 25%,
-			max-width: 25%,
-		),
-
-		'@container #{map-get($card-page, container-name)} (min-width: #{map-get($container-max-widths, xl)})':
-		(
-			flex-basis: 20%,
-			max-width: 20%,
-		),
+		min-width: 0,
 	),
 	$card-page-item-asset
 );

@@ -12,12 +12,15 @@ import com.liferay.portal.kernel.security.pwd.PasswordEncryptor;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Base64;
 import com.liferay.portal.kernel.util.DigesterUtil;
+import com.liferay.portal.kernel.util.PropsValues;
 import com.liferay.portal.kernel.util.Validator;
 
 import java.io.UnsupportedEncodingException;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+
+import java.util.Arrays;
 
 import org.osgi.service.component.annotations.Component;
 
@@ -33,24 +36,32 @@ public class SSHAPasswordEncryptor implements PasswordEncryptor {
 
 	@Override
 	public String encrypt(
-			String algorithm, String plainTextPassword,
+			String algorithm, String plaintextPassword,
 			String encryptedPassword, boolean upgradeHashSecurity)
 		throws PwdEncryptorException {
 
-		if (upgradeHashSecurity) {
-			encryptedPassword = null;
-		}
-
-		byte[] saltBytes = getSaltBytes(encryptedPassword);
+		byte[] plaintextPasswordBytes = null;
+		byte[] saltedPlaintextPasswordBytes = null;
 
 		try {
-			MessageDigest messageDigest = MessageDigest.getInstance("SHA-1");
+			MessageDigest messageDigest = MessageDigest.getInstance(
+				PropsValues.FIPS_ENABLED ? DigesterUtil.SHA_256 :
+					DigesterUtil.SHA_1);
 
-			byte[] plainTextPasswordBytes = plainTextPassword.getBytes(
+			plaintextPasswordBytes = plaintextPassword.getBytes(
 				DigesterUtil.ENCODING);
 
+			if (upgradeHashSecurity) {
+				encryptedPassword = null;
+			}
+
+			byte[] saltBytes = getSaltBytes(encryptedPassword);
+
+			saltedPlaintextPasswordBytes = ArrayUtil.append(
+				plaintextPasswordBytes, saltBytes);
+
 			byte[] messageDigestBytes = messageDigest.digest(
-				ArrayUtil.append(plainTextPasswordBytes, saltBytes));
+				saltedPlaintextPasswordBytes);
 
 			return Base64.encode(
 				ArrayUtil.append(messageDigestBytes, saltBytes));
@@ -64,6 +75,15 @@ public class SSHAPasswordEncryptor implements PasswordEncryptor {
 			throw new PwdEncryptorException.UnsupportedEncoding(
 				unsupportedEncodingException.getMessage(),
 				unsupportedEncodingException);
+		}
+		finally {
+			if (plaintextPasswordBytes != null) {
+				Arrays.fill(plaintextPasswordBytes, (byte)0);
+			}
+
+			if (saltedPlaintextPasswordBytes != null) {
+				Arrays.fill(saltedPlaintextPasswordBytes, (byte)0);
+			}
 		}
 	}
 

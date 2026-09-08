@@ -3,6 +3,7 @@ definition {
 
 	property browser.chrome.version = "139.0";
 	property ci.retries.disabled = "true";
+	property custom.properties = "feature.flag.LPD-57655=false";
 	property portal.release = "true";
 	property portal.upstream = "true";
 	property testray.main.component.name = "Export/Import";
@@ -11,8 +12,6 @@ definition {
 		TestCase.setUpPortalInstance();
 
 		User.firstLoginPG();
-
-		Staging.enableDeleteApplicationDataBeforeImport();
 	}
 
 	tearDown {
@@ -39,15 +38,12 @@ definition {
 		property test.run.type = "single";
 
 		task ("Given: Uncheck the Validate Missing References box in System settings") {
-			ApplicationsMenu.gotoPortlet(
-				category = "Configuration",
-				panel = "Control Panel",
-				portlet = "System Settings");
+			SystemSettings.openSystemSettingsAdmin();
 
 			SystemSettings.gotoConfiguration(
 				configurationCategory = "Infrastructure",
 				configurationName = "Export/Import, Staging",
-				configurationScope = "Virtual Instance Scope");
+				configurationScope = "System Scope");
 
 			SystemSettings.configureSystemSetting(
 				enableSetting = "false",
@@ -67,20 +63,18 @@ definition {
 				groupName = "Site Name",
 				layoutName = "Test Page");
 
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
-
-			WebContentNavigator.gotoAddCP();
-
-			WebContent.addCP(webContentTitle = "Web Content Title");
-
 			var portalURL = PropsUtil.get("portal.url");
 
-			CKEditor.addSourceContent(content = '''<p><a href="${portalURL}/web/site-name/test-page">test page</a></p>''');
-
-			WebContent.publishWithPermissions();
+			JSONWebcontent.addWebContent(
+				content = '''<p><a href="${portalURL}/web/site-name/test-page">test page</a></p>''',
+				groupName = "Site Name",
+				source = "true",
+				title = "Web Content Title");
 		}
 
 		task ("When: Export and download the web content to a LAR file") {
+			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
+
 			LAR.exportPortlet(larFileName = "ExportWebContent.lar");
 		}
 
@@ -100,6 +94,7 @@ definition {
 			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-a");
 
 			LAR.importPortlet(
+				completedWithErrorsExpected = "true",
 				larFileName = "ExportWebContent.lar",
 				siteName = "Site Name A");
 
@@ -197,160 +192,6 @@ definition {
 		}
 	}
 
-	@description = "This is a use case for LPS-86501. Verify is possible edit an imported template."
-	@priority = 3
-	test EditImportedContentPageViaImportedSiteTemplate {
-		property osgi.module.configuration.file.names = "com.liferay.layout.configuration.LayoutExportImportConfiguration.config";
-		property osgi.module.configurations = "exportDraftLayout=\"true\"";
-
-		task ("Given: User add a new site template") {
-			SiteTemplates.addCP(
-				siteTemplateActive = "Yes",
-				siteTemplateName = "Site Template Name");
-		}
-
-		task ("And: Import a pre-configured fragment collection to the template") {
-			LexiconEntry.gotoEntryMenuItem(
-				menuItem = "Manage",
-				rowEntry = "Site Template Name");
-
-			ProductMenu.gotoPortlet(
-				category = "Design",
-				portlet = "Fragments");
-
-			FragmentsAdmin.importCollectionFromDependenciesFolder(collectionZipFile = "fragment-collection.zip");
-		}
-
-		task ("And: Add new site based on the new site template then a new fragment to it") {
-			SiteTemplatesNavigator.openSiteTemplatesAdmin();
-
-			SiteTemplates.addSitePageViaSiteTemplateCP(
-				pageName = "Test Template Content Page",
-				sitePageType = "Content Page",
-				siteTemplateName = "Site Template Name");
-
-			PageEditor.addFragment(
-				collectionName = "Collection Name",
-				fragmentName = "Content");
-		}
-
-		task ("And: Edit the fragment's information") {
-			PageEditor.editFragmentText(
-				contributed = "false",
-				fragmentName = "Content",
-				text = "Editing Finished");
-
-			PageEditor.viewFragmentEditableText(
-				contributed = "false",
-				editableText = "Editing Finished",
-				fragmentName = "Content");
-		}
-
-		task ("And: Export the site template then delete it") {
-			SiteTemplatesNavigator.openSiteTemplatesAdmin();
-
-			LAR.exportPortlet(
-				larFileName = "site-template-content-page.lar",
-				portletName = "Site Templates");
-
-			SiteTemplatesNavigator.openSiteTemplatesAdmin();
-
-			SiteTemplates.deleteCP(siteTemplateName = "Site Template Name");
-		}
-
-		task ("When: User import the exported site template") {
-			SiteTemplatesNavigator.openSiteTemplatesAdmin();
-
-			LAR.importPortlet(
-				larFileName = "site-template-content-page.lar",
-				portletName = "Site Templates");
-
-			SiteTemplates.viewCP(siteTemplateName = "Site Template Name");
-
-			Refresh();
-		}
-
-		task ("Then: The imported site template can be edited") {
-			LexiconEntry.gotoEntryMenuItem(
-				menuItem = "Manage",
-				rowEntry = "Site Template Name");
-
-			ProductMenu.gotoPortlet(
-				category = "Site Builder",
-				portlet = "Pages");
-
-			PagesAdmin.gotoPageEllipsisMenuItem(
-				menuItem = "Edit",
-				pageName = "Test Template Content Page");
-
-			PageEditor.viewFragmentEditableText(
-				contributed = "false",
-				editableText = "Editing Finished",
-				fragmentName = "Content");
-
-			AssertConsoleTextNotPresent(value1 = "jakarta.portlet.PortletException:");
-
-			AssertConsoleTextNotPresent(value1 = "org.apache.jasper.JasperException:");
-
-			AssertConsoleTextNotPresent(value1 = "java.lang.NullPointerException");
-		}
-	}
-
-	@description = "This is a use case for LPS-95589. Verify is not possible export a DM with deleted document link."
-	@priority = 3
-	test ExportDMWithDeletedDocumentLink {
-		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
-
-		task ("Given: User add a new site with a new document") {
-			HeadlessSite.addSite(siteName = "Site Name");
-
-			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
-
-			DMDocument.addCP(
-				dmDocumentDescription = "DM Document Description",
-				dmDocumentFile = "Document_1.jpg",
-				dmDocumentTitle = "DM Document Title");
-		}
-
-		task ("And: Add a new a document type") {
-			DMNavigator.openDocumentTypesAdmin(siteURLKey = "site-name");
-
-			DMDocumentType.add(
-				dmDocumentTypeDescription = "DM Document Type Description",
-				dmDocumentTypeFieldNames = "Image",
-				dmDocumentTypeName = "DM Document Type Name");
-
-			DMDocumentType.viewCP(dmDocumentTypeName = "DM Document Type Name");
-		}
-
-		task ("When: User add a new a document based on the new document type and the previously created document") {
-			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
-
-			DMDocument.addCP(
-				dmDocumentDescription = "DM Document Description",
-				dmDocumentTitle = "DM Type Document Title",
-				dmDocumentTypeName = "DM Document Type Name",
-				imageField = "DM Document Title",
-				imageFileName = "DM Document Title",
-				navTab = "Documents and Media");
-		}
-
-		task ("And: Delete the first document") {
-			JSONDocument.deleteFile(
-				dmDocumentTitle = "DM Document Title",
-				groupName = "Site Name");
-		}
-
-		task ("Then: The export process of the DM admin is successful") {
-			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
-
-			LAR.exportPortlet(larFileName = "DocumentsandMedia_portlet.lar");
-
-			AssertConsoleTextNotPresent(value1 = "NoSuchFileEntryException");
-		}
-	}
-
 	@description = "Verify is possible export and import a blog via Global."
 	@priority = 3
 	test ExportImportBlogsViaGlobal {
@@ -404,124 +245,6 @@ definition {
 			AssertElementPresent(
 				key_entryTitle = "Blogs Entry Title",
 				locator1 = "Blogs#ICON_VIEW_ENTRY_TITLE");
-		}
-	}
-
-	@description = "Verify is possible export import deletions."
-	@priority = 4
-	test ExportImportDeletions {
-		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
-
-		task ("Given: User adds a new WC then export it") {
-			JSONWebcontent.addWebContent(
-				content = "Web Content Content",
-				groupName = "Guest",
-				title = "Web Content Title");
-
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-			LAR.exportPortlet(larFileName = "ExportWebContent.lar");
-		}
-
-		task ("And: Delete the WC then export it") {
-			JSONWebcontent.deleteWebContent(
-				groupName = "Guest",
-				title = "Web Content Title");
-
-			Refresh();
-
-			LAR.exportPortlet(
-				exportIndividualDeletions = "true",
-				larFileName = "ExportWebContentDeletion.lar");
-		}
-
-		task ("When: User imports the first LAR file") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-			LAR.importPortlet(larFileName = "ExportWebContent.lar");
-		}
-
-		task ("Then: The WC will be present") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-			WebContent.viewTitle(webContentTitle = "Web Content Title");
-		}
-
-		task ("When: User imports the second LAR file") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-			LAR.importPortlet(
-				importDeletions = "true",
-				larFileName = "ExportWebContentDeletion.lar");
-		}
-
-		task ("Then: The WC will be deleted") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-			WebContent.viewNotPresentCP(webContentTitle = "Web Content Title");
-		}
-	}
-
-	@description = "Verify is possible export/import a Portlet."
-	@priority = 4
-	test ExportImportPortlet {
-		property portal.acceptance = "true";
-
-		task ("Given: User adds a new page with an IFrame portlet") {
-			JSONLayout.addPublicLayout(
-				groupName = "Guest",
-				layoutName = "Test Page Name");
-
-			Navigator.gotoPage(pageName = "Test Page Name");
-
-			Portlet.addPG(portletName = "IFrame");
-		}
-
-		task ("And: Configure a custom look for the portlet") {
-			Portlet.gotoPortletOptions(
-				portletName = "IFrame",
-				portletOption = "Look and Feel Configuration");
-
-			IFrame.selectConfigurationFrame();
-
-			Portlet.configureGeneralViaLookAndFeelPG(customTitle = "IFrame Custom");
-
-			IFrame.closeFrame();
-		}
-
-		task ("When: User exports the portlet then create a new site with a page") {
-			LAR.exportPortlet(larFileName = "IFrame.lar");
-
-			HeadlessSite.addSite(siteName = "Test Site Name");
-
-			for (var layoutUtilityPageName : list "404 Error,500 Error") {
-				JSONLayoututilitypage.deleteLayoutUtilityPage(
-					groupName = "Test Site Name",
-					layoutUtilityPageName = ${layoutUtilityPageName});
-			}
-
-			JSONLayout.addPublicLayout(
-				groupName = "Test Site Name",
-				layoutName = "Test Site Page");
-		}
-
-		task ("And: User can create an IFrame portlet, then import the LAR file") {
-			Navigator.gotoSitePage(
-				pageName = "Test Site Page",
-				siteName = "Test Site Name");
-
-			Portlet.addPG(portletName = "IFrame");
-
-			LAR.importPortlet(larFileName = "IFrame.lar");
-		}
-
-		task ("Then: The custom settings of the portlet is visible") {
-			Navigator.gotoSitePage(
-				pageName = "Test Site Page",
-				siteName = "Test Site Name");
-
-			Portlet.viewTitle(portletName = "IFrame Custom");
 		}
 	}
 
@@ -580,144 +303,6 @@ definition {
 				workflowResourceValue = "Single Approver");
 
 			AssertConsoleTextNotPresent(value1 = "com.liferay.exportimport.kernel.lar.PortletDataException");
-		}
-	}
-
-	@description = "This is a use case for LPS-86608. Verify is possible export/import Web Content with repeat field."
-	@priority = 3
-	test ExportImportWebcontentWithRepeatField {
-		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
-
-		task ("Given: User adds a new site") {
-			HeadlessSite.addSite(siteName = "Exported Site");
-
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "exported-site");
-		}
-
-		task ("And: Add a new WC structure with a field and a nested field which can be repeatable") {
-			NavItem.gotoStructures();
-
-			WebContentStructures.addCP(
-				structureDescription = "Exported Structure Description",
-				structureName = "Exported Structure");
-
-			DataEngine.addField(
-				fieldFieldLabel = "Separator",
-				fieldName = "Separator");
-
-			DataEngine.addFieldNested(
-				fieldFieldLabel = "Text",
-				fieldName = "Text",
-				targetFieldLabel = "Separator");
-
-			DataEngine.toggleFieldRepeatable(fieldsGroupLabel = "Fields Group");
-
-			WebContentStructures.saveCP(structureName = "Exported Structure");
-		}
-
-		task ("And: Add a new WC template related to the structure") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "exported-site");
-
-			NavItem.gotoTemplates();
-
-			WebContentTemplates.addCP(
-				structureName = "Exported Structure",
-				templateDescription = "Exported Template Description",
-				templateFieldNames = "Text",
-				templateName = "Exported Template");
-		}
-
-		task ("And: Add a new WC based on the template and structure, duplicate the duplicable field and fill out the repeated fields") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "exported-site");
-
-			WebContentNavigator.gotoAddWithStructureCP(structureName = "Exported Structure");
-
-			WebContent.addWithStructureCP(
-				structureName = "Exported Structure",
-				webContentText = "Exported Template",
-				webContentTitle = "Exported Article");
-
-			Click(locator1 = "FormFields#FIELD_ADD_DUPLICATE");
-
-			takeScreenshot();
-
-			Type(
-				key_fieldFieldLabel = "Text",
-				locator1 = "WCEditWebContent#TEXT_INPUT",
-				value1 = "Liferay");
-
-			Type(
-				index = 2,
-				key_fieldFieldLabel = "Text",
-				locator1 = "WCEditWebContent#ANY_TEXT_INPUT",
-				value1 = "Liferay 1");
-
-			WebContent.publishWithPermissions();
-
-			WebContent.viewTitle(webContentTitle = "Exported Article");
-		}
-
-		task ("When: User export the web content portlet and add a new site") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "exported-site");
-
-			LAR.exportPortlet(larFileName = "WebContent_portlet.lar");
-
-			HeadlessSite.addSite(siteName = "Imported Site");
-		}
-
-		task ("And: Import the LAR file") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "imported-site");
-
-			LAR.importPortlet(larFileName = "WebContent_portlet.lar");
-		}
-
-		task ("Then: The WC will be present with the repeated fields") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "imported-site");
-
-			WebContent.viewWithStructureCP(webContentTitle = "Exported Article");
-
-			AssertTextEquals.assertValue(
-				key_fieldFieldLabel = "Text",
-				locator1 = "WCEditWebContent#TEXT_INPUT",
-				value1 = "Liferay");
-
-			AssertTextEquals.assertValue(
-				index = 2,
-				key_fieldFieldLabel = "Text",
-				locator1 = "WCEditWebContent#ANY_TEXT_INPUT",
-				value1 = "Liferay 1");
-		}
-
-		task ("And: The WC structure will be present") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "imported-site");
-
-			NavItem.gotoStructures();
-
-			WebContentStructures.viewCP(
-				structureDescription = "Exported Structure Description",
-				structureName = "Exported Structure");
-
-			LexiconEntry.gotoEntry(rowEntry = "Exported Structure");
-
-			AssertVisible(
-				key_fieldFieldLabel = "Separator",
-				locator1 = "DDMField#SEPARATOR");
-
-			AssertVisible(
-				key_fieldFieldLabel = "Text",
-				locator1 = "WCEditWebContent#TEXT_INPUT");
-		}
-
-		task ("And: The WC template will be present too") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "imported-site");
-
-			NavItem.gotoTemplates();
-
-			WebContentTemplates.viewCP(
-				structureName = "Exported Structure",
-				templateDescription = "Exported Template Description",
-				templateName = "Exported Template");
 		}
 	}
 
@@ -805,167 +390,6 @@ definition {
 
 		task ("Then: The export of the WC with deleted reference is successful without error on the console") {
 			AssertConsoleTextNotPresent(value1 = "com.liferay.exportimport.kernel.lar.PortletDataException");
-		}
-	}
-
-	@description = "This is a use case for LPS-84290. Verify is possible export Home Folder Permissions."
-	@priority = 3
-	test ImportSiteHomeFolderPermissions {
-		task ("Given: User adds a new site") {
-			HeadlessSite.addSite(siteName = "Site Name");
-		}
-
-		task ("When: User removes the Home Folder permissions from DM portlet for site member role on default site") {
-			Navigator.openURL();
-
-			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
-
-			Portlet.gotoPortletOptions(portletOption = "Home Folder Permissions");
-
-			SelectFrameTop();
-
-			IFrame.selectModalFrame();
-
-			Role.removePermissionPG(
-				permissionDefinitionKey = "CONFIGURATION_PERMISSIONS_ADD_SHORTCUT_CHECKBOX",
-				roleTitle = "Site Member");
-
-			Role.removePermissionPG(
-				permissionDefinitionKey = "CONFIGURATION_PERMISSIONS_ADD_DOCUMENT_CHECKBOX",
-				roleTitle = "Site Member");
-
-			Role.removePermissionPG(
-				permissionDefinitionKey = "CONFIGURATION_PERMISSIONS_SUBSCRIBE_CHECKBOX",
-				roleTitle = "Site Member");
-
-			Role.removePermissionPG(
-				permissionDefinitionKey = "CONFIGURATION_PERMISSIONS_VIEW_CHECKBOX",
-				roleTitle = "Site Member");
-
-			Role.removePermissionPG(
-				permissionDefinitionKey = "CONFIGURATION_PERMISSIONS_ADD_FOLDER",
-				roleTitle = "Site Member");
-		}
-
-		task ("And: Exports the LAR file of Documents and Media admin page") {
-			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
-
-			Refresh();
-
-			LAR.exportPortlet(
-				exportPermissions = "true",
-				larFileName = "DM.portlet.lar");
-		}
-
-		task ("And: Imports the LAR file to the new site") {
-			DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "site-name");
-
-			LAR.importPortlet(
-				importPermissions = "true",
-				larFileName = "DM.portlet.lar");
-		}
-
-		task ("Then: The permissions of Site member will be changed according to the imported LAR file on the new site") {
-			Portlet.gotoPortletOptions(portletOption = "Home Folder Permissions");
-
-			SelectFrameTop();
-
-			IFrame.selectModalFrame();
-
-			for (var permissionDefinitionKey : list "CONFIGURATION_PERMISSIONS_ADD_SHORTCUT_CHECKBOX,CONFIGURATION_PERMISSIONS_ADD_DOCUMENT_CHECKBOX,CONFIGURATION_PERMISSIONS_SUBSCRIBE_CHECKBOX,CONFIGURATION_PERMISSIONS_VIEW_CHECKBOX,CONFIGURATION_PERMISSIONS_ADD_FOLDER") {
-				Role.viewPermissionPG(
-					permissionDefinitionKey = ${permissionDefinitionKey},
-					permissionFlagged = "false",
-					roleTitle = "Site Member");
-			}
-		}
-	}
-
-	@description = "This is a use case for LPS-182704. TC-1 and TC-3: Verify that a confirmation pop-up should show up when Delete Application Data Before Importing checkbox is checked during portlet import process."
-	@priority = 3
-	test ViewDeleteApplicationDataPopUpInPortletImportProgress {
-		task ("Export blank web content and add a new web content entry") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-			LAR.exportPortlet(larFileName = "WebContent_blank_portlet.lar");
-
-			JSONWebcontent.addWebContent(
-				content = "Web Content Content",
-				groupName = "Guest",
-				title = "Web Content Title");
-		}
-
-		task ("Click Cancel in the confirmation dialog will return to the import tab") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-			LAR.importPortletWithDeleteApplicationData(
-				cancelImport = "true",
-				larFileName = "WebContent_blank_portlet.lar");
-		}
-
-		task ("Click OK will import successfully") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-			LAR.importPortletWithDeleteApplicationData(larFileName = "WebContent_blank_portlet.lar");
-
-			WebContent.viewDefaultCP(webContentTitle = "Web Content Title");
-		}
-	}
-
-	@description = "This is a use case for LPS-182704. TC-14 and TC-15: Verify that a confirmation pop-up should show up when Delete Application Data Before Importing checkbox is checked during portlet import process on virtual instance."
-	@priority = 3
-	test ViewDeleteApplicationDataPopUpInPortletImportProgressInVirtualInstance {
-		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
-
-		task ("Export blank web content") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-			LAR.exportPortlet(larFileName = "WebContent_blank_portlet.lar");
-		}
-
-		task ("Add a virtual Instance able.com") {
-			HeadlessPortalInstanceAPI.addPortalInstance(
-				domain = "www.able.com",
-				portalInstanceId = "www.able.com",
-				virtualHost = "www.able.com");
-		}
-
-		task ("Login at able.com and add a new web content entry") {
-			User.firstLoginUI(
-				password = PropsUtil.get("default.admin.password"),
-				specificURL = "http://www.able.com:8080",
-				userEmailAddress = "test@www.able.com");
-
-			Staging.enableDeleteApplicationDataBeforeImport(navigate = "false");
-
-			WebContentNavigator.openWebContentAdmin(
-				baseURL = "http://www.able.com:8080",
-				siteURLKey = "guest");
-
-			WebContent.addArticleCP(
-				webContentContent = "Web Content Content",
-				webContentTitle = "Web Content Title");
-		}
-
-		task ("Click Cancel in the confirmation dialog will return to the import tab") {
-			WebContentNavigator.openWebContentAdmin(
-				baseURL = "http://www.able.com:8080",
-				siteURLKey = "guest");
-
-			LAR.importPortletWithDeleteApplicationData(
-				cancelImport = "true",
-				larFileName = "WebContent_blank_portlet.lar");
-		}
-
-		task ("Click OK will import successfully") {
-			WebContentNavigator.openWebContentAdmin(
-				baseURL = "http://www.able.com:8080",
-				siteURLKey = "guest");
-
-			LAR.importPortletWithDeleteApplicationData(larFileName = "WebContent_blank_portlet.lar");
-
-			WebContent.viewDefaultCP(webContentTitle = "Web Content Title");
 		}
 	}
 

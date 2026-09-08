@@ -27,6 +27,7 @@ import getRandomString from '../../../utils/getRandomString';
 import {waitForAlert} from '../../../utils/waitForAlert';
 import {journalPagesTest} from '../../journal-web/main/fixtures/journalPagesTest';
 import {generateObjectFields} from '../utils/generateObjectFields';
+import {getFreshObjectRelationshipName} from '../utils/getFreshObjectRelationshipName';
 import {postListTypeDefinitionListTypeEntries} from '../utils/postListTypeDefinitionListTypeEntries';
 
 export const test = mergeTests(
@@ -36,8 +37,6 @@ export const test = mergeTests(
 	isolatedSiteTest,
 	editObjectDefinitionPagesTest,
 	featureFlagsTest({
-		'LPD-70673': {enabled: true}, // Email Address field type
-		'LPD-83570': {enabled: true},
 		'LPS-178052': {enabled: true},
 	}),
 	formsPagesTest,
@@ -1274,7 +1273,10 @@ test.describe('Localized object entries are saved correctly', () => {
 
 				await userPrefixDropdown.click();
 
-				await page.getByRole('option', {name: /United States/}).click();
+				await page
+					.getByRole('option', {name: /United States/})
+					.locator('..')
+					.click();
 
 				await expect(userPrefixDropdown).toHaveText(enUserPrefix);
 
@@ -1292,7 +1294,10 @@ test.describe('Localized object entries are saved correctly', () => {
 
 				await userPrefixDropdown.click();
 
-				await page.getByRole('option', {name: /Brazil/}).click();
+				await page
+					.getByRole('option', {name: /Brazil/})
+					.locator('..')
+					.click();
 
 				await expect(userPrefixDropdown).toHaveText(ptUserPrefix);
 
@@ -1590,8 +1595,13 @@ test.describe('Manage object entries through Page Templates', () => {
 
 		const objectRelationshipLabel =
 			'objectRelationshipLabel' + getRandomInt();
-		const objectRelationshipName =
-			'objectRelationshipName' + Math.floor(Math.random() * 99);
+		const objectRelationshipName = await getFreshObjectRelationshipName(
+			apiHelpers,
+			[
+				objectDefinition1.externalReferenceCode,
+				objectDefinition2.externalReferenceCode!,
+			]
+		);
 
 		const objectRelationshipAPIClient = await apiHelpers.buildRestClient(
 			ObjectRelationshipAPI

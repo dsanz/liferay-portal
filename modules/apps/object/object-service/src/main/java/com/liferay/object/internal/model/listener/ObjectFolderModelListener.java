@@ -12,7 +12,6 @@ import com.liferay.object.service.ObjectDefinitionLocalService;
 import com.liferay.object.service.ObjectFolderLocalService;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.portal.kernel.exception.ModelListenerException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.model.BaseModelListener;
 import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.model.ResourceAction;
@@ -24,9 +23,8 @@ import com.liferay.portal.kernel.search.IndexerRegistryUtil;
 import com.liferay.portal.kernel.service.ResourceActionLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.util.PortalInstances;
-
-import java.util.Objects;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -116,15 +114,9 @@ public class ObjectFolderModelListener extends BaseModelListener<ObjectFolder> {
 	}
 
 	private void _onAfterCreate(ObjectFolder objectFolder) throws Exception {
-		if (!FeatureFlagManagerUtil.isEnabled(
-				objectFolder.getCompanyId(), "LPD-17564") ||
-			(!Objects.equals(
-				objectFolder.getExternalReferenceCode(),
-				ObjectFolderConstants.
-					EXTERNAL_REFERENCE_CODE_CONTENT_STRUCTURES) &&
-			 !Objects.equals(
-				 objectFolder.getExternalReferenceCode(),
-				 ObjectFolderConstants.EXTERNAL_REFERENCE_CODE_FILE_TYPES))) {
+		if (!ArrayUtil.contains(
+				_EXTERNAL_REFERENCE_CODES,
+				objectFolder.getExternalReferenceCode())) {
 
 			return;
 		}
@@ -142,6 +134,13 @@ public class ObjectFolderModelListener extends BaseModelListener<ObjectFolder> {
 					ObjectFolder.class.getName()),
 				ResourceAction::getActionId, String.class));
 	}
+
+	private static final String[] _EXTERNAL_REFERENCE_CODES = {
+		ObjectFolderConstants.EXTERNAL_REFERENCE_CODE_CONTENT_STRUCTURES,
+		ObjectFolderConstants.EXTERNAL_REFERENCE_CODE_FILE_TYPES,
+		ObjectFolderConstants.
+			EXTERNAL_REFERENCE_CODE_STRUCTURE_REPEATABLE_GROUPS
+	};
 
 	@Reference
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;

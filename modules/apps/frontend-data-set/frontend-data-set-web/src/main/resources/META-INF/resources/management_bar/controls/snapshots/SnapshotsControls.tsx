@@ -1,10 +1,9 @@
 /**
- * SPDX-FileCopyrightText: (c) 2000 Liferay, Inc. https://liferay.com
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
 import ClayButton from '@clayui/button';
-import {Option, Picker} from '@clayui/core';
 import ClayDropDown from '@clayui/drop-down';
 import ClayForm, {ClayInput} from '@clayui/form';
 import ClayIcon from '@clayui/icon';
@@ -14,8 +13,8 @@ import {
 	openModal,
 	openToast,
 } from 'frontend-js-components-web';
-import {fetch, sub} from 'frontend-js-web';
-import React, {Ref, useContext, useState} from 'react';
+import {cancelDebounce, debounce, fetch, sub} from 'frontend-js-web';
+import React, {Ref, useContext, useMemo, useRef, useState} from 'react';
 
 import FrontendDataSetContext from '../../../FrontendDataSetContext';
 import {DEFAULT_FETCH_HEADERS} from '../../../constants';
@@ -25,6 +24,8 @@ import {EViewsActionTypes} from '../../../views/viewsReducer';
 import shareSnapshotAction from './shareSnapshotAction';
 
 const DEFAULT_VIEW_ID = 'DEFAULT_VIEW';
+
+const SEARCH_DEBOUNCE_DELAY = 300;
 
 const RequiredMark = () => (
 	<>
@@ -76,25 +77,47 @@ const SnapshotsControlsTrigger = React.forwardRef(
 
 function SaveSnapshotModalComponent({
 	closeModal,
+	existingLabels,
 	initialLabel,
 	namespace,
 	onSave,
 	title,
 }: {
 	closeModal: () => void;
+	existingLabels: string[];
 	initialLabel: string;
 	namespace: string;
 	onSave: (label: string) => void;
 	title: string;
 }) {
 	const [label, setLabel] = useState(initialLabel);
-	const [nameValidationError, setNameValidationError] = useState(false);
+	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+	const trimmedLabel = label.trim();
+
+	const getValidationError = () => {
+		if (!trimmedLabel) {
+			return Liferay.Language.get('this-field-is-required');
+		}
+
+		const duplicated = existingLabels.some(
+			(existingLabel) =>
+				existingLabel.trim().toLowerCase() ===
+				trimmedLabel.toLowerCase()
+		);
+
+		if (duplicated) {
+			return Liferay.Language.get('a-view-with-this-name-already-exists');
+		}
+
+		return null;
+	};
 
 	const handleSave = () => {
-		const trimmedLabel = label.trim();
+		const validationError = getValidationError();
 
-		if (!trimmedLabel) {
-			setNameValidationError(true);
+		if (validationError) {
+			setErrorMessage(validationError);
 
 			return;
 		}
@@ -111,9 +134,7 @@ function SaveSnapshotModalComponent({
 			</ClayModal.Header>
 
 			<ClayModal.Body>
-				<ClayForm.Group
-					className={nameValidationError ? 'has-error' : ''}
-				>
+				<ClayForm.Group className={errorMessage ? 'has-error' : ''}>
 					<label htmlFor={`${namespace}labelInput`}>
 						{Liferay.Language.get('name')}
 
@@ -125,18 +146,18 @@ function SaveSnapshotModalComponent({
 						id={`${namespace}labelInput`}
 						onChange={(event) => {
 							setLabel(event.target.value);
-							setNameValidationError(false);
+							setErrorMessage(null);
 						}}
 						type="text"
 						value={label}
 					/>
 
-					{nameValidationError && (
+					{errorMessage && (
 						<ClayForm.FeedbackGroup>
 							<ClayForm.FeedbackItem>
 								<ClayForm.FeedbackIndicator symbol="exclamation-full" />
 
-								{Liferay.Language.get('this-field-is-required')}
+								{errorMessage}
 							</ClayForm.FeedbackItem>
 						</ClayForm.FeedbackGroup>
 					)}
@@ -153,7 +174,10 @@ function SaveSnapshotModalComponent({
 							{Liferay.Language.get('cancel')}
 						</ClayButton>
 
-						<ClayButton onClick={handleSave}>
+						<ClayButton
+							disabled={!trimmedLabel}
+							onClick={handleSave}
+						>
 							{Liferay.Language.get('save')}
 						</ClayButton>
 					</ClayButton.Group>
@@ -187,6 +211,28 @@ const SnapshotsControls = () => {
 	] = useContext(ViewsContext);
 
 	const [actionsDropdownActive, setActionsDropdownActive] = useState(false);
+	const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+	const [searchTerm, setSearchTerm] = useState('');
+	const [viewsDropdownActive, setViewsDropdownActive] = useState(false);
+
+	const searchInputRef = useRef<HTMLInputElement>(null);
+
+	const debouncedSetSearchTerm = useMemo(
+		() => debounce(setDebouncedSearchTerm, SEARCH_DEBOUNCE_DELAY),
+		[]
+	);
+
+	const clearSearch = () => {
+		cancelDebounce(debouncedSetSearchTerm);
+
+		setSearchTerm('');
+		setDebouncedSearchTerm('');
+	};
+
+	const updateSearch = (value: string) => {
+		setSearchTerm(value);
+		debouncedSetSearchTerm(value);
+	};
 
 	const defaultSnapshotItem = {
 		erc: DEFAULT_VIEW_ID,
@@ -221,6 +267,19 @@ const SnapshotsControls = () => {
 		},
 		...visibleHeaderSnapshots,
 	];
+
+	const normalizedSearchTerm = debouncedSearchTerm.trim().toLowerCase();
+
+	const filteredPickerItems = pickerItems
+		.map((group: ISnapshots) => ({
+			...group,
+			items: group.items.filter((item: ISnapshot) =>
+				item.label.toLowerCase().includes(normalizedSearchTerm)
+			),
+		}))
+		.filter((group: ISnapshots) => !!group.items.length);
+
+	const hasSearchResults = !!filteredPickerItems.length;
 
 	const activeSnapshotLabel = activeSnapshot.label ?? '';
 	const initialLabel =
@@ -311,11 +370,16 @@ const SnapshotsControls = () => {
 			});
 	};
 
+	const ownedSnapshotItems = ownedSnapshots?.items ?? [];
+
 	const openSaveSnapshotModal = () => {
 		openModal({
 			contentComponent: ({closeModal}) => (
 				<SaveSnapshotModalComponent
 					closeModal={closeModal}
+					existingLabels={ownedSnapshotItems.map(
+						(item: ISnapshot) => item.label
+					)}
 					initialLabel={initialLabel}
 					namespace={namespace ?? ''}
 					onSave={(label) =>
@@ -387,6 +451,11 @@ const SnapshotsControls = () => {
 			contentComponent: ({closeModal}) => (
 				<SaveSnapshotModalComponent
 					closeModal={closeModal}
+					existingLabels={ownedSnapshotItems
+						.filter(
+							(item: ISnapshot) => item.erc !== activeSnapshot.erc
+						)
+						.map((item: ISnapshot) => item.label)}
 					initialLabel={initialLabel}
 					namespace={namespace ?? ''}
 					onSave={(label) =>
@@ -471,45 +540,124 @@ const SnapshotsControls = () => {
 	return (
 		<>
 			<ManagementToolbar.Item>
-				<Picker
-					as={SnapshotsControlsTrigger}
-					items={pickerItems}
-					messages={{
-						itemDescribedby: Liferay.Language.get(
-							'you-are-currently-on-a-text-element,-inside-of-a-list-box'
-						),
-						itemSelected: Liferay.Language.get('x-selected'),
-						scrollToBottomAriaLabel:
-							Liferay.Language.get('scroll-to-bottom'),
-						scrollToTopAriaLabel:
-							Liferay.Language.get('scroll-to-top'),
+				<ClayDropDown
+					active={viewsDropdownActive}
+					closeOnClick
+					hasRightSymbols
+					menuWidth="shrink"
+					onActiveChange={(active: boolean) => {
+						setViewsDropdownActive(active);
+
+						if (!active) {
+							clearSearch();
+						}
 					}}
-					onSelectionChange={(value) => {
-						onSnapshotChange({defaultSnapshot, snapshots, value});
-					}}
-					selectedKey={activeSnapshot.erc}
-					snapshotUpdated={snapshotUpdated}
-					triggerLabel={
-						activeSnapshotERC
-							? activeSnapshot.label
-							: Liferay.Language.get('default-view')
+					trigger={
+						<SnapshotsControlsTrigger
+							snapshotUpdated={snapshotUpdated}
+							triggerLabel={
+								activeSnapshotERC
+									? activeSnapshot.label
+									: Liferay.Language.get('default-view')
+							}
+						/>
 					}
 				>
-					{(group: ISnapshots) => (
-						<ClayDropDown.Group
-							header={
-								group.headerVisible ? group.label : undefined
-							}
-							items={group.items}
-						>
-							{(snapshot: ISnapshot) => (
-								<Option key={snapshot.erc}>
-									{snapshot.label}
-								</Option>
-							)}
-						</ClayDropDown.Group>
+					<div className="dropdown-section">
+						<ClayInput.Group small>
+							<ClayInput.GroupItem className="input-group-item-focusable">
+								<ClayInput
+									aria-label={Liferay.Language.get('search')}
+									insetAfter
+									onChange={(event) =>
+										updateSearch(event.target.value)
+									}
+									placeholder={Liferay.Language.get('search')}
+									ref={searchInputRef}
+									type="text"
+									value={searchTerm}
+								/>
+
+								<ClayInput.GroupInsetItem after tag="span">
+									{searchTerm ? (
+										<ClayButton
+											aria-label={Liferay.Language.get(
+												'clear'
+											)}
+											displayType="unstyled"
+											onClick={() => {
+												clearSearch();
+
+												searchInputRef.current?.focus();
+											}}
+											title={Liferay.Language.get(
+												'clear'
+											)}
+											type="button"
+										>
+											<ClayIcon symbol="times" />
+										</ClayButton>
+									) : (
+										<ClayIcon symbol="search" />
+									)}
+								</ClayInput.GroupInsetItem>
+							</ClayInput.GroupItem>
+						</ClayInput.Group>
+					</div>
+
+					{hasSearchResults ? (
+						<ClayDropDown.ItemList>
+							{filteredPickerItems.map((group: ISnapshots) => (
+								<ClayDropDown.Group
+									header={
+										group.headerVisible
+											? group.label
+											: undefined
+									}
+									key={group.label || 'default'}
+								>
+									{group.items.map((snapshot: ISnapshot) => {
+										const isActiveSnapshot =
+											snapshot.erc === activeSnapshot.erc;
+
+										return (
+											<ClayDropDown.Item
+												aria-current={
+													isActiveSnapshot ||
+													undefined
+												}
+												className={
+													isActiveSnapshot
+														? 'active'
+														: undefined
+												}
+												key={snapshot.erc}
+												onClick={() =>
+													onSnapshotChange({
+														defaultSnapshot,
+														snapshots,
+														value: snapshot.erc,
+													})
+												}
+												symbolRight={
+													isActiveSnapshot
+														? 'check'
+														: undefined
+												}
+											>
+												{snapshot.label}
+											</ClayDropDown.Item>
+										);
+									})}
+								</ClayDropDown.Group>
+							))}
+						</ClayDropDown.ItemList>
+					) : (
+						<ClayDropDown.Caption>
+							{Liferay.Language.get('no-results-found')}
+						</ClayDropDown.Caption>
 					)}
-				</Picker>
+				</ClayDropDown>
 			</ManagementToolbar.Item>
 
 			<ManagementToolbar.Item>

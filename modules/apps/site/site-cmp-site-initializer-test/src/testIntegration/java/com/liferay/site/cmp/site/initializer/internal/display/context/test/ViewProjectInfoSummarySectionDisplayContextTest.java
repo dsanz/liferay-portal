@@ -42,9 +42,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 /**
  * @author Carolina Barbosa
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-58677")}
-)
+@FeatureFlags(featureFlags = @FeatureFlag("LPD-58677"))
 @RunWith(Arquillian.class)
 @Sync
 public class ViewProjectInfoSummarySectionDisplayContextTest
@@ -70,28 +68,36 @@ public class ViewProjectInfoSummarySectionDisplayContextTest
 		User user1 = UserTestUtil.addUser();
 		User user2 = UserTestUtil.addUser();
 
-		projectObjectEntry = _objectEntryLocalService.partialUpdateObjectEntry(
-			projectObjectEntry.getUserId(),
-			projectObjectEntry.getObjectEntryId(),
-			projectObjectEntry.getObjectEntryFolderId(),
-			HashMapBuilder.<String, Serializable>put(
-				"dueDate", "2026-01-31"
-			).put(
-				"r_userToCMPProjectManager_userId", user1.getUserId()
-			).put(
-				"r_userToCMPProjectSponsor_userId", user2.getUserId()
-			).put(
-				"state", "inProgress"
-			).put(
-				"title", title
-			).build(),
-			serviceContext);
+		cmpProjectObjectEntry =
+			_objectEntryLocalService.partialUpdateObjectEntry(
+				cmpProjectObjectEntry.getUserId(),
+				cmpProjectObjectEntry.getObjectEntryId(),
+				cmpProjectObjectEntry.getObjectEntryFolderId(),
+				HashMapBuilder.<String, Serializable>put(
+					"dueDate", "2026-01-31"
+				).put(
+					"r_userToCMPProjectManager_userId", user1.getUserId()
+				).put(
+					"r_userToCMPProjectSponsor_userId", user2.getUserId()
+				).put(
+					"state", "inProgress"
+				).put(
+					"title", title
+				).build(),
+				serviceContext);
 
-		Map<String, Object> properties = getProperties(projectObjectEntry);
+		Map<String, Object> properties = getProperties(cmpProjectObjectEntry);
 
 		JSONAssert.assertEquals(
 			JSONUtil.put(
+				"cmpProjectObjectEntryId",
+				cmpProjectObjectEntry.getObjectEntryId()
+			).put(
 				"dueDate", "2026-01-31"
+			).put(
+				"funnelStages", new String[0]
+			).put(
+				"hasUpdatePermission", true
 			).put(
 				"initialState", "inProgress"
 			).put(
@@ -102,7 +108,7 @@ public class ViewProjectInfoSummarySectionDisplayContextTest
 					"name", user1.getFullName()
 				)
 			).put(
-				"projectId", projectObjectEntry.getObjectEntryId()
+				"personas", new String[0]
 			).put(
 				"sponsor",
 				JSONUtil.put(

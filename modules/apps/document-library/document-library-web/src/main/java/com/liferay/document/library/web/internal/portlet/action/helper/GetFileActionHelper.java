@@ -111,6 +111,10 @@ public class GetFileActionHelper {
 
 		name = FileUtil.stripExtension(name);
 
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
 		FileEntry fileEntry = null;
 
 		if (Validator.isNotNull(uuid) && (groupId > 0)) {
@@ -147,15 +151,11 @@ public class GetFileActionHelper {
 				}
 
 				if (dlFileEntry != null) {
-					ThemeDisplay themeDisplay =
-						(ThemeDisplay)httpServletRequest.getAttribute(
-							WebKeys.THEME_DISPLAY);
+					fileEntry = new LiferayFileEntry(dlFileEntry);
 
 					DLFileEntryPermission.check(
-						themeDisplay.getPermissionChecker(), dlFileEntry,
+						themeDisplay.getPermissionChecker(), fileEntry,
 						ActionKeys.VIEW);
-
-					fileEntry = new LiferayFileEntry(dlFileEntry);
 				}
 			}
 		}
@@ -168,17 +168,21 @@ public class GetFileActionHelper {
 			fileEntry = DLAppServiceUtil.getFileEntry(fileEntryId);
 		}
 
-		if (Validator.isNull(version)) {
-			if ((fileEntry != null) &&
-				Validator.isNotNull(fileEntry.getVersion())) {
+		if ((fileEntry == null) ||
+			(Validator.isNull(version) &&
+			 Validator.isNull(fileEntry.getVersion()))) {
 
-				version = fileEntry.getVersion();
-			}
-			else {
-				throw new NoSuchFileEntryException(
-					"{fileEntryId=" + fileEntryId + "}");
-			}
+			throw new NoSuchFileEntryException(
+				"{fileEntryId=" + fileEntryId + "}");
 		}
+
+		if (Validator.isNull(version)) {
+			version = fileEntry.getVersion();
+		}
+
+		DLFileEntryPermission.check(
+			themeDisplay.getPermissionChecker(), fileEntry,
+			ActionKeys.DOWNLOAD);
 
 		FileVersion fileVersion = fileEntry.getFileVersion(version);
 

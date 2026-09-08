@@ -27,10 +27,13 @@ public class PLOEntryServiceWrapper
 
 	@Override
 	public com.liferay.portal.language.override.model.PLOEntry
-			addOrUpdatePLOEntry(String key, String languageId, String value)
+			addOrUpdatePLOEntry(
+				String externalReferenceCode, String key, String languageId,
+				String value)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return _ploEntryService.addOrUpdatePLOEntry(key, languageId, value);
+		return _ploEntryService.addOrUpdatePLOEntry(
+			externalReferenceCode, key, languageId, value);
 	}
 
 	@Override
@@ -48,6 +51,15 @@ public class PLOEntryServiceWrapper
 		return _ploEntryService.deletePLOEntry(key, languageId);
 	}
 
+	@Override
+	public com.liferay.portal.language.override.model.PLOEntry
+			deletePLOEntryByExternalReferenceCode(String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _ploEntryService.deletePLOEntryByExternalReferenceCode(
+			externalReferenceCode);
+	}
+
 	/**
 	 * Returns the OSGi service identifier.
 	 *
@@ -60,17 +72,58 @@ public class PLOEntryServiceWrapper
 
 	@Override
 	public java.util.List<com.liferay.portal.language.override.model.PLOEntry>
-			getPLOEntries(long companyId)
+			getPLOEntries()
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return _ploEntryService.getPLOEntries(companyId);
+		return _ploEntryService.getPLOEntries();
 	}
 
 	@Override
-	public int getPLOEntriesCount(long companyId)
+	public java.util.List<com.liferay.portal.language.override.model.PLOEntry>
+			getPLOEntries(
+				int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.portal.language.override.model.PLOEntry>
+						orderByComparator)
 		throws com.liferay.portal.kernel.exception.PortalException {
 
-		return _ploEntryService.getPLOEntriesCount(companyId);
+		return _ploEntryService.getPLOEntries(start, end, orderByComparator);
+	}
+
+	@Override
+	public java.util.List<com.liferay.portal.language.override.model.PLOEntry>
+			getPLOEntries(
+				String keywords, int start, int end,
+				com.liferay.portal.kernel.util.OrderByComparator
+					<com.liferay.portal.language.override.model.PLOEntry>
+						orderByComparator)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _ploEntryService.getPLOEntries(
+			keywords, start, end, orderByComparator);
+	}
+
+	@Override
+	public int getPLOEntriesCount()
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _ploEntryService.getPLOEntriesCount();
+	}
+
+	@Override
+	public int getPLOEntriesCount(String keywords)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _ploEntryService.getPLOEntriesCount(keywords);
+	}
+
+	@Override
+	public com.liferay.portal.language.override.model.PLOEntry
+			getPLOEntryByExternalReferenceCode(String externalReferenceCode)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _ploEntryService.getPLOEntryByExternalReferenceCode(
+			externalReferenceCode);
 	}
 
 	@Override
@@ -103,4 +156,4 @@ public class PLOEntryServiceWrapper
 	private PLOEntryService _ploEntryService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1663411981
+// LIFERAY-SERVICE-BUILDER-HASH:1221374787

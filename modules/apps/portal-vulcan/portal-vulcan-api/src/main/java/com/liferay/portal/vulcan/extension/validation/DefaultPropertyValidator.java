@@ -58,9 +58,7 @@ public class DefaultPropertyValidator implements PropertyValidator {
 		else if (propertyType ==
 					PropertyDefinition.PropertyType.MULTIPLE_ELEMENT) {
 
-			Class<?> propertyValueClass = propertyValue.getClass();
-
-			if ((classes != null) && propertyValueClass.isArray()) {
+			if ((classes != null) && (propertyValue instanceof Object[])) {
 				valid = true;
 
 				for (Object object : (Object[])propertyValue) {
@@ -136,7 +134,15 @@ public class DefaultPropertyValidator implements PropertyValidator {
 	}
 
 	private boolean _isReadable(Set<Class<?>> classes, Object object) {
+		if ((object instanceof String) && classes.contains(String.class)) {
+			return true;
+		}
+
 		for (Class<?> clazz : classes) {
+			if (clazz == String.class) {
+				continue;
+			}
+
 			if (ObjectMapperUtil.readValue(clazz, object) != null) {
 				return true;
 			}

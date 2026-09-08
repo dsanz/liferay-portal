@@ -3,7 +3,7 @@ definition {
 
 	property browser.chrome.version = "139.0";
 	property ci.retries.disabled = "true";
-	property custom.properties = "feature.flag.LPD-35013=false";
+	property custom.properties = "feature.flag.LPD-35013=false${line.separator}feature.flag.LPD-57655=false";
 	property osgi.modules.includes = "wiki";
 	property portal.release = "false";
 	property portal.upstream = "true";
@@ -437,6 +437,10 @@ definition {
 	@description = "This is a use case for LPS-123156."
 	@priority = 3
 	test AssertPublishTemplateInfo {
+		task ("Given: Publish Templates feature flag is enabled") {
+			Staging.enablePublishTemplatesFeatureFlag();
+		}
+
 		task ("Given: User add a new publish template") {
 			Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
@@ -665,6 +669,10 @@ definition {
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
 
+		task ("Given: Publish Templates feature flag is enabled") {
+			Staging.enablePublishTemplatesFeatureFlag();
+		}
+
 		task ("Given: User add a new page to the staging site and a widget to it") {
 			JSONLayout.addPublicLayout(
 				groupName = "Site Name (Staging)",
@@ -808,129 +816,6 @@ definition {
 		}
 	}
 
-	@priority = 3
-	test ImportLARsOnStagedSite {
-		property test.liferay.virtual.instance = "false";
-		property test.run.type = "single";
-
-		task ("Workaround for the issue with friendlyURL collision") {
-			PagesAdmin.openPagesAdmin(siteURLKey = "guest");
-
-			PagesAdmin.deletePage(pageName = "Home");
-
-			PagesAdmin.openPagesAdmin(siteURLKey = "site-name");
-
-			PagesAdmin.deletePage(pageName = "Staging Test Page");
-
-			PagesAdmin.openPagesAdmin(siteURLKey = "site-name-staging");
-
-			PagesAdmin.deletePage(pageName = "Staging Test Page");
-		}
-
-		task ("Given: User import home page from LAR file on staging site") {
-			LAR.importSiteCP(
-				larFileName = "HR_Home_Page_Content_master.lar",
-				mirrorWithOverwriting = "true",
-				siteName = "Site Name Staging",
-				uploadFrom = "dependencies");
-		}
-
-		task ("And: Publish the staging site after import") {
-			Navigator.gotoStagedSitePage(
-				pageName = "Staging Test Page",
-				siteName = "Site Name");
-
-			Staging.gotoPublishToLive();
-
-			Staging.publishToLive(publicationName = "Content Update");
-		}
-
-		task ("And: Verifiy that the content were published correctly") {
-			Navigator.gotoSitePage(
-				pageName = "Home",
-				siteName = "Site Name");
-
-			AssertTextEquals(
-				index = 1,
-				locator1 = "WCD#WEB_CONTENT_CONTENT",
-				value1 = "Faculty Meet-and-Greet Brunch Events All faculty are invited to a Meet-and-Greet Brunch at Allen Café 11:00 A.M. Saturday, June 13. This brunch is intended to introduce new faculty members and promote inter-departmental unity. Brunch will be catered by the Provincetown chapter of the NECI.");
-
-			AssertTextEquals(
-				index = 2,
-				locator1 = "WCD#WEB_CONTENT_CONTENT",
-				value1 = "New Faculty and Staff Orientation Events Attention all new faculty and staff: Orientation will be held Monday, June 8 at 8:00 A.M. New faculty should meet in Rm. 221 and new staff should meet in Rm. 139 of Adams Hall. A full schedule of orientation will be emailed to you in the coming weeks.");
-
-			AssertTextEquals(
-				index = 3,
-				locator1 = "WCD#WEB_CONTENT_CONTENT",
-				value1 = "Vaccinations and Physical Check-Ups Health Any members of faculty or staff planning to leave Earth are required to have up-to-date vaccinations. Please check with the Health Center on your status. In addition, each and every Earth departure requires a physical check-up. The Health Center is happy to give both vaccinations and physical check-ups free of charge.");
-
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
-
-			for (var webContentTitle : list "Meet and Greet,Orientation,Physicals") {
-				WebContent.viewTitle(
-					onLive = "true",
-					webContentTitle = ${webContentTitle});
-			}
-		}
-
-		task ("When: Delete the imported portlets on the staging site then publish it") {
-			Navigator.gotoStagedSitePage(
-				pageName = "Home",
-				siteName = "Site Name");
-
-			Portlet.deletePG(portletName = "Activities");
-
-			Portlet.deletePG(portletName = "Web Content Display");
-
-			Portlet.deletePG(portletName = "Web Content Display");
-
-			Portlet.deletePG(portletName = "Web Content Display");
-
-			takeScreenshot();
-
-			Staging.gotoPublishToLive();
-
-			Staging.publishToLive();
-
-			Navigator.gotoStagedSitePage(
-				pageName = "Home",
-				siteName = "Site Name");
-
-			Portlet.viewNoSpecificPG(portletName = "Activities");
-
-			Portlet.viewNoSpecificPG(portletName = "Web Content Display");
-		}
-
-		task ("And: Publish the staging site") {
-			Navigator.gotoStagedSitePage(
-				pageName = "Home",
-				siteName = "Site Name");
-
-			Staging.gotoPublishToLive();
-
-			Staging.publishToLive();
-		}
-
-		task ("Then: Assert that changes are published to live site") {
-			Navigator.gotoSitePage(
-				pageName = "Home",
-				siteName = "Site Name");
-
-			Portlet.viewNoSpecificPG(portletName = "Activities");
-
-			Portlet.viewNoSpecificPG(portletName = "Web Content Display");
-
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
-
-			for (var webContentTitle : list "Meet and Greet,Orientation,Physicals") {
-				WebContent.viewTitle(
-					onLive = "true",
-					webContentTitle = ${webContentTitle});
-			}
-		}
-	}
-
 	@description = "This is a use case for LPS-167777 TC-2: Verify that the modified referred content(DM content) will present in the LAR when 'Include if modified' is enabled for Web Content."
 	@priority = 3
 	test ModifiedReferredContentCanPublishToLiveWhenEnableIncludeIfModifiedOption {
@@ -1025,6 +910,10 @@ definition {
 
 	@priority = 3
 	test MoveToTheRecycleBinAndRestorePublishTemplate {
+		task ("Given: Publish Templates feature flag is enabled") {
+			Staging.enablePublishTemplatesFeatureFlag();
+		}
+
 		task ("Given: User add a new publish template") {
 			Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
@@ -1464,6 +1353,10 @@ definition {
 
 	@priority = 3
 	test SearchPublishTemplate {
+		task ("Given: Publish Templates feature flag is enabled") {
+			Staging.enablePublishTemplatesFeatureFlag();
+		}
+
 		task ("When: User add two publish templates on the staging site") {
 			Staging.openStagingAdmin(siteURLKey = "site-name-staging");
 
@@ -2072,222 +1965,6 @@ definition {
 		}
 	}
 
-	@description = "This is a use case for LPS-182704. TC-7 and TC-9: Verify that a confirmation pop-up should show up when Delete Application Data Before Importing checkbox is checked during Blogs and Forms portlet import process on live site"
-	@priority = 3
-	test ViewDeleteApplicationDataPopUpInBlogsAndFormsImportProgressOnLiveSite {
-		task ("Export blank Blogs lar from the default site and add a blog entry in staging site") {
-			BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
-
-			LAR.exportPortlet(larFileName = "Blogs_blank_portlet.lar");
-
-			JSONBlog.addEntry(
-				entryContent = "Blogs Entry Content",
-				entryTitle = "Blogs Entry Title",
-				groupName = "Site Name (Staging)",
-				site = "false");
-		}
-
-		task ("Export blank Forms lar from the default site and add a form entry in staging site") {
-			FormsAdminNavigator.openFormsAdmin(siteURLKey = "guest");
-
-			LAR.exportPortlet(larFileName = "Forms_blank_portlet.lar");
-
-			FormsAdminNavigator.openFormsAdmin(siteURLKey = "site-name-staging");
-
-			FormsAdminNavigator.gotoAddForm();
-
-			Form.editName(formName = "Test Form");
-
-			Form.editDescription(formDescription = "Test description");
-
-			Form.editPageTitle(
-				formPageName = "Test Page",
-				formTitleNumber = 1);
-
-			Form.editPageDescription(formPageDescriptionName = "Test page description");
-
-			Form.addTextField(fieldPositionNumber = 0);
-
-			Form.publishForm();
-		}
-
-		task ("Publish to Live") {
-			Navigator.gotoStagedSitePage(
-				pageName = "Staging Test Page",
-				siteName = "Site Name");
-
-			Staging.gotoPublishToLive();
-
-			Staging.publishToLive();
-		}
-
-		task ("Click Cancel in the confirmation dialog will return to the import tab") {
-			BlogsNavigator.openBlogsAdmin(siteURLKey = "site-name");
-
-			LAR.importPortletWithDeleteApplicationData(
-				cancelImport = "true",
-				larFileName = "Blogs_blank_portlet.lar");
-
-			FormsAdminNavigator.openFormsAdmin(siteURLKey = "site-name");
-
-			LAR.importPortletWithDeleteApplicationData(
-				cancelImport = "true",
-				larFileName = "Forms_blank_portlet.lar");
-		}
-
-		task ("Click OK will import successfully") {
-			BlogsNavigator.openBlogsAdmin(siteURLKey = "site-name");
-
-			LAR.importPortletWithDeleteApplicationData(larFileName = "Blogs_blank_portlet.lar");
-
-			Blogs.viewNoEntryCP();
-
-			FormsAdminNavigator.openFormsAdmin(siteURLKey = "site-name");
-
-			LAR.importPortletWithDeleteApplicationData(larFileName = "Forms_blank_portlet.lar");
-
-			Form.viewNoEntryCP();
-		}
-	}
-
-	@description = "This is a use case for LPS-182704. TC-6 and TC-8: Verify that a confirmation pop-up should show up when Delete Application Data Before Importing checkbox is checked during Blogs and Forms portlet import process on staging site"
-	@priority = 3
-	test ViewDeleteApplicationDataPopUpInBlogsAndFormsImportProgressOnStagingSite {
-		task ("Export blank Blogs lar from the default site and add a blog entry in staging site") {
-			BlogsNavigator.openBlogsAdmin(siteURLKey = "guest");
-
-			LAR.exportPortlet(larFileName = "Blogs_blank_portlet.lar");
-
-			JSONBlog.addEntry(
-				entryContent = "Blogs Entry Content",
-				entryTitle = "Blogs Entry Title",
-				groupName = "Site Name (Staging)",
-				site = "false");
-		}
-
-		task ("Export blank Forms lar from the default site and add a form entry in staging site") {
-			FormsAdminNavigator.openFormsAdmin(siteURLKey = "guest");
-
-			LAR.exportPortlet(larFileName = "Forms_blank_portlet.lar");
-
-			FormsAdminNavigator.openFormsAdmin(siteURLKey = "site-name-staging");
-
-			FormsAdminNavigator.gotoAddForm();
-
-			Form.editName(formName = "Test Form");
-
-			Form.editDescription(formDescription = "Test description");
-
-			Form.editPageTitle(
-				formPageName = "Test Page",
-				formTitleNumber = 1);
-
-			Form.editPageDescription(formPageDescriptionName = "Test page description");
-
-			Form.addTextField(fieldPositionNumber = 0);
-
-			Form.publishForm();
-		}
-
-		task ("Click Cancel in the confirmation dialog will return to the import tab") {
-			BlogsNavigator.openBlogsAdmin(siteURLKey = "site-name-staging");
-
-			LAR.importPortletWithDeleteApplicationData(
-				cancelImport = "true",
-				larFileName = "Blogs_blank_portlet.lar");
-
-			FormsAdminNavigator.openFormsAdmin(siteURLKey = "site-name-staging");
-
-			LAR.importPortletWithDeleteApplicationData(
-				cancelImport = "true",
-				larFileName = "Forms_blank_portlet.lar");
-		}
-
-		task ("Click OK will import successfully") {
-			BlogsNavigator.openBlogsAdmin(siteURLKey = "site-name-staging");
-
-			LAR.importPortletWithDeleteApplicationData(larFileName = "Blogs_blank_portlet.lar");
-
-			Blogs.viewNoEntryCP();
-
-			FormsAdminNavigator.openFormsAdmin(siteURLKey = "site-name-staging");
-
-			LAR.importPortletWithDeleteApplicationData(larFileName = "Forms_blank_portlet.lar");
-
-			Form.viewNoEntryCP();
-		}
-	}
-
-	@description = "This is a use case for LPS-182704. TC-5 and TC-11: Verify that a confirmation pop-up should show up when Delete Application Data Before Importing checkbox is checked during WCM portlet import process on live site"
-	@priority = 3
-	test ViewDeleteApplicationDataPopUpInWCMImportProgressOnLiveSite {
-		task ("Export web content from the default site and add a new web content entry in staging site") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-			LAR.exportPortlet(larFileName = "WebContent_blank_portlet.lar");
-
-			JSONWebcontent.addWebContent(
-				content = "Web Content Content",
-				groupName = "Site Name (Staging)",
-				site = "false",
-				title = "Web Content Title");
-		}
-
-		task ("Publish the site to live") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
-
-			Staging.publishToLiveNowViaPortletPG();
-		}
-
-		task ("Click Cancel in the confirmation dialog will return to the import tab") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
-
-			LAR.importPortletWithDeleteApplicationData(
-				cancelImport = "true",
-				larFileName = "WebContent_blank_portlet.lar");
-		}
-
-		task ("Click OK will import successfully") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name");
-
-			LAR.importPortletWithDeleteApplicationData(larFileName = "WebContent_blank_portlet.lar");
-
-			WebContent.viewDefaultCP(webContentTitle = "Web Content Title");
-		}
-	}
-
-	@description = "This is a use case for LPS-182704. TC-4 and TC-10: Verify that a confirmation pop-up should show up when Delete Application Data Before Importing checkbox is checked during WCM portlet import process on staging site"
-	@priority = 3
-	test ViewDeleteApplicationDataPopUpInWCMImportProgressOnStagingSite {
-		task ("Export web content from the default site and add a new web content entry in staging site") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "guest");
-
-			LAR.exportPortlet(larFileName = "WebContent_blank_portlet.lar");
-
-			JSONWebcontent.addWebContent(
-				content = "Web Content Content",
-				groupName = "Site Name (Staging)",
-				site = "false",
-				title = "Web Content Title");
-		}
-
-		task ("Click Cancel in the confirmation dialog will return to the import tab") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
-
-			LAR.importPortletWithDeleteApplicationData(
-				cancelImport = "true",
-				larFileName = "WebContent_blank_portlet.lar");
-		}
-
-		task ("Click OK will import successfully") {
-			WebContentNavigator.openWebContentAdmin(siteURLKey = "site-name-staging");
-
-			LAR.importPortletWithDeleteApplicationData(larFileName = "WebContent_blank_portlet.lar");
-
-			WebContent.viewDefaultCP(webContentTitle = "Web Content Title");
-		}
-	}
-
 	@description = "This is a use case for LPS-178085. TC-1: Verify that a confirmation pop-up shows up after checking Delete Application Data Before Importing checkbox when publishing staging site."
 	@priority = 3
 	test ViewDeletingApplicationDataPopUpInPublishProgress {
@@ -2634,6 +2311,10 @@ definition {
 	test ViewPublishTemplateDateRange {
 		property test.liferay.virtual.instance = "false";
 		property test.run.type = "single";
+
+		task ("Given: Publish Templates feature flag is enabled") {
+			Staging.enablePublishTemplatesFeatureFlag();
+		}
 
 		task ("When: User add a new publish template with a content date range") {
 			Staging.openStagingAdmin(siteURLKey = "site-name-staging");

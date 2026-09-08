@@ -16,7 +16,11 @@ import com.liferay.portal.tools.rest.builder.test.dto.v1_0.BatchTestEntity;
 import com.liferay.portal.tools.rest.builder.test.dto.v1_0.CompanyTestEntity;
 import com.liferay.portal.tools.rest.builder.test.resource.v1_0.BatchTestEntityResource;
 import com.liferay.portal.tools.rest.builder.test.resource.v1_0.CompanyTestEntityResource;
+import com.liferay.portal.vulcan.crud.VulcanCRUDItemDelegate;
+import com.liferay.portal.vulcan.crud.VulcanCRUDItemDelegateBuilderRegistry;
 import com.liferay.portal.vulcan.custom.field.CustomField;
+import com.liferay.portal.vulcan.fields.NestedField;
+import com.liferay.portal.vulcan.fields.NestedFieldId;
 import com.liferay.portal.vulcan.fields.NestedFieldsSupplier;
 import com.liferay.portal.vulcan.pagination.Page;
 
@@ -35,7 +39,10 @@ import org.osgi.service.component.annotations.ServiceScope;
  */
 @Component(
 	properties = "OSGI-INF/liferay/rest/v1_0/batch-test-entity.properties",
-	property = "export.import.vulcan.batch.engine.task.item.delegate=true",
+	property = {
+		"export.import.vulcan.batch.engine.task.item.delegate=true",
+		"nested.field.support=true"
+	},
 	scope = ServiceScope.PROTOTYPE, service = BatchTestEntityResource.class
 )
 public class BatchTestEntityResourceImpl
@@ -90,6 +97,13 @@ public class BatchTestEntityResourceImpl
 		return _toBatchTestEntity(batchTestEntity);
 	}
 
+	@NestedField(parentClass = BatchTestEntity.class, value = "nestedField2")
+	public String getBatchTestEntityNestedField2(
+		@NestedFieldId(value = "id") Long id) {
+
+		return "nestedField2-" + id;
+	}
+
 	@Override
 	public ExportImportDescriptor getExportImportDescriptor() {
 		return new ExportImportDescriptor() {
@@ -117,7 +131,8 @@ public class BatchTestEntityResourceImpl
 
 			@Override
 			public List<String> getNestedFields() {
-				return Arrays.asList("nestedField", "relatedCompanyTestEntity");
+				return Arrays.asList(
+					"nestedField1", "nestedField2", "relatedCompanyTestEntity");
 			}
 
 			@Override
@@ -286,11 +301,7 @@ public class BatchTestEntityResourceImpl
 	}
 
 	private BatchTestEntity _fetchBatchTestEntity(long id) {
-		if (_batchTestEntities.containsKey(id)) {
-			return _batchTestEntities.get(id);
-		}
-
-		return null;
+		return _batchTestEntities.get(id);
 	}
 
 	private BatchTestEntity _fetchBatchTestEntity(
@@ -349,22 +360,56 @@ public class BatchTestEntityResourceImpl
 							return customField;
 						},
 						CustomField.class));
+				setEmbeddedNestedField(
+					NestedFieldsSupplier.supplyScopedUnsafeSupplier(
+						"embeddedNestedField",
+						() -> {
+							VulcanCRUDItemDelegate vulcanCRUDItemDelegate =
+								_vulcanCRUDItemDelegateBuilderRegistry.builder(
+									contextCompany,
+									BatchTestEntity.class.getName()
+								).acceptLanguage(
+									contextAcceptLanguage
+								).groupLocalService(
+									groupLocalService
+								).httpServletRequest(
+									contextHttpServletRequest
+								).httpServletResponse(
+									contextHttpServletResponse
+								).resourceActionLocalService(
+									resourceActionLocalService
+								).resourcePermissionLocalService(
+									resourcePermissionLocalService
+								).roleLocalService(
+									roleLocalService
+								).scopeChecker(
+									contextScopeChecker
+								).uriInfo(
+									contextUriInfo
+								).user(
+									contextUser
+								).build();
+
+							return vulcanCRUDItemDelegate.fetchItem(
+								originalBatchTestEntity.getId());
+						}));
 				setExternalReferenceCode(
 					originalBatchTestEntity.getExternalReferenceCode());
 				setId(originalBatchTestEntity.getId());
 				setName(originalBatchTestEntity.getName());
-				setNestedField(
+				setNestedField1(
 					() -> NestedFieldsSupplier.supply(
-						"nestedField",
+						"nestedField1",
 						nestedField ->
-							originalBatchTestEntity.getNestedField()));
+							originalBatchTestEntity.getNestedField1()));
 				setRelatedCompanyTestEntity(
 					() -> NestedFieldsSupplier.supply(
 						"relatedCompanyTestEntity",
 						nestedField -> {
-							if (!_relationships.containsKey(
-									originalBatchTestEntity.getId())) {
+							Long companyTestEntityId = _relationships.get(
+								originalBatchTestEntity.getId());
 
+							if (companyTestEntityId == null) {
 								return null;
 							}
 
@@ -377,9 +422,7 @@ public class BatchTestEntityResourceImpl
 								).build();
 
 							return companyTestEntityResource.
-								getCompanyTestEntity(
-									_relationships.get(
-										originalBatchTestEntity.getId()));
+								getCompanyTestEntity(companyTestEntityId);
 						}));
 			}
 		};
@@ -395,5 +438,9 @@ public class BatchTestEntityResourceImpl
 
 	@Reference
 	private CompanyTestEntityResource.Factory _factory;
+
+	@Reference
+	private VulcanCRUDItemDelegateBuilderRegistry
+		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }

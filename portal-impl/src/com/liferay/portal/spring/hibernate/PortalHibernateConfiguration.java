@@ -11,6 +11,7 @@ import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.lang.ThreadContextClassLoaderUtil;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.CharPool;
+import com.liferay.portal.dao.orm.common.SQLTransformer;
 import com.liferay.portal.internal.change.tracking.hibernate.CTSQLInterceptor;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.db.DBType;
@@ -109,6 +110,8 @@ public class PortalHibernateConfiguration
 		properties.setProperty(
 			"hibernate.current_session_context_class",
 			PortalCurrentSessionContext.class.getName());
+		properties.setProperty(
+			"hibernate.id.sequence.increment_size_mismatch_strategy", "FIX");
 
 		if (Validator.isNull(PropsValues.HIBERNATE_DIALECT)) {
 			Class<?> clazz = dialect.getClass();
@@ -116,8 +119,6 @@ public class PortalHibernateConfiguration
 			properties.setProperty("hibernate.dialect", clazz.getName());
 		}
 
-		properties.setProperty(
-			"hibernate.query.sql.jdbc_style_params_base", "true");
 		properties.setProperty("jakarta.persistence.validation.mode", "none");
 
 		BootstrapServiceRegistryBuilder bootstrapServiceRegistryBuilder =
@@ -138,6 +139,8 @@ public class PortalHibernateConfiguration
 
 		Configuration configuration = new Configuration(
 			new MetadataSources(bootstrapServiceRegistryBuilder.build()));
+
+		SQLTransformer.populateSQLFunctions(configuration);
 
 		if (_mvccEnabled) {
 			configuration.setInterceptor(new CTSQLInterceptor());

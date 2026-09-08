@@ -29,6 +29,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -89,6 +90,8 @@ public abstract class BaseWorkflowDefinitionLinkResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -249,7 +252,8 @@ public abstract class BaseWorkflowDefinitionLinkResourceTestCase {
 		page =
 			workflowDefinitionLinkResource.
 				getWorkflowDefinitionByExternalReferenceCodeWorkflowDefinitionLinksPage(
-					externalReferenceCode, Pagination.of(1, 10));
+					externalReferenceCode,
+					Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -467,7 +471,8 @@ public abstract class BaseWorkflowDefinitionLinkResourceTestCase {
 		page =
 			workflowDefinitionLinkResource.
 				getWorkflowDefinitionWorkflowDefinitionLinksPage(
-					workflowDefinitionId, Pagination.of(1, 10));
+					workflowDefinitionId,
+					Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -653,17 +658,9 @@ public abstract class BaseWorkflowDefinitionLinkResourceTestCase {
 		Long workflowDefinitionId =
 			testGetWorkflowDefinitionWorkflowDefinitionLinksPage_getWorkflowDefinitionId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"workflowDefinitionWorkflowDefinitionLinks",
-			new HashMap<String, Object>() {
-				{
-					put("workflowDefinitionId", workflowDefinitionId);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetWorkflowDefinitionWorkflowDefinitionLinksPageWorkflowDefinitionWorkflowDefinitionLink_getGraphQLField(
+				workflowDefinitionId);
 
 		// No namespace
 
@@ -734,6 +731,24 @@ public abstract class BaseWorkflowDefinitionLinkResourceTestCase {
 				WorkflowDefinitionLinkSerDes.toDTOs(
 					workflowDefinitionWorkflowDefinitionLinksJSONObject.
 						getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetWorkflowDefinitionWorkflowDefinitionLinksPageWorkflowDefinitionWorkflowDefinitionLink_getGraphQLField(
+				Long workflowDefinitionId)
+		throws Exception {
+
+		return new GraphQLField(
+			"workflowDefinitionWorkflowDefinitionLinks",
+			new HashMap<String, Object>() {
+				{
+					put("workflowDefinitionId", workflowDefinitionId);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -1997,4 +2012,4 @@ public abstract class BaseWorkflowDefinitionLinkResourceTestCase {
 		WorkflowDefinitionLinkResource _workflowDefinitionLinkResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-947174397
+// LIFERAY-REST-BUILDER-HASH:1353544308

@@ -9,7 +9,8 @@
 
 <aui:script position="inline">
 	window.__lc = window.__lc || {};
-	window.__lc.license = '<%= clickToChatChatProviderAccountId %>';
+	window.__lc.license =
+		'<%= HtmlUtil.escapeJS(clickToChatChatProviderAccountId) %>';
 
 	(function (n, t, c) {
 		function i(n) {
@@ -53,8 +54,14 @@
 
 	<c:if test="<%= themeDisplay.isSignedIn() %>">
 		window.onload = function () {
-			LiveChatWidget.call('set_customer_email', '<%= user.getEmailAddress() %>');
-			LiveChatWidget.call('set_customer_name', '<%= user.getScreenName() %>');
+			LiveChatWidget.call(
+				'set_customer_email',
+				'<%= HtmlUtil.escapeJS(user.getEmailAddress()) %>'
+			);
+			LiveChatWidget.call(
+				'set_customer_name',
+				'<%= HtmlUtil.escapeJS(user.getScreenName()) %>'
+			);
 		};
 	</c:if>
 </aui:script>

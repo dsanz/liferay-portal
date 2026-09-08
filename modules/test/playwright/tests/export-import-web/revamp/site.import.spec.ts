@@ -1,140 +1,268 @@
 /**
- * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-FileCopyrightText: (c) 2000 Liferay, Inc. https://liferay.com
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
 import {expect, mergeTests} from '@playwright/test';
-import * as path from 'path';
 
+import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
 import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
+import {globalMenuPagesTest} from '../../../fixtures/globalMenuPagesTest';
+import {isolatedSiteTest} from '../../../fixtures/isolatedSiteTest';
 import {loginTest} from '../../../fixtures/loginTest';
-import {productMenuPageTest} from '../../../fixtures/productMenuPageTest';
+import {DataApiHelpers} from '../../../helpers/ApiHelpers';
+import getRandomString from '../../../utils/getRandomString';
+import {normalizeRestPath} from '../../../utils/normalizeRestPath';
 import {exportImportPagesTest} from './fixtures/exportImportPagesTest';
+import {assertImportWizardControls} from './utils/assertImportWizardControls';
+import {exportAndDownloadLar} from './utils/exportAndDownloadLar';
 
 export const test = mergeTests(
+	dataApiHelpersTest,
 	exportImportPagesTest,
 	featureFlagsTest({
 		'LPD-57655': {enabled: true},
 	}),
-	loginTest(),
-	productMenuPageTest
+	globalMenuPagesTest,
+	isolatedSiteTest,
+	loginTest()
 );
 
-test('Can upload valid lar', async ({
-	exportImportPage,
-	page,
-	productMenuPage,
-}) => {
-	await productMenuPage.openProductMenuIfClosed();
+const testWithWiki = mergeTests(
+	test,
+	featureFlagsTest({
+		'LPD-35013': {enabled: true},
+		'LPD-57655': {enabled: true},
+	})
+);
 
-	await productMenuPage.goToPublishingImport();
+async function addWidgetPageTemplate(apiHelpers: DataApiHelpers, site: Site) {
+	const layoutPageTemplateCollection =
+		await apiHelpers.jsonWebServicesLayoutPageTemplateCollection.addLayoutPageTemplateCollection(
+			{
+				groupId: String(site.id),
+				name: getRandomString(),
+			}
+		);
 
-	await exportImportPage.newImport.click();
-
-	await exportImportPage.selectFile(
-		path.join(__dirname, '../main/dependencies', 'site.lar')
+	await apiHelpers.jsonWebServicesLayoutPageTemplateEntry.addLayoutPageTemplateEntry(
+		{
+			groupId: String(site.id),
+			layoutPageTemplateCollectionId: String(
+				layoutPageTemplateCollection.layoutPageTemplateCollectionId
+			),
+			name: getRandomString(),
+			type: 'widget-page',
+		}
 	);
+}
 
-	await exportImportPage.completedLabel.waitFor();
+test(
+	'Cannot import an instance scoped lar file',
+	{tag: '@LPD-99382'},
+	async ({
+		apiHelpers,
+		exportImportDataSelectionPage,
+		exportImportPage,
+		globalMenuPage,
+		site,
+	}) => {
+		const objectDefinition =
+			await apiHelpers.objectAdmin.postRandomObjectDefinition({
+				status: {code: 0},
+			});
 
-	await expect(page.getByText('site.lar', {exact: true})).toBeVisible();
+		apiHelpers.data.push({
+			id: objectDefinition.id,
+			type: 'objectDefinition',
+		});
 
-	await expect(exportImportPage.continueButton).toBeEnabled();
-});
+		await apiHelpers.objectEntry.postObjectEntry(
+			{},
+			normalizeRestPath(objectDefinition.restContextPath)
+		);
 
-test('Auto-fills the Name field with the uploaded file name', async ({
-	exportImportPage,
-	productMenuPage,
-}) => {
-	await productMenuPage.openProductMenuIfClosed();
+		await globalMenuPage.goToApplications('Export');
 
-	await productMenuPage.goToPublishingImport();
+		const name = `MyExport-${getRandomString()}`;
 
-	await exportImportPage.newImport.click();
+		await exportImportPage.clickNew();
 
-	await expect(exportImportPage.nameInput).toHaveValue('');
+		await exportImportDataSelectionPage.selectOnlyObjectDefinition(
+			objectDefinition.name
+		);
 
-	await exportImportPage.selectFile(
-		path.join(__dirname, '../main/dependencies', 'site.lar')
-	);
+		await exportImportPage.nameInput.fill(name);
 
-	await exportImportPage.completedLabel.waitFor();
+		await exportImportPage.exportButton.click();
 
-	await expect(exportImportPage.nameInput).toHaveValue('site');
-});
+		await expect(exportImportPage.taskStatusLabel(name)).toBeVisible();
 
-test('Preserves the user-provided Name when a file is uploaded', async ({
-	exportImportPage,
-	productMenuPage,
-}) => {
-	await productMenuPage.openProductMenuIfClosed();
+		const folderPath = await exportImportPage.download(name);
 
-	await productMenuPage.goToPublishingImport();
+		await exportImportPage.goToImport(site.friendlyUrlPath);
 
-	await exportImportPage.newImport.click();
+		await exportImportPage.newButton.click();
 
-	await exportImportPage.nameInput.fill('My custom import');
+		await exportImportPage.expectUploadError(
+			folderPath,
+			'The LAR file contains one or more entities with a different scope.'
+		);
+	}
+);
 
-	await exportImportPage.selectFile(
-		path.join(__dirname, '../main/dependencies', 'site.lar')
-	);
+testWithWiki(
+	'Does not export wiki nodes when they are not selected',
+	{tag: '@LPD-40988'},
+	async ({
+		apiHelpers,
+		exportImportDataSelectionPage,
+		exportImportPage,
+		page,
+		site,
+	}) => {
+		let folderPath: string;
 
-	await exportImportPage.completedLabel.waitFor();
+		const name = `MyExport-${getRandomString()}`;
 
-	await expect(exportImportPage.nameInput).toHaveValue('My custom import');
-});
+		await testWithWiki.step(
+			'Add a wiki node and a widget page template',
+			async () => {
+				await apiHelpers.headlessDelivery.postWikiNode(site.id);
 
-test('Shows a required error when Name is left empty on blur', async ({
-	exportImportPage,
-	page,
-	productMenuPage,
-}) => {
-	await productMenuPage.openProductMenuIfClosed();
+				await addWidgetPageTemplate(apiHelpers, site);
+			}
+		);
 
-	await productMenuPage.goToPublishingImport();
+		await testWithWiki.step(
+			'Export the site with the wiki content deselected',
+			async () => {
+				await exportImportPage.goToExport(site.friendlyUrlPath);
 
-	await exportImportPage.newImport.click();
+				await exportImportPage.clickNew();
 
-	await exportImportPage.nameInput.focus();
+				await exportImportDataSelectionPage.uncheckItem(
+					'Content & Data',
+					'Wiki'
+				);
 
-	await exportImportPage.nameInput.blur();
+				await exportImportPage.nameInput.fill(name);
 
-	await expect(
-		page.getByText('This field is required.', {exact: true})
-	).toBeVisible();
-});
+				await exportImportPage.exportButton.click();
 
-test('Should show error on invalid lar upload (extension .lar)', async ({
-	exportImportPage,
-	productMenuPage,
-}) => {
-	await productMenuPage.openProductMenuIfClosed();
+				await expect(
+					exportImportPage.taskStatusLabel(name)
+				).toBeVisible();
 
-	await productMenuPage.goToPublishingImport();
+				folderPath = await exportImportPage.download(name);
+			}
+		);
 
-	await exportImportPage.newImport.click();
+		await testWithWiki.step(
+			'Assert the import wizard offers no wiki content',
+			async () => {
+				await exportImportPage.goToImport(site.friendlyUrlPath);
 
-	await exportImportPage.import(
-		path.join(__dirname, '../main/dependencies', 'folder.portlet.lar'),
-		'Uploaded LAR file type Portlet does not match layout-prototype, layout-set, layout-set-prototype.'
-	);
-	await expect(exportImportPage.continueButton).toBeDisabled();
-});
+				await exportImportPage.newButton.click();
 
-test('Should show error on invalid lar upload (extension not .lar)', async ({
-	exportImportPage,
-	productMenuPage,
-}) => {
-	await productMenuPage.openProductMenuIfClosed();
+				await exportImportPage.goToImportDataSelection({
+					folderPath,
+					name,
+				});
 
-	await productMenuPage.goToPublishingImport();
+				await expect(
+					page.getByLabel('Page Templates', {exact: true}).first()
+				).toBeAttached();
 
-	await exportImportPage.newImport.click();
+				await expect(
+					page.getByLabel('Wiki', {exact: true})
+				).not.toBeAttached();
+			}
+		);
+	}
+);
 
-	await exportImportPage.import(
-		path.join(__dirname, '../main/dependencies', 'Document.jpg'),
-		'File type must be .lar'
-	);
+test(
+	'Can import a lar file selecting some of its content',
+	{tag: '@LPD-101195'},
+	async ({
+		apiHelpers,
+		exportImportDataSelectionPage,
+		exportImportPage,
+		site,
+	}) => {
+		const objectDefinition =
+			await apiHelpers.objectAdmin.postRandomObjectDefinition({
+				scope: 'site',
+				status: {code: 0},
+			});
 
-	await expect(exportImportPage.continueButton).toBeDisabled();
-});
+		apiHelpers.data.push({
+			id: objectDefinition.id,
+			type: 'objectDefinition',
+		});
+
+		await apiHelpers.objectEntry.postObjectEntry(
+			{},
+			`${normalizeRestPath(objectDefinition.restContextPath)}/scopes/${site.friendlyUrlPath.slice(1)}`
+		);
+
+		await exportImportPage.goToExport(site.friendlyUrlPath);
+
+		const name = `MyExport-${getRandomString()}`;
+
+		await exportImportPage.export(name);
+
+		await expect(exportImportPage.taskStatusLabel(name)).toBeVisible();
+
+		const folderPath = await exportImportPage.download(name);
+
+		await exportImportPage.goToImport(site.friendlyUrlPath);
+
+		await exportImportPage.newButton.click();
+
+		await exportImportPage.import({
+			folderPath,
+			name,
+			selectData: () =>
+				exportImportDataSelectionPage.selectOnlyObjectDefinition(
+					objectDefinition.name
+				),
+		});
+
+		await expect(exportImportPage.taskStatusLabel(name)).toBeVisible();
+	}
+);
+
+test(
+	'Can see corresponding import wizard controls at site level',
+	{tag: '@LPD-100545'},
+	async ({
+		apiHelpers,
+		exportImportDataSelectionPage,
+		exportImportPage,
+		page,
+		site,
+	}) => {
+		await apiHelpers.headlessDelivery.postBlog(site.id);
+
+		await exportImportPage.goToExport(site.friendlyUrlPath);
+
+		await exportImportPage.clickNew();
+
+		const {folderPath, name} = await exportAndDownloadLar(exportImportPage);
+
+		await exportImportPage.goToImport(site.friendlyUrlPath);
+
+		await assertImportWizardControls({
+			exportImportDataSelectionPage,
+			exportImportPage,
+			folderPath,
+			hasCommentsAndRatings: true,
+			hasMirrorWithOverwriting: true,
+			hasSiteBuilder: true,
+			name,
+			page,
+		});
+	}
+);

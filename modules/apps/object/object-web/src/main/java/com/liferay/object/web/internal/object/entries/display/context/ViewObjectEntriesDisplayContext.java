@@ -245,11 +245,16 @@ public class ViewObjectEntriesDisplayContext {
 			return fdsSortItemList;
 		}
 
+		List<ObjectViewSortColumn> objectViewSortColumns =
+			objectView.getObjectViewSortColumns();
+
 		for (ObjectViewSortColumn objectViewSortColumn :
-				objectView.getObjectViewSortColumns()) {
+				objectViewSortColumns) {
 
 			fdsSortItemList.add(
-				FDSSortItemBuilder.setDirection(
+				FDSSortItemBuilder.setActive(
+					objectViewSortColumns.size() == 1
+				).setDirection(
 					objectViewSortColumn.getSortOrder()
 				).setKey(
 					() -> {

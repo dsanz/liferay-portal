@@ -14,7 +14,9 @@ import org.osgi.annotation.versioning.ProviderType;
 /**
  * @author Michael C. Han
  */
-@ExtendedObjectClassDefinition(category = "audit")
+@ExtendedObjectClassDefinition(
+	category = "audit", scope = ExtendedObjectClassDefinition.Scope.COMPANY
+)
 @Meta.OCD(
 	id = "com.liferay.portal.security.audit.configuration.AuditConfiguration",
 	localization = "content/Language", name = "audit-configuration-name"
@@ -22,6 +24,10 @@ import org.osgi.annotation.versioning.ProviderType;
 @ProviderType
 public interface AuditConfiguration {
 
+	/**
+	 * @deprecated As of Cavanaugh (7.4.x), with no direct replacement
+	 */
+	@Deprecated
 	@Meta.AD(
 		deflt = "200", name = "audit-message-max-queue-size", required = false
 	)

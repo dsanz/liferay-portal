@@ -16,6 +16,7 @@ JSPUnusedTermsCheck | .jsp, .jspf, .jspx, .tag, .tpl, or .vm | Finds taglibs, va
 JavaCollapseImportsCheck | .java | Collapses imports that use wildcard. |
 JavaHibernateSQLCheck | .java | Finds calls to `com.liferay.portal.kernel.dao.orm.Session.createSQLQuery` (use `Session.createSynchronizedSQLQuery` instead). |
 [JavaMultiPlusConcatCheck](check/java_multi_plus_concat_check.md#javamultiplusconcatcheck) | .java | Checks that we do not concatenate more than 3 String objects. |
+[JavaRedundantContainsCheck](check/java_redundant_contains_check.md#javaredundantcontainscheck) | .java | Finds a `contains` or `containsKey` check that is immediately followed by a `get`, `remove`, `put`, or `add` on the same key or element, which should be combined into the single operation that already reports presence through its return value. |
 [JavaServiceTrackerFactoryCheck](check/java_service_tracker_factory_check.md#javaservicetrackerfactorycheck) | .java | Checks that there are no calls to deprecated method `ServiceTrackerFactory.open(java.lang.Class)`. |
 JavaSessionCheck | .java | Finds unnecessary calls to `Session.flush()` (calls that are followed by `Session.clear()`). |
 [JavaStringBundlerConcatCheck](check/java_string_bundler_concat_check.md#javastringbundlerconcatcheck) | .java | Finds calls to `StringBundler.concat` with less than 3 parameters. |
@@ -48,4 +49,4 @@ UnusedVariableCheck | .java | Finds variables that are declared, but not used. |
 [UpgradeProcessCheck](check/upgrade_process_check.md#upgradeprocesscheck) | .java | Performs several checks on `*UpgradeProcess` classes. |
 [ValidatorEqualsCheck](check/validator_equals_check.md#validatorequalscheck) | .java, .jsp, .jspf, .jspx, .tag, .tpl, or .vm | Checks that there are no calls to `Validator.equals(Object, Object)`. |
 VariableDeclarationAsUsedCheck | .java | Finds cases where a variable declaration can be inlined or moved closer to where it is used. |
-XMLSpringExtenderServiceCheck | .action, .function, .jelly, .jrxml, .macro, .pom, .project, .properties, .qti, .svg, .testcase, .toggle, .tpl, .wsdl, .xml, or .xsd | Finds cases where Spring extender service is used as a dependency injection. |
+XMLSpringExtenderServiceCheck | .action, .function, .jelly, .jrxml, .macro, .pom, .project, .properties, .qti, .svg, .testcase, .toggle, .tpl, .wsdl, .xlf, .xml, or .xsd | Finds cases where Spring extender service is used as a dependency injection. |

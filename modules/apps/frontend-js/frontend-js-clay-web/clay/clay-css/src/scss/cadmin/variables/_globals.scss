@@ -292,6 +292,14 @@ $cadmin-dark-d2: var(--cadmin-dark-d2) !default;
 $cadmin-dark-l1: var(--cadmin-dark-l1) !default;
 $cadmin-dark-l2: var(--cadmin-dark-l2) !default;
 
+$cadmin-scrollbar-inset: var(--cadmin-scrollbar-inset) !default;
+$cadmin-scrollbar-radius: var(--cadmin-scrollbar-radius) !default;
+$cadmin-scrollbar-size: var(--cadmin-scrollbar-size) !default;
+$cadmin-scrollbar-thumb: var(--cadmin-scrollbar-thumb) !default;
+$cadmin-scrollbar-thumb-active: var(--cadmin-scrollbar-thumb-active) !default;
+$cadmin-scrollbar-thumb-hover: var(--cadmin-scrollbar-thumb-hover) !default;
+$cadmin-scrollbar-track: var(--cadmin-scrollbar-track) !default;
+
 $cadmin-theme-colors: () !default;
 $cadmin-theme-colors: map-merge(
 	(
@@ -372,10 +380,10 @@ $cadmin-line-height-sm: 1.5 !default;
 $cadmin-border-color: $cadmin-gray-300 !default;
 $cadmin-border-width: 1px !default;
 
-$cadmin-border-radius: 4px !default; // 4px
-$cadmin-border-radius-lg: 6px !default; // 6px
-$cadmin-border-radius-sm: 3px !default; // 3px
-$cadmin-border-radius-xl: 16px !default; // 16px
+$cadmin-border-radius: 8px !default;
+$cadmin-border-radius-lg: 8px !default;
+$cadmin-border-radius-sm: 8px !default;
+$cadmin-border-radius-xl: 16px !default;
 
 $cadmin-rounded-0-border-radius: 0px !default;
 $cadmin-rounded-border-radius: $cadmin-border-radius !default;
@@ -385,11 +393,11 @@ $cadmin-rounded-pill: 800px !default;
 $cadmin-box-shadow: unquote(
 	'0 8px 16px hsl(from #{$cadmin-black} h s l / 0.15)'
 ) !default;
-$cadmin-box-shadow-sm: unquote(
-	'0 2px 4px hsl(from #{$cadmin-black} h s l / 0.075)'
-) !default;
 $cadmin-box-shadow-lg: unquote(
 	'0 16px 48px hsl(from #{$cadmin-black} h s l / 0.175)'
+) !default;
+$cadmin-box-shadow-sm: unquote(
+	'0 2px 4px hsl(from #{$cadmin-black} h s l / 0.075)'
 ) !default;
 
 $cadmin-caret-width: 0.3em !default;
@@ -413,17 +421,30 @@ $cadmin-component-transition:
 	border-color 0.15s ease-in-out,
 	box-shadow 0.15s ease-in-out !default;
 
-$cadmin-component-focus-box-shadow: unquote(
-	'0 0 0 2px #{$cadmin-white}, 0 0 0 4px #{$cadmin-primary-l0}'
+$cadmin-component-focus-box-shadow: var(
+	--cadmin-component-focus-box-shadow,
+	unquote('0 0 0 2px #{$cadmin-white}, 0 0 0 4px #{$cadmin-primary-l0}')
 ) !default;
-$cadmin-component-focus-inset-box-shadow: unquote(
-	'inset 0 0 0 2px #{$cadmin-primary-l0}, inset 0 0 0 4px #{$cadmin-white}'
+$cadmin-component-focus-inset-box-shadow: var(
+	--cadmin-component-focus-inset-box-shadow,
+	unquote(
+		'inset 0 0 0 2px #{$cadmin-primary-l0}, inset 0 0 0 4px #{$cadmin-white}'
+	)
 ) !default;
 
-$cadmin-component-active-bg: $cadmin-primary !default;
-$cadmin-component-active-color: $cadmin-white !default;
+$cadmin-component-active-bg: var(
+	--cadmin-component-active-bg,
+	$cadmin-primary
+) !default;
+$cadmin-component-active-color: var(
+	--cadmin-component-active-color,
+	$cadmin-white
+) !default;
 
-$cadmin-component-disabled-opacity: 0.4 !default;
+$cadmin-component-disabled-opacity: var(
+	--cadmin-component-disabled-opacity,
+	0.4
+) !default;
 
 // Cursors
 
@@ -509,8 +530,10 @@ $cadmin-container-form-lg: () !default;
 $cadmin-container-form-lg: map-deep-merge(
 	(
 		breakpoint-up: lg,
+
 		padding-bottom: 48px,
 		padding-top: 48px,
+
 		padding-bottom-mobile: 16px,
 		padding-top-mobile: 16px,
 	),

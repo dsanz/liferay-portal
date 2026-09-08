@@ -109,12 +109,6 @@ public class EditRolePermissionsNavigationDisplayContextTest {
 				_invokeHasObjectDefinitionValidDomain(
 					Mockito.mock(ObjectDefinition.class)));
 
-			featureFlagManagerUtilMockedStatic.when(
-				() -> FeatureFlagManagerUtil.isEnabled(_COMPANY_ID, "LPD-17564")
-			).thenReturn(
-				true
-			);
-
 			objectDefinitionSettingUtilMockedStatic.when(
 				() -> ObjectDefinitionSettingUtil.getValue(
 					Mockito.eq(ObjectDefinitionSettingConstants.NAME_DOMAIN),
@@ -145,6 +139,50 @@ public class EditRolePermissionsNavigationDisplayContextTest {
 					Mockito.any())
 			).thenReturn(
 				"space"
+			);
+
+			Assert.assertTrue(
+				_invokeHasObjectDefinitionValidDomain(
+					Mockito.mock(ObjectDefinition.class)));
+		}
+
+		Mockito.when(
+			_role.getSubtype()
+		).thenReturn(
+			"design-library"
+		);
+
+		try (MockedStatic<FeatureFlagManagerUtil>
+				featureFlagManagerUtilMockedStatic = Mockito.mockStatic(
+					FeatureFlagManagerUtil.class);
+			MockedStatic<ObjectDefinitionSettingUtil>
+				objectDefinitionSettingUtilMockedStatic = Mockito.mockStatic(
+					ObjectDefinitionSettingUtil.class)) {
+
+			featureFlagManagerUtilMockedStatic.when(
+				() -> FeatureFlagManagerUtil.isEnabled(_COMPANY_ID, "LPD-57283")
+			).thenReturn(
+				true
+			);
+
+			objectDefinitionSettingUtilMockedStatic.when(
+				() -> ObjectDefinitionSettingUtil.getValue(
+					Mockito.eq(ObjectDefinitionSettingConstants.NAME_DOMAIN),
+					Mockito.any())
+			).thenReturn(
+				"project"
+			);
+
+			Assert.assertFalse(
+				_invokeHasObjectDefinitionValidDomain(
+					Mockito.mock(ObjectDefinition.class)));
+
+			objectDefinitionSettingUtilMockedStatic.when(
+				() -> ObjectDefinitionSettingUtil.getValue(
+					Mockito.eq(ObjectDefinitionSettingConstants.NAME_DOMAIN),
+					Mockito.any())
+			).thenReturn(
+				"design-library"
 			);
 
 			Assert.assertTrue(

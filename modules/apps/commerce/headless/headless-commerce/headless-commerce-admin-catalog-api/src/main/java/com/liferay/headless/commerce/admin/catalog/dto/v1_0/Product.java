@@ -63,7 +63,7 @@ public class Product implements Serializable {
 	}
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "Map of HATEOAS actions available to the current user, keyed by action name; each value carries the href template and HTTP method, computed dynamically from the caller's permissions; read-only."
+		description = "Map of HATEOAS actions available to the current user, keyed by action name. Each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only."
 	)
 	@Valid
 	public Map<String, Map<String, String>> getActions() {
@@ -101,7 +101,7 @@ public class Product implements Serializable {
 	}
 
 	@GraphQLField(
-		description = "Map of HATEOAS actions available to the current user, keyed by action name; each value carries the href template and HTTP method, computed dynamically from the caller's permissions; read-only."
+		description = "Map of HATEOAS actions available to the current user, keyed by action name. Each value carries the href template and HTTP method, computed dynamically from user permissions. Read-only."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Map<String, Map<String, String>> actions;
@@ -625,7 +625,7 @@ public class Product implements Serializable {
 	private Supplier<Diagram> _diagramSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "ISO 8601 date from which the product becomes visible; must not be after `expirationDate` or the request is rejected.",
+		description = "ISO 8601 date-time from which the product becomes visible; must not be after `expirationDate` or the request is rejected.",
 		example = "2017-07-21"
 	)
 	public Date getDisplayDate() {
@@ -662,7 +662,7 @@ public class Product implements Serializable {
 	}
 
 	@GraphQLField(
-		description = "ISO 8601 date from which the product becomes visible; must not be after `expirationDate` or the request is rejected."
+		description = "ISO 8601 date-time from which the product becomes visible; must not be after `expirationDate` or the request is rejected."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Date displayDate;
@@ -717,7 +717,7 @@ public class Product implements Serializable {
 	private Supplier<Map<String, ?>> _expandoSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "ISO 8601 date when the product is hidden from the catalog; ignored when `neverExpire` is true (default).",
+		description = "ISO 8601 date-time when the product is hidden from the catalog; ignored when `neverExpire` is true (default).",
 		example = "2017-08-21"
 	)
 	public Date getExpirationDate() {
@@ -754,7 +754,7 @@ public class Product implements Serializable {
 	}
 
 	@GraphQLField(
-		description = "ISO 8601 date when the product is hidden from the catalog; ignored when `neverExpire` is true (default)."
+		description = "ISO 8601 date-time when the product is hidden from the catalog; ignored when `neverExpire` is true (default)."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Date expirationDate;
@@ -3368,4 +3368,4 @@ public class Product implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1140011510
+// LIFERAY-REST-BUILDER-HASH:1524699350

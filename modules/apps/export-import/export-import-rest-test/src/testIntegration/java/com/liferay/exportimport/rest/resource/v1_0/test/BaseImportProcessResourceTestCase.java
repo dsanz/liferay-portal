@@ -17,12 +17,16 @@ import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalServiceUtil;
 import com.liferay.exportimport.rest.client.dto.v1_0.ImportProcess;
+import com.liferay.exportimport.rest.client.dto.v1_0.ProcessProgress;
 import com.liferay.exportimport.rest.client.dto.v1_0.Type;
 import com.liferay.exportimport.rest.client.http.HttpInvoker;
 import com.liferay.exportimport.rest.client.pagination.Page;
 import com.liferay.exportimport.rest.client.pagination.Pagination;
 import com.liferay.exportimport.rest.client.resource.v1_0.ImportProcessResource;
 import com.liferay.exportimport.rest.client.serdes.v1_0.ImportProcessSerDes;
+import com.liferay.headless.batch.engine.client.dto.v1_0.ImportTask;
+import com.liferay.headless.batch.engine.client.http.HttpInvoker.HttpResponse;
+import com.liferay.headless.batch.engine.client.resource.v1_0.ImportTaskResource;
 import com.liferay.oauth2.provider.scope.ScopeChecker;
 import com.liferay.petra.function.UnsafeTriConsumer;
 import com.liferay.petra.function.transform.TransformUtil;
@@ -41,6 +45,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
@@ -119,6 +124,8 @@ public abstract class BaseImportProcessResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -158,6 +165,17 @@ public abstract class BaseImportProcessResourceTestCase {
 			testCompany.getCompanyId());
 
 		importProcessResource = ImportProcessResource.builder(
+		).authentication(
+			_testCompanyAdminUser.getEmailAddress(),
+			PropsValues.DEFAULT_ADMIN_PASSWORD
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
+		).locale(
+			LocaleUtil.getDefault()
+		).build();
+
+		importTaskResource = ImportTaskResource.builder(
 		).authentication(
 			_testCompanyAdminUser.getEmailAddress(),
 			PropsValues.DEFAULT_ADMIN_PASSWORD
@@ -228,6 +246,7 @@ public abstract class BaseImportProcessResourceTestCase {
 
 		ImportProcess importProcess = randomImportProcess();
 
+		importProcess.setErrorMessage(regex);
 		importProcess.setName(regex);
 
 		String json = ImportProcessSerDes.toJSON(importProcess);
@@ -236,30 +255,101 @@ public abstract class BaseImportProcessResourceTestCase {
 
 		importProcess = ImportProcessSerDes.toDTO(json);
 
+		Assert.assertEquals(regex, importProcess.getErrorMessage());
 		Assert.assertEquals(regex, importProcess.getName());
 	}
 
 	@Test
+	public void testDeleteImportProcess() throws Exception {
+		@SuppressWarnings("PMD.UnusedLocalVariable")
+		ImportProcess importProcess =
+			testDeleteImportProcess_addImportProcess();
+
+		assertHttpResponseStatusCode(
+			204,
+			importProcessResource.deleteImportProcessHttpResponse(
+				importProcess.getId()));
+
+		assertHttpResponseStatusCode(
+			404,
+			importProcessResource.getImportProcessHttpResponse(
+				importProcess.getId()));
+		assertHttpResponseStatusCode(
+			404, importProcessResource.getImportProcessHttpResponse(0L));
+	}
+
+	protected ImportProcess testDeleteImportProcess_addImportProcess()
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
+	}
+
+	@Test
+	public void testDeleteImportProcessBatch() throws Exception {
+		ImportProcess importProcess1 =
+			testDeleteImportProcessBatch_addImportProcess();
+
+		testDeleteImportProcessBatch_deleteImportProcess(
+			202, null, importProcess1.getId());
+
+		assertHttpResponseStatusCode(
+			404,
+			importProcessResource.getImportProcessHttpResponse(
+				importProcess1.getId()));
+	}
+
+	protected ImportProcess testDeleteImportProcessBatch_addImportProcess()
+		throws Exception {
+
+		return testDeleteImportProcess_addImportProcess();
+	}
+
+	protected void testDeleteImportProcessBatch_deleteImportProcess(
+			int expectedStatusCode, String externalReferenceCode, Long id)
+		throws Exception {
+
+		HttpInvoker.HttpResponse httpResponse =
+			importProcessResource.deleteImportProcessBatchHttpResponse(
+				null,
+				JSONUtil.putAll(
+					JSONUtil.put(
+						"externalReferenceCode", () -> externalReferenceCode
+					).put(
+						"id", () -> id
+					)));
+
+		Assert.assertEquals(expectedStatusCode, httpResponse.getStatusCode());
+
+		waitForFinish(
+			"COMPLETED",
+			JSONFactoryUtil.createJSONObject(httpResponse.getContent()));
+	}
+
+	@Test
 	public void testGetAssetLibraryImportProcessesPage() throws Exception {
-		Long assetLibraryId =
-			testGetAssetLibraryImportProcessesPage_getAssetLibraryId();
-		Long irrelevantAssetLibraryId =
-			testGetAssetLibraryImportProcessesPage_getIrrelevantAssetLibraryId();
+		String assetLibraryExternalReferenceCode =
+			testGetAssetLibraryImportProcessesPage_getAssetLibraryExternalReferenceCode();
+		String irrelevantAssetLibraryExternalReferenceCode =
+			testGetAssetLibraryImportProcessesPage_getIrrelevantAssetLibraryExternalReferenceCode();
 
 		Page<ImportProcess> page =
 			importProcessResource.getAssetLibraryImportProcessesPage(
-				assetLibraryId, null, null, null, Pagination.of(1, 10), null);
+				assetLibraryExternalReferenceCode, null,
+				RandomTestUtil.randomString(), null, null, Pagination.of(1, 10),
+				null);
 
 		long totalCount = page.getTotalCount();
 
-		if (irrelevantAssetLibraryId != null) {
+		if (irrelevantAssetLibraryExternalReferenceCode != null) {
 			ImportProcess irrelevantImportProcess =
 				testGetAssetLibraryImportProcessesPage_addImportProcess(
-					irrelevantAssetLibraryId, randomIrrelevantImportProcess());
+					irrelevantAssetLibraryExternalReferenceCode,
+					randomIrrelevantImportProcess());
 
 			page = importProcessResource.getAssetLibraryImportProcessesPage(
-				irrelevantAssetLibraryId, null, null, null,
-				Pagination.of(1, (int)totalCount + 1), null);
+				irrelevantAssetLibraryExternalReferenceCode, null, null, null,
+				null, Pagination.of(1, (int)totalCount + 1), null);
 
 			Assert.assertEquals(totalCount + 1, page.getTotalCount());
 
@@ -268,19 +358,20 @@ public abstract class BaseImportProcessResourceTestCase {
 			assertValid(
 				page,
 				testGetAssetLibraryImportProcessesPage_getExpectedActions(
-					irrelevantAssetLibraryId));
+					irrelevantAssetLibraryExternalReferenceCode));
 		}
 
 		ImportProcess importProcess1 =
 			testGetAssetLibraryImportProcessesPage_addImportProcess(
-				assetLibraryId, randomImportProcess());
+				assetLibraryExternalReferenceCode, randomImportProcess());
 
 		ImportProcess importProcess2 =
 			testGetAssetLibraryImportProcessesPage_addImportProcess(
-				assetLibraryId, randomImportProcess());
+				assetLibraryExternalReferenceCode, randomImportProcess());
 
 		page = importProcessResource.getAssetLibraryImportProcessesPage(
-			assetLibraryId, null, null, null, Pagination.of(1, 10), null);
+			assetLibraryExternalReferenceCode, null, null, null, null,
+			Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -289,15 +380,31 @@ public abstract class BaseImportProcessResourceTestCase {
 		assertValid(
 			page,
 			testGetAssetLibraryImportProcessesPage_getExpectedActions(
-				assetLibraryId));
+				assetLibraryExternalReferenceCode));
+
+		importProcessResource.deleteImportProcess(importProcess1.getId());
+
+		importProcessResource.deleteImportProcess(importProcess2.getId());
 	}
 
 	protected Map<String, Map<String, String>>
 			testGetAssetLibraryImportProcessesPage_getExpectedActions(
-				Long assetLibraryId)
+				String assetLibraryExternalReferenceCode)
 		throws Exception {
 
 		Map<String, Map<String, String>> expectedActions = new HashMap<>();
+
+		Map createBatchAction = new HashMap<>();
+		createBatchAction.put("method", "POST");
+		createBatchAction.put(
+			"href",
+			("http://localhost:" + PortalUtil.getPortalServerPort(false) +
+				"/o/export-import/v1.0/asset-libraries/{assetLibraryExternalReferenceCode}/import-processes/batch").
+					replace(
+						"{assetLibraryExternalReferenceCode}",
+						String.valueOf(assetLibraryExternalReferenceCode)));
+
+		expectedActions.put("createBatch", createBatchAction);
 
 		return expectedActions;
 	}
@@ -306,27 +413,28 @@ public abstract class BaseImportProcessResourceTestCase {
 	public void testGetAssetLibraryImportProcessesPageWithPagination()
 		throws Exception {
 
-		Long assetLibraryId =
-			testGetAssetLibraryImportProcessesPage_getAssetLibraryId();
+		String assetLibraryExternalReferenceCode =
+			testGetAssetLibraryImportProcessesPage_getAssetLibraryExternalReferenceCode();
 
 		Page<ImportProcess> importProcessesPage =
 			importProcessResource.getAssetLibraryImportProcessesPage(
-				assetLibraryId, null, null, null, null, null);
+				assetLibraryExternalReferenceCode, null, null, null, null, null,
+				null);
 
 		int totalCount = GetterUtil.getInteger(
 			importProcessesPage.getTotalCount());
 
 		ImportProcess importProcess1 =
 			testGetAssetLibraryImportProcessesPage_addImportProcess(
-				assetLibraryId, randomImportProcess());
+				assetLibraryExternalReferenceCode, randomImportProcess());
 
 		ImportProcess importProcess2 =
 			testGetAssetLibraryImportProcessesPage_addImportProcess(
-				assetLibraryId, randomImportProcess());
+				assetLibraryExternalReferenceCode, randomImportProcess());
 
 		ImportProcess importProcess3 =
 			testGetAssetLibraryImportProcessesPage_addImportProcess(
-				assetLibraryId, randomImportProcess());
+				assetLibraryExternalReferenceCode, randomImportProcess());
 
 		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
@@ -335,7 +443,7 @@ public abstract class BaseImportProcessResourceTestCase {
 		if (totalCount >= (pageSizeLimit - 2)) {
 			Page<ImportProcess> page1 =
 				importProcessResource.getAssetLibraryImportProcessesPage(
-					assetLibraryId, null, null, null,
+					assetLibraryExternalReferenceCode, null, null, null, null,
 					Pagination.of(
 						(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
 						pageSizeLimit),
@@ -348,7 +456,7 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> page2 =
 				importProcessResource.getAssetLibraryImportProcessesPage(
-					assetLibraryId, null, null, null,
+					assetLibraryExternalReferenceCode, null, null, null, null,
 					Pagination.of(
 						(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
 						pageSizeLimit),
@@ -359,7 +467,7 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> page3 =
 				importProcessResource.getAssetLibraryImportProcessesPage(
-					assetLibraryId, null, null, null,
+					assetLibraryExternalReferenceCode, null, null, null, null,
 					Pagination.of(
 						(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
 						pageSizeLimit),
@@ -371,7 +479,7 @@ public abstract class BaseImportProcessResourceTestCase {
 		else {
 			Page<ImportProcess> page1 =
 				importProcessResource.getAssetLibraryImportProcessesPage(
-					assetLibraryId, null, null, null,
+					assetLibraryExternalReferenceCode, null, null, null, null,
 					Pagination.of(1, totalCount + 2), null);
 
 			List<ImportProcess> importProcesses1 =
@@ -383,7 +491,7 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> page2 =
 				importProcessResource.getAssetLibraryImportProcessesPage(
-					assetLibraryId, null, null, null,
+					assetLibraryExternalReferenceCode, null, null, null, null,
 					Pagination.of(2, totalCount + 2), null);
 
 			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
@@ -396,7 +504,7 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> page3 =
 				importProcessResource.getAssetLibraryImportProcessesPage(
-					assetLibraryId, null, null, null,
+					assetLibraryExternalReferenceCode, null, null, null, null,
 					Pagination.of(1, (int)totalCount + 3), null);
 
 			assertContains(
@@ -515,8 +623,8 @@ public abstract class BaseImportProcessResourceTestCase {
 			return;
 		}
 
-		Long assetLibraryId =
-			testGetAssetLibraryImportProcessesPage_getAssetLibraryId();
+		String assetLibraryExternalReferenceCode =
+			testGetAssetLibraryImportProcessesPage_getAssetLibraryExternalReferenceCode();
 
 		ImportProcess importProcess1 = randomImportProcess();
 		ImportProcess importProcess2 = randomImportProcess();
@@ -528,20 +636,21 @@ public abstract class BaseImportProcessResourceTestCase {
 
 		importProcess1 =
 			testGetAssetLibraryImportProcessesPage_addImportProcess(
-				assetLibraryId, importProcess1);
+				assetLibraryExternalReferenceCode, importProcess1);
 
 		importProcess2 =
 			testGetAssetLibraryImportProcessesPage_addImportProcess(
-				assetLibraryId, importProcess2);
+				assetLibraryExternalReferenceCode, importProcess2);
 
 		Page<ImportProcess> page =
 			importProcessResource.getAssetLibraryImportProcessesPage(
-				assetLibraryId, null, null, null, null, null);
+				assetLibraryExternalReferenceCode, null, null, null, null, null,
+				null);
 
 		for (EntityField entityField : entityFields) {
 			Page<ImportProcess> ascPage =
 				importProcessResource.getAssetLibraryImportProcessesPage(
-					assetLibraryId, null, null, null,
+					assetLibraryExternalReferenceCode, null, null, null, null,
 					Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":asc");
 
@@ -552,7 +661,7 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> descPage =
 				importProcessResource.getAssetLibraryImportProcessesPage(
-					assetLibraryId, null, null, null,
+					assetLibraryExternalReferenceCode, null, null, null, null,
 					Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":desc");
 
@@ -565,24 +674,26 @@ public abstract class BaseImportProcessResourceTestCase {
 
 	protected ImportProcess
 			testGetAssetLibraryImportProcessesPage_addImportProcess(
-				Long assetLibraryId, ImportProcess importProcess)
+				String assetLibraryExternalReferenceCode,
+				ImportProcess importProcess)
 		throws Exception {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
 	}
 
-	protected Long testGetAssetLibraryImportProcessesPage_getAssetLibraryId()
+	protected String
+			testGetAssetLibraryImportProcessesPage_getAssetLibraryExternalReferenceCode()
 		throws Exception {
 
-		return testDepotEntry.getDepotEntryId();
+		return testDepotEntryGroup.getExternalReferenceCode();
 	}
 
-	protected Long
-			testGetAssetLibraryImportProcessesPage_getIrrelevantAssetLibraryId()
+	protected String
+			testGetAssetLibraryImportProcessesPage_getIrrelevantAssetLibraryExternalReferenceCode()
 		throws Exception {
 
-		return irrelevantDepotEntry.getDepotEntryId();
+		return irrelevantDepotEntryGroup.getExternalReferenceCode();
 	}
 
 	@Test
@@ -804,7 +915,8 @@ public abstract class BaseImportProcessResourceTestCase {
 	@Test
 	public void testGetImportProcessesPage() throws Exception {
 		Page<ImportProcess> page = importProcessResource.getImportProcessesPage(
-			null, null, null, Pagination.of(1, 10), null);
+			null, RandomTestUtil.randomString(), null, null,
+			Pagination.of(1, 10), null);
 
 		long totalCount = page.getTotalCount();
 
@@ -815,13 +927,18 @@ public abstract class BaseImportProcessResourceTestCase {
 			testGetImportProcessesPage_addImportProcess(randomImportProcess());
 
 		page = importProcessResource.getImportProcessesPage(
-			null, null, null, Pagination.of(1, 10), null);
+			null, null, null, null, Pagination.of(1, (int)totalCount + 2),
+			null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
 		assertContains(importProcess1, (List<ImportProcess>)page.getItems());
 		assertContains(importProcess2, (List<ImportProcess>)page.getItems());
 		assertValid(page, testGetImportProcessesPage_getExpectedActions());
+
+		importProcessResource.deleteImportProcess(importProcess1.getId());
+
+		importProcessResource.deleteImportProcess(importProcess2.getId());
 	}
 
 	protected Map<String, Map<String, String>>
@@ -837,7 +954,7 @@ public abstract class BaseImportProcessResourceTestCase {
 	public void testGetImportProcessesPageWithPagination() throws Exception {
 		Page<ImportProcess> importProcessesPage =
 			importProcessResource.getImportProcessesPage(
-				null, null, null, null, null);
+				null, null, null, null, null, null);
 
 		int totalCount = GetterUtil.getInteger(
 			importProcessesPage.getTotalCount());
@@ -858,7 +975,7 @@ public abstract class BaseImportProcessResourceTestCase {
 		if (totalCount >= (pageSizeLimit - 2)) {
 			Page<ImportProcess> page1 =
 				importProcessResource.getImportProcessesPage(
-					null, null, null,
+					null, null, null, null,
 					Pagination.of(
 						(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
 						pageSizeLimit),
@@ -871,7 +988,7 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> page2 =
 				importProcessResource.getImportProcessesPage(
-					null, null, null,
+					null, null, null, null,
 					Pagination.of(
 						(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
 						pageSizeLimit),
@@ -882,7 +999,7 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> page3 =
 				importProcessResource.getImportProcessesPage(
-					null, null, null,
+					null, null, null, null,
 					Pagination.of(
 						(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
 						pageSizeLimit),
@@ -894,7 +1011,8 @@ public abstract class BaseImportProcessResourceTestCase {
 		else {
 			Page<ImportProcess> page1 =
 				importProcessResource.getImportProcessesPage(
-					null, null, null, Pagination.of(1, totalCount + 2), null);
+					null, null, null, null, Pagination.of(1, totalCount + 2),
+					null);
 
 			List<ImportProcess> importProcesses1 =
 				(List<ImportProcess>)page1.getItems();
@@ -905,7 +1023,8 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> page2 =
 				importProcessResource.getImportProcessesPage(
-					null, null, null, Pagination.of(2, totalCount + 2), null);
+					null, null, null, null, Pagination.of(2, totalCount + 2),
+					null);
 
 			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
 
@@ -917,8 +1036,8 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> page3 =
 				importProcessResource.getImportProcessesPage(
-					null, null, null, Pagination.of(1, (int)totalCount + 3),
-					null);
+					null, null, null, null,
+					Pagination.of(1, (int)totalCount + 3), null);
 
 			assertContains(
 				importProcess1, (List<ImportProcess>)page3.getItems());
@@ -1043,12 +1162,12 @@ public abstract class BaseImportProcessResourceTestCase {
 			importProcess2);
 
 		Page<ImportProcess> page = importProcessResource.getImportProcessesPage(
-			null, null, null, null, null);
+			null, null, null, null, null, null);
 
 		for (EntityField entityField : entityFields) {
 			Page<ImportProcess> ascPage =
 				importProcessResource.getImportProcessesPage(
-					null, null, null,
+					null, null, null, null,
 					Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":asc");
 
@@ -1059,7 +1178,7 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> descPage =
 				importProcessResource.getImportProcessesPage(
-					null, null, null,
+					null, null, null, null,
 					Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":desc");
 
@@ -1080,23 +1199,26 @@ public abstract class BaseImportProcessResourceTestCase {
 
 	@Test
 	public void testGetSiteImportProcessesPage() throws Exception {
-		Long siteId = testGetSiteImportProcessesPage_getSiteId();
-		Long irrelevantSiteId =
-			testGetSiteImportProcessesPage_getIrrelevantSiteId();
+		String siteExternalReferenceCode =
+			testGetSiteImportProcessesPage_getSiteExternalReferenceCode();
+		String irrelevantSiteExternalReferenceCode =
+			testGetSiteImportProcessesPage_getIrrelevantSiteExternalReferenceCode();
 
 		Page<ImportProcess> page =
 			importProcessResource.getSiteImportProcessesPage(
-				siteId, null, null, null, Pagination.of(1, 10), null);
+				siteExternalReferenceCode, null, RandomTestUtil.randomString(),
+				null, null, Pagination.of(1, 10), null);
 
 		long totalCount = page.getTotalCount();
 
-		if (irrelevantSiteId != null) {
+		if (irrelevantSiteExternalReferenceCode != null) {
 			ImportProcess irrelevantImportProcess =
 				testGetSiteImportProcessesPage_addImportProcess(
-					irrelevantSiteId, randomIrrelevantImportProcess());
+					irrelevantSiteExternalReferenceCode,
+					randomIrrelevantImportProcess());
 
 			page = importProcessResource.getSiteImportProcessesPage(
-				irrelevantSiteId, null, null, null,
+				irrelevantSiteExternalReferenceCode, null, null, null, null,
 				Pagination.of(1, (int)totalCount + 1), null);
 
 			Assert.assertEquals(totalCount + 1, page.getTotalCount());
@@ -1106,33 +1228,53 @@ public abstract class BaseImportProcessResourceTestCase {
 			assertValid(
 				page,
 				testGetSiteImportProcessesPage_getExpectedActions(
-					irrelevantSiteId));
+					irrelevantSiteExternalReferenceCode));
 		}
 
 		ImportProcess importProcess1 =
 			testGetSiteImportProcessesPage_addImportProcess(
-				siteId, randomImportProcess());
+				siteExternalReferenceCode, randomImportProcess());
 
 		ImportProcess importProcess2 =
 			testGetSiteImportProcessesPage_addImportProcess(
-				siteId, randomImportProcess());
+				siteExternalReferenceCode, randomImportProcess());
 
 		page = importProcessResource.getSiteImportProcessesPage(
-			siteId, null, null, null, Pagination.of(1, 10), null);
+			siteExternalReferenceCode, null, null, null, null,
+			Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
 		assertContains(importProcess1, (List<ImportProcess>)page.getItems());
 		assertContains(importProcess2, (List<ImportProcess>)page.getItems());
 		assertValid(
-			page, testGetSiteImportProcessesPage_getExpectedActions(siteId));
+			page,
+			testGetSiteImportProcessesPage_getExpectedActions(
+				siteExternalReferenceCode));
+
+		importProcessResource.deleteImportProcess(importProcess1.getId());
+
+		importProcessResource.deleteImportProcess(importProcess2.getId());
 	}
 
 	protected Map<String, Map<String, String>>
-			testGetSiteImportProcessesPage_getExpectedActions(Long siteId)
+			testGetSiteImportProcessesPage_getExpectedActions(
+				String siteExternalReferenceCode)
 		throws Exception {
 
 		Map<String, Map<String, String>> expectedActions = new HashMap<>();
+
+		Map createBatchAction = new HashMap<>();
+		createBatchAction.put("method", "POST");
+		createBatchAction.put(
+			"href",
+			("http://localhost:" + PortalUtil.getPortalServerPort(false) +
+				"/o/export-import/v1.0/sites/{siteExternalReferenceCode}/import-processes/batch").
+					replace(
+						"{siteExternalReferenceCode}",
+						String.valueOf(siteExternalReferenceCode)));
+
+		expectedActions.put("createBatch", createBatchAction);
 
 		return expectedActions;
 	}
@@ -1141,26 +1283,27 @@ public abstract class BaseImportProcessResourceTestCase {
 	public void testGetSiteImportProcessesPageWithPagination()
 		throws Exception {
 
-		Long siteId = testGetSiteImportProcessesPage_getSiteId();
+		String siteExternalReferenceCode =
+			testGetSiteImportProcessesPage_getSiteExternalReferenceCode();
 
 		Page<ImportProcess> importProcessesPage =
 			importProcessResource.getSiteImportProcessesPage(
-				siteId, null, null, null, null, null);
+				siteExternalReferenceCode, null, null, null, null, null, null);
 
 		int totalCount = GetterUtil.getInteger(
 			importProcessesPage.getTotalCount());
 
 		ImportProcess importProcess1 =
 			testGetSiteImportProcessesPage_addImportProcess(
-				siteId, randomImportProcess());
+				siteExternalReferenceCode, randomImportProcess());
 
 		ImportProcess importProcess2 =
 			testGetSiteImportProcessesPage_addImportProcess(
-				siteId, randomImportProcess());
+				siteExternalReferenceCode, randomImportProcess());
 
 		ImportProcess importProcess3 =
 			testGetSiteImportProcessesPage_addImportProcess(
-				siteId, randomImportProcess());
+				siteExternalReferenceCode, randomImportProcess());
 
 		// See com.liferay.portal.vulcan.internal.configuration.HeadlessAPICompanyConfiguration#pageSizeLimit
 
@@ -1169,7 +1312,7 @@ public abstract class BaseImportProcessResourceTestCase {
 		if (totalCount >= (pageSizeLimit - 2)) {
 			Page<ImportProcess> page1 =
 				importProcessResource.getSiteImportProcessesPage(
-					siteId, null, null, null,
+					siteExternalReferenceCode, null, null, null, null,
 					Pagination.of(
 						(int)Math.ceil((totalCount + 1.0) / pageSizeLimit),
 						pageSizeLimit),
@@ -1182,7 +1325,7 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> page2 =
 				importProcessResource.getSiteImportProcessesPage(
-					siteId, null, null, null,
+					siteExternalReferenceCode, null, null, null, null,
 					Pagination.of(
 						(int)Math.ceil((totalCount + 2.0) / pageSizeLimit),
 						pageSizeLimit),
@@ -1193,7 +1336,7 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> page3 =
 				importProcessResource.getSiteImportProcessesPage(
-					siteId, null, null, null,
+					siteExternalReferenceCode, null, null, null, null,
 					Pagination.of(
 						(int)Math.ceil((totalCount + 3.0) / pageSizeLimit),
 						pageSizeLimit),
@@ -1205,8 +1348,8 @@ public abstract class BaseImportProcessResourceTestCase {
 		else {
 			Page<ImportProcess> page1 =
 				importProcessResource.getSiteImportProcessesPage(
-					siteId, null, null, null, Pagination.of(1, totalCount + 2),
-					null);
+					siteExternalReferenceCode, null, null, null, null,
+					Pagination.of(1, totalCount + 2), null);
 
 			List<ImportProcess> importProcesses1 =
 				(List<ImportProcess>)page1.getItems();
@@ -1217,8 +1360,8 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> page2 =
 				importProcessResource.getSiteImportProcessesPage(
-					siteId, null, null, null, Pagination.of(2, totalCount + 2),
-					null);
+					siteExternalReferenceCode, null, null, null, null,
+					Pagination.of(2, totalCount + 2), null);
 
 			Assert.assertEquals(totalCount + 3, page2.getTotalCount());
 
@@ -1230,7 +1373,7 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> page3 =
 				importProcessResource.getSiteImportProcessesPage(
-					siteId, null, null, null,
+					siteExternalReferenceCode, null, null, null, null,
 					Pagination.of(1, (int)totalCount + 3), null);
 
 			assertContains(
@@ -1349,7 +1492,8 @@ public abstract class BaseImportProcessResourceTestCase {
 			return;
 		}
 
-		Long siteId = testGetSiteImportProcessesPage_getSiteId();
+		String siteExternalReferenceCode =
+			testGetSiteImportProcessesPage_getSiteExternalReferenceCode();
 
 		ImportProcess importProcess1 = randomImportProcess();
 		ImportProcess importProcess2 = randomImportProcess();
@@ -1360,19 +1504,19 @@ public abstract class BaseImportProcessResourceTestCase {
 		}
 
 		importProcess1 = testGetSiteImportProcessesPage_addImportProcess(
-			siteId, importProcess1);
+			siteExternalReferenceCode, importProcess1);
 
 		importProcess2 = testGetSiteImportProcessesPage_addImportProcess(
-			siteId, importProcess2);
+			siteExternalReferenceCode, importProcess2);
 
 		Page<ImportProcess> page =
 			importProcessResource.getSiteImportProcessesPage(
-				siteId, null, null, null, null, null);
+				siteExternalReferenceCode, null, null, null, null, null, null);
 
 		for (EntityField entityField : entityFields) {
 			Page<ImportProcess> ascPage =
 				importProcessResource.getSiteImportProcessesPage(
-					siteId, null, null, null,
+					siteExternalReferenceCode, null, null, null, null,
 					Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":asc");
 
@@ -1383,7 +1527,7 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			Page<ImportProcess> descPage =
 				importProcessResource.getSiteImportProcessesPage(
-					siteId, null, null, null,
+					siteExternalReferenceCode, null, null, null, null,
 					Pagination.of(1, (int)page.getTotalCount() + 1),
 					entityField.getName() + ":desc");
 
@@ -1395,21 +1539,25 @@ public abstract class BaseImportProcessResourceTestCase {
 	}
 
 	protected ImportProcess testGetSiteImportProcessesPage_addImportProcess(
-			Long siteId, ImportProcess importProcess)
+			String siteExternalReferenceCode, ImportProcess importProcess)
 		throws Exception {
 
 		throw new UnsupportedOperationException(
 			"This method needs to be implemented");
 	}
 
-	protected Long testGetSiteImportProcessesPage_getSiteId() throws Exception {
-		return testGroup.getGroupId();
-	}
-
-	protected Long testGetSiteImportProcessesPage_getIrrelevantSiteId()
+	protected String
+			testGetSiteImportProcessesPage_getSiteExternalReferenceCode()
 		throws Exception {
 
-		return irrelevantGroup.getGroupId();
+		return testGroup.getExternalReferenceCode();
+	}
+
+	protected String
+			testGetSiteImportProcessesPage_getIrrelevantSiteExternalReferenceCode()
+		throws Exception {
+
+		return irrelevantGroup.getExternalReferenceCode();
 	}
 
 	@Test
@@ -1472,7 +1620,83 @@ public abstract class BaseImportProcessResourceTestCase {
 
 	@Test
 	public void testBatchEngineDeleteImportTask() throws Exception {
-		Assert.assertTrue(true);
+		ImportProcess importProcess1 =
+			testBatchEngineDeleteImportTask_addImportProcess();
+
+		testBatchEngineDeleteImportTask_deleteImportProcess(
+			200, null, importProcess1.getId());
+
+		assertHttpResponseStatusCode(
+			404,
+			importProcessResource.getImportProcessHttpResponse(
+				importProcess1.getId()));
+	}
+
+	protected ImportProcess testBatchEngineDeleteImportTask_addImportProcess()
+		throws Exception {
+
+		return testDeleteImportProcess_addImportProcess();
+	}
+
+	protected void testBatchEngineDeleteImportTask_deleteImportProcess(
+			int expectedStatusCode, String externalReferenceCode, Long id,
+			String... parameters)
+		throws Exception {
+
+		ImportTaskResource importTaskResource = ImportTaskResource.builder(
+		).authentication(
+			_testCompanyAdminUser.getEmailAddress(),
+			PropsValues.DEFAULT_ADMIN_PASSWORD
+		).endpoint(
+			testCompany.getVirtualHostname(),
+			PortalUtil.getPortalServerPort(false), "http"
+		).parameters(
+			parameters
+		).build();
+
+		HttpResponse httpResponse =
+			importTaskResource.deleteImportTaskHttpResponse(
+				"com.liferay.exportimport.rest.dto.v1_0.ImportProcess", null,
+				null, null, null,
+				JSONUtil.putAll(
+					JSONUtil.put(
+						"externalReferenceCode", () -> externalReferenceCode
+					).put(
+						"id", () -> id
+					)));
+
+		Assert.assertEquals(expectedStatusCode, httpResponse.getStatusCode());
+
+		if (expectedStatusCode == 200) {
+			waitForFinish(
+				"COMPLETED",
+				JSONFactoryUtil.createJSONObject(httpResponse.getContent()));
+		}
+	}
+
+	@Test
+	public void testGetImportProcessProgress() throws Exception {
+		ImportProcess postImportProcess =
+			testGetImportProcess_addImportProcess();
+
+		ProcessProgress postProcessProgress =
+			testGetImportProcessProgress_addProcessProgress(
+				postImportProcess.getId(), randomProcessProgress());
+
+		ProcessProgress getProcessProgress =
+			importProcessResource.getImportProcessProgress(
+				postImportProcess.getId());
+
+		assertEquals(postProcessProgress, getProcessProgress);
+		assertValid(getProcessProgress);
+	}
+
+	protected ProcessProgress testGetImportProcessProgress_addProcessProgress(
+			long importProcessId, ProcessProgress processProgress)
+		throws Exception {
+
+		throw new UnsupportedOperationException(
+			"This method needs to be implemented");
 	}
 
 	protected void assertContains(
@@ -1522,6 +1746,14 @@ public abstract class BaseImportProcessResourceTestCase {
 		}
 	}
 
+	protected void assertEquals(
+		ProcessProgress processProgress1, ProcessProgress processProgress2) {
+
+		Assert.assertTrue(
+			processProgress1 + " does not equal " + processProgress2,
+			equals(processProgress1, processProgress2));
+	}
+
 	protected void assertEqualsIgnoringOrder(
 		List<ImportProcess> importProcesses1,
 		List<ImportProcess> importProcesses2) {
@@ -1565,6 +1797,22 @@ public abstract class BaseImportProcessResourceTestCase {
 
 			if (Objects.equals("creator", additionalAssertFieldName)) {
 				if (importProcess.getCreator() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("dateCompleted", additionalAssertFieldName)) {
+				if (importProcess.getDateCompleted() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("errorMessage", additionalAssertFieldName)) {
+				if (importProcess.getErrorMessage() == null) {
 					valid = false;
 				}
 
@@ -1638,7 +1886,33 @@ public abstract class BaseImportProcessResourceTestCase {
 		}
 	}
 
+	protected void assertValid(ProcessProgress processProgress) {
+		boolean valid = true;
+
+		for (String additionalAssertFieldName :
+				getAdditionalProcessProgressAssertFieldNames()) {
+
+			if (Objects.equals("percentage", additionalAssertFieldName)) {
+				if (processProgress.getPercentage() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			throw new IllegalArgumentException(
+				"Invalid additional assert field name " +
+					additionalAssertFieldName);
+		}
+
+		Assert.assertTrue(valid);
+	}
+
 	protected String[] getAdditionalAssertFieldNames() {
+		return new String[0];
+	}
+
+	protected String[] getAdditionalProcessProgressAssertFieldNames() {
 		return new String[0];
 	}
 
@@ -1719,6 +1993,17 @@ public abstract class BaseImportProcessResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals("dateCompleted", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						importProcess1.getDateCompleted(),
+						importProcess2.getDateCompleted())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("dateCreated", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						importProcess1.getDateCreated(),
@@ -1734,6 +2019,17 @@ public abstract class BaseImportProcessResourceTestCase {
 				if (!Objects.deepEquals(
 						importProcess1.getDateModified(),
 						importProcess2.getDateModified())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("errorMessage", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						importProcess1.getErrorMessage(),
+						importProcess2.getErrorMessage())) {
 
 					return false;
 				}
@@ -1804,6 +2100,35 @@ public abstract class BaseImportProcessResourceTestCase {
 		}
 
 		return false;
+	}
+
+	protected boolean equals(
+		ProcessProgress processProgress1, ProcessProgress processProgress2) {
+
+		if (processProgress1 == processProgress2) {
+			return true;
+		}
+
+		for (String additionalAssertFieldName :
+				getAdditionalProcessProgressAssertFieldNames()) {
+
+			if (Objects.equals("percentage", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						processProgress1.getPercentage(),
+						processProgress2.getPercentage())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			throw new IllegalArgumentException(
+				"Invalid additional assert field name " +
+					additionalAssertFieldName);
+		}
+
+		return true;
 	}
 
 	protected java.lang.reflect.Field[] getDeclaredFields(Class clazz)
@@ -1884,6 +2209,35 @@ public abstract class BaseImportProcessResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("dateCompleted")) {
+			if (operator.equals("between")) {
+				Date date = importProcess.getDateCompleted();
+
+				sb = new StringBundler();
+
+				sb.append("(");
+				sb.append(entityFieldName);
+				sb.append(" gt ");
+				sb.append(_format.format(date.getTime() - (2 * Time.SECOND)));
+				sb.append(" and ");
+				sb.append(entityFieldName);
+				sb.append(" lt ");
+				sb.append(_format.format(date.getTime() + (2 * Time.SECOND)));
+				sb.append(")");
+			}
+			else {
+				sb.append(entityFieldName);
+
+				sb.append(" ");
+				sb.append(operator);
+				sb.append(" ");
+
+				sb.append(_format.format(importProcess.getDateCompleted()));
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("dateCreated")) {
 			if (operator.equals("between")) {
 				Date date = importProcess.getDateCreated();
@@ -1937,6 +2291,52 @@ public abstract class BaseImportProcessResourceTestCase {
 				sb.append(" ");
 
 				sb.append(_format.format(importProcess.getDateModified()));
+			}
+
+			return sb.toString();
+		}
+
+		if (entityFieldName.equals("errorMessage")) {
+			Object object = importProcess.getErrorMessage();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
 			}
 
 			return sb.toString();
@@ -2045,8 +2445,11 @@ public abstract class BaseImportProcessResourceTestCase {
 	protected ImportProcess randomImportProcess() throws Exception {
 		return new ImportProcess() {
 			{
+				dateCompleted = RandomTestUtil.nextDate();
 				dateCreated = RandomTestUtil.nextDate();
 				dateModified = RandomTestUtil.nextDate();
+				errorMessage = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
 				id = RandomTestUtil.randomLong();
 				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
 			}
@@ -2063,7 +2466,38 @@ public abstract class BaseImportProcessResourceTestCase {
 		return randomImportProcess();
 	}
 
+	protected ProcessProgress randomProcessProgress() throws Exception {
+		return new ProcessProgress() {
+			{
+				percentage = RandomTestUtil.randomInt();
+			}
+		};
+	}
+
+	protected final JSONObject waitForFinish(
+			String expectedExecuteStatus, JSONObject jsonObject)
+		throws Exception {
+
+		while (true) {
+			ImportTask importTask = importTaskResource.getImportTask(
+				jsonObject.getLong("id"));
+
+			ImportTask.ExecuteStatus executeStatus =
+				importTask.getExecuteStatus();
+
+			if (StringUtil.equals(executeStatus.getValue(), "COMPLETED") ||
+				StringUtil.equals(executeStatus.getValue(), "FAILED")) {
+
+				Assert.assertEquals(
+					expectedExecuteStatus, executeStatus.getValue());
+
+				return jsonObject;
+			}
+		}
+	}
+
 	protected ImportProcessResource importProcessResource;
+	protected ImportTaskResource importTaskResource;
 	protected com.liferay.portal.kernel.model.Group irrelevantGroup;
 	protected com.liferay.portal.kernel.model.Company testCompany;
 	protected DepotEntry irrelevantDepotEntry;
@@ -2299,4 +2733,4 @@ public abstract class BaseImportProcessResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1862664561
+// LIFERAY-REST-BUILDER-HASH:-948697315

@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
@@ -120,6 +121,8 @@ public abstract class BaseCompanyTestEntityResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -432,14 +435,8 @@ public abstract class BaseCompanyTestEntityResourceTestCase {
 
 	@Test
 	public void testGraphQLGetCompanyTestEntitiesPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"companyTestEntities",
-			new HashMap<String, Object>() {
-				{
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetCompanyTestEntitiesPageCompanyTestEntity_getGraphQLField();
 
 		// No namespace
 
@@ -499,6 +496,20 @@ public abstract class BaseCompanyTestEntityResourceTestCase {
 			Arrays.asList(
 				CompanyTestEntitySerDes.toDTOs(
 					companyTestEntitiesJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetCompanyTestEntitiesPageCompanyTestEntity_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"companyTestEntities",
+			new HashMap<String, Object>() {
+				{
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -2422,4 +2433,4 @@ public abstract class BaseCompanyTestEntityResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1675477083
+// LIFERAY-REST-BUILDER-HASH:-1387896118

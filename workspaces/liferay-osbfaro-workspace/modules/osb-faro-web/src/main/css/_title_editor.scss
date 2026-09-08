@@ -1,0 +1,58 @@
+.title-editor-root {
+	.button-root {
+		background-color: transparent;
+
+		&:hover {
+			background-color: rgb(from var(--cadmin-gray-900) r g b / 0.06);
+		}
+	}
+
+	.title-display,
+	.title-input {
+		font-size: $fontSizeLarge;
+		font-weight: $fontWeightSemiBold;
+
+		&.hide {
+			display: none;
+		}
+	}
+
+	.title-display {
+		align-items: center;
+		display: flex;
+
+		&.placeholder-display {
+			color: $mainLighten52;
+			font-style: italic;
+		}
+
+		.title-value {
+			margin-right: 8px;
+			padding: 1px;
+
+			&:focus {
+				outline: none;
+			}
+		}
+	}
+
+	.title-input {
+		background-color: transparent;
+		border-width: 0;
+		color: $main;
+		width: 100%;
+
+		&:focus {
+			outline: none;
+		}
+
+		&::placeholder {
+			color: $mainLighten52;
+			font-style: italic;
+		}
+	}
+
+	&.editing {
+		flex: 1;
+	}
+}

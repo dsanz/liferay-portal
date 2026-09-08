@@ -50,13 +50,17 @@ export default function DataSelectionStep({
 				)}
 			</ClayLayout.Sheet>
 
-			<FormikFieldContentSelector
-				commentsAndRatingsEnabled={commentsAndRatingsEnabled}
-				lookAndFeelEnabled={lookAndFeelEnabled}
-				name="contentSelection"
-				process="import"
-				sections={importPreview.previewPortletDataHandlerSections}
-			/>
+			<div data-testid="data-selection-section">
+				<FormikFieldContentSelector
+					commentsAndRatingsEnabled={commentsAndRatingsEnabled}
+					lookAndFeelEnabled={lookAndFeelEnabled}
+					name="contentSelection"
+					previewPortletDataHandlerSections={
+						importPreview.previewPortletDataHandlerSections
+					}
+					process="import"
+				/>
+			</div>
 		</>
 	);
 }

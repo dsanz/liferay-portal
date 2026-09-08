@@ -8,6 +8,7 @@ package com.liferay.oauth2.provider.rest.internal.endpoint.access.token.grant.ha
 import com.liferay.oauth2.provider.constants.OAuth2ProviderActionKeys;
 import com.liferay.oauth2.provider.model.OAuth2Application;
 import com.liferay.oauth2.provider.rest.internal.endpoint.constants.OAuth2ProviderRESTEndpointConstants;
+import com.liferay.oauth2.provider.rest.internal.endpoint.util.OAuth2ErrorUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
@@ -17,11 +18,20 @@ import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
+import com.liferay.portal.kernel.util.Validator;
 
 import jakarta.ws.rs.core.MultivaluedMap;
+import jakarta.ws.rs.core.Response;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import org.apache.cxf.rs.security.oauth2.common.Client;
 import org.apache.cxf.rs.security.oauth2.common.ServerAccessToken;
@@ -66,6 +76,45 @@ public abstract class BaseAccessTokenGrantHandler
 			OAuth2ProviderRESTEndpointConstants.PROPERTY_KEY_COMPANY_ID);
 
 		return Objects.equals(companyId1, companyId2);
+	}
+
+	protected ServerAccessToken createAccessTokenWithResources(
+		Client client, MultivaluedMap<String, String> params,
+		Supplier<ServerAccessToken> supplier) {
+
+		List<String> resources = params.get("resource");
+
+		if (ListUtil.isEmpty(resources)) {
+			return supplier.get();
+		}
+
+		for (String resource : resources) {
+			if (!_isValidResource(resource)) {
+				OAuth2ErrorUtil.reportInvalidRequestError(
+					"The resource parameter must be an absolute URI without " +
+						"a fragment",
+					"invalid_target", Response.Status.BAD_REQUEST);
+			}
+		}
+
+		List<String> registeredAudiences = client.getRegisteredAudiences();
+
+		if (ListUtil.isNotEmpty(registeredAudiences) &&
+			!registeredAudiences.containsAll(resources)) {
+
+			OAuth2ErrorUtil.reportInvalidRequestError(
+				"The resource parameter is not a registered audience",
+				"invalid_target", Response.Status.BAD_REQUEST);
+		}
+
+		try {
+			client.setRegisteredAudiences(new ArrayList<>(resources));
+
+			return supplier.get();
+		}
+		finally {
+			client.setRegisteredAudiences(registeredAudiences);
+		}
 	}
 
 	protected abstract ServerAccessToken doCreateAccessToken(
@@ -132,6 +181,29 @@ public abstract class BaseAccessTokenGrantHandler
 
 	@Reference
 	protected UserLocalService userLocalService;
+
+	private boolean _isValidResource(String resource) {
+		if (Validator.isBlank(resource)) {
+			return false;
+		}
+
+		try {
+			URI uri = new URI(resource);
+
+			if (uri.isAbsolute() && (uri.getFragment() == null)) {
+				return true;
+			}
+
+			return false;
+		}
+		catch (URISyntaxException uriSyntaxException) {
+			if (_log.isDebugEnabled()) {
+				_log.debug(uriSyntaxException);
+			}
+
+			return false;
+		}
+	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		BaseAccessTokenGrantHandler.class);

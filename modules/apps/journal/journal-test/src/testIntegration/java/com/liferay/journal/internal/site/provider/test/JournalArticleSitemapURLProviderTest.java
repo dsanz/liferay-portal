@@ -11,6 +11,7 @@ import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryGroupRelLocalService;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.journal.constants.JournalArticleConstants;
+import com.liferay.journal.constants.JournalFolderConstants;
 import com.liferay.journal.model.JournalArticle;
 import com.liferay.journal.service.JournalArticleLocalService;
 import com.liferay.journal.test.util.JournalTestUtil;
@@ -25,17 +26,26 @@ import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Layout;
 import com.liferay.portal.kernel.model.LayoutSet;
+import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.portlet.constants.FriendlyURLResolverConstants;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
+import com.liferay.portal.kernel.security.permission.resource.ModelResourcePermission;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.LayoutLocalService;
 import com.liferay.portal.kernel.service.LayoutSetLocalService;
+import com.liferay.portal.kernel.service.UserLocalService;
+import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
@@ -338,6 +348,88 @@ public class JournalArticleSitemapURLProviderTest {
 	}
 
 	@Test
+	@TestInfo("LPD-102047")
+	public void testJournalArticleSitemapURLProviderDefaultLayoutWhenGuestUserCannotViewLayout()
+		throws Exception {
+
+		Layout layout = LayoutTestUtil.addTypePortletLayout(
+			_group.getGroupId());
+
+		_addArticleWithLayoutUuid(layout);
+
+		RoleTestUtil.removeResourcePermission(
+			RoleConstants.GUEST, Layout.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(layout.getPlid()), ActionKeys.VIEW);
+
+		PermissionChecker permissionChecker =
+			PermissionCheckerFactoryUtil.create(
+				_userLocalService.getGuestUser(_group.getCompanyId()));
+
+		Assert.assertFalse(
+			_layoutModelResourcePermission.contains(
+				permissionChecker, layout, ActionKeys.VIEW));
+
+		Element rootElement = _getRootElement();
+
+		_visitLayoutSet(permissionChecker, rootElement);
+
+		Assert.assertFalse(rootElement.hasContent());
+	}
+
+	@Test
+	@TestInfo("LPD-102047")
+	public void testJournalArticleSitemapURLProviderDefaultLayoutWhenGuestUserCanViewLayout()
+		throws Exception {
+
+		Layout layout = LayoutTestUtil.addTypePortletLayout(
+			_group.getGroupId());
+
+		JournalArticle article = _addArticleWithLayoutUuid(layout);
+
+		PermissionChecker permissionChecker =
+			PermissionCheckerFactoryUtil.create(
+				_userLocalService.getGuestUser(_group.getCompanyId()));
+
+		Assert.assertTrue(
+			_journalArticleModelResourcePermission.contains(
+				permissionChecker, article, ActionKeys.VIEW));
+		Assert.assertTrue(
+			_layoutModelResourcePermission.contains(
+				permissionChecker, layout, ActionKeys.VIEW));
+
+		Element rootElement = _getRootElement();
+
+		_visitLayoutSet(permissionChecker, rootElement);
+
+		Assert.assertTrue(rootElement.hasContent());
+	}
+
+	@Test
+	@TestInfo("LPD-102025")
+	public void testJournalArticleSitemapURLProviderDefaultLayoutWithoutPermissionChecker()
+		throws Exception {
+
+		Layout layout = LayoutTestUtil.addTypePortletLayout(
+			_group.getGroupId());
+
+		_addArticleWithLayoutUuid(layout);
+
+		Element rootElement = _getRootElement();
+
+		_visitLayoutSet(null, rootElement);
+
+		Assert.assertFalse(rootElement.hasContent());
+
+		_visitLayoutSet(
+			PermissionCheckerFactoryUtil.create(
+				_userLocalService.getGuestUser(_group.getCompanyId())),
+			rootElement);
+
+		Assert.assertTrue(rootElement.hasContent());
+	}
+
+	@Test
 	public void testJournalArticleSitemapWithADisabledLanguageId()
 		throws Exception {
 
@@ -373,6 +465,20 @@ public class JournalArticleSitemapURLProviderTest {
 			_layoutLocalService.getLayout(layoutPageTemplateEntry.getPlid()),
 			rootElement,
 			FriendlyURLResolverConstants.URL_SEPARATOR_JOURNAL_ARTICLE);
+	}
+
+	private JournalArticle _addArticleWithLayoutUuid(Layout layout)
+		throws Exception {
+
+		JournalArticle article = JournalTestUtil.addArticle(
+			_group.getGroupId(),
+			JournalFolderConstants.DEFAULT_PARENT_FOLDER_ID);
+
+		return _journalArticleLocalService.updateArticle(
+			article.getUserId(), article.getGroupId(), article.getFolderId(),
+			article.getArticleId(), article.getVersion(), article.getTitleMap(),
+			article.getDescriptionMap(), article.getContent(), layout.getUuid(),
+			ServiceContextTestUtil.getServiceContext(_group.getGroupId()));
 	}
 
 	private void _assertRootElement(
@@ -532,6 +638,25 @@ public class JournalArticleSitemapURLProviderTest {
 		_themeDisplay.setUser(TestPropsValues.getUser());
 	}
 
+	private void _visitLayoutSet(
+			PermissionChecker permissionChecker, Element rootElement)
+		throws Exception {
+
+		PermissionChecker originalPermissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		try {
+			PermissionThreadLocal.setPermissionChecker(permissionChecker);
+
+			_journalArticleSitemapURLProvider.visitLayoutSet(
+				rootElement, _layoutSet, _themeDisplay);
+		}
+		finally {
+			PermissionThreadLocal.setPermissionChecker(
+				originalPermissionChecker);
+		}
+	}
+
 	@Inject
 	private CompanyLocalService _companyLocalService;
 
@@ -551,6 +676,12 @@ public class JournalArticleSitemapURLProviderTest {
 	private JournalArticleLocalService _journalArticleLocalService;
 
 	@Inject(
+		filter = "model.class.name=com.liferay.journal.model.JournalArticle"
+	)
+	private ModelResourcePermission<JournalArticle>
+		_journalArticleModelResourcePermission;
+
+	@Inject(
 		filter = "component.name=com.liferay.journal.internal.site.provider.JournalArticleSitemapURLProvider",
 		type = SitemapURLProvider.class
 	)
@@ -561,6 +692,9 @@ public class JournalArticleSitemapURLProviderTest {
 
 	@Inject
 	private LayoutLocalService _layoutLocalService;
+
+	@Inject(filter = "model.class.name=com.liferay.portal.kernel.model.Layout")
+	private ModelResourcePermission<Layout> _layoutModelResourcePermission;
 
 	@Inject
 	private LayoutSEOEntryLocalService _layoutSEOEntryLocalService;
@@ -577,5 +711,8 @@ public class JournalArticleSitemapURLProviderTest {
 	private SAXReader _saxReader;
 
 	private ThemeDisplay _themeDisplay;
+
+	@Inject
+	private UserLocalService _userLocalService;
 
 }

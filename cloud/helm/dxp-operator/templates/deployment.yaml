@@ -1,0 +1,103 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    labels:
+        {{- include "dxp-operator.labels" . | nindent 8 }}
+    name: {{ include "dxp-operator.fullname" . }}
+    namespace: {{ include "dxp-operator.namespace" . }}
+spec:
+    replicas: {{ .Values.replicaCount }}
+    selector:
+        matchLabels:
+            {{- include "dxp-operator.selectorLabels" . | nindent 12 }}
+    template:
+        metadata:
+            {{- with .Values.podAnnotations }}
+            annotations:
+                {{- toYaml . | nindent 16 }}
+            {{- end }}
+            labels:
+                {{- include "dxp-operator.labels" . | nindent 16 }}
+        spec:
+            {{- with .Values.affinity }}
+            affinity:
+                {{- toYaml . | nindent 16 }}
+            {{- end }}
+            containers:
+                -   env:
+                        -   name: DEBUG
+                            value: {{ .Values.debug | quote }}
+                        -   name: DOWNLOAD_POLL_INTERVAL
+                            value: {{ .Values.downloadPollInterval | quote }}
+                        -   name: GRACE_PERIOD
+                            value: {{ .Values.gracePeriod | quote }}
+                        -   name: HEARTBEAT_INTERVAL
+                            value: {{ .Values.heartbeatInterval | quote }}
+                        -   name: MARKETPLACE_MOUNT_PATH
+                            value: {{ .Values.marketplace.mountPath | quote }}
+                        -   name: METRICS_ADDRESS
+                            value: {{ printf ":%d" (int .Values.metrics.port) | quote }}
+                        -   name: PROBE_ADDRESS
+                            value: {{ printf ":%d" (int .Values.probes.port) | quote }}
+                        -   name: PROVISIONING_BASE_URL
+                            value: {{ .Values.provisioning.baseURL | quote }}
+                        -   name: RETRY_INITIAL_DELAY
+                            value: {{ .Values.retry.initialDelay | quote }}
+                        -   name: RETRY_MAX_DELAY
+                            value: {{ .Values.retry.maxDelay | quote }}
+                    image: {{ printf "%s:%s" .Values.image.repository (.Values.image.tag | toString) }}
+                    imagePullPolicy: {{ .Values.image.pullPolicy }}
+                    livenessProbe:
+                        httpGet:
+                            path: /healthz
+                            port: health
+                        initialDelaySeconds: 15
+                        periodSeconds: 20
+                    name: manager
+                    ports:
+                        -   containerPort: {{ .Values.metrics.port }}
+                            name: metrics
+                            protocol: TCP
+                        -   containerPort: {{ .Values.probes.port }}
+                            name: health
+                            protocol: TCP
+                    readinessProbe:
+                        httpGet:
+                            path: /readyz
+                            port: health
+                        initialDelaySeconds: 5
+                        periodSeconds: 10
+                    resources:
+                        {{- toYaml .Values.resources | nindent 24 }}
+                    {{- with .Values.securityContext }}
+                    securityContext:
+                        {{- toYaml . | nindent 24 }}
+                    {{- end }}
+                    {{- if .Values.marketplace.enabled }}
+                    volumeMounts:
+                        -   mountPath: {{ .Values.marketplace.mountPath }}
+                            name: marketplace
+                    {{- end }}
+            {{- with .Values.image.pullSecrets }}
+            imagePullSecrets:
+                {{- toYaml . | nindent 16 }}
+            {{- end }}
+            {{- with .Values.nodeSelector }}
+            nodeSelector:
+                {{- toYaml . | nindent 16 }}
+            {{- end }}
+            {{- with .Values.podSecurityContext }}
+            securityContext:
+                {{- toYaml . | nindent 16 }}
+            {{- end }}
+            serviceAccountName: {{ include "dxp-operator.serviceAccountName" . }}
+            {{- with .Values.tolerations }}
+            tolerations:
+                {{- toYaml . | nindent 16 }}
+            {{- end }}
+            {{- if .Values.marketplace.enabled }}
+            volumes:
+                -   name: marketplace
+                    persistentVolumeClaim:
+                        claimName: {{ .Values.marketplace.claimName }}
+            {{- end }}

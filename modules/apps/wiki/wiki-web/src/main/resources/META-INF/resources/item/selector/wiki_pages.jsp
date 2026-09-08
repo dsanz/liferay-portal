@@ -86,8 +86,8 @@ String searchURL = HttpComponentsUtil.removeParameter(
 				%>
 
 				<div class="h4">
-					<a class="wiki-page" data-title="<%= wikiPageItemSelectorReturnTypeResolver.getTitle(curPage, themeDisplay) %>" data-value="<%= wikiPageItemSelectorReturnTypeResolver.getValue(curPage, themeDisplay) %>" href="javascript:void(0);">
-						<%= curPage.getTitle() %>
+					<a class="wiki-page" data-title="<%= HtmlUtil.escape(wikiPageItemSelectorReturnTypeResolver.getTitle(curPage, themeDisplay)) %>" data-value="<%= HtmlUtil.escape(wikiPageItemSelectorReturnTypeResolver.getValue(curPage, themeDisplay)) %>" href="javascript:void(0);">
+						<%= HtmlUtil.escape(curPage.getTitle()) %>
 					</a>
 				</div>
 

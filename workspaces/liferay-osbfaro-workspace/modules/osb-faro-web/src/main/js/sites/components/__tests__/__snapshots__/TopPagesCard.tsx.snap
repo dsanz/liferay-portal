@@ -1,0 +1,222 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TopPagesCard renders 1`] = `
+<div>
+  <div
+    class="card card-root"
+    id="container.report.topPagesCard"
+  >
+    <div
+      class="card-header align-items-center d-flex justify-content-between"
+    >
+      <div>
+        <div
+          class="card-title"
+        >
+          card label
+        </div>
+        <span
+          class="text-4 text-secondary"
+        />
+      </div>
+      <div
+        class="d-flex"
+      >
+        <div
+          class="dropdown dropdown-range-key-root"
+        >
+          <button
+            aria-expanded="false"
+            aria-haspopup="true"
+            class="dropdown-toggle button-root btn btn-outline-borderless btn-sm btn-outline-secondary"
+            type="button"
+          >
+            Last 30 days
+            <svg
+              class="lexicon-icon lexicon-icon-caret-bottom icon-root ml-2"
+              role="presentation"
+            >
+              <use
+                href="#caret-bottom"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      class="card-body w-100 d-flex flex-column flex-grow-1 no-padding"
+    >
+      <ul
+        class="nav nav-tabs mb-3"
+        role="tablist"
+      >
+        <li
+          class="nav-item"
+          role="none"
+        >
+          <button
+            aria-selected="true"
+            class="nav-link active btn btn-unstyled"
+            data-testid="tabItem"
+            role="tab"
+            tabindex="0"
+            type="button"
+          >
+            Visited Pages
+          </button>
+        </li>
+        <li
+          class="nav-item"
+          role="none"
+        >
+          <button
+            aria-selected="false"
+            class="nav-link btn btn-unstyled"
+            data-testid="tabItem"
+            role="tab"
+            tabindex="-1"
+            type="button"
+          >
+            Entrance Pages
+          </button>
+        </li>
+        <li
+          class="nav-item"
+          role="none"
+        >
+          <button
+            aria-selected="false"
+            class="nav-link btn btn-unstyled"
+            data-testid="tabItem"
+            role="tab"
+            tabindex="-1"
+            type="button"
+          >
+            Exit Pages
+          </button>
+        </li>
+      </ul>
+      <div
+        class="flex-grow-1 mx-4 table-root flex-grow-1 table-hover"
+      >
+        <div
+          class="table-responsive"
+        >
+          <table
+            class="table table-autofit table-list table-nowrap table-head-bordered table-hover table-striped"
+          >
+            <thead>
+              <tr>
+                <th
+                  class="table-head-title table-cell-expand"
+                >
+                  Page Title
+			|
+			Canonical URL
+                </th>
+                <th
+                  class="table-head-title table-column-text-end"
+                >
+                  Unique Visitors
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              class="flex-grow-1 table-hover"
+            >
+              <tr
+                class=""
+              >
+                <td
+                  class="name-cell-root table-cell-expand"
+                >
+                  <div
+                    class="content-container"
+                  >
+                    <div
+                      class="text-truncate"
+                    >
+                      <div
+                        class="table-title text-truncate"
+                      >
+                        <a
+                          class="text-truncate"
+                          data-discover="true"
+                          href="/workspace/456/123/sites/pages/overview/123/My%20asset%20A"
+                        >
+                          My asset A
+                        </a>
+                      </div>
+                      <div
+                        class="secondary-info text-truncate"
+                      >
+                        123
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td
+                  class="table-column-text-end"
+                >
+                  <div
+                    class="h4 table-title text-truncate"
+                  >
+                    20
+                  </div>
+                </td>
+              </tr>
+              <tr
+                class=""
+              >
+                <td
+                  class="name-cell-root table-cell-expand"
+                >
+                  <div
+                    class="content-container"
+                  >
+                    <div
+                      class="text-truncate"
+                    >
+                      <div
+                        class="table-title text-truncate"
+                      >
+                        -
+                      </div>
+                      <div
+                        class="secondary-info text-truncate"
+                      >
+                        -
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td
+                  class="table-column-text-end"
+                >
+                  <div
+                    class="h4 table-title text-truncate"
+                  >
+                    -
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div
+      class="card-footer d-flex"
+    >
+      <a
+        aria-label="View All Pages"
+        class="ml-auto rounded-lg btn btn-outline-borderless btn-sm btn-outline-primary"
+        href="/link-to-the-next-page?rangeKey=30&field=visitorsMetric&sortOrder=DESC"
+      >
+        view pages
+      </a>
+    </div>
+  </div>
+</div>
+`;

@@ -1,0 +1,54 @@
+backup:
+    enabled: false
+clusterSecretStoreName: ""
+cmk:
+    enabled: false
+commonTags: {}
+database:
+    authentication: password
+    highAvailability: false
+    instanceType: GP_Standard_D2s_v3
+    storageGB: 32
+    version: "16"
+enabled: true
+endpoints: {}
+environmentId: ""
+forceDestroy: false
+gateway:
+    annotations: {}
+    className: ""
+    clientTrafficPolicySpec: {}
+    name: ""
+license:
+    externalSecretKey: ""
+    externalSecretProperty: license.xml
+orphanOnDelete: false
+overlayAccess:
+    enabled: false
+overlayBucket:
+    commonTags: {}
+    enabled: false
+    forceDestroy: false
+    orphanOnDelete: false
+persistence:
+    storageClassName: ""
+projectId: ""
+region: ""
+search:
+    elasticsearch:
+        env:
+            ES_JAVA_OPTS: -Xms4g -Xmx4g
+        nodeCount: 1
+        resources:
+            limits:
+                cpu: 1000m
+                memory: 8Gi
+            requests:
+                cpu: 500m
+                memory: 4Gi
+        version: 8.19.11
+        volumeSize: 10Gi
+    engine: elasticsearch
+storage:
+    enableVersioning: true
+    tags: {}

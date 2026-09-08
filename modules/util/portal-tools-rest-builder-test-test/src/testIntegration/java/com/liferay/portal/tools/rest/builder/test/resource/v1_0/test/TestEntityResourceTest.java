@@ -11,12 +11,14 @@ import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.util.HTTPTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LoggerTestUtil;
+import com.liferay.portal.tools.rest.builder.test.client.constant.v1_0.StringTestEntity;
 import com.liferay.portal.tools.rest.builder.test.client.dto.v1_0.ChildTestEntity1;
 import com.liferay.portal.tools.rest.builder.test.client.dto.v1_0.ChildTestEntity2;
 import com.liferay.portal.tools.rest.builder.test.client.dto.v1_0.ChildTestEntity3;
@@ -212,6 +214,7 @@ public class TestEntityResourceTest extends BaseTestEntityResourceTestCase {
 
 	@Override
 	@Test
+	@TestInfo("LPD-95759")
 	public void testPostTestEntity() throws Exception {
 		super.testPostTestEntity();
 
@@ -353,6 +356,8 @@ public class TestEntityResourceTest extends BaseTestEntityResourceTestCase {
 			StringUtil.toLowerCase(RandomTestUtil.randomString()));
 		childTestEntity1.setProperty1(
 			StringUtil.toLowerCase(RandomTestUtil.randomString()));
+		childTestEntity1.setStringTestEntities(
+			new StringTestEntity[] {StringTestEntity.VALUE});
 		childTestEntity1.setType(TestEntity.Type.create("ChildTestEntity1"));
 
 		ChildTestEntity2 childTestEntity2 = new ChildTestEntity2();

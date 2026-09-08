@@ -9,6 +9,7 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.oauth2.provider.constants.GrantType;
 import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -39,13 +40,13 @@ public class GrantedFlowsTest extends BaseClientTestCase {
 	@Test
 	public void test() throws Exception {
 		String errorString = getToken(
-			"oauthTestApplicationPassword", null,
-			this::getClientCredentialsResponse, this::parseError);
+			_CLIENT_ID_PASSWORD, null, this::getClientCredentialsResponse,
+			this::parseError);
 
 		Assert.assertEquals("unauthorized_client", errorString);
 
 		String tokenString = getToken(
-			"oauthTestApplicationPassword", null,
+			_CLIENT_ID_PASSWORD, null,
 			getResourceOwnerPasswordBiFunction(
 				_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD),
 			this::parseTokenString);
@@ -53,7 +54,7 @@ public class GrantedFlowsTest extends BaseClientTestCase {
 		Assert.assertNotNull(tokenString);
 
 		errorString = getToken(
-			"oauthTestApplicationClient", null,
+			_CLIENT_ID_CLIENT, null,
 			getResourceOwnerPasswordBiFunction(
 				_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD),
 			this::parseError);
@@ -61,13 +62,13 @@ public class GrantedFlowsTest extends BaseClientTestCase {
 		Assert.assertEquals("unauthorized_client", errorString);
 
 		tokenString = getToken(
-			"oauthTestApplicationClient", null,
-			this::getClientCredentialsResponse, this::parseTokenString);
+			_CLIENT_ID_CLIENT, null, this::getClientCredentialsResponse,
+			this::parseTokenString);
 
 		Assert.assertNotNull(tokenString);
 
 		errorString = getToken(
-			"oauthTestApplicationNoGrants", null,
+			_CLIENT_ID_NO_GRANTS, null,
 			getAuthorizationCodePKCEBiFunction(
 				_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD,
 				null),
@@ -76,7 +77,7 @@ public class GrantedFlowsTest extends BaseClientTestCase {
 		Assert.assertEquals("unauthorized_client", errorString);
 
 		tokenString = getToken(
-			"oauthTestApplicationCode", null,
+			_CLIENT_ID_CODE, null,
 			getAuthorizationCodeBiFunction(
 				_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD,
 				null),
@@ -85,7 +86,7 @@ public class GrantedFlowsTest extends BaseClientTestCase {
 		Assert.assertNotNull(tokenString);
 
 		errorString = getToken(
-			"oauthTestApplicationPassword", null,
+			_CLIENT_ID_PASSWORD, null,
 			getAuthorizationCodeBiFunction(
 				_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD,
 				null),
@@ -94,7 +95,7 @@ public class GrantedFlowsTest extends BaseClientTestCase {
 		Assert.assertEquals("unauthorized_client", errorString);
 
 		tokenString = getToken(
-			"oauthTestApplicationCodePKCE", null,
+			_CLIENT_ID_CODE_PKCE, null,
 			getAuthorizationCodePKCEBiFunction(
 				_user.getEmailAddress(), PropsValues.DEFAULT_ADMIN_PASSWORD,
 				null),
@@ -108,6 +109,20 @@ public class GrantedFlowsTest extends BaseClientTestCase {
 		return new AnnotatedApplicationTestPreparatorBundleActivator();
 	}
 
+	private static final String _CLIENT_ID_CLIENT =
+		RandomTestUtil.randomString();
+
+	private static final String _CLIENT_ID_CODE = RandomTestUtil.randomString();
+
+	private static final String _CLIENT_ID_CODE_PKCE =
+		RandomTestUtil.randomString();
+
+	private static final String _CLIENT_ID_NO_GRANTS =
+		RandomTestUtil.randomString();
+
+	private static final String _CLIENT_ID_PASSWORD =
+		RandomTestUtil.randomString();
+
 	private User _user;
 
 	private class AnnotatedApplicationTestPreparatorBundleActivator
@@ -120,12 +135,12 @@ public class GrantedFlowsTest extends BaseClientTestCase {
 			_user = UserTestUtil.getAdminUser(companyId);
 
 			createOAuth2Application(
-				companyId, _user, "oauthTestApplicationCode",
+				companyId, _user, _CLIENT_ID_CODE,
 				Collections.singletonList(GrantType.AUTHORIZATION_CODE),
 				Collections.singletonList("everything"));
 
 			createOAuth2ApplicationWithNone(
-				companyId, _user, "oauthTestApplicationCodePKCE",
+				companyId, _user, _CLIENT_ID_CODE_PKCE,
 				Collections.singletonList(GrantType.AUTHORIZATION_CODE_PKCE),
 				Collections.singletonList(
 					"http://redirecturi:" +
@@ -133,20 +148,19 @@ public class GrantedFlowsTest extends BaseClientTestCase {
 				false, Collections.singletonList("everything"), false);
 
 			createOAuth2Application(
-				companyId, _user, "oauthTestApplicationClient",
+				companyId, _user, _CLIENT_ID_CLIENT,
 				Collections.singletonList(GrantType.CLIENT_CREDENTIALS),
 				Collections.singletonList("everything"));
 
 			createOAuth2ApplicationWithNone(
-				companyId, _user, "oauthTestApplicationNoGrants",
-				Collections.emptyList(),
+				companyId, _user, _CLIENT_ID_NO_GRANTS, Collections.emptyList(),
 				Collections.singletonList(
 					"http://redirecturi:" +
 						PortalUtil.getPortalServerPort(false)),
 				false, Collections.singletonList("everything"), false);
 
 			createOAuth2Application(
-				companyId, _user, "oauthTestApplicationPassword",
+				companyId, _user, _CLIENT_ID_PASSWORD,
 				Collections.singletonList(GrantType.RESOURCE_OWNER_PASSWORD),
 				Collections.singletonList("everything"));
 		}

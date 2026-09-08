@@ -73,7 +73,7 @@ const dropdownItems: {
 }[] = [
 	{
 		icon: 'analytics',
-		name: Liferay.Language.get('chart'),
+		name: Liferay.Language.get('chart[noun]'),
 		renderer: renderComponent(AssetMetricsChart),
 		value: 'chart',
 	},
@@ -86,14 +86,14 @@ const dropdownItems: {
 ];
 
 const AssetMetrics = () => {
-	const {externalReferenceCode, filters} = useContext(Context);
+	const {filters, objectEntryId} = useContext(Context);
 
 	const [dropdownActive, setDropdownActive] = useState(false);
 	const [selectedItem, setSelectedItem] = useState(dropdownItems[0]);
 
 	const queryParams = buildQueryString({
-		externalReferenceCode,
 		groupId: filters.channel,
+		objectEntryId,
 		rangeKey: filters.rangeSelector.rangeKey,
 		selectedMetrics: metricName[filters.metric] as string,
 	});

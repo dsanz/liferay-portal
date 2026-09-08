@@ -32,27 +32,23 @@ import com.liferay.dynamic.data.mapping.storage.DDMStorageEngineManager;
 import com.liferay.dynamic.data.mapping.storage.StorageType;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormTestUtil;
 import com.liferay.dynamic.data.mapping.test.util.DDMFormValuesTestUtil;
+import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.db.DBInspector;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
 import com.liferay.portal.kernel.dao.db.DBType;
 import com.liferay.portal.kernel.dao.jdbc.DataAccess;
-import com.liferay.portal.kernel.dao.orm.QueryUtil;
-import com.liferay.portal.kernel.model.ClassName;
-import com.liferay.portal.kernel.model.SystemEvent;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.FileVersion;
-import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
-import com.liferay.portal.kernel.service.SystemEventLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DataGuard;
+import com.liferay.portal.kernel.test.util.DataCleanupTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.ServiceContextTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.ContentTypes;
-import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.StringUtil;
@@ -96,38 +92,24 @@ public class DLFileEntryDataCleanupPreupgradeProcessTest
 
 	@Before
 	public void setUp() throws Exception {
-		_classNames = _classNameLocalService.getClassNames(
-			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+		_classNamesSavepointSafeCloseable =
+			DataCleanupTestUtil.getClassNamesSavepointSafeCloseable();
 
 		_connection = DataAccess.getConnection();
 
 		_dbInspector = new DBInspector(_connection);
 
-		_systemEvents = _systemEventLocalService.getSystemEvents(
-			QueryUtil.ALL_POS, QueryUtil.ALL_POS);
+		_systemEventsSavepointSafeCloseable =
+			DataCleanupTestUtil.getSystemEventsSavepointSafeCloseable();
 	}
 
 	@After
 	public void tearDown() throws Exception {
-		List<ClassName> classNames = ListUtil.remove(
-			_classNameLocalService.getClassNames(
-				QueryUtil.ALL_POS, QueryUtil.ALL_POS),
-			_classNames);
-
-		for (ClassName className : classNames) {
-			_classNameLocalService.deleteClassName(className);
-		}
-
-		List<SystemEvent> systemEvents = ListUtil.remove(
-			_systemEventLocalService.getSystemEvents(
-				QueryUtil.ALL_POS, QueryUtil.ALL_POS),
-			_systemEvents);
-
-		for (SystemEvent systemEvent : systemEvents) {
-			_systemEventLocalService.deleteSystemEvent(systemEvent);
-		}
+		_classNamesSavepointSafeCloseable.close();
 
 		DataAccess.cleanUp(_connection);
+
+		_systemEventsSavepointSafeCloseable.close();
 	}
 
 	@Test
@@ -332,10 +314,7 @@ public class DLFileEntryDataCleanupPreupgradeProcessTest
 	@Inject
 	private AssetEntryPersistence _assetEntryPersistence;
 
-	@Inject
-	private ClassNameLocalService _classNameLocalService;
-
-	private List<ClassName> _classNames;
+	private SafeCloseable _classNamesSavepointSafeCloseable;
 	private Connection _connection;
 	private DBInspector _dbInspector;
 
@@ -366,9 +345,6 @@ public class DLFileEntryDataCleanupPreupgradeProcessTest
 	@Inject
 	private DLFileVersionPreviewLocalService _dlFileVersionPreviewLocalService;
 
-	@Inject
-	private SystemEventLocalService _systemEventLocalService;
-
-	private List<SystemEvent> _systemEvents;
+	private SafeCloseable _systemEventsSavepointSafeCloseable;
 
 }

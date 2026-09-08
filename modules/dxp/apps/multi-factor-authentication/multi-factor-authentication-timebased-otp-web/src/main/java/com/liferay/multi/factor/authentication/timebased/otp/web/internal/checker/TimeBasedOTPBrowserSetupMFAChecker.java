@@ -115,7 +115,8 @@ public class TimeBasedOTPBrowserSetupMFAChecker
 					_mfaTimeBasedOTPConfiguration.algorithmKeySize());
 
 			httpServletRequest.setAttribute(
-				MFATimeBasedOTPWebKeys.MFA_TIME_BASED_OTP_ALGORITHM, "SHA1");
+				MFATimeBasedOTPWebKeys.MFA_TIME_BASED_OTP_ALGORITHM,
+				PropsValues.FIPS_ENABLED ? "SHA256" : "SHA1");
 			httpServletRequest.setAttribute(
 				MFATimeBasedOTPWebKeys.
 					MFA_TIME_BASED_OTP_CHECKER_DISPLAY_CONTEXT,
@@ -506,7 +507,9 @@ public class TimeBasedOTPBrowserSetupMFAChecker
 
 			return MFATimeBasedOTPUtil.verifyTimeBasedOTP(
 				_mfaTimeBasedOTPConfiguration.clockSkew(),
-				mfaTimeBasedOTPEntry.getSharedSecret(), mfaTimeBasedOTP);
+				_mfaTimeBasedOTPEntryLocalService.getPlaintextSharedSecret(
+					mfaTimeBasedOTPEntry),
+				mfaTimeBasedOTP);
 		}
 
 		_sendEmail(user, user.getEmailAddress(), httpServletRequest);

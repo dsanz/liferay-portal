@@ -11,7 +11,12 @@ import {clickAndExpectToBeVisible} from '../../../../utils/clickAndExpectToBeVis
 import {PORTLET_URLS} from '../../../../utils/portletUrls';
 import {waitForAlert} from '../../../../utils/waitForAlert';
 
-type SidePanelName = 'Categorization' | 'General' | 'Comments' | 'Schedule';
+type SidePanelName =
+	| 'Categorization'
+	| 'General'
+	| 'Comments'
+	| 'Projects'
+	| 'Schedule';
 
 type Field =
 	| {
@@ -349,6 +354,13 @@ export class ContentsPage {
 		await expect(
 			this.page.getByRole('dialog', {name: title})
 		).toBeVisible();
+	}
+
+	async waitForSidePanel(panelName: SidePanelName) {
+		await expect(this.page.getByLabel(panelName)).toHaveAttribute(
+			'aria-selected',
+			'true'
+		);
 	}
 
 	async viewShowDetails(title: string) {

@@ -19,11 +19,17 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.LayoutSetPrototype;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.service.LayoutSetPrototypeLocalServiceUtil;
+import com.liferay.portal.kernel.service.RoleLocalServiceUtil;
+import com.liferay.portal.kernel.service.UserGroupRoleLocalServiceUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.site.dsr.site.initializer.internal.constants.DSRConstants;
+import com.liferay.site.dsr.site.initializer.internal.util.DSRUtil;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -49,11 +55,40 @@ public class ViewRoomsSectionDisplayContext extends BaseSectionDisplayContext {
 
 	public Map<String, Object> getAdditionalProps() {
 		return HashMapBuilder.<String, Object>put(
+			"companyAdmin",
+			() -> {
+				PermissionChecker permissionChecker =
+					themeDisplay.getPermissionChecker();
+
+				return permissionChecker.isCompanyAdmin();
+			}
+		).put(
 			"createRedirectURL",
 			() -> StringBundler.concat(
 				themeDisplay.getPortalURL(), themeDisplay.getPathMain(),
 				DSRConstants.DSR_FRIENDLY_URL,
 				"/view_room?mode=edit&siteId={siteId}")
+		).put(
+			"ownedSiteIds",
+			() -> {
+				Role role = RoleLocalServiceUtil.fetchRole(
+					themeDisplay.getCompanyId(), RoleConstants.SITE_OWNER);
+
+				if (role == null) {
+					return Collections.emptyList();
+				}
+
+				return TransformUtil.transform(
+					UserGroupRoleLocalServiceUtil.getUserGroupRoles(
+						themeDisplay.getUserId()),
+					userGroupRole -> {
+						if (userGroupRole.getRoleId() == role.getRoleId()) {
+							return userGroupRole.getGroupId();
+						}
+
+						return null;
+					});
+			}
 		).put(
 			"siteTemplates",
 			() -> TransformUtil.transform(
@@ -65,12 +100,10 @@ public class ViewRoomsSectionDisplayContext extends BaseSectionDisplayContext {
 
 	@Override
 	public String getAPIURL() {
-		StringBundler sb = new StringBundler(5);
+		StringBundler sb = new StringBundler(3);
 
-		sb.append("/o/search/v1.0/search?emptySearch=true&");
-		sb.append("filter=objectDefinitionId eq ");
-		sb.append(objectDefinition.getObjectDefinitionId());
-		sb.append("&nestedFields=embedded,r_accountToDSRRooms_accountEntryId");
+		sb.append("/o/digital-sales-room/rooms?nestedFields=creator,");
+		sb.append("r_accountToDSRRooms_accountEntryId");
 
 		if (isHomePage()) {
 			sb.append("&pageSize=5&sort=dateModified:desc");
@@ -81,7 +114,9 @@ public class ViewRoomsSectionDisplayContext extends BaseSectionDisplayContext {
 
 	@Override
 	public CreationMenu getCreationMenu() throws Exception {
-		if (isHomePage() || !hasAddObjectEntryPortletResourcePermission()) {
+		if (isHomePage() || !hasAddObjectEntryPortletResourcePermission() ||
+			DSRUtil.isExpired()) {
+
 			return null;
 		}
 
@@ -112,7 +147,7 @@ public class ViewRoomsSectionDisplayContext extends BaseSectionDisplayContext {
 					() -> StringBundler.concat(
 						themeDisplay.getPortalURL(), themeDisplay.getPathMain(),
 						DSRConstants.DSR_FRIENDLY_URL, "/view_room?siteId=",
-						"{embedded.siteId}")
+						"{siteId}")
 				).setIcon(
 					"view"
 				).setLabel(
@@ -126,7 +161,7 @@ public class ViewRoomsSectionDisplayContext extends BaseSectionDisplayContext {
 					() -> StringBundler.concat(
 						themeDisplay.getPortalURL(), themeDisplay.getPathMain(),
 						DSRConstants.DSR_FRIENDLY_URL,
-						"/view_room?mode=edit&siteId={embedded.siteId}")
+						"/view_room?mode=edit&siteId={siteId}")
 				).setIcon(
 					"pencil"
 				).setLabel(
@@ -170,15 +205,37 @@ public class ViewRoomsSectionDisplayContext extends BaseSectionDisplayContext {
 					themeDisplay.getPathFriendlyURLPublic(),
 					DSRConstants.DSR_FRIENDLY_URL, "/e/room-settings/",
 					PortalUtil.getClassNameId(objectDefinition.getClassName()),
-					"/{embedded.id}?redirect=", themeDisplay.getURLCurrent())
+					"/{id}?redirect=", themeDisplay.getURLCurrent())
 			).setIcon(
 				"cog"
 			).setLabel(
-				LanguageUtil.get(httpServletRequest, "settings")
+				LanguageUtil.get(httpServletRequest, "room-settings")
 			).setPermissionKey(
 				"update"
 			).build(
 				"settings"
+			),
+			FDSActionDropdownItemBuilder.setHref(
+				"#"
+			).setIcon(
+				"archive"
+			).setLabel(
+				LanguageUtil.get(httpServletRequest, "archive")
+			).setPermissionKey(
+				"update"
+			).build(
+				"archive"
+			),
+			FDSActionDropdownItemBuilder.setHref(
+				"#"
+			).setIcon(
+				"restore"
+			).setLabel(
+				LanguageUtil.get(httpServletRequest, "restore")
+			).setPermissionKey(
+				"update"
+			).build(
+				"restore"
 			),
 			FDSActionDropdownItemBuilder.setHref(
 				"#"

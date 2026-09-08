@@ -109,6 +109,7 @@ resource "kubernetes_manifest" "infrastructure_applicationset" {
 						}
 						managedNamespaceMetadata={
 							labels={
+								"liferay.com/observable"="true"
 								"pod-security.kubernetes.io/enforce"="restricted"
 							}
 						}
@@ -152,6 +153,10 @@ resource "kubernetes_manifest" "infrastructure_appproject" {
 			destinations=[
 				{
 					namespace="cluster-bootstrap-system"
+					server="https://kubernetes.default.svc"
+				},
+				{
+					namespace="dxp-operator-system"
 					server="https://kubernetes.default.svc"
 				},
 				{
@@ -220,7 +225,7 @@ resource "kubernetes_manifest" "infrastructure_provider_application" {
 				merge(
 					{
 						helm={
-							parameters=[
+							parameters=concat([
 								{
 									name="aws.accountId"
 									value=local.account_id
@@ -266,10 +271,14 @@ resource "kubernetes_manifest" "infrastructure_provider_application" {
 									value=var.gateway_namespace
 								},
 								{
+									name="liferay-dxp-operator.marketplace.csi.volumeHandle"
+									value=data.aws_efs_file_system.marketplace.file_system_id
+								},
+								{
 									name="liferayServiceAccountRoleName"
 									value=local.liferay_service_account_role_name
 								},
-							]
+							], local.dxp_operator_parameters)
 							valueFiles=[
 								"$values/${var.infrastructure_git_repo_config.source_paths.system}/${var.infrastructure_git_repo_config.source_paths.infrastructure_provider_values_filename}",
 							]
@@ -374,6 +383,10 @@ resource "kubernetes_manifest" "liferay_applicationset" {
 								helm={
 									parameters=[
 										{
+											name="${local.liferay_helm_chart_config.values_scope_prefix}marketplace.csi.volumeHandle"
+											value=data.aws_efs_file_system.marketplace.file_system_id
+										},
+										{
 											name="${local.liferay_helm_chart_config.values_scope_prefix}network.gatewayName"
 											value=local.gateway_name
 										},
@@ -436,6 +449,11 @@ resource "kubernetes_manifest" "liferay_applicationset" {
 							jsonPointers=["/data"]
 							kind="Secret"
 							name="liferay-default"
+						},
+						{
+							group="apps"
+							kind="StatefulSet"
+							managedFieldsManagers=["liferay-dxp-operator"]
 						},
 					]
 					syncPolicy={
@@ -559,6 +577,10 @@ resource "kubernetes_manifest" "observability_application" {
 								{
 									name="alloy.scrape.rdsExporter.enabled"
 									value="true"
+								},
+								{
+									name="aws.ampWorkspaceID"
+									value=try(data.aws_prometheus_workspace.amp[0].id, "")
 								},
 								{
 									name="aws.ampWorkspaceURL"

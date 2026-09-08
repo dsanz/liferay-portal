@@ -145,18 +145,8 @@ public class BatchBuildTestrayCaseResult
 			return buildReport.getJobName() + " timed out after 2 hours";
 		}
 
-		String errorMessage = buildReport.getFailureMessage();
-
-		if (JenkinsResultsParserUtil.isNullOrEmpty(errorMessage)) {
-			return "Failed for unknown reason";
-		}
-
-		if (errorMessage.contains("\n")) {
-			errorMessage = errorMessage.substring(
-				0, errorMessage.indexOf("\n"));
-		}
-
-		errorMessage = errorMessage.trim();
+		String errorMessage = formatErrorMessage(
+			buildReport.getFailureMessage());
 
 		if (JenkinsResultsParserUtil.isNullOrEmpty(errorMessage)) {
 			return "Failed for unknown reason";
@@ -359,6 +349,55 @@ public class BatchBuildTestrayCaseResult
 		return null;
 	}
 
+	protected TestReport findTestReport() {
+		return null;
+	}
+
+	protected String formatErrorMessage(String errorMessage) {
+		if (JenkinsResultsParserUtil.isNullOrEmpty(errorMessage)) {
+			return null;
+		}
+
+		errorMessage = errorMessage.replaceAll("</?pre>", "");
+
+		errorMessage = errorMessage.replace("&gt;", ">");
+		errorMessage = errorMessage.replace("&lt;", "<");
+		errorMessage = errorMessage.replace("&quot;", "\"");
+		errorMessage = errorMessage.replace("&amp;", "&");
+
+		StringBuilder sb = new StringBuilder();
+
+		for (String errorMessageLine : errorMessage.split("\n")) {
+			if (errorMessageLine.matches(
+					"(\\s*\\[exec\\])*\\s*at\\s+\\S+\\(.*\\)\\s*")) {
+
+				continue;
+			}
+
+			sb.append(errorMessageLine);
+			sb.append("\n");
+		}
+
+		errorMessage = sb.toString();
+
+		errorMessage = errorMessage.trim();
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(errorMessage)) {
+			return null;
+		}
+
+		int errorMessageMaxLength = _getErrorMessageMaxLength();
+
+		if (errorMessage.length() > errorMessageMaxLength) {
+			String truncatedErrorMessage = errorMessage.substring(
+				0, Math.max(0, errorMessageMaxLength - 4));
+
+			errorMessage = truncatedErrorMessage + "\n...";
+		}
+
+		return errorMessage;
+	}
+
 	protected AxisTestClassGroup getAxisTestClassGroup() {
 		return _axisTestClassGroup;
 	}
@@ -430,7 +469,12 @@ public class BatchBuildTestrayCaseResult
 	}
 
 	protected TestReport getTestReport() {
-		return null;
+		if (!_testReportComputed) {
+			_testReport = findTestReport();
+			_testReportComputed = true;
+		}
+
+		return _testReport;
 	}
 
 	protected long getTestResultDuration() {
@@ -472,7 +516,8 @@ public class BatchBuildTestrayCaseResult
 				testResultErrors = "Unable to run test on CI";
 			}
 
-			String failureMessage = buildReport.getFailureMessage();
+			String failureMessage = formatErrorMessage(
+				buildReport.getFailureMessage());
 
 			if (JenkinsResultsParserUtil.isNullOrEmpty(failureMessage)) {
 				return testResultErrors;
@@ -495,16 +540,7 @@ public class BatchBuildTestrayCaseResult
 			testResultErrors = buildReport.getFailureMessage();
 		}
 
-		if (JenkinsResultsParserUtil.isNullOrEmpty(testResultErrors)) {
-			return "Failed for unknown reason";
-		}
-
-		if (testResultErrors.contains("\n")) {
-			testResultErrors = testResultErrors.substring(
-				0, testResultErrors.indexOf("\n"));
-		}
-
-		testResultErrors = testResultErrors.trim();
+		testResultErrors = formatErrorMessage(testResultErrors);
 
 		if (JenkinsResultsParserUtil.isNullOrEmpty(testResultErrors)) {
 			return "Failed for unknown reason";
@@ -654,6 +690,25 @@ public class BatchBuildTestrayCaseResult
 		}
 
 		return testrayAttachments;
+	}
+
+	private int _getErrorMessageMaxLength() {
+		try {
+			String errorMessageMaxLength =
+				JenkinsResultsParserUtil.getBuildProperty(
+					"testray.case.result.error.message.max.length");
+
+			if ((errorMessageMaxLength != null) &&
+				errorMessageMaxLength.matches("\\d+")) {
+
+				return Integer.parseInt(errorMessageMaxLength);
+			}
+
+			return _ERROR_MESSAGE_MAX_LENGTH_DEFAULT;
+		}
+		catch (IOException ioException) {
+			throw new RuntimeException(ioException);
+		}
 	}
 
 	private List<TestrayAttachment> _getGCLogsTestrayAttachments() {
@@ -820,6 +875,8 @@ public class BatchBuildTestrayCaseResult
 		return sb.toString();
 	}
 
+	private static final int _ERROR_MESSAGE_MAX_LENGTH_DEFAULT = 50000;
+
 	private static final Pattern _dockerLogsURLPattern = Pattern.compile(
 		"https?://.+/(?<key>docker-logs/(?<fileName>[^/]+.log).txt.gz)");
 	private static final Pattern _gcLogsURLPattern = Pattern.compile(
@@ -830,6 +887,8 @@ public class BatchBuildTestrayCaseResult
 	private final AxisTestClassGroup _axisTestClassGroup;
 	private A _testClass;
 	private B _testClassMethod;
+	private TestReport _testReport;
+	private boolean _testReportComputed;
 	private TopLevelStandaloneBuildTestrayCaseResult
 		_topLevelStandaloneBuildTestrayCaseResult;
 

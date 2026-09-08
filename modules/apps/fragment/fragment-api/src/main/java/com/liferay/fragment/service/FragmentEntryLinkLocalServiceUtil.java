@@ -290,6 +290,13 @@ public class FragmentEntryLinkLocalServiceUtil {
 		return getService().fetchFragmentEntryLink(fragmentEntryLinkId);
 	}
 
+	public static FragmentEntryLink fetchFragmentEntryLink(
+		long groupId, String originalFragmentEntryLinkERC, long plid) {
+
+		return getService().fetchFragmentEntryLink(
+			groupId, originalFragmentEntryLinkERC, plid);
+	}
+
 	public static FragmentEntryLink
 		fetchFragmentEntryLinkByExternalReferenceCode(
 			String externalReferenceCode, long groupId) {
@@ -372,7 +379,8 @@ public class FragmentEntryLinkLocalServiceUtil {
 	}
 
 	public static FragmentEntryLink getFragmentEntryLink(
-		long groupId, String originalFragmentEntryLinkERC, long plid) {
+			long groupId, String originalFragmentEntryLinkERC, long plid)
+		throws PortalException {
 
 		return getService().getFragmentEntryLink(
 			groupId, originalFragmentEntryLinkERC, plid);
@@ -720,4 +728,4 @@ public class FragmentEntryLinkLocalServiceUtil {
 			FragmentEntryLinkLocalService.class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1703836549
+// LIFERAY-SERVICE-BUILDER-HASH:-1331238008

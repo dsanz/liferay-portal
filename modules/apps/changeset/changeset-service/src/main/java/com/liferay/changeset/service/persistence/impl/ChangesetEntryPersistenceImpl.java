@@ -19,8 +19,6 @@ import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -900,6 +898,7 @@ public class ChangesetEntryPersistenceImpl
 				_SQL_SELECT_CHANGESETENTRY_WHERE,
 				_SQL_COUNT_CHANGESETENTRY_WHERE,
 				ChangesetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"changesetEntry.", "groupId", FinderColumn.Type.LONG, "=",
 					true, true, ChangesetEntry::getGroupId));
@@ -926,6 +925,7 @@ public class ChangesetEntryPersistenceImpl
 				_SQL_SELECT_CHANGESETENTRY_WHERE,
 				_SQL_COUNT_CHANGESETENTRY_WHERE,
 				ChangesetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"changesetEntry.", "companyId", FinderColumn.Type.LONG, "=",
 					true, true, ChangesetEntry::getCompanyId));
@@ -955,6 +955,7 @@ public class ChangesetEntryPersistenceImpl
 				_SQL_SELECT_CHANGESETENTRY_WHERE,
 				_SQL_COUNT_CHANGESETENTRY_WHERE,
 				ChangesetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+				"", null,
 				new FinderColumn<>(
 					"changesetEntry.", "changesetCollectionId",
 					FinderColumn.Type.LONG, "=", true, true,
@@ -979,7 +980,8 @@ public class ChangesetEntryPersistenceImpl
 				new String[] {Long.class.getName(), Long.class.getName()},
 				new String[] {"groupId", "classNameId"}, false),
 			_SQL_SELECT_CHANGESETENTRY_WHERE, _SQL_COUNT_CHANGESETENTRY_WHERE,
-			ChangesetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			ChangesetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"changesetEntry.", "groupId", FinderColumn.Type.LONG, "=", true,
 				true, ChangesetEntry::getGroupId),
@@ -1006,7 +1008,8 @@ public class ChangesetEntryPersistenceImpl
 				new String[] {Long.class.getName(), Long.class.getName()},
 				new String[] {"changesetCollectionId", "classNameId"}, false),
 			_SQL_SELECT_CHANGESETENTRY_WHERE, _SQL_COUNT_CHANGESETENTRY_WHERE,
-			ChangesetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			ChangesetEntryModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "", "",
+			null,
 			new FinderColumn<>(
 				"changesetEntry.", "changesetCollectionId",
 				FinderColumn.Type.LONG, "=", true, true,
@@ -1123,16 +1126,10 @@ public class ChangesetEntryPersistenceImpl
 	private static final String _SQL_COUNT_CHANGESETENTRY_WHERE =
 		"SELECT COUNT(changesetEntry) FROM ChangesetEntry changesetEntry WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No ChangesetEntry exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		ChangesetEntryPersistenceImpl.class);
-
 	@Override
 	protected FinderCache getFinderCache() {
 		return finderCache;
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:529263345
+// LIFERAY-SERVICE-BUILDER-HASH:-1869906317

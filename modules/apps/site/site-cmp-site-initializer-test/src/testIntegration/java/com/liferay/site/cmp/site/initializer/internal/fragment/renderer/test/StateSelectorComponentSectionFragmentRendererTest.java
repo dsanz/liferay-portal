@@ -34,9 +34,7 @@ import org.skyscreamer.jsonassert.JSONAssert;
 /**
  * @author Carolina Barbosa
  */
-@FeatureFlags(
-	featureFlags = {@FeatureFlag("LPD-17564"), @FeatureFlag("LPD-58677")}
-)
+@FeatureFlags(featureFlags = @FeatureFlag("LPD-58677"))
 @RunWith(Arquillian.class)
 public class StateSelectorComponentSectionFragmentRendererTest
 	extends BaseComponentSectionFragmentRendererTestCase {
@@ -85,19 +83,20 @@ public class StateSelectorComponentSectionFragmentRendererTest
 			).toString(),
 			MapUtil.getString(getProps(), "states"), true);
 
-		projectObjectEntry = _objectEntryLocalService.partialUpdateObjectEntry(
-			projectObjectEntry.getUserId(),
-			projectObjectEntry.getObjectEntryId(),
-			projectObjectEntry.getObjectEntryFolderId(),
-			HashMapBuilder.<String, Serializable>put(
-				"state", "inProgress"
-			).put(
-				"title", RandomTestUtil.randomString()
-			).build(),
-			ServiceContextTestUtil.getServiceContext());
+		cmpProjectObjectEntry =
+			_objectEntryLocalService.partialUpdateObjectEntry(
+				cmpProjectObjectEntry.getUserId(),
+				cmpProjectObjectEntry.getObjectEntryId(),
+				cmpProjectObjectEntry.getObjectEntryFolderId(),
+				HashMapBuilder.<String, Serializable>put(
+					"state", "inProgress"
+				).put(
+					"title", RandomTestUtil.randomString()
+				).build(),
+				ServiceContextTestUtil.getServiceContext());
 
 		mockHttpServletRequest.setAttribute(
-			InfoDisplayWebKeys.INFO_ITEM, projectObjectEntry);
+			InfoDisplayWebKeys.INFO_ITEM, cmpProjectObjectEntry);
 
 		Assert.assertEquals(
 			"inProgress", MapUtil.getString(getProps(), "initialSelectedKey"));

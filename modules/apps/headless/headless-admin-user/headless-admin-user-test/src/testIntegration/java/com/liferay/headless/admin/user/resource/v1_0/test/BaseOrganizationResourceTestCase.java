@@ -35,6 +35,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -97,6 +98,8 @@ public abstract class BaseOrganizationResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -1439,8 +1442,8 @@ public abstract class BaseOrganizationResourceTestCase {
 		page =
 			organizationResource.
 				getAccountByExternalReferenceCodeOrganizationsPage(
-					externalReferenceCode, null, null, Pagination.of(1, 10),
-					null);
+					externalReferenceCode, null, null,
+					Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1865,20 +1868,9 @@ public abstract class BaseOrganizationResourceTestCase {
 		String externalReferenceCode =
 			testGetAccountByExternalReferenceCodeOrganizationsPage_getExternalReferenceCode();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"accountByExternalReferenceCodeOrganizations",
-			new HashMap<String, Object>() {
-				{
-					put(
-						"externalReferenceCode",
-						"\"" + externalReferenceCode + "\"");
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetAccountByExternalReferenceCodeOrganizationsPageAccountOrganization_getGraphQLField(
+				externalReferenceCode);
 
 		// No namespace
 
@@ -1948,6 +1940,27 @@ public abstract class BaseOrganizationResourceTestCase {
 				OrganizationSerDes.toDTOs(
 					accountByExternalReferenceCodeOrganizationsJSONObject.
 						getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetAccountByExternalReferenceCodeOrganizationsPageAccountOrganization_getGraphQLField(
+				String externalReferenceCode)
+		throws Exception {
+
+		return new GraphQLField(
+			"accountByExternalReferenceCodeOrganizations",
+			new HashMap<String, Object>() {
+				{
+					put(
+						"externalReferenceCode",
+						"\"" + externalReferenceCode + "\"");
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	protected Organization
@@ -2141,7 +2154,7 @@ public abstract class BaseOrganizationResourceTestCase {
 				accountId, randomOrganization());
 
 		page = organizationResource.getAccountOrganizationsPage(
-			accountId, null, null, Pagination.of(1, 10), null);
+			accountId, null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -2537,18 +2550,9 @@ public abstract class BaseOrganizationResourceTestCase {
 	public void testGraphQLGetAccountOrganizationsPage() throws Exception {
 		Long accountId = testGetAccountOrganizationsPage_getAccountId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"accountOrganizations",
-			new HashMap<String, Object>() {
-				{
-					put("accountId", accountId);
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetAccountOrganizationsPageAccountOrganization_getGraphQLField(
+				accountId);
 
 		// No namespace
 
@@ -2608,6 +2612,25 @@ public abstract class BaseOrganizationResourceTestCase {
 			Arrays.asList(
 				OrganizationSerDes.toDTOs(
 					accountOrganizationsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetAccountOrganizationsPageAccountOrganization_getGraphQLField(
+				Long accountId)
+		throws Exception {
+
+		return new GraphQLField(
+			"accountOrganizations",
+			new HashMap<String, Object>() {
+				{
+					put("accountId", accountId);
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	protected Organization
@@ -2922,7 +2945,7 @@ public abstract class BaseOrganizationResourceTestCase {
 			organizationResource.
 				getOrganizationByExternalReferenceCodeChildOrganizationsPage(
 					externalReferenceCode, null, null, null,
-					Pagination.of(1, 10), null);
+					Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -3347,20 +3370,9 @@ public abstract class BaseOrganizationResourceTestCase {
 		String externalReferenceCode =
 			testGetOrganizationByExternalReferenceCodeChildOrganizationsPage_getExternalReferenceCode();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"organizationByExternalReferenceCodeChildOrganizations",
-			new HashMap<String, Object>() {
-				{
-					put(
-						"externalReferenceCode",
-						"\"" + externalReferenceCode + "\"");
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetOrganizationByExternalReferenceCodeChildOrganizationsPageOrganization_getGraphQLField(
+				externalReferenceCode);
 
 		// No namespace
 
@@ -3433,6 +3445,27 @@ public abstract class BaseOrganizationResourceTestCase {
 						getString("items"))));
 	}
 
+	protected GraphQLField
+			testGraphQLGetOrganizationByExternalReferenceCodeChildOrganizationsPageOrganization_getGraphQLField(
+				String externalReferenceCode)
+		throws Exception {
+
+		return new GraphQLField(
+			"organizationByExternalReferenceCodeChildOrganizations",
+			new HashMap<String, Object>() {
+				{
+					put(
+						"externalReferenceCode",
+						"\"" + externalReferenceCode + "\"");
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
+	}
+
 	protected Organization
 			testGraphQLGetOrganizationByExternalReferenceCodeChildOrganizationsPageOrganization_addOrganization(
 				String externalReferenceCode, Organization organization)
@@ -3483,7 +3516,8 @@ public abstract class BaseOrganizationResourceTestCase {
 				organizationId, randomOrganization());
 
 		page = organizationResource.getOrganizationChildOrganizationsPage(
-			organizationId, null, null, null, Pagination.of(1, 10), null);
+			organizationId, null, null, null,
+			Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -3894,18 +3928,9 @@ public abstract class BaseOrganizationResourceTestCase {
 		String organizationId =
 			testGetOrganizationChildOrganizationsPage_getOrganizationId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"organizationChildOrganizations",
-			new HashMap<String, Object>() {
-				{
-					put("organizationId", "\"" + organizationId + "\"");
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetOrganizationChildOrganizationsPageOrganization_getGraphQLField(
+				organizationId);
 
 		// No namespace
 
@@ -3974,6 +3999,25 @@ public abstract class BaseOrganizationResourceTestCase {
 						"items"))));
 	}
 
+	protected GraphQLField
+			testGraphQLGetOrganizationChildOrganizationsPageOrganization_getGraphQLField(
+				String organizationId)
+		throws Exception {
+
+		return new GraphQLField(
+			"organizationChildOrganizations",
+			new HashMap<String, Object>() {
+				{
+					put("organizationId", "\"" + organizationId + "\"");
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
+	}
+
 	protected Organization
 			testGraphQLGetOrganizationChildOrganizationsPageOrganization_addOrganization(
 				String organizationId, Organization organization)
@@ -4026,7 +4070,8 @@ public abstract class BaseOrganizationResourceTestCase {
 				parentOrganizationId, randomOrganization());
 
 		page = organizationResource.getOrganizationOrganizationsPage(
-			parentOrganizationId, null, null, null, Pagination.of(1, 10), null);
+			parentOrganizationId, null, null, null,
+			Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -4431,20 +4476,9 @@ public abstract class BaseOrganizationResourceTestCase {
 		String parentOrganizationId =
 			testGetOrganizationOrganizationsPage_getParentOrganizationId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"organizationOrganizations",
-			new HashMap<String, Object>() {
-				{
-					put(
-						"parentOrganizationId",
-						"\"" + parentOrganizationId + "\"");
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetOrganizationOrganizationsPageOrganization_getGraphQLField(
+				parentOrganizationId);
 
 		// No namespace
 
@@ -4507,6 +4541,27 @@ public abstract class BaseOrganizationResourceTestCase {
 					organizationOrganizationsJSONObject.getString("items"))));
 	}
 
+	protected GraphQLField
+			testGraphQLGetOrganizationOrganizationsPageOrganization_getGraphQLField(
+				String parentOrganizationId)
+		throws Exception {
+
+		return new GraphQLField(
+			"organizationOrganizations",
+			new HashMap<String, Object>() {
+				{
+					put(
+						"parentOrganizationId",
+						"\"" + parentOrganizationId + "\"");
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
+	}
+
 	protected Organization
 			testGraphQLGetOrganizationOrganizationsPageOrganization_addOrganization(
 				String parentOrganizationId, Organization organization)
@@ -4530,7 +4585,7 @@ public abstract class BaseOrganizationResourceTestCase {
 			randomOrganization());
 
 		page = organizationResource.getOrganizationsPage(
-			null, null, null, Pagination.of(1, 10), null);
+			null, null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -4875,17 +4930,8 @@ public abstract class BaseOrganizationResourceTestCase {
 
 	@Test
 	public void testGraphQLGetOrganizationsPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"organizations",
-			new HashMap<String, Object>() {
-				{
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetOrganizationsPageOrganization_getGraphQLField();
 
 		// No namespace
 
@@ -4940,6 +4986,23 @@ public abstract class BaseOrganizationResourceTestCase {
 			Arrays.asList(
 				OrganizationSerDes.toDTOs(
 					organizationsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetOrganizationsPageOrganization_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"organizations",
+			new HashMap<String, Object>() {
+				{
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -8049,4 +8112,4 @@ public abstract class BaseOrganizationResourceTestCase {
 		_organizationResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:165327054
+// LIFERAY-REST-BUILDER-HASH:2118077767

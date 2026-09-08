@@ -13,6 +13,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
+import com.liferay.headless.admin.fragment.client.dto.v1_0.BasicFragment;
+import com.liferay.headless.admin.fragment.client.dto.v1_0.FormFragment;
 import com.liferay.headless.admin.fragment.client.dto.v1_0.Fragment;
 import com.liferay.headless.admin.fragment.client.http.HttpInvoker;
 import com.liferay.headless.admin.fragment.client.pagination.Page;
@@ -31,6 +33,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -66,6 +69,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -91,6 +95,8 @@ public abstract class BaseFragmentResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -186,6 +192,7 @@ public abstract class BaseFragmentResourceTestCase {
 		Fragment fragment = randomFragment();
 
 		fragment.setExternalReferenceCode(regex);
+		fragment.setFragmentSetExternalReferenceCode(regex);
 		fragment.setIcon(regex);
 		fragment.setKey(regex);
 		fragment.setName(regex);
@@ -197,6 +204,8 @@ public abstract class BaseFragmentResourceTestCase {
 		fragment = FragmentSerDes.toDTO(json);
 
 		Assert.assertEquals(regex, fragment.getExternalReferenceCode());
+		Assert.assertEquals(
+			regex, fragment.getFragmentSetExternalReferenceCode());
 		Assert.assertEquals(regex, fragment.getIcon());
 		Assert.assertEquals(regex, fragment.getKey());
 		Assert.assertEquals(regex, fragment.getName());
@@ -309,7 +318,7 @@ public abstract class BaseFragmentResourceTestCase {
 
 		page = fragmentResource.getSiteFragmentSetFragmentsPage(
 			siteExternalReferenceCode, fragmentSetExternalReferenceCode,
-			Pagination.of(1, 10));
+			Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -502,7 +511,8 @@ public abstract class BaseFragmentResourceTestCase {
 			siteExternalReferenceCode, randomFragment());
 
 		page = fragmentResource.getSiteFragmentsPage(
-			siteExternalReferenceCode, null, Pagination.of(1, 10));
+			siteExternalReferenceCode, null,
+			Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -738,6 +748,50 @@ public abstract class BaseFragmentResourceTestCase {
 
 		assertEquals(randomFragment, postFragment);
 		assertValid(postFragment);
+
+		BasicFragment basicFragment = new BasicFragment() {
+			{
+				cacheable = RandomTestUtil.randomBoolean();
+				dateCreated = RandomTestUtil.nextDate();
+				dateModified = RandomTestUtil.nextDate();
+				externalReferenceCode = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				fragmentSetExternalReferenceCode = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				icon = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				key = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				marketplace = RandomTestUtil.randomBoolean();
+				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				readOnly = RandomTestUtil.randomBoolean();
+
+				type = Type.create("BasicFragment");
+			}
+		};
+
+		assertEquals(
+			basicFragment, testPostSiteFragment_addFragment(basicFragment));
+
+		FormFragment formFragment = new FormFragment() {
+			{
+				cacheable = RandomTestUtil.randomBoolean();
+				dateCreated = RandomTestUtil.nextDate();
+				dateModified = RandomTestUtil.nextDate();
+				externalReferenceCode = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				fragmentSetExternalReferenceCode = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				icon = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				key = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				marketplace = RandomTestUtil.randomBoolean();
+				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				readOnly = RandomTestUtil.randomBoolean();
+
+				type = Type.create("FormFragment");
+			}
+		};
+
+		assertEquals(
+			formFragment, testPostSiteFragment_addFragment(formFragment));
 	}
 
 	protected Fragment testPostSiteFragment_addFragment(Fragment fragment)
@@ -756,6 +810,52 @@ public abstract class BaseFragmentResourceTestCase {
 
 		assertEquals(randomFragment, postFragment);
 		assertValid(postFragment);
+
+		BasicFragment basicFragment = new BasicFragment() {
+			{
+				cacheable = RandomTestUtil.randomBoolean();
+				dateCreated = RandomTestUtil.nextDate();
+				dateModified = RandomTestUtil.nextDate();
+				externalReferenceCode = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				fragmentSetExternalReferenceCode = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				icon = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				key = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				marketplace = RandomTestUtil.randomBoolean();
+				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				readOnly = RandomTestUtil.randomBoolean();
+
+				type = Type.create("BasicFragment");
+			}
+		};
+
+		assertEquals(
+			basicFragment,
+			testPostSiteFragmentSetFragment_addFragment(basicFragment));
+
+		FormFragment formFragment = new FormFragment() {
+			{
+				cacheable = RandomTestUtil.randomBoolean();
+				dateCreated = RandomTestUtil.nextDate();
+				dateModified = RandomTestUtil.nextDate();
+				externalReferenceCode = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				fragmentSetExternalReferenceCode = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
+				icon = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				key = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				marketplace = RandomTestUtil.randomBoolean();
+				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
+				readOnly = RandomTestUtil.randomBoolean();
+
+				type = Type.create("FormFragment");
+			}
+		};
+
+		assertEquals(
+			formFragment,
+			testPostSiteFragmentSetFragment_addFragment(formFragment));
 	}
 
 	protected Fragment testPostSiteFragmentSetFragment_addFragment(
@@ -973,6 +1073,17 @@ public abstract class BaseFragmentResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"fragmentSetExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (fragment.getFragmentSetExternalReferenceCode() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("fragmentVersions", additionalAssertFieldName)) {
 				if (fragment.getFragmentVersions() == null) {
 					valid = false;
@@ -1033,6 +1144,18 @@ public abstract class BaseFragmentResourceTestCase {
 
 			if (Objects.equals("type", additionalAssertFieldName)) {
 				if (fragment.getType() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("fieldTypes", additionalAssertFieldName)) {
+				if (!(fragment instanceof FormFragment)) {
+					continue;
+				}
+
+				if (((FormFragment)fragment).getFieldTypes() == null) {
 					valid = false;
 				}
 
@@ -1223,6 +1346,20 @@ public abstract class BaseFragmentResourceTestCase {
 				continue;
 			}
 
+			if (Objects.equals(
+					"fragmentSetExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						fragment1.getFragmentSetExternalReferenceCode(),
+						fragment2.getFragmentSetExternalReferenceCode())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("fragmentVersions", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						fragment1.getFragmentVersions(),
@@ -1301,6 +1438,23 @@ public abstract class BaseFragmentResourceTestCase {
 			if (Objects.equals("type", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						fragment1.getType(), fragment2.getType())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("fieldTypes", additionalAssertFieldName)) {
+				if (!(fragment1 instanceof FormFragment) ||
+					!(fragment2 instanceof FormFragment)) {
+
+					continue;
+				}
+
+				if (!Objects.deepEquals(
+						((FormFragment)fragment1).getFieldTypes(),
+						((FormFragment)fragment2).getFieldTypes())) {
 
 					return false;
 				}
@@ -1534,6 +1688,52 @@ public abstract class BaseFragmentResourceTestCase {
 				"Invalid entity field " + entityFieldName);
 		}
 
+		if (entityFieldName.equals("fragmentSetExternalReferenceCode")) {
+			Object object = fragment.getFragmentSetExternalReferenceCode();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("fragmentVersions")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
@@ -1742,20 +1942,58 @@ public abstract class BaseFragmentResourceTestCase {
 	}
 
 	protected Fragment randomFragment() throws Exception {
-		return new Fragment() {
-			{
-				cacheable = RandomTestUtil.randomBoolean();
-				dateCreated = RandomTestUtil.nextDate();
-				dateModified = RandomTestUtil.nextDate();
-				externalReferenceCode = StringUtil.toLowerCase(
-					RandomTestUtil.randomString());
-				icon = StringUtil.toLowerCase(RandomTestUtil.randomString());
-				key = StringUtil.toLowerCase(RandomTestUtil.randomString());
-				marketplace = RandomTestUtil.randomBoolean();
-				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
-				readOnly = RandomTestUtil.randomBoolean();
-			}
-		};
+		List<Supplier<Fragment>> suppliers = Arrays.asList(
+			() -> {
+				BasicFragment fragment = new BasicFragment();
+
+				fragment.setCacheable(RandomTestUtil.randomBoolean());
+				fragment.setDateCreated(RandomTestUtil.nextDate());
+				fragment.setDateModified(RandomTestUtil.nextDate());
+				fragment.setExternalReferenceCode(
+					StringUtil.toLowerCase(RandomTestUtil.randomString()));
+				fragment.setFragmentSetExternalReferenceCode(
+					StringUtil.toLowerCase(RandomTestUtil.randomString()));
+				fragment.setIcon(
+					StringUtil.toLowerCase(RandomTestUtil.randomString()));
+				fragment.setKey(
+					StringUtil.toLowerCase(RandomTestUtil.randomString()));
+				fragment.setMarketplace(RandomTestUtil.randomBoolean());
+				fragment.setName(
+					StringUtil.toLowerCase(RandomTestUtil.randomString()));
+				fragment.setReadOnly(RandomTestUtil.randomBoolean());
+
+				fragment.setType(Fragment.Type.create("BasicFragment"));
+
+				return fragment;
+			},
+			() -> {
+				FormFragment fragment = new FormFragment();
+
+				fragment.setCacheable(RandomTestUtil.randomBoolean());
+				fragment.setDateCreated(RandomTestUtil.nextDate());
+				fragment.setDateModified(RandomTestUtil.nextDate());
+				fragment.setExternalReferenceCode(
+					StringUtil.toLowerCase(RandomTestUtil.randomString()));
+				fragment.setFragmentSetExternalReferenceCode(
+					StringUtil.toLowerCase(RandomTestUtil.randomString()));
+				fragment.setIcon(
+					StringUtil.toLowerCase(RandomTestUtil.randomString()));
+				fragment.setKey(
+					StringUtil.toLowerCase(RandomTestUtil.randomString()));
+				fragment.setMarketplace(RandomTestUtil.randomBoolean());
+				fragment.setName(
+					StringUtil.toLowerCase(RandomTestUtil.randomString()));
+				fragment.setReadOnly(RandomTestUtil.randomBoolean());
+
+				fragment.setType(Fragment.Type.create("FormFragment"));
+
+				return fragment;
+			});
+
+		Supplier<Fragment> supplier = suppliers.get(
+			RandomTestUtil.randomInt(0, suppliers.size() - 1));
+
+		return supplier.get();
 	}
 
 	protected Fragment randomIrrelevantFragment() throws Exception {
@@ -2001,4 +2239,4 @@ public abstract class BaseFragmentResourceTestCase {
 		_fragmentResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1931625404
+// LIFERAY-REST-BUILDER-HASH:-999662990

@@ -8,6 +8,8 @@ package com.liferay.portal.service.impl;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.portal.kernel.cache.CacheRegistryItem;
 import com.liferay.portal.kernel.change.tracking.CTAware;
+import com.liferay.portal.kernel.exception.NoSuchClassNameException;
+import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.ClassName;
@@ -15,6 +17,7 @@ import com.liferay.portal.kernel.model.CompanyConstants;
 import com.liferay.portal.kernel.model.ModelHintsUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.transaction.Propagation;
+import com.liferay.portal.kernel.transaction.TransactionCallbackUtil;
 import com.liferay.portal.kernel.transaction.Transactional;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.PropsValues;
@@ -47,9 +50,24 @@ public class ClassNameLocalServiceImpl
 			className.setValue(value);
 
 			className = classNamePersistence.update(className);
-		}
 
-		ClassNamePool.add(className);
+			ClassName newClassName = className;
+
+			// The pool has no transaction awareness, so a created row must
+			// only publish after its transaction commits. Publishing earlier
+			// leaks the class name ID into the pool even when the insert rolls
+			// back, and the pool then serves an ID that has no backing row.
+
+			TransactionCallbackUtil.registerCommitCallback(
+				() -> {
+					ClassNamePool.add(newClassName);
+
+					return null;
+				});
+		}
+		else {
+			ClassNamePool.add(className);
+		}
 
 		return className;
 	}
@@ -114,6 +132,22 @@ public class ClassNameLocalServiceImpl
 	}
 
 	@Override
+	public ClassName getClassName(long classNameId) throws PortalException {
+		try {
+			return classNamePersistence.findByPrimaryKey(classNameId);
+		}
+		catch (NoSuchClassNameException noSuchClassNameException) {
+			ClassName className = ClassNamePool.fetchByClassNameId(classNameId);
+
+			if (className != null) {
+				ClassNamePool.remove(className);
+			}
+
+			throw noSuchClassNameException;
+		}
+	}
+
+	@Override
 	@Transactional(enabled = false)
 	public ClassName getClassName(String value) {
 		if (Validator.isNull(value)) {
@@ -137,7 +171,13 @@ public class ClassNameLocalServiceImpl
 				_log.debug(throwable);
 			}
 
-			return ClassNamePool.fetchByValue(value);
+			// The failure usually means a concurrent insert of the same value
+			// won. Ask again in a fresh transaction, whose snapshot holds
+			// every committed row on any isolation level and none of the
+			// current transaction's uncommitted writes, so the retry returns
+			// the winner's committed row or fails for real.
+
+			return classNameLocalService.addClassName(value);
 		}
 	}
 

@@ -12,24 +12,21 @@ import {
 import {expect, mergeTests} from '@playwright/test';
 
 import {dataApiHelpersTest} from '../../../fixtures/dataApiHelpersTest';
-import {featureFlagsTest} from '../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../fixtures/loginTest';
 import {objectPagesTest} from '../../../fixtures/objectPagesTest';
 import {getRandomInt} from '../../../utils/getRandomInt';
 import getRandomString from '../../../utils/getRandomString';
-import performLogin, {
+import {
+	performLoginViaApi,
 	performLogout,
 	userData,
 } from '../../../utils/performLogin';
 import {pushToApiHelpersData} from '../../../utils/pushToApiHelpersData';
 import {waitForAlert} from '../../../utils/waitForAlert';
+import {getFreshObjectRelationshipName} from '../utils/getFreshObjectRelationshipName';
 
 export const test = mergeTests(
 	dataApiHelpersTest,
-	featureFlagsTest({
-		'LPD-34594': {enabled: true},
-		'LPD-69877': {enabled: true},
-	}),
 	loginTest(),
 	objectPagesTest
 );
@@ -216,9 +213,10 @@ test.describe('Manage root model elements through View Object Entries', () => {
 						label: {
 							en_US: 'objectRelationshipLabel' + getRandomInt(),
 						},
-						name:
-							'objectRelationshipName' +
-							Math.floor(Math.random() * 99),
+						name: await getFreshObjectRelationshipName(apiHelpers, [
+							objectDefinition1.externalReferenceCode!,
+							objectDefinition2.externalReferenceCode!,
+						]),
 						objectDefinitionExternalReferenceCode1:
 							objectDefinition1.externalReferenceCode,
 						objectDefinitionExternalReferenceCode2:
@@ -424,9 +422,10 @@ test.describe('Manage root model elements through View Object Entries', () => {
 						label: {
 							en_US: 'objectRelationshipLabel' + getRandomInt(),
 						},
-						name:
-							'objectRelationshipName' +
-							Math.floor(Math.random() * 99),
+						name: await getFreshObjectRelationshipName(apiHelpers, [
+							'L_ACCOUNT',
+							objectDefinition1.externalReferenceCode!,
+						]),
 						objectDefinitionExternalReferenceCode1: 'L_ACCOUNT',
 						objectDefinitionExternalReferenceCode2:
 							objectDefinition1.externalReferenceCode,
@@ -452,9 +451,10 @@ test.describe('Manage root model elements through View Object Entries', () => {
 						label: {
 							en_US: 'objectRelationshipLabel' + getRandomInt(),
 						},
-						name:
-							'objectRelationshipName' +
-							Math.floor(Math.random() * 99),
+						name: await getFreshObjectRelationshipName(apiHelpers, [
+							objectDefinition1.externalReferenceCode!,
+							objectDefinition2.externalReferenceCode!,
+						]),
 						objectDefinitionExternalReferenceCode1:
 							objectDefinition1.externalReferenceCode,
 						objectDefinitionExternalReferenceCode2:
@@ -574,7 +574,7 @@ test.describe('Manage root model elements through View Object Entries', () => {
 			};
 
 			await performLogout(page);
-			await performLogin(page, user1.alternateName);
+			await performLoginViaApi({page, screenName: user1.alternateName});
 
 			await viewObjectEntriesPage.goto(objectDefinition1.className);
 
@@ -598,7 +598,7 @@ test.describe('Manage root model elements through View Object Entries', () => {
 			};
 
 			await performLogout(page);
-			await performLogin(page, user2.alternateName);
+			await performLoginViaApi({page, screenName: user2.alternateName});
 
 			await viewObjectEntriesPage.goto(objectDefinition1.className);
 
@@ -615,7 +615,7 @@ test.describe('Manage root model elements through View Object Entries', () => {
 		}
 		finally {
 			await performLogout(page);
-			await performLogin(page, 'test');
+			await performLoginViaApi({page, screenName: 'test'});
 
 			const objectRelationshipAPIClient =
 				await apiHelpers.buildRestClient(ObjectRelationshipAPI);
@@ -634,189 +634,6 @@ test.describe('Manage root model elements through View Object Entries', () => {
 });
 
 test.describe('Manage root models elements through Objects Admin', () => {
-	test.describe('Disable inheritance modal flows', () => {
-
-		// Inheritance edges with linked entries cannot be PUT edge=false until
-		// the entries are gone, and apiHelpers cannot delete an edge=true
-		// relationship. Delete the parent entry here so the cascade clears the
-		// linked child, then PUT edge=false on the relationships so the
-		// automatic apiHelpers cleanup chain stays unblocked.
-
-		let parentApplicationName = '';
-		let parentEntryId: number | undefined;
-		let relationshipsForCleanup: ObjectRelationship[] = [];
-
-		test.afterEach(async ({apiHelpers}) => {
-			if (parentEntryId !== undefined && parentApplicationName) {
-				await apiHelpers.delete(
-					`${apiHelpers.baseUrl}${parentApplicationName}/${parentEntryId}`
-				);
-			}
-
-			for (const objectRelationship of relationshipsForCleanup) {
-				await apiHelpers.objectAdmin.patchObjectRelationshipEdge(
-					objectRelationship,
-					false
-				);
-			}
-
-			parentApplicationName = '';
-			parentEntryId = undefined;
-			relationshipsForCleanup = [];
-		});
-
-		test('shows modal with warning message before disabling inheritance', async ({
-			apiHelpers,
-			objectRelationshipsPage,
-		}) => {
-			const parent =
-				await apiHelpers.objectAdmin.postRandomObjectDefinition({
-					status: {code: 0},
-				});
-
-			const child =
-				await apiHelpers.objectAdmin.postRandomObjectDefinition({
-					status: {code: 0},
-				});
-
-			pushToApiHelpersData(
-				apiHelpers,
-				[parent.id!, child.id!],
-				'objectDefinition'
-			);
-
-			const relationship =
-				await apiHelpers.objectAdmin.postObjectDefinitionInheritanceRelationship(
-					parent,
-					child
-				);
-
-			relationshipsForCleanup = [relationship];
-
-			apiHelpers.data.push({
-				id: relationship.id!,
-				type: 'objectRelationship',
-			});
-
-			await objectRelationshipsPage.goto(parent.label!['en_US']);
-
-			await objectRelationshipsPage.actionsButton.click();
-
-			await objectRelationshipsPage.editObjectRelationshipOption.click();
-
-			await objectRelationshipsPage.inheritanceCheckbox.click();
-
-			await expect(
-				objectRelationshipsPage.inheritanceModalHeader
-			).toBeVisible();
-
-			await expect(
-				objectRelationshipsPage.inheritanceModalConfirmationMessage
-			).toBeVisible();
-		});
-
-		test(
-			'shows modal blocking disabling inheritance when entries would be orphaned',
-			{tag: '@LPD-89021'},
-			async ({apiHelpers, objectRelationshipsPage}) => {
-
-				// Build a child with two inheritance parents and standalone=false
-
-				const parent1 =
-					await apiHelpers.objectAdmin.postRandomObjectDefinition({
-						status: {code: 0},
-					});
-
-				const parent2 =
-					await apiHelpers.objectAdmin.postRandomObjectDefinition({
-						status: {code: 0},
-					});
-
-				const child =
-					await apiHelpers.objectAdmin.postRandomObjectDefinition({
-						status: {code: 0},
-					});
-
-				pushToApiHelpersData(
-					apiHelpers,
-					[parent1.id!, parent2.id!, child.id!],
-					'objectDefinition'
-				);
-
-				const relationship1 =
-					await apiHelpers.objectAdmin.postObjectDefinitionInheritanceRelationship(
-						parent1,
-						child
-					);
-
-				const relationship2 =
-					await apiHelpers.objectAdmin.postObjectDefinitionInheritanceRelationship(
-						parent2,
-						child
-					);
-
-				relationshipsForCleanup = [relationship1, relationship2];
-
-				apiHelpers.data.push(
-					{id: relationship1.id!, type: 'objectRelationship'},
-					{id: relationship2.id!, type: 'objectRelationship'}
-				);
-
-				await apiHelpers.objectAdmin.patchObjectDefinitionSetting(
-					child.id!,
-					'allowStandaloneObjectEntry',
-					'false'
-				);
-
-				// Create a child entry linked under parent1
-
-				parentApplicationName = parent1.restContextPath!.replace(
-					/^\/o\//,
-					''
-				);
-
-				const parentEntry =
-					await apiHelpers.objectEntry.postObjectEntry(
-						{textField: 'parent-' + getRandomInt()},
-						parentApplicationName
-					);
-
-				parentEntryId = parentEntry.id;
-
-				await apiHelpers.post(
-					`${apiHelpers.baseUrl}${parentApplicationName}/${parentEntry.id}/${relationship1.name}`,
-					{data: {textField: 'linked-' + getRandomInt()}}
-				);
-
-				// Open Edit relationship and uncheck inheritance
-
-				await objectRelationshipsPage.goto(parent1.label!['en_US']);
-
-				await objectRelationshipsPage.actionsButton.click();
-
-				await objectRelationshipsPage.editObjectRelationshipOption.click();
-
-				await objectRelationshipsPage.inheritanceCheckbox.click();
-
-				// Block modal fires directly from the pre-check (no warning step)
-
-				await expect(
-					objectRelationshipsPage.disableInheritanceNotAllowedModalHeader
-				).toBeVisible();
-
-				await expect(
-					objectRelationshipsPage.disableInheritanceNotAllowedModalBody
-				).toBeVisible();
-
-				await objectRelationshipsPage.disableInheritanceNotAllowedModalDoneButton.click();
-
-				await expect(
-					objectRelationshipsPage.disableInheritanceNotAllowedModalHeader
-				).toBeHidden();
-			}
-		);
-	});
-
 	test('cannot delete an object definition with inheritance enabled on its relationship', async ({
 		apiHelpers,
 		page,
@@ -846,8 +663,13 @@ test.describe('Manage root models elements through Objects Admin', () => {
 
 			const objectRelationshipLabel =
 				'objectRelationshipLabel' + getRandomInt();
-			const objectRelationshipName =
-				'objectRelationshipName' + Math.floor(Math.random() * 99);
+			const objectRelationshipName = await getFreshObjectRelationshipName(
+				apiHelpers,
+				[
+					objectDefinition1.externalReferenceCode!,
+					objectDefinition2.externalReferenceCode!,
+				]
+			);
 
 			const objectRelationshipAPIClient =
 				await apiHelpers.buildRestClient(ObjectRelationshipAPI);
@@ -941,8 +763,13 @@ test.describe('Manage root models elements through Objects Admin', () => {
 
 			const objectRelationshipLabel =
 				'objectRelationshipLabel' + getRandomInt();
-			const objectRelationshipName =
-				'objectRelationshipName' + Math.floor(Math.random() * 99);
+			const objectRelationshipName = await getFreshObjectRelationshipName(
+				apiHelpers,
+				[
+					objectDefinition1.externalReferenceCode!,
+					objectDefinition2.externalReferenceCode!,
+				]
+			);
 
 			const objectRelationshipAPIClient =
 				await apiHelpers.buildRestClient(ObjectRelationshipAPI);
@@ -1051,9 +878,10 @@ test.describe('Manage root models elements through Objects Admin', () => {
 						label: {
 							en_US: 'objectRelationshipACLabel' + getRandomInt(),
 						},
-						name:
-							'objectRelationshipACName' +
-							Math.floor(Math.random() * 99),
+						name: await getFreshObjectRelationshipName(apiHelpers, [
+							objectDefinitionA.externalReferenceCode!,
+							objectDefinitionC.externalReferenceCode!,
+						]),
 						objectDefinitionExternalReferenceCode1:
 							objectDefinitionA.externalReferenceCode,
 						objectDefinitionExternalReferenceCode2:
@@ -1073,9 +901,10 @@ test.describe('Manage root models elements through Objects Admin', () => {
 						label: {
 							en_US: 'objectRelationshipBCLabel' + getRandomInt(),
 						},
-						name:
-							'objectRelationshipBCName' +
-							Math.floor(Math.random() * 99),
+						name: await getFreshObjectRelationshipName(apiHelpers, [
+							objectDefinitionB.externalReferenceCode!,
+							objectDefinitionC.externalReferenceCode!,
+						]),
 						objectDefinitionExternalReferenceCode1:
 							objectDefinitionB.externalReferenceCode,
 						objectDefinitionExternalReferenceCode2:
@@ -1208,9 +1037,14 @@ test.describe('Manage root models elements through Objects Admin', () => {
 						label: {
 							en_US: 'objectRelationship',
 						},
-						name:
-							'objectRelationship' +
-							Math.floor(Math.random() * 99),
+						name: await getFreshObjectRelationshipName(
+							apiHelpers,
+							[
+								parentObjectDefinition.externalReferenceCode!,
+								childObjectDefinition.externalReferenceCode!,
+							],
+							'objectRelationship'
+						),
 						objectDefinitionExternalReferenceCode1:
 							parentObjectDefinition.externalReferenceCode,
 						objectDefinitionExternalReferenceCode2:
@@ -1235,9 +1069,10 @@ test.describe('Manage root models elements through Objects Admin', () => {
 						label: {
 							en_US: 'inheritanceObjectRelationship',
 						},
-						name:
-							'articleObjectRelationship' +
-							Math.floor(Math.random() * 99),
+						name: await getFreshObjectRelationshipName(apiHelpers, [
+							parentObjectDefinition.externalReferenceCode!,
+							childObjectDefinition.externalReferenceCode!,
+						]),
 						objectDefinitionExternalReferenceCode1:
 							parentObjectDefinition.externalReferenceCode,
 						objectDefinitionExternalReferenceCode2:
@@ -1349,12 +1184,15 @@ test.describe('Manage root models elements through Objects Admin', () => {
 
 				await objectLayoutsPage.setObjectLayoutAsDefault();
 
-				await objectLayoutsPage.saveUpdateLayoutButton.click();
+				const {reload} =
+					await objectLayoutsPage.saveObjectLayoutReturningReload();
 
 				await waitForAlert(
 					page,
 					'Success:The object layout was updated successfully'
 				);
+
+				await reload;
 			});
 
 			await test.step('inheritance relationship field is omitted in object view', async () => {
@@ -1618,9 +1456,10 @@ test.describe('Manage root models elements through Objects Admin', () => {
 						label: {
 							en_US: 'objectRelationshipLabel' + getRandomInt(),
 						},
-						name:
-							'objectRelationshipName' +
-							Math.floor(Math.random() * 99),
+						name: await getFreshObjectRelationshipName(apiHelpers, [
+							objectDefinition1.externalReferenceCode!,
+							objectDefinition2.externalReferenceCode!,
+						]),
 						objectDefinitionExternalReferenceCode1:
 							objectDefinition1.externalReferenceCode,
 						objectDefinitionExternalReferenceCode2:
@@ -1640,9 +1479,10 @@ test.describe('Manage root models elements through Objects Admin', () => {
 						label: {
 							en_US: 'objectRelationshipLabel' + getRandomInt(),
 						},
-						name:
-							'objectRelationshipName' +
-							Math.floor(Math.random() * 99),
+						name: await getFreshObjectRelationshipName(apiHelpers, [
+							objectDefinition3.externalReferenceCode!,
+							objectDefinition2.externalReferenceCode!,
+						]),
 						objectDefinitionExternalReferenceCode1:
 							objectDefinition3.externalReferenceCode,
 						objectDefinitionExternalReferenceCode2:
@@ -1710,6 +1550,170 @@ test.describe('Manage root models elements through Objects Admin', () => {
 	});
 });
 
+test.describe('Disable inheritance modal flows', () => {
+	let parentApplicationName = '';
+	let parentEntryId: number | undefined;
+	let relationshipsForCleanup: ObjectRelationship[] = [];
+
+	test.afterEach(async ({apiHelpers}) => {
+		if (parentEntryId !== undefined && parentApplicationName) {
+			await apiHelpers.delete(
+				`${apiHelpers.baseUrl}${parentApplicationName}/${parentEntryId}`
+			);
+		}
+
+		for (const objectRelationship of relationshipsForCleanup) {
+			await apiHelpers.objectAdmin.patchObjectRelationshipEdge(
+				objectRelationship,
+				false
+			);
+		}
+
+		parentApplicationName = '';
+		parentEntryId = undefined;
+		relationshipsForCleanup = [];
+	});
+
+	test('shows modal with warning message before disabling inheritance', async ({
+		apiHelpers,
+		objectRelationshipsPage,
+	}) => {
+		const parent = await apiHelpers.objectAdmin.postRandomObjectDefinition({
+			status: {code: 0},
+		});
+
+		const child = await apiHelpers.objectAdmin.postRandomObjectDefinition({
+			status: {code: 0},
+		});
+
+		pushToApiHelpersData(
+			apiHelpers,
+			[parent.id!, child.id!],
+			'objectDefinition'
+		);
+
+		const relationship =
+			await apiHelpers.objectAdmin.postObjectDefinitionInheritanceRelationship(
+				parent,
+				child
+			);
+
+		relationshipsForCleanup = [relationship];
+
+		apiHelpers.data.push({
+			id: relationship.id!,
+			type: 'objectRelationship',
+		});
+
+		await objectRelationshipsPage.goto(parent.label!['en_US']);
+
+		await objectRelationshipsPage.actionsButton.click();
+
+		await objectRelationshipsPage.editObjectRelationshipOption.click();
+
+		await objectRelationshipsPage.inheritanceCheckbox.click();
+
+		await expect(
+			objectRelationshipsPage.inheritanceModalHeader
+		).toBeVisible();
+
+		await expect(
+			objectRelationshipsPage.inheritanceModalConfirmationMessage
+		).toBeVisible();
+	});
+
+	test(
+		'shows modal blocking disabling inheritance when entries would be orphaned',
+		{tag: '@LPD-89021'},
+		async ({apiHelpers, objectRelationshipsPage}) => {
+			const parent1 =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					status: {code: 0},
+				});
+
+			const parent2 =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					status: {code: 0},
+				});
+
+			const child =
+				await apiHelpers.objectAdmin.postRandomObjectDefinition({
+					status: {code: 0},
+				});
+
+			pushToApiHelpersData(
+				apiHelpers,
+				[parent1.id!, parent2.id!, child.id!],
+				'objectDefinition'
+			);
+
+			const relationship1 =
+				await apiHelpers.objectAdmin.postObjectDefinitionInheritanceRelationship(
+					parent1,
+					child
+				);
+
+			const relationship2 =
+				await apiHelpers.objectAdmin.postObjectDefinitionInheritanceRelationship(
+					parent2,
+					child
+				);
+
+			relationshipsForCleanup = [relationship1, relationship2];
+
+			apiHelpers.data.push(
+				{id: relationship1.id!, type: 'objectRelationship'},
+				{id: relationship2.id!, type: 'objectRelationship'}
+			);
+
+			await apiHelpers.objectAdmin.patchObjectDefinitionSetting(
+				child.id!,
+				'allowStandaloneObjectEntry',
+				'false'
+			);
+
+			parentApplicationName = parent1.restContextPath!.replace(
+				/^\/o\//,
+				''
+			);
+
+			const parentEntry = await apiHelpers.objectEntry.postObjectEntry(
+				{textField: 'parent-' + getRandomInt()},
+				parentApplicationName
+			);
+
+			parentEntryId = parentEntry.id;
+
+			await apiHelpers.post(
+				`${apiHelpers.baseUrl}${parentApplicationName}/${parentEntry.id}/${relationship1.name}`,
+				{data: {textField: 'linked-' + getRandomInt()}}
+			);
+
+			await objectRelationshipsPage.goto(parent1.label!['en_US']);
+
+			await objectRelationshipsPage.actionsButton.click();
+
+			await objectRelationshipsPage.editObjectRelationshipOption.click();
+
+			await objectRelationshipsPage.inheritanceCheckbox.click();
+
+			await expect(
+				objectRelationshipsPage.disableInheritanceNotAllowedModalHeader
+			).toBeVisible();
+
+			await expect(
+				objectRelationshipsPage.disableInheritanceNotAllowedModalBody
+			).toBeVisible();
+
+			await objectRelationshipsPage.disableInheritanceNotAllowedModalDoneButton.click();
+
+			await expect(
+				objectRelationshipsPage.disableInheritanceNotAllowedModalHeader
+			).toBeHidden();
+		}
+	);
+});
+
 test.describe('Manage root models elements through Model Builder', () => {
 	test('assert inherited relationship styles on nodes and edges', async ({
 		apiHelpers,
@@ -1758,9 +1762,10 @@ test.describe('Manage root models elements through Model Builder', () => {
 					label: {
 						en_US: 'objectRelationshipLabel' + getRandomInt(),
 					},
-					name:
-						'objectRelationshipName' +
-						Math.floor(Math.random() * 99),
+					name: await getFreshObjectRelationshipName(apiHelpers, [
+						objectDefinition1.externalReferenceCode!,
+						objectDefinition2.externalReferenceCode!,
+					]),
 					objectDefinitionExternalReferenceCode1:
 						objectDefinition1.externalReferenceCode,
 					objectDefinitionExternalReferenceCode2:
@@ -1949,8 +1954,13 @@ test.describe('Manage root models elements through Model Builder', () => {
 
 			const objectRelationshipLabel =
 				'objectRelationshipLabel' + getRandomInt();
-			const objectRelationshipName =
-				'objectRelationshipName' + Math.floor(Math.random() * 99);
+			const objectRelationshipName = await getFreshObjectRelationshipName(
+				apiHelpers,
+				[
+					objectDefinition1.externalReferenceCode!,
+					objectDefinition2.externalReferenceCode!,
+				]
+			);
 
 			const objectRelationshipAPIClient =
 				await apiHelpers.buildRestClient(ObjectRelationshipAPI);

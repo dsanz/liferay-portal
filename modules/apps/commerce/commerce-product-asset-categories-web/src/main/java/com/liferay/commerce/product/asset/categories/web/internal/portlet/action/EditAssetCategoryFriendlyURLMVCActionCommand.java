@@ -9,13 +9,8 @@ import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetCategoryConstants;
 import com.liferay.asset.kernel.service.AssetCategoryService;
 import com.liferay.commerce.product.asset.categories.web.internal.constants.CommerceProductAssetCategoriesPortletKeys;
-import com.liferay.friendly.url.model.FriendlyURLEntry;
 import com.liferay.friendly.url.service.FriendlyURLEntryLocalService;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.portlet.bridges.mvc.BaseMVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -67,42 +62,12 @@ public class EditAssetCategoryFriendlyURLMVCActionCommand
 
 		// Commerce product friendly URL
 
-		try {
-			FriendlyURLEntry friendlyURLEntry =
-				_friendlyURLEntryLocalService.getMainFriendlyURLEntry(
-					_portal.getClassNameId(AssetCategory.class), categoryId);
-
-			_friendlyURLEntryLocalService.updateFriendlyURLEntry(
-				friendlyURLEntry.getFriendlyURLEntryId(),
-				friendlyURLEntry.getClassNameId(),
-				friendlyURLEntry.getClassPK(),
-				friendlyURLEntry.getDefaultLanguageId(),
-				_getUniqueUrlTitles(assetCategory, urlTitleMap));
-		}
-		catch (Exception exception) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(exception);
-			}
-
-			if (FeatureFlagManagerUtil.isEnabled(
-					assetCategory.getCompanyId(), "LPD-70396")) {
-
-				_friendlyURLEntryLocalService.addFriendlyURLEntry(
-					assetCategory.getGroupId(),
-					_portal.getClassNameId(AssetCategory.class),
-					_getParentClassPK(assetCategory), categoryId,
-					assetCategory.getDefaultLanguageId(),
-					_getUniqueUrlTitles(assetCategory, urlTitleMap),
-					serviceContext);
-			}
-			else {
-				_friendlyURLEntryLocalService.addFriendlyURLEntry(
-					assetCategory.getGroupId(),
-					_portal.getClassNameId(AssetCategory.class), categoryId,
-					_getUniqueUrlTitles(assetCategory, urlTitleMap),
-					serviceContext);
-			}
-		}
+		_friendlyURLEntryLocalService.addFriendlyURLEntry(
+			assetCategory.getGroupId(),
+			_portal.getClassNameId(AssetCategory.class),
+			_getParentClassPK(assetCategory), categoryId,
+			assetCategory.getDefaultLanguageId(),
+			_getUniqueUrlTitles(assetCategory, urlTitleMap), serviceContext);
 	}
 
 	private long _getParentClassPK(AssetCategory assetCategory) {
@@ -116,15 +81,11 @@ public class EditAssetCategoryFriendlyURLMVCActionCommand
 	}
 
 	private Map<String, String> _getUniqueUrlTitles(
-			AssetCategory assetCategory, Map<Locale, String> urlTitleMap)
-		throws PortalException {
+		AssetCategory assetCategory, Map<Locale, String> urlTitleMap) {
 
 		Map<String, String> newUrlTitleMap = new HashMap<>();
 
 		long classNameId = _portal.getClassNameId(AssetCategory.class);
-
-		boolean featureFlagEnabled = FeatureFlagManagerUtil.isEnabled(
-			assetCategory.getCompanyId(), "LPD-70396");
 
 		for (Map.Entry<Locale, String> entry : urlTitleMap.entrySet()) {
 			Locale locale = entry.getKey();
@@ -134,17 +95,10 @@ public class EditAssetCategoryFriendlyURLMVCActionCommand
 			if (Validator.isNotNull(urlTitle) ||
 				((urlTitle != null) && urlTitle.equals(StringPool.BLANK))) {
 
-				if (featureFlagEnabled) {
-					urlTitle = _friendlyURLEntryLocalService.getUniqueUrlTitle(
-						assetCategory.getGroupId(), classNameId,
-						_getParentClassPK(assetCategory),
-						assetCategory.getCategoryId(), urlTitle, null);
-				}
-				else {
-					urlTitle = _friendlyURLEntryLocalService.getUniqueUrlTitle(
-						assetCategory.getGroupId(), classNameId,
-						assetCategory.getCategoryId(), urlTitle, null);
-				}
+				urlTitle = _friendlyURLEntryLocalService.getUniqueUrlTitle(
+					assetCategory.getGroupId(), classNameId,
+					_getParentClassPK(assetCategory),
+					assetCategory.getCategoryId(), urlTitle, null);
 
 				newUrlTitleMap.put(LocaleUtil.toLanguageId(locale), urlTitle);
 			}
@@ -152,9 +106,6 @@ public class EditAssetCategoryFriendlyURLMVCActionCommand
 
 		return newUrlTitleMap;
 	}
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		EditAssetCategoryFriendlyURLMVCActionCommand.class);
 
 	@Reference
 	private AssetCategoryService _assetCategoryService;

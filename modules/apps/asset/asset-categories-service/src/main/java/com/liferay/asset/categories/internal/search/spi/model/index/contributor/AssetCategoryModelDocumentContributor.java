@@ -8,6 +8,7 @@ package com.liferay.asset.categories.internal.search.spi.model.index.contributor
 import com.liferay.asset.kernel.model.AssetCategory;
 import com.liferay.asset.kernel.model.AssetVocabulary;
 import com.liferay.asset.kernel.model.AssetVocabularyConstants;
+import com.liferay.asset.kernel.service.AssetCategoryLocalService;
 import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
@@ -86,6 +87,10 @@ public class AssetCategoryModelDocumentContributor
 			document, Field.TITLE, siteDefaultLocale,
 			assetCategory.getTitleMap());
 
+		document.addNumber(
+			"childAssetCategoriesCount",
+			_assetCategoryLocalService.getChildCategoriesCount(
+				assetCategory.getCategoryId()));
 		document.addKeyword(
 			"classNameIds", _getClassNameIds(assetCategory.getVocabularyId()));
 		document.addLocalizedKeyword(
@@ -179,6 +184,9 @@ public class AssetCategoryModelDocumentContributor
 			return ReflectionUtil.throwException(portalException);
 		}
 	}
+
+	@Reference
+	private AssetCategoryLocalService _assetCategoryLocalService;
 
 	@Reference
 	private AssetVocabularyLocalService _assetVocabularyLocalService;

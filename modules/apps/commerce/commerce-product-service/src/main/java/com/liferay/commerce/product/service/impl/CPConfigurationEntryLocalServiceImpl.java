@@ -171,7 +171,7 @@ public class CPConfigurationEntryLocalServiceImpl
 		throws PortalException {
 
 		for (CPConfigurationEntry cpConfigurationEntry :
-				cpConfigurationEntryLocalService.getCPConfigurationEntries(
+				cpConfigurationEntryPersistence.findByCPConfigurationListId(
 					cpConfigurationListId)) {
 
 			cpConfigurationEntryLocalService.deleteCPConfigurationEntry(
@@ -416,7 +416,7 @@ public class CPConfigurationEntryLocalServiceImpl
 
 		while (parentCPConfigurationEntry == null) {
 			parentCPConfigurationEntry =
-				cpConfigurationEntryLocalService.fetchCPConfigurationEntry(
+				cpConfigurationEntryPersistence.fetchByC_C_C(
 					cpConfigurationEntry.getClassNameId(),
 					cpConfigurationEntry.getClassPK(), cpConfigurationListId);
 
@@ -429,6 +429,10 @@ public class CPConfigurationEntryLocalServiceImpl
 
 			cpConfigurationListId =
 				parentCPConfigurationList.getCPConfigurationListId();
+		}
+
+		if (parentCPConfigurationEntry == null) {
+			return null;
 		}
 
 		return _cpConfigurationEntrySettingLocalService.

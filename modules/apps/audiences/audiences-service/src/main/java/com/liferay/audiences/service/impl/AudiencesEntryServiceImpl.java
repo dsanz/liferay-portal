@@ -7,14 +7,16 @@ package com.liferay.audiences.service.impl;
 
 import com.liferay.audiences.constants.AudiencesActionKeys;
 import com.liferay.audiences.constants.AudiencesConstants;
+import com.liferay.audiences.exception.NoSuchAudiencesEntryException;
 import com.liferay.audiences.model.AudiencesEntry;
 import com.liferay.audiences.service.base.AudiencesEntryServiceBaseImpl;
 import com.liferay.portal.aop.AopService;
 import com.liferay.portal.dao.orm.custom.sql.CustomSQL;
 import com.liferay.portal.kernel.dao.orm.WildcardMode;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.security.auth.PrincipalException;
+import com.liferay.portal.kernel.security.permission.PermissionChecker;
 import com.liferay.portal.kernel.security.permission.resource.PortletResourcePermission;
-import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.util.OrderByComparator;
 
 import java.util.List;
@@ -36,8 +38,7 @@ public class AudiencesEntryServiceImpl extends AudiencesEntryServiceBaseImpl {
 
 	@Override
 	public AudiencesEntry addAudiencesEntry(
-			String externalReferenceCode, String json, String name,
-			ServiceContext serviceContext)
+			String externalReferenceCode, String json, String name)
 		throws PortalException {
 
 		_portletResourcePermission.check(
@@ -45,19 +46,15 @@ public class AudiencesEntryServiceImpl extends AudiencesEntryServiceBaseImpl {
 			AudiencesActionKeys.MANAGE_AUDIENCES_ENTRIES);
 
 		return audiencesEntryLocalService.addAudiencesEntry(
-			externalReferenceCode, json, name, serviceContext);
+			externalReferenceCode, getUserId(), json, name);
 	}
 
 	@Override
 	public AudiencesEntry deleteAudiencesEntry(long audiencesEntryId)
 		throws PortalException {
 
-		_portletResourcePermission.check(
-			getPermissionChecker(), 0,
-			AudiencesActionKeys.MANAGE_AUDIENCES_ENTRIES);
-
 		return audiencesEntryLocalService.deleteAudiencesEntry(
-			audiencesEntryId);
+			_getAudiencesEntry(audiencesEntryId));
 	}
 
 	@Override
@@ -66,9 +63,7 @@ public class AudiencesEntryServiceImpl extends AudiencesEntryServiceBaseImpl {
 			OrderByComparator<AudiencesEntry> orderByComparator)
 		throws PortalException {
 
-		_portletResourcePermission.check(
-			getPermissionChecker(), 0,
-			AudiencesActionKeys.MANAGE_AUDIENCES_ENTRIES);
+		_checkPermission(companyId);
 
 		return audiencesEntryPersistence.findByCompanyId(
 			companyId, start, end, orderByComparator);
@@ -80,9 +75,7 @@ public class AudiencesEntryServiceImpl extends AudiencesEntryServiceBaseImpl {
 			OrderByComparator<AudiencesEntry> orderByComparator)
 		throws PortalException {
 
-		_portletResourcePermission.check(
-			getPermissionChecker(), 0,
-			AudiencesActionKeys.MANAGE_AUDIENCES_ENTRIES);
+		_checkPermission(companyId);
 
 		return audiencesEntryPersistence.findByC_LikeN(
 			companyId,
@@ -92,9 +85,7 @@ public class AudiencesEntryServiceImpl extends AudiencesEntryServiceBaseImpl {
 
 	@Override
 	public int getAudiencesEntriesCount(long companyId) throws PortalException {
-		_portletResourcePermission.check(
-			getPermissionChecker(), 0,
-			AudiencesActionKeys.MANAGE_AUDIENCES_ENTRIES);
+		_checkPermission(companyId);
 
 		return audiencesEntryPersistence.countByCompanyId(companyId);
 	}
@@ -103,9 +94,7 @@ public class AudiencesEntryServiceImpl extends AudiencesEntryServiceBaseImpl {
 	public int getAudiencesEntriesCount(long companyId, String name)
 		throws PortalException {
 
-		_portletResourcePermission.check(
-			getPermissionChecker(), 0,
-			AudiencesActionKeys.MANAGE_AUDIENCES_ENTRIES);
+		_checkPermission(companyId);
 
 		return audiencesEntryPersistence.countByC_LikeN(
 			companyId,
@@ -116,24 +105,53 @@ public class AudiencesEntryServiceImpl extends AudiencesEntryServiceBaseImpl {
 	public AudiencesEntry getAudiencesEntry(long audiencesEntryId)
 		throws PortalException {
 
-		_portletResourcePermission.check(
-			getPermissionChecker(), 0,
-			AudiencesActionKeys.MANAGE_AUDIENCES_ENTRIES);
-
-		return audiencesEntryLocalService.getAudiencesEntry(audiencesEntryId);
+		return _getAudiencesEntry(audiencesEntryId);
 	}
 
 	@Override
 	public AudiencesEntry updateAudiencesEntry(
-			long audiencesEntryId, String json, String name)
+			long audiencesEntryId, String externalReferenceCode, String json,
+			String name)
 		throws PortalException {
 
-		_portletResourcePermission.check(
-			getPermissionChecker(), 0,
-			AudiencesActionKeys.MANAGE_AUDIENCES_ENTRIES);
+		AudiencesEntry audiencesEntry = _getAudiencesEntry(audiencesEntryId);
 
 		return audiencesEntryLocalService.updateAudiencesEntry(
-			audiencesEntryId, json, name);
+			externalReferenceCode, getUserId(),
+			audiencesEntry.getAudiencesEntryId(), json, name);
+	}
+
+	private void _checkPermission(long companyId) throws PortalException {
+		PermissionChecker permissionChecker = getPermissionChecker();
+
+		if (companyId != permissionChecker.getCompanyId()) {
+			throw new PrincipalException.MustHavePermission(
+				permissionChecker, AudiencesConstants.RESOURCE_NAME, companyId,
+				AudiencesActionKeys.MANAGE_AUDIENCES_ENTRIES);
+		}
+
+		_portletResourcePermission.check(
+			permissionChecker, 0, AudiencesActionKeys.MANAGE_AUDIENCES_ENTRIES);
+	}
+
+	private AudiencesEntry _getAudiencesEntry(long audiencesEntryId)
+		throws PortalException {
+
+		PermissionChecker permissionChecker = getPermissionChecker();
+
+		_portletResourcePermission.check(
+			permissionChecker, 0, AudiencesActionKeys.MANAGE_AUDIENCES_ENTRIES);
+
+		AudiencesEntry audiencesEntry =
+			audiencesEntryPersistence.findByPrimaryKey(audiencesEntryId);
+
+		if (audiencesEntry.getCompanyId() != permissionChecker.getCompanyId()) {
+			throw new NoSuchAudiencesEntryException(
+				"No AudiencesEntry exists with the primary key " +
+					audiencesEntryId);
+		}
+
+		return audiencesEntry;
 	}
 
 	@Reference

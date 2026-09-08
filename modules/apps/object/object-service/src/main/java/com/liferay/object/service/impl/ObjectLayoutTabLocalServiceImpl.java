@@ -78,28 +78,6 @@ public class ObjectLayoutTabLocalServiceImpl
 	}
 
 	@Override
-	public ObjectLayoutTab deleteObjectLayoutTab(long objectLayoutTabId)
-		throws PortalException {
-
-		ObjectLayoutTab objectLayoutTab =
-			objectLayoutTabPersistence.findByPrimaryKey(objectLayoutTabId);
-
-		return deleteObjectLayoutTab(objectLayoutTab);
-	}
-
-	@Override
-	public ObjectLayoutTab deleteObjectLayoutTab(
-		ObjectLayoutTab objectLayoutTab) {
-
-		objectLayoutTabPersistence.remove(objectLayoutTab);
-
-		objectLayoutTabLocalService.
-			unregisterObjectLayoutTabScreenNavigationCategory(objectLayoutTab);
-
-		return objectLayoutTab;
-	}
-
-	@Override
 	public void deleteObjectRelationshipObjectLayoutTabs(
 			long objectRelationshipId)
 		throws PortalException {
@@ -129,7 +107,7 @@ public class ObjectLayoutTabLocalServiceImpl
 			ObjectLayoutTab objectLayoutTab = objectLayoutTabs.get(i);
 
 			_serviceRegistrations.computeIfAbsent(
-				_getServiceRegistrationKey(objectLayoutTab),
+				_getServiceRegistrationKey(objectDefinition, objectLayoutTab),
 				serviceRegistrationKey -> _bundleContext.registerService(
 					new String[] {
 						ScreenNavigationCategory.class.getName(),
@@ -149,19 +127,26 @@ public class ObjectLayoutTabLocalServiceImpl
 		}
 	}
 
-	@Clusterable
 	@Override
-	public void unregisterObjectLayoutTabScreenNavigationCategory(
-		ObjectLayoutTab objectLayoutTab) {
+	public void unregisterObjectLayoutTabScreenNavigationCategories(
+		ObjectDefinition objectDefinition) {
 
-		ServiceRegistration<?> serviceRegistration = _serviceRegistrations.get(
-			_getServiceRegistrationKey(objectLayoutTab));
+		for (String serviceRegistrationKey : _serviceRegistrations.keySet()) {
+			if (!serviceRegistrationKey.startsWith(
+					_getServiceRegistrationKey(objectDefinition) +
+						StringPool.POUND)) {
 
-		if (serviceRegistration != null) {
+				continue;
+			}
+
+			ServiceRegistration<?> serviceRegistration =
+				_serviceRegistrations.remove(serviceRegistrationKey);
+
+			if (serviceRegistration == null) {
+				continue;
+			}
+
 			serviceRegistration.unregister();
-
-			_serviceRegistrations.remove(
-				_getServiceRegistrationKey(objectLayoutTab));
 		}
 	}
 
@@ -170,9 +155,19 @@ public class ObjectLayoutTabLocalServiceImpl
 		_bundleContext = bundleContext;
 	}
 
-	private String _getServiceRegistrationKey(ObjectLayoutTab objectLayoutTab) {
+	private String _getServiceRegistrationKey(
+		ObjectDefinition objectDefinition) {
+
 		return StringBundler.concat(
-			objectLayoutTab.getCompanyId(), StringPool.POUND,
+			objectDefinition.getCompanyId(), StringPool.POUND,
+			objectDefinition.getObjectDefinitionId());
+	}
+
+	private String _getServiceRegistrationKey(
+		ObjectDefinition objectDefinition, ObjectLayoutTab objectLayoutTab) {
+
+		return StringBundler.concat(
+			_getServiceRegistrationKey(objectDefinition), StringPool.POUND,
 			objectLayoutTab.getObjectLayoutTabId());
 	}
 

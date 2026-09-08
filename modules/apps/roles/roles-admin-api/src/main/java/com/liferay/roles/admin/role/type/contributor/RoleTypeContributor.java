@@ -5,6 +5,7 @@
 
 package com.liferay.roles.admin.role.type.contributor;
 
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.search.SearchPaginationUtil;
 import com.liferay.portal.kernel.model.Role;
 import com.liferay.portal.kernel.model.role.RoleConstants;
@@ -35,6 +36,10 @@ public interface RoleTypeContributor {
 	 */
 	public default String getClassName() {
 		return null;
+	}
+
+	public default String getDefaultSubtype() {
+		return StringPool.BLANK;
 	}
 
 	/**
@@ -157,7 +162,7 @@ public interface RoleTypeContributor {
 	}
 
 	public default BaseModelSearchResult<Role> searchRoles(
-		long companyId, String keywords, int start, int end,
+		long companyId, String keywords, String subtype, int start, int end,
 		OrderByComparator<Role> orderByComparator) {
 
 		LinkedHashMap<String, Object> params = new LinkedHashMap<>();
@@ -165,6 +170,10 @@ public interface RoleTypeContributor {
 		if (Validator.isNotNull(getClassName())) {
 			params.put(
 				"classNameId", PortalUtil.getClassNameId(getClassName()));
+		}
+
+		if (Validator.isNotNull(subtype)) {
+			params.put("subtype", subtype);
 		}
 
 		int total = RoleServiceUtil.searchCount(

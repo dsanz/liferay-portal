@@ -136,6 +136,8 @@ public class CTCollectionPersistenceTest {
 
 		newCTCollection.setOnDemandUserId(RandomTestUtil.nextLong());
 
+		newCTCollection.setScheduledDate(RandomTestUtil.nextDate());
+
 		newCTCollection.setShareable(RandomTestUtil.randomBoolean());
 
 		newCTCollection.setStatus(RandomTestUtil.nextInt());
@@ -144,7 +146,9 @@ public class CTCollectionPersistenceTest {
 
 		newCTCollection.setStatusDate(RandomTestUtil.nextDate());
 
-		_ctCollections.add(_persistence.update(newCTCollection));
+		newCTCollection = _persistence.update(newCTCollection);
+
+		_ctCollections.add(newCTCollection);
 
 		CTCollection existingCTCollection = _persistence.findByPrimaryKey(
 			newCTCollection.getPrimaryKey());
@@ -185,6 +189,9 @@ public class CTCollectionPersistenceTest {
 		Assert.assertEquals(
 			existingCTCollection.getOnDemandUserId(),
 			newCTCollection.getOnDemandUserId());
+		Assert.assertEquals(
+			Time.getShortTimestamp(existingCTCollection.getScheduledDate()),
+			Time.getShortTimestamp(newCTCollection.getScheduledDate()));
 		Assert.assertEquals(
 			existingCTCollection.isShareable(), newCTCollection.isShareable());
 		Assert.assertEquals(
@@ -310,8 +317,9 @@ public class CTCollectionPersistenceTest {
 			"externalReferenceCode", true, "ctCollectionId", true, "companyId",
 			true, "userId", true, "createDate", true, "modifiedDate", true,
 			"ctRemoteId", true, "schemaVersionId", true, "name", true,
-			"description", true, "onDemandUserId", true, "shareable", true,
-			"status", true, "statusByUserId", true, "statusDate", true);
+			"description", true, "onDemandUserId", true, "scheduledDate", true,
+			"shareable", true, "status", true, "statusByUserId", true,
+			"statusDate", true);
 	}
 
 	@Test
@@ -617,6 +625,8 @@ public class CTCollectionPersistenceTest {
 
 		ctCollection.setOnDemandUserId(RandomTestUtil.nextLong());
 
+		ctCollection.setScheduledDate(RandomTestUtil.nextDate());
+
 		ctCollection.setShareable(RandomTestUtil.randomBoolean());
 
 		ctCollection.setStatus(RandomTestUtil.nextInt());
@@ -635,4 +645,4 @@ public class CTCollectionPersistenceTest {
 	private ClassLoader _dynamicQueryClassLoader;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:57568160
+// LIFERAY-SERVICE-BUILDER-HASH:1051562728

@@ -48,6 +48,8 @@ import com.liferay.portal.kernel.model.User;
 import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.repository.model.Folder;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
+import com.liferay.portal.kernel.security.permission.PermissionThreadLocal;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
@@ -57,7 +59,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.portal.kernel.service.UserGroupRoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
-import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
+import com.liferay.portal.kernel.transaction.TransactionCallbackUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -66,12 +68,15 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.liveusers.LiveUsers;
 import com.liferay.portal.security.permission.PermissionCacheUtil;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.site.dsr.site.initializer.constants.DSRFolderConstants;
+import com.liferay.site.dsr.site.initializer.internal.util.DSRUtil;
 import com.liferay.site.dsr.site.initializer.thread.local.DSRRoomThreadLocal;
+import com.liferay.site.dsr.site.initializer.util.DSRRoomUtil;
 import com.liferay.sites.kernel.util.Sites;
 
 import java.io.File;
@@ -125,6 +130,31 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 
 		try {
 			_onAfterUpdate(originalObjectEntry, objectEntry);
+		}
+		catch (Exception exception) {
+			throw new ModelListenerException(exception);
+		}
+	}
+
+	@Override
+	public void onBeforeCreate(ObjectEntry objectEntry)
+		throws ModelListenerException {
+
+		try {
+			_onBeforeCreate(objectEntry);
+		}
+		catch (Exception exception) {
+			throw new ModelListenerException(exception);
+		}
+	}
+
+	@Override
+	public void onBeforeUpdate(
+			ObjectEntry originalObjectEntry, ObjectEntry objectEntry)
+		throws ModelListenerException {
+
+		try {
+			_onBeforeUpdate(originalObjectEntry, objectEntry);
 		}
 		catch (Exception exception) {
 			throw new ModelListenerException(exception);
@@ -440,7 +470,7 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 
 			long[] fileEntryIds = DSRRoomThreadLocal.getFileEntryIds();
 
-			TransactionCommitCallbackUtil.registerCallback(
+			TransactionCallbackUtil.registerCommitCallback(
 				() -> {
 					if (sourceObjectEntryId != 0) {
 						_duplicateGroup(
@@ -454,6 +484,8 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 						HashMapBuilder.<String, Serializable>put(
 							"friendlyURL",
 							StringUtil.removeFirst(group.getFriendlyURL(), "/")
+						).put(
+							"initialized", sourceObjectEntryId != 0
 						).put(
 							"siteExternalReferenceCode",
 							group.getExternalReferenceCode()
@@ -561,12 +593,92 @@ public class ObjectEntryModelListener extends BaseModelListener<ObjectEntry> {
 		serviceContext.setCompanyId(objectEntry.getCompanyId());
 		serviceContext.setUserId(objectEntry.getUserId());
 
-		_groupLocalService.updateGroup(
+		group = _groupLocalService.updateGroup(
 			group.getGroupId(), group.getParentGroupId(), nameMap,
 			group.getDescriptionMap(), group.getType(), group.getTypeSettings(),
 			group.isManualMembership(), group.getMembershipRestriction(),
 			friendlyURL, group.isInheritContent(), group.isActive(),
 			serviceContext);
+
+		friendlyURL = StringUtil.removeFirst(group.getFriendlyURL(), "/");
+
+		if (Objects.equals(
+				friendlyURL,
+				MapUtil.getString(objectEntry.getValues(), "friendlyURL"))) {
+
+			return;
+		}
+
+		_objectEntryLocalService.partialUpdateObjectEntry(
+			objectEntry.getUserId(), objectEntry.getObjectEntryId(),
+			objectEntry.getObjectEntryFolderId(),
+			HashMapBuilder.<String, Serializable>put(
+				"friendlyURL", friendlyURL
+			).build(),
+			new ServiceContext());
+	}
+
+	private void _onBeforeCreate(ObjectEntry objectEntry) {
+		ObjectDefinition objectDefinition = objectEntry.getObjectDefinition();
+
+		if (!Objects.equals(
+				objectDefinition.getExternalReferenceCode(), "L_DSR_ROOM")) {
+
+			return;
+		}
+
+		if (DSRUtil.isExpired()) {
+			throw new UnsupportedOperationException(
+				"Unable to create a digital sales room because the license " +
+					"has expired");
+		}
+
+		if (objectEntry.getExpirationDate() != null) {
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	private void _onBeforeUpdate(
+			ObjectEntry originalObjectEntry, ObjectEntry objectEntry)
+		throws Exception {
+
+		ObjectDefinition objectDefinition = objectEntry.getObjectDefinition();
+
+		if (!Objects.equals(
+				objectDefinition.getExternalReferenceCode(), "L_DSR_ROOM")) {
+
+			return;
+		}
+
+		if ((objectEntry.getStatus() == WorkflowConstants.STATUS_EXPIRED) ||
+			(objectEntry.getExpirationDate() != null)) {
+
+			throw new UnsupportedOperationException();
+		}
+
+		Map<String, Serializable> originalValues =
+			originalObjectEntry.getValues();
+		Map<String, Serializable> values = objectEntry.getValues();
+
+		for (Map.Entry<String, Serializable> entry : values.entrySet()) {
+			String name = entry.getKey();
+
+			if (Objects.equals(name, "archiveDate") ||
+				Objects.equals(name, "initialized") ||
+				Objects.equals(name, "roomStatus")) {
+
+				continue;
+			}
+
+			if (!Objects.equals(entry.getValue(), originalValues.get(name))) {
+				DSRRoomUtil.checkPermission(
+					originalObjectEntry,
+					PermissionThreadLocal.getPermissionChecker(),
+					ActionKeys.UPDATE);
+
+				return;
+			}
+		}
 	}
 
 	private void _patchAnalyticsChannel(

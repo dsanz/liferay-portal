@@ -101,84 +101,163 @@ describe('Formula field business type', () => {
 	});
 });
 
-describe('when the root model feature flag [LPD-34594] is disabled', () => {
-	describe('the mandatory toggle', () => {
-		beforeEach(() => {
-			global.Liferay = {
-				...global.Liferay,
-				FeatureFlags: {
-					...global.Liferay?.FeatureFlags,
-					'LPD-34594': false,
-				},
-			};
-		});
+describe('Object field description', () => {
+	const metadataObjectFieldNames = [
+		'createDate',
+		'creator',
+		'displayDate',
+		'expirationDate',
+		'externalReferenceCode',
+		'id',
+		'modifiedDate',
+		'reviewDate',
+		'status',
+	];
 
-		it('does not render help text', async () => {
-			fetchMock.get(OBJECT_RELATIONSHIPS_URL_REGEX, {
-				...objectRelationship,
-				deletionType: 'cascade',
-				edge: true,
-			});
+	const descriptionProps = {
+		...objectFieldFormBaseDefaultProps,
+		editingObjectField: true,
+		metadataObjectFieldNames,
+		objectField: {
+			businessType: 'Text' as ObjectFieldBusinessTypeName,
+			name: 'claimNumber',
+		},
+		objectRelationshipId: undefined,
+	};
 
-			render(
-				<ObjectFieldFormBase {...objectFieldFormBaseDefaultProps} />
-			);
+	beforeEach(() => {
+		Liferay.FeatureFlags['LPD-80279'] = true;
+	});
 
-			expect(
-				screen.queryByLabelText('help-text')
-			).not.toBeInTheDocument();
-		});
+	afterEach(() => {
+		Liferay.FeatureFlags['LPD-80279'] = false;
+	});
 
-		it('is disabled when deletionType is "disassociate"', async () => {
-			fetchMock.get(OBJECT_RELATIONSHIPS_URL_REGEX, {
-				...objectRelationship,
-				deletionType: 'disassociate',
-				edge: true,
-			});
+	const unmodifiableSystemObjectDefinition = {
+		modifiable: false,
+		system: true,
+	} as ObjectDefinition;
 
-			render(
-				<ObjectFieldFormBase {...objectFieldFormBaseDefaultProps} />
-			);
+	it('does not render for a system object field of an unmodifiable system object definition', () => {
+		render(
+			<ObjectFieldFormBase
+				{...descriptionProps}
+				objectDefinition={unmodifiableSystemObjectDefinition}
+				objectField={{
+					businessType: 'Text' as ObjectFieldBusinessTypeName,
+					name: 'emailAddress',
+					system: true,
+				}}
+			/>
+		);
 
-			const mandatoryToggle = await screen.findByRole('switch', {
-				name: 'mandatory',
-			});
+		expect(screen.queryByLabelText('description')).not.toBeInTheDocument();
+	});
 
-			expect(mandatoryToggle).toBeDisabled();
-		});
+	it('does not render when the feature flag is disabled', () => {
+		Liferay.FeatureFlags['LPD-80279'] = false;
 
-		it('is enabled when deletionType is not "disassociate"', async () => {
-			fetchMock.get(OBJECT_RELATIONSHIPS_URL_REGEX, {
-				...objectRelationship,
-				deletionType: 'cascade',
-				edge: true,
-			});
+		render(<ObjectFieldFormBase {...descriptionProps} />);
 
-			render(
-				<ObjectFieldFormBase {...objectFieldFormBaseDefaultProps} />
-			);
+		expect(screen.queryByLabelText('description')).not.toBeInTheDocument();
+	});
 
-			const mandatoryToggle = await screen.findByRole('switch', {
-				name: 'mandatory',
-			});
+	it('does not render when the object field is a metadata field', () => {
+		render(
+			<ObjectFieldFormBase
+				{...descriptionProps}
+				objectField={{
+					businessType: 'Date' as ObjectFieldBusinessTypeName,
+					name: 'createDate',
+				}}
+			/>
+		);
 
-			expect(mandatoryToggle).toBeEnabled();
-		});
+		expect(screen.queryByLabelText('description')).not.toBeInTheDocument();
+	});
+
+	it('does not render when the object field is being created', () => {
+		render(
+			<ObjectFieldFormBase
+				{...descriptionProps}
+				editingObjectField={false}
+			/>
+		);
+
+		expect(screen.queryByLabelText('description')).not.toBeInTheDocument();
+	});
+
+	it('is disabled for a relationship object field', () => {
+		render(
+			<ObjectFieldFormBase
+				{...descriptionProps}
+				objectField={{
+					businessType: 'Relationship' as ObjectFieldBusinessTypeName,
+					name: 'r_warrantyClaimServiceVisits_c_warrantyClaimId',
+				}}
+				objectRelationshipId={0}
+			/>
+		);
+
+		expect(screen.getByLabelText('description')).toBeDisabled();
+	});
+
+	it('is disabled when the form is read only', () => {
+		render(<ObjectFieldFormBase {...descriptionProps} readOnly />);
+
+		expect(screen.getByLabelText('description')).toBeDisabled();
+	});
+
+	it('renders for a custom object field of an unmodifiable system object definition', () => {
+		render(
+			<ObjectFieldFormBase
+				{...descriptionProps}
+				objectDefinition={unmodifiableSystemObjectDefinition}
+				objectField={{
+					businessType: 'Text' as ObjectFieldBusinessTypeName,
+					name: 'claimNumber',
+					system: false,
+				}}
+			/>
+		);
+
+		expect(screen.getByLabelText('description')).toBeInTheDocument();
+	});
+
+	it('renders for a non metadata system object field', () => {
+		render(
+			<ObjectFieldFormBase
+				{...descriptionProps}
+				objectField={{
+					businessType: 'Text' as ObjectFieldBusinessTypeName,
+					name: 'author',
+					system: true,
+				}}
+			/>
+		);
+
+		expect(screen.getByLabelText('description')).toBeInTheDocument();
+	});
+
+	it('renders the authored value for the default locale', () => {
+		render(
+			<ObjectFieldFormBase
+				{...descriptionProps}
+				objectField={{
+					...descriptionProps.objectField,
+					description: {en_US: 'The insurer claim reference.'},
+				}}
+			/>
+		);
+
+		expect(screen.getByLabelText('description')).toHaveValue(
+			'The insurer claim reference.'
+		);
 	});
 });
 
-describe('when the root model feature flag [LPD-34594] is enabled', () => {
+describe('when the root model feature is enabled', () => {
 	describe('the mandatory toggle', () => {
-		beforeEach(() => {
-			global.Liferay = {
-				...global.Liferay,
-				FeatureFlags: {
-					...global.Liferay?.FeatureFlags,
-					'LPD-34594': true,
-				},
-			};
-		});
-
 		it('does not render help text when relationship does not belong to a root model structure', async () => {
 			fetchMock.get(OBJECT_RELATIONSHIPS_URL_REGEX, {
 				...objectRelationship,

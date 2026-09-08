@@ -8,6 +8,7 @@ package com.liferay.headless.dsr.internal.resource.v1_0;
 import com.liferay.account.service.AccountEntryUserRelLocalService;
 import com.liferay.headless.dsr.dto.v1_0.UserAccount;
 import com.liferay.headless.dsr.internal.dto.v1_0.converter.UserAccountDTOConverterContext;
+import com.liferay.headless.dsr.internal.util.TicketUtil;
 import com.liferay.headless.dsr.resource.v1_0.UserAccountResource;
 import com.liferay.login.web.constants.LoginPortletKeys;
 import com.liferay.notification.context.NotificationContextBuilder;
@@ -15,6 +16,7 @@ import com.liferay.notification.model.NotificationTemplate;
 import com.liferay.notification.service.NotificationTemplateLocalService;
 import com.liferay.notification.type.NotificationType;
 import com.liferay.notification.type.NotificationTypeServiceTracker;
+import com.liferay.object.exception.ObjectEntryExpirationDateException;
 import com.liferay.object.model.ObjectDefinition;
 import com.liferay.object.model.ObjectEntry;
 import com.liferay.object.service.ObjectEntryService;
@@ -22,7 +24,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.events.ServicePreAction;
 import com.liferay.portal.events.ThemeServicePreAction;
 import com.liferay.portal.kernel.exception.RoleAssignmentException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.Role;
@@ -57,7 +59,9 @@ import com.liferay.portal.vulcan.dto.converter.DTOConverterRegistry;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 import com.liferay.site.dsr.site.initializer.constants.DSRPortletKeys;
+import com.liferay.site.dsr.site.initializer.constants.DSRRoleConstants;
 import com.liferay.site.dsr.site.initializer.constants.DSRTicketConstants;
+import com.liferay.site.dsr.site.initializer.util.DSRRoomUtil;
 
 import jakarta.portlet.PortletMode;
 import jakarta.portlet.PortletRequest;
@@ -71,6 +75,7 @@ import java.io.Serializable;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 import org.osgi.service.component.annotations.Component;
@@ -90,12 +95,6 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 	public void deleteRoomUserAccount(Long roomId, Long userAccountId)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-66359")) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		Group group = _getGroup(roomId);
 
 		LiveUsers.leaveGroup(
@@ -105,18 +104,14 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 			new long[] {userAccountId}, group.getGroupId());
 
 		_userLocalService.deleteGroupUser(group.getGroupId(), userAccountId);
+
+		_addOrUpdateExpireMembershipTicket(group, null, userAccountId);
 	}
 
 	@Override
 	public Page<UserAccount> getRoomUserAccountsPage(
 			Long roomId, Pagination pagination)
 		throws Exception {
-
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-66359")) {
-
-			throw new UnsupportedOperationException();
-		}
 
 		ObjectEntry objectEntry = _getObjectEntry(true, roomId);
 
@@ -139,14 +134,13 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 			Long roomId, Long userAccountId, UserAccount userAccount)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-66359")) {
+		Group group = _getGroup(roomId);
 
-			throw new UnsupportedOperationException();
-		}
+		_checkPermission(group, userAccount.getRoleKey());
+
+		_validate(userAccount.getMembershipExpirationDate());
 
 		User user = _userLocalService.getUser(userAccountId);
-		Group group = _getGroup(roomId);
 
 		_userGroupRoleLocalService.deleteUserGroupRoles(
 			new long[] {user.getUserId()}, group.getGroupId());
@@ -168,6 +162,9 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 				new long[] {role.getRoleId()});
 		}
 
+		_addOrUpdateExpireMembershipTicket(
+			group, userAccount.getMembershipExpirationDate(), user.getUserId());
+
 		return _toUserAccount(group.getGroupId(), user);
 	}
 
@@ -175,24 +172,27 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 	public UserAccount postRoomUserAccount(Long roomId, UserAccount userAccount)
 		throws Exception {
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				contextCompany.getCompanyId(), "LPD-66359")) {
-
-			throw new UnsupportedOperationException();
-		}
-
 		if (Validator.isNull(userAccount.getEmailAddress())) {
 			throw new ValidationException("Email Address is null");
 		}
 
+		_validate(userAccount.getMembershipExpirationDate());
+
 		ObjectEntry objectEntry = _getObjectEntry(true, roomId);
+
+		if (DSRRoomUtil.isArchived(objectEntry)) {
+			throw new UnsupportedOperationException();
+		}
 
 		Map<String, Serializable> values = objectEntry.getValues();
 
-		long accountEntryId = GetterUtil.getLong(
-			values.get("r_accountToDSRRooms_accountEntryId"));
 		Group group = _groupService.getGroup(
 			GetterUtil.getLong(values.get("siteId")));
+
+		_checkPermission(group, userAccount.getRoleKey());
+
+		long accountEntryId = GetterUtil.getLong(
+			values.get("r_accountToDSRRooms_accountEntryId"));
 
 		Ticket ticket = _addInviteMemberTicket(
 			accountEntryId, group.getCompanyId(), group,
@@ -209,6 +209,8 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 				{
 					setEmailAddress(userAccount::getEmailAddress);
 					setId(ticket::getTicketId);
+					setMembershipExpirationDate(
+						userAccount::getMembershipExpirationDate);
 					setRoleKey(userAccount::getRoleKey);
 				}
 			};
@@ -241,6 +243,9 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 		LiveUsers.joinGroup(
 			group.getCompanyId(), group.getGroupId(), user.getUserId());
 
+		_addOrUpdateExpireMembershipTicket(
+			group, userAccount.getMembershipExpirationDate(), user.getUserId());
+
 		return _toUserAccount(group.getGroupId(), user);
 	}
 
@@ -256,6 +261,18 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 				"accountEntryId", accountEntryId
 			).put(
 				"emailAddress", userAccount.getEmailAddress()
+			).put(
+				"membershipExpirationDate",
+				() -> {
+					Date membershipExpirationDate =
+						userAccount.getMembershipExpirationDate();
+
+					if (membershipExpirationDate == null) {
+						return null;
+					}
+
+					return membershipExpirationDate.getTime();
+				}
 			).put(
 				"ownerId", contextUser.getUserId()
 			).put(
@@ -323,8 +340,61 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 		return ticket;
 	}
 
+	private Ticket _addOrUpdateExpireMembershipTicket(
+			Group group, Date membershipExpirationDate, long userId)
+		throws Exception {
+
+		Ticket ticket = TicketUtil.fetchExpireMembershipTicket(
+			group.getGroupId(), _jsonFactory, _ticketLocalService, userId);
+
+		if (membershipExpirationDate == null) {
+			if (ticket != null) {
+				_ticketLocalService.deleteTicket(ticket);
+			}
+
+			return null;
+		}
+
+		if (ticket != null) {
+			ticket.setExpirationDate(membershipExpirationDate);
+
+			return _ticketLocalService.updateTicket(ticket);
+		}
+
+		return _ticketLocalService.addTicket(
+			group.getCompanyId(), Group.class.getName(), group.getGroupId(),
+			DSRTicketConstants.TYPE_EXPIRE_MEMBERSHIP, null,
+			JSONUtil.put(
+				"userId", userId
+			).toString(),
+			membershipExpirationDate, new ServiceContext());
+	}
+
+	private void _checkPermission(Group group, String roleKey)
+		throws Exception {
+
+		if (!Objects.equals(
+				roleKey, DSRRoleConstants.NAME_DSR_ROOM_COLLABORATOR)) {
+
+			return;
+		}
+
+		PermissionChecker permissionChecker =
+			PermissionThreadLocal.getPermissionChecker();
+
+		if (!permissionChecker.isGroupAdmin(group.getGroupId()) &&
+			!permissionChecker.isGroupOwner(group.getGroupId())) {
+
+			throw new RoleAssignmentException();
+		}
+	}
+
 	private Group _getGroup(long roomId) throws Exception {
-		ObjectEntry objectEntry = _getObjectEntry(false, roomId);
+		ObjectEntry objectEntry = _getObjectEntry(true, roomId);
+
+		DSRRoomUtil.checkPermission(
+			objectEntry, PermissionThreadLocal.getPermissionChecker(),
+			ActionKeys.UPDATE);
 
 		return _groupService.getGroup(
 			MapUtil.getLong(objectEntry.getValues(), "siteId"));
@@ -403,6 +473,14 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 			user);
 	}
 
+	private void _validate(Date expirationDate) throws Exception {
+		if ((expirationDate != null) && expirationDate.before(new Date())) {
+			throw new ObjectEntryExpirationDateException(
+				"Expiration date must be a future date",
+				"expiration-date-must-be-a-future-date");
+		}
+	}
+
 	@Reference
 	private AccountEntryUserRelLocalService _accountEntryUserRelLocalService;
 
@@ -411,6 +489,9 @@ public class UserAccountResourceImpl extends BaseUserAccountResourceImpl {
 
 	@Reference
 	private GroupService _groupService;
+
+	@Reference
+	private JSONFactory _jsonFactory;
 
 	@Reference
 	private NotificationTemplateLocalService _notificationTemplateLocalService;

@@ -15,6 +15,7 @@ import com.liferay.depot.constants.DepotRolesConstants;
 import com.liferay.exportimport.test.rule.LazyReferencing;
 import com.liferay.exportimport.test.rule.LazyReferencingTestRule;
 import com.liferay.headless.admin.user.client.dto.v1_0.Role;
+import com.liferay.headless.admin.user.client.dto.v1_0.RolePermission;
 import com.liferay.headless.admin.user.client.http.HttpInvoker;
 import com.liferay.headless.admin.user.client.pagination.Page;
 import com.liferay.headless.admin.user.client.pagination.Pagination;
@@ -52,7 +53,6 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.log.LogCapture;
 import com.liferay.portal.test.log.LoggerTestUtil;
-import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.SynchronousMailTestRule;
 import com.liferay.portal.vulcan.permission.PermissionUtil;
@@ -268,7 +268,6 @@ public class RoleResourceTest extends BaseRoleResourceTestCase {
 		}
 	}
 
-	@FeatureFlag("LPD-17564")
 	@LazyReferencing
 	@Override
 	@Test
@@ -276,6 +275,7 @@ public class RoleResourceTest extends BaseRoleResourceTestCase {
 		super.testPostRole();
 
 		_testPostRoleBatch();
+		_testPostRoleWithInvalidPrimaryKey();
 		_testPostRoleWithSubtype();
 	}
 
@@ -1060,6 +1060,46 @@ public class RoleResourceTest extends BaseRoleResourceTestCase {
 			serviceBuilderRole3.getType());
 		Assert.assertEquals(
 			WorkflowConstants.STATUS_EMPTY, serviceBuilderRole3.getStatus());
+	}
+
+	private void _testPostRoleWithInvalidPrimaryKey() throws Exception {
+		Role role = randomRole();
+
+		long primKey = RandomTestUtil.randomLong();
+
+		role.setRolePermissions(
+			new RolePermission[] {
+				new RolePermission() {
+					{
+						setActionIds(new String[] {ActionKeys.VIEW});
+						setPrimaryKey(String.valueOf(primKey));
+						setResourceName(
+							com.liferay.portal.kernel.model.Role.class.
+								getName());
+						setScope((long)ResourceConstants.SCOPE_COMPANY);
+					}
+				}
+			});
+
+		role.setRoleType(
+			RoleConstants.getTypeLabel(RoleConstants.TYPE_REGULAR));
+
+		role = roleResource.postRole(role);
+
+		Assert.assertTrue(
+			_resourcePermissionLocalService.hasResourcePermission(
+				testCompany.getCompanyId(),
+				com.liferay.portal.kernel.model.Role.class.getName(),
+				ResourceConstants.SCOPE_COMPANY,
+				String.valueOf(testCompany.getCompanyId()), role.getId(),
+				ActionKeys.VIEW));
+
+		Assert.assertEquals(
+			0,
+			_resourcePermissionLocalService.getResourcePermissionsCount(
+				testCompany.getCompanyId(),
+				com.liferay.portal.kernel.model.Role.class.getName(),
+				ResourceConstants.SCOPE_COMPANY, String.valueOf(primKey)));
 	}
 
 	private void _testPostRoleWithSubtype() throws Exception {

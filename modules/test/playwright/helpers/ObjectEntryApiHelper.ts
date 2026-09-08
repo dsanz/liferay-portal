@@ -94,6 +94,19 @@ export class ObjectEntryApiHelper {
 		);
 	}
 
+	async getObjectEntryByName(
+		applicationName: string,
+		name: string
+	): Promise<ObjectEntry> {
+		const response = await this.apiHelpers.get(
+			`${this.apiHelpers.baseUrl}${applicationName}?filter=${encodeURIComponent(
+				`name eq '${name}'`
+			)}&pageSize=1`
+		);
+
+		return response?.items?.[0];
+	}
+
 	async postObjectDefinitionRandomObjectEntries(
 		fieldName: any,
 		fieldValue: String,
@@ -164,6 +177,17 @@ export class ObjectEntryApiHelper {
 		);
 	}
 
+	async postObjectEntryCopy(
+		applicationName: string,
+		objectEntryId: number,
+		objectEntryFolderId: number
+	): Promise<ObjectEntry> {
+		return this.apiHelpers.post(
+			`${this.apiHelpers.baseUrl}${applicationName}/${objectEntryId}/by-object-entry-folder-id/${objectEntryFolderId}/copy`,
+			{data: {}}
+		);
+	}
+
 	async getObjectEntryCollaboratorsPage(
 		applicationName: string,
 		objectEntryId: number
@@ -210,6 +234,17 @@ export class ObjectEntryApiHelper {
 		return this.apiHelpers.put(
 			`${this.apiHelpers.baseUrl}${applicationName}/${objectEntryId}`,
 			{data}
+		);
+	}
+
+	async putObjectEntryPermissions(
+		applicationName: string,
+		objectEntryId: number,
+		permissions: Array<{actionIds: string[]; roleName: string}>
+	) {
+		return this.apiHelpers.put(
+			`${this.apiHelpers.baseUrl}${applicationName}/${objectEntryId}/permissions`,
+			{data: permissions}
 		);
 	}
 }

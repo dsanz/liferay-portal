@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.dao.orm.FinderCache;
 import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.dao.orm.SessionFactory;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -878,6 +876,7 @@ public class LayoutLocalizationPersistenceImpl
 			_SQL_SELECT_LAYOUTLOCALIZATION_WHERE,
 			_SQL_COUNT_LAYOUTLOCALIZATION_WHERE,
 			LayoutLocalizationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
 			new FinderColumn<>(
 				"layoutLocalization.", "uuid", "uuid_",
 				FinderColumn.Type.STRING, "=", true, true,
@@ -922,7 +921,7 @@ public class LayoutLocalizationPersistenceImpl
 				_SQL_SELECT_LAYOUTLOCALIZATION_WHERE,
 				_SQL_COUNT_LAYOUTLOCALIZATION_WHERE,
 				LayoutLocalizationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"layoutLocalization.", "uuid", "uuid_",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -951,6 +950,7 @@ public class LayoutLocalizationPersistenceImpl
 			_SQL_SELECT_LAYOUTLOCALIZATION_WHERE,
 			_SQL_COUNT_LAYOUTLOCALIZATION_WHERE,
 			LayoutLocalizationModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
 			new FinderColumn<>(
 				"layoutLocalization.", "plid", FinderColumn.Type.LONG, "=",
 				true, true, LayoutLocalization::getPlid));
@@ -1051,12 +1051,6 @@ public class LayoutLocalizationPersistenceImpl
 	private static final String _SQL_COUNT_LAYOUTLOCALIZATION_WHERE =
 		"SELECT COUNT(layoutLocalization) FROM LayoutLocalization layoutLocalization WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No LayoutLocalization exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		LayoutLocalizationPersistenceImpl.class);
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"uuid"});
 
@@ -1066,4 +1060,4 @@ public class LayoutLocalizationPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-1129945545
+// LIFERAY-SERVICE-BUILDER-HASH:-1501712712

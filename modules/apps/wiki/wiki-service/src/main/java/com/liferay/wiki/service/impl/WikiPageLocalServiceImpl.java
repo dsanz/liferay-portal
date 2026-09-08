@@ -918,6 +918,24 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 	}
 
 	@Override
+	public WikiPage fetchPage(long resourcePrimKey, Boolean head) {
+		WikiPageResource pageResource =
+			_wikiPageResourcePersistence.fetchByPrimaryKey(resourcePrimKey);
+
+		if (pageResource == null) {
+			return null;
+		}
+
+		if (head == null) {
+			return wikiPagePersistence.fetchByN_T_First(
+				pageResource.getNodeId(), pageResource.getTitle(), null);
+		}
+
+		return wikiPagePersistence.fetchByN_T_H_First(
+			pageResource.getNodeId(), pageResource.getTitle(), head, null);
+	}
+
+	@Override
 	public WikiPage fetchPage(long nodeId, String title) {
 		return wikiPagePersistence.fetchByN_T_H_First(
 			nodeId, title, true, null);
@@ -1226,9 +1244,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 			if (exists) {
 				WikiPage curPage = getPage(nodeId, curTitle);
 
-				if (!pages.containsKey(curPage.getTitle())) {
-					pages.put(curPage.getTitle(), curPage);
-				}
+				pages.putIfAbsent(curPage.getTitle(), curPage);
 			}
 			else {
 				WikiPageImpl wikiPageImpl = new WikiPageImpl();
@@ -1237,9 +1253,7 @@ public class WikiPageLocalServiceImpl extends WikiPageLocalServiceBaseImpl {
 				wikiPageImpl.setNodeId(nodeId);
 				wikiPageImpl.setTitle(curTitle);
 
-				if (!pages.containsKey(curTitle)) {
-					pages.put(curTitle, wikiPageImpl);
-				}
+				pages.putIfAbsent(curTitle, wikiPageImpl);
 			}
 		}
 

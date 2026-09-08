@@ -80,7 +80,9 @@ public class AssetCategoryActionDropdownItemsProvider {
 			dropdownGroupItem -> {
 				dropdownGroupItem.setDropdownItems(
 					DropdownItemListBuilder.add(
-						() -> _hasPermission(category, ActionKeys.UPDATE),
+						() ->
+							!_isSystemCategory(category) &&
+							_hasPermission(category, ActionKeys.UPDATE),
 						dropdownItem -> {
 							dropdownItem.setHref(
 								PortletURLBuilder.createRenderURL(
@@ -105,6 +107,7 @@ public class AssetCategoryActionDropdownItemsProvider {
 					DropdownItemListBuilder.add(
 						() ->
 							!_assetCategoriesLimitExceeded &&
+							!_isSystemCategory(category) &&
 							_hasPermission(category, ActionKeys.ADD_CATEGORY),
 						dropdownItem -> {
 							dropdownItem.setHref(
@@ -141,7 +144,9 @@ public class AssetCategoryActionDropdownItemsProvider {
 			dropdownGroupItem -> {
 				dropdownGroupItem.setDropdownItems(
 					DropdownItemListBuilder.add(
-						() -> _hasPermission(category, ActionKeys.UPDATE),
+						() ->
+							!_isSystemCategory(category) &&
+							_hasPermission(category, ActionKeys.UPDATE),
 						dropdownItem -> {
 							dropdownItem.putData("action", "moveCategory");
 							dropdownItem.putData(
@@ -194,7 +199,9 @@ public class AssetCategoryActionDropdownItemsProvider {
 			dropdownGroupItem -> {
 				dropdownGroupItem.setDropdownItems(
 					DropdownItemListBuilder.add(
-						() -> _hasPermission(category, ActionKeys.DELETE),
+						() ->
+							!_isSystemCategory(category) &&
+							_hasPermission(category, ActionKeys.DELETE),
 						dropdownItem -> {
 							dropdownItem.putData("action", "deleteCategory");
 
@@ -337,6 +344,14 @@ public class AssetCategoryActionDropdownItemsProvider {
 		}
 
 		return false;
+	}
+
+	private boolean _isSystemCategory(AssetCategory category) {
+		if (category == null) {
+			return false;
+		}
+
+		return category.isSystem();
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

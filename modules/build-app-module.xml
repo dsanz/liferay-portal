@@ -74,6 +74,18 @@
 		<available file="build.xml" />
 	</condition>
 
+	<condition property="download.artifact.private">
+		<and>
+			<or>
+				<isset property="artifact.private" />
+				<istrue value="${download.artifact.private.override}" />
+			</or>
+			<not>
+				<equals arg1="${build.repository.private.username}" arg2="" />
+			</not>
+		</and>
+	</condition>
+
 	<target if="artifact.hotfix" name="copy-hotfix-artifact">
 		<copy
 			todir="${dist.dir}"
@@ -104,10 +116,7 @@
 
 	<target depends="get-artifact-properties-releng" name="download-artifact" unless="artifact.exclude">
 		<if>
-			<or>
-				<contains string="${basedir}" substring="dxp${file.separator}" />
-				<istrue value="${download.artifact.private.override}" />
-			</or>
+			<isset property="download.artifact.private" />
 			<then>
 				<get
 					dest="${dist.dir}"
@@ -134,6 +143,32 @@
 		</exec>
 	</target>
 
+	<target depends="get-artifact-properties,get-artifact-properties-releng" name="download-artifact-lpkg" unless="artifact.exclude">
+		<local name="artifact.location.dest.dir" />
+
+		<dirname file="${artifact.location.dest}" property="artifact.location.dest.dir" />
+
+		<mkdir dir="${artifact.location.dest.dir}" />
+
+		<if>
+			<isset property="download.artifact.private" />
+			<then>
+				<get
+					dest="${artifact.location.dest.dir}"
+					password="${build.repository.private.password}"
+					src="${artifact.url}"
+					username="${build.repository.private.username}"
+				/>
+			</then>
+			<else>
+				<get
+					dest="${artifact.location.dest.dir}"
+					src="${artifact.url}"
+				/>
+			</else>
+		</if>
+	</target>
+
 	<target depends="get-artifact-properties-releng" if="${download.artifact.sources}" name="download-artifact-sources" unless="download.artifact.sources.skip">
 		<mkdir dir="${dist.dir}/sources" />
 
@@ -141,10 +176,7 @@
 			<isset property="artifact.sources.url" />
 			<then>
 				<if>
-					<or>
-						<contains string="${basedir}" substring="dxp${file.separator}" />
-						<istrue value="${download.artifact.private.override}" />
-					</or>
+					<isset property="download.artifact.private" />
 					<then>
 						<get
 							dest="${dist.dir}/sources"

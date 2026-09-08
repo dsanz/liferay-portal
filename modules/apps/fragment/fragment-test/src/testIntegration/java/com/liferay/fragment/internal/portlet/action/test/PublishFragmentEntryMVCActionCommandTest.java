@@ -10,17 +10,17 @@ import com.liferay.fragment.configuration.FragmentServiceConfiguration;
 import com.liferay.fragment.constants.FragmentConstants;
 import com.liferay.fragment.model.FragmentCollection;
 import com.liferay.fragment.model.FragmentEntry;
+import com.liferay.fragment.model.FragmentEntryLink;
 import com.liferay.fragment.service.FragmentCollectionLocalService;
 import com.liferay.fragment.service.FragmentEntryLinkLocalService;
 import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.layout.page.template.service.LayoutPageTemplateStructureLocalService;
 import com.liferay.layout.test.util.ContentLayoutTestUtil;
 import com.liferay.layout.test.util.LayoutTestUtil;
-import com.liferay.layout.util.UpdateLayoutStatusThreadLocal;
-import com.liferay.petra.lang.SafeCloseable;
+import com.liferay.layout.util.LayoutServiceContextHelper;
+import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.test.util.CompanyConfigurationTemporarySwapper;
-import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.language.Language;
@@ -112,57 +112,43 @@ public class PublishFragmentEntryMVCActionCommandTest {
 	}
 
 	@Test
-	@TestInfo("LPD-79507")
-	public void testPublishFragmentWithInvalidDropZoneConfiguration()
+	@TestInfo({"LPD-79507", "LPD-95510"})
+	public void testPublishFragmentWithPropagateChangesEnabled()
 		throws Exception {
 
-		try (CompanyConfigurationTemporarySwapper
-				companyConfigurationTemporarySwapper =
-					new CompanyConfigurationTemporarySwapper(
-						TestPropsValues.getCompanyId(),
-						FragmentServiceConfiguration.class.getName(),
-						HashMapDictionaryBuilder.<String, Object>put(
-							"propagateChanges", true
-						).build())) {
+		FragmentEntry fragmentEntry = _getFragmentEntry(
+			null,
+			"<div><lfr-drop-zone data-lfr-drop-zone-id=\"1\">" +
+				"</lfr-drop-zone></div>");
 
-			FragmentEntry fragmentEntry = _getFragmentEntry(
+		_testPublishFragmentWithPropagateChangesEnabled(
+			fragmentEntry,
+			StringBundler.concat(
+				fragmentEntry.getHtml(), "<!--", RandomTestUtil.randomString(),
+				"-->"));
+
+		_testPublishFragmentWithPropagateChangesEnabled(
+			_getFragmentEntry(
 				null,
-				"<div><lfr-drop-zone data-lfr-drop-zone-id=\"1\">" +
-					"</lfr-drop-zone></div>");
+				"<div><lfr-drop-zone></lfr-drop-zone>" +
+					"<lfr-drop-zone></lfr-drop-zone></div>"),
+			"<div><lfr-drop-zone></lfr-drop-zone>" +
+				"<lfr-drop-zone></lfr-drop-zone>" +
+					"<lfr-drop-zone></lfr-drop-zone></div>");
+	}
 
-			Layout layout = LayoutTestUtil.addTypeContentPublishedLayout(
-				_group, RandomTestUtil.randomString(),
-				WorkflowConstants.STATUS_APPROVED);
+	private void _assertFragmentEntryLinkHTML(
+		String expectedHTML, FragmentEntryLink... fragmentEntryLinks) {
 
-			try (SafeCloseable safeCloseable =
-					UpdateLayoutStatusThreadLocal.
-						setUpdateLayoutStatusWithSafeCloseable(false)) {
+		for (FragmentEntryLink fragmentEntryLink : fragmentEntryLinks) {
+			Assert.assertEquals(expectedHTML, fragmentEntryLink.getHtml());
+		}
+	}
 
-				ContentLayoutTestUtil.addFragmentEntryLinkToLayout(
-					StringPool.BLANK, fragmentEntry.getCss(),
-					fragmentEntry.getConfiguration(),
-					fragmentEntry.getExternalReferenceCode(), null,
-					fragmentEntry.getHtml(), fragmentEntry.getJs(), layout,
-					fragmentEntry.getFragmentEntryKey(),
-					_segmentsExperienceLocalService.
-						fetchDefaultSegmentsExperienceId(layout.getPlid()),
-					fragmentEntry.getType());
-			}
-
-			fragmentEntry.setHtml(fragmentEntry.getHtml() + "<!--updated-->");
-
-			fragmentEntry = _fragmentEntryLocalService.updateFragmentEntry(
-				fragmentEntry);
-
-			_mvcActionCommand.processAction(
-				_getActionRequest(fragmentEntry),
-				new MockLiferayPortletActionResponse());
-
-			Layout updatedLayout = _layoutLocalService.getLayout(
-				layout.getPlid());
-
+	private void _assertLayoutStatusApproved(Layout... layouts) {
+		for (Layout layout : layouts) {
 			Assert.assertEquals(
-				WorkflowConstants.STATUS_APPROVED, updatedLayout.getStatus());
+				WorkflowConstants.STATUS_APPROVED, layout.getStatus());
 		}
 	}
 
@@ -182,7 +168,7 @@ public class PublishFragmentEntryMVCActionCommandTest {
 	}
 
 	private FragmentEntry _getFragmentEntry(String configuration, String html)
-		throws PortalException {
+		throws Exception {
 
 		return _fragmentEntryLocalService.addFragmentEntry(
 			null, TestPropsValues.getUserId(), _group.getGroupId(),
@@ -215,6 +201,78 @@ public class PublishFragmentEntryMVCActionCommandTest {
 				"/fragment_configuration_invalid.json");
 	}
 
+	private void _testPublishFragmentWithPropagateChangesEnabled(
+			FragmentEntry fragmentEntry, String updatedHTML)
+		throws Exception {
+
+		try (CompanyConfigurationTemporarySwapper
+				companyConfigurationTemporarySwapper =
+					new CompanyConfigurationTemporarySwapper(
+						TestPropsValues.getCompanyId(),
+						FragmentServiceConfiguration.class.getName(),
+						HashMapDictionaryBuilder.<String, Object>put(
+							"propagateChanges", true
+						).build())) {
+
+			Layout layout = LayoutTestUtil.addTypeContentLayout(_group);
+
+			Layout draftLayout = layout.fetchDraftLayout();
+
+			FragmentEntryLink fragmentEntryLink =
+				ContentLayoutTestUtil.addFragmentEntryLinkToLayout(
+					StringPool.BLANK, fragmentEntry.getCss(),
+					fragmentEntry.getConfiguration(),
+					fragmentEntry.getExternalReferenceCode(), null,
+					fragmentEntry.getHtml(), fragmentEntry.getJs(), draftLayout,
+					fragmentEntry.getFragmentEntryKey(),
+					_segmentsExperienceLocalService.
+						fetchDefaultSegmentsExperienceId(draftLayout.getPlid()),
+					fragmentEntry.getType());
+
+			ContentLayoutTestUtil.publishLayout(draftLayout, layout);
+
+			_assertFragmentEntryLinkHTML(
+				fragmentEntry.getHtml(),
+				_fragmentEntryLinkLocalService.getFragmentEntryLink(
+					fragmentEntryLink.getFragmentEntryLinkId()),
+				_fragmentEntryLinkLocalService.getFragmentEntryLink(
+					_group.getGroupId(),
+					fragmentEntryLink.getExternalReferenceCode(),
+					layout.getPlid()));
+
+			_assertLayoutStatusApproved(
+				_layoutLocalService.getLayout(draftLayout.getPlid()),
+				_layoutLocalService.getLayout(layout.getPlid()));
+
+			fragmentEntry.setHtml(updatedHTML);
+
+			fragmentEntry = _fragmentEntryLocalService.updateFragmentEntry(
+				fragmentEntry);
+
+			try (AutoCloseable autoCloseable =
+					_layoutServiceContextHelper.getServiceContextAutoCloseable(
+						layout, TestPropsValues.getUser())) {
+
+				_mvcActionCommand.processAction(
+					_getActionRequest(fragmentEntry),
+					new MockLiferayPortletActionResponse());
+			}
+
+			_assertLayoutStatusApproved(
+				_layoutLocalService.getLayout(draftLayout.getPlid()),
+				_layoutLocalService.getLayout(layout.getPlid()));
+
+			_assertFragmentEntryLinkHTML(
+				fragmentEntry.getHtml(),
+				_fragmentEntryLinkLocalService.getFragmentEntryLink(
+					fragmentEntryLink.getFragmentEntryLinkId()),
+				_fragmentEntryLinkLocalService.getFragmentEntryLink(
+					_group.getGroupId(),
+					fragmentEntryLink.getExternalReferenceCode(),
+					layout.getPlid()));
+		}
+	}
+
 	@Inject
 	private CompanyLocalService _companyLocalService;
 
@@ -245,6 +303,9 @@ public class PublishFragmentEntryMVCActionCommandTest {
 	@Inject
 	private LayoutPageTemplateStructureLocalService
 		_layoutPageTemplateStructureLocalService;
+
+	@Inject
+	private LayoutServiceContextHelper _layoutServiceContextHelper;
 
 	@Inject(filter = "mvc.command.name=/fragment/publish_fragment_entry")
 	private MVCActionCommand _mvcActionCommand;

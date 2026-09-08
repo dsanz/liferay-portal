@@ -34,13 +34,16 @@ export default function buildState({
 			deletedGroupERCs: [],
 			deletedRelationships: [],
 			modifiedNames: new Set(),
+			modifiedSlugs: new Set(),
 		},
 		invalids: new Map(),
+		operation: null,
 		publishedChildren:
 			structure.status === 'published'
 				? getChildrenUuids({root: structure})
 				: new Set(),
 		renamingItemUuid: null,
+		savedChildren: getChildrenUuids({root: structure}),
 		selection: [],
 		structure,
 		unsavedChanges: false,

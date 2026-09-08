@@ -139,8 +139,7 @@ public class MessageResourceImpl extends BaseMessageResourceImpl {
 		throws Exception {
 
 		List<String> keys = transform(
-			_ploEntryService.getPLOEntries(contextCompany.getCompanyId()),
-			PLOEntryModel::getKey);
+			_ploEntryService.getPLOEntries(), PLOEntryModel::getKey);
 
 		String languageId = GetterUtil.getString(parameters.get("languageId"));
 
@@ -180,7 +179,8 @@ public class MessageResourceImpl extends BaseMessageResourceImpl {
 		throws PortalException {
 
 		PLOEntry ploEntry = _ploEntryService.addOrUpdatePLOEntry(
-			message.getKey(), message.getLanguageId(), message.getValue());
+			null, message.getKey(), message.getLanguageId(),
+			message.getValue());
 
 		message.setKey(ploEntry::getKey);
 		message.setLanguageId(ploEntry::getLanguageId);

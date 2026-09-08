@@ -332,6 +332,11 @@
 			<message key="start.character.invalid" value="When concatenating multiple literal strings, only the first literal string can start with &quot;{0}&quot;" />
 			<message key="string.combine" value="Combine the literal string &quot;{0}&quot; with &quot;{1}&quot;" />
 		</module>
+		<module name="com.liferay.source.formatter.checkstyle.check.ConfigurableCreateConfigurableCallCheck">
+			<property name="category" value="Bug Prevention" />
+			<property name="description" value="Checks illegal call to `Configurable.createConfigurable`." />
+			<message key="method.call.avoid" value="Use &quot;ConfigurableUtil.createConfigurable&quot; instead of &quot;Configurable.createConfigurable&quot;, see LPS-64056" />
+		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.ConstantNameCheck">
 			<property name="camelCaseTypeNames" value="AggregateTestRule,Atomic.*,CodeCoverageAssertor,LiferayIntegrationTestRule,Log,Pattern,TestRule" />
 			<property name="category" value="Naming Conventions" />
@@ -378,11 +383,21 @@
 			<message key="builder.use" value="Use &quot;{0}&quot; ({1}, {2})" />
 			<message key="builder.use.instead" value="Use &quot;{0}&quot; instead of new instance of &quot;{1}&quot;" />
 		</module>
+		<module name="com.liferay.source.formatter.checkstyle.check.CredentialBufferCheck">
+			<property name="category" value="Bug Prevention" />
+			<property name="description" value="Finds buffers that are derived from a `String` and passed straight into a credential API, leaving no reference to clear." />
+			<message key="variable.assign.required" value="Assign &quot;{0}&quot; to a local variable so that it can be cleared after use, see LPD-93280" />
+		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.DatabaseMetaDataCheck">
 			<property name="category" value="Bug Prevention" />
 			<property name="description" value="Checks usages of `java.sql.DatabaseMetaData`." />
 			<property name="enabled" value="false" />
 			<message key="replace.get.index.info" value="Use the method &quot;com.liferay.portal.kernel.dao.db.DB#getIndexResult()&quot; instead of &quot;{0}.getIndexInfo()&quot;" />
+		</module>
+		<module name="com.liferay.source.formatter.checkstyle.check.DatabaseMetaDataSupportsBatchUpdatesCallCheck">
+			<property name="category" value="Bug Prevention" />
+			<property name="description" value="Checks illegal call to `DatabaseMetaData.supportsBatchUpdates`." />
+			<message key="method.call.avoid" value="Use &quot;AutoBatchPreparedStatementUtil&quot; instead of &quot;DatabaseMetaData.supportsBatchUpdates&quot;, see LPS-60473" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.DeprecatedAPICheck">
 			<property name="category" value="Bug Prevention" />
@@ -444,6 +459,12 @@
 			<property name="category" value="Bug Prevention" />
 			<property name="description" value="Finds cases where `*Factory` should be used when creating new instances of an object." />
 			<message key="factory.use" value="Use &quot;{0}&quot; to create new instance of &quot;{1}&quot;" />
+		</module>
+		<module name="com.liferay.source.formatter.checkstyle.check.FetchContractCatchCheck">
+			<property name="category" value="Bug Prevention" />
+			<property name="description" value="Finds code blocks that use `try-catch` to handle `NoSuch*Exception` or `PortalException` during entity lookups, which should be replaced by `fetch*` methods." />
+			<property name="enabled" value="false" />
+			<message key="fetch.use" value="Do not catch &quot;{0}&quot; around the lookup &quot;{1}&quot; to signal a missing entity, call the null-tolerant fetch sibling and check for null instead" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.FilterStringWhitespaceCheck">
 			<property name="category" value="Bug Prevention" />
@@ -655,6 +676,12 @@
 			<property name="description" value="Checks for incorrect `modified` method with `@Modified` annotation." />
 			<property name="enabled" value="false" />
 			<message key="modified.method.incorrect" value="Remove method &quot;modified&quot; as it only calls &quot;deactivate&quot; and then &quot;activate&quot;" />
+		</module>
+		<module name="com.liferay.source.formatter.checkstyle.check.ModifiedServiceMethodCheck">
+			<property name="category" value="Bug Prevention" />
+			<property name="description" value="Checks for incorrect delegation to a sequence of `removedService()` and `addingService()` calls within `modifiedService()`." />
+			<property name="enabled" value="false" />
+			<message key="method.declaration.incorrect" value="Do not simply delegate to a sequence call of &quot;removedService()&quot; and &quot;addingService()&quot; in &quot;modifiedService()&quot;, see LPD-66061" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.MVCCommandNameCheck">
 			<property name="category" value="Naming Conventions" />
@@ -870,6 +897,11 @@
 			<property name="enabled" value="false" />
 			<message key="update.call.reassign" value="Update call should be reassigned to variable &quot;{0}&quot;" />
 		</module>
+		<module name="com.liferay.source.formatter.checkstyle.check.ServletResponseUtilSendFileCallCheck">
+			<property name="category" value="Bug Prevention" />
+			<property name="description" value="Checks illegal call to `ServletResponseUtil.sendFile`." />
+			<message key="method.call.avoid" value="Use &quot;PortletResponseUtil.sendFile&quot; instead of &quot;ServletResponseUtil.sendFile&quot;, see LPS-65229" />
+		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.SizeIsZeroCheck">
 			<property name="category" value="Styling" />
 			<property name="description" value="Finds cases of calls like `list.size() == 0` (use `list.isEmpty()` instead)." />
@@ -929,9 +961,10 @@
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.TestClassHardcodedPortCheck">
 			<property name="category" value="Bug Prevention" />
-			<property name="description" value="Finds cases where `PortalUtil.getPortalServerPort` should be used." />
+			<property name="description" value="Checks usages of `PortalUtil.getPortalServerPort()` in test classes." />
 			<property name="enabled" value="false" />
-			<message key="method.use" value="Use &quot;PortalUtil.getPortalServerPort&quot; instead of the hard-coded port &quot;8080&quot;" />
+			<message key="portal.util.avoid" value="Do not use &quot;PortalUtil.getPortalServerPort&quot; in unit tests because &quot;PortalUtil._portal&quot; is null" />
+			<message key="portal.util.use" value="Use &quot;PortalUtil.getPortalServerPort&quot; instead of the hard-coded port &quot;8080&quot;" />
 		</module>
 		<module name="com.liferay.source.formatter.checkstyle.check.TestClassMissingLiferayUnitTestRuleCheck">
 			<property name="category" value="Bug Prevention" />
@@ -1111,6 +1144,11 @@
 			<message key="variable.name.incorrect.for.statement" value="Use format &quot;curVariableName&quot; for variable &quot;{0}&quot;" />
 			<message key="variable.rename" value="Rename variable &quot;{0}&quot; to &quot;{1}&quot;" />
 			<message key="variable.typo" value="Typo in variable &quot;{0}&quot;, expected variable name &quot;{1}&quot;" />
+		</module>
+		<module name="com.liferay.source.formatter.checkstyle.check.VirtualThreadsCheck">
+			<property name="category" value="Bug Prevention" />
+			<property name="description" value="Checks that virtual threads are not used (e.g., Executors.newVirtualThreadPerTaskExecutor(), Thread.ofVirtual(), Thread.startVirtualThread())." />
+			<message key="virtual.threads.avoid" value="Do not use virtual threads (e.g., Executors.newVirtualThreadPerTaskExecutor(), Thread.ofVirtual(), Thread.startVirtualThread()" />
 		</module>
 	</module>
 </module>

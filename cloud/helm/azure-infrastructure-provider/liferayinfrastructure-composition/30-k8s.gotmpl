@@ -1,0 +1,128 @@
+{{- $doclibConnectionString := dig (printf "liferay-storage-account-%s" $activeDataPlane) "connectionDetails" "attribute.primary_connection_string" "" $observedResources | toString | b64dec -}}
+{{- $identityClientId := dig "liferay-identity" "resource" "status" "atProvider" "clientId" "" $observedResources -}}
+{{- $isDatabaseBootstrapped := false -}}
+{{- $isDoclibContainerReady := false -}}
+
+{{- range $condition := dig "database-bootstrap-job" "resource" "status" "conditions" (list) $observedResources -}}
+    {{- if and (eq $condition.type "Ready") (eq $condition.status "True") -}}
+        {{- $isDatabaseBootstrapped = true -}}
+    {{- end -}}
+{{- end -}}
+
+{{- $isDatabaseReady := and (ne $activeDatabaseFqdn "") $isDatabaseBootstrapped }}
+
+{{- range $condition := dig (printf "liferay-storage-container-%s" $activeDataPlane) "resource" "status" "conditions" (list) $observedResources -}}
+    {{- if and (eq $condition.type "Ready") (eq $condition.status "True") -}}
+        {{- $isDoclibContainerReady = true -}}
+    {{- end -}}
+{{- end }}
+
+{{- $isDoclibReady := and (ne $doclibConnectionString "") $isDoclibContainerReady }}
+
+{{- if $isDatabaseReady }}
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        crossplane.io/external-name: {{ $baseName }}-database-server-details-configmap
+        gotemplating.fn.crossplane.io/composition-resource-name: database-server-details-configmap
+    labels:
+        {{- $tags | toYaml | nindent 8 }}
+    name: {{ $baseName }}-database-server-details-configmap
+spec:
+    forProvider:
+        manifest:
+            apiVersion: v1
+            data:
+                DATABASE_ENDPOINT: {{ $activeDatabaseFqdn | quote }}
+            kind: ConfigMap
+            metadata:
+                labels:
+                    {{- $tags | toYaml | nindent 20 }}
+                name: database-server-details
+                namespace: {{ $namespace }}
+    managementPolicies: {{ $managementPolicies }}
+---
+{{- end }}
+{{- if $isDoclibReady }}
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        crossplane.io/external-name: {{ $baseName }}-document-library-connection-details-secret
+        gotemplating.fn.crossplane.io/composition-resource-name: document-library-connection-details-secret
+    labels:
+        {{- $tags | toYaml | nindent 8 }}
+    name: {{ $baseName }}-document-library-connection-details-secret
+spec:
+    forProvider:
+        manifest:
+            apiVersion: v1
+            data:
+                LIFERAY_DOCLIB_CONNECTION_STRING: {{ $doclibConnectionString | b64enc | quote }}
+                LIFERAY_DOCLIB_CONTAINER_NAME: {{ "document-library" | b64enc | quote }}
+                LIFERAY_DOCLIB_STORAGE_ACCOUNT_NAME: {{ printf "%s%s" $storageAccountBase (trunc 1 $activeDataPlane) | b64enc | quote }}
+            kind: Secret
+            metadata:
+                labels:
+                    {{- $tags | toYaml | nindent 20 }}
+                name: document-library-connection-details
+                namespace: {{ $namespace }}
+            type: Opaque
+    managementPolicies: {{ $managementPolicies }}
+---
+{{- end }}
+{{- if $identityClientId }}
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        gotemplating.fn.crossplane.io/composition-resource-name: liferay-ksa
+    labels:
+        {{- $tags | toYaml | nindent 8 }}
+    name: {{ $xr.metadata.name }}-ksa
+spec:
+    forProvider:
+        manifest:
+            apiVersion: v1
+            kind: ServiceAccount
+            metadata:
+                annotations:
+                    azure.workload.identity/client-id: {{ $identityClientId }}
+                labels:
+                    {{- $tags | toYaml | nindent 20 }}
+                name: liferay-default
+                namespace: {{ $namespace }}
+---
+{{- end }}
+{{- if $overlayAccess.enabled }}
+apiVersion: kubernetes.m.crossplane.io/v1alpha1
+kind: Object
+metadata:
+    annotations:
+        crossplane.io/external-name: {{ $baseName }}-overlay-bucket-details-secret
+        gotemplating.fn.crossplane.io/composition-resource-name: overlay-bucket-details-secret
+    labels:
+        {{- $tags | toYaml | nindent 8 }}
+    name: {{ $baseName }}-overlay-bucket-details-secret
+spec:
+    forProvider:
+        manifest:
+            apiVersion: v1
+            data:
+                LIFERAY_OVERLAY_CONTAINER_NAME: {{ "overlay" | b64enc | quote }}
+                LIFERAY_OVERLAY_STORAGE_ACCOUNT_NAME: {{ $overlayStorageAccountName | b64enc | quote }}
+            kind: Secret
+            metadata:
+                labels:
+                    {{- $tags | toYaml | nindent 20 }}
+                name: overlay-bucket-details
+                namespace: {{ $namespace }}
+            type: Opaque
+    managementPolicies: {{ $managementPolicies }}
+---
+{{- end }}
+apiVersion: liferay.com/v1alpha1
+kind: LiferayInfrastructure
+status:
+    managedServiceDetailsReady: {{ and $isDatabaseReady $isDoclibReady }}

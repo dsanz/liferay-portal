@@ -26,10 +26,27 @@ public class TestClassHardcodedPortCheck extends BaseCheck {
 	protected void doVisitToken(DetailAST detailAST) {
 		String absolutePath = getAbsolutePath();
 
-		if (!absolutePath.contains("/testIntegration/")) {
+		if (!absolutePath.endsWith("Test.java") ||
+			(detailAST.getParent() != null)) {
+
 			return;
 		}
 
+		if (absolutePath.contains("/testIntegration/")) {
+			_checkHardcodedPort(detailAST);
+
+			return;
+		}
+
+		List<DetailAST> methodCallDetailASTs = getMethodCalls(
+			detailAST, "PortalUtil", "getPortalServerPort");
+
+		for (DetailAST methodCallDetailAST : methodCallDetailASTs) {
+			log(methodCallDetailAST, _MSG_PORTAL_UTIL_AVOID);
+		}
+	}
+
+	private void _checkHardcodedPort(DetailAST detailAST) {
 		List<DetailAST> childDetailASTs = getAllChildTokens(
 			detailAST, true, TokenTypes.NUM_INT, TokenTypes.STRING_LITERAL);
 
@@ -51,7 +68,7 @@ public class TestClassHardcodedPortCheck extends BaseCheck {
 					continue;
 				}
 
-				log(childDetailAST, _MSG_USE_METHOD);
+				log(childDetailAST, _MSG_PORTAL_UTIL_USE);
 			}
 		}
 	}
@@ -84,9 +101,11 @@ public class TestClassHardcodedPortCheck extends BaseCheck {
 			return;
 		}
 
-		log(detailAST, _MSG_USE_METHOD);
+		log(detailAST, _MSG_PORTAL_UTIL_USE);
 	}
 
-	private static final String _MSG_USE_METHOD = "method.use";
+	private static final String _MSG_PORTAL_UTIL_AVOID = "portal.util.avoid";
+
+	private static final String _MSG_PORTAL_UTIL_USE = "portal.util.use";
 
 }

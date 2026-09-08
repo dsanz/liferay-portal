@@ -210,7 +210,7 @@ public class Order implements Serializable {
 	private Supplier<Long> _channelIdSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "Date the order was created, in ISO 8601 (yyyy-MM-dd). Read-only.",
+		description = "Timestamp when the order was created, in ISO 8601. Read-only.",
 		example = "2017-07-21"
 	)
 	public Date getCreateDate() {
@@ -247,7 +247,7 @@ public class Order implements Serializable {
 	}
 
 	@GraphQLField(
-		description = "Date the order was created, in ISO 8601 (yyyy-MM-dd). Read-only."
+		description = "Timestamp when the order was created, in ISO 8601. Read-only."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date createDate;
@@ -397,6 +397,53 @@ public class Order implements Serializable {
 
 	@DecimalMin("0")
 	@io.swagger.v3.oas.annotations.media.Schema(
+		description = "Reference to the site of the channel the order was placed on (FK identifier). The analytics pipeline joins the order to a property through it.",
+		example = "20123"
+	)
+	public Long getGroupId() {
+		if (_groupIdSupplier != null) {
+			groupId = _groupIdSupplier.get();
+
+			_groupIdSupplier = null;
+		}
+
+		return groupId;
+	}
+
+	public void setGroupId(Long groupId) {
+		this.groupId = groupId;
+
+		_groupIdSupplier = null;
+	}
+
+	@JsonIgnore
+	public void setGroupId(
+		UnsafeSupplier<Long, Exception> groupIdUnsafeSupplier) {
+
+		_groupIdSupplier = () -> {
+			try {
+				return groupIdUnsafeSupplier.get();
+			}
+			catch (RuntimeException runtimeException) {
+				throw runtimeException;
+			}
+			catch (Exception exception) {
+				throw new RuntimeException(exception);
+			}
+		};
+	}
+
+	@GraphQLField(
+		description = "Reference to the site of the channel the order was placed on (FK identifier). The analytics pipeline joins the order to a property through it."
+	)
+	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
+	protected Long groupId;
+
+	@JsonIgnore
+	private Supplier<Long> _groupIdSupplier;
+
+	@DecimalMin("0")
+	@io.swagger.v3.oas.annotations.media.Schema(
 		description = "Reference to the order (FK identifier).",
 		example = "30130"
 	)
@@ -439,7 +486,7 @@ public class Order implements Serializable {
 	private Supplier<Long> _idSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "Date the order was last modified, in ISO 8601 (yyyy-MM-dd). Read-only.",
+		description = "Timestamp when the order was last modified, in ISO 8601. Read-only.",
 		example = "2017-08-21"
 	)
 	public Date getModifiedDate() {
@@ -476,7 +523,7 @@ public class Order implements Serializable {
 	}
 
 	@GraphQLField(
-		description = "Date the order was last modified, in ISO 8601 (yyyy-MM-dd). Read-only."
+		description = "Timestamp when the order was last modified, in ISO 8601. Read-only."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_ONLY)
 	protected Date modifiedDate;
@@ -485,7 +532,7 @@ public class Order implements Serializable {
 	private Supplier<Date> _modifiedDateSupplier;
 
 	@io.swagger.v3.oas.annotations.media.Schema(
-		description = "Date the order was placed by the buyer, in ISO 8601 (yyyy-MM-dd). Distinct from the create date when the order was imported.",
+		description = "Date and time the order was placed by the buyer, in ISO 8601. Distinct from the create date when the order was imported.",
 		example = "2017-07-21"
 	)
 	public Date getOrderDate() {
@@ -522,7 +569,7 @@ public class Order implements Serializable {
 	}
 
 	@GraphQLField(
-		description = "Date the order was placed by the buyer, in ISO 8601 (yyyy-MM-dd). Distinct from the create date when the order was imported."
+		description = "Date and time the order was placed by the buyer, in ISO 8601. Distinct from the create date when the order was imported."
 	)
 	@JsonProperty(access = JsonProperty.Access.READ_WRITE)
 	protected Date orderDate;
@@ -1079,6 +1126,18 @@ public class Order implements Serializable {
 			sb.append("\"");
 		}
 
+		Long groupId = getGroupId();
+
+		if (groupId != null) {
+			if (sb.length() > 1) {
+				sb.append(", ");
+			}
+
+			sb.append("\"groupId\": ");
+
+			sb.append(groupId);
+		}
+
 		Long id = getId();
 
 		if (id != null) {
@@ -1351,4 +1410,4 @@ public class Order implements Serializable {
 	private Map<String, Serializable> _extendedProperties;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-1311319069
+// LIFERAY-REST-BUILDER-HASH:440689110

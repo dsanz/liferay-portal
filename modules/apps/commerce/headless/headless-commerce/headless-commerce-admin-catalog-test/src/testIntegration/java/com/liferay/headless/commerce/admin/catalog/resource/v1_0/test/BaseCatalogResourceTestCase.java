@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -121,6 +122,8 @@ public abstract class BaseCatalogResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -215,6 +218,7 @@ public abstract class BaseCatalogResourceTestCase {
 
 		Catalog catalog = randomCatalog();
 
+		catalog.setAccountExternalReferenceCode(regex);
 		catalog.setCurrencyCode(regex);
 		catalog.setCurrencyExternalReferenceCode(regex);
 		catalog.setDefaultLanguageId(regex);
@@ -227,6 +231,7 @@ public abstract class BaseCatalogResourceTestCase {
 
 		catalog = CatalogSerDes.toDTO(json);
 
+		Assert.assertEquals(regex, catalog.getAccountExternalReferenceCode());
 		Assert.assertEquals(regex, catalog.getCurrencyCode());
 		Assert.assertEquals(regex, catalog.getCurrencyExternalReferenceCode());
 		Assert.assertEquals(regex, catalog.getDefaultLanguageId());
@@ -955,7 +960,7 @@ public abstract class BaseCatalogResourceTestCase {
 		Catalog catalog2 = testGetCatalogsPage_addCatalog(randomCatalog());
 
 		page = catalogResource.getCatalogsPage(
-			null, null, Pagination.of(1, 10), null);
+			null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1257,17 +1262,8 @@ public abstract class BaseCatalogResourceTestCase {
 
 	@Test
 	public void testGraphQLGetCatalogsPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"catalogs",
-			new HashMap<String, Object>() {
-				{
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetCatalogsPageCatalog_getGraphQLField();
 
 		// No namespace
 
@@ -1317,6 +1313,22 @@ public abstract class BaseCatalogResourceTestCase {
 			catalog2,
 			Arrays.asList(
 				CatalogSerDes.toDTOs(catalogsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField testGraphQLGetCatalogsPageCatalog_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"catalogs",
+			new HashMap<String, Object>() {
+				{
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -1972,8 +1984,27 @@ public abstract class BaseCatalogResourceTestCase {
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
 
+			if (Objects.equals(
+					"accountExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (catalog.getAccountExternalReferenceCode() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("accountId", additionalAssertFieldName)) {
 				if (catalog.getAccountId() == null) {
+					valid = false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("accountType", additionalAssertFieldName)) {
+				if (catalog.getAccountType() == null) {
 					valid = false;
 				}
 
@@ -2171,9 +2202,33 @@ public abstract class BaseCatalogResourceTestCase {
 		for (String additionalAssertFieldName :
 				getAdditionalAssertFieldNames()) {
 
+			if (Objects.equals(
+					"accountExternalReferenceCode",
+					additionalAssertFieldName)) {
+
+				if (!Objects.deepEquals(
+						catalog1.getAccountExternalReferenceCode(),
+						catalog2.getAccountExternalReferenceCode())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
 			if (Objects.equals("accountId", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						catalog1.getAccountId(), catalog2.getAccountId())) {
+
+					return false;
+				}
+
+				continue;
+			}
+
+			if (Objects.equals("accountType", additionalAssertFieldName)) {
+				if (!Objects.deepEquals(
+						catalog1.getAccountType(), catalog2.getAccountType())) {
 
 					return false;
 				}
@@ -2388,7 +2443,58 @@ public abstract class BaseCatalogResourceTestCase {
 		sb.append(operator);
 		sb.append(" ");
 
+		if (entityFieldName.equals("accountExternalReferenceCode")) {
+			Object object = catalog.getAccountExternalReferenceCode();
+
+			String value = String.valueOf(object);
+
+			if (operator.equals("contains")) {
+				sb = new StringBundler();
+
+				sb.append("contains(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 2)) {
+					sb.append(value.substring(1, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else if (operator.equals("startswith")) {
+				sb = new StringBundler();
+
+				sb.append("startswith(");
+				sb.append(entityFieldName);
+				sb.append(",'");
+
+				if ((object != null) && (value.length() > 1)) {
+					sb.append(value.substring(0, value.length() - 1));
+				}
+				else {
+					sb.append(value);
+				}
+
+				sb.append("')");
+			}
+			else {
+				sb.append("'");
+				sb.append(value);
+				sb.append("'");
+			}
+
+			return sb.toString();
+		}
+
 		if (entityFieldName.equals("accountId")) {
+			throw new IllegalArgumentException(
+				"Invalid entity field " + entityFieldName);
+		}
+
+		if (entityFieldName.equals("accountType")) {
 			throw new IllegalArgumentException(
 				"Invalid entity field " + entityFieldName);
 		}
@@ -2690,6 +2796,8 @@ public abstract class BaseCatalogResourceTestCase {
 	protected Catalog randomCatalog() throws Exception {
 		return new Catalog() {
 			{
+				accountExternalReferenceCode = StringUtil.toLowerCase(
+					RandomTestUtil.randomString());
 				accountId = RandomTestUtil.randomLong();
 				currencyCode = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
@@ -2973,4 +3081,4 @@ public abstract class BaseCatalogResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1820977679
+// LIFERAY-REST-BUILDER-HASH:-1223836946

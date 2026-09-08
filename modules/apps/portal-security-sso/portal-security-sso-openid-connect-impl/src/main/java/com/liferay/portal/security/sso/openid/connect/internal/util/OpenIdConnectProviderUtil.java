@@ -12,20 +12,17 @@ import com.liferay.portal.kernel.json.JSONException;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.model.CompanyConstants;
-import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.Base64;
+import com.liferay.portal.kernel.util.DigesterUtil;
+import com.liferay.portal.kernel.util.PropsValues;
 
 import java.net.URI;
 
 import java.security.MessageDigest;
 
-import java.util.Dictionary;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.osgi.service.cm.Configuration;
-import org.osgi.service.cm.ConfigurationAdmin;
 
 /**
  * @author Renan Vasconcelos
@@ -36,8 +33,9 @@ public class OpenIdConnectProviderUtil {
 			String issuer, String tokenEndpoint)
 		throws Exception {
 
-		MessageDigest messageDigest = MessageDigest.getInstance("MD5");
 		URI issuerURI = URI.create(issuer);
+		MessageDigest messageDigest = MessageDigest.getInstance(
+			PropsValues.FIPS_ENABLED ? DigesterUtil.SHA_256 : DigesterUtil.MD5);
 
 		return StringBundler.concat(
 			issuerURI.getScheme(), "://", issuerURI.getAuthority(),
@@ -69,42 +67,6 @@ public class OpenIdConnectProviderUtil {
 		}
 
 		return oAuthClientEntryId;
-	}
-
-	public static Dictionary<String, Object>
-			getOpenIdConnectProviderConfigurationProperties(
-				String authServerWellKnownURI, String clientId, long companyId,
-				ConfigurationAdmin configurationAdmin, String issuer,
-				String tokenEndpoint)
-		throws Exception {
-
-		String filterString = null;
-
-		if (authServerWellKnownURI.equals(
-				generateLocalWellKnownURI(issuer, tokenEndpoint))) {
-
-			filterString = StringBundler.concat(
-				"(&(companyId=", companyId, ")(issuerURL=", issuer,
-				")(openIdConnectClientId=", clientId, ")(tokenEndpoint=",
-				tokenEndpoint, "))");
-		}
-		else {
-			filterString = StringBundler.concat(
-				"(&(companyId=", companyId, ")(discoveryEndpoint=",
-				authServerWellKnownURI, ")(openIdConnectClientId=", clientId,
-				"))");
-		}
-
-		Configuration[] configurations = configurationAdmin.listConfigurations(
-			filterString);
-
-		if (ArrayUtil.isEmpty(configurations)) {
-			return null;
-		}
-
-		Configuration configuration = configurations[0];
-
-		return configuration.getProperties();
 	}
 
 	public static Map<String, Long> removeOAuthClientEntryIdsByCompanyId(

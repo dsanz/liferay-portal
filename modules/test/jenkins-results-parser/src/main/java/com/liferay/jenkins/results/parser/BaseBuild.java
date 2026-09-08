@@ -176,7 +176,11 @@ public abstract class BaseBuild implements Build {
 		for (Invocation invocation :
 				_invocations.subList(0, _invocations.size() - 1)) {
 
-			badBuildURLs.add(invocation.getBuildURL());
+			String buildURL = invocation.getBuildURL();
+
+			if (buildURL != null) {
+				badBuildURLs.add(buildURL);
+			}
 		}
 
 		return badBuildURLs;
@@ -802,27 +806,20 @@ public abstract class BaseBuild implements Build {
 
 		Map<String, String> parameters = new HashMap<>(getParameters());
 
-		try {
-			parameters.put(
-				"token",
-				JenkinsResultsParserUtil.getBuildProperty(
-					"jenkins.authentication.token"));
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(
-				"Unable to get Jenkins authentication token", ioException);
-		}
-
 		for (Map.Entry<String, String> parameter : parameters.entrySet()) {
-			sb.append(parameter.getKey());
+			sb.append(
+				JenkinsResultsParserUtil.encodeURLParameterPart(
+					parameter.getKey()));
 			sb.append("=");
-			sb.append(parameter.getValue());
+			sb.append(
+				JenkinsResultsParserUtil.encodeURLParameterPart(
+					parameter.getValue()));
 			sb.append("&");
 		}
 
 		sb.deleteCharAt(sb.length() - 1);
 
-		return JenkinsResultsParserUtil.fixURL(sb.toString());
+		return sb.toString();
 	}
 
 	@Override
@@ -1192,11 +1189,7 @@ public abstract class BaseBuild implements Build {
 
 	@Override
 	public long getStatusDuration(String status) {
-		if (_statusDurations.containsKey(status)) {
-			return _statusDurations.get(status);
-		}
-
-		return 0;
+		return _statusDurations.getOrDefault(status, 0L);
 	}
 
 	@Override
@@ -1679,10 +1672,19 @@ public abstract class BaseBuild implements Build {
 
 	@Override
 	public void saveBuildURLInBuildDatabase() {
+		String buildURL = getBuildURL();
+		String jobVariant = getJobVariant();
+
+		if (JenkinsResultsParserUtil.isNullOrEmpty(buildURL) ||
+			JenkinsResultsParserUtil.isNullOrEmpty(jobVariant)) {
+
+			return;
+		}
+
 		BuildDatabase buildDatabase = getBuildDatabase();
 
 		buildDatabase.putProperty(
-			BUILD_URLS_PROPERTIES_KEY, getJobVariant(), getBuildURL(), false);
+			BUILD_URLS_PROPERTIES_KEY, jobVariant, buildURL, false);
 	}
 
 	@Override
@@ -2359,6 +2361,14 @@ public abstract class BaseBuild implements Build {
 		}
 	}
 
+	protected int getBadBuildCount() {
+		if (_invocations.size() <= 1) {
+			return 0;
+		}
+
+		return _invocations.size() - 1;
+	}
+
 	protected String getBaseGitRepositoryType() {
 		if (_jobName.startsWith("test-subrepository-acceptance-pullrequest")) {
 			return getBaseGitRepositoryName();
@@ -2442,9 +2452,12 @@ public abstract class BaseBuild implements Build {
 				Invocation previousInvocation = getPreviousInvocation();
 
 				if (previousInvocation != null) {
-					sb.append(" ");
+					String previousBuildURL = previousInvocation.getBuildURL();
 
-					sb.append(previousInvocation.getBuildURL());
+					if (previousBuildURL != null) {
+						sb.append(" ");
+						sb.append(previousBuildURL);
+					}
 
 					sb.append(" restarted at ");
 				}
@@ -3090,14 +3103,13 @@ public abstract class BaseBuild implements Build {
 				continue;
 			}
 
-			String[] nameValueArray = parameter.split("=");
+			String[] parameterParts = parameter.split("=", 2);
 
-			if (nameValueArray.length == 2) {
-				_parameters.put(nameValueArray[0], nameValueArray[1]);
-			}
-			else if (nameValueArray.length == 1) {
-				_parameters.put(nameValueArray[0], "");
-			}
+			_parameters.put(
+				JenkinsResultsParserUtil.decodeURLParameterPart(
+					parameterParts[0]),
+				JenkinsResultsParserUtil.decodeURLParameterPart(
+					parameterParts[1]));
 		}
 	}
 
@@ -3634,15 +3646,6 @@ public abstract class BaseBuild implements Build {
 			return;
 		}
 
-		try {
-			invocationURL = JenkinsResultsParserUtil.decode(invocationURL);
-		}
-		catch (UnsupportedEncodingException unsupportedEncodingException) {
-			throw new IllegalArgumentException(
-				"Unable to decode " + invocationURL,
-				unsupportedEncodingException);
-		}
-
 		Matcher invocationURLMatcher = _invocationURLPattern.matcher(
 			invocationURL);
 
@@ -3650,10 +3653,9 @@ public abstract class BaseBuild implements Build {
 			throw new RuntimeException("Invalid invocation URL");
 		}
 
-		setJobName(invocationURLMatcher.group("jobName"));
-
-		JenkinsCohort jenkinsCohort = JenkinsCohort.getInstance(
-			invocationURLMatcher.group("cohortName"));
+		setJobName(
+			JenkinsResultsParserUtil.decodeURLParameterPart(
+				invocationURLMatcher.group("jobName")));
 
 		loadParametersFromQueryString(
 			invocationURLMatcher.group("queryString"));
@@ -3661,6 +3663,9 @@ public abstract class BaseBuild implements Build {
 		String masterId = invocationURLMatcher.group("masterId");
 
 		if (JenkinsResultsParserUtil.isInteger(masterId)) {
+			JenkinsCohort jenkinsCohort = JenkinsCohort.getInstance(
+				invocationURLMatcher.group("cohortName"));
+
 			setJenkinsMaster(
 				JenkinsMaster.getInstance(
 					jenkinsCohort.getName() + "-" + masterId));

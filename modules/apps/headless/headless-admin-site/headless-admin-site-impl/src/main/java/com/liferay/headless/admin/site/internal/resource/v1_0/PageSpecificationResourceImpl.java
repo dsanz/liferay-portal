@@ -11,6 +11,7 @@ import com.liferay.headless.admin.site.dto.v1_0.ContentPageSpecification;
 import com.liferay.headless.admin.site.dto.v1_0.DisplayPageTemplate;
 import com.liferay.headless.admin.site.dto.v1_0.MasterPage;
 import com.liferay.headless.admin.site.dto.v1_0.PageSpecification;
+import com.liferay.headless.admin.site.dto.v1_0.PageSpecificationVersion;
 import com.liferay.headless.admin.site.dto.v1_0.PageTemplate;
 import com.liferay.headless.admin.site.dto.v1_0.Settings;
 import com.liferay.headless.admin.site.dto.v1_0.SitePage;
@@ -21,11 +22,14 @@ import com.liferay.headless.admin.site.internal.resource.v1_0.util.LayoutUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.ServiceContextUtil;
 import com.liferay.headless.admin.site.internal.resource.v1_0.util.SettingsUtil;
 import com.liferay.headless.admin.site.internal.util.EnabledUtil;
+import com.liferay.headless.admin.site.internal.util.SitePageUtil;
 import com.liferay.headless.admin.site.resource.v1_0.PageSpecificationResource;
 import com.liferay.headless.common.spi.service.context.ServiceContextBuilder;
 import com.liferay.headless.common.spi.util.GroupUtil;
 import com.liferay.info.item.InfoItemServiceRegistry;
 import com.liferay.layout.constants.LayoutTypeSettingsConstants;
+import com.liferay.layout.content.model.LayoutContentVersion;
+import com.liferay.layout.content.service.LayoutContentVersionService;
 import com.liferay.layout.page.template.constants.LayoutPageTemplateEntryTypeConstants;
 import com.liferay.layout.page.template.model.LayoutPageTemplateEntry;
 import com.liferay.layout.page.template.service.LayoutPageTemplateEntryLocalService;
@@ -264,6 +268,47 @@ public class PageSpecificationResourceImpl
 		}
 
 		return Page.of(_toPageSpecifications(layout));
+	}
+
+	@NestedField(
+		parentClass = PageSpecificationVersion.class,
+		value = "pageSpecification"
+	)
+	@Override
+	public PageSpecification
+			getSiteSitePagePageSpecificationVersionPageSpecification(
+				String siteExternalReferenceCode,
+				String sitePageExternalReferenceCode,
+				@NestedFieldId(value = "externalReferenceCode") String
+					pageSpecificationVersionExternalReferenceCode)
+		throws Exception {
+
+		EnabledUtil.checkPageSpecificationVersionEnabled(contextCompany);
+
+		long groupId = GroupUtil.getStagingAwareGroupId(
+			contextCompany.getCompanyId(), siteExternalReferenceCode);
+
+		Layout layout = SitePageUtil.getSitePageLayout(
+			groupId, sitePageExternalReferenceCode);
+
+		if (!layout.isTypeContent()) {
+			throw new IllegalArgumentException(
+				"The page must be a content page");
+		}
+
+		LayoutContentVersion layoutContentVersion =
+			_layoutContentVersionService.
+				getLayoutContentVersionByExternalReferenceCode(
+					pageSpecificationVersionExternalReferenceCode, groupId);
+
+		Layout draftLayout = layout.fetchDraftLayout();
+
+		if (layoutContentVersion.getPlid() != draftLayout.getPlid()) {
+			throw new IllegalArgumentException(
+				"The page specification version must belong to the site page");
+		}
+
+		return PageSpecification.unsafeToDTO(layoutContentVersion.getData());
 	}
 
 	@NestedField(parentClass = UtilityPage.class, value = "pageSpecifications")
@@ -517,6 +562,9 @@ public class PageSpecificationResourceImpl
 
 	@Reference
 	private InfoItemServiceRegistry _infoItemServiceRegistry;
+
+	@Reference
+	private LayoutContentVersionService _layoutContentVersionService;
 
 	@Reference
 	private LayoutLocalService _layoutLocalService;

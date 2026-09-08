@@ -556,6 +556,11 @@ public class CommerceTaxFixedRateAddressRelPersistenceImpl
 	}
 
 	@Override
+	protected String getPKFieldName() {
+		return "commerceTaxFixedRateAddressRelId";
+	}
+
+	@Override
 	protected String getSelectSQL() {
 		return _SQL_SELECT_COMMERCETAXFIXEDRATEADDRESSREL;
 	}
@@ -595,7 +600,7 @@ public class CommerceTaxFixedRateAddressRelPersistenceImpl
 				_SQL_SELECT_COMMERCETAXFIXEDRATEADDRESSREL_WHERE,
 				_SQL_COUNT_COMMERCETAXFIXEDRATEADDRESSREL_WHERE,
 				CommerceTaxFixedRateAddressRelModelImpl.ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"commerceTaxFixedRateAddressRel.", "commerceTaxMethodId",
 					FinderColumn.Type.LONG, "=", true, true,
@@ -626,7 +631,7 @@ public class CommerceTaxFixedRateAddressRelPersistenceImpl
 				_SQL_SELECT_COMMERCETAXFIXEDRATEADDRESSREL_WHERE,
 				_SQL_COUNT_COMMERCETAXFIXEDRATEADDRESSREL_WHERE,
 				CommerceTaxFixedRateAddressRelModelImpl.ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"commerceTaxFixedRateAddressRel.", "CPTaxCategoryId",
 					FinderColumn.Type.LONG, "=", true, true,
@@ -654,7 +659,7 @@ public class CommerceTaxFixedRateAddressRelPersistenceImpl
 				_SQL_SELECT_COMMERCETAXFIXEDRATEADDRESSREL_WHERE,
 				_SQL_COUNT_COMMERCETAXFIXEDRATEADDRESSREL_WHERE,
 				CommerceTaxFixedRateAddressRelModelImpl.ORDER_BY_JPQL,
-				_ENTITY_ALIAS_PREFIX, "",
+				_ENTITY_ALIAS_PREFIX, "", "", null,
 				new FinderColumn<>(
 					"commerceTaxFixedRateAddressRel.", "countryId",
 					FinderColumn.Type.LONG, "=", true, true,
@@ -717,9 +722,6 @@ public class CommerceTaxFixedRateAddressRelPersistenceImpl
 		_SQL_COUNT_COMMERCETAXFIXEDRATEADDRESSREL_WHERE =
 			"SELECT COUNT(commerceTaxFixedRateAddressRel) FROM CommerceTaxFixedRateAddressRel commerceTaxFixedRateAddressRel WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No CommerceTaxFixedRateAddressRel exists with the key {";
-
 	private static final Set<String> _badColumnNames = SetUtil.fromArray(
 		new String[] {"commerceTaxFixedRateAddressRelId"});
 
@@ -729,4 +731,4 @@ public class CommerceTaxFixedRateAddressRelPersistenceImpl
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1788022558
+// LIFERAY-SERVICE-BUILDER-HASH:-1090809685

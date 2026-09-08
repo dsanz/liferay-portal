@@ -8,6 +8,7 @@ package com.liferay.portal.vulcan.util;
 import com.liferay.petra.reflect.ReflectionUtil;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
+import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Http;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -49,18 +50,11 @@ public class UriInfoUtil {
 
 		uriBuilder.host(PortalUtil.getForwardedHost(httpServletRequest));
 
-		int port = PortalUtil.getForwardedPort(httpServletRequest);
-
 		boolean secure = PortalUtil.isSecure(httpServletRequest);
 
-		if (((port != Http.HTTP_PORT) && !secure) ||
-			((port != Http.HTTPS_PORT) && secure)) {
-
-			uriBuilder.port(port);
-		}
-		else {
-			uriBuilder.port(-1);
-		}
+		_setPort(
+			uriBuilder, PortalUtil.getForwardedPort(httpServletRequest),
+			secure);
 
 		if (secure) {
 			uriBuilder.scheme(Http.HTTPS);
@@ -333,6 +327,19 @@ public class UriInfoUtil {
 		return false;
 	}
 
+	private static void _setPort(
+		UriBuilder uriBuilder, int port, boolean secure) {
+
+		if (((port != Http.HTTP_PORT) && !secure) ||
+			((port != Http.HTTPS_PORT) && secure)) {
+
+			uriBuilder.port(port);
+		}
+		else {
+			uriBuilder.port(_NO_PORT);
+		}
+	}
+
 	private static UriBuilder _updateUriBuilder(UriBuilder uriBuilder) {
 		if (!Validator.isBlank(PortalUtil.getPathContext())) {
 			URI uri = uriBuilder.build();
@@ -344,12 +351,35 @@ public class UriInfoUtil {
 			}
 		}
 
+		String webServerHost = PropsUtil.get(PropsKeys.WEB_SERVER_HOST);
+
+		if (Validator.isNotNull(webServerHost)) {
+			uriBuilder.host(webServerHost);
+
+			boolean secure = _isSecure();
+
+			_setPort(
+				uriBuilder,
+				GetterUtil.getInteger(
+					PropsUtil.get(
+						secure ? PropsKeys.WEB_SERVER_HTTPS_PORT :
+							PropsKeys.WEB_SERVER_HTTP_PORT),
+					secure ? Http.HTTPS_PORT : Http.HTTP_PORT),
+				secure);
+
+			uriBuilder.scheme(secure ? Http.HTTPS : Http.HTTP);
+
+			return uriBuilder;
+		}
+
 		if (Validator.isNotNull(_getHost(uriBuilder)) && _isSecure()) {
 			uriBuilder.scheme(Http.HTTPS);
 		}
 
 		return uriBuilder;
 	}
+
+	private static final int _NO_PORT = -1;
 
 	private static volatile Field _uriBuilderHostField;
 

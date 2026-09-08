@@ -1,15 +1,14 @@
 # Database Migration Importer Tool
 
 This tool imports database schema and its data between different databases in
-the same network. This tool is a beta feature. It is experimental and not
-supported.
+the same network.
 
 ## Requirements
 
 - Source database must be DB2, MariaDB, MySQL, Oracle, or SQL Server
 - Target database must be PostgreSQL
 - Database user with read access to all partitions
-- Previous run of DBMigrationSchemaExport to generate SQL schema files
+- Previous database schema export from the Server Administration Database Migration section (or the Headless Admin Server API) to generate the SQL schema files
 
 ## Usage
 

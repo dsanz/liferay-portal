@@ -41,6 +41,7 @@ import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -121,6 +122,8 @@ public abstract class BaseRegionResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -685,7 +688,7 @@ public abstract class BaseRegionResourceTestCase {
 			countryId, randomRegion());
 
 		page = regionResource.getCountryRegionsPage(
-			countryId, null, null, Pagination.of(1, 10), null);
+			countryId, null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -949,18 +952,9 @@ public abstract class BaseRegionResourceTestCase {
 	public void testGraphQLGetCountryRegionsPage() throws Exception {
 		Long countryId = testGetCountryRegionsPage_getCountryId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"countryRegions",
-			new HashMap<String, Object>() {
-				{
-					put("countryId", countryId);
-					put("search", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetCountryRegionsPageCountryRegion_getGraphQLField(
+				countryId);
 
 		// No namespace
 
@@ -1015,6 +1009,25 @@ public abstract class BaseRegionResourceTestCase {
 			Arrays.asList(
 				RegionSerDes.toDTOs(
 					countryRegionsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetCountryRegionsPageCountryRegion_getGraphQLField(
+				Long countryId)
+		throws Exception {
+
+		return new GraphQLField(
+			"countryRegions",
+			new HashMap<String, Object>() {
+				{
+					put("countryId", countryId);
+					put("search", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -1456,7 +1469,7 @@ public abstract class BaseRegionResourceTestCase {
 		Region region2 = testGetRegionsPage_addRegion(randomRegion());
 
 		page = regionResource.getRegionsPage(
-			null, null, null, Pagination.of(1, 10), null);
+			null, null, null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -3163,4 +3176,4 @@ public abstract class BaseRegionResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1021205880
+// LIFERAY-REST-BUILDER-HASH:1277958029

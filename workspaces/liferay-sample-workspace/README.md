@@ -78,6 +78,14 @@ For `liferay-sample-etc-cron` and `liferay-sample-etc-spring-boot` the third typ
 
 	Build a custom element that uses `react`, `react-dom`, and `vite`.
 
+- *liferay-sample-custom-element-7*
+
+	Build a custom element that drives the search of a given frontend data set.
+
+- *liferay-sample-custom-element-8*
+
+	Build a custom element that takes the filtering of a given frontend data set over and offers a filter UI of its own.
+
 - *liferay-sample-editor-config-contributor-1*
 
 	Build a JavaScript function to configure CKEditor 4 and AlloyEditor editors.
@@ -85,6 +93,18 @@ For `liferay-sample-etc-cron` and `liferay-sample-etc-spring-boot` the third typ
 - *liferay-sample-editor-config-contributor-2*
 
 	Build a JavaScript function to add the CKEditor 5 WordCount plugin.
+
+- *liferay-sample-editor-config-contributor-3*
+
+	Add a custom timestamp button to CKEditor 5 as an example of a customer style plugin implementation without portal dependencies.
+
+- *liferay-sample-editor-config-contributor-4*
+
+	Add a custom style (Featured Content) to the CKEditor 5 Styles dropdown as an example of extending the editor's style definitions via a client extension.
+
+- *liferay-sample-editor-config-contributor-5*
+
+	Add a document link selector button to the CKEditor 5 link dialog as an example of augmenting the link plugin for document browsing without portal dependencies.
 
 - *liferay-sample-etc-cron*
 

@@ -5,14 +5,20 @@
 
 package com.liferay.fragment.web.internal.portlet.action;
 
+import com.liferay.depot.service.DepotEntryGroupRelLocalService;
+import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.fragment.constants.FragmentPortletKeys;
+import com.liferay.fragment.service.FragmentEntryLinkLocalService;
+import com.liferay.fragment.service.FragmentEntryLocalService;
 import com.liferay.fragment.web.internal.display.context.GroupFragmentEntryLinkDisplayContext;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCRenderCommand;
+import com.liferay.portal.kernel.service.GroupLocalService;
 
 import jakarta.portlet.RenderRequest;
 import jakarta.portlet.RenderResponse;
 
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * @author Jürgen Kappler
@@ -34,9 +40,26 @@ public class ViewGroupFragmentEntryUsagesMVCRenderCommand
 		renderRequest.setAttribute(
 			GroupFragmentEntryLinkDisplayContext.class.getName(),
 			new GroupFragmentEntryLinkDisplayContext(
-				renderRequest, renderResponse));
+				_depotEntryGroupRelLocalService, _depotEntryLocalService,
+				_fragmentEntryLinkLocalService, _fragmentEntryLocalService,
+				_groupLocalService, renderRequest, renderResponse));
 
 		return "/view_group_fragment_entry_usages.jsp";
 	}
+
+	@Reference
+	private DepotEntryGroupRelLocalService _depotEntryGroupRelLocalService;
+
+	@Reference
+	private DepotEntryLocalService _depotEntryLocalService;
+
+	@Reference
+	private FragmentEntryLinkLocalService _fragmentEntryLinkLocalService;
+
+	@Reference
+	private FragmentEntryLocalService _fragmentEntryLocalService;
+
+	@Reference
+	private GroupLocalService _groupLocalService;
 
 }

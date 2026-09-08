@@ -750,29 +750,6 @@ definition {
 	}
 
 	@priority = 4
-	test CopySearchInsightsJSON {
-		property portal.acceptance = "quarantine";
-
-		SearchPage.openSearchPage();
-
-		SearchPage.addWidgets(searchPortletList = "Search Insights");
-
-		SearchPage.searchEmbedded(searchTerm = "test");
-
-		Click(locator1 = "SearchPage#SEARCH_INSIGHTS_WIDGET_REQUEST_COPY_BUTTON");
-
-		WebContent.viewClipboardContent(text = "\"explain\": true, \"highlight\":");
-
-		SearchPage.openSearchPage();
-
-		SearchPage.searchEmbedded(searchTerm = "test");
-
-		Click(locator1 = "SearchPage#SEARCH_INSIGHTS_WIDGET_RESPONSE_COPY_BUTTON");
-
-		WebContent.viewClipboardContent(text = "\"_shards\": { \"total\":");
-	}
-
-	@priority = 4
 	test DisableEnterpriseSearch {
 		property license.required = "true";
 		property portal.suite.search.engine = "disable";
@@ -1373,35 +1350,6 @@ definition {
 		SearchResults.viewSearchResults(
 			searchAssetTitle = "WC Title",
 			searchAssetType = "Web Content Article");
-	}
-
-	@description = "This is a use case for LPS-112599."
-	@priority = 3
-	test NavigateToAssetEditPageViaSearchResults {
-		property portal.acceptance = "quarantine";
-
-		JSONWebcontent.addWebContent(
-			content = "WC Content",
-			groupName = "Guest",
-			title = "WC Title");
-
-		SearchPage.searchEmbedded(searchTerm = "WC");
-
-		SearchPage.gotoResultDetails(searchAssetTitle = "WC Title");
-
-		SearchPage.viewResultDetails(searchAssetTitle = "WC Title");
-
-		Click(locator1 = "SearchPage#ASSET_DETAILS_EDIT_BUTTON");
-
-		AssertVisible(locator1 = "WCEditWebContent#SIDEBAR");
-
-		SelectFrame.selectFrameNoLoading(
-			key_fieldLabel = "Content",
-			locator1 = "CKEditor#BODY_FIELD_IFRAME_WEB_CONTENT_ARTICLE");
-
-		AssertTextEquals.assertPartialText(
-			locator1 = "CKEditor#BODY",
-			value1 = "WC Content");
 	}
 
 	@priority = 4

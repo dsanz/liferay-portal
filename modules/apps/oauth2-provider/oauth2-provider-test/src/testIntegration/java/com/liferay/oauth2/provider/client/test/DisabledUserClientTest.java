@@ -12,6 +12,7 @@ import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalServiceUtil;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
@@ -47,7 +48,7 @@ public class DisabledUserClientTest extends BaseClientTestCase {
 		WebTarget webTarget = getWebTarget("/users");
 
 		Invocation.Builder builder = authorize(
-			webTarget.request(), getToken("oauthTestApplication"));
+			webTarget.request(), getToken(_CLIENT_ID));
 
 		Response response = builder.get();
 
@@ -55,8 +56,7 @@ public class DisabledUserClientTest extends BaseClientTestCase {
 
 		webTarget = getWebTarget("/users");
 
-		builder = authorize(
-			webTarget.request(), getToken("oauthTestApplicationDisabled"));
+		builder = authorize(webTarget.request(), getToken(_CLIENT_ID_DISABLED));
 
 		response = builder.get();
 
@@ -67,6 +67,11 @@ public class DisabledUserClientTest extends BaseClientTestCase {
 	protected BundleActivator getBundleActivator() {
 		return new DisabledUserTestPreparatorBundleActivator();
 	}
+
+	private static final String _CLIENT_ID = RandomTestUtil.randomString();
+
+	private static final String _CLIENT_ID_DISABLED =
+		RandomTestUtil.randomString();
 
 	private class DisabledUserTestPreparatorBundleActivator
 		extends BaseTestPreparatorBundleActivator {
@@ -87,9 +92,9 @@ public class DisabledUserClientTest extends BaseClientTestCase {
 			registerJaxRsApplication(new TestApplication(), "users", null);
 
 			createOAuth2Application(
-				companyId, user, "oauthTestApplication", Arrays.asList("GET"));
+				companyId, user, _CLIENT_ID, Arrays.asList("GET"));
 			createOAuth2Application(
-				companyId, disabledUser, "oauthTestApplicationDisabled",
+				companyId, disabledUser, _CLIENT_ID_DISABLED,
 				Arrays.asList("GET"));
 		}
 

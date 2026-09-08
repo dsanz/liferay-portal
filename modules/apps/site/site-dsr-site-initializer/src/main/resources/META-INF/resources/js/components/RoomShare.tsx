@@ -3,9 +3,12 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+import ClayAlert from '@clayui/alert';
 import ClayButton from '@clayui/button';
+import ClayDatePicker from '@clayui/date-picker';
 import DropDown from '@clayui/drop-down';
 import ClayIcon from '@clayui/icon';
+import ClayLabel from '@clayui/label';
 import ClayModal from '@clayui/modal';
 import MultiSelect from '@clayui/multi-select';
 import ClaySticker from '@clayui/sticker';
@@ -18,21 +21,76 @@ import {IRoomShareProps, IUserAccount} from '../common/utils/types';
 export const DSR_SITE_ROLES = [
 	{
 		description: Liferay.Language.get(
-			'users-can-view-content-leave-comments-and-upload-documents'
+			'users-can-manage-pages-and-documents-add-room-comments-and-share-the-room'
 		),
-		key: 'DSR Contributor',
-		label: Liferay.Language.get('contributor'),
+		key: 'DSR Room Collaborator',
+		label: Liferay.Language.get('room-collaborator'),
 	},
 	{
 		description: Liferay.Language.get(
-			'users-can-view-documents-and-leave-comments-but-cannot-upload-files'
+			'users-can-view-room-content-add-comments-upload-documents-and-share-the-room'
+		),
+		key: 'DSR Content Contributor',
+		label: Liferay.Language.get('content-contributor'),
+	},
+	{
+		description: Liferay.Language.get(
+			'users-can-view-documents-and-add-comments-but-cannot-upload-documents'
 		),
 		key: 'Site Member',
 		label: Liferay.Language.get('viewer'),
 	},
 ];
-
+const ASSIGNABLE_ROLE_KEYS_BY_ROLE_KEY: Record<string, string[]> = {
+	'DSR Content Contributor': ['DSR Content Contributor', 'Site Member'],
+	'DSR Room Collaborator': ['DSR Content Contributor', 'Site Member'],
+};
+const EXPIRATION_WARNING_DAYS = 7;
 const OWNER_ROLE_KEY = 'Site Owner';
+
+function getDateInputValue(membershipExpirationDate?: string): string {
+	if (!membershipExpirationDate) {
+		return '';
+	}
+
+	const date = new Date(membershipExpirationDate);
+
+	return [
+		String(date.getUTCFullYear()),
+		String(date.getUTCMonth() + 1).padStart(2, '0'),
+		String(date.getUTCDate()).padStart(2, '0'),
+	].join('-');
+}
+
+function getExpirationDateTime(date: string): string | undefined {
+	if (!date) {
+		return undefined;
+	}
+
+	const [year, month, day] = date.split('-').map(Number);
+
+	return new Date(Date.UTC(year, month - 1, day, 23, 59, 59)).toISOString();
+}
+
+function getExpirationLabel(membershipExpirationDate: string): string {
+	return new Date(membershipExpirationDate).toLocaleDateString(
+		Liferay.ThemeDisplay.getLanguageId().replace('_', '-'),
+		{
+			day: 'numeric',
+			month: 'short',
+			timeZone: 'UTC',
+			year: 'numeric',
+		}
+	);
+}
+
+function isExpiringSoon(membershipExpirationDate: string): boolean {
+	const daysUntilExpiration =
+		(new Date(membershipExpirationDate).getTime() - Date.now()) /
+		(1000 * 60 * 60 * 24);
+
+	return daysUntilExpiration <= EXPIRATION_WARNING_DAYS;
+}
 
 function getRoleLabel(roleKey: string | undefined): string {
 	const role = DSR_SITE_ROLES.find((option) => option.key === roleKey);
@@ -63,24 +121,61 @@ function getUserInitials(
 	return '';
 }
 
+function isCompleteDate(value: string): boolean {
+	return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
 function isEmailAddressValid(email: string) {
 	const emailRegex = /.+@.+\..+/i;
 
 	return emailRegex.test(email);
 }
 
-function RoomShare({closeModal, roomId}: IRoomShareProps) {
+function isPastDate(date: string): boolean {
+	if (!date) {
+		return false;
+	}
+
+	return date < getDateInputValue(new Date().toISOString());
+}
+
+function RoomShare({
+	canAssignAllRoles = false,
+	closeModal,
+	readOnly = false,
+	roomId,
+}: IRoomShareProps) {
+	const [bannerDismissed, setBannerDismissed] = useState(false);
+	const [editingDate, setEditingDate] = useState('');
+	const [editingDatePickerExpanded, setEditingDatePickerExpanded] =
+		useState(false);
+	const [editingUserId, setEditingUserId] = useState<number | null>(null);
 	const [emailAddresses, setEmailAddresses] = useState<
 		Array<{label: string; value: string}>
 	>([]);
+	const [expirationDate, setExpirationDate] = useState('');
+	const [expirationDatePickerExpanded, setExpirationDatePickerExpanded] =
+		useState(false);
 	const [loading, setLoading] = useState(false);
 	const [roleKey, setRoleKey] = useState('Site Member');
 	const [users, setUsers] = useState<IUserAccount[]>([]);
 	const currentUserId = Number(Liferay.ThemeDisplay.getUserId());
+	const minExpirationDate = getDateInputValue(new Date().toISOString());
 
-	const isOwner =
-		users.find((user) => user.id === currentUserId)?.roleKey ===
-		OWNER_ROLE_KEY;
+	const currentUserRoleKey = users.find(
+		(user) => user.id === currentUserId
+	)?.roleKey;
+
+	const canManageAllRoles =
+		canAssignAllRoles || currentUserRoleKey === OWNER_ROLE_KEY;
+
+	const assignableRoleKeys = canManageAllRoles
+		? DSR_SITE_ROLES.map((role) => role.key)
+		: ASSIGNABLE_ROLE_KEYS_BY_ROLE_KEY[currentUserRoleKey ?? ''] ?? [];
+
+	const assignableRoles = DSR_SITE_ROLES.filter((role) =>
+		assignableRoleKeys.includes(role.key)
+	);
 
 	const loadUsers = useCallback(async () => {
 		setLoading(true);
@@ -97,6 +192,8 @@ function RoomShare({closeModal, roomId}: IRoomShareProps) {
 					emailAddress: invitedMember.emailAddress,
 					id: invitedMember.id,
 					isInvitedMember: true,
+					membershipExpirationDate:
+						invitedMember.membershipExpirationDate,
 					name: '',
 					ownerId: invitedMember.ownerId,
 					roleKey: invitedMember.roleKey,
@@ -143,6 +240,17 @@ function RoomShare({closeModal, roomId}: IRoomShareProps) {
 			return;
 		}
 
+		if (isPastDate(expirationDate)) {
+			openToast({
+				message: Liferay.Language.get(
+					'expiration-date-must-be-a-future-date'
+				),
+				type: 'danger',
+			});
+
+			return;
+		}
+
 		setLoading(true);
 
 		try {
@@ -150,12 +258,15 @@ function RoomShare({closeModal, roomId}: IRoomShareProps) {
 				emails.map((email) =>
 					RoomService.addRoomUserAccount(roomId, {
 						emailAddress: email,
+						membershipExpirationDate:
+							getExpirationDateTime(expirationDate),
 						roleKey,
 					})
 				)
 			);
 
 			setEmailAddresses([]);
+			setExpirationDate('');
 			setRoleKey('Site Member');
 
 			openToast({
@@ -179,7 +290,7 @@ function RoomShare({closeModal, roomId}: IRoomShareProps) {
 		finally {
 			setLoading(false);
 		}
-	}, [emailAddresses, loadUsers, roleKey, roomId]);
+	}, [emailAddresses, expirationDate, loadUsers, roleKey, roomId]);
 
 	const handleRemoveUser = useCallback(
 		async (userId: number, isInvitedMember?: boolean) => {
@@ -215,29 +326,58 @@ function RoomShare({closeModal, roomId}: IRoomShareProps) {
 		[loadUsers, roomId]
 	);
 
-	const handleUpdateUserRole = useCallback(
-		async (
-			userId: number,
-			newRoleKey: string,
-			isInvitedMember?: boolean
-		) => {
+	const handleUpdateUser = useCallback(
+		async ({
+			isInvitedMember,
+			membershipExpirationDate,
+			roleKey,
+			userId,
+		}: {
+			isInvitedMember?: boolean;
+			membershipExpirationDate?: string;
+			roleKey?: string;
+			userId: number;
+		}) => {
+			if (isPastDate(getDateInputValue(membershipExpirationDate))) {
+				openToast({
+					message: Liferay.Language.get(
+						'expiration-date-must-be-a-future-date'
+					),
+					type: 'danger',
+				});
+
+				return;
+			}
+
 			setLoading(true);
 
 			try {
+				const userAccount = {
+					membershipExpirationDate,
+					roleKey,
+				};
+
 				if (isInvitedMember) {
-					await RoomService.updateRoomInvitedMember(roomId, userId, {
-						roleKey: newRoleKey,
-					});
+					await RoomService.updateRoomInvitedMember(
+						roomId,
+						userId,
+						userAccount
+					);
 				}
 				else {
-					await RoomService.updateRoomUserAccount(roomId, userId, {
-						roleKey: newRoleKey,
-					});
+					await RoomService.updateRoomUserAccount(
+						roomId,
+						userId,
+						userAccount
+					);
 				}
+
+				setEditingDate('');
+				setEditingUserId(null);
 
 				openToast({
 					message: Liferay.Language.get(
-						'role-was-updated-successfully'
+						'your-request-completed-successfully'
 					),
 					type: 'success',
 				});
@@ -262,88 +402,157 @@ function RoomShare({closeModal, roomId}: IRoomShareProps) {
 	}, [loadUsers]);
 
 	const canEditMember = (user: IUserAccount): boolean => {
-		if (user.roleKey === OWNER_ROLE_KEY) {
+		if (readOnly || user.roleKey === OWNER_ROLE_KEY) {
 			return false;
 		}
 
 		if (
-			isOwner ||
+			canManageAllRoles ||
 			(user.isInvitedMember && user.ownerId === currentUserId)
 		) {
 			return true;
 		}
 
-		return false;
+		return assignableRoles.some((role) => role.key === user.roleKey);
 	};
 
 	const renderContent = () => {
+		const expiringSoonCount = users.filter(
+			(user) =>
+				user.membershipExpirationDate &&
+				isExpiringSoon(user.membershipExpirationDate)
+		).length;
+
 		return (
 			<>
+				{!bannerDismissed && expiringSoonCount > 0 && (
+					<ClayAlert
+						displayType="info"
+						onClose={() => setBannerDismissed(true)}
+					>
+						{Liferay.Util.sub(
+							expiringSoonCount === 1
+								? Liferay.Language.get(
+										'x-user-has-access-expiring-within-x-days'
+									)
+								: Liferay.Language.get(
+										'x-users-have-access-expiring-within-x-days'
+									),
+							String(expiringSoonCount),
+							String(EXPIRATION_WARNING_DAYS)
+						)}
+					</ClayAlert>
+				)}
+
 				<div className="mb-4">
 					<label className="d-block mb-3">
 						{Liferay.Language.get('email-addresses')}
+
+						<ClayIcon
+							className="ml-1 reference-mark"
+							symbol="asterisk"
+						/>
 					</label>
 
-					<div className="align-items-end d-flex">
-						<div className="dsr-site-role-input flex-grow-1 mr-3 position-relative">
-							<MultiSelect
-								allowDuplicateValues={false}
-								autoFocus={true}
-								data-testid="emailAddressesInput"
-								disabled={loading}
-								inputName="userEmailAddresses"
-								items={emailAddresses}
-								onItemsChange={(emails: Array<any>) =>
-									setEmailAddresses(emails)
-								}
-								placeholder={Liferay.Language.get(
-									'type-a-comma-or-press-enter-to-input-email-addresses'
+					<div className="dsr-site-role-input position-relative">
+						<MultiSelect
+							allowDuplicateValues={false}
+							autoFocus={true}
+							data-testid="emailAddressesInput"
+							disabled={loading || readOnly}
+							inputName="userEmailAddresses"
+							items={emailAddresses}
+							onItemsChange={(emails: Array<any>) =>
+								setEmailAddresses(emails)
+							}
+							placeholder={Liferay.Language.get(
+								'type-a-comma-or-press-enter-to-input-email-addresses'
+							)}
+						/>
+
+						<DropDown
+							closeOnClick={true}
+							trigger={
+								<ClayButton
+									className="dsr-site-role-trigger-button"
+									data-testid="roleKeyButton"
+									disabled={loading || readOnly}
+									displayType="secondary"
+									size="xs"
+								>
+									{getRoleLabel(roleKey)}
+								</ClayButton>
+							}
+							triggerIcon="caret-bottom"
+						>
+							<DropDown.ItemList items={assignableRoles}>
+								{(item: any) => (
+									<DropDown.Item
+										data-testid={`roleKeyItem_${item.label}`}
+										key={item.key}
+										onClick={() => setRoleKey(item.key)}
+									>
+										<div className="font-weight-semi-bold">
+											{item.label}
+										</div>
+
+										<div className="small text-secondary">
+											{item.description}
+										</div>
+									</DropDown.Item>
 								)}
+							</DropDown.ItemList>
+						</DropDown>
+					</div>
+
+					<div className="align-items-center border d-flex justify-content-between mt-3 px-3 py-2 rounded">
+						<span>
+							<ClayIcon
+								className="mr-2 text-secondary"
+								symbol="calendar"
 							/>
 
-							<DropDown
-								closeOnClick={true}
-								trigger={
-									<ClayButton
-										className="dsr-site-role-trigger-button"
-										data-testid="roleKeyButton"
-										disabled={loading}
-										displayType="secondary"
-										size="xs"
-									>
-										{getRoleLabel(roleKey)}
-									</ClayButton>
+							{Liferay.Language.get('access-valid-until')}
+
+							<span className="ml-2 text-2 text-secondary">
+								{Liferay.Language.get('optional')}
+							</span>
+						</span>
+
+						<div className="dsr-expiration-date-picker">
+							<ClayDatePicker
+								disabled={loading || readOnly}
+								expanded={expirationDatePickerExpanded}
+								min={minExpirationDate}
+								onChange={(value: string) => {
+									setExpirationDate(value);
+
+									if (isCompleteDate(value)) {
+										setExpirationDatePickerExpanded(false);
+									}
+								}}
+								onExpandedChange={
+									setExpirationDatePickerExpanded
 								}
-								triggerIcon="caret-bottom"
-							>
-								<DropDown.ItemList items={DSR_SITE_ROLES}>
-									{(item: any) => (
-										<DropDown.Item
-											data-testid={`roleKeyItem_${item.label}`}
-											key={item.key}
-											onClick={() => setRoleKey(item.key)}
-										>
-											<div className="font-weight-semi-bold">
-												{item.label}
-											</div>
-
-											<div className="small text-secondary">
-												{item.description}
-											</div>
-										</DropDown.Item>
-									)}
-								</DropDown.ItemList>
-							</DropDown>
+								placeholder="YYYY-MM-DD"
+								time={false}
+								value={expirationDate}
+								years={{
+									end: new Date().getFullYear() + 10,
+									start: new Date().getFullYear(),
+								}}
+							/>
 						</div>
-
-						<ClayButton
-							data-testid="inviteButton"
-							disabled={loading}
-							onClick={handleInvite}
-						>
-							{Liferay.Language.get('invite')}
-						</ClayButton>
 					</div>
+
+					<ClayButton
+						className="mt-3"
+						data-testid="inviteButton"
+						disabled={loading || readOnly || !emailAddresses.length}
+						onClick={handleInvite}
+					>
+						{Liferay.Language.get('invite')}
+					</ClayButton>
 				</div>
 
 				<div className="mt-4">
@@ -400,73 +609,224 @@ function RoomShare({closeModal, roomId}: IRoomShareProps) {
 										<span className="text-secondary">
 											{Liferay.Language.get('owner')}
 										</span>
-									) : canEditMember(user) ? (
-										<DropDown
-											closeOnClick
-											trigger={
-												<ClayButton
-													className="text-secondary"
-													disabled={loading}
-													displayType="unstyled"
-												>
-													{getRoleLabel(user.roleKey)}
+									) : (
+										<>
+											{editingUserId === user.id ? (
+												<div className="align-items-center d-flex mr-3">
+													<div className="dsr-expiration-date-picker">
+														<ClayDatePicker
+															disabled={loading}
+															expanded={
+																editingDatePickerExpanded
+															}
+															min={
+																minExpirationDate
+															}
+															onChange={(
+																value: string
+															) => {
+																setEditingDate(
+																	value
+																);
 
-													<ClayIcon
-														className="ml-1"
-														symbol="caret-bottom"
-													/>
-												</ClayButton>
-											}
-										>
-											<DropDown.ItemList
-												items={DSR_SITE_ROLES.filter(
-													(role) =>
-														role.key !==
-														user.roleKey
-												)}
-											>
-												{(item: any) => (
-													<DropDown.Item
-														key={item.key}
+																if (
+																	isCompleteDate(
+																		value
+																	)
+																) {
+																	setEditingDatePickerExpanded(
+																		false
+																	);
+																}
+															}}
+															onExpandedChange={
+																setEditingDatePickerExpanded
+															}
+															placeholder="YYYY-MM-DD"
+															time={false}
+															value={editingDate}
+															years={{
+																end:
+																	new Date().getFullYear() +
+																	10,
+																start: new Date().getFullYear(),
+															}}
+														/>
+													</div>
+
+													<ClayButton
+														className="ml-2 text-secondary"
+														data-testid={`confirmExpiration_${user.id}`}
+														disabled={loading}
+														displayType="unstyled"
 														onClick={() =>
-															handleUpdateUserRole(
-																user.id,
-																item.key,
-																user.isInvitedMember
-															)
+															handleUpdateUser({
+																isInvitedMember:
+																	user.isInvitedMember,
+																membershipExpirationDate:
+																	getExpirationDateTime(
+																		editingDate
+																	),
+																roleKey:
+																	user.roleKey,
+																userId: user.id,
+															})
 														}
 													>
-														<div className="font-weight-semi-bold">
-															{item.label}
-														</div>
+														<ClayIcon symbol="check" />
+													</ClayButton>
 
-														<div className="small text-secondary">
-															{item.description}
-														</div>
-													</DropDown.Item>
-												)}
-											</DropDown.ItemList>
-										</DropDown>
-									) : (
-										<span className="text-secondary">
-											{getRoleLabel(user.roleKey)}
-										</span>
-									)}
+													<ClayButton
+														className="ml-3 text-secondary"
+														disabled={loading}
+														displayType="unstyled"
+														onClick={() => {
+															setEditingDate('');
+															setEditingUserId(
+																null
+															);
+														}}
+													>
+														<ClayIcon symbol="times" />
+													</ClayButton>
+												</div>
+											) : (
+												<div className="align-items-center d-flex mr-3">
+													{user.membershipExpirationDate ? (
+														<ClayLabel
+															className="dsr-expiration-label"
+															displayType={
+																isExpiringSoon(
+																	user.membershipExpirationDate
+																)
+																	? 'warning'
+																	: 'info'
+															}
+														>
+															{isExpiringSoon(
+																user.membershipExpirationDate
+															) && (
+																<ClayIcon
+																	className="mr-1"
+																	symbol="warning-full"
+																/>
+															)}
 
-									{canEditMember(user) && (
-										<ClayButton
-											className="ml-3 text-secondary"
-											disabled={loading}
-											displayType="unstyled"
-											onClick={() =>
-												handleRemoveUser(
-													user.id,
-													user.isInvitedMember
-												)
-											}
-										>
-											<ClayIcon symbol="trash" />
-										</ClayButton>
+															{getExpirationLabel(
+																user.membershipExpirationDate
+															)}
+														</ClayLabel>
+													) : (
+														<span className="text-secondary">
+															{Liferay.Language.get(
+																'no-expiration'
+															)}
+														</span>
+													)}
+
+													{canEditMember(user) && (
+														<ClayButton
+															className="ml-2 text-secondary"
+															data-testid={`editExpiration_${user.id}`}
+															disabled={loading}
+															displayType="unstyled"
+															onClick={() => {
+																setEditingDate(
+																	getDateInputValue(
+																		user.membershipExpirationDate
+																	)
+																);
+																setEditingUserId(
+																	user.id
+																);
+															}}
+														>
+															<ClayIcon symbol="pencil" />
+														</ClayButton>
+													)}
+												</div>
+											)}
+
+											{canEditMember(user) ? (
+												<DropDown
+													closeOnClick
+													trigger={
+														<ClayButton
+															className="text-secondary"
+															disabled={loading}
+															displayType="unstyled"
+														>
+															{getRoleLabel(
+																user.roleKey
+															)}
+
+															<ClayIcon
+																className="ml-1"
+																symbol="caret-bottom"
+															/>
+														</ClayButton>
+													}
+												>
+													<DropDown.ItemList
+														items={assignableRoles.filter(
+															(role) =>
+																role.key !==
+																user.roleKey
+														)}
+													>
+														{(item: any) => (
+															<DropDown.Item
+																data-testid={`memberRoleKeyItem_${item.label}`}
+																key={item.key}
+																onClick={() =>
+																	handleUpdateUser(
+																		{
+																			isInvitedMember:
+																				user.isInvitedMember,
+																			membershipExpirationDate:
+																				user.membershipExpirationDate,
+																			roleKey:
+																				item.key,
+																			userId: user.id,
+																		}
+																	)
+																}
+															>
+																<div className="font-weight-semi-bold">
+																	{item.label}
+																</div>
+
+																<div className="small text-secondary">
+																	{
+																		item.description
+																	}
+																</div>
+															</DropDown.Item>
+														)}
+													</DropDown.ItemList>
+												</DropDown>
+											) : (
+												<span className="text-secondary">
+													{getRoleLabel(user.roleKey)}
+												</span>
+											)}
+
+											{canEditMember(user) && (
+												<ClayButton
+													className="ml-3 text-secondary"
+													disabled={loading}
+													displayType="unstyled"
+													onClick={() =>
+														handleRemoveUser(
+															user.id,
+															user.isInvitedMember
+														)
+													}
+												>
+													<ClayIcon symbol="trash" />
+												</ClayButton>
+											)}
+										</>
 									)}
 								</div>
 							</div>

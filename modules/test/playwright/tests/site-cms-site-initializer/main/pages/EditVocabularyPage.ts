@@ -11,17 +11,18 @@ import {PORTLET_URLS} from '../../../../utils/portletUrls';
 export class EditVocabularyPage {
 	readonly page: Page;
 
-	private readonly descriptionInput: Locator;
-	private readonly externalReferenceCodeInput: Locator;
-	private readonly nameInput: Locator;
-
 	readonly assetTypeCheckbox: Locator;
 	readonly assetTypeSelector: Locator;
 	readonly assetTypeToggle: Locator;
 	readonly assetTypesButton: Locator;
+	readonly descriptionInput: Locator;
+	readonly externalReferenceCodeInput: Locator;
 	readonly generalButton: Locator;
 	readonly multiSelectToggle: Locator;
+	readonly nameInput: Locator;
 	readonly newButton: Locator;
+	readonly projectCheckbox: Locator;
+	readonly projectSelector: Locator;
 	readonly saveButton: Locator;
 	readonly spaceCheckbox: Locator;
 	readonly spaceSelector: Locator;
@@ -48,12 +49,18 @@ export class EditVocabularyPage {
 		this.newButton = this.page.getByRole('button', {
 			name: 'New Vocabulary',
 		});
+		this.projectCheckbox = this.page.getByRole('checkbox', {
+			name: 'Make this vocabulary available in all projects',
+		});
+		this.projectSelector = this.page.getByLabel('Project Selector');
 		this.saveButton = this.page.getByRole('button', {name: 'Save'});
 		this.spaceCheckbox = this.page.getByRole('checkbox', {
 			name: 'Make this vocabulary available in all spaces',
 		});
 		this.spaceSelector = this.page.getByLabel('Space Selector');
-		this.visibilitySelector = this.page.getByLabel('Visibility');
+		this.visibilitySelector = this.page.getByLabel('Visibility', {
+			exact: true,
+		});
 	}
 
 	async goto() {
@@ -112,6 +119,22 @@ export class EditVocabularyPage {
 		await this.nameInput.fill(name);
 	}
 
+	async openProjectSelector() {
+		await expect(async () => {
+			if (await this.projectCheckbox.isChecked({timeout: 1000})) {
+				await this.projectCheckbox.click({timeout: 1000});
+			}
+
+			await expect(this.projectCheckbox).not.toBeChecked({
+				timeout: 1000,
+			});
+
+			await expect(this.projectSelector).toBeEnabled({timeout: 1000});
+		}).toPass();
+
+		await this.projectSelector.click();
+	}
+
 	async selectAssetTypes(assetType: string) {
 		if (await this.assetTypeCheckbox.isChecked()) {
 			await this.assetTypeCheckbox.click();
@@ -124,6 +147,17 @@ export class EditVocabularyPage {
 		await this.page.getByText(assetType).click();
 	}
 
+	async selectProjects(projectName: string) {
+		await this.openProjectSelector();
+
+		const option = this.page
+			.getByRole('option')
+			.filter({hasText: projectName});
+
+		await option.scrollIntoViewIfNeeded();
+		await option.click();
+	}
+
 	async selectSpaces(spaceName: string) {
 		if (await this.spaceCheckbox.isChecked()) {
 			await this.spaceCheckbox.click();
@@ -133,6 +167,11 @@ export class EditVocabularyPage {
 
 		await this.spaceSelector.click();
 
-		await this.page.getByText(spaceName).click();
+		const option = this.page
+			.getByRole('option')
+			.filter({hasText: spaceName});
+
+		await option.scrollIntoViewIfNeeded();
+		await option.click();
 	}
 }

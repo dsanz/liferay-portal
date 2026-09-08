@@ -7,6 +7,7 @@
 			import {AssetType} from './AssetType';
 			import {Creator} from './Creator';
 			import {Permission} from './Permission';
+			import {Project} from './Project';
 
 /**
  * @author Javier Gamarra
@@ -34,8 +35,10 @@
 			"name_i18n"?: {[key: string]: string;};
 			"numberOfTaxonomyCategories"?: number;
 			"permissions"?: Array<Permission>;
+			"projects"?: Array<Project>;
 			"siteExternalReferenceCode"?: string;
 			"siteId"?: number;
+			"system"?: boolean;
 			"uuid"?: string;
 			"viewableBy"?: 'Anyone' | 'Members' | 'Owner';
 			"visibilityType"?: 'EMPTY' | 'INTERNAL' | 'PUBLIC';
@@ -133,6 +136,11 @@
 			type: "Array<Permission>",
 		},
 		{
+			baseName: "projects",
+			name: "projects",
+			type: "Array<Project>",
+		},
+		{
 			baseName: "siteExternalReferenceCode",
 			name: "siteExternalReferenceCode",
 			type: "string",
@@ -141,6 +149,11 @@
 			baseName: "siteId",
 			name: "siteId",
 			type: "number",
+		},
+		{
+			baseName: "system",
+			name: "system",
+			type: "boolean",
 		},
 		{
 			baseName: "uuid",

@@ -1,0 +1,386 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+package com.liferay.account.validator.vies.internal;
+
+import com.liferay.account.configuration.AccountEntryValidatorConfiguration;
+import com.liferay.account.constants.AccountConstants;
+import com.liferay.account.constants.AccountEntryValidatorConstants;
+import com.liferay.account.model.AccountEntry;
+import com.liferay.account.validator.AccountEntryValidator;
+import com.liferay.account.validator.AccountEntryValidatorResult;
+import com.liferay.account.validator.BaseAccountEntryValidator;
+import com.liferay.account.validator.vies.configuration.VIESAccountEntryValidatorConfiguration;
+import com.liferay.account.validator.vies.internal.client.VIESClient;
+import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
+import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.json.JSONArray;
+import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.json.JSONUtil;
+import com.liferay.portal.kernel.model.Address;
+import com.liferay.portal.kernel.model.Country;
+import com.liferay.portal.kernel.service.AddressLocalService;
+import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.Validator;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+
+/**
+ * @author Crescenzo Rega
+ */
+@Component(
+	property = {
+		"account.entry.validator.key=" + VIESAccountEntryValidator.KEY,
+		"account.entry.validator.priority:Integer=10"
+	},
+	service = AccountEntryValidator.class
+)
+public class VIESAccountEntryValidator extends BaseAccountEntryValidator {
+
+	public static final String KEY = "vies";
+
+	@Override
+	public AccountEntryValidatorResult doValidate(
+			AccountEntry accountEntry, JSONObject jsonObject)
+		throws PortalException {
+
+		if (jsonObject == null) {
+			return null;
+		}
+
+		if (accountEntry == null) {
+			return AccountEntryValidatorResult.builder(
+				null
+			).additionalProps(
+				_getAdditionalPropsJSONObject(accountEntry, jsonObject)
+			).resultMessage(
+				"vies-missing-account-error"
+			).resultStatus(
+				AccountEntryValidatorConstants.RESULT_FAILURE
+			).build();
+		}
+
+		VIESAccountEntryValidatorConfiguration
+			viesAccountEntryValidatorConfiguration =
+				_getVIESAccountEntryValidatorConfiguration(
+					accountEntry, jsonObject);
+
+		if (viesAccountEntryValidatorConfiguration == null) {
+			return null;
+		}
+
+		Address address = _addressLocalService.fetchAddress(
+			jsonObject.getLong("billingAddressId", 0));
+
+		if (address == null) {
+			return null;
+		}
+
+		String classPK = getClassPK(accountEntry, jsonObject);
+
+		if (!_isAccountEntryAddress(accountEntry, address, jsonObject)) {
+			return AccountEntryValidatorResult.builder(
+				classPK
+			).additionalProps(
+				_getAdditionalPropsJSONObject(accountEntry, jsonObject)
+			).resultMessage(
+				"vies-invalid-billing-address-error"
+			).resultStatus(
+				AccountEntryValidatorConstants.RESULT_FAILURE
+			).build();
+		}
+
+		Country country = address.getCountry();
+
+		if (!_isValidCountry(country, viesAccountEntryValidatorConfiguration)) {
+			return null;
+		}
+
+		String taxIdNumber = accountEntry.getTaxIdNumber();
+
+		if (Validator.isNull(taxIdNumber)) {
+			return AccountEntryValidatorResult.builder(
+				classPK
+			).additionalProps(
+				_getAdditionalPropsJSONObject(accountEntry, jsonObject)
+			).resultMessage(
+				"the-account-is-missing-a-tax-id"
+			).resultStatus(
+				AccountEntryValidatorConstants.RESULT_FAILURE
+			).build();
+		}
+
+		String countryA2 = country.getA2();
+
+		JSONObject requestJSONObject = JSONUtil.put(
+			"countryCode", countryA2
+		).put(
+			"vatNumber", taxIdNumber
+		);
+
+		VIESClient viesClient = new VIESClient();
+
+		JSONObject responseJSONObject = viesClient.checkVatNumber(
+			accountEntry.getCompanyId(), requestJSONObject);
+
+		JSONObject additionalPropsJSONObject = _getAdditionalPropsJSONObject(
+			accountEntry, jsonObject
+		).put(
+			"request", requestJSONObject
+		).put(
+			"response", responseJSONObject
+		);
+
+		JSONArray errorWrappersJSONArray = responseJSONObject.getJSONArray(
+			"errorWrappers");
+
+		if ((errorWrappersJSONArray != null) &&
+			(errorWrappersJSONArray.length() > 0)) {
+
+			JSONObject errorWrapperJSONObject =
+				errorWrappersJSONArray.getJSONObject(0);
+
+			return _getAccountEntryValidatorResult(
+				additionalPropsJSONObject, classPK,
+				errorWrapperJSONObject.getString("error"));
+		}
+
+		if (responseJSONObject.getBoolean("valid", false)) {
+			return AccountEntryValidatorResult.builder(
+				classPK
+			).additionalProps(
+				additionalPropsJSONObject
+			).resultStatus(
+				AccountEntryValidatorConstants.RESULT_SUCCESS
+			).build();
+		}
+
+		return AccountEntryValidatorResult.builder(
+			classPK
+		).additionalProps(
+			additionalPropsJSONObject
+		).resultMessage(
+			"vies-unexpected-error"
+		).resultStatus(
+			AccountEntryValidatorConstants.RESULT_FAILURE
+		).build();
+	}
+
+	@Override
+	public AccountEntryValidatorConfiguration
+			getAccountEntryValidatorConfiguration(long companyId)
+		throws PortalException {
+
+		return _configurationProvider.getCompanyConfiguration(
+			VIESAccountEntryValidatorConfiguration.class, companyId);
+	}
+
+	@Override
+	public String getClassPK(AccountEntry accountEntry, JSONObject jsonObject)
+		throws PortalException {
+
+		VIESAccountEntryValidatorConfiguration
+			viesAccountEntryValidatorConfiguration =
+				_getVIESAccountEntryValidatorConfiguration(
+					accountEntry, jsonObject);
+
+		if (viesAccountEntryValidatorConfiguration == null) {
+			return null;
+		}
+
+		long billingAddressId = jsonObject.getLong("billingAddressId", 0);
+
+		if (billingAddressId == 0) {
+			return null;
+		}
+
+		return accountEntry.getAccountEntryId() + "_" + billingAddressId;
+	}
+
+	@Override
+	public Set<String> getResultMessages() {
+		Set<String> resultMessages = new HashSet<>(super.getResultMessages());
+
+		resultMessages.add("the-account-is-missing-a-tax-id");
+		resultMessages.add("vies-invalid-billing-address-error");
+		resultMessages.add("vies-missing-account-error");
+		resultMessages.addAll(_resultMessages.values());
+
+		return resultMessages;
+	}
+
+	@Override
+	public boolean isSkipped(AccountEntry accountEntry, JSONObject jsonObject)
+		throws PortalException {
+
+		if ((accountEntry == null) || (jsonObject == null)) {
+			return false;
+		}
+
+		VIESAccountEntryValidatorConfiguration
+			viesAccountEntryValidatorConfiguration =
+				_getVIESAccountEntryValidatorConfiguration(
+					accountEntry, jsonObject);
+
+		if (viesAccountEntryValidatorConfiguration == null) {
+			return true;
+		}
+
+		Address address = _addressLocalService.fetchAddress(
+			jsonObject.getLong("billingAddressId", 0));
+
+		if (address == null) {
+			return false;
+		}
+
+		return !_isValidCountry(
+			address.getCountry(), viesAccountEntryValidatorConfiguration);
+	}
+
+	private AccountEntryValidatorResult _getAccountEntryValidatorResult(
+		JSONObject additionalPropsJSONObject, String classPK, String error) {
+
+		String resultMessage = _resultMessages.getOrDefault(
+			error, "vies-unexpected-error");
+
+		String resultStatus = AccountEntryValidatorConstants.RESULT_WARNING;
+
+		if (error.equals("INVALID_INPUT") || error.equals("VAT_BLOCKED")) {
+			resultStatus = AccountEntryValidatorConstants.RESULT_FAILURE;
+		}
+
+		return AccountEntryValidatorResult.builder(
+			classPK
+		).additionalProps(
+			additionalPropsJSONObject
+		).resultMessage(
+			resultMessage
+		).resultStatus(
+			resultStatus
+		).build();
+	}
+
+	private JSONObject _getAdditionalPropsJSONObject(
+		AccountEntry accountEntry, JSONObject jsonObject) {
+
+		long accountEntryId = 0;
+
+		if (accountEntry != null) {
+			accountEntryId = accountEntry.getAccountEntryId();
+		}
+
+		return JSONUtil.put(
+			"accountEntryId", accountEntryId
+		).put(
+			"billingAddressId", jsonObject.getLong("billingAddressId", 0)
+		).put(
+			"commerceOrderId", jsonObject.getLong("commerceOrderId", 0)
+		);
+	}
+
+	private VIESAccountEntryValidatorConfiguration
+			_getVIESAccountEntryValidatorConfiguration(
+				AccountEntry accountEntry, JSONObject jsonObject)
+		throws PortalException {
+
+		if ((accountEntry == null) || (jsonObject == null) ||
+			!Objects.equals(
+				accountEntry.getType(),
+				AccountConstants.ACCOUNT_ENTRY_TYPE_BUSINESS)) {
+
+			return null;
+		}
+
+		VIESAccountEntryValidatorConfiguration
+			viesAccountEntryValidatorConfiguration =
+				(VIESAccountEntryValidatorConfiguration)
+					getAccountEntryValidatorConfiguration(
+						accountEntry.getCompanyId());
+
+		if ((viesAccountEntryValidatorConfiguration == null) ||
+			!viesAccountEntryValidatorConfiguration.enabled()) {
+
+			return null;
+		}
+
+		return viesAccountEntryValidatorConfiguration;
+	}
+
+	private boolean _isAccountEntryAddress(
+		AccountEntry accountEntry, Address address, JSONObject jsonObject) {
+
+		String className = address.getClassName();
+		long classPK = address.getClassPK();
+
+		if (Objects.equals(AccountEntry.class.getName(), className)) {
+			if (classPK == accountEntry.getAccountEntryId()) {
+				return true;
+			}
+
+			return false;
+		}
+
+		if (Objects.equals(
+				className, "com.liferay.commerce.model.CommerceOrder")) {
+
+			if (classPK == jsonObject.getLong("commerceOrderId", 0)) {
+				return true;
+			}
+
+			return false;
+		}
+
+		return false;
+	}
+
+	private boolean _isValidCountry(
+		Country country,
+		VIESAccountEntryValidatorConfiguration
+			viesAccountEntryValidatorConfiguration) {
+
+		if (country == null) {
+			return false;
+		}
+
+		String countryA2 = country.getA2();
+
+		return ArrayUtil.contains(
+			viesAccountEntryValidatorConfiguration.countryCodes(), countryA2);
+	}
+
+	@Reference
+	private AddressLocalService _addressLocalService;
+
+	@Reference
+	private ConfigurationProvider _configurationProvider;
+
+	private final Map<String, String> _resultMessages = HashMapBuilder.put(
+		"GLOBAL_MAX_CONCURRENT_REQ", "vies-unexpected-error"
+	).put(
+		"INVALID_INPUT", "vies-invalid-input-error"
+	).put(
+		"IO_ERROR", "vies-unexpected-error"
+	).put(
+		"IP_BLOCKED", "vies-unexpected-error"
+	).put(
+		"MS_MAX_CONCURRENT_REQ", "vies-unexpected-error"
+	).put(
+		"MS_UNAVAILABLE", "vies-unexpected-error"
+	).put(
+		"TECHNICAL_ERROR", "vies-unexpected-error"
+	).put(
+		"TIMEOUT", "vies-unexpected-error"
+	).put(
+		"VAT_BLOCKED", "vies-vat-blocked-error"
+	).build();
+
+}

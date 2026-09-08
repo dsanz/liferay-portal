@@ -12,7 +12,12 @@ public class ExportImportConstants {
 
 	public static final String EXPORT_IMPORT_SCHEMA_VERSION = "4.0.0";
 
-	public static final String SECTION_KEY_CONTENT =
+	public static final String SECTION_KEY_CONFIGURATION =
+		"category.site_administration.configuration";
+
+	public static final String SECTION_KEY_CONTENT = "category.content";
+
+	public static final String SECTION_KEY_CONTENT_AND_DATA =
 		"category.site_administration.content";
 
 	public static final String SECTION_KEY_DESIGN =

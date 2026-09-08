@@ -5,6 +5,7 @@
 
 import {ApiHelper} from '@liferay/site-cms-site-initializer';
 
+import {ROOM_STATUS} from '../utils/roomStatus';
 import {
 	IAccount,
 	IInvitedMember,
@@ -44,7 +45,11 @@ async function addRoom({
 
 async function addRoomUserAccount(
 	roomId: number,
-	userAccount: {emailAddress: string; roleKey?: string}
+	userAccount: {
+		emailAddress: string;
+		membershipExpirationDate?: string;
+		roleKey?: string;
+	}
 ): Promise<IUserAccount> {
 	const {data, error} = await ApiHelper.post<IUserAccount>(
 		`${DSR_PATH}/${roomId}/user-accounts`,
@@ -58,15 +63,17 @@ async function addRoomUserAccount(
 	throw new Error(error);
 }
 
-async function checkSitePages(
-	siteExternalReferenceCode: string
-): Promise<{items: Array<any>}> {
-	const url = `/o/headless-admin-site/v1.0/sites/${siteExternalReferenceCode}/site-pages`;
-
-	const {data, error} = await ApiHelper.get<{items: Array<any>}>(url);
+async function archiveRoom(roomId: number): Promise<IRoomObjectEntry> {
+	const {data, error} = await ApiHelper.patch<IRoomObjectEntry>(
+		{
+			archiveDate: new Date().toISOString().slice(0, 10),
+			roomStatus: ROOM_STATUS.INACTIVE,
+		},
+		`${BASE_PATH}/${roomId}`
+	);
 
 	if (data) {
-		return data || {items: []};
+		return data;
 	}
 
 	throw new Error(error);
@@ -201,6 +208,22 @@ async function getRooms(): Promise<{items: IRoomObjectEntry[]}> {
 	throw new Error(error);
 }
 
+async function restoreRoom(roomId: number): Promise<IRoomObjectEntry> {
+	const {data, error} = await ApiHelper.patch<IRoomObjectEntry>(
+		{
+			archiveDate: null,
+			roomStatus: ROOM_STATUS.ACTIVE,
+		},
+		`${BASE_PATH}/${roomId}`
+	);
+
+	if (data) {
+		return data;
+	}
+
+	throw new Error(error);
+}
+
 async function updateRoom(
 	roomId: number,
 	{
@@ -223,10 +246,38 @@ async function updateRoom(
 	throw new Error(error);
 }
 
+async function updateRoomSettings(
+	roomId: number,
+	{
+		externalReferenceCode,
+		friendlyURL,
+		name,
+	}: {
+		externalReferenceCode: string;
+		friendlyURL: string;
+		name: string;
+	}
+): Promise<IRoomObjectEntry> {
+	const {data, error} = await ApiHelper.patch<IRoomObjectEntry>(
+		{
+			externalReferenceCode,
+			friendlyURL,
+			name,
+		},
+		`${BASE_PATH}/${roomId}`
+	);
+
+	if (data) {
+		return data;
+	}
+
+	throw new Error(error);
+}
+
 async function updateRoomInvitedMember(
 	roomId: number,
 	invitedMemberId: number,
-	invitedMember: {roleKey?: string}
+	invitedMember: {membershipExpirationDate?: string; roleKey?: string}
 ): Promise<IInvitedMember> {
 	const {data, error} = await ApiHelper.patch<IInvitedMember>(
 		invitedMember,
@@ -243,7 +294,7 @@ async function updateRoomInvitedMember(
 async function updateRoomUserAccount(
 	roomId: number,
 	userId: number,
-	userAccount: {roleKey?: string}
+	userAccount: {membershipExpirationDate?: string; roleKey?: string}
 ): Promise<IUserAccount> {
 	const {data, error} = await ApiHelper.patch<IUserAccount>(
 		userAccount,
@@ -260,7 +311,7 @@ async function updateRoomUserAccount(
 export default {
 	addRoom,
 	addRoomUserAccount,
-	checkSitePages,
+	archiveRoom,
 	deleteRoomInvitedMember,
 	deleteRoomUserAccount,
 	duplicateRoom,
@@ -270,7 +321,9 @@ export default {
 	getRoomInvitedMembers,
 	getRoomUserAccounts,
 	getRooms,
+	restoreRoom,
 	updateRoom,
 	updateRoomInvitedMember,
+	updateRoomSettings,
 	updateRoomUserAccount,
 };

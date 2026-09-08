@@ -1684,8 +1684,8 @@ $input-group-item: map-deep-merge(
 		dropdown: (
 			display: flex,
 			flex-wrap: wrap,
-			word-wrap: break-word,
 			width: 100%,
+			word-wrap: break-word,
 		),
 	),
 	$input-group-item
@@ -1716,13 +1716,13 @@ $input-group-item-focusable: map-deep-merge(
 			z-index: 1,
 
 			input-group-append: (
-				border-top-left-radius: 0rem,
 				border-bottom-left-radius: 0rem,
+				border-top-left-radius: 0rem,
 			),
 
 			input-group-prepend: (
-				border-top-right-radius: 0rem,
 				border-bottom-right-radius: 0rem,
+				border-top-right-radius: 0rem,
 			),
 		),
 	),
@@ -1794,8 +1794,6 @@ $input-group-addon-padding-y-lg: null !default;
 $input-group-lg-item-btn: () !default; // .input-group-lg .input-group-item
 $input-group-lg-item-btn: map-deep-merge(
 	(
-		breakpoint-down: null,
-
 		font-size:
 			if(
 				variable-exists(btn-lg),
@@ -1838,37 +1836,39 @@ $input-group-lg-item-btn: map-deep-merge(
 				),
 		),
 
-		mobile: (
-			font-size:
-				if(
-					variable-exists(btn-lg),
-					map-deep-get($btn-lg, mobile, font-size),
-					null
-				),
-			padding-bottom:
-				if(
-					variable-exists(btn-lg),
-					map-deep-get($btn-lg, mobile, padding-bottom),
-					null
-				),
-			padding-left:
-				if(
-					variable-exists(btn-lg),
-					map-deep-get($btn-lg, mobile, padding-left),
-					null
-				),
-			padding-right:
-				if(
-					variable-exists(btn-lg),
-					map-deep-get($btn-lg, mobile, padding-right),
-					null
-				),
-			padding-top:
-				if(
-					variable-exists(btn-lg),
-					map-deep-get($btn-lg, mobile, padding-top),
-					null
-				),
+		media-breakpoint-down: (
+			c-unset: (
+				font-size:
+					if(
+						variable-exists(btn-lg),
+						map-deep-get($btn-lg, mobile, font-size),
+						null
+					),
+				padding-bottom:
+					if(
+						variable-exists(btn-lg),
+						map-deep-get($btn-lg, mobile, padding-bottom),
+						null
+					),
+				padding-left:
+					if(
+						variable-exists(btn-lg),
+						map-deep-get($btn-lg, mobile, padding-left),
+						null
+					),
+				padding-right:
+					if(
+						variable-exists(btn-lg),
+						map-deep-get($btn-lg, mobile, padding-right),
+						null
+					),
+				padding-top:
+					if(
+						variable-exists(btn-lg),
+						map-deep-get($btn-lg, mobile, padding-top),
+						null
+					),
+			),
 		),
 	),
 	$input-group-lg-item-btn
@@ -1877,8 +1877,6 @@ $input-group-lg-item-btn: map-deep-merge(
 $input-group-lg-item-btn-monospaced: () !default;
 $input-group-lg-item-btn-monospaced: map-deep-merge(
 	(
-		breakpoint-down: null,
-
 		height:
 			if(
 				variable-exists(btn-monospaced-lg),
@@ -1916,19 +1914,21 @@ $input-group-lg-item-btn-monospaced: map-deep-merge(
 				map-get($btn-monospaced-lg, width),
 				3rem
 			),
-		mobile: (
-			height:
-				if(
-					variable-exists(btn-monospaced-lg),
-					map-deep-get($btn-monospaced-lg, mobile, height),
-					null
-				),
-			width:
-				if(
-					variable-exists(btn-monospaced-lg),
-					map-deep-get($btn-monospaced-lg, mobile, width),
-					null
-				),
+		media-breakpoint-down: (
+			c-unset: (
+				height:
+					if(
+						variable-exists(btn-monospaced-lg),
+						map-deep-get($btn-monospaced-lg, mobile, height),
+						null
+					),
+				width:
+					if(
+						variable-exists(btn-monospaced-lg),
+						map-deep-get($btn-monospaced-lg, mobile, width),
+						null
+					),
+			),
 		),
 	),
 	$input-group-lg-item-btn-monospaced
@@ -1941,8 +1941,6 @@ $input-group-lg-inset-item-btn-monospaced: () !default;
 $input-group-lg-inset-item-form-file-btn: () !default;
 $input-group-lg-inset-item-form-file-btn: map-deep-merge(
 	(
-		breakpoint-down: null,
-
 		height: 100%,
 		line-height: 1,
 		padding-bottom: 0rem,
@@ -2281,6 +2279,7 @@ $input-group-sm: map-deep-merge(
 
 				form-file: (
 					height: 75%,
+
 					btn: $input-group-sm-inset-item-form-file-btn,
 				),
 			),
@@ -2377,4 +2376,99 @@ $input-group-stacked-sm-down: map-deep-merge(
 		),
 	),
 	$input-group-stacked-sm-down
+);
+
+$input-group-ai: () !default;
+$input-group-ai: map-deep-merge(
+	(
+		'.input-group-item-shrink': (
+			padding-top: 0.25rem,
+		),
+
+		'.form-control': (
+			padding: 0 0 0 $input-padding-x,
+
+			'&:focus-within:has(.form-control-inset:focus)': (
+				border-color: $purple-l2,
+				box-shadow:
+					unquote('0 0 10px hsl(from #{$purple} h s l / 0.15)'),
+			),
+		),
+
+		'&[data-ai-state="focused"]': (
+			'.form-control': (
+				border-color: $purple-l2,
+				box-shadow:
+					unquote('0 0 10px hsl(from #{$purple} h s l / 0.15)'),
+			),
+		),
+
+		'&[data-ai-state="working"]': (
+			'.form-control': (
+				background-color: $purple-l5,
+				border-color: $purple-l1,
+				box-shadow:
+					unquote('0 0 10px hsl(from #{$purple} h s l / 0.15)'),
+				color: $purple-d2,
+			),
+		),
+
+		'&[data-ai-state="result"], &[data-ai-state="result-readonly"]': (
+			'.form-control': (
+				background-color: $gray-100,
+				border-color: $purple-l1,
+				box-shadow: none,
+				color: $purple,
+			),
+		),
+
+		'.form-control-inset': (
+			color: inherit,
+			height: 2.375rem,
+			margin: 0,
+			min-height: 0,
+			padding: $input-padding-y $input-padding-x $input-padding-y 0,
+			resize: none,
+			width: 100%,
+
+			'&[aria-hidden="true"]::placeholder': (
+				background-image:
+					linear-gradient(to right, $primary, $purple-d2),
+				border-radius: $input-border-radius,
+				color: transparent,
+				opacity: 0.25,
+			),
+		),
+
+		'.autofit-row': (
+			margin-left: -0.25rem,
+			margin-right: -0.25rem,
+
+			'.autofit-col': (
+				padding: 0.75rem 0.25rem,
+			),
+
+			'.autofit-col-expand': (
+				padding-bottom: 0,
+				padding-top: 0,
+			),
+
+			'.lexicon-icon': (
+				margin-top: 0,
+			),
+		),
+
+		'.form-text': (
+			color: $purple,
+		),
+	),
+	$input-group-ai
+);
+
+$input-group-palette: () !default;
+$input-group-palette: map-deep-merge(
+	(
+		'.input-group-ai': $input-group-ai,
+	),
+	$input-group-palette
 );

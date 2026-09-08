@@ -9,19 +9,21 @@ import ClayLayout from '@clayui/layout';
 import {sub} from 'frontend-js-web';
 import React, {useId, useState} from 'react';
 
-import PageTreeModal, {
-	PageTreeModalConfiguration,
-} from '../../../pages/export/components/PageTreeModal';
 import {
-	HandlerSelection,
+	LayoutSetSelection,
+	PortletDataHandlerSelection,
 	isAllLayoutsSelected,
 } from '../../../utils/contentSelection';
+import PageTreeModal, {PageTreeModalConfiguration} from '../../PageTreeModal';
+import SectionTags from './SectionTags';
 
 interface Props {
+	additionCount?: number;
+	deletionCount?: number;
 	label: string;
-	onChange: (value: HandlerSelection | undefined) => void;
+	onChange: (value: PortletDataHandlerSelection | undefined) => void;
 	pageTreeModalConfiguration: PageTreeModalConfiguration;
-	value: HandlerSelection | undefined;
+	portletDataHandlerSelection: PortletDataHandlerSelection | undefined;
 }
 
 function SelectPagesButton({
@@ -55,17 +57,15 @@ function SelectPagesButton({
 
 function LayoutVisibilitySelector({
 	label,
-	onSelectPages,
 	onSetMode,
 	privateLayout,
 }: {
 	label: string;
-	onSelectPages: () => void;
 	onSetMode: (mode: boolean) => void;
 	privateLayout: boolean;
 }) {
 	return (
-		<div aria-label={label} className="pl-4" role="radiogroup">
+		<div aria-label={label} className="mt-2 pl-4" role="radiogroup">
 			<div className="align-items-center d-flex">
 				<ClayRadio
 					checked={!privateLayout}
@@ -75,13 +75,6 @@ function LayoutVisibilitySelector({
 					onChange={() => onSetMode(false)}
 					value="false"
 				/>
-
-				{!privateLayout && (
-					<SelectPagesButton
-						onClick={onSelectPages}
-						privateLayout={false}
-					/>
-				)}
 			</div>
 
 			<div className="align-items-center d-flex mb-1">
@@ -93,22 +86,20 @@ function LayoutVisibilitySelector({
 					onChange={() => onSetMode(true)}
 					value="true"
 				/>
-
-				{privateLayout && (
-					<SelectPagesButton onClick={onSelectPages} privateLayout />
-				)}
 			</div>
 		</div>
 	);
 }
 
 export default function LayoutSetControl({
+	additionCount,
+	deletionCount,
 	label,
 	onChange,
 	pageTreeModalConfiguration,
-	value,
+	portletDataHandlerSelection,
 }: Props) {
-	const {privateLayoutsEnabled, ...modalConfiguration} =
+	const {privateLayoutsAvailable, ...modalConfiguration} =
 		pageTreeModalConfiguration;
 
 	const checkboxId = useId();
@@ -116,16 +107,20 @@ export default function LayoutSetControl({
 	const [showModal, setShowModal] = useState(false);
 
 	const {layoutIds = [], privateLayout = false} = (
-		typeof value === 'object' ? value : {}
-	) as {layoutIds?: number[]; privateLayout?: boolean};
+		typeof portletDataHandlerSelection === 'object'
+			? portletDataHandlerSelection
+			: {}
+	) as LayoutSetSelection;
 
-	const isAll = isAllLayoutsSelected(value);
+	const isAll = isAllLayoutsSelected(portletDataHandlerSelection);
+
+	const selected = typeof portletDataHandlerSelection === 'object';
 
 	const openModal = () => setShowModal(true);
 
 	return (
 		<div className="p-3">
-			<ClayLayout.ContentRow className="align-items-center mb-2">
+			<ClayLayout.ContentRow className="align-items-center">
 				<ClayLayout.ContentCol className="pr-2" expand={false}>
 					<ClayCheckbox
 						checked={isAll}
@@ -139,25 +134,34 @@ export default function LayoutSetControl({
 
 				<ClayLayout.ContentCol expand>
 					<div className="align-items-center d-flex justify-content-between">
-						<label
-							className="cursor-pointer font-weight-semi-bold mb-0 small"
-							htmlFor={checkboxId}
-						>
-							{label}
-						</label>
+						<div className="align-items-center d-flex">
+							<label
+								className="cursor-pointer font-weight-semi-bold mb-0 small"
+								htmlFor={checkboxId}
+							>
+								{label}
+							</label>
 
-						{!privateLayoutsEnabled && (
-							<SelectPagesButton onClick={openModal} />
-						)}
+							<SectionTags
+								additionCount={additionCount}
+								deletionCount={deletionCount}
+							/>
+						</div>
+
+						<SelectPagesButton
+							onClick={openModal}
+							privateLayout={privateLayout}
+						/>
 					</div>
 				</ClayLayout.ContentCol>
 			</ClayLayout.ContentRow>
 
-			{privateLayoutsEnabled && (
+			{privateLayoutsAvailable && selected && (
 				<LayoutVisibilitySelector
 					label={label}
-					onSelectPages={openModal}
-					onSetMode={(next) => onChange({privateLayout: next})}
+					onSetMode={(nextPrivateLayout) =>
+						onChange({privateLayout: nextPrivateLayout})
+					}
 					privateLayout={privateLayout}
 				/>
 			)}
@@ -168,10 +172,12 @@ export default function LayoutSetControl({
 					initialAll={isAll}
 					initialSelectedIds={layoutIds.map(String)}
 					onClose={() => setShowModal(false)}
-					onSubmit={(result) => {
+					onSubmit={(selectedPortletDataHandlerSelection) => {
 						setShowModal(false);
 
-						onChange(result ?? undefined);
+						onChange(
+							selectedPortletDataHandlerSelection ?? undefined
+						);
 					}}
 					privateLayout={privateLayout}
 				/>

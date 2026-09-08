@@ -15,8 +15,7 @@ import org.osgi.annotation.versioning.ProviderType;
  * @author Jhosseph Gonzalez
  */
 @ExtendedObjectClassDefinition(
-	category = "object", featureFlagKey = "LPD-17564",
-	scope = ExtendedObjectClassDefinition.Scope.COMPANY
+	category = "object", scope = ExtendedObjectClassDefinition.Scope.COMPANY
 )
 @Meta.OCD(
 	id = "com.liferay.object.configuration.ObjectEntryScheduleConfiguration",
@@ -24,6 +23,13 @@ import org.osgi.annotation.versioning.ProviderType;
 )
 @ProviderType
 public interface ObjectEntryScheduleConfiguration {
+
+	@Meta.AD(
+		deflt = "100",
+		description = "object-entry-check-batch-size-description", min = "1",
+		name = "object-entry-check-batch-size", required = false
+	)
+	public int checkBatchSize();
 
 	@Meta.AD(
 		deflt = "15", description = "object-entry-check-interval-description",

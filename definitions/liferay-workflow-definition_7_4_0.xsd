@@ -214,6 +214,20 @@
 			</xs:complexContent>
 		</xs:complexType>
 	</xs:element>
+	<xs:element name="ai-hub-agent">
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="abstract-workflow-node-complex-type">
+					<xs:sequence>
+						<xs:element minOccurs="0" ref="labels" />
+						<xs:element name="agent-definition-external-reference-code" type="xs:string" />
+						<xs:element minOccurs="0" name="timeout" type="xs:int" />
+						<xs:element ref="transitions" />
+					</xs:sequence>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
 	<xs:element name="condition">
 		<xs:complexType>
 			<xs:complexContent>
@@ -305,12 +319,29 @@
 					<xs:sequence>
 						<xs:element minOccurs="0" ref="labels" />
 						<xs:element minOccurs="0" name="input-variables" type="xs:string" />
+						<xs:element minOccurs="0" name="model-location" type="xs:string" />
+						<xs:element minOccurs="0" name="model-name" type="xs:string" />
 						<xs:element minOccurs="0" name="output-variables" type="xs:string" />
 						<xs:element name="prompt" type="xs:string" />
 						<xs:element minOccurs="0" name="rag" type="xs:string" />
 						<xs:element minOccurs="0" name="tools" type="xs:string" />
 						<xs:element minOccurs="0" ref="transitions" />
 						<xs:element name="user-message" type="xs:string" />
+					</xs:sequence>
+				</xs:extension>
+			</xs:complexContent>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="service">
+		<xs:complexType>
+			<xs:complexContent>
+				<xs:extension base="abstract-workflow-node-complex-type">
+					<xs:sequence>
+						<xs:element minOccurs="0" name="input-variables" type="xs:string" />
+						<xs:element name="java-delegate" type="xs:string" />
+						<xs:element minOccurs="0" ref="labels" />
+						<xs:element minOccurs="0" name="output-variables" type="xs:string" />
+						<xs:element ref="transitions" />
 					</xs:sequence>
 				</xs:extension>
 			</xs:complexContent>
@@ -444,12 +475,14 @@
 	<xs:group name="nodes-group">
 		<xs:choice>
 			<xs:element ref="ai-decision" />
+			<xs:element ref="ai-hub-agent" />
 			<xs:element ref="condition" />
 			<xs:element ref="fork" />
 			<xs:element ref="http-request" />
 			<xs:element ref="join" />
 			<xs:element ref="join-xor" />
 			<xs:element ref="llm" />
+			<xs:element ref="service" />
 			<xs:element ref="state" />
 			<xs:element ref="task" />
 		</xs:choice>

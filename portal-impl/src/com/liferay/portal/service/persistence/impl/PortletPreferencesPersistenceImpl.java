@@ -14,8 +14,6 @@ import com.liferay.portal.kernel.dao.orm.FinderPath;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.Session;
 import com.liferay.portal.kernel.exception.NoSuchPortletPreferencesException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.PortletPreferences;
 import com.liferay.portal.kernel.model.PortletPreferencesTable;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
@@ -1362,7 +1360,7 @@ public class PortletPreferencesPersistenceImpl
 				_SQL_SELECT_PORTLETPREFERENCES_WHERE,
 				_SQL_COUNT_PORTLETPREFERENCES_WHERE,
 				PortletPreferencesModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"portletPreferences.", "ownerId", FinderColumn.Type.LONG,
 					"=", true, true, PortletPreferences::getOwnerId));
@@ -1387,6 +1385,7 @@ public class PortletPreferencesPersistenceImpl
 			_SQL_SELECT_PORTLETPREFERENCES_WHERE,
 			_SQL_COUNT_PORTLETPREFERENCES_WHERE,
 			PortletPreferencesModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
 			new FinderColumn<>(
 				"portletPreferences.", "plid", FinderColumn.Type.LONG, "=",
 				true, true, PortletPreferences::getPlid));
@@ -1413,7 +1412,7 @@ public class PortletPreferencesPersistenceImpl
 				_SQL_SELECT_PORTLETPREFERENCES_WHERE,
 				_SQL_COUNT_PORTLETPREFERENCES_WHERE,
 				PortletPreferencesModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"portletPreferences.", "portletId",
 					FinderColumn.Type.STRING, "=", true, true,
@@ -1440,6 +1439,7 @@ public class PortletPreferencesPersistenceImpl
 			_SQL_SELECT_PORTLETPREFERENCES_WHERE,
 			_SQL_COUNT_PORTLETPREFERENCES_WHERE,
 			PortletPreferencesModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
 			new FinderColumn<>(
 				"portletPreferences.", "ownerType", FinderColumn.Type.INTEGER,
 				"=", true, true, PortletPreferences::getOwnerType),
@@ -1468,6 +1468,7 @@ public class PortletPreferencesPersistenceImpl
 			_SQL_SELECT_PORTLETPREFERENCES_WHERE,
 			_SQL_COUNT_PORTLETPREFERENCES_WHERE,
 			PortletPreferencesModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
 			new FinderColumn<>(
 				"portletPreferences.", "plid", FinderColumn.Type.LONG, "=",
 				true, true, PortletPreferences::getPlid),
@@ -1502,6 +1503,7 @@ public class PortletPreferencesPersistenceImpl
 			_SQL_SELECT_PORTLETPREFERENCES_WHERE,
 			_SQL_COUNT_PORTLETPREFERENCES_WHERE,
 			PortletPreferencesModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
 			new FinderColumn<>(
 				"portletPreferences.", "ownerId", FinderColumn.Type.LONG, "=",
 				true, true, PortletPreferences::getOwnerId),
@@ -1543,7 +1545,7 @@ public class PortletPreferencesPersistenceImpl
 				_SQL_SELECT_PORTLETPREFERENCES_WHERE,
 				_SQL_COUNT_PORTLETPREFERENCES_WHERE,
 				PortletPreferencesModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"portletPreferences.", "ownerId", FinderColumn.Type.LONG,
 					"=", true, true, PortletPreferences::getOwnerId),
@@ -1585,6 +1587,7 @@ public class PortletPreferencesPersistenceImpl
 			_SQL_SELECT_PORTLETPREFERENCES_WHERE,
 			_SQL_COUNT_PORTLETPREFERENCES_WHERE,
 			PortletPreferencesModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX, "",
+			"", null,
 			new FinderColumn<>(
 				"portletPreferences.", "ownerType", FinderColumn.Type.INTEGER,
 				"=", true, true, PortletPreferences::getOwnerType),
@@ -1625,7 +1628,7 @@ public class PortletPreferencesPersistenceImpl
 				_SQL_SELECT_PORTLETPREFERENCES_WHERE,
 				_SQL_COUNT_PORTLETPREFERENCES_WHERE,
 				PortletPreferencesModelImpl.ORDER_BY_JPQL, _ENTITY_ALIAS_PREFIX,
-				"",
+				"", "", null,
 				new FinderColumn<>(
 					"portletPreferences.", "companyId", FinderColumn.Type.LONG,
 					"=", true, true, PortletPreferences::getCompanyId),
@@ -1688,16 +1691,10 @@ public class PortletPreferencesPersistenceImpl
 	private static final String _SQL_COUNT_PORTLETPREFERENCES_WHERE =
 		"SELECT COUNT(portletPreferences) FROM PortletPreferences portletPreferences WHERE ";
 
-	private static final String _NO_SUCH_ENTITY_WITH_KEY =
-		"No PortletPreferences exists with the key {";
-
-	private static final Log _log = LogFactoryUtil.getLog(
-		PortletPreferencesPersistenceImpl.class);
-
 	@Override
 	protected FinderCache getFinderCache() {
 		return FinderCacheUtil.getFinderCache();
 	}
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:2097689756
+// LIFERAY-SERVICE-BUILDER-HASH:-1484593519

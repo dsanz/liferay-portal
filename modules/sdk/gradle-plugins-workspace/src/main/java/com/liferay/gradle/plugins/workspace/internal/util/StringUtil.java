@@ -127,6 +127,14 @@ public class StringUtil {
 		);
 	}
 
+	public static String normalizeFilePath(String s) {
+		if (s == null) {
+			return null;
+		}
+
+		return s.replace('\\', '/');
+	}
+
 	public static String quote(Object object) {
 		return "\"" + object + "\"";
 	}

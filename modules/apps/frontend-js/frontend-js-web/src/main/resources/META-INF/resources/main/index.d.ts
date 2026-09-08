@@ -218,6 +218,8 @@ export function minimizePortlet(
  */
 export function navigate(url: string | URL, listeners?: Object): void;
 
+export function normalizeFriendlyURL(text: string): string;
+
 export function objectToFormData(
 	objectOrNamespace: object | string,
 	formData?: FormData,
@@ -776,6 +778,9 @@ export function sub(
 
 /* Returns the stored value of a cookie, undefined if not present */
 export function getCookie(name: string, type: TYPE_VALUES): string | undefined;
+
+/* Rewrites the inline script/style nonces in the given markup to the document nonce */
+export function setCSPNonce(html: string): string;
 
 /* Sets a cookie of a specific type if user has consented */
 export function setCookie(

@@ -5,6 +5,8 @@ set -o nounset
 set -o pipefail
 
 function main {
+	local requested_chart="${1:-}"
+
 	local script_dir
 
 	script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -18,20 +20,46 @@ function main {
 		aws-infrastructure
 		aws-infrastructure-provider
 		aws-marketplace
+		azure
+		azure-infrastructure-provider
 		default
+		dxp-operator
 		gcp
 		gcp-infrastructure
 		gcp-infrastructure-provider
+		infrastructure
+		observability
+		platform
+		platform-components
 	)
+
+	if [[ -n ${requested_chart} ]]
+	then
+		if [[ ! -d ${cloud_dir}/helm/${requested_chart} ]]
+		then
+			echo "Unable to find chart ${requested_chart}"
+
+			exit 1
+		fi
+
+		charts=("${requested_chart}")
+	fi
 
 	for chart in "${charts[@]}"
 	do
-		helm dependency update --skip-refresh "${cloud_dir}/helm/${chart}"
+		helm dependency update "${cloud_dir}/helm/${chart}"
 
-		helm template liferay "${cloud_dir}/helm/${chart}" | kubeconform \
+		local helm_template_args=()
+
+		if [[ -f ${script_dir}/render-values/${chart}.yaml ]]
+		then
+			helm_template_args=("--values" "${script_dir}/render-values/${chart}.yaml")
+		fi
+
+		helm template liferay "${cloud_dir}/helm/${chart}" "${helm_template_args[@]}" | kubeconform \
 			--schema-location default \
 			--schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
-			--skip ClusterProviderConfig,LiferayInfrastructure \
+			--skip ClusterProviderConfig,LiferayEnvironment,LiferayInfrastructure,LiferayOverlay,PrivateDNSZone,PrivateDNSZoneVirtualNetworkLink,Subnet \
 			--strict \
 			--summary
 	done

@@ -16,6 +16,7 @@ import com.liferay.portal.kernel.util.OrderByComparator;
 import java.io.Serializable;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Provides the local service utility for LayoutPageTemplateStructureRelElementVariation. This utility wraps
@@ -54,6 +55,24 @@ public class LayoutPageTemplateStructureRelElementVariationLocalServiceUtil {
 
 		return getService().addLayoutPageTemplateStructureRelElementVariation(
 			layoutPageTemplateStructureRelElementVariation);
+	}
+
+	public static LayoutPageTemplateStructureRelElementVariation
+			addOrUpdateLayoutPageTemplateStructureRelElementVariation(
+				String externalReferenceCode, long userId, long groupId,
+				boolean active, String hide,
+				Map<java.util.Locale, String> htmlMap,
+				Map<java.util.Locale, String> jsMap, String name, long plid,
+				String segmentsExperienceERC, String targetElement,
+				String[] audienceEntryERCs,
+				com.liferay.portal.kernel.service.ServiceContext serviceContext)
+		throws PortalException {
+
+		return getService().
+			addOrUpdateLayoutPageTemplateStructureRelElementVariation(
+				externalReferenceCode, userId, groupId, active, hide, htmlMap,
+				jsMap, name, plid, segmentsExperienceERC, targetElement,
+				audienceEntryERCs, serviceContext);
 	}
 
 	/**
@@ -120,6 +139,20 @@ public class LayoutPageTemplateStructureRelElementVariationLocalServiceUtil {
 		return getService().
 			deleteLayoutPageTemplateStructureRelElementVariation(
 				layoutPageTemplateStructureRelElementVariationId);
+	}
+
+	public static void deleteLayoutPageTemplateStructureRelElementVariation(
+		String externalReferenceCode, long groupId) {
+
+		getService().deleteLayoutPageTemplateStructureRelElementVariation(
+			externalReferenceCode, groupId);
+	}
+
+	public static void deleteLayoutPageTemplateStructureRelElementVariations(
+		long plid, String segmentsExperienceERC) {
+
+		getService().deleteLayoutPageTemplateStructureRelElementVariations(
+			plid, segmentsExperienceERC);
 	}
 
 	/**
@@ -315,6 +348,14 @@ public class LayoutPageTemplateStructureRelElementVariationLocalServiceUtil {
 				uuid, groupId);
 	}
 
+	public static List<LayoutPageTemplateStructureRelElementVariation>
+		getLayoutPageTemplateStructureRelElementVariations(
+			boolean active, long plid, String segmentsExperienceERC) {
+
+		return getService().getLayoutPageTemplateStructureRelElementVariations(
+			active, plid, segmentsExperienceERC);
+	}
+
 	/**
 	 * Returns a range of all the layout page template structure rel element variations.
 	 *
@@ -331,6 +372,21 @@ public class LayoutPageTemplateStructureRelElementVariationLocalServiceUtil {
 
 		return getService().getLayoutPageTemplateStructureRelElementVariations(
 			start, end);
+	}
+
+	public static List<LayoutPageTemplateStructureRelElementVariation>
+		getLayoutPageTemplateStructureRelElementVariations(long plid) {
+
+		return getService().getLayoutPageTemplateStructureRelElementVariations(
+			plid);
+	}
+
+	public static List<LayoutPageTemplateStructureRelElementVariation>
+		getLayoutPageTemplateStructureRelElementVariations(
+			long plid, String segmentsExperienceERC) {
+
+		return getService().getLayoutPageTemplateStructureRelElementVariations(
+			plid, segmentsExperienceERC);
 	}
 
 	/**
@@ -420,6 +476,16 @@ public class LayoutPageTemplateStructureRelElementVariationLocalServiceUtil {
 				layoutPageTemplateStructureRelElementVariation);
 	}
 
+	public static LayoutPageTemplateStructureRelElementVariation
+			updateLayoutPageTemplateStructureRelElementVariation(
+				String externalReferenceCode, long groupId, boolean active)
+		throws PortalException {
+
+		return getService().
+			updateLayoutPageTemplateStructureRelElementVariation(
+				externalReferenceCode, groupId, active);
+	}
+
 	public static LayoutPageTemplateStructureRelElementVariationLocalService
 		getService() {
 
@@ -435,4 +501,4 @@ public class LayoutPageTemplateStructureRelElementVariationLocalServiceUtil {
 					class);
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:-80829520
+// LIFERAY-SERVICE-BUILDER-HASH:1014700075

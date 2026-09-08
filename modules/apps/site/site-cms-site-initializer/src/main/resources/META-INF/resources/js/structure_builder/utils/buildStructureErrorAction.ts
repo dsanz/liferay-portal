@@ -5,23 +5,28 @@
 
 import {StructureServiceError} from '../../common/services/StructureService';
 import {Action} from '../contexts/StateContext';
-import {Structure} from '../types/Structure';
 import {Uuid} from '../types/Uuid';
 
 export default function buildStructureErrorAction({
 	error,
-	previousStatus,
 	uuid,
 }: {
 	error: StructureServiceError;
-	previousStatus: Structure['status'];
 	uuid: Uuid;
 }): Action {
+	if (error === 'slug-in-use') {
+		return {
+			error: 'in-use',
+			property: 'slug',
+			type: 'add-error',
+			uuid,
+		};
+	}
+
 	if (error === 'in-use') {
 		return {
 			error: 'in-use',
 			property: 'name',
-			status: previousStatus,
 			type: 'add-error',
 			uuid,
 		};
@@ -30,7 +35,6 @@ export default function buildStructureErrorAction({
 	return {
 		error: 'unexpected',
 		property: 'global',
-		status: previousStatus,
 		type: 'add-error',
 		uuid,
 	};

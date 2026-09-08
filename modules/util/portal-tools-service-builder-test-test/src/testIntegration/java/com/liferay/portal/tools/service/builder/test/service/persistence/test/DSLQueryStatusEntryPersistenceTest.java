@@ -12,6 +12,7 @@ import com.liferay.portal.kernel.dao.orm.DynamicQueryFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.ProjectionFactoryUtil;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.orm.RestrictionsFactoryUtil;
+import com.liferay.portal.kernel.test.AssertUtils;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.transaction.Propagation;
@@ -116,11 +117,15 @@ public class DSLQueryStatusEntryPersistenceTest {
 
 		newDSLQueryStatusEntry.setDslQueryEntryId(RandomTestUtil.nextLong());
 
+		newDSLQueryStatusEntry.setWeight(RandomTestUtil.nextDouble());
+
 		newDSLQueryStatusEntry.setStatus(RandomTestUtil.randomString());
 
 		newDSLQueryStatusEntry.setStatusDate(RandomTestUtil.nextDate());
 
-		_dslQueryStatusEntries.add(_persistence.update(newDSLQueryStatusEntry));
+		newDSLQueryStatusEntry = _persistence.update(newDSLQueryStatusEntry);
+
+		_dslQueryStatusEntries.add(newDSLQueryStatusEntry);
 
 		DSLQueryStatusEntry existingDSLQueryStatusEntry =
 			_persistence.findByPrimaryKey(
@@ -132,6 +137,9 @@ public class DSLQueryStatusEntryPersistenceTest {
 		Assert.assertEquals(
 			existingDSLQueryStatusEntry.getDslQueryEntryId(),
 			newDSLQueryStatusEntry.getDslQueryEntryId());
+		AssertUtils.assertEquals(
+			existingDSLQueryStatusEntry.getWeight(),
+			newDSLQueryStatusEntry.getWeight());
 		Assert.assertEquals(
 			existingDSLQueryStatusEntry.getStatus(),
 			newDSLQueryStatusEntry.getStatus());
@@ -168,7 +176,8 @@ public class DSLQueryStatusEntryPersistenceTest {
 	protected OrderByComparator<DSLQueryStatusEntry> getOrderByComparator() {
 		return OrderByComparatorFactoryUtil.create(
 			"DSLQueryStatusEntry", "dslQueryStatusEntryId", true,
-			"dslQueryEntryId", true, "status", true, "statusDate", true);
+			"dslQueryEntryId", true, "weight", true, "status", true,
+			"statusDate", true);
 	}
 
 	@Test
@@ -403,6 +412,8 @@ public class DSLQueryStatusEntryPersistenceTest {
 
 		dslQueryStatusEntry.setDslQueryEntryId(RandomTestUtil.nextLong());
 
+		dslQueryStatusEntry.setWeight(RandomTestUtil.nextDouble());
+
 		dslQueryStatusEntry.setStatus(RandomTestUtil.randomString());
 
 		dslQueryStatusEntry.setStatusDate(RandomTestUtil.nextDate());
@@ -418,4 +429,4 @@ public class DSLQueryStatusEntryPersistenceTest {
 	private ClassLoader _dynamicQueryClassLoader;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1319606101
+// LIFERAY-SERVICE-BUILDER-HASH:200391167

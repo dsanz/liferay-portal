@@ -6,6 +6,12 @@
 package com.liferay.site.service.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.asset.kernel.model.AssetCategory;
+import com.liferay.asset.kernel.model.AssetCategoryConstants;
+import com.liferay.asset.kernel.model.AssetVocabulary;
+import com.liferay.asset.kernel.model.AssetVocabularyConstants;
+import com.liferay.asset.kernel.service.AssetCategoryLocalService;
+import com.liferay.asset.kernel.service.AssetVocabularyLocalService;
 import com.liferay.petra.lang.SafeCloseable;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -16,10 +22,18 @@ import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.model.Company;
 import com.liferay.portal.kernel.model.Group;
 import com.liferay.portal.kernel.model.GroupConstants;
+import com.liferay.portal.kernel.model.Layout;
+import com.liferay.portal.kernel.model.ResourceConstants;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.role.RoleConstants;
 import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
+import com.liferay.portal.kernel.security.permission.ActionKeys;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
 import com.liferay.portal.kernel.service.CompanyLocalService;
 import com.liferay.portal.kernel.service.GroupLocalService;
+import com.liferay.portal.kernel.service.LayoutLocalService;
+import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
+import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.test.AssertUtils;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
@@ -37,6 +51,7 @@ import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.test.rule.PermissionCheckerMethodTestRule;
+import com.liferay.portlet.asset.util.AssetVocabularySettingsHelper;
 
 import java.util.List;
 
@@ -189,6 +204,87 @@ public class GroupLocalServiceTest {
 		finally {
 			_companyLocalService.deleteCompany(company);
 		}
+	}
+
+	@Test
+	public void testDeleteGroup() throws Exception {
+		Group group1 = GroupTestUtil.addGroup();
+
+		AssetVocabularySettingsHelper assetVocabularySettingsHelper =
+			new AssetVocabularySettingsHelper();
+
+		assetVocabularySettingsHelper.setMultiValued(true);
+		assetVocabularySettingsHelper.setSystem(true);
+
+		AssetVocabulary assetVocabulary =
+			_assetVocabularyLocalService.addVocabulary(
+				null, TestPropsValues.getUserId(), group1.getGroupId(),
+				RandomTestUtil.randomString(), null,
+				HashMapBuilder.put(
+					LocaleUtil.getSiteDefault(), RandomTestUtil.randomString()
+				).build(),
+				null, assetVocabularySettingsHelper.toString(),
+				AssetVocabularyConstants.VISIBILITY_TYPE_PUBLIC,
+				ServiceContextTestUtil.getServiceContext(
+					group1.getGroupId(), TestPropsValues.getUserId()));
+
+		AssetCategory assetCategory = _assetCategoryLocalService.addCategory(
+			null, TestPropsValues.getUserId(), group1.getGroupId(),
+			AssetCategoryConstants.DEFAULT_PARENT_CATEGORY_ID,
+			HashMapBuilder.put(
+				LocaleUtil.getSiteDefault(), RandomTestUtil.randomString()
+			).build(),
+			HashMapBuilder.put(
+				LocaleUtil.getSiteDefault(), StringPool.BLANK
+			).build(),
+			assetVocabulary.getVocabularyId(), true, null,
+			ServiceContextTestUtil.getServiceContext(
+				group1.getGroupId(), TestPropsValues.getUserId()));
+
+		Layout layout = _layoutLocalService.createLayout(group1.getGroupId());
+
+		Group group2 = GroupTestUtil.addGroup();
+
+		layout.setGroupId(group2.getGroupId());
+		layout.setCompanyId(group2.getCompanyId());
+
+		layout.setLayoutId(RandomTestUtil.nextLong());
+
+		_layoutLocalService.addLayout(layout);
+
+		Role role = _roleLocalService.getRole(
+			group1.getCompanyId(), RoleConstants.GUEST);
+
+		_resourcePermissionLocalService.setResourcePermissions(
+			group1.getCompanyId(), Layout.class.getName(),
+			ResourceConstants.SCOPE_GROUP, String.valueOf(group1.getGroupId()),
+			role.getRoleId(), new String[] {ActionKeys.VIEW});
+		_resourcePermissionLocalService.setResourcePermissions(
+			group1.getCompanyId(), Layout.class.getName(),
+			ResourceConstants.SCOPE_INDIVIDUAL,
+			String.valueOf(group1.getGroupId()), role.getRoleId(),
+			new String[] {ActionKeys.VIEW});
+
+		_groupLocalService.deleteGroup(group1);
+
+		Assert.assertNull(
+			_assetCategoryLocalService.fetchAssetCategory(
+				assetCategory.getCategoryId()));
+		Assert.assertNull(
+			_assetVocabularyLocalService.fetchAssetVocabulary(
+				assetVocabulary.getVocabularyId()));
+		Assert.assertEquals(
+			0,
+			_resourcePermissionLocalService.getResourcePermissionsCount(
+				group1.getCompanyId(), Layout.class.getName(),
+				ResourceConstants.SCOPE_GROUP,
+				String.valueOf(group1.getGroupId())));
+		Assert.assertEquals(
+			1,
+			_resourcePermissionLocalService.getResourcePermissionsCount(
+				group1.getCompanyId(), Layout.class.getName(),
+				ResourceConstants.SCOPE_INDIVIDUAL,
+				String.valueOf(group1.getGroupId())));
 	}
 
 	@FeatureFlag("LPD-82960")
@@ -346,6 +442,12 @@ public class GroupLocalServiceTest {
 	};
 
 	@Inject
+	private AssetCategoryLocalService _assetCategoryLocalService;
+
+	@Inject
+	private AssetVocabularyLocalService _assetVocabularyLocalService;
+
+	@Inject
 	private ClassNameLocalService _classNameLocalService;
 
 	@Inject
@@ -353,5 +455,14 @@ public class GroupLocalServiceTest {
 
 	@Inject
 	private GroupLocalService _groupLocalService;
+
+	@Inject
+	private LayoutLocalService _layoutLocalService;
+
+	@Inject
+	private ResourcePermissionLocalService _resourcePermissionLocalService;
+
+	@Inject
+	private RoleLocalService _roleLocalService;
 
 }

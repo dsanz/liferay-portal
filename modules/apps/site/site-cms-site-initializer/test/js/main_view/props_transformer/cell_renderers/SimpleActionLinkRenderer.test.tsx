@@ -61,6 +61,7 @@ const testBaseProps = {
 	options: {
 		actionId: 'view',
 	},
+	systemIconLabel: 'system-default-structure',
 	value: 'Web Content Test',
 };
 
@@ -73,7 +74,18 @@ const testFolderProps = {
 	options: {
 		actionId: 'view',
 	},
+	systemIconLabel: 'system-default-structure',
 	value: 'Folder Test',
+};
+
+const testReadOnlyProps = {
+	...testBaseProps,
+	itemData: {
+		...testBaseProps.itemData,
+		actions: {
+			get: {},
+		},
+	},
 };
 
 describe('SimpleActionLinkRenderer. Render the value only.', () => {
@@ -109,6 +121,29 @@ describe('SimpleActionLinkRenderer. Render the value only.', () => {
 		expect(screen.queryByRole('link')).not.toBeInTheDocument();
 
 		expect(screen.getByText(testBaseProps.value)).toBeInTheDocument();
+	});
+});
+
+describe('SimpleActionLinkRenderer. Require update permission.', () => {
+	it('renders a link when update permission is not required', () => {
+		render(
+			<SimpleActionLinkRenderer
+				{...testReadOnlyProps}
+				requiresUpdatePermission={false}
+			/>
+		);
+
+		expect(
+			screen.getByRole('link', {name: testReadOnlyProps.value})
+		).toHaveAttribute('href', testActionBase.href);
+	});
+
+	it('renders the value only when update permission is missing', () => {
+		render(<SimpleActionLinkRenderer {...testReadOnlyProps} />);
+
+		expect(screen.queryByRole('link')).not.toBeInTheDocument();
+
+		expect(screen.getByText(testReadOnlyProps.value)).toBeInTheDocument();
 	});
 });
 
@@ -179,19 +214,34 @@ describe('SimpleActionLinkRenderer. Show type icon.', () => {
 });
 
 describe('SimpleActionLinkRenderer. Show lock icon.', () => {
-	it('shows lock icon if it is a system link', () => {
-		render(
+	it('does not alter the link accessible name for non-system links', () => {
+		render(<SimpleActionLinkRenderer {...testBaseProps} />);
+
+		expect(
+			screen.getByRole('link', {name: testBaseProps.value})
+		).toHaveAttribute('aria-label', testBaseProps.value);
+	});
+
+	it('shows a decorative lock icon and describes system links with the system icon label', () => {
+		const {container} = render(
 			<SimpleActionLinkRenderer
 				{...testBaseProps}
 				itemData={{
 					...testBaseProps.itemData,
 					system: true,
 				}}
+				systemIconLabel="system-vocabulary"
 			/>
 		);
 
-		expect(
-			screen.getByLabelText('system-default-structure')
-		).toBeInTheDocument();
+		const link = screen.getByRole('link', {name: testBaseProps.value});
+
+		expect(link).toHaveAccessibleDescription('system-vocabulary');
+		expect(link).toHaveAttribute('aria-label', testBaseProps.value);
+		expect(container.querySelector('.lfr-portal-tooltip')).toHaveAttribute(
+			'data-title',
+			'system-vocabulary'
+		);
+		expect(screen.getByText('system-vocabulary')).toHaveClass('sr-only');
 	});
 });

@@ -1,0 +1,38 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+export default function ({namespace}) {
+	function saveCountryCodes() {
+		setTimeout(() => {
+			const form = document[`${namespace}fm`];
+
+			if (!form) {
+				return;
+			}
+
+			const currentCountryCodesInput = Liferay.Util.getFormElement(
+				form,
+				'currentCountryCodes'
+			);
+
+			if (currentCountryCodesInput) {
+				Liferay.Util.setFormValues(form, {
+					countryCodes: Liferay.Util.getSelectedOptionValues(
+						currentCountryCodesInput
+					),
+				});
+			}
+		});
+	}
+
+	Liferay.after(
+		[
+			'form:registered',
+			'inputmoveboxes:moveItem',
+			'inputmoveboxes:orderItem',
+		],
+		saveCountryCodes
+	);
+}

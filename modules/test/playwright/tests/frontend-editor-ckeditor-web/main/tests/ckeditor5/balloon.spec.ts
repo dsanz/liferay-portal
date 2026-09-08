@@ -34,6 +34,7 @@ test(
 			'Accessibility help',
 			'Undo',
 			'Redo',
+			'Find and replace',
 			'Styles',
 			'Normal',
 			'Bold',
@@ -54,7 +55,6 @@ test(
 			'Video',
 			'Horizontal line',
 			'Text alignment',
-			'AI Creator',
 		];
 
 		const controls = await balloonPage.toolbar

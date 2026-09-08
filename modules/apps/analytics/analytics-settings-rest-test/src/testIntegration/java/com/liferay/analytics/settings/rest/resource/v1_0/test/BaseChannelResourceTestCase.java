@@ -31,6 +31,7 @@ import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.service.CompanyLocalServiceUtil;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -92,6 +93,8 @@ public abstract class BaseChannelResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -200,7 +203,7 @@ public abstract class BaseChannelResourceTestCase {
 		Channel channel2 = testGetChannelsPage_addChannel(randomChannel());
 
 		page = channelResource.getChannelsPage(
-			null, Pagination.of(1, 10), null);
+			null, Pagination.of(1, (int)totalCount + 2), null);
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -425,17 +428,8 @@ public abstract class BaseChannelResourceTestCase {
 
 	@Test
 	public void testGraphQLGetChannelsPage() throws Exception {
-		GraphQLField graphQLField = new GraphQLField(
-			"channels",
-			new HashMap<String, Object>() {
-				{
-					put("keywords", null);
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetChannelsPageChannel_getGraphQLField();
 
 		// No namespace
 
@@ -484,6 +478,22 @@ public abstract class BaseChannelResourceTestCase {
 			channel2,
 			Arrays.asList(
 				ChannelSerDes.toDTOs(channelsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField testGraphQLGetChannelsPageChannel_getGraphQLField()
+		throws Exception {
+
+		return new GraphQLField(
+			"channels",
+			new HashMap<String, Object>() {
+				{
+					put("keywords", null);
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -715,16 +725,6 @@ public abstract class BaseChannelResourceTestCase {
 				continue;
 			}
 
-			if (Objects.equals(
-					"commerceSyncEnabled", additionalAssertFieldName)) {
-
-				if (channel.getCommerceSyncEnabled() == null) {
-					valid = false;
-				}
-
-				continue;
-			}
-
 			if (Objects.equals("createDate", additionalAssertFieldName)) {
 				if (channel.getCreateDate() == null) {
 					valid = false;
@@ -870,19 +870,6 @@ public abstract class BaseChannelResourceTestCase {
 			if (Objects.equals("channelId", additionalAssertFieldName)) {
 				if (!Objects.deepEquals(
 						channel1.getChannelId(), channel2.getChannelId())) {
-
-					return false;
-				}
-
-				continue;
-			}
-
-			if (Objects.equals(
-					"commerceSyncEnabled", additionalAssertFieldName)) {
-
-				if (!Objects.deepEquals(
-						channel1.getCommerceSyncEnabled(),
-						channel2.getCommerceSyncEnabled())) {
 
 					return false;
 				}
@@ -1073,11 +1060,6 @@ public abstract class BaseChannelResourceTestCase {
 			return sb.toString();
 		}
 
-		if (entityFieldName.equals("commerceSyncEnabled")) {
-			throw new IllegalArgumentException(
-				"Invalid entity field " + entityFieldName);
-		}
-
 		if (entityFieldName.equals("createDate")) {
 			if (operator.equals("between")) {
 				Date date = channel.getCreateDate();
@@ -1207,7 +1189,6 @@ public abstract class BaseChannelResourceTestCase {
 			{
 				channelId = StringUtil.toLowerCase(
 					RandomTestUtil.randomString());
-				commerceSyncEnabled = RandomTestUtil.randomBoolean();
 				createDate = RandomTestUtil.nextDate();
 				name = StringUtil.toLowerCase(RandomTestUtil.randomString());
 			}
@@ -1434,4 +1415,4 @@ public abstract class BaseChannelResourceTestCase {
 		_channelResource;
 
 }
-// LIFERAY-REST-BUILDER-HASH:-292905265
+// LIFERAY-REST-BUILDER-HASH:-2031789518

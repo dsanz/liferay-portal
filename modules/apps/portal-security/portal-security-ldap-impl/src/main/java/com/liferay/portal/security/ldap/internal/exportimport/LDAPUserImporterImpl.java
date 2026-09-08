@@ -1670,7 +1670,7 @@ public class LDAPUserImporterImpl implements LDAPUserImporter {
 					(value != null)) {
 
 					ExpandoValue existingValue =
-						_expandoValueLocalService.getValue(
+						_expandoValueLocalService.fetchValue(
 							expandoBridge.getCompanyId(),
 							expandoBridge.getClassName(),
 							ExpandoTableConstants.DEFAULT_TABLE_NAME, name,
@@ -2032,15 +2032,12 @@ public class LDAPUserImporterImpl implements LDAPUserImporter {
 			if (userGroup.isAddedByLDAPImport()) {
 				long userGroupId = userGroup.getUserGroupId();
 
-				if (userGroupIds.contains(userGroupId)) {
-					userGroupIds.remove(userGroupId);
-				}
-				else {
+				if (!userGroupIds.remove(userGroupId)) {
 					ExpandoColumn expandoColumn = _getOrAddExpandoColumn(
 						userGroup.getCompanyId());
 
 					ExpandoValue expandoValue =
-						_expandoValueLocalService.getValue(
+						_expandoValueLocalService.fetchValue(
 							expandoColumn.getTableId(),
 							expandoColumn.getColumnId(), userGroupId);
 

@@ -9,6 +9,7 @@ import com.liferay.portal.kernel.dependency.manager.DependencyManagerSyncUtil;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
@@ -49,15 +50,10 @@ public class ServiceLatch {
 	public <S> ServiceLatch waitFor(
 		Class<S> serviceClass, Consumer<S> serviceConsumer) {
 
-		CapturingServiceTrackerCustomizer<S> capturingServiceTrackerCustomizer =
-			new CapturingServiceTrackerCustomizer<>(serviceConsumer);
-
-		ServiceTracker<S, S> serviceTracker = new ServiceTracker<>(
-			_bundleContext, serviceClass, capturingServiceTrackerCustomizer);
-
-		capturingServiceTrackerCustomizer.setServiceTracker(serviceTracker);
-
-		_serviceTrackers.add(serviceTracker);
+		_serviceTrackers.add(
+			new ServiceTracker<>(
+				_bundleContext, serviceClass,
+				new CapturingServiceTrackerCustomizer<>(serviceConsumer)));
 
 		_serviceTrackersCount.incrementAndGet();
 
@@ -74,17 +70,11 @@ public class ServiceLatch {
 	public <S> ServiceLatch waitFor(
 		String filterString, Consumer<S> serviceConsumer) {
 
-		CapturingServiceTrackerCustomizer<S> capturingServiceTrackerCustomizer =
-			new CapturingServiceTrackerCustomizer<>(serviceConsumer);
-
 		try {
-			ServiceTracker<S, S> serviceTracker = new ServiceTracker<>(
-				_bundleContext, _bundleContext.createFilter(filterString),
-				capturingServiceTrackerCustomizer);
-
-			capturingServiceTrackerCustomizer.setServiceTracker(serviceTracker);
-
-			_serviceTrackers.add(serviceTracker);
+			_serviceTrackers.add(
+				new ServiceTracker<>(
+					_bundleContext, _bundleContext.createFilter(filterString),
+					new CapturingServiceTrackerCustomizer<>(serviceConsumer)));
 
 			_serviceTrackersCount.incrementAndGet();
 		}
@@ -106,6 +96,10 @@ public class ServiceLatch {
 
 		@Override
 		public S addingService(ServiceReference<S> serviceReference) {
+			if (!_satisfied.compareAndSet(false, true)) {
+				return null;
+			}
+
 			S service = _bundleContext.getService(serviceReference);
 
 			_serviceConsumer.accept(service);
@@ -140,16 +134,12 @@ public class ServiceLatch {
 			_bundleContext.ungetService(serviceReference);
 		}
 
-		public void setServiceTracker(ServiceTracker<S, S> serviceTracker) {
-			_serviceTracker = serviceTracker;
-		}
-
 		private CapturingServiceTrackerCustomizer(Consumer<S> serviceConsumer) {
 			_serviceConsumer = serviceConsumer;
 		}
 
+		private final AtomicBoolean _satisfied = new AtomicBoolean();
 		private final Consumer<S> _serviceConsumer;
-		private ServiceTracker<S, S> _serviceTracker;
 
 	}
 

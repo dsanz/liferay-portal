@@ -401,11 +401,28 @@ public class CPDefinitionLocalServiceWrapper
 	}
 
 	@Override
+	public CPDefinition fetchCPDefinitionByCProductExternalReferenceCode(
+		String externalReferenceCode, long companyId, int status) {
+
+		return _cpDefinitionLocalService.
+			fetchCPDefinitionByCProductExternalReferenceCode(
+				externalReferenceCode, companyId, status);
+	}
+
+	@Override
 	public CPDefinition fetchCPDefinitionByCProductId(
 		long cProductId, boolean excludeDraft) {
 
 		return _cpDefinitionLocalService.fetchCPDefinitionByCProductId(
 			cProductId, excludeDraft);
+	}
+
+	@Override
+	public CPDefinition fetchCPDefinitionByCProductId(
+		long cProductId, int status) {
+
+		return _cpDefinitionLocalService.fetchCPDefinitionByCProductId(
+			cProductId, status);
 	}
 
 	@Override
@@ -468,6 +485,16 @@ public class CPDefinitionLocalServiceWrapper
 		throws com.liferay.portal.kernel.exception.PortalException {
 
 		return _cpDefinitionLocalService.getCPDefinition(CPDefinitionId);
+	}
+
+	@Override
+	public CPDefinition getCPDefinitionByCProductExternalReferenceCode(
+			String externalReferenceCode, long companyId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _cpDefinitionLocalService.
+			getCPDefinitionByCProductExternalReferenceCode(
+				externalReferenceCode, companyId);
 	}
 
 	@Override
@@ -708,6 +735,12 @@ public class CPDefinitionLocalServiceWrapper
 	}
 
 	@Override
+	public int getCProductCPDefinitionsCount(long cProductId, int status) {
+		return _cpDefinitionLocalService.getCProductCPDefinitionsCount(
+			cProductId, status);
+	}
+
+	@Override
 	public com.liferay.commerce.product.model.CPAttachmentFileEntry
 			getDefaultImageCPAttachmentFileEntry(long cpDefinitionId)
 		throws com.liferay.portal.kernel.exception.PortalException {
@@ -754,6 +787,16 @@ public class CPDefinitionLocalServiceWrapper
 	@Override
 	public String getLayoutUuid(long groupId, long cpDefinitionId) {
 		return _cpDefinitionLocalService.getLayoutUuid(groupId, cpDefinitionId);
+	}
+
+	@Override
+	public CPDefinition getOrAddEmptyCPDefinition(
+			String externalReferenceCode, String productTypeName,
+			long companyId, long userId, long groupId)
+		throws com.liferay.portal.kernel.exception.PortalException {
+
+		return _cpDefinitionLocalService.getOrAddEmptyCPDefinition(
+			externalReferenceCode, productTypeName, companyId, userId, groupId);
 	}
 
 	/**
@@ -1119,4 +1162,4 @@ public class CPDefinitionLocalServiceWrapper
 	private CPDefinitionLocalService _cpDefinitionLocalService;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:1444118985
+// LIFERAY-SERVICE-BUILDER-HASH:937204011

@@ -32,20 +32,16 @@ import com.liferay.asset.tags.item.selector.AssetTagsItemSelectorReturnType;
 import com.liferay.asset.util.AssetRendererFactoryClassProvider;
 import com.liferay.asset.util.comparator.AssetRendererFactoryTypeNameComparator;
 import com.liferay.depot.constants.DepotConstants;
+import com.liferay.depot.util.SiteConnectedGroupGroupProviderUtil;
 import com.liferay.dynamic.data.mapping.util.DDMIndexer;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItem;
-import com.liferay.frontend.taglib.clay.servlet.taglib.util.DropdownItemList;
 import com.liferay.info.search.InfoSearchClassMapperRegistry;
 import com.liferay.item.selector.ItemSelector;
 import com.liferay.item.selector.ItemSelectorCriterion;
-import com.liferay.item.selector.criteria.AssetEntryItemSelectorReturnType;
 import com.liferay.item.selector.criteria.GroupItemSelectorReturnType;
 import com.liferay.item.selector.criteria.InfoItemItemSelectorReturnType;
-import com.liferay.item.selector.criteria.asset.criterion.AssetEntryItemSelectorCriterion;
 import com.liferay.item.selector.criteria.group.criterion.GroupItemSelectorCriterion;
 import com.liferay.item.selector.criteria.info.item.criterion.InfoItemItemSelectorCriterion;
 import com.liferay.object.service.ObjectDefinitionLocalService;
-import com.liferay.petra.function.UnsafeConsumer;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
@@ -53,12 +49,10 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.dao.orm.QueryUtil;
 import com.liferay.portal.kernel.dao.search.SearchContainer;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactoryUtil;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
-import com.liferay.portal.kernel.language.LanguageUtil;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.model.Company;
@@ -71,14 +65,13 @@ import com.liferay.portal.kernel.portlet.PortletURLFactoryUtil;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactory;
 import com.liferay.portal.kernel.portlet.RequestBackedPortletURLFactoryUtil;
 import com.liferay.portal.kernel.portlet.url.builder.PortletURLBuilder;
+import com.liferay.portal.kernel.search.Field;
 import com.liferay.portal.kernel.service.GroupLocalServiceUtil;
 import com.liferay.portal.kernel.theme.PortletDisplay;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
-import com.liferay.portal.kernel.util.CollatorUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ParamUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
@@ -104,10 +97,6 @@ import jakarta.portlet.PortletResponse;
 import jakarta.portlet.PortletURL;
 
 import jakarta.servlet.http.HttpServletRequest;
-
-import java.io.Serializable;
-
-import java.text.Collator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -158,9 +147,7 @@ public class EditAssetListDisplayContext {
 		return ddmIndexer.encodeName(ddmStructureId, fieldReference, locale);
 	}
 
-	public List<DropdownItem> getActionDropdownItems() throws Exception {
-		DropdownItemList dropdownItemList = new DropdownItemList();
-
+	public JSONArray getAssetEntryTypesJSONArray() throws Exception {
 		AssetListEntry assetListEntry = getAssetListEntry();
 
 		UnicodeProperties unicodeProperties = UnicodePropertiesBuilder.create(
@@ -177,66 +164,38 @@ public class EditAssetListDisplayContext {
 			classNameIds = _getDefaultClassNameIds();
 		}
 
-		for (long classNameId : classNameIds) {
-			AssetRendererFactory<?> assetRendererFactory =
-				AssetRendererFactoryRegistryUtil.
-					getAssetRendererFactoryByClassNameId(classNameId);
+		return JSONUtil.toJSONArray(
+			ArrayUtil.toArray(classNameIds),
+			classNameId -> {
+				AssetRendererFactory<?> assetRendererFactory =
+					AssetRendererFactoryRegistryUtil.
+						getAssetRendererFactoryByClassNameId(classNameId);
 
-			if ((assetRendererFactory == null) ||
-				!assetRendererFactory.isActive(_themeDisplay.getCompanyId()) ||
-				!assetRendererFactory.isSelectable()) {
+				if ((assetRendererFactory == null) ||
+					!assetRendererFactory.isActive(
+						_themeDisplay.getCompanyId()) ||
+					!assetRendererFactory.isSelectable()) {
 
-				continue;
-			}
+					return null;
+				}
 
-			if (!Objects.equals(
-					assetListEntry.getAssetEntryType(),
-					AssetEntry.class.getName()) &&
-				!Objects.equals(
-					assetListEntry.getAssetEntryType(),
-					assetRendererFactory.getClassName())) {
+				if (!Objects.equals(
+						assetListEntry.getAssetEntryType(),
+						AssetEntry.class.getName()) &&
+					!Objects.equals(
+						assetListEntry.getAssetEntryType(),
+						assetRendererFactory.getClassName())) {
 
-				continue;
-			}
+					return null;
+				}
 
-			if (!assetRendererFactory.isSupportsClassTypes()) {
-				dropdownItemList.add(
-					_getUnsafeConsumer(
-						assetRendererFactory, _DEFAULT_SUBTYPE_SELECTION_ID,
-						assetRendererFactory.getTypeName(
-							_themeDisplay.getLocale())));
-
-				continue;
-			}
-
-			Class<? extends AssetRendererFactory<?>> clazz =
-				_assetRendererFactoryClassProvider.getClass(
-					assetRendererFactory);
-
-			ClassTypeReader classTypeReader =
-				assetRendererFactory.getClassTypeReader();
-
-			long[] classTypeIds = GetterUtil.getLongValues(
-				StringUtil.split(
-					unicodeProperties.getProperty(
-						"classTypeIds" + clazz.getSimpleName(), null)));
-
-			if (classTypeIds.length == 0) {
-				classTypeIds = _getDefaultClassTypeIds(classTypeReader);
-			}
-
-			for (long classTypeId : classTypeIds) {
-				dropdownItemList.add(
-					_getClassTypeIdUnsafeConsumer(
-						assetRendererFactory,
-						assetListEntry.getAssetEntrySubtype(), classTypeId,
-						classTypeReader));
-			}
-		}
-
-		return ListUtil.sort(
-			dropdownItemList,
-			new SelectorEntriesLabelComparator(_themeDisplay.getLocale()));
+				return JSONUtil.put(
+					"classNameId", classNameId
+				).put(
+					"label",
+					assetRendererFactory.getTypeName(_themeDisplay.getLocale())
+				);
+			});
 	}
 
 	public AssetListEntry getAssetListEntry() {
@@ -672,6 +631,13 @@ public class EditAssetListDisplayContext {
 			unicodeProperties, className, availableClassTypeIds);
 	}
 
+	public String getConnectedGroupIdsString() throws PortalException {
+		return StringUtil.merge(
+			SiteConnectedGroupGroupProviderUtil.
+				getCurrentAndAncestorSiteAndDepotGroupIds(
+					new long[] {_themeDisplay.getScopeGroupId()}));
+	}
+
 	public Map<String, Object> getData() {
 		return HashMapBuilder.<String, Object>put(
 			"assetListEntrySegmentsEntryRels",
@@ -819,8 +785,8 @@ public class EditAssetListDisplayContext {
 			return _orderByColumn1;
 		}
 
-		_orderByColumn1 = GetterUtil.getString(
-			_unicodeProperties.getProperty("orderByColumn1", "modifiedDate"));
+		_orderByColumn1 = _getOrderByColumn(
+			"orderByColumn1", Field.MODIFIED_DATE);
 
 		return _orderByColumn1;
 	}
@@ -830,8 +796,7 @@ public class EditAssetListDisplayContext {
 			return _orderByColumn2;
 		}
 
-		_orderByColumn2 = GetterUtil.getString(
-			_unicodeProperties.getProperty("orderByColumn2", "title"));
+		_orderByColumn2 = _getOrderByColumn("orderByColumn2", "title");
 
 		return _orderByColumn2;
 	}
@@ -884,22 +849,17 @@ public class EditAssetListDisplayContext {
 
 		long[] groupIds = getSelectedGroupIds();
 
-		if (FeatureFlagManagerUtil.isEnabled(
-				_themeDisplay.getCompanyId(), "LPD-17564")) {
+		for (Group group : getSelectedGroups()) {
+			int depotEntryType = GetterUtil.getInteger(
+				group.getTypeSettingsProperty("depotEntryType"));
 
-			for (Group group : getSelectedGroups()) {
-				int depotEntryType = GetterUtil.getInteger(
-					group.getTypeSettingsProperty("depotEntryType"));
+			if (depotEntryType == DepotConstants.TYPE_SPACE) {
+				Group cmsGroup = GroupLocalServiceUtil.getGroup(
+					_themeDisplay.getCompanyId(), GroupConstants.CMS);
 
-				if (depotEntryType == DepotConstants.TYPE_SPACE) {
-					Group cmsGroup = GroupLocalServiceUtil.getGroup(
-						_themeDisplay.getCompanyId(), GroupConstants.CMS);
+				groupIds = ArrayUtil.append(groupIds, cmsGroup.getGroupId());
 
-					groupIds = ArrayUtil.append(
-						groupIds, cmsGroup.getGroupId());
-
-					break;
-				}
+				break;
 			}
 		}
 
@@ -1290,41 +1250,6 @@ public class EditAssetListDisplayContext {
 		return StringUtil.merge(filteredAssetTagNames);
 	}
 
-	private PortletURL _getAssetEntryItemSelectorPortletURL(
-		AssetRendererFactory<?> assetRendererFactory, long subtypeSelectionId) {
-
-		PortletURL portletURL = assetRendererFactory.getItemSelectorURL(
-			PortalUtil.getLiferayPortletRequest(_portletRequest),
-			PortalUtil.getLiferayPortletResponse(_portletResponse),
-			subtypeSelectionId, _portletResponse.getNamespace() + "selectAsset",
-			_themeDisplay.getScopeGroup(), true, 0);
-
-		if (portletURL != null) {
-			return portletURL;
-		}
-
-		AssetEntryItemSelectorCriterion assetEntryItemSelectorCriterion =
-			new AssetEntryItemSelectorCriterion();
-
-		assetEntryItemSelectorCriterion.setDesiredItemSelectorReturnTypes(
-			new AssetEntryItemSelectorReturnType());
-		assetEntryItemSelectorCriterion.setGroupId(
-			_themeDisplay.getScopeGroupId());
-		assetEntryItemSelectorCriterion.setShowNonindexable(true);
-		assetEntryItemSelectorCriterion.setShowScheduled(true);
-		assetEntryItemSelectorCriterion.setSubtypeSelectionId(
-			subtypeSelectionId);
-		assetEntryItemSelectorCriterion.setTypeSelection(
-			assetRendererFactory.getClassName());
-
-		return PortletURLBuilder.create(
-			_itemSelector.getItemSelectorURL(
-				RequestBackedPortletURLFactoryUtil.create(_portletRequest),
-				_portletResponse.getNamespace() + "selectAsset",
-				assetEntryItemSelectorCriterion)
-		).buildPortletURL();
-	}
-
 	private JSONArray _getAssetListEntrySegmentsEntryRelJSONArray() {
 		List<AssetListEntrySegmentsEntryRel> assetListEntrySegmentsEntryRels =
 			new ArrayList<>(getAssetListEntrySegmentsEntryRels());
@@ -1414,39 +1339,6 @@ public class EditAssetListDisplayContext {
 		return availableClassTypeIds;
 	}
 
-	private UnsafeConsumer<DropdownItem, Exception>
-		_getClassTypeIdUnsafeConsumer(
-			AssetRendererFactory<?> assetRendererFactory,
-			String assetEntrySubtype, long classTypeId,
-			ClassTypeReader classTypeReader) {
-
-		ClassType classType = null;
-
-		try {
-			classType = classTypeReader.getClassType(
-				classTypeId, _themeDisplay.getLocale());
-		}
-		catch (PortalException portalException) {
-			if (_log.isDebugEnabled()) {
-				_log.debug(portalException);
-			}
-
-			return null;
-		}
-
-		if (Validator.isNotNull(assetEntrySubtype) &&
-			!Objects.equals(
-				assetEntrySubtype,
-				String.valueOf(classType.getClassTypeId()))) {
-
-			return null;
-		}
-
-		return _getUnsafeConsumer(
-			assetRendererFactory, classType.getClassTypeId(),
-			classType.getName());
-	}
-
 	private long[] _getDefaultClassNameIds() {
 		List<AssetRendererFactory<?>> assetRendererFactories = ListUtil.sort(
 			AssetRendererFactoryRegistryUtil.getAssetRendererFactories(
@@ -1456,19 +1348,6 @@ public class EditAssetListDisplayContext {
 
 		return ListUtil.toLongArray(
 			assetRendererFactories, AssetRendererFactory::getClassNameId);
-	}
-
-	private long[] _getDefaultClassTypeIds(ClassTypeReader classTypeReader)
-		throws Exception {
-
-		List<ClassType> assetAvailableClassTypes =
-			classTypeReader.getAvailableClassTypes(
-				PortalUtil.getCurrentAndAncestorSiteGroupIds(
-					_themeDisplay.getScopeGroupId()),
-				_themeDisplay.getLocale());
-
-		return ListUtil.toLongArray(
-			assetAvailableClassTypes, ClassType::getClassTypeId);
 	}
 
 	private String _getDeleteAssetListEntryVariationURL(
@@ -1497,6 +1376,17 @@ public class EditAssetListDisplayContext {
 		).buildString();
 	}
 
+	private String _getOrderByColumn(String key, String defaultOrderByColumn) {
+		String orderByColumn = GetterUtil.getString(
+			_unicodeProperties.getProperty(key, defaultOrderByColumn));
+
+		if (orderByColumn.equals("modifiedDate")) {
+			return Field.MODIFIED_DATE;
+		}
+
+		return orderByColumn;
+	}
+
 	private String _getTypeSettings() {
 		AssetListEntry assetListEntry = getAssetListEntry();
 
@@ -1509,27 +1399,6 @@ public class EditAssetListDisplayContext {
 		}
 
 		return typeSettings;
-	}
-
-	private UnsafeConsumer<DropdownItem, Exception> _getUnsafeConsumer(
-		AssetRendererFactory<?> assetRendererFactory, long classTypeId,
-		String classTypeName) {
-
-		return dropdownItem -> {
-			dropdownItem.putData(
-				"href",
-				String.valueOf(
-					_getAssetEntryItemSelectorPortletURL(
-						assetRendererFactory, classTypeId)));
-			dropdownItem.putData(
-				"title",
-				HtmlUtil.escape(
-					LanguageUtil.format(
-						_httpServletRequest, "select-x", classTypeName,
-						false)));
-
-			dropdownItem.setLabel(classTypeName);
-		};
 	}
 
 	private void _setDDMStructure() throws Exception {
@@ -1581,8 +1450,6 @@ public class EditAssetListDisplayContext {
 		}
 	}
 
-	private static final long _DEFAULT_SUBTYPE_SELECTION_ID = -1;
-
 	private static final Log _log = LogFactoryUtil.getLog(
 		EditAssetListDisplayContext.class);
 
@@ -1623,29 +1490,5 @@ public class EditAssetListDisplayContext {
 	private Boolean _subtypeFieldsFilterEnabled;
 	private final ThemeDisplay _themeDisplay;
 	private final UnicodeProperties _unicodeProperties;
-
-	private class SelectorEntriesLabelComparator
-		implements Comparator<Map<String, Object>>, Serializable {
-
-		public SelectorEntriesLabelComparator(Locale locale) {
-			_collator = CollatorUtil.getInstance(locale);
-		}
-
-		@Override
-		public int compare(Map<String, Object> map1, Map<String, Object> map2) {
-			String label1 = StringPool.BLANK;
-			String label2 = StringPool.BLANK;
-
-			if (map1.containsKey("label") && map2.containsKey("label")) {
-				label1 = (String)map1.get("label");
-				label2 = (String)map2.get("label");
-			}
-
-			return _collator.compare(label1, label2);
-		}
-
-		private final Collator _collator;
-
-	}
 
 }

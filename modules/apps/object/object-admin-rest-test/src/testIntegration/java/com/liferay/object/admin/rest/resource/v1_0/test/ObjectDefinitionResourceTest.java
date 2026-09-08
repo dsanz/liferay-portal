@@ -12,6 +12,8 @@ import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.exportimport.test.rule.LazyReferencing;
 import com.liferay.exportimport.test.rule.LazyReferencingTestRule;
+import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationCategory;
+import com.liferay.frontend.taglib.servlet.taglib.ScreenNavigationRegistryUtil;
 import com.liferay.list.type.model.ListTypeDefinition;
 import com.liferay.list.type.service.ListTypeDefinitionLocalService;
 import com.liferay.object.admin.rest.client.dto.v1_0.ObjectAction;
@@ -27,6 +29,8 @@ import com.liferay.object.admin.rest.client.dto.v1_0.ObjectLayoutTab;
 import com.liferay.object.admin.rest.client.dto.v1_0.ObjectRelationship;
 import com.liferay.object.admin.rest.client.dto.v1_0.ObjectValidationRule;
 import com.liferay.object.admin.rest.client.dto.v1_0.ObjectValidationRuleSetting;
+import com.liferay.object.admin.rest.client.dto.v1_0.ObjectView;
+import com.liferay.object.admin.rest.client.dto.v1_0.ObjectViewColumn;
 import com.liferay.object.admin.rest.client.dto.v1_0.Status;
 import com.liferay.object.admin.rest.client.dto.v1_0.WorkflowDefinitionLink;
 import com.liferay.object.admin.rest.client.pagination.Page;
@@ -75,7 +79,7 @@ import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ResourcePermissionLocalService;
 import com.liferay.portal.kernel.service.RoleLocalService;
 import com.liferay.portal.kernel.service.WorkflowDefinitionLinkLocalService;
-import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.test.AssertUtils;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.DeleteAfterTestRun;
 import com.liferay.portal.kernel.test.util.CompanyTestUtil;
@@ -93,7 +97,6 @@ import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.PortalUtil;
 import com.liferay.portal.kernel.util.PropsValues;
-import com.liferay.portal.kernel.util.ProxyUtil;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.SystemProperties;
 import com.liferay.portal.kernel.util.TextFormatter;
@@ -102,8 +105,6 @@ import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.kernel.workflow.WorkflowDefinition;
 import com.liferay.portal.language.LanguageResources;
 import com.liferay.portal.odata.entity.EntityField;
-import com.liferay.portal.test.rule.FeatureFlag;
-import com.liferay.portal.test.rule.FeatureFlags;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.vulcan.util.LocalizedMapUtil;
 import com.liferay.portal.workflow.constants.WorkflowDefinitionConstants;
@@ -136,11 +137,6 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 /**
  * @author Javier Gamarra
  */
-@FeatureFlags(
-	featureFlags = {
-		@FeatureFlag(value = "LPD-34594"), @FeatureFlag(value = "LPD-69877")
-	}
-)
 @RunWith(Arquillian.class)
 public class ObjectDefinitionResourceTest
 	extends BaseObjectDefinitionResourceTestCase {
@@ -166,7 +162,6 @@ public class ObjectDefinitionResourceTest
 			RandomTestUtil.randomString());
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Override
 	@Test
 	public void testGetObjectDefinition() throws Exception {
@@ -197,38 +192,13 @@ public class ObjectDefinitionResourceTest
 
 		JSONArray jsonArray = jsonObject.getJSONArray("objectFields");
 
-		Assert.assertEquals(jsonArray.toString(), 7, jsonArray.length());
+		Assert.assertEquals(jsonArray.toString(), 10, jsonArray.length());
 	}
 
 	@Override
 	@Test
 	public void testGetObjectDefinitionsPage() throws Exception {
-		ObjectDefinitionResource.Builder builder =
-			ReflectionTestUtil.getFieldValue(
-				objectDefinitionResource, "_builder");
-
-		ReflectionTestUtil.setFieldValue(
-			this, "objectDefinitionResource",
-			ProxyUtil.newProxyInstance(
-				ObjectDefinitionResourceTest.class.getClassLoader(),
-				new Class<?>[] {ObjectDefinitionResource.class},
-				(proxy, method, args) -> {
-					if (Objects.equals(
-							method.getName(), "getObjectDefinitionsPage")) {
-
-						args[3] = Pagination.of(1, 20);
-					}
-
-					return method.invoke(builder.build(), args);
-				}));
-
-		try {
-			super.testGetObjectDefinitionsPage();
-		}
-		finally {
-			ReflectionTestUtil.setFieldValue(
-				this, "objectDefinitionResource", builder.build());
-		}
+		super.testGetObjectDefinitionsPage();
 
 		ObjectDefinition modifiableSystemObjectDefinition1 =
 			_addObjectDefinition(_randomModifiableSystemObjectDefinition());
@@ -347,27 +317,41 @@ public class ObjectDefinitionResourceTest
 		objectDefinition2 = testGetObjectDefinitionsPage_addObjectDefinition(
 			objectDefinition2);
 
+		Set<Long> objectDefinitionIds = Set.of(
+			objectDefinition1.getId(), objectDefinition2.getId());
+
+		Page<ObjectDefinition> objectDefinitionsPage =
+			objectDefinitionResource.getObjectDefinitionsPage(
+				null, null, null, Pagination.of(1, 1), null);
+
+		Pagination pagination = Pagination.of(
+			1, (int)objectDefinitionsPage.getTotalCount() + 10);
+
 		Page<ObjectDefinition> ascPage =
 			objectDefinitionResource.getObjectDefinitionsPage(
-				null, null, null, null, "name:asc");
+				null, null, null, pagination, "name:asc");
 
-		List<ObjectDefinition> objectDefinitions =
-			(List<ObjectDefinition>)ascPage.getItems();
+		List<ObjectDefinition> objectDefinitions = ListUtil.filter(
+			(List<ObjectDefinition>)ascPage.getItems(),
+			objectDefinition -> objectDefinitionIds.contains(
+				objectDefinition.getId()));
 
 		assertEquals(
 			Arrays.asList(objectDefinition1, objectDefinition2),
-			objectDefinitions.subList(2, 4));
+			objectDefinitions);
 
 		Page<ObjectDefinition> descPage =
 			objectDefinitionResource.getObjectDefinitionsPage(
-				null, null, null, null, "name:desc");
+				null, null, null, pagination, "name:desc");
 
-		objectDefinitions = (List<ObjectDefinition>)descPage.getItems();
+		objectDefinitions = ListUtil.filter(
+			(List<ObjectDefinition>)descPage.getItems(),
+			objectDefinition -> objectDefinitionIds.contains(
+				objectDefinition.getId()));
 
 		assertEquals(
 			Arrays.asList(objectDefinition2, objectDefinition1),
-			objectDefinitions.subList(
-				objectDefinitions.size() - 4, objectDefinitions.size() - 2));
+			objectDefinitions);
 
 		_objectDefinitionLocalService.deleteObjectDefinition(
 			objectDefinition1.getId());
@@ -444,10 +428,10 @@ public class ObjectDefinitionResourceTest
 	public void testPatchObjectDefinition() throws Exception {
 		super.testPatchObjectDefinition();
 
+		_testPatchObjectDefinitionWithObjectFields();
 		_testPatchObjectDefinitionWithPermissions();
 	}
 
-	@FeatureFlag("LPD-17564")
 	@LazyReferencing
 	@Override
 	@Test
@@ -455,11 +439,92 @@ public class ObjectDefinitionResourceTest
 	public void testPostObjectDefinition() throws Exception {
 		super.testPostObjectDefinition();
 
-		// Empty object definition created by object action
+		// Empty modifiable system object definition created by relationship
+		// object field
+
+		ObjectDefinition randomModifiableSystemObjectDefinition =
+			_randomModifiableSystemObjectDefinition();
+
+		String externalReferenceCode =
+			ObjectDefinitionConstants.
+				EXTERNAL_REFERENCE_CODE_PREFIX_SYSTEM_OBJECT_DEFINITION +
+					RandomTestUtil.randomString();
+
+		ObjectField systemRelationshipObjectField =
+			_createRelationshipObjectField(externalReferenceCode);
+
+		randomModifiableSystemObjectDefinition.setObjectFields(
+			ArrayUtil.append(
+				randomModifiableSystemObjectDefinition.getObjectFields(),
+				systemRelationshipObjectField));
+
+		testPostObjectDefinition_addObjectDefinition(
+			randomModifiableSystemObjectDefinition);
+
+		ObjectDefinition emptyObjectDefinition =
+			objectDefinitionResource.getObjectDefinitionByExternalReferenceCode(
+				externalReferenceCode);
+
+		Assert.assertTrue(emptyObjectDefinition.getModifiable());
+		Assert.assertEquals(
+			new Status() {
+				{
+					code = WorkflowConstants.STATUS_EMPTY;
+					label = WorkflowConstants.getStatusLabel(
+						WorkflowConstants.STATUS_EMPTY);
+					label_i18n = _language.get(
+						LanguageResources.getResourceBundle(
+							LocaleUtil.getDefault()),
+						WorkflowConstants.getStatusLabel(
+							WorkflowConstants.STATUS_EMPTY));
+				}
+			},
+			emptyObjectDefinition.getStatus());
+		Assert.assertTrue(emptyObjectDefinition.getSystem());
 
 		ObjectDefinition randomObjectDefinition = randomObjectDefinition();
 
-		String externalReferenceCode = RandomTestUtil.randomString();
+		externalReferenceCode =
+			ObjectDefinitionConstants.
+				EXTERNAL_REFERENCE_CODE_PREFIX_SYSTEM_OBJECT_DEFINITION +
+					RandomTestUtil.randomString();
+
+		ObjectField relationshipObjectField = _createRelationshipObjectField(
+			externalReferenceCode);
+
+		randomObjectDefinition.setObjectFields(
+			ArrayUtil.append(
+				randomObjectDefinition.getObjectFields(),
+				relationshipObjectField));
+
+		testPostObjectDefinition_addObjectDefinition(randomObjectDefinition);
+
+		emptyObjectDefinition =
+			objectDefinitionResource.getObjectDefinitionByExternalReferenceCode(
+				externalReferenceCode);
+
+		Assert.assertTrue(emptyObjectDefinition.getModifiable());
+		Assert.assertEquals(
+			new Status() {
+				{
+					code = WorkflowConstants.STATUS_EMPTY;
+					label = WorkflowConstants.getStatusLabel(
+						WorkflowConstants.STATUS_EMPTY);
+					label_i18n = _language.get(
+						LanguageResources.getResourceBundle(
+							LocaleUtil.getDefault()),
+						WorkflowConstants.getStatusLabel(
+							WorkflowConstants.STATUS_EMPTY));
+				}
+			},
+			emptyObjectDefinition.getStatus());
+		Assert.assertTrue(emptyObjectDefinition.getSystem());
+
+		// Empty object definition created by object action
+
+		randomObjectDefinition = randomObjectDefinition();
+
+		externalReferenceCode = RandomTestUtil.randomString();
 
 		ObjectAction objectAction = _createObjectAction(externalReferenceCode);
 
@@ -468,10 +533,11 @@ public class ObjectDefinitionResourceTest
 
 		testPostObjectDefinition_addObjectDefinition(randomObjectDefinition);
 
-		ObjectDefinition emptyObjectDefinition =
+		emptyObjectDefinition =
 			objectDefinitionResource.getObjectDefinitionByExternalReferenceCode(
 				externalReferenceCode);
 
+		Assert.assertTrue(emptyObjectDefinition.getModifiable());
 		Assert.assertEquals(
 			new Status() {
 				{
@@ -527,7 +593,7 @@ public class ObjectDefinitionResourceTest
 
 		externalReferenceCode = RandomTestUtil.randomString();
 
-		ObjectField relationshipObjectField = _createRelationshipObjectField(
+		relationshipObjectField = _createRelationshipObjectField(
 			externalReferenceCode);
 
 		randomObjectDefinition.setObjectFields(
@@ -556,6 +622,42 @@ public class ObjectDefinitionResourceTest
 			},
 			emptyObjectDefinition.getStatus());
 
+		randomModifiableSystemObjectDefinition =
+			_randomModifiableSystemObjectDefinition();
+
+		externalReferenceCode = RandomTestUtil.randomString();
+
+		relationshipObjectField = _createRelationshipObjectField(
+			externalReferenceCode);
+
+		randomModifiableSystemObjectDefinition.setObjectFields(
+			ArrayUtil.append(
+				randomModifiableSystemObjectDefinition.getObjectFields(),
+				relationshipObjectField));
+
+		testPostObjectDefinition_addObjectDefinition(
+			randomModifiableSystemObjectDefinition);
+
+		emptyObjectDefinition =
+			objectDefinitionResource.getObjectDefinitionByExternalReferenceCode(
+				externalReferenceCode);
+
+		Assert.assertEquals(
+			new Status() {
+				{
+					code = WorkflowConstants.STATUS_EMPTY;
+					label = WorkflowConstants.getStatusLabel(
+						WorkflowConstants.STATUS_EMPTY);
+					label_i18n = _language.get(
+						LanguageResources.getResourceBundle(
+							LocaleUtil.getDefault()),
+						WorkflowConstants.getStatusLabel(
+							WorkflowConstants.STATUS_EMPTY));
+				}
+			},
+			emptyObjectDefinition.getStatus());
+		Assert.assertFalse(emptyObjectDefinition.getSystem());
+
 		// Enable index search
 
 		randomObjectDefinition = randomObjectDefinition();
@@ -579,7 +681,7 @@ public class ObjectDefinitionResourceTest
 		String randomListTypeDefinitionExternalReferenceCode =
 			RandomTestUtil.randomString();
 
-		ObjectDefinition randomModifiableSystemObjectDefinition =
+		randomModifiableSystemObjectDefinition =
 			_randomModifiableSystemObjectDefinition();
 
 		randomModifiableSystemObjectDefinition.setObjectFields(
@@ -743,7 +845,6 @@ public class ObjectDefinitionResourceTest
 		_testPostObjectDefinitionWithWorkflowDefinitionLinks();
 	}
 
-	@FeatureFlag("LPD-17564")
 	@Override
 	@Test
 	public void testPutObjectDefinition() throws Exception {
@@ -1720,49 +1821,10 @@ public class ObjectDefinitionResourceTest
 				}
 			});
 
-		ObjectLayoutRow[] finalObjectLayoutRows = {
-			new ObjectLayoutRow() {
-				{
-					objectLayoutColumns = new ObjectLayoutColumn[] {
-						new ObjectLayoutColumn() {
-							{
-								objectFieldName =
-									"r_relationshipName_c_objectDefinition1Id";
-								priority = 0;
-								size = 6;
-							}
-						}
-					};
-					priority = 0;
-				}
-			}
-		};
-
 		randomObjectDefinition.setObjectLayouts(
 			new ObjectLayout[] {
-				new ObjectLayout() {
-					{
-						defaultObjectLayout = true;
-						objectLayoutTabs = new ObjectLayoutTab[] {
-							new ObjectLayoutTab() {
-								{
-									objectLayoutBoxes = new ObjectLayoutBox[] {
-										new ObjectLayoutBox() {
-											{
-												collapsable = true;
-												objectLayoutRows =
-													finalObjectLayoutRows;
-												priority = 0;
-												type = Type.REGULAR;
-											}
-										}
-									};
-									priority = 0;
-								}
-							}
-						};
-					}
-				}
+				_createDefaultObjectLayout(
+					"r_relationshipName_c_objectDefinition1Id")
 			});
 
 		ObjectDefinition putObjectDefinition =
@@ -1951,8 +2013,11 @@ public class ObjectDefinitionResourceTest
 			},
 			null, objectField);
 
+		_testPutObjectDefinitionByExternalReferenceCodeWithDuplicateDefaultObjectLayout();
 		_testPutObjectDefinitionByExternalReferenceCodeWithSystemAggregationObjectField();
 		_testPutObjectDefinitionWithAllowStandaloneObjectEntry();
+		_testPutObjectDefinitionWithObjectViewExternalReferenceCode();
+		_testPutObjectDefinitionWithoutObjectViewExternalReferenceCode();
 		_testPutObjectDefinitionWithPermissions();
 	}
 
@@ -2172,20 +2237,21 @@ public class ObjectDefinitionResourceTest
 		return objectDefinition;
 	}
 
-	private void _assertAssignToMeObjectAction(
+	private void _assertAssigneeObjectActions(
 		ObjectDefinition objectDefinition) {
 
 		ObjectAction[] objectActions = objectDefinition.getObjectActions();
 
 		Assert.assertEquals(
-			Arrays.toString(objectActions), 1, objectActions.length);
+			Arrays.toString(objectActions), 3, objectActions.length);
 
-		ObjectAction objectAction = objectActions[0];
-
-		Assert.assertEquals(
-			ObjectActionNameConstants.NAME_ASSIGN_TO_ME,
-			objectAction.getName());
-		Assert.assertTrue(objectAction.getSystem());
+		for (ObjectAction objectAction : objectActions) {
+			Assert.assertTrue(
+				ArrayUtil.contains(
+					ObjectActionNameConstants.OBJECT_ACTION_NAMES,
+					objectAction.getName()));
+			Assert.assertTrue(objectAction.getSystem());
+		}
 	}
 
 	private void _assertGetObjectDefinitionsPageWithFilter(
@@ -2217,9 +2283,38 @@ public class ObjectDefinitionResourceTest
 			actualPermissionsJSONArray = jsonObject.getJSONArray("items");
 		}
 
+		// The environment grants permissions this request did not ask for, such
+		// as the CMS Administrator grant that every object definition receives
+		// at the company scope. Compare only the roles the request asserts.
+
+		Set<String> expectedRoleNames = new HashSet<>();
+
+		for (int i = 0; i < expectedPermissionsJSONArray.length(); i++) {
+			JSONObject expectedPermissionJSONObject =
+				expectedPermissionsJSONArray.getJSONObject(i);
+
+			expectedRoleNames.add(
+				expectedPermissionJSONObject.getString("roleName"));
+		}
+
+		JSONArray filteredActualPermissionsJSONArray =
+			_jsonFactory.createJSONArray();
+
+		for (int i = 0; i < actualPermissionsJSONArray.length(); i++) {
+			JSONObject actualPermissionJSONObject =
+				actualPermissionsJSONArray.getJSONObject(i);
+
+			if (expectedRoleNames.contains(
+					actualPermissionJSONObject.getString("roleName"))) {
+
+				filteredActualPermissionsJSONArray.put(
+					actualPermissionJSONObject);
+			}
+		}
+
 		JSONAssert.assertEquals(
 			String.valueOf(expectedPermissionsJSONArray),
-			String.valueOf(actualPermissionsJSONArray),
+			String.valueOf(filteredActualPermissionsJSONArray),
 			JSONCompareMode.LENIENT);
 	}
 
@@ -2336,6 +2431,19 @@ public class ObjectDefinitionResourceTest
 		}
 	}
 
+	private void _assertScreenNavigationCategories(
+			String className, int expectedSize)
+		throws Exception {
+
+		List<ScreenNavigationCategory> screenNavigationCategories =
+			ScreenNavigationRegistryUtil.getScreenNavigationCategories(
+				className, TestPropsValues.getUser(), null);
+
+		Assert.assertEquals(
+			screenNavigationCategories.toString(), expectedSize,
+			screenNavigationCategories.size());
+	}
+
 	private void _assertWorkflowDefinitionLinks(
 		ObjectDefinition objectDefinition,
 		WorkflowDefinitionLink[] workflowDefinitionLinks) {
@@ -2354,6 +2462,31 @@ public class ObjectDefinitionResourceTest
 			objectDefinitions,
 			objectDefinition -> Objects.equals(
 				objectDefinition.getId(), expectedObjectDefinition.getId()));
+	}
+
+	private ObjectLayout _createDefaultObjectLayout(String objectFieldName) {
+		ObjectLayout objectLayout = new ObjectLayout();
+
+		objectLayout.setDefaultObjectLayout(true);
+
+		ObjectLayoutBox objectLayoutBox = new ObjectLayoutBox();
+
+		objectLayoutBox.setCollapsable(true);
+		objectLayoutBox.setObjectLayoutRows(
+			new ObjectLayoutRow[] {_createObjectLayoutRow(objectFieldName)});
+		objectLayoutBox.setPriority(0);
+		objectLayoutBox.setType(ObjectLayoutBox.Type.REGULAR);
+
+		ObjectLayoutTab objectLayoutTab = new ObjectLayoutTab();
+
+		objectLayoutTab.setObjectLayoutBoxes(
+			new ObjectLayoutBox[] {objectLayoutBox});
+		objectLayoutTab.setPriority(0);
+
+		objectLayout.setObjectLayoutTabs(
+			new ObjectLayoutTab[] {objectLayoutTab});
+
+		return objectLayout;
 	}
 
 	private ObjectAction _createObjectAction(String externalReferenceCode) {
@@ -2377,6 +2510,23 @@ public class ObjectDefinitionResourceTest
 			).build());
 
 		return objectAction;
+	}
+
+	private ObjectLayoutRow _createObjectLayoutRow(String objectFieldName) {
+		ObjectLayoutRow objectLayoutRow = new ObjectLayoutRow();
+
+		ObjectLayoutColumn objectLayoutColumn = new ObjectLayoutColumn();
+
+		objectLayoutColumn.setObjectFieldName(objectFieldName);
+		objectLayoutColumn.setPriority(0);
+		objectLayoutColumn.setSize(6);
+
+		objectLayoutRow.setObjectLayoutColumns(
+			new ObjectLayoutColumn[] {objectLayoutColumn});
+
+		objectLayoutRow.setPriority(0);
+
+		return objectLayoutRow;
 	}
 
 	private ObjectRelationship _createObjectRelationship(
@@ -2446,6 +2596,21 @@ public class ObjectDefinitionResourceTest
 			Arrays.toString(objectFields), 1, objectFields.length);
 
 		return objectFields[0];
+	}
+
+	private ObjectView _getObjectView(
+		String externalReferenceCode, ObjectDefinition objectDefinition) {
+
+		for (ObjectView objectView : objectDefinition.getObjectViews()) {
+			if (Objects.equals(
+					objectView.getExternalReferenceCode(),
+					externalReferenceCode)) {
+
+				return objectView;
+			}
+		}
+
+		return null;
 	}
 
 	private Set<String> _getOpenAPIOperationIds(String restContextPath)
@@ -2572,7 +2737,9 @@ public class ObjectDefinitionResourceTest
 		objectDefinition.setExternalReferenceCode(
 			randomObjectDefinitionExternalReferenceCode);
 
-		objectDefinition.setName("Test" + RandomTestUtil.randomString());
+		objectDefinition.setName(
+			ObjectDefinitionTestUtil.
+				getRandomModifiableSystemObjectDefinitionName());
 		objectDefinition.setObjectDefinitionSettings(objectDefinitionSettings);
 		objectDefinition.setObjectFields(
 			new ObjectField[] {
@@ -2724,6 +2891,9 @@ public class ObjectDefinitionResourceTest
 		Assert.assertEquals(
 			"/o/c/" + objectDefinitionPluralName,
 			objectDefinition.getRestContextPath());
+
+		objectDefinitionResource.deleteObjectDefinition(
+			objectDefinition.getId());
 	}
 
 	private void _testGetObjectDefinitionsPage(
@@ -2813,6 +2983,13 @@ public class ObjectDefinitionResourceTest
 		Assert.assertTrue(
 			ArrayUtil.isEmpty(
 				objectDefinitionAA.getObjectDefinitionSettings()));
+
+		objectDefinitionResource.deleteObjectDefinition(
+			objectDefinitionA.getId());
+		objectDefinitionResource.deleteObjectDefinition(
+			objectDefinitionAA.getId());
+		objectDefinitionResource.deleteObjectDefinition(
+			objectDefinitionB.getId());
 	}
 
 	@TestInfo("LPD-63538")
@@ -2903,6 +3080,72 @@ public class ObjectDefinitionResourceTest
 					workflowDefinitionLink1, workflowDefinitionLink2)),
 			new HashSet<>(
 				Arrays.asList(objectDefinition.getWorkflowDefinitionLinks())));
+	}
+
+	private void _testPatchObjectDefinitionWithObjectFields() throws Exception {
+		ObjectDefinition objectDefinition = _addObjectDefinition(
+			randomObjectDefinition());
+
+		String objectFieldExternalReferenceCode = RandomTestUtil.randomString();
+
+		objectDefinitionResource.patchObjectDefinition(
+			objectDefinition.getId(),
+			new ObjectDefinition() {
+				{
+					objectFields = ArrayUtil.append(
+						objectDefinition.getObjectFields(),
+						new ObjectField() {
+							{
+								businessType = BusinessType.TEXT;
+								DBType = ObjectField.DBType.create("String");
+								externalReferenceCode =
+									objectFieldExternalReferenceCode;
+								label =
+									RandomTestUtil.randomLanguageIdStringMap();
+								name = StringUtil.randomId();
+							}
+						});
+				}
+			});
+
+		ObjectDefinition getObjectDefinition =
+			objectDefinitionResource.getObjectDefinition(
+				objectDefinition.getId());
+
+		ObjectField[] objectFields = ArrayUtil.filter(
+			getObjectDefinition.getObjectFields(),
+			objectField -> !objectField.getSystem());
+
+		Assert.assertEquals(
+			Arrays.toString(objectFields), 2, objectFields.length);
+		Assert.assertFalse(objectFields[1].getRequired());
+
+		objectDefinitionResource.patchObjectDefinition(
+			objectDefinition.getId(),
+			new ObjectDefinition() {
+				{
+					objectFields = new ObjectField[] {
+						new ObjectField() {
+							{
+								externalReferenceCode =
+									objectFieldExternalReferenceCode;
+								required = true;
+							}
+						}
+					};
+				}
+			});
+
+		getObjectDefinition = objectDefinitionResource.getObjectDefinition(
+			objectDefinition.getId());
+
+		objectFields = ArrayUtil.filter(
+			getObjectDefinition.getObjectFields(),
+			objectField -> !objectField.getSystem());
+
+		Assert.assertEquals(
+			Arrays.toString(objectFields), 1, objectFields.length);
+		Assert.assertTrue(objectFields[0].getRequired());
 	}
 
 	private void _testPatchObjectDefinitionWithPermissions() throws Exception {
@@ -3075,29 +3318,35 @@ public class ObjectDefinitionResourceTest
 	private void _testPostObjectDefinitionWithAllowStandaloneObjectEntry()
 		throws Exception {
 
-		Assert.assertEquals(
-			400,
-			HTTPTestUtil.invokeToHttpCode(
-				JSONUtil.put(
-					"label", RandomTestUtil.randomLocaleStringMap()
-				).put(
-					"name", ObjectDefinitionTestUtil.getRandomName()
-				).put(
-					"objectDefinitionSettings",
-					JSONUtil.putAll(
-						JSONUtil.put(
-							"name",
-							ObjectDefinitionSettingConstants.
-								NAME_ALLOW_STANDALONE_OBJECT_ENTRY
-						).put(
-							"value", "true"
-						))
-				).put(
-					"pluralLabel", RandomTestUtil.randomLocaleStringMap()
-				).put(
-					"scope", ObjectDefinitionConstants.SCOPE_COMPANY
-				).toString(),
-				"object-admin/v1.0/object-definitions", Http.Method.POST));
+		JSONObject objectDefinitionJSONObject = HTTPTestUtil.invokeToJSONObject(
+			JSONUtil.put(
+				"label", RandomTestUtil.randomLocaleStringMap()
+			).put(
+				"name", ObjectDefinitionTestUtil.getRandomName()
+			).put(
+				"objectDefinitionSettings",
+				JSONUtil.putAll(
+					JSONUtil.put(
+						"name",
+						ObjectDefinitionSettingConstants.
+							NAME_ALLOW_STANDALONE_OBJECT_ENTRY
+					).put(
+						"value", "true"
+					))
+			).put(
+				"pluralLabel", RandomTestUtil.randomLocaleStringMap()
+			).put(
+				"scope", ObjectDefinitionConstants.SCOPE_COMPANY
+			).toString(),
+			"object-admin/v1.0/object-definitions", Http.Method.POST);
+
+		Assert.assertFalse(
+			objectDefinitionJSONObject.toString(),
+			objectDefinitionJSONObject.getBoolean(
+				"allowStandaloneObjectEntry"));
+
+		objectDefinitionResource.deleteObjectDefinition(
+			objectDefinitionJSONObject.getLong("id"));
 	}
 
 	private void _testPostObjectDefinitionWithAssigneeObjectField()
@@ -3122,7 +3371,7 @@ public class ObjectDefinitionResourceTest
 			testPostObjectDefinition_addObjectDefinition(
 				randomObjectDefinition);
 
-		_assertAssignToMeObjectAction(postObjectDefinition);
+		_assertAssigneeObjectActions(postObjectDefinition);
 
 		_objectDefinitionLocalService.deleteObjectDefinition(
 			postObjectDefinition.getId());
@@ -3130,7 +3379,7 @@ public class ObjectDefinitionResourceTest
 		postObjectDefinition = testPostObjectDefinition_addObjectDefinition(
 			postObjectDefinition);
 
-		_assertAssignToMeObjectAction(postObjectDefinition);
+		_assertAssigneeObjectActions(postObjectDefinition);
 	}
 
 	private void _testPostObjectDefinitionWithPermissions() throws Exception {
@@ -3346,6 +3595,65 @@ public class ObjectDefinitionResourceTest
 			_addObjectDefinition(objectDefinition), workflowDefinitionLinks);
 	}
 
+	private void _testPutObjectDefinitionByExternalReferenceCodeWithDuplicateDefaultObjectLayout()
+		throws Exception {
+
+		ObjectDefinition randomObjectDefinition = randomObjectDefinition();
+
+		ObjectField objectField = (ObjectField)ArrayUtil.getValue(
+			randomObjectDefinition.getObjectFields(), 0);
+
+		randomObjectDefinition.setObjectLayouts(
+			new ObjectLayout[] {
+				_createDefaultObjectLayout(objectField.getName())
+			});
+
+		randomObjectDefinition.setStatus(
+			new Status() {
+				{
+					code = WorkflowConstants.STATUS_APPROVED;
+				}
+			});
+
+		ObjectDefinition putObjectDefinition =
+			objectDefinitionResource.putObjectDefinitionByExternalReferenceCode(
+				randomObjectDefinition.getExternalReferenceCode(),
+				randomObjectDefinition);
+
+		_objectDefinitions.add(
+			_objectDefinitionLocalService.fetchObjectDefinition(
+				putObjectDefinition.getId()));
+
+		_assertScreenNavigationCategories(
+			putObjectDefinition.getClassName(), 1);
+
+		putObjectDefinition.setObjectLayouts(
+			new ObjectLayout[] {
+				_createDefaultObjectLayout(objectField.getName()),
+				_createDefaultObjectLayout(objectField.getName())
+			});
+
+		AssertUtils.assertFailure(
+			Problem.ProblemException.class,
+			"There can only be one default object layout",
+			() ->
+				objectDefinitionResource.
+					putObjectDefinitionByExternalReferenceCode(
+						putObjectDefinition.getExternalReferenceCode(),
+						putObjectDefinition));
+		AssertUtils.assertFailure(
+			Problem.ProblemException.class,
+			"There can only be one default object layout",
+			() ->
+				objectDefinitionResource.
+					putObjectDefinitionByExternalReferenceCode(
+						putObjectDefinition.getExternalReferenceCode(),
+						putObjectDefinition));
+
+		_assertScreenNavigationCategories(
+			putObjectDefinition.getClassName(), 1);
+	}
+
 	private void _testPutObjectDefinitionByExternalReferenceCodeWithSystemAggregationObjectField()
 		throws Exception {
 
@@ -3550,6 +3858,128 @@ public class ObjectDefinitionResourceTest
 			parentObjectDefinition.getId());
 		_objectDefinitionLocalService.deleteObjectDefinition(
 			childObjectDefinition.getId());
+	}
+
+	private void _testPutObjectDefinitionWithObjectViewExternalReferenceCode()
+		throws Exception {
+
+		// Import the object view
+
+		ObjectDefinition objectDefinition = _addObjectDefinition(
+			_randomModifiableSystemObjectDefinition());
+
+		String objectViewExternalReferenceCode = RandomTestUtil.randomString();
+
+		ObjectView objectView = new ObjectView() {
+			{
+				defaultObjectView = true;
+				externalReferenceCode = objectViewExternalReferenceCode;
+				name = Collections.singletonMap(
+					"en_US", RandomTestUtil.randomString());
+				objectViewColumns = new ObjectViewColumn[] {
+					new ObjectViewColumn() {
+						{
+							label = Collections.singletonMap(
+								"en_US", RandomTestUtil.randomString());
+							objectFieldName = "customObjectField";
+							priority = 0;
+						}
+					}
+				};
+			}
+		};
+
+		objectDefinition.setObjectViews(new ObjectView[] {objectView});
+
+		objectDefinition = objectDefinitionResource.putObjectDefinition(
+			objectDefinition.getId(), objectDefinition);
+
+		ObjectView persistedObjectView = _getObjectView(
+			objectViewExternalReferenceCode, objectDefinition);
+
+		Long objectViewId = persistedObjectView.getId();
+
+		// Reimport the object view with a different name
+
+		Map<String, String> name = Collections.singletonMap(
+			"en_US", RandomTestUtil.randomString());
+
+		objectView.setName(name);
+
+		objectDefinition.setObjectViews(new ObjectView[] {objectView});
+
+		objectDefinition = objectDefinitionResource.putObjectDefinition(
+			objectDefinition.getId(), objectDefinition);
+
+		persistedObjectView = _getObjectView(
+			objectViewExternalReferenceCode, objectDefinition);
+
+		Assert.assertEquals(objectViewId, persistedObjectView.getId());
+		Assert.assertEquals(name, persistedObjectView.getName());
+
+		// Reimport without the object views property
+
+		objectDefinition.setObjectViews((ObjectView[])null);
+
+		objectDefinition = objectDefinitionResource.putObjectDefinition(
+			objectDefinition.getId(), objectDefinition);
+
+		persistedObjectView = _getObjectView(
+			objectViewExternalReferenceCode, objectDefinition);
+
+		Assert.assertEquals(objectViewId, persistedObjectView.getId());
+	}
+
+	private void _testPutObjectDefinitionWithoutObjectViewExternalReferenceCode()
+		throws Exception {
+
+		// Reimport a legacy object view without an external reference code
+
+		ObjectDefinition objectDefinition = _addObjectDefinition(
+			_randomModifiableSystemObjectDefinition());
+
+		ObjectView objectView = new ObjectView() {
+			{
+				defaultObjectView = true;
+				name = Collections.singletonMap(
+					"en_US", RandomTestUtil.randomString());
+				objectViewColumns = new ObjectViewColumn[] {
+					new ObjectViewColumn() {
+						{
+							label = Collections.singletonMap(
+								"en_US", RandomTestUtil.randomString());
+							objectFieldName = "customObjectField";
+							priority = 0;
+						}
+					}
+				};
+			}
+		};
+
+		objectDefinition.setObjectViews(new ObjectView[] {objectView});
+
+		objectDefinition = objectDefinitionResource.putObjectDefinition(
+			objectDefinition.getId(), objectDefinition);
+
+		ObjectView[] objectViews = objectDefinition.getObjectViews();
+
+		Assert.assertEquals(
+			Arrays.toString(objectViews), 1, objectViews.length);
+
+		String objectViewExternalReferenceCode =
+			objectViews[0].getExternalReferenceCode();
+
+		Assert.assertNotNull(objectViewExternalReferenceCode);
+
+		// Reimport without the object view
+
+		objectDefinition.setObjectViews(new ObjectView[0]);
+
+		objectDefinition = objectDefinitionResource.putObjectDefinition(
+			objectDefinition.getId(), objectDefinition);
+
+		Assert.assertNull(
+			_getObjectView(objectViewExternalReferenceCode, objectDefinition));
 	}
 
 	private void _testPutObjectDefinitionWithPermissions() throws Exception {

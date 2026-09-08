@@ -520,7 +520,9 @@ public class PoshiValidation {
 
 		String filePath = filePathURL.getFile();
 
-		if (_deprecatedMethodNames.containsKey(functionName)) {
+		String deprecatedMethodName = _deprecatedMethodNames.get(functionName);
+
+		if (deprecatedMethodName != null) {
 			String className = PoshiGetterUtil.getClassNameFromFilePath(
 				filePath);
 
@@ -528,10 +530,9 @@ public class PoshiValidation {
 
 			_logger.warning(
 				"Deprecated method \"selenium." + functionName +
-					"\" should be replaced with " +
-						_deprecatedMethodNames.get(functionName) + " at:\n" +
-							filePath + ":" +
-								poshiElement.getPoshiScriptLineNumber());
+					"\" should be replaced with " + deprecatedMethodName +
+						" at:\n" + filePath + ":" +
+							poshiElement.getPoshiScriptLineNumber());
 		}
 
 		if (_deprecatedFunctionNames.contains(functionName)) {
@@ -991,9 +992,7 @@ public class PoshiValidation {
 
 			String propertyName = propertyPoshiElement.attributeValue("name");
 
-			if (requiredPropertyNames.contains(propertyName)) {
-				requiredPropertyNames.remove(propertyName);
-			}
+			requiredPropertyNames.remove(propertyName);
 		}
 
 		if (requiredPropertyNames.isEmpty()) {
@@ -1808,7 +1807,7 @@ public class PoshiValidation {
 		List<String> possibleTagElementNames = Arrays.asList(
 			"command", "property", "set-up", "tear-down", "var");
 
-		List<String> propertyNames = new ArrayList<>();
+		Set<String> propertyNames = new HashSet<>();
 
 		for (PoshiElement childPoshiElement : childPoshiElements) {
 			String childPoshiElementName = childPoshiElement.getName();
@@ -1839,10 +1838,7 @@ public class PoshiValidation {
 
 				String propertyName = childPoshiElement.attributeValue("name");
 
-				if (!propertyNames.contains(propertyName)) {
-					propertyNames.add(propertyName);
-				}
-				else {
+				if (!propertyNames.add(propertyName)) {
 					_exceptions.add(
 						new PoshiElementException(
 							childPoshiElement, "Duplicate property name ",

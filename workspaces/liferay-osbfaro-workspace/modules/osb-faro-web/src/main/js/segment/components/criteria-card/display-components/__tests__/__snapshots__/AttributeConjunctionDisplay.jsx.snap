@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AttributeConjunctionDisplay should render 1`] = `
+<div>
+  <span
+    class="text-nowrap"
+  >
+    where event attribute
+  </span>
+  <b
+    class="text-secondary"
+  >
+    Foo Attribute String
+  </b>
+  <b
+    class="text-secondary"
+  >
+    is
+  </b>
+  <b
+    class="text-secondary"
+  >
+    "Test"
+  </b>
+</div>
+`;

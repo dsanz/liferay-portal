@@ -59,12 +59,14 @@ public class AsahSegmentsEntryResourceImpl
 
 			if (segmentsEntry == null) {
 				segmentsEntry = _segmentsEntryLocalService.addSegmentsEntry(
-					asahSegmentsEntry.getId(), nameMap, Collections.emptyMap(),
-					true, null, SegmentsEntryConstants.SOURCE_ASAH_FARO_BACKEND,
+					null, asahSegmentsEntry.getId(), nameMap,
+					Collections.emptyMap(), true, null,
+					SegmentsEntryConstants.SOURCE_ASAH_FARO_BACKEND,
 					serviceContext);
 			}
 			else {
 				segmentsEntry = _segmentsEntryLocalService.updateSegmentsEntry(
+					segmentsEntry.getExternalReferenceCode(),
 					segmentsEntry.getSegmentsEntryId(),
 					asahSegmentsEntry.getId(), nameMap, null, true, null,
 					serviceContext);

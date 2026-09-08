@@ -14,6 +14,7 @@ import getRandomString from '../../../utils/getRandomString';
 
 let authServerLocalMetadataCreated = false;
 let oauthClientsCreated = false;
+let protectedResourceLocalMetadataCreated = false;
 let userCustomFieldsCreated = false;
 
 const test = mergeTests(
@@ -30,6 +31,7 @@ test.afterEach(
 	async ({
 		authServerLocalMetadatasPage,
 		oauthClientClientsPage,
+		protectedResourceLocalMetadatasPage,
 		viewAttributesPage,
 	}) => {
 		if (authServerLocalMetadataCreated) {
@@ -51,6 +53,14 @@ test.afterEach(
 
 			oauthClientsCreated = false;
 		}
+
+		if (protectedResourceLocalMetadataCreated) {
+			await protectedResourceLocalMetadatasPage.goTo();
+
+			await protectedResourceLocalMetadatasPage.deleteProtectedResourceLocalMetadata();
+
+			protectedResourceLocalMetadataCreated = false;
+		}
 	}
 );
 
@@ -59,22 +69,30 @@ test.describe('Enable Configuration of oauth-authorization-server Well-Known URI
 		'Create an oauth-authorization-server and validate',
 		{tag: '@LPD-67473'},
 		async ({authServerLocalMetadatasPage}) => {
+			const issuer = 'https://localhost.com';
+			const supportedScopes = `${getRandomString()},${getRandomString()}`;
+			const wellKnownURI = `${issuer}/o/.well-known/oauth-authorization-server`;
+
 			await authServerLocalMetadatasPage.goTo();
 
-			await authServerLocalMetadatasPage.addAuthServerLocalMetadata(
-				'',
-				'The Issuer field is required.'
-			);
+			await authServerLocalMetadatasPage.addAuthServerLocalMetadata('', {
+				expectedMessage: 'The Issuer field is required.',
+			});
 
 			await authServerLocalMetadatasPage.addAuthServerLocalMetadata(
-				'https://localhost.com'
+				issuer,
+				{
+					supportedScopes,
+				}
 			);
 
 			authServerLocalMetadataCreated = true;
 
 			await authServerLocalMetadatasPage.addAuthServerLocalMetadata(
-				'https://localhost.com',
-				'Duplicate'
+				issuer,
+				{
+					expectedMessage: 'Duplicate',
+				}
 			);
 
 			if (
@@ -89,7 +107,7 @@ test.describe('Enable Configuration of oauth-authorization-server Well-Known URI
 			await authServerLocalMetadatasPage.oAuthAuthorizatoinServerTab.click();
 			await expect(
 				await authServerLocalMetadatasPage.page.getByRole('link', {
-					name: 'https://localhost.com/o/.well-known/oauth-authorization-server',
+					name: wellKnownURI,
 				})
 			).toBeVisible();
 
@@ -97,11 +115,63 @@ test.describe('Enable Configuration of oauth-authorization-server Well-Known URI
 
 			await expect(
 				await authServerLocalMetadatasPage.page.getByRole('link', {
-					name: 'https://localhost.com/.well-known/openid-configuration/1B2M2Y8AsgTpgAmY7PhCfg**/local',
+					name: `${issuer}/.well-known/openid-configuration/1B2M2Y8AsgTpgAmY7PhCfg**/local`,
 				})
 			).toBeVisible();
 
 			await authServerLocalMetadatasPage.oAuthAuthorizatoinServerTab.click();
+
+			// Reopen the entry and verify the supported scopes round-trip with
+			// the same comma delimiter they were saved with
+
+			await authServerLocalMetadatasPage.openAuthServerLocalMetadata(
+				wellKnownURI
+			);
+
+			await expect(
+				authServerLocalMetadatasPage.supportedScopes
+			).toHaveValue(supportedScopes);
+		}
+	);
+});
+
+test.describe('Enable Configuration of oauth-protected-resource Well-Known URIs in the OAuthClient Portlet', () => {
+	test(
+		'Create an oauth-protected-resource and validate',
+		{tag: '@LPD-91289'},
+		async ({protectedResourceLocalMetadatasPage}) => {
+			await protectedResourceLocalMetadatasPage.goTo();
+
+			await protectedResourceLocalMetadatasPage.addProtectedResourceLocalMetadata(
+				'',
+				'https://localhost.com',
+				'The Resource field is required.'
+			);
+
+			await protectedResourceLocalMetadatasPage.addProtectedResourceLocalMetadata(
+				'http://example.com/o/mcp',
+				'https://localhost.com',
+				'Invalid HTTPS Resource URL: http://example.com/o/mcp'
+			);
+
+			protectedResourceLocalMetadataCreated = true;
+
+			await protectedResourceLocalMetadatasPage.addProtectedResourceLocalMetadata(
+				'https://localhost.com/o/mcp',
+				'https://localhost.com'
+			);
+
+			await protectedResourceLocalMetadatasPage.addProtectedResourceLocalMetadata(
+				'https://localhost.com/o/mcp',
+				'https://localhost.com',
+				'Duplicate'
+			);
+
+			await expect(
+				protectedResourceLocalMetadatasPage.page.getByText(
+					'https://localhost.com/.well-known/oauth-protected-resource/o/mcp'
+				)
+			).toBeVisible();
 		}
 	);
 });

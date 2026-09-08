@@ -32,7 +32,6 @@ import com.liferay.portal.kernel.change.tracking.CTCollectionPreviewThreadLocal;
 import com.liferay.portal.kernel.change.tracking.CTCollectionThreadLocal;
 import com.liferay.portal.kernel.content.security.policy.ContentSecurityPolicyNonceProviderUtil;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONUtil;
@@ -55,6 +54,7 @@ import com.liferay.portal.kernel.servlet.taglib.BaseDynamicInclude;
 import com.liferay.portal.kernel.servlet.taglib.DynamicInclude;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.ArrayUtil;
+import com.liferay.portal.kernel.util.Constants;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.HtmlUtil;
@@ -118,6 +118,7 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 			if (!_ctSettingsConfigurationHelper.isEnabled(
 					themeDisplay.getCompanyId()) ||
 				user.isOnDemandUser() ||
+				_isLayoutHistoryMode(httpServletRequest) ||
 				!PortletPermissionUtil.contains(
 					themeDisplay.getPermissionChecker(),
 					CTPortletKeys.PUBLICATIONS, ActionKeys.VIEW)) {
@@ -803,12 +804,6 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 			(ThemeDisplay)httpServletRequest.getAttribute(
 				WebKeys.THEME_DISPLAY);
 
-		if (!FeatureFlagManagerUtil.isEnabled(
-				themeDisplay.getCompanyId(), "LPD-17564")) {
-
-			return false;
-		}
-
 		Group group = themeDisplay.getSiteGroup();
 
 		if (group == null) {
@@ -843,6 +838,29 @@ public class ChangeTrackingIndicatorDynamicInclude extends BaseDynamicInclude {
 			_ctPreferencesService.checkoutCTCollection(
 				themeDisplay.getCompanyId(), themeDisplay.getUserId(),
 				ctCollectionId);
+		}
+
+		return false;
+	}
+
+	private boolean _isLayoutHistoryMode(
+		HttpServletRequest httpServletRequest) {
+
+		if (!Objects.equals(
+				ParamUtil.getString(httpServletRequest, "p_l_mode"),
+				Constants.HISTORY)) {
+
+			return false;
+		}
+
+		ThemeDisplay themeDisplay =
+			(ThemeDisplay)httpServletRequest.getAttribute(
+				WebKeys.THEME_DISPLAY);
+
+		Layout layout = themeDisplay.getLayout();
+
+		if (layout.isDraftLayout() && layout.isTypeContent()) {
+			return true;
 		}
 
 		return false;

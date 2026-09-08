@@ -9,8 +9,8 @@ import {dataApiHelpersTest} from '../../../../fixtures/dataApiHelpersTest';
 import {featureFlagsTest} from '../../../../fixtures/featureFlagsTest';
 import {loginTest} from '../../../../fixtures/loginTest';
 import getRandomString from '../../../../utils/getRandomString';
-import performLogin, {
-	performLogout,
+import {
+	performUserSwitchViaApi,
 	userData,
 } from '../../../../utils/performLogin';
 import {cmsPagesTest} from '../fixtures/cmsPagesTest';
@@ -20,8 +20,7 @@ const test = mergeTests(
 	dataApiHelpersTest,
 	featureFlagsTest({
 		'LPD-11235': {enabled: false},
-		'LPD-17564': {enabled: true},
-		'LPD-34594': {enabled: true},
+		'LPD-58677': {enabled: true},
 	}),
 	loginTest()
 );
@@ -138,6 +137,49 @@ test(
 				await expect(categoryLabel).toBeAttached();
 			});
 
+			let personaLabel;
+			let personaName;
+
+			await test.step('Add a new persona to the content', async () => {
+				const personasAutocomplete =
+					page.getByPlaceholder('Add personas');
+
+				personaName = 'Decision Maker';
+
+				await personasAutocomplete.fill(personaName);
+
+				const option = page.getByRole('option', {name: personaName});
+
+				await option.waitFor();
+				await option.click();
+
+				personaLabel = page.locator('.label-item', {
+					hasText: personaName,
+				});
+
+				await expect(personaLabel).toBeAttached();
+			});
+
+			let stageLabel;
+			let stageName;
+
+			await test.step('Add a new funnel stage to the content', async () => {
+				const stagesAutocomplete = page.getByPlaceholder('Add stages');
+
+				stageName = 'Awareness';
+
+				await stagesAutocomplete.fill(stageName);
+
+				const option = page.getByRole('option', {name: stageName});
+
+				await option.waitFor();
+				await option.click();
+
+				stageLabel = page.locator('.label-item', {hasText: stageName});
+
+				await expect(stageLabel).toBeAttached();
+			});
+
 			await test.step('Create an user and add to the Space', async () => {
 				user = await apiHelpers.headlessAdminUser.postUserAccount();
 
@@ -153,9 +195,7 @@ test(
 			});
 
 			await test.step('Login as a space member and go to Info Panel Categorization tab', async () => {
-				await performLogout(page);
-
-				await performLogin(page, user.alternateName);
+				await performUserSwitchViaApi(page, user.alternateName);
 
 				await assetsPage.gotoAll();
 
@@ -176,18 +216,24 @@ test(
 			await test.step('Check that space member can see tags and vocabulary but cannot edit them', async () => {
 				await expect(tagLabel).toBeAttached();
 				await expect(categoryLabel).toBeAttached();
+				await expect(personaLabel).toBeAttached();
+				await expect(stageLabel).toBeAttached();
 				await expect(
 					page.getByLabel(tagName).getByLabel('Close')
 				).toBeDisabled();
 				await expect(
 					page.getByLabel(categoryName).getByLabel('Close')
 				).toBeDisabled();
+				await expect(
+					page.getByLabel(personaName).getByLabel('Close')
+				).toBeDisabled();
+				await expect(
+					page.getByLabel(stageName).getByLabel('Close')
+				).toBeDisabled();
 			});
 		}
 		finally {
-			await performLogout(page);
-
-			await performLogin(page, 'test');
+			await performUserSwitchViaApi(page, 'test');
 
 			if (objectEntry?.id) {
 				await apiHelpers.objectEntry.deleteObjectEntry(

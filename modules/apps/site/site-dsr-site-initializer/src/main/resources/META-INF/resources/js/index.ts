@@ -5,6 +5,7 @@
 
 import '../css/main.scss';
 
+export {default as LicenseExpirationAlert} from './common/components/LicenseExpirationAlert';
 export {default as RoomComments} from './components/RoomComments';
 export {default as RoomShareButton} from './components/RoomShareButton';
 export {default as RoomsFDSPropsTransformer} from './components/props_transformer/RoomsFDSPropsTransformer';
@@ -24,4 +25,4 @@ export {default as RoomGeneral} from './main_view/analytics/components/RoomGener
 export {default as RoomStatistics} from './main_view/analytics/components/RoomStatistics';
 export {default as RoomTrend} from './main_view/analytics/components/RoomTrend';
 export {default as TimelineEngagementChart} from './main_view/analytics/components/TimelineEngagementChart';
-export {default as RoomSettingsToolbar} from './main_view/rooms/RoomSettingsToolbar';
+export {default as RoomSettings} from './main_view/rooms/RoomSettings';

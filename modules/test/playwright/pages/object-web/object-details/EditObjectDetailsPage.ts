@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-import {Locator, Page} from '@playwright/test';
+import {Locator, Page, expect} from '@playwright/test';
 
 import {ViewObjectDefinitionsPage} from '../ViewObjectDefinitionsPage';
 
@@ -99,12 +99,31 @@ export class EditObjectDetailsPage {
 		await this.viewObjectDefinitionsPage.clickEditObjectDefinitionLink(
 			objectDefinitionLabel
 		);
+
+		await expect(this.detailsTabItem).toHaveAttribute(
+			'aria-current',
+			'page'
+		);
 	}
 
 	async goToDetailsTab() {
-		await this.detailsTabItem.click();
+		const ariaCurrent =
+			await this.detailsTabItem.getAttribute('aria-current');
 
-		await this.page.waitForLoadState('networkidle');
+		if (ariaCurrent !== 'page') {
+			await this.detailsTabItem.click();
+
+			await expect(this.detailsTabItem).toHaveAttribute(
+				'aria-current',
+				'page'
+			);
+		}
+
+		await this.waitForDetailsFormLoaded();
+	}
+
+	async waitForDetailsFormLoaded() {
+		await expect(this.saveButton).toBeEnabled();
 	}
 
 	async saveObjectDefinition() {
@@ -148,6 +167,8 @@ export class EditObjectDetailsPage {
 	async selectScope(optionName: string) {
 		await this.scopeCombobox.click();
 
-		await this.page.getByRole('option', {name: optionName}).click();
+		await this.page
+			.getByRole('option', {name: optionName})
+			.dispatchEvent('click');
 	}
 }

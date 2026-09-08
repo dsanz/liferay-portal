@@ -88,6 +88,24 @@ export class MessageBoardsPage {
 		await this.goToConfigurationTab('Thread Priorities', siteUrl);
 	}
 
+	async disableEmailNotifications(siteUrl?: Site['friendlyUrlPath']) {
+		for (const tabName of [
+			'Message Added Email',
+			'Message Updated Email',
+		]) {
+			await this.goToConfigurationTab(tabName, siteUrl);
+
+			await this.page.getByLabel('Enabled').uncheck();
+
+			await this.page.getByRole('button', {name: 'Save'}).click();
+
+			// Saving submits the form and reloads the configuration screen;
+			// wait for it before navigating away
+
+			await this.page.waitForLoadState('networkidle');
+		}
+	}
+
 	async banReplyAuthor() {
 		await this._clickThreadMenuItem(
 			this.page.locator('.panel-heading .dropdown-toggle').last(),
@@ -165,6 +183,50 @@ export class MessageBoardsPage {
 			.uncheck();
 
 		await this.saveButton.click();
+
+		await this.page.getByLabel('Close', {exact: true}).click();
+	}
+
+	async setThreadRolePermissions(
+		threadSubject: string,
+		roleName: string,
+		permissions: {subscribe?: boolean; view?: boolean},
+		siteUrl?: Site['friendlyUrlPath']
+	) {
+		await this.goto(siteUrl);
+
+		await this.page.waitForLoadState('networkidle');
+
+		await this.page
+			.getByRole('link', {name: threadSubject})
+			.first()
+			.click();
+
+		await this.page.waitForLoadState('networkidle');
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: this.page.getByRole('menuitem', {name: 'Permissions'}),
+			trigger: this.optionsMenu,
+		});
+
+		const permissionsFrame = this.page.frameLocator(
+			'iframe[title="Permissions"]'
+		);
+
+		if (permissions.view !== undefined) {
+			await permissionsFrame
+				.locator(`#${roleName}_ACTION_VIEW`)
+				.setChecked(permissions.view);
+		}
+
+		if (permissions.subscribe !== undefined) {
+			await permissionsFrame
+				.locator(`#${roleName}_ACTION_SUBSCRIBE`)
+				.setChecked(permissions.subscribe);
+		}
+
+		await permissionsFrame.getByRole('button', {name: 'Save'}).click();
 
 		await this.page.getByLabel('Close', {exact: true}).click();
 	}

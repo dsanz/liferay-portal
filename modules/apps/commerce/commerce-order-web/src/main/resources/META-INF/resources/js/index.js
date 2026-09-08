@@ -3,11 +3,14 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+export {default as AccountValidationResultMessageDataRenderer} from './AccountValidationResultMessageDataRenderer';
+export {default as AccountValidationsFDSPropsTransformer} from './AccountValidationsFDSPropsTransformer';
 export {default as AttachmentsFDSPropsTransformer} from './AttachmentsFDSPropsTransformer';
 export {default as CommerceOrderAttachmentRestrictedDataRenderer} from './CommerceOrderAttachmentRestrictedDataRenderer';
 export {default as CommerceOrderAttachmentTitleDataRenderer} from './CommerceOrderAttachmentTitleDataRenderer';
 export {default as CommerceOrderItemsFDSPropsTransformer} from './CommerceOrderItemsFDSPropsTransformer';
 export {default as CommerceStatusDataRenderer} from './CommerceStatusDataRenderer';
+export {default as accountValidations} from './accountValidations';
 export {default as addCommerceOrderType} from './addCommerceOrderType';
 export {default as channels} from './channels';
 export {default as commerceReturnItemsPropsTransformer} from './commerceReturnItemsPropsTransformer';

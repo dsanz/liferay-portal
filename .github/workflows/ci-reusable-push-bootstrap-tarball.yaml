@@ -17,6 +17,7 @@ jobs:
                     sparse-checkout: |
                         cloud/scripts
                         cloud/terraform/${{inputs.provider}}
+                        cloud/terraform/modules
             -   name: Authenticate to Google Cloud
                 uses: google-github-actions/auth@v3
                 with:
@@ -69,16 +70,24 @@ jobs:
                         then
                             files=(
                                 cloud/scripts/setup_aws.sh
-                                cloud/scripts/versions_aws.tfvars
                                 cloud/terraform/aws/eks/*
                                 cloud/terraform/aws/gitops/platform/*
                                 cloud/terraform/aws/gitops/resources/*
+                            )
+                        elif [[ "${provider}" == "azure" ]]
+                        then
+                            files=(
+                                cloud/scripts/_azure_common.sh
+                                cloud/scripts/chart_versions.json
+                                cloud/scripts/setup_azure.sh
+                                cloud/terraform/azure/aks/*
+                                cloud/terraform/azure/platform/*
+                                cloud/terraform/modules/argocd/*
                             )
                         elif [[ "${provider}" == "gcp" ]]
                         then
                             files=(
                                 cloud/scripts/setup_gcp.sh
-                                cloud/scripts/versions_gcp.tfvars
                                 cloud/terraform/gcp/gitops/platform/*
                                 cloud/terraform/gcp/gitops/resources/*
                                 cloud/terraform/gcp/gke/*

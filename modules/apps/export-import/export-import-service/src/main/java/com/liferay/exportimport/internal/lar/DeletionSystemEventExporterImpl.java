@@ -89,7 +89,9 @@ public class DeletionSystemEventExporterImpl
 
 		Element rootElement = document.addElement("deletion-system-events");
 
-		if (systemEvents != null) {
+		if ((systemEvents != null) &&
+			!ExportImportThreadLocal.isInitialLayoutStagingInProcess()) {
+
 			Map<String, List<SystemEvent>> batchSystemEventsMap =
 				new HashMap<>();
 
@@ -154,6 +156,29 @@ public class DeletionSystemEventExporterImpl
 					TransformUtil.transform(
 						systemEvents, SystemEvent::getSystemEventId)));
 		}
+	}
+
+	@Override
+	public long getDeletionSystemEventsCount(
+			PortletDataContext portletDataContext)
+		throws Exception {
+
+		if (ExportImportThreadLocal.isInitialLayoutStagingInProcess()) {
+			return 0;
+		}
+
+		Set<StagedModelType> deletionSystemEventStagedModelTypes =
+			portletDataContext.getDeletionSystemEventStagedModelTypes();
+
+		if (deletionSystemEventStagedModelTypes.isEmpty()) {
+			return 0;
+		}
+
+		ActionableDynamicQuery actionableDynamicQuery =
+			_getActionableDynamicQuery(
+				portletDataContext, deletionSystemEventStagedModelTypes);
+
+		return actionableDynamicQuery.performCount();
 	}
 
 	protected void addCreateDateProperty(
@@ -317,12 +342,9 @@ public class DeletionSystemEventExporterImpl
 				systemEvent.getReferrerClassNameId()));
 	}
 
-	private List<SystemEvent> _getDeletionSystemEvents(
-			PortletDataContext portletDataContext,
-			Set<StagedModelType> deletionSystemEventStagedModelTypes)
-		throws Exception {
-
-		List<SystemEvent> systemEvents = new ArrayList<>();
+	private ActionableDynamicQuery _getActionableDynamicQuery(
+		PortletDataContext portletDataContext,
+		Set<StagedModelType> deletionSystemEventStagedModelTypes) {
 
 		ActionableDynamicQuery actionableDynamicQuery =
 			_systemEventLocalService.getActionableDynamicQuery();
@@ -332,6 +354,21 @@ public class DeletionSystemEventExporterImpl
 				portletDataContext, deletionSystemEventStagedModelTypes,
 				dynamicQuery));
 		actionableDynamicQuery.setCompanyId(portletDataContext.getCompanyId());
+
+		return actionableDynamicQuery;
+	}
+
+	private List<SystemEvent> _getDeletionSystemEvents(
+			PortletDataContext portletDataContext,
+			Set<StagedModelType> deletionSystemEventStagedModelTypes)
+		throws Exception {
+
+		List<SystemEvent> systemEvents = new ArrayList<>();
+
+		ActionableDynamicQuery actionableDynamicQuery =
+			_getActionableDynamicQuery(
+				portletDataContext, deletionSystemEventStagedModelTypes);
+
 		actionableDynamicQuery.setPerformActionMethod(
 			(SystemEvent systemEvent) -> systemEvents.add(systemEvent));
 

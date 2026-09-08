@@ -233,48 +233,49 @@ public class WidgetPageWidgetInstanceDTOConverter
 	private WidgetLookAndFeelConfig _getWidgetLookAndFeelConfig(
 		Layout layout, String portletId) {
 
+		WidgetLookAndFeelConfig widgetLookAndFeelConfig =
+			new WidgetLookAndFeelConfig();
+
+		GeneralConfig generalConfig = new GeneralConfig();
+
 		PortletPreferences portletPreferences =
 			_portletPreferencesFactory.getStrictLayoutPortletSetup(
 				layout, portletId);
 
-		return new WidgetLookAndFeelConfig() {
-			{
-				setGeneralConfig(
-					() -> new GeneralConfig() {
-						{
-							setApplicationDecorator(
-								() -> {
-									String value = GetterUtil.getString(
-										portletPreferences.getValue(
-											"portletSetupPortletDecoratorId",
-											null),
-										null);
+		String portletSetupPortletDecoratorId = GetterUtil.getString(
+			portletPreferences.getValue("portletSetupPortletDecoratorId", null),
+			null);
 
-									if (value == null) {
-										return null;
-									}
+		GeneralConfig.ApplicationDecorator applicationDecorator =
+			_toApplicationDecorator(portletSetupPortletDecoratorId);
 
-									return ApplicationDecorator.create(
-										StringUtil.upperCaseFirstLetter(value));
-								});
-							setCustomTitle_i18n(
-								() -> _getCustomTitleMap(
-									layout.getGroupId(), portletPreferences));
-							setUseCustomTitle(
-								() -> {
-									Object value = portletPreferences.getValue(
-										"portletSetupUseCustomTitle", null);
+		generalConfig.setApplicationDecorator(() -> applicationDecorator);
+		generalConfig.setCustomApplicationDecorator(
+			() -> {
+				if (applicationDecorator != null) {
+					return null;
+				}
 
-									if (value == null) {
-										return null;
-									}
+				return portletSetupPortletDecoratorId;
+			});
 
-									return GetterUtil.getBoolean(value);
-								});
-						}
-					});
-			}
-		};
+		generalConfig.setCustomTitle_i18n(
+			() -> _getCustomTitleMap(layout.getGroupId(), portletPreferences));
+		generalConfig.setUseCustomTitle(
+			() -> {
+				Object value = portletPreferences.getValue(
+					"portletSetupUseCustomTitle", null);
+
+				if (value == null) {
+					return null;
+				}
+
+				return GetterUtil.getBoolean(value);
+			});
+
+		widgetLookAndFeelConfig.setGeneralConfig(() -> generalConfig);
+
+		return widgetLookAndFeelConfig;
 	}
 
 	private WidgetPageWidgetInstance[] _getWidgetPageWidgetInstances(
@@ -289,6 +290,26 @@ public class WidgetPageWidgetInstanceDTOConverter
 				return toDTO(dtoConverterContext, layout);
 			},
 			WidgetPageWidgetInstance.class);
+	}
+
+	private GeneralConfig.ApplicationDecorator _toApplicationDecorator(
+		String value) {
+
+		if (value == null) {
+			return null;
+		}
+
+		for (GeneralConfig.ApplicationDecorator applicationDecorator :
+				GeneralConfig.ApplicationDecorator.values()) {
+
+			if (StringUtil.equalsIgnoreCase(
+					applicationDecorator.getValue(), value)) {
+
+				return applicationDecorator;
+			}
+		}
+
+		return null;
 	}
 
 	private static final Collection<String> _excludePreferencesNames =

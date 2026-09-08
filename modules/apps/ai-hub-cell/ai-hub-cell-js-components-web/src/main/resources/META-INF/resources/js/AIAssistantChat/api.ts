@@ -6,9 +6,17 @@
 import {EventSource} from 'eventsource';
 import {fetch} from 'frontend-js-web';
 
+import postAuthorizationToken from '../utils/postAuthorizationToken';
+import {HttpRequestAction} from './types';
+
 const AI_HUB_ENDPOINT = '/o/ai-hub/v1.0';
 
-export type ChatContext = Record<string, unknown>;
+export interface ChatContext {
+	fileUploadSelector?: string;
+	groupId?: number | string;
+	objectEntryFolderExternalReferenceCode?: string;
+	[key: string]: unknown;
+}
 
 export async function createEventSource() {
 	const editMode = document.body.classList.contains('has-edit-mode-menu');
@@ -39,40 +47,27 @@ export async function createEventSource() {
 	);
 }
 
-async function postAuthorizationToken() {
-	try {
-		const response = await fetch(
-			'/o/ai-hub-cell/v1.0/authorization-tokens',
-			{
-				method: 'POST',
-			}
-		);
+export async function executeHttpRequestAction({
+	body,
+	href,
+	method,
+}: HttpRequestAction) {
+	const authorizationToken = await postAuthorizationToken();
 
-		if (!response.ok) {
-			throw new Error(
-				`Unable to generate authorization token: ${response.statusText}`
-			);
-		}
-
-		const data = await response.json();
-
-		if (!data?.accessToken) {
-			throw new Error('Unable to generate authorization token.');
-		}
-
-		if (!data?.userToken) {
-			throw new Error('Unable to generate user token.');
-		}
-
-		if (!data?.serviceURL) {
-			throw new Error('Unable to find service URL.');
-		}
-
-		return data;
+	if (!authorizationToken) {
+		return;
 	}
-	catch (error) {
-		console.warn((error as Error).message);
-	}
+
+	return await fetch(href, {
+		body: JSON.stringify(body),
+		headers: new Headers({
+			'Accept': 'application/json',
+			'Authorization': `Bearer ${authorizationToken.accessToken}`,
+			'Content-Type': 'application/json',
+			'Liferay-AI-Hub-Cell-On-Behalf-Of': authorizationToken.userToken,
+		}),
+		method,
+	});
 }
 
 export async function postChatByExternalReferenceCodeMessage({
@@ -89,10 +84,10 @@ export async function postChatByExternalReferenceCodeMessage({
 	const authorizationToken = await postAuthorizationToken();
 
 	if (!authorizationToken) {
-		return;
+		throw new Error('Unable to authorize the chat message request');
 	}
 
-	return await fetch(
+	const response = await fetch(
 		`${authorizationToken.serviceURL}${AI_HUB_ENDPOINT}/chats/by-external-reference-code/${eventSourceReference}/messages`,
 		{
 			body: JSON.stringify({
@@ -110,4 +105,10 @@ export async function postChatByExternalReferenceCodeMessage({
 			method: 'POST',
 		}
 	);
+
+	if (!response.ok) {
+		throw new Error(`Unable to send the chat message: ${response.status}`);
+	}
+
+	return response;
 }

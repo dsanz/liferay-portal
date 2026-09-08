@@ -8,8 +8,8 @@ import {expect, mergeTests} from '@playwright/test';
 import {loginTest} from '../../../fixtures/loginTest';
 import {liferayConfig} from '../../../liferay.config';
 import getRandomString from '../../../utils/getRandomString';
-import {editJSImportMapsPageTest} from '../main/fixtures/editJSImportMapsExtensionPageTest';
-import {WaitAction} from '../main/pages/EditClientExtensionsPage';
+import {editJSImportMapsPageTest} from '../js-import-maps-entry/fixtures/editJSImportMapsExtensionPageTest';
+import {WaitAction} from '../pages/EditClientExtensionsPage';
 
 export const test = mergeTests(editJSImportMapsPageTest, loginTest());
 

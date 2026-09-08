@@ -5,11 +5,8 @@
 
 package com.liferay.jenkins.results.parser;
 
-import java.io.IOException;
-
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 /**
  * @author Michael Hashimoto
@@ -32,30 +29,6 @@ public class SingleUpstreamPortalControllerBuildRunner
 		S buildData = getBuildData();
 
 		String testSuiteName = buildData.getTestSuiteName();
-
-		String invocationJobURL = getInvocationJobURL(testSuiteName);
-
-		StringBuilder sb = new StringBuilder();
-
-		sb.append(invocationJobURL);
-
-		sb.append("/buildWithParameters?");
-
-		String jenkinsAuthenticationToken;
-
-		try {
-			Properties buildProperties =
-				JenkinsResultsParserUtil.getBuildProperties();
-
-			jenkinsAuthenticationToken = buildProperties.getProperty(
-				"jenkins.authentication.token");
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
-		}
-
-		sb.append("token=");
-		sb.append(jenkinsAuthenticationToken);
 
 		Map<String, String> invocationParameters = new HashMap<>();
 
@@ -110,33 +83,18 @@ public class SingleUpstreamPortalControllerBuildRunner
 		invocationParameters.put(
 			"TESTRAY_SLACK_USERNAME", getTestraySlackUsername(testSuiteName));
 
-		for (Map.Entry<String, String> invocationParameter :
-				invocationParameters.entrySet()) {
+		String invocationJobURL = getInvocationJobURL(testSuiteName);
 
-			String invocationParameterValue = invocationParameter.getValue();
+		long queueId = JenkinsResultsParserUtil.invokeJenkinsBuild(
+			invocationJobURL, invocationParameters);
 
-			if (JenkinsResultsParserUtil.isNullOrEmpty(
-					invocationParameterValue)) {
-
-				continue;
-			}
-
-			sb.append("&");
-			sb.append(invocationParameter.getKey());
-			sb.append("=");
-			sb.append(invocationParameterValue);
+		if (queueId == 0) {
+			throw new RuntimeException("Unable to invoke " + invocationJobURL);
 		}
 
-		try {
-			JenkinsResultsParserUtil.toString(sb.toString());
+		keepJenkinsBuild(true);
 
-			keepJenkinsBuild(true);
-		}
-		catch (IOException ioException) {
-			throw new RuntimeException(ioException);
-		}
-
-		sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder();
 
 		sb.append("<a href=\"");
 		sb.append(JenkinsResultsParserUtil.getRemoteURL(invocationJobURL));

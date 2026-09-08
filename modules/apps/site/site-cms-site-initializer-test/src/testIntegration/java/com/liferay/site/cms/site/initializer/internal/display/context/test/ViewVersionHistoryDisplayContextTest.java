@@ -10,6 +10,7 @@ import com.liferay.depot.constants.DepotConstants;
 import com.liferay.depot.model.DepotEntry;
 import com.liferay.depot.service.DepotEntryLocalService;
 import com.liferay.fragment.renderer.FragmentRenderer;
+import com.liferay.frontend.data.set.model.FDSActionDropdownItem;
 import com.liferay.object.constants.ObjectDefinitionConstants;
 import com.liferay.object.constants.ObjectDefinitionSettingConstants;
 import com.liferay.object.constants.ObjectEntryFolderConstants;
@@ -22,6 +23,7 @@ import com.liferay.object.service.ObjectEntryLocalService;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.Sync;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
@@ -38,7 +40,11 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.io.Serializable;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -53,7 +59,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 /**
  * @author Mikel Lorza
  */
-@FeatureFlag("LPD-17564")
 @RunWith(Arquillian.class)
 @Sync
 public class ViewVersionHistoryDisplayContextTest
@@ -119,6 +124,49 @@ public class ViewVersionHistoryDisplayContextTest
 				"getAPIURL", new Class<?>[0]));
 	}
 
+	@Test
+	@TestInfo("LPD-100130")
+	public void testGetFDSActionDropdownItems() throws Exception {
+		_assertFDSActionDropdownItemIds(
+			"download", "view-content", "view-file", "restore", "expire",
+			"copy", "delete");
+	}
+
+	@FeatureFlag("LPD-72278")
+	@Test
+	@TestInfo("LPD-100130")
+	public void testGetFDSActionDropdownItemsWithAddToLaunchEnabled()
+		throws Exception {
+
+		_assertFDSActionDropdownItemIds(
+			"download", "view-content", "view-file", "addToLaunch", "restore",
+			"expire", "copy", "delete");
+	}
+
+	private void _assertFDSActionDropdownItemIds(String... expectedIds)
+		throws Exception {
+
+		List<String> fdsActionDropdownItemIds = new ArrayList<>();
+
+		List<FDSActionDropdownItem> fdsActionDropdownItems =
+			ReflectionTestUtil.invoke(
+				_getViewVersionHistoryDisplayContext(
+					_getMockHttpServletRequest(_objectEntry)),
+				"getFDSActionDropdownItems", new Class<?>[0]);
+
+		for (FDSActionDropdownItem fdsActionDropdownItem :
+				fdsActionDropdownItems) {
+
+			Map<String, String> data =
+				(Map<String, String>)fdsActionDropdownItem.get("data");
+
+			fdsActionDropdownItemIds.add(data.get("id"));
+		}
+
+		Assert.assertEquals(
+			Arrays.asList(expectedIds), fdsActionDropdownItemIds);
+	}
+
 	private MockHttpServletRequest _getMockHttpServletRequest(
 			ObjectEntry objectEntry)
 		throws Exception {
@@ -137,7 +185,8 @@ public class ViewVersionHistoryDisplayContextTest
 		throws Exception {
 
 		_fragmentRenderer.render(
-			null, httpServletRequest, new MockHttpServletResponse());
+			fragmentRendererContext, httpServletRequest,
+			new MockHttpServletResponse());
 
 		Object viewVersionHistoryDisplayContext =
 			httpServletRequest.getAttribute(

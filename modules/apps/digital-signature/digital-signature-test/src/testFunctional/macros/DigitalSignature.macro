@@ -1,6 +1,16 @@
 definition {
 
 	@summary = "Default summary"
+	macro addDMDocument(dmDocumentFile = null) {
+		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+
+		DMDocument.addCP(
+			dmDocumentDescription = "DM Document Description",
+			dmDocumentFile = ${dmDocumentFile},
+			dmDocumentTitle = "DM Document Title");
+	}
+
+	@summary = "Default summary"
 	macro addMoreRecipient(fullName = null, recipientEmail = null) {
 		Click(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ADD_RECIPIENT");
 
@@ -109,18 +119,25 @@ definition {
 
 	@summary = "Default summary"
 	macro createEnvelope(dmDocumentFile = null, addName = null, addFullName = null, addSubject = null, addEmail = null, addMessage = null) {
-		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
+		DigitalSignature.addDMDocument(dmDocumentFile = ${dmDocumentFile});
 
-		DMDocument.addCP(
-			dmDocumentDescription = "DM Document Description",
-			dmDocumentFile = ${dmDocumentFile},
-			dmDocumentTitle = "DM Document Title");
+		DigitalSignature.createEnvelopeForDMDocument(
+			addEmail = ${addEmail},
+			addFullName = ${addFullName},
+			addMessage = ${addMessage},
+			addName = ${addName},
+			addSubject = ${addSubject});
+	}
 
+	@summary = "Default summary"
+	macro createEnvelopeForDMDocument(addName = null, addFullName = null, addSubject = null, addEmail = null, addMessage = null) {
 		Navigator.openURL();
 
 		ProductMenu.gotoPortlet(
 			category = "Content & Data",
 			portlet = "Digital Signature");
+
+		DigitalSignature.waitForListViewLoad();
 
 		LexiconEntry.gotoAdd();
 
@@ -175,6 +192,8 @@ definition {
 		ProductMenu.gotoPortlet(
 			category = "Content & Data",
 			portlet = "Digital Signature");
+
+		DigitalSignature.waitForListViewLoad();
 
 		LexiconEntry.gotoAdd();
 
@@ -238,6 +257,8 @@ definition {
 
 	@summary = "Default summary"
 	macro deleteCreatedDM() {
+		DigitalSignature.waitForListViewLoad();
+
 		DMNavigator.openDocumentsAndMediaAdmin(siteURLKey = "guest");
 
 		PortletEntry.selectAll();
@@ -251,15 +272,20 @@ definition {
 
 	@summary = "Default summary"
 	macro deleteEnvelope(envelopeName = null) {
-		Refresh();
+		DigitalSignature.waitForEnvelope(envelopeName = ${envelopeName});
 
 		Click(
-			key_text = ${envelopeName},
-			locator1 = "Link#ANY");
+			envelopeName = ${envelopeName},
+			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_NAME");
 
-		AssertElementPresent(locator1 = "TextInput#HIDDEN");
+		DigitalSignature.deleteEnvelopeFromView();
+	}
 
-		var value = selenium.getElementValue("TextInput#HIDDEN");
+	@summary = "Default summary"
+	macro deleteEnvelopeFromView() {
+		AssertElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_DELETE_URL");
+
+		var value = selenium.getElementValue("DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_DELETE_URL");
 
 		Navigator.openSpecificURL(url = ${value});
 	}
@@ -276,9 +302,11 @@ definition {
 	}
 
 	@summary = "Default summary"
-	macro enabledDigitalSignatureDownload(documentName = null) {
+	macro enabledDigitalSignatureDownload(envelopeName = null) {
+		DigitalSignature.waitForEnvelope(envelopeName = ${envelopeName});
+
 		Click(
-			envelopeName = ${documentName},
+			envelopeName = ${envelopeName},
 			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_NAME");
 
 		AssertElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_DOWNLOAD_BUTTON");
@@ -380,6 +408,15 @@ definition {
 	}
 
 	@summary = "Default summary"
+	macro selectItemsPerPage(itemsPerPage = null) {
+		Click(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ITEMS_PER_PAGE");
+
+		Click(
+			key_itemsPerPage = ${itemsPerPage},
+			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ITEMS_PER_PAGE_OPTION");
+	}
+
+	@summary = "Default summary"
 	macro selectSiteStrategy(siteStrategy = null) {
 		Select(
 			locator1 = "DigitalSignatureConfiguration#SITE_SETTINGS_STRATEGY",
@@ -396,49 +433,80 @@ definition {
 	}
 
 	@summary = "Default summary"
-	macro viewCreateDate() {
-		WaitForElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_RECENT_CREATE_DATE");
+	macro viewCreateDate(envelopeName = null) {
+		while ((IsElementNotPresent(envelopeName = ${envelopeName}, locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_CREATE_DATE")) && (maxIterations = "10")) {
+			Refresh();
 
-		AssertElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_RECENT_CREATE_DATE");
-	}
+			DigitalSignature.waitForListViewLoad();
+		}
 
-	@summary = "Default summary"
-	macro viewDigitalSignatureEnabled(dsStatus = null) {
 		AssertElementPresent(
-			dsStatus = ${dsStatus},
-			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_STATUS");
+			envelopeName = ${envelopeName},
+			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_CREATE_DATE");
 	}
 
 	@summary = "Default summary"
-	macro viewDigitalSignaturestatus(viewStatus = null) {
-		AssertElementPresent(
-			dsStatus = ${viewStatus},
-			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_STATUS");
-	}
+	macro viewEnabledDownload(envelopeName = null) {
+		DigitalSignature.waitForEnvelope(envelopeName = ${envelopeName});
 
-	@summary = "Default summary"
-	macro viewEnabledDownload(documentName = null) {
 		Click(
-			envelopeName = ${documentName},
+			envelopeName = ${envelopeName},
 			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ELLIPSIS_BUTTON");
 
 		AssertElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_DOWNLOAD_BY_LIST");
 	}
 
 	@summary = "Default summary"
-	macro viewEnvelopeDetails(documentName = null) {
+	macro viewEnvelopeDetails(envelopeName = null) {
+		DigitalSignature.waitForEnvelope(envelopeName = ${envelopeName});
+
 		Click(
-			envelopeName = ${documentName},
+			envelopeName = ${envelopeName},
 			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_NAME");
 
 		AssertElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_ID");
 	}
 
 	@summary = "Default summary"
-	macro viewMoreRecipient() {
-		WaitForElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_RECIPIENTS_BADGE");
+	macro viewEnvelopeIsGone(envelopeName = null) {
+		while ((IsElementPresent(envelopeName = ${envelopeName}, locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_NAME")) && (maxIterations = "10")) {
+			Refresh();
 
-		AssertElementPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_RECIPIENTS_BADGE");
+			DigitalSignature.waitForListViewLoad();
+		}
+
+		AssertElementNotPresent(
+			envelopeName = ${envelopeName},
+			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_NAME");
+	}
+
+	@summary = "Default summary"
+	macro viewEnvelopeStatus(dsStatus = null, envelopeName = null) {
+		DigitalSignature.waitForEnvelope(envelopeName = ${envelopeName});
+
+		while ((IsElementNotPresent(dsStatus = ${dsStatus}, envelopeName = ${envelopeName}, locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_STATUS")) && (maxIterations = "10")) {
+			Refresh();
+
+			DigitalSignature.waitForListViewLoad();
+		}
+
+		AssertElementPresent(
+			dsStatus = ${dsStatus},
+			envelopeName = ${envelopeName},
+			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_STATUS");
+	}
+
+	@summary = "Default summary"
+	macro viewMoreRecipient(envelopeName = null) {
+		while ((IsElementNotPresent(envelopeName = ${envelopeName}, locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_RECIPIENTS_BADGE")) && (maxIterations = "10")) {
+			Refresh();
+
+			DigitalSignature.waitForListViewLoad();
+		}
+
+		AssertElementPresent(
+			envelopeName = ${envelopeName},
+			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_RECIPIENTS_BADGE");
 	}
 
 	@summary = "Default summary"
@@ -452,6 +520,26 @@ definition {
 		AssertElementPresent(
 			fileTitle = ${documentTitle},
 			locator1 = "DigitalSignatureEnvelopeSettings#DIGITAL_SIGNATURE_MODAL_UNSUPPORTED_FILE");
+	}
+
+	@summary = "Default summary"
+	macro waitForEnvelope(envelopeName = null) {
+		DigitalSignature.waitForListViewLoad();
+
+		while ((IsElementNotPresent(envelopeName = ${envelopeName}, locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_NAME")) && (maxIterations = "10")) {
+			Refresh();
+
+			DigitalSignature.waitForListViewLoad();
+		}
+
+		AssertElementPresent(
+			envelopeName = ${envelopeName},
+			locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_ENVELOPE_NAME");
+	}
+
+	@summary = "Default summary"
+	macro waitForListViewLoad() {
+		AssertElementNotPresent(locator1 = "DigitalSignatureListView#DIGITAL_SIGNATURE_LOADING_INDICATOR");
 	}
 
 }

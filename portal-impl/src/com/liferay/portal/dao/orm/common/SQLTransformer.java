@@ -5,15 +5,19 @@
 
 package com.liferay.portal.dao.orm.common;
 
-import com.liferay.portal.dao.sql.transformer.HQLToJPQLTransformerLogic;
-import com.liferay.portal.dao.sql.transformer.JPQLToHQLTransformerLogic;
-import com.liferay.portal.dao.sql.transformer.SQLTransformerFactory;
+import com.liferay.portal.dao.sql.transformer.HibernateSQLTransformerLogic;
+import com.liferay.portal.dao.sql.transformer.SQLTransformerLogic;
+import com.liferay.portal.dao.sql.transformer.SQLTransformerLogicFactory;
 import com.liferay.portal.kernel.cache.PortalCache;
 import com.liferay.portal.kernel.cache.PortalCacheHelperUtil;
 import com.liferay.portal.kernel.cache.PortalCacheManagerNames;
 import com.liferay.portal.kernel.dao.db.DBManagerUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 
 import java.util.function.Function;
+
+import org.hibernate.cfg.Configuration;
 
 /**
  * @author Brian Wing Shun Chan
@@ -22,96 +26,78 @@ import java.util.function.Function;
  */
 public class SQLTransformer {
 
+	public static void populateSQLFunctions(Configuration configuration) {
+		_sqlTransformerLogic.populateSQLFunctions(configuration);
+	}
+
 	public static void reloadSQLTransformer() {
-		_instance._reloadSQLTransformer();
+		_hibernateTransformedSQLsPortalCache.removeAll();
+
+		_transformedSQLsPortalCache.removeAll();
+
+		_sqlTransformerLogic =
+			SQLTransformerLogicFactory.getSQLTransformerLogic(
+				DBManagerUtil.getDB());
 	}
 
 	public static String transform(String sql) {
-		com.liferay.portal.dao.sql.transformer.SQLTransformer sqlTransformer =
-			_instance._getSQLTransformer();
-
-		return sqlTransformer.transform(sql);
+		return _transform(
+			_transformedSQLsPortalCache, _sqlTransformerLogic, sql);
 	}
 
-	public static String transformFromHQLToJQPL(String sql) {
-		return _instance._transformFromHQLToJPQL(sql);
+	public static String transformForHibernate(String sql) {
+		return _transform(
+			_hibernateTransformedSQLsPortalCache, _hibernateSQLTransformerLogic,
+			sql);
 	}
 
-	public static String transformFromJPQLToHQL(String sql) {
-		return _instance._transformFromJPQLToHQL(sql);
-	}
+	private static String _transform(
+		PortalCache<String, String> portalCache,
+		SQLTransformerLogic sqlTransformerLogic, String sql) {
 
-	private SQLTransformer() {
-		_reloadSQLTransformer();
-	}
-
-	private com.liferay.portal.dao.sql.transformer.SQLTransformer
-		_getSQLTransformer() {
-
-		return _sqlTransformer;
-	}
-
-	private void _reloadSQLTransformer() {
-		if (_transformedSQLsPortalCache == null) {
-			_transformedSQLsPortalCache = PortalCacheHelperUtil.getPortalCache(
-				PortalCacheManagerNames.SINGLE_VM,
-				SQLTransformer.class.getName());
-		}
-		else {
-			_transformedSQLsPortalCache.removeAll();
-		}
-
-		_sqlTransformer = SQLTransformerFactory.getSQLTransformer(
-			DBManagerUtil.getDB());
-	}
-
-	private String _transformFromHQLToJPQL(String sql) {
-		String newSQL = _transformedSQLsPortalCache.get(sql);
+		String newSQL = portalCache.get(sql);
 
 		if (newSQL != null) {
 			return newSQL;
 		}
 
-		newSQL = _sqlTransformer.transform(sql);
+		Function<String, String>[] functions =
+			sqlTransformerLogic.getFunctions();
 
-		Function[] functions = {
-			HQLToJPQLTransformerLogic.getPositionalParameterFunction(),
-			HQLToJPQLTransformerLogic.getNotEqualsFunction(),
-			HQLToJPQLTransformerLogic.getCompositeIdMarkerFunction()
-		};
+		if ((functions == null) || (sql == null)) {
+			return sql;
+		}
+
+		String transformedSQL = sql;
 
 		for (Function<String, String> function : functions) {
-			newSQL = function.apply(newSQL);
+			transformedSQL = function.apply(transformedSQL);
 		}
 
-		_transformedSQLsPortalCache.put(sql, newSQL);
-
-		return newSQL;
-	}
-
-	private String _transformFromJPQLToHQL(String sql) {
-		String newSQL = _transformedSQLsPortalCache.get(sql);
-
-		if (newSQL != null) {
-			return newSQL;
+		if (_log.isDebugEnabled()) {
+			_log.debug("Original SQL: " + sql);
+			_log.debug("Transformed SQL: " + transformedSQL);
 		}
 
-		newSQL = _sqlTransformer.transform(sql);
+		portalCache.put(sql, transformedSQL);
 
-		Function<String, String> countFunction =
-			JPQLToHQLTransformerLogic.getCountFunction();
-
-		newSQL = countFunction.apply(newSQL);
-
-		_transformedSQLsPortalCache.put(sql, newSQL);
-
-		return newSQL;
+		return transformedSQL;
 	}
 
-	private static final SQLTransformer _instance = new SQLTransformer();
+	private static final Log _log = LogFactoryUtil.getLog(SQLTransformer.class);
 
-	private com.liferay.portal.dao.sql.transformer.SQLTransformer
-		_sqlTransformer;
-	private PortalCache<String, String> _transformedSQLsPortalCache;
+	private static final SQLTransformerLogic _hibernateSQLTransformerLogic =
+		new HibernateSQLTransformerLogic();
+	private static final PortalCache<String, String>
+		_hibernateTransformedSQLsPortalCache =
+			PortalCacheHelperUtil.getPortalCache(
+				PortalCacheManagerNames.SINGLE_VM,
+				SQLTransformer.class.getName() + ".hibernate");
+	private static volatile SQLTransformerLogic _sqlTransformerLogic =
+		SQLTransformerLogicFactory.getSQLTransformerLogic(
+			DBManagerUtil.getDB());
+	private static final PortalCache<String, String>
+		_transformedSQLsPortalCache = PortalCacheHelperUtil.getPortalCache(
+			PortalCacheManagerNames.SINGLE_VM, SQLTransformer.class.getName());
 
 }

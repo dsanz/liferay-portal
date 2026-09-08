@@ -11,6 +11,7 @@ import com.liferay.depot.service.DepotEntryLocalServiceUtil;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.ResourceBundleUtil;
@@ -40,7 +41,10 @@ public class DepotRoleUtil {
 	}
 
 	public static List<Role> filter(List<Role> roles, String subtype) {
-		if (Validator.isNull(subtype)) {
+		if (Validator.isNull(subtype) ||
+			!FeatureFlagManagerUtil.isEnabled(
+				CompanyThreadLocal.getCompanyId(), "LPD-96750")) {
+
 			return roles;
 		}
 
@@ -49,8 +53,11 @@ public class DepotRoleUtil {
 			role -> {
 				String roleSubtype = role.getSubtype();
 
-				return Validator.isNull(roleSubtype) ||
-					   Objects.equals(roleSubtype, subtype);
+				if (Validator.isNull(roleSubtype)) {
+					roleSubtype = DepotRolesConstants.SUBTYPE_SPACE;
+				}
+
+				return Objects.equals(roleSubtype, subtype);
 			});
 	}
 
@@ -60,12 +67,12 @@ public class DepotRoleUtil {
 	}
 
 	public static Map<Locale, String> getDescriptionMap(
-		long companyId, Language language, String name) {
+		Language language, String name) {
 
 		Map<Locale, String> descriptionMap = new HashMap<>();
 
 		for (Locale locale : language.getAvailableLocales()) {
-			String description = _getDescription(companyId, locale, name);
+			String description = _getDescription(locale, name);
 
 			if (description != null) {
 				descriptionMap.put(locale, description);
@@ -102,67 +109,58 @@ public class DepotRoleUtil {
 		return titleMap;
 	}
 
-	public static Map<Locale, String> getTitleMap(
-		long companyId, Language language, String name) {
-
-		if (!FeatureFlagManagerUtil.isEnabled(companyId, "LPD-17564")) {
-			return null;
-		}
-
-		return getTitleMap(language, name);
-	}
-
-	private static String _getDescription(
-		long companyId, Locale locale, String name) {
-
+	private static String _getDescription(Locale locale, String name) {
 		ResourceBundle resourceBundle = ResourceBundleUtil.getBundle(
 			locale, DepotRoleUtil.class);
 
 		if (Objects.equals(
 				DepotRolesConstants.ASSET_LIBRARY_ADMINISTRATOR, name)) {
 
-			if (FeatureFlagManagerUtil.isEnabled(companyId, "LPD-17564")) {
-				return ResourceBundleUtil.getString(
-					resourceBundle,
-					"space-administrators-are-super-users-of-their-space-but-" +
-						"cannot-make-other-users-into-space-administrators");
-			}
-
 			return ResourceBundleUtil.getString(
 				resourceBundle,
-				"asset-library-administrators-are-super-users-of-their-asset-" +
-					"library-but-cannot-make-other-users-into-asset-library-" +
-						"administrators");
+				"space-administrators-are-super-users-of-their-space-but-" +
+					"cannot-make-other-users-into-space-administrators");
 		}
 		else if (Objects.equals(
 					DepotRolesConstants.ASSET_LIBRARY_MEMBER, name)) {
 
-			if (FeatureFlagManagerUtil.isEnabled(companyId, "LPD-17564")) {
-				return ResourceBundleUtil.getString(
-					resourceBundle,
-					"all-users-who-belong-to-a-space-have-this-role-within-" +
-						"that-space");
-			}
-
 			return ResourceBundleUtil.getString(
 				resourceBundle,
-				"all-users-who-belong-to-an-asset-library-have-this-role-" +
-					"within-that-asset-library");
+				"all-users-who-belong-to-a-space-have-this-role-within-that-" +
+					"space");
 		}
 		else if (Objects.equals(
 					DepotRolesConstants.ASSET_LIBRARY_OWNER, name)) {
 
-			if (FeatureFlagManagerUtil.isEnabled(companyId, "LPD-17564")) {
-				return ResourceBundleUtil.getString(
-					resourceBundle,
-					"space-owners-are-super-users-of-their-space-and-can-" +
-						"assign-space-roles-to-users");
-			}
+			return ResourceBundleUtil.getString(
+				resourceBundle,
+				"space-owners-are-super-users-of-their-space-and-can-assign-" +
+					"space-roles-to-users");
+		}
+		else if (Objects.equals(
+					DepotRolesConstants.DESIGN_LIBRARY_ADMINISTRATOR, name)) {
 
 			return ResourceBundleUtil.getString(
 				resourceBundle,
-				"asset-library-owners-are-super-users-of-their-asset-library-" +
-					"and-can-assign-asset-library-roles-to-users");
+				"design-library-administrators-are-super-users-of-their-" +
+					"design-library-but-cannot-make-other-users-into-design-" +
+						"library-administrators");
+		}
+		else if (Objects.equals(
+					DepotRolesConstants.DESIGN_LIBRARY_MEMBER, name)) {
+
+			return ResourceBundleUtil.getString(
+				resourceBundle,
+				"all-users-who-belong-to-a-design-library-have-this-role-" +
+					"within-that-design-library");
+		}
+		else if (Objects.equals(
+					DepotRolesConstants.DESIGN_LIBRARY_OWNER, name)) {
+
+			return ResourceBundleUtil.getString(
+				resourceBundle,
+				"design-library-owners-are-super-users-of-their-design-" +
+					"library-and-can-assign-design-library-roles-to-users");
 		}
 
 		return null;
@@ -198,6 +196,17 @@ public class DepotRoleUtil {
 				DepotRolesConstants.ASSET_LIBRARY_MEMBER, "space-member"
 			).put(
 				DepotRolesConstants.ASSET_LIBRARY_OWNER, "space-owner"
+			).put(
+				DepotRolesConstants.DESIGN_LIBRARY_ADMINISTRATOR,
+				"design-library-administrator"
+			).put(
+				DepotRolesConstants.DESIGN_LIBRARY_CONTENT_REVIEWER,
+				"design-library-content-reviewer"
+			).put(
+				DepotRolesConstants.DESIGN_LIBRARY_MEMBER,
+				"design-library-member"
+			).put(
+				DepotRolesConstants.DESIGN_LIBRARY_OWNER, "design-library-owner"
 			).build());
 	}
 

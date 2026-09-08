@@ -248,7 +248,7 @@ if (portletTitleBasedNavigation) {
 							/>
 						</c:when>
 						<c:otherwise>
-							<h2 class="sheet-title"><%= title %></h2>
+							<h2 class="sheet-title"><%= HtmlUtil.escape(title) %></h2>
 						</c:otherwise>
 					</c:choose>
 
@@ -332,7 +332,7 @@ if (portletTitleBasedNavigation) {
 
 						<liferay-ui:csp>
 							<div class="page-redirect" onClick="location.href = '<%= originalViewPageURL.toString() %>';">
-								(<liferay-ui:message arguments="<%= originalPage.getTitle() %>" key="redirected-from-x" translateArguments="<%= false %>" />)
+								(<liferay-ui:message arguments="<%= HtmlUtil.escape(originalPage.getTitle()) %>" key="redirected-from-x" translateArguments="<%= false %>" />)
 							</div>
 						</liferay-ui:csp>
 					</c:if>
@@ -491,7 +491,7 @@ PortletURLBuilder.create(
 									PortletURLUtil.clone(viewPageURL, renderResponse)
 								).setParameter(
 									"title", childPage.getTitle()
-								).buildString() %>"><%= childPage.getTitle() %></aui:a
+								).buildString() %>"><%= HtmlUtil.escape(childPage.getTitle()) %></aui:a
 								>
 							</h3>
 

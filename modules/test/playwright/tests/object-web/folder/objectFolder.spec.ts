@@ -436,9 +436,24 @@ test.describe('manage object definitions through view object definitions', () =>
 					objectDefinition.label['en_US']
 				);
 
+				const objectFolderPutResponsePromise = page.waitForResponse(
+					(response) =>
+						response
+							.url()
+							.includes(
+								'/object-folders/by-external-reference-code/'
+							) && response.request().method() === 'PUT'
+				);
+
 				await page
 					.getByRole('menuitem', {name: 'Move to Current Folder'})
 					.click();
+
+				await expect(
+					page.locator('#ToastAlertContainer .alert-success')
+				).toBeVisible();
+
+				await objectFolderPutResponsePromise;
 			});
 
 			await test.step('Check that the object definition is visible in Folder B sidebar', async () => {

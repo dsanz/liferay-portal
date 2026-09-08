@@ -6,6 +6,7 @@
 package com.liferay.portal.upgrade.data.cleanup.test;
 
 import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
+import com.liferay.change.tracking.model.CTCollection;
 import com.liferay.counter.kernel.model.Counter;
 import com.liferay.counter.kernel.service.CounterLocalServiceUtil;
 import com.liferay.document.library.kernel.model.DLFileEntry;
@@ -99,6 +100,31 @@ public class CounterDataCleanupPreupgradeProcessTest
 				else {
 					Assert.assertTrue(messages.toString(), messages.isEmpty());
 				}
+			});
+	}
+
+	@Test
+	public void testUpgradeCTCollectionSpecificCounter() throws Exception {
+		long ctCollectionId =
+			CounterLocalServiceUtil.increment(CTCollection.class.getName()) +
+				1000;
+
+		_test(
+			(UnsafeRunnable<Exception>)() -> runSQL(
+				"delete from CTCollection where ctCollectionId = " +
+					ctCollectionId),
+			(UnsafeRunnable<Exception>)() -> runSQL(
+				StringBundler.concat(
+					"insert into CTCollection (mvccVersion, ctCollectionId) ",
+					"values (0, ", ctCollectionId, ")")),
+			(UnsafeConsumer<List<String>, Exception>)messages -> {
+				Assert.assertEquals(messages.toString(), 1, messages.size());
+				Assert.assertTrue(
+					messages.toString(),
+					messages.contains(
+						StringBundler.concat(
+							"Counter ", CTCollection.class.getName(),
+							" has been reset to value ", ctCollectionId)));
 			});
 	}
 
@@ -254,6 +280,9 @@ public class CounterDataCleanupPreupgradeProcessTest
 		long fileEntryId1 = CounterLocalServiceUtil.increment();
 		long fileEntryId2 = CounterLocalServiceUtil.increment();
 		long fileEntryId3 = CounterLocalServiceUtil.increment();
+		long groupId1 = CounterLocalServiceUtil.increment();
+		long groupId2 = CounterLocalServiceUtil.increment();
+		long groupId3 = CounterLocalServiceUtil.increment();
 		long name =
 			CounterLocalServiceUtil.getCurrentId(DLFileEntry.class.getName()) +
 				100;
@@ -267,18 +296,21 @@ public class CounterDataCleanupPreupgradeProcessTest
 				runSQL(
 					StringBundler.concat(
 						"insert into DLFileEntry (mvccVersion, ",
-						"ctCollectionId, fileEntryId, name) values (0, 0,",
-						fileEntryId1, ", '", name, "')"));
+						"ctCollectionId, fileEntryId, groupId, name) values ",
+						"(0, 0, ", fileEntryId1, ", ", groupId1, ", '", name,
+						"')"));
 				runSQL(
 					StringBundler.concat(
 						"insert into DLFileEntry (mvccVersion, ",
-						"ctCollectionId, fileEntryId, name) values (0, 0,",
-						fileEntryId2, ", 'non-numeric')"));
+						"ctCollectionId, fileEntryId, groupId, name) values ",
+						"(0, 0, ", fileEntryId2, ", ", groupId2,
+						", 'non-numeric')"));
 				runSQL(
 					StringBundler.concat(
 						"insert into DLFileEntry (mvccVersion, ",
-						"ctCollectionId, fileEntryId, name) values (0, 0,",
-						fileEntryId3, ", '99999999999999999999')"));
+						"ctCollectionId, fileEntryId, groupId, name) values ",
+						"(0, 0, ", fileEntryId3, ", ", groupId3,
+						", '99999999999999999999')"));
 			},
 			(UnsafeConsumer<List<String>, Exception>)messages -> {
 				Assert.assertEquals(messages.toString(), 1, messages.size());

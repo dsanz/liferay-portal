@@ -1,0 +1,138 @@
+/**
+ * SPDX-FileCopyrightText: (c) 2026 Liferay, Inc. https://liferay.com
+ * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
+ */
+
+@import 'atlas-custom-properties/_variables';
+
+.chart-pie {
+	display: block;
+	margin: 0;
+	width: fit-content;
+
+	.chart-pie-caption {
+		font-weight: 600;
+		margin-block-end: 0.5rem;
+		text-align: start;
+	}
+
+	.chart-pie-row {
+		align-items: center;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+	}
+
+	.chart-pie-body {
+		position: relative;
+	}
+
+	.chart-pie-svg {
+		block-size: auto;
+		display: block;
+		inline-size: 100%;
+
+		> path {
+			cursor: pointer;
+			outline: none;
+			transition: transform 150ms ease;
+		}
+	}
+
+	// Neutral ring shown when the total is 0, so the chart keeps its shape
+	// instead of disappearing.
+
+	.chart-pie-track {
+		fill: none;
+		stroke: $light-d1;
+	}
+
+	.chart-pie-center-label {
+		align-items: center;
+		display: flex;
+		flex-direction: column;
+		inset-block-start: 50%;
+		inset-inline-start: 50%;
+		pointer-events: none;
+		position: absolute;
+		transform: translate(-50%, -50%);
+	}
+
+	.chart-pie-center-label-title {
+		font-size: 0.875rem;
+	}
+
+	.chart-pie-center-label-percent {
+		font-size: 1.5rem;
+		font-weight: 700;
+	}
+
+	.chart-pie-center-label-total {
+		font-size: 2rem;
+		font-weight: 700;
+	}
+
+	.chart-pie-center-label-value {
+		font-size: 1rem;
+		font-weight: 600;
+	}
+}
+
+.chart-pie-slice {
+	&.is-hover {
+		filter: brightness(1.08);
+	}
+}
+
+.chart-pie-focus-halo {
+	fill: none;
+	stroke: $white;
+	stroke-width: 8;
+}
+
+.chart-pie-focus-ring {
+	fill: none;
+	stroke: $primary-d2;
+	stroke-width: 4;
+}
+
+.chart-pie-revealed {
+	.chart-pie-svg > path {
+		animation: chart-pie-reveal 400ms ease both;
+	}
+}
+
+// `legendSwatchBorder={false}`: drop the swatch outline (list + table).
+// `transparent` keeps the 12x12 box so nothing shifts. The active variants
+// out-specify the rules that would otherwise re-add a white edge on
+// hover/focus.
+
+.chart-pie-no-swatch-border {
+	.charts-legend__swatch,
+	.charts-legend__item.is-active .charts-legend__swatch,
+	.charts-legend-table__row.is-active .charts-legend__swatch {
+		border-color: transparent;
+	}
+}
+
+@keyframes chart-pie-reveal {
+	from {
+		opacity: 0;
+	}
+
+	to {
+		opacity: 1;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.chart-pie-revealed .chart-pie-svg > path {
+		animation: none;
+		transition: none;
+	}
+}
+
+body.c-prefers-reduced-motion .chart-pie-revealed .chart-pie-svg > path {
+	animation: none;
+	transition: none;
+}

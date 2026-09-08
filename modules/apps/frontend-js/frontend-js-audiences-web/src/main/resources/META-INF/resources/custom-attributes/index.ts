@@ -5,6 +5,10 @@
 
 declare let Liferay: any;
 
+export function language(): string {
+	return Liferay.ThemeDisplay.getBCP47LanguageId();
+}
+
 export function signed_in(): boolean {
 	return Liferay.ThemeDisplay.isSignedIn();
 }

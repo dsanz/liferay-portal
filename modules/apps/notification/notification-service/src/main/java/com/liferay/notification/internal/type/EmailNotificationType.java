@@ -48,7 +48,6 @@ import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFacto
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
-import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.language.Language;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -78,7 +77,7 @@ import com.liferay.portal.kernel.template.TemplateContextContributor;
 import com.liferay.portal.kernel.template.TemplateManagerUtil;
 import com.liferay.portal.kernel.templateparser.TemplateNode;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
-import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
+import com.liferay.portal.kernel.transaction.TransactionCallbackUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.KeyValuePair;
@@ -361,16 +360,12 @@ public class EmailNotificationType extends BaseNotificationType {
 					CompanyThreadLocal.getCompanyId());
 			}
 
-			if (FeatureFlagManagerUtil.isEnabled(
-					notificationTemplate.getCompanyId(), "LPD-17564")) {
-
-				body = StringUtil.replace(
-					body, "[%EMAIL_RECIPIENT_ADDRESS%]",
-					emailAddressUser.getDisplayEmailAddress());
-				body = StringUtil.replace(
-					body, "[%EMAIL_RECIPIENT_NAME%]",
-					emailAddressUser.getFullName());
-			}
+			body = StringUtil.replace(
+				body, "[%EMAIL_RECIPIENT_ADDRESS%]",
+				emailAddressUser.getDisplayEmailAddress());
+			body = StringUtil.replace(
+				body, "[%EMAIL_RECIPIENT_NAME%]",
+				emailAddressUser.getFullName());
 
 			prepareNotificationContext(
 				emailAddressUser, body, notificationContext,
@@ -391,7 +386,7 @@ public class EmailNotificationType extends BaseNotificationType {
 	public void sendNotification(
 		NotificationQueueEntry notificationQueueEntry) {
 
-		TransactionCommitCallbackUtil.registerCallback(
+		TransactionCallbackUtil.registerCommitCallback(
 			() -> {
 				try {
 					Map<String, Object> notificationRecipientSettingsMap =

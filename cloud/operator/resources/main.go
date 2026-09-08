@@ -2,87 +2,116 @@ package main
 
 import (
 	"os"
+	"time"
 
-	"github.com/caarlos0/env/v11"
-	"k8s.io/apimachinery/pkg/labels"
-	"k8s.io/apimachinery/pkg/runtime"
+	env "github.com/caarlos0/env/v11"
+	licensingv1alpha1 "github.com/liferay/liferay-portal/cloud/operator/api/licensing/v1alpha1"
+	addon "github.com/liferay/liferay-portal/cloud/operator/internal/addon"
+	controller "github.com/liferay/liferay-portal/cloud/operator/internal/controller"
+	licensing "github.com/liferay/liferay-portal/cloud/operator/internal/controller/licensing"
+	provisioning "github.com/liferay/liferay-portal/cloud/operator/internal/provisioning"
+	runtime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/cache"
-	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	controllerruntime "sigs.k8s.io/controller-runtime"
+	healthz "sigs.k8s.io/controller-runtime/pkg/healthz"
+	zap "sigs.k8s.io/controller-runtime/pkg/log/zap"
 	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
-
-	"github.com/liferay/liferay-portal/cloud/operator/internal/controller"
 )
 
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
+	utilruntime.Must(licensingv1alpha1.AddToScheme(scheme))
 }
 
 func main() {
-	cfg, _ := env.ParseAs[config]()
+	config, configError := env.ParseAs[config]()
 
-	ctrl.SetLogger(zap.New())
+	controllerruntime.SetLogger(zap.New(zap.UseDevMode(config.Debug)))
 
-	mgr, err := ctrl.NewManager(
-		ctrl.GetConfigOrDie(),
-		ctrl.Options{
-			Cache: cache.Options{
-				DefaultLabelSelector: labels.SelectorFromSet(
-					map[string]string{
-						"controller-watched": "yes",
-					},
-				),
-			},
-			HealthProbeBindAddress: cfg.ProbeAddress,
+	if configError != nil {
+		controller.SetupLog.Error(configError, "Unable to read configuration, falling back to defaults")
+	}
+
+	manager, error := controllerruntime.NewManager(
+		controllerruntime.GetConfigOrDie(),
+		controllerruntime.Options{
+			HealthProbeBindAddress: config.ProbeAddress,
 			Metrics: metricsserver.Options{
-				BindAddress: cfg.MetricsAddress,
+				BindAddress: config.MetricsAddress,
 			},
 			Scheme: scheme,
 		},
 	)
 
-	if err != nil {
-		setupLog.Error(err, "Unable to start manager.")
+	if error != nil {
+		controller.SetupLog.Error(error, "Unable to start manager")
 
 		os.Exit(1)
 	}
 
-	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		setupLog.Error(err, "Unable to set up health check.")
+	if error := manager.AddHealthzCheck("healthz", healthz.Ping); error != nil {
+		controller.SetupLog.Error(error, "Unable to set up health check")
 
 		os.Exit(1)
 	}
 
-	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		setupLog.Error(err, "Unable to set up ready check.")
+	if error := manager.AddReadyzCheck("readyz", healthz.Ping); error != nil {
+		controller.SetupLog.Error(error, "Unable to set up ready check")
 
 		os.Exit(1)
 	}
 
-	reconciler := &controller.Reconciler{Client: mgr.GetClient()}
+	provisioningClient := provisioning.NewHTTPClient(config.ProvisioningBaseURL)
 
-	if err := reconciler.SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "Unable to create controller.")
+	if error := controller.SetupWithManager(
+		manager,
+		&licensing.LiferayEnvironmentReconciler{
+			Client:               manager.GetClient(),
+			GracePeriod:          config.GracePeriod,
+			HeartbeatInterval:    config.HeartbeatInterval,
+			MarketplaceMountPath: config.MarketplaceMountPath,
+			Provisioning:         provisioningClient,
+			Recorder:             manager.GetEventRecorderFor("liferayenvironment-controller"),
+			RetryInitialDelay:    config.RetryInitialDelay,
+			RetryMaxDelay:        config.RetryMaxDelay,
+			Syncer: addon.NewSyncer(
+				provisioningClient, config.DownloadPollInterval,
+				config.RetryInitialDelay, config.RetryMaxDelay, addon.GoRunner{},
+			),
+		},
+	); error != nil {
+		controller.SetupLog.Error(error, "Unable to set up controllers")
 
 		os.Exit(1)
 	}
 
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "Unexpected error while running manager.")
+	controller.SetupLog.Info(
+		"Starting manager",
+		"heartbeatInterval", config.HeartbeatInterval,
+		"metricsAddress", config.MetricsAddress,
+		"probeAddress", config.ProbeAddress,
+		"provisioningBaseURL", config.ProvisioningBaseURL,
+	)
+
+	if error := manager.Start(controllerruntime.SetupSignalHandler()); error != nil {
+		controller.SetupLog.Error(error, "Unexpected error while running manager")
 
 		os.Exit(1)
 	}
 }
 
 type config struct {
-	MetricsAddress string `env:"METRICS_ADDRESS" envDefault:":8080"`
-	ProbeAddress   string `env:"PROBE_ADDRESS" envDefault:":8081"`
+	Debug                bool          `env:"DEBUG" envDefault:"false"`
+	DownloadPollInterval time.Duration `env:"DOWNLOAD_POLL_INTERVAL" envDefault:"15s"`
+	GracePeriod          time.Duration `env:"GRACE_PERIOD" envDefault:"168h"`
+	HeartbeatInterval    time.Duration `env:"HEARTBEAT_INTERVAL" envDefault:"10m"`
+	MarketplaceMountPath string        `env:"MARKETPLACE_MOUNT_PATH" envDefault:"/marketplace"`
+	MetricsAddress       string        `env:"METRICS_ADDRESS" envDefault:":8080"`
+	ProbeAddress         string        `env:"PROBE_ADDRESS" envDefault:":8081"`
+	ProvisioningBaseURL  string        `env:"PROVISIONING_BASE_URL" envDefault:"https://api.one.liferay.com"`
+	RetryInitialDelay    time.Duration `env:"RETRY_INITIAL_DELAY" envDefault:"30s"`
+	RetryMaxDelay        time.Duration `env:"RETRY_MAX_DELAY" envDefault:"30m"`
 }
 
-var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
-)
+var scheme = runtime.NewScheme()

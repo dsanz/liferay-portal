@@ -43,23 +43,6 @@ module.exports = {
 		'ua-parser-js',
 	],
 	symbols: {
-		'axe-core': ['*', 'default'],
-		'clipboard': ['*', 'default'],
-		'cropperjs': ['*', 'default'],
-		'dagre': ['*', 'default'],
-		'date-fns': ['*'],
-		'fuzzy': ['*', 'default'],
-		'graphql-hooks-memcache': ['*', 'default'],
-		'highlight.js': ['*', 'default'],
-		'highlight.js/lib/core': ['*', 'default'],
-		'highlight.js/lib/languages/java': ['*', 'default'],
-		'highlight.js/lib/languages/javascript': ['*', 'default'],
-		'highlight.js/lib/languages/plaintext': ['*', 'default'],
-		'liferay-ckeditor': [],
-		'moment': ['*', 'default'],
-		'moment/min/moment-with-locales': ['*', 'default'],
-		'numeral': ['*', 'default'],
-		'object-hash': ['*', 'default'],
 		'qrcode': [
 
 			// Need to explicitly list exports because the package differs in browser and server
@@ -69,8 +52,14 @@ module.exports = {
 			'toString',
 			'toDataURL',
 		],
-		'qs': ['*', 'default'],
-		'text-mask-addons': ['*', 'default'],
-		'text-mask-core': ['*', 'default'],
+		'ua-parser-js': [
+
+			// Need to explicitly list exports because Node.js requires the
+			// CommonJS build, which exposes the `UAParser` function itself
+			// along with its static properties, whereas esbuild bundles the
+			// ESM one, which only exports `UAParser`
+
+			'UAParser',
+		],
 	},
 };

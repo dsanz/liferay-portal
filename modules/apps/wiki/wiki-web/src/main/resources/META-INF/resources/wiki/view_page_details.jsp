@@ -56,7 +56,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "details
 			<liferay-ui:message key="title" />
 		</th>
 		<td class="table-cell">
-			<%= wikiPage.getTitle() %>
+			<%= HtmlUtil.escape(wikiPage.getTitle()) %>
 		</td>
 	</tr>
 	<tr>
@@ -292,7 +292,7 @@ PortalUtil.addPortletBreadcrumbEntry(request, LanguageUtil.get(request, "details
 					<c:if test="<%= WikiPagePermission.contains(permissionChecker, wikiPage, ActionKeys.PERMISSIONS) %>">
 						<liferay-security:permissionsURL
 							modelResource="<%= WikiPage.class.getName() %>"
-							modelResourceDescription="<%= wikiPage.getTitle() %>"
+							modelResourceDescription="<%= HtmlUtil.escape(wikiPage.getTitle()) %>"
 							resourcePrimKey="<%= String.valueOf(wikiPage.getResourcePrimKey()) %>"
 							var="permissionsURL"
 							windowState="<%= LiferayWindowState.POP_UP.toString() %>"

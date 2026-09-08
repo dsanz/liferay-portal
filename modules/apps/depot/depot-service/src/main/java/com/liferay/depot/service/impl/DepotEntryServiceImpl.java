@@ -75,8 +75,7 @@ public class DepotEntryServiceImpl extends DepotEntryServiceBaseImpl {
 	public DepotEntry fetchGroupDepotEntry(long groupId)
 		throws PortalException {
 
-		DepotEntry depotEntry = depotEntryLocalService.fetchGroupDepotEntry(
-			groupId);
+		DepotEntry depotEntry = depotEntryPersistence.fetchByGroupId(groupId);
 
 		if (depotEntry != null) {
 			_depotEntryModelResourcePermission.check(
@@ -94,8 +93,7 @@ public class DepotEntryServiceImpl extends DepotEntryServiceBaseImpl {
 		List<DepotEntry> filteredDepotEntries = getGroupConnectedDepotEntries(
 			groupId, type, start, end);
 
-		DepotEntry depotEntry = depotEntryLocalService.fetchGroupDepotEntry(
-			groupId);
+		DepotEntry depotEntry = depotEntryPersistence.fetchByGroupId(groupId);
 
 		if (depotEntry != null) {
 			filteredDepotEntries.add(depotEntry);
@@ -116,7 +114,7 @@ public class DepotEntryServiceImpl extends DepotEntryServiceBaseImpl {
 				getPermissionChecker(), depotEntryId, ActionKeys.VIEW);
 		}
 
-		return depotEntryLocalService.getDepotEntry(depotEntryId);
+		return depotEntryPersistence.findByPrimaryKey(depotEntryId);
 	}
 
 	@Override
@@ -215,8 +213,7 @@ public class DepotEntryServiceImpl extends DepotEntryServiceBaseImpl {
 
 	@Override
 	public DepotEntry getGroupDepotEntry(long groupId) throws PortalException {
-		DepotEntry depotEntry = depotEntryLocalService.getGroupDepotEntry(
-			groupId);
+		DepotEntry depotEntry = depotEntryPersistence.findByGroupId(groupId);
 
 		_depotEntryModelResourcePermission.check(
 			getPermissionChecker(), depotEntry, ActionKeys.VIEW);
@@ -228,7 +225,7 @@ public class DepotEntryServiceImpl extends DepotEntryServiceBaseImpl {
 	public DepotEntry updateDepotEntry(
 			long depotEntryId, Map<Locale, String> nameMap,
 			Map<Locale, String> descriptionMap,
-			Map<String, Boolean> depotAppCustomizationMap,
+			Map<String, Boolean> depotAppCustomizationMap, String friendlyURL,
 			UnicodeProperties typeSettingsUnicodeProperties,
 			ServiceContext serviceContext)
 		throws PortalException {
@@ -238,7 +235,7 @@ public class DepotEntryServiceImpl extends DepotEntryServiceBaseImpl {
 
 		return depotEntryLocalService.updateDepotEntry(
 			depotEntryId, nameMap, descriptionMap, depotAppCustomizationMap,
-			typeSettingsUnicodeProperties, serviceContext);
+			friendlyURL, typeSettingsUnicodeProperties, serviceContext);
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(

@@ -45,6 +45,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.util.GroupTestUtil;
+import com.liferay.portal.kernel.test.util.JAXRSWhiteboardTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
@@ -125,6 +126,8 @@ public abstract class BaseDocumentMetadataSetResourceTestCase {
 	public static void setUpClass() throws Exception {
 		_format = FastDateFormatFactoryUtil.getSimpleDateFormat(
 			"yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+		JAXRSWhiteboardTestUtil.ensureReady();
 	}
 
 	@Before
@@ -962,7 +965,7 @@ public abstract class BaseDocumentMetadataSetResourceTestCase {
 
 		page =
 			documentMetadataSetResource.getAssetLibraryDocumentMetadataSetsPage(
-				assetLibraryId, Pagination.of(1, 10));
+				assetLibraryId, Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1146,17 +1149,9 @@ public abstract class BaseDocumentMetadataSetResourceTestCase {
 		Long assetLibraryId =
 			testGetAssetLibraryDocumentMetadataSetsPage_getAssetLibraryId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"assetLibraryDocumentMetadataSets",
-			new HashMap<String, Object>() {
-				{
-					put("assetLibraryId", "\"" + assetLibraryId + "\"");
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetAssetLibraryDocumentMetadataSetsPageAssetLibraryDocumentMetadataSet_getGraphQLField(
+				assetLibraryId);
 
 		// No namespace
 
@@ -1223,6 +1218,24 @@ public abstract class BaseDocumentMetadataSetResourceTestCase {
 				DocumentMetadataSetSerDes.toDTOs(
 					assetLibraryDocumentMetadataSetsJSONObject.getString(
 						"items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetAssetLibraryDocumentMetadataSetsPageAssetLibraryDocumentMetadataSet_getGraphQLField(
+				Long assetLibraryId)
+		throws Exception {
+
+		return new GraphQLField(
+			"assetLibraryDocumentMetadataSets",
+			new HashMap<String, Object>() {
+				{
+					put("assetLibraryId", "\"" + assetLibraryId + "\"");
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -1742,7 +1755,7 @@ public abstract class BaseDocumentMetadataSetResourceTestCase {
 				siteId, randomDocumentMetadataSet());
 
 		page = documentMetadataSetResource.getSiteDocumentMetadataSetsPage(
-			siteId, Pagination.of(1, 10));
+			siteId, Pagination.of(1, (int)totalCount + 2));
 
 		Assert.assertEquals(totalCount + 2, page.getTotalCount());
 
@@ -1911,17 +1924,9 @@ public abstract class BaseDocumentMetadataSetResourceTestCase {
 	public void testGraphQLGetSiteDocumentMetadataSetsPage() throws Exception {
 		Long siteId = testGetSiteDocumentMetadataSetsPage_getSiteId();
 
-		GraphQLField graphQLField = new GraphQLField(
-			"documentMetadataSets",
-			new HashMap<String, Object>() {
-				{
-					put("siteKey", "\"" + siteId + "\"");
-					put("page", 1);
-					put("pageSize", 10);
-				}
-			},
-			new GraphQLField("items", getGraphQLFields()),
-			new GraphQLField("page"), new GraphQLField("totalCount"));
+		GraphQLField graphQLField =
+			testGraphQLGetSiteDocumentMetadataSetsPageSiteDocumentMetadataSet_getGraphQLField(
+				siteId);
 
 		// No namespace
 
@@ -1981,6 +1986,24 @@ public abstract class BaseDocumentMetadataSetResourceTestCase {
 			Arrays.asList(
 				DocumentMetadataSetSerDes.toDTOs(
 					documentMetadataSetsJSONObject.getString("items"))));
+	}
+
+	protected GraphQLField
+			testGraphQLGetSiteDocumentMetadataSetsPageSiteDocumentMetadataSet_getGraphQLField(
+				Long siteId)
+		throws Exception {
+
+		return new GraphQLField(
+			"documentMetadataSets",
+			new HashMap<String, Object>() {
+				{
+					put("siteKey", "\"" + siteId + "\"");
+					put("page", 1);
+					put("pageSize", 10);
+				}
+			},
+			new GraphQLField("items", getGraphQLFields()),
+			new GraphQLField("page"), new GraphQLField("totalCount"));
 	}
 
 	@Test
@@ -3789,4 +3812,4 @@ public abstract class BaseDocumentMetadataSetResourceTestCase {
 		_vulcanCRUDItemDelegateBuilderRegistry;
 
 }
-// LIFERAY-REST-BUILDER-HASH:1680640719
+// LIFERAY-REST-BUILDER-HASH:1358941128

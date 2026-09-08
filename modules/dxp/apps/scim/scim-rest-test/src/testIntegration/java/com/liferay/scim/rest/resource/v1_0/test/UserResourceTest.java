@@ -19,13 +19,21 @@ import com.liferay.portal.configuration.test.util.ConfigurationTestUtil;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONFactory;
 import com.liferay.portal.kernel.json.JSONObject;
+import com.liferay.portal.kernel.model.Contact;
+import com.liferay.portal.kernel.model.ListType;
+import com.liferay.portal.kernel.model.Role;
+import com.liferay.portal.kernel.model.role.RoleConstants;
+import com.liferay.portal.kernel.service.AddressLocalService;
 import com.liferay.portal.kernel.service.ClassNameLocalService;
+import com.liferay.portal.kernel.service.EmailAddressLocalService;
+import com.liferay.portal.kernel.service.ListTypeLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.UserLocalService;
 import com.liferay.portal.kernel.test.TestInfo;
 import com.liferay.portal.kernel.test.rule.AggregateTestRule;
 import com.liferay.portal.kernel.test.rule.DataGuard;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
+import com.liferay.portal.kernel.test.util.RoleTestUtil;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.test.util.UserTestUtil;
 import com.liferay.portal.kernel.util.ArrayUtil;
@@ -36,6 +44,7 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
+import com.liferay.scim.rest.client.dto.v1_0.Address;
 import com.liferay.scim.rest.client.dto.v1_0.MultiValuedAttribute;
 import com.liferay.scim.rest.client.dto.v1_0.Name;
 import com.liferay.scim.rest.client.dto.v1_0.Operation;
@@ -46,9 +55,11 @@ import com.liferay.scim.rest.client.http.HttpInvoker;
 import com.liferay.scim.rest.resource.v1_0.test.util.ScimTestUtil;
 import com.liferay.scim.rest.util.ScimClientUtil;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.commons.lang.time.DateUtils;
 
@@ -165,6 +176,19 @@ public class UserResourceTest extends BaseUserResourceTestCase {
 
 		assertHttpResponseStatusCode(200, httpResponse);
 		assertValid(User.toDTO(httpResponse.getContent()));
+
+		com.liferay.portal.kernel.model.User portalUser =
+			_userLocalService.getUser(GetterUtil.getLong(user.getId()));
+
+		_emailAddressLocalService.deleteEmailAddresses(
+			portalUser.getCompanyId(), Contact.class.getName(),
+			portalUser.getContactId());
+
+		user = _getUser(user.getId());
+
+		MultiValuedAttribute[] emails = user.getEmails();
+
+		Assert.assertEquals(portalUser.getEmailAddress(), emails[0].getValue());
 
 		_userLocalService.updateStatus(
 			GetterUtil.getLong(user.getId()), WorkflowConstants.STATUS_INACTIVE,
@@ -383,6 +407,34 @@ public class UserResourceTest extends BaseUserResourceTestCase {
 
 		User postUser4 = randomUser();
 
+		String expectedFormattedAddress = RandomTestUtil.randomString();
+		String expectedStreetAddress = RandomTestUtil.randomString();
+
+		postUser4.setAddresses(
+			new Address[] {
+				new Address() {
+					{
+						country = RandomTestUtil.randomString();
+						locality = RandomTestUtil.randomString();
+						primary = true;
+						streetAddress = expectedStreetAddress;
+						type = RandomTestUtil.randomString();
+					}
+				},
+				new Address() {
+					{
+						formatted = expectedFormattedAddress;
+						locality = RandomTestUtil.randomString();
+					}
+				},
+				new Address() {
+					{
+						country = RandomTestUtil.randomString();
+						type = RandomTestUtil.randomString();
+					}
+				}
+			});
+
 		postUser4.setActive((Boolean)null);
 
 		assertHttpResponseStatusCode(
@@ -393,6 +445,30 @@ public class UserResourceTest extends BaseUserResourceTestCase {
 				postUser4.getExternalId(), TestPropsValues.getCompanyId());
 
 		Assert.assertTrue(portalUser4.isActive());
+
+		List<com.liferay.portal.kernel.model.Address> addresses =
+			_addressLocalService.getAddresses(
+				portalUser4.getCompanyId(), Contact.class.getName(),
+				portalUser4.getContactId());
+
+		Assert.assertEquals(addresses.toString(), 2, addresses.size());
+
+		ListType listType = _listTypeLocalService.fetchListType(
+			portalUser4.getCompanyId(), "other",
+			Contact.class.getName() + ".address");
+
+		List<String> streets = new ArrayList<>();
+
+		for (com.liferay.portal.kernel.model.Address address : addresses) {
+			Assert.assertEquals(0, address.getCountryId());
+			Assert.assertEquals(
+				listType.getListTypeId(), address.getListTypeId());
+
+			streets.add(address.getStreet1());
+		}
+
+		Assert.assertTrue(streets.contains(expectedFormattedAddress));
+		Assert.assertTrue(streets.contains(expectedStreetAddress));
 
 		assertHttpResponseStatusCode(
 			204,
@@ -650,6 +726,11 @@ public class UserResourceTest extends BaseUserResourceTestCase {
 			_userLocalService.getUserByExternalReferenceCode(
 				user.getExternalId(), TestPropsValues.getCompanyId());
 
+		Role role = RoleTestUtil.addRole(RoleConstants.TYPE_REGULAR);
+
+		_userLocalService.addRoleUsers(
+			role.getRoleId(), new long[] {portalUser.getUserId()});
+
 		portalUser = _userLocalService.updatePortrait(
 			portalUser.getUserId(),
 			FileUtil.getBytes(
@@ -689,13 +770,21 @@ public class UserResourceTest extends BaseUserResourceTestCase {
 		portalUser = _userLocalService.getUser(portalUser.getUserId());
 
 		Assert.assertEquals(portraitId, portalUser.getPortraitId());
+		Assert.assertTrue(
+			ArrayUtil.contains(portalUser.getRoleIds(), role.getRoleId()));
 	}
 
 	private static final String _PREFIX = StringUtil.toLowerCase(
 		RandomTestUtil.randomString());
 
 	@Inject
+	private AddressLocalService _addressLocalService;
+
+	@Inject
 	private ClassNameLocalService _classNameLocalService;
+
+	@Inject
+	private EmailAddressLocalService _emailAddressLocalService;
 
 	@Inject
 	private ExpandoColumnLocalService _expandoColumnLocalService;
@@ -708,6 +797,9 @@ public class UserResourceTest extends BaseUserResourceTestCase {
 
 	@Inject
 	private JSONFactory _jsonFactory;
+
+	@Inject
+	private ListTypeLocalService _listTypeLocalService;
 
 	private String _pid;
 

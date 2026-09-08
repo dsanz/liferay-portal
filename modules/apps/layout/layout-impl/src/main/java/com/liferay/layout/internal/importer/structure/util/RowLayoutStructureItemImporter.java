@@ -14,6 +14,7 @@ import com.liferay.layout.util.structure.RowStyledLayoutStructureItem;
 import com.liferay.portal.kernel.json.JSONObject;
 import com.liferay.portal.kernel.json.JSONUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 
 import java.util.HashSet;
 import java.util.List;
@@ -50,25 +51,24 @@ public class RowLayoutStructureItemImporter
 			return rowStyledLayoutStructureItem;
 		}
 
-		if (definitionMap.containsKey("cssClasses")) {
-			List<String> cssClasses = (List<String>)definitionMap.get(
-				"cssClasses");
-
+		if (definitionMap.get("cssClasses") instanceof List<?> cssClasses) {
 			rowStyledLayoutStructureItem.setCssClasses(
-				new HashSet<>(cssClasses));
+				new HashSet<>((List<String>)cssClasses));
 		}
 
-		if (definitionMap.containsKey("customCSS")) {
+		Object customCSS = definitionMap.get("customCSS");
+
+		if (customCSS != null) {
 			rowStyledLayoutStructureItem.setCustomCSS(
-				String.valueOf(definitionMap.get("customCSS")));
+				String.valueOf(customCSS));
 		}
 
-		if (definitionMap.containsKey("customCSSViewports")) {
-			List<Map<String, Object>> customCSSViewports =
-				(List<Map<String, Object>>)definitionMap.get(
-					"customCSSViewports");
+		if (definitionMap.get("customCSSViewports") instanceof
+				List<?> customCSSViewports) {
 
-			for (Map<String, Object> customCSSViewport : customCSSViewports) {
+			for (Map<String, Object> customCSSViewport :
+					(List<Map<String, Object>>)customCSSViewports) {
+
 				rowStyledLayoutStructureItem.setCustomCSSViewport(
 					(String)customCSSViewport.get("id"),
 					(String)customCSSViewport.get("customCSS"));
@@ -78,36 +78,43 @@ public class RowLayoutStructureItemImporter
 		rowStyledLayoutStructureItem.setGutters(
 			(Boolean)definitionMap.get("gutters"));
 
-		if (definitionMap.containsKey("indexed")) {
+		Object indexed = definitionMap.get("indexed");
+
+		if (indexed != null) {
 			rowStyledLayoutStructureItem.setIndexed(
-				GetterUtil.getBoolean(definitionMap.get("indexed")));
+				GetterUtil.getBoolean(indexed));
 		}
 
-		if (definitionMap.containsKey("name")) {
-			rowStyledLayoutStructureItem.setName(
-				GetterUtil.getString(definitionMap.get("name")));
+		String name = GetterUtil.getString(definitionMap.get("name"), null);
+
+		if (name != null) {
+			rowStyledLayoutStructureItem.setName(name);
 		}
 
 		rowStyledLayoutStructureItem.setNumberOfColumns(
 			(Integer)definitionMap.get("numberOfColumns"));
 
-		if (definitionMap.containsKey("reverseOrder")) {
-			rowStyledLayoutStructureItem.setModulesPerRow(
-				(Integer)definitionMap.get("modulesPerRow"));
-			rowStyledLayoutStructureItem.setReverseOrder(
-				(Boolean)definitionMap.get("reverseOrder"));
+		if (definitionMap.get("reverseOrder") instanceof Boolean reverseOrder) {
+			if (definitionMap.get("modulesPerRow") instanceof
+					Integer modulesPerRow) {
+
+				rowStyledLayoutStructureItem.setModulesPerRow(modulesPerRow);
+			}
+
+			rowStyledLayoutStructureItem.setReverseOrder(reverseOrder);
 		}
 
-		if (definitionMap.containsKey("verticalAlignment")) {
+		if (definitionMap.get("verticalAlignment") instanceof
+				String verticalAlignment) {
+
 			rowStyledLayoutStructureItem.setVerticalAlignment(
-				(String)definitionMap.get("verticalAlignment"));
+				verticalAlignment);
 		}
 
-		if (definitionMap.containsKey("rowViewports")) {
-			List<Map<String, Object>> rowViewports =
-				(List<Map<String, Object>>)definitionMap.get("rowViewports");
+		if (definitionMap.get("rowViewports") instanceof List<?> rowViewports) {
+			for (Map<String, Object> rowViewport :
+					(List<Map<String, Object>>)rowViewports) {
 
-			for (Map<String, Object> rowViewport : rowViewports) {
 				_processRowViewportDefinition(
 					rowStyledLayoutStructureItem,
 					(Map<String, Object>)rowViewport.get(
@@ -115,16 +122,20 @@ public class RowLayoutStructureItemImporter
 					(String)rowViewport.get("id"));
 			}
 		}
-		else if (definitionMap.containsKey("rowViewportConfig")) {
-			Map<String, Object> rowViewportConfigurations =
-				(Map<String, Object>)definitionMap.get("rowViewportConfig");
+		else {
+			if (definitionMap.get("rowViewportConfig") instanceof
+					Map<?, ?> rowViewportConfigurations) {
 
-			for (Map.Entry<String, Object> entry :
-					rowViewportConfigurations.entrySet()) {
+				Map<String, Object> rowViewportConfigurationsMap =
+					(Map<String, Object>)rowViewportConfigurations;
 
-				_processRowViewportDefinition(
-					rowStyledLayoutStructureItem,
-					(Map<String, Object>)entry.getValue(), entry.getKey());
+				for (Map.Entry<String, Object> entry :
+						rowViewportConfigurationsMap.entrySet()) {
+
+					_processRowViewportDefinition(
+						rowStyledLayoutStructureItem,
+						(Map<String, Object>)entry.getValue(), entry.getKey());
+				}
 			}
 		}
 
@@ -140,12 +151,12 @@ public class RowLayoutStructureItemImporter
 			rowStyledLayoutStructureItem.updateItemConfig(jsonObject);
 		}
 
-		if (definitionMap.containsKey("fragmentViewports")) {
-			List<Map<String, Object>> fragmentViewports =
-				(List<Map<String, Object>>)definitionMap.get(
-					"fragmentViewports");
+		if (definitionMap.get("fragmentViewports") instanceof
+				List<?> fragmentViewports) {
 
-			for (Map<String, Object> fragmentViewport : fragmentViewports) {
+			for (Map<String, Object> fragmentViewport :
+					(List<Map<String, Object>>)fragmentViewports) {
+
 				JSONObject jsonObject = JSONUtil.put(
 					(String)fragmentViewport.get("id"),
 					toFragmentViewportStylesJSONObject(fragmentViewport));
@@ -171,36 +182,42 @@ public class RowLayoutStructureItemImporter
 			JSONUtil.put(
 				"modulesPerRow",
 				() -> {
-					if (!rowViewportDefinitionMap.containsKey(
-							"modulesPerRow")) {
+					Map.Entry<String, Object> modulesPerRowEntry =
+						MapUtil.getEntry(
+							rowViewportDefinitionMap, "modulesPerRow");
 
+					if (modulesPerRowEntry == null) {
 						return null;
 					}
 
-					return GetterUtil.getInteger(
-						rowViewportDefinitionMap.get("modulesPerRow"));
+					return GetterUtil.getInteger(modulesPerRowEntry.getValue());
 				}
 			).put(
 				"reverseOrder",
 				() -> {
-					if (!rowViewportDefinitionMap.containsKey("reverseOrder")) {
+					Map.Entry<String, Object> reverseOrderEntry =
+						MapUtil.getEntry(
+							rowViewportDefinitionMap, "reverseOrder");
+
+					if (reverseOrderEntry == null) {
 						return null;
 					}
 
-					return GetterUtil.getBoolean(
-						rowViewportDefinitionMap.get("reverseOrder"));
+					return GetterUtil.getBoolean(reverseOrderEntry.getValue());
 				}
 			).put(
 				"verticalAlignment",
 				() -> {
-					if (!rowViewportDefinitionMap.containsKey(
-							"verticalAlignment")) {
+					Map.Entry<String, Object> verticalAlignmentEntry =
+						MapUtil.getEntry(
+							rowViewportDefinitionMap, "verticalAlignment");
 
+					if (verticalAlignmentEntry == null) {
 						return null;
 					}
 
 					return GetterUtil.getString(
-						rowViewportDefinitionMap.get("verticalAlignment"));
+						verticalAlignmentEntry.getValue());
 				}
 			));
 	}

@@ -12,7 +12,6 @@ import type {
 	Conjunction,
 	LeafRule,
 	Operator,
-	RetentionType,
 	Rule,
 	RuleGroup,
 } from '../index';
@@ -22,6 +21,7 @@ const ATTRIBUTES: Attribute[] = [
 	'browser_version',
 	'cookies',
 	'custom:*',
+	'device_type',
 	'hostname',
 	'language',
 	'local_date',
@@ -29,7 +29,7 @@ const ATTRIBUTES: Attribute[] = [
 	'pathname',
 	'referrer',
 	'request_parameters',
-	'segments',
+	'segment',
 	'timezone',
 	'url',
 	'user_agent',
@@ -59,8 +59,6 @@ const OPERATOR_VALUE_TYPES: {[operator in Operator]: string[]} = {
 	not_includes: ['string'],
 };
 
-const RETENTION_TYPES: RetentionType[] = ['BROWSER', 'PAGE', 'TAB'];
-
 export function check(audiencesDefinition: AudiencesDefinition) {
 	const what = 'Audiences definition';
 
@@ -89,18 +87,13 @@ function checkAudience(audience: Audience, index: number) {
 	const what = `Audience '${audience?.id ?? `#${index + 1}`}'`;
 
 	checkObject(audience, what);
-	checkKeys(audience, ['conjunction', 'id', 'retentionType', 'rules'], what);
+	checkKeys(audience, ['conjunction', 'id', 'rules'], what);
 	checkOneOf(
 		audience.conjunction,
 		CONJUNCTIONS,
 		`${what} field 'conjunction'`
 	);
 	checkString(audience.id, `${what} field 'id'`);
-	checkOneOf(
-		audience.retentionType,
-		RETENTION_TYPES,
-		`${what} field 'retentionType'`
-	);
 	checkRules(audience.rules, `${what} field 'rules'`);
 }
 

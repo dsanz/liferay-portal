@@ -9,9 +9,12 @@ import com.liferay.arquillian.extension.junit.bridge.junit.Arquillian;
 import com.liferay.object.admin.rest.dto.v1_0.ObjectDefinition;
 import com.liferay.object.admin.rest.resource.v1_0.ObjectRelationshipResource;
 import com.liferay.object.constants.ObjectDefinitionConstants;
+import com.liferay.object.constants.ObjectDefinitionSettingConstants;
 import com.liferay.object.model.ObjectRelationship;
 import com.liferay.object.service.ObjectDefinitionLocalService;
+import com.liferay.object.service.ObjectDefinitionSettingLocalService;
 import com.liferay.object.service.ObjectRelationshipLocalService;
+import com.liferay.object.service.persistence.ObjectDefinitionPersistence;
 import com.liferay.object.web.internal.BaseExportImportTestCase;
 import com.liferay.portal.kernel.json.JSONArray;
 import com.liferay.portal.kernel.json.JSONObject;
@@ -20,15 +23,16 @@ import com.liferay.portal.kernel.portlet.bridges.mvc.MVCActionCommand;
 import com.liferay.portal.kernel.portlet.bridges.mvc.MVCResourceCommand;
 import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.test.rule.FeatureFlag;
-import com.liferay.portal.test.rule.FeatureFlags;
+import com.liferay.portal.kernel.workflow.WorkflowConstants;
 import com.liferay.portal.test.rule.Inject;
 import com.liferay.portal.test.rule.LiferayIntegrationTestRule;
 import com.liferay.portal.vulcan.pagination.Page;
 import com.liferay.portal.vulcan.pagination.Pagination;
 
 import java.util.List;
+import java.util.Map;
 
+import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
@@ -40,11 +44,6 @@ import org.skyscreamer.jsonassert.JSONCompareMode;
 /**
  * @author Guilherme Sá
  */
-@FeatureFlags(
-	featureFlags = {
-		@FeatureFlag(value = "LPD-17564"), @FeatureFlag(value = "LPD-34594")
-	}
-)
 @RunWith(Arquillian.class)
 public class BoundObjectDefinitionsExportImportTest
 	extends BaseExportImportTestCase {
@@ -61,43 +60,8 @@ public class BoundObjectDefinitionsExportImportTest
 		_testExportImportBoundObjectDefinitions(
 			ObjectDefinitionConstants.SCOPE_SITE);
 
-		JSONArray jsonArray = JSONUtil.putAll(
-			jsonFactory.createJSONObject(
-				defaultObjectDefinitionJSON
-			).put(
-				"externalReferenceCode", "TESTOBJECTDEFINITION1"
-			).put(
-				"name", "TestObjectDefinition1"
-			),
-			jsonFactory.createJSONObject(
-				defaultObjectDefinitionJSON
-			).put(
-				"externalReferenceCode", "TESTOBJECTDEFINITION2"
-			).put(
-				"name", "TestObjectDefinition2"
-			));
-
-		importJSON(
-			"TESTOBJECTDEFINITION1", jsonArray.toString(),
-			"TestObjectDefinition1");
-
-		ObjectRelationshipResource.Builder builder =
-			_objectRelationshipResourceFactory.create();
-
-		ObjectRelationshipResource objectRelationshipResource = builder.user(
-			user
-		).build();
-
-		objectRelationshipResource.
-			postObjectDefinitionByExternalReferenceCodeObjectRelationship(
-				"TESTOBJECTDEFINITION1",
-				com.liferay.object.admin.rest.dto.v1_0.ObjectRelationship.toDTO(
-					JSONUtil.toString(
-						createOneToManyObjectRelationship(
-							"TESTOBJECTDEFINITION1", "TESTOBJECTDEFINITION2",
-							"TestObjectDefinition2",
-							ObjectDefinitionConstants.SCOPE_COMPANY,
-							"objectRelationship1"))));
+		JSONArray jsonArray =
+			_importBoundObjectDefinitionsWithObjectRelationship();
 
 		JSONObject jsonObject = jsonArray.getJSONObject(1);
 
@@ -128,6 +92,120 @@ public class BoundObjectDefinitionsExportImportTest
 				)
 			).toString(),
 			getExportJSON("TestObjectDefinition1"), JSONCompareMode.LENIENT);
+
+		_deleteObjectDefinition("TESTOBJECTDEFINITION1", "objectRelationship1");
+		_deleteObjectDefinition("TESTOBJECTDEFINITION2", null);
+	}
+
+	@Test
+	public void testImportBoundObjectDefinitionsWithChildBeforeParent()
+		throws Exception {
+
+		JSONObject statusJSONObject = JSONUtil.put(
+			"code", 0
+		).put(
+			"label", "approved"
+		).put(
+			"label_i18n", "Approved"
+		);
+
+		JSONArray jsonArray = JSONUtil.putAll(
+			jsonFactory.createJSONObject(
+				defaultObjectDefinitionJSON
+			).put(
+				"externalReferenceCode", "TESTOBJECTDEFINITION2"
+			).put(
+				"name", "TestObjectDefinition2"
+			).put(
+				"objectDefinitionSettings",
+				JSONUtil.put(
+					JSONUtil.put(
+						"name",
+						ObjectDefinitionSettingConstants.
+							NAME_ALLOW_STANDALONE_OBJECT_ENTRY
+					).put(
+						"value", "true"
+					))
+			).put(
+				"scope", ObjectDefinitionConstants.SCOPE_COMPANY
+			).put(
+				"status", statusJSONObject
+			),
+			jsonFactory.createJSONObject(
+				defaultObjectDefinitionJSON
+			).put(
+				"externalReferenceCode", "TESTOBJECTDEFINITION1"
+			).put(
+				"name", "TestObjectDefinition1"
+			).put(
+				"objectRelationships",
+				JSONUtil.put(
+					createOneToManyObjectRelationship(
+						"TESTOBJECTDEFINITION1", "TESTOBJECTDEFINITION2",
+						"TestObjectDefinition2",
+						ObjectDefinitionConstants.SCOPE_COMPANY,
+						"objectRelationship1"))
+			).put(
+				"scope", ObjectDefinitionConstants.SCOPE_COMPANY
+			).put(
+				"status", statusJSONObject
+			));
+
+		importJSON(
+			"TESTOBJECTDEFINITION2", jsonArray.toString(),
+			"TestObjectDefinition2");
+
+		com.liferay.object.model.ObjectDefinition childObjectDefinition =
+			_objectDefinitionLocalService.
+				fetchObjectDefinitionByExternalReferenceCode(
+					"TESTOBJECTDEFINITION2", TestPropsValues.getCompanyId());
+
+		Assert.assertTrue(childObjectDefinition.isRootDescendantNode());
+		Assert.assertNotNull(
+			_objectDefinitionSettingLocalService.fetchObjectDefinitionSetting(
+				childObjectDefinition.getObjectDefinitionId(),
+				ObjectDefinitionSettingConstants.
+					NAME_ALLOW_STANDALONE_OBJECT_ENTRY));
+
+		_deleteObjectDefinition("TESTOBJECTDEFINITION1", "objectRelationship1");
+		_deleteObjectDefinition("TESTOBJECTDEFINITION2", null);
+	}
+
+	@Test
+	public void testImportBoundObjectDefinitionsWithMissingParentObjectDefinitionReference()
+		throws Exception {
+
+		_importBoundObjectDefinitionsWithObjectRelationship();
+
+		JSONArray boundObjectDefinitionsJSONArray = jsonFactory.createJSONArray(
+			getExportJSON("TestObjectDefinition1"));
+
+		_deleteObjectDefinition("TESTOBJECTDEFINITION1", "objectRelationship1");
+		_deleteObjectDefinition("TESTOBJECTDEFINITION2", null);
+
+		Map<String, JSONObject> objectDefinitionJSONObjects =
+			JSONUtil.toJSONObjectMap(
+				boundObjectDefinitionsJSONArray, "externalReferenceCode");
+
+		JSONObject childObjectDefinitionJSONObject =
+			objectDefinitionJSONObjects.get("TESTOBJECTDEFINITION2");
+
+		importJSON(
+			"TESTOBJECTDEFINITION2",
+			JSONUtil.put(
+				childObjectDefinitionJSONObject
+			).toString(),
+			"TestObjectDefinition2");
+
+		_objectDefinitionPersistence.clearCache();
+
+		com.liferay.object.model.ObjectDefinition emptyObjectDefinition =
+			_objectDefinitionLocalService.
+				fetchObjectDefinitionByExternalReferenceCode(
+					"TESTOBJECTDEFINITION1", TestPropsValues.getCompanyId());
+
+		Assert.assertEquals(
+			WorkflowConstants.STATUS_EMPTY, emptyObjectDefinition.getStatus());
 
 		_deleteObjectDefinition("TESTOBJECTDEFINITION1", "objectRelationship1");
 		_deleteObjectDefinition("TESTOBJECTDEFINITION2", null);
@@ -285,6 +363,50 @@ public class BoundObjectDefinitionsExportImportTest
 			));
 	}
 
+	private JSONArray _importBoundObjectDefinitionsWithObjectRelationship()
+		throws Exception {
+
+		JSONArray jsonArray = JSONUtil.putAll(
+			jsonFactory.createJSONObject(
+				defaultObjectDefinitionJSON
+			).put(
+				"externalReferenceCode", "TESTOBJECTDEFINITION1"
+			).put(
+				"name", "TestObjectDefinition1"
+			),
+			jsonFactory.createJSONObject(
+				defaultObjectDefinitionJSON
+			).put(
+				"externalReferenceCode", "TESTOBJECTDEFINITION2"
+			).put(
+				"name", "TestObjectDefinition2"
+			));
+
+		importJSON(
+			"TESTOBJECTDEFINITION1", jsonArray.toString(),
+			"TestObjectDefinition1");
+
+		ObjectRelationshipResource.Builder builder =
+			_objectRelationshipResourceFactory.create();
+
+		ObjectRelationshipResource objectRelationshipResource = builder.user(
+			user
+		).build();
+
+		objectRelationshipResource.
+			postObjectDefinitionByExternalReferenceCodeObjectRelationship(
+				"TESTOBJECTDEFINITION1",
+				com.liferay.object.admin.rest.dto.v1_0.ObjectRelationship.toDTO(
+					JSONUtil.toString(
+						createOneToManyObjectRelationship(
+							"TESTOBJECTDEFINITION1", "TESTOBJECTDEFINITION2",
+							"TestObjectDefinition2",
+							ObjectDefinitionConstants.SCOPE_COMPANY,
+							"objectRelationship1"))));
+
+		return jsonArray;
+	}
+
 	private void _testExportImportBoundObjectDefinitions(String scope)
 		throws Exception {
 
@@ -404,6 +526,13 @@ public class BoundObjectDefinitionsExportImportTest
 
 	@Inject
 	private ObjectDefinitionLocalService _objectDefinitionLocalService;
+
+	@Inject
+	private ObjectDefinitionPersistence _objectDefinitionPersistence;
+
+	@Inject
+	private ObjectDefinitionSettingLocalService
+		_objectDefinitionSettingLocalService;
 
 	@Inject
 	private ObjectRelationshipLocalService _objectRelationshipLocalService;

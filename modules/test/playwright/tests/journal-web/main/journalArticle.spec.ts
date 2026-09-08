@@ -47,6 +47,15 @@ const translateNameAndMetadataFields = async (
 	);
 };
 
+const setWebContentScope = async (iframe, scope) => {
+	await clickAndExpectToBeVisible({
+		autoClick: true,
+		target: iframe.getByRole('menuitem', {exact: true, name: scope}),
+		timeout: 3000,
+		trigger: iframe.getByLabel('Filter', {exact: true}),
+	});
+};
+
 const baseTest = mergeTests(
 	apiHelpersTest,
 	isolatedSiteTest,
@@ -170,9 +179,7 @@ baseTest(
 			.getByRole('menuitem', {name: 'Schedule Publication'})
 			.click();
 
-		await page
-			.getByPlaceholder('YYYY-MM-DD HH:mm')
-			.fill('9987-11-26 13:00');
+		await page.getByLabel('Date and Time').fill('9987-11-26 01:00 PM');
 
 		await page
 			.getByLabel('Schedule Publication')
@@ -287,7 +294,7 @@ baseTest(
 	}
 );
 
-baseTest(
+ckeditor5Test(
 	'Check that upload field is marked as translated',
 	{
 		tag: '@LPD-66008',
@@ -457,7 +464,7 @@ translationAndAutosaveTest(
 
 		await journalEditArticlePage.scheduleArticle(
 			unSelectableWebContent,
-			'9987-11-26 13:00'
+			'9987-11-26 01:00 PM'
 		);
 
 		await journalEditArticlePage.goto({
@@ -481,6 +488,182 @@ translationAndAutosaveTest(
 		await expect(
 			articleSelectorIframe.getByText(unSelectableWebContent)
 		).toHaveCount(0);
+	}
+);
+
+baseTest(
+	'Web content draft in a connected asset library is not found when browsing everywhere',
+	async ({apiHelpers, journalEditArticlePage, page, site}) => {
+		const fieldName = 'WebContentSelector';
+		const structureName = getRandomString();
+		const draftTitle = getRandomString();
+
+		// A structure with a web content field opens the web content item
+		// selector; connect an asset library whose only web content is a draft
+
+		await apiHelpers.dataEngine.createStructure(
+			site.id,
+			getDataStructureDefinition({
+				defaultLanguageId: 'en_US',
+				fields: [{fieldType: 'journal_article', name: fieldName}],
+				name: structureName,
+			})
+		);
+
+		const depot =
+			await apiHelpers.jsonWebServicesDepot.addDepotEntry(
+				getRandomString()
+			);
+
+		try {
+			await apiHelpers.jsonWebServicesDepotGroupRel.addDepotEntryGroupRel(
+				depot.depotEntryId,
+				String(site.id)
+			);
+
+			await apiHelpers.headlessAdminContent.postStructuredContentDraft({
+				contentStructureId:
+					await getBasicWebContentStructureId(apiHelpers),
+				datePublished: '2026-01-01T00:00:00Z',
+				siteId: String(depot.groupId),
+				title: draftTitle,
+			});
+
+			// Open the web content item selector and browse everywhere
+
+			await journalEditArticlePage.goto({
+				siteUrl: site.friendlyUrlPath,
+				structureName,
+			});
+
+			await page
+				.getByTestId(fieldName)
+				.getByRole('button', {name: 'Select'})
+				.click();
+
+			const iframe = page.frameLocator('iframe[title="Web Content"]');
+
+			await setWebContentScope(iframe, 'Everywhere');
+
+			// The draft never surfaces, so the library reports no web content
+
+			await expect(
+				iframe.getByText('No web content was found.')
+			).toBeVisible();
+
+			await expect(iframe.getByText(draftTitle)).toHaveCount(0);
+		}
+		finally {
+			await apiHelpers.jsonWebServicesDepot.deleteDepotEntry(
+				depot.depotEntryId
+			);
+		}
+	}
+);
+
+baseTest(
+	'Web content in a connected asset library is reachable everywhere and cleared back to the current site',
+	{tag: ['@LPS-119899', '@LPS-119707']},
+	async ({apiHelpers, journalEditArticlePage, page, site}) => {
+		const fieldName = 'WebContentSelector';
+		const structureName = getRandomString();
+		const depotWebContent = getRandomString();
+		const depotFolderName = getRandomString();
+		const depotFolderWebContent = getRandomString();
+		const siteWebContent = getRandomString();
+
+		const basicWebContentStructureId =
+			await getBasicWebContentStructureId(apiHelpers);
+
+		// A structure with a web content field opens the web content item
+		// selector; seed web content in the site and in the root and a folder
+		// of a connected asset library
+
+		await apiHelpers.dataEngine.createStructure(
+			site.id,
+			getDataStructureDefinition({
+				defaultLanguageId: 'en_US',
+				fields: [{fieldType: 'journal_article', name: fieldName}],
+				name: structureName,
+			})
+		);
+
+		await apiHelpers.jsonWebServicesJournal.addWebContent({
+			ddmStructureId: basicWebContentStructureId,
+			groupId: site.id,
+			titleMap: {en_US: siteWebContent},
+		});
+
+		const depot =
+			await apiHelpers.jsonWebServicesDepot.addDepotEntry(
+				getRandomString()
+			);
+
+		try {
+			await apiHelpers.jsonWebServicesDepotGroupRel.addDepotEntryGroupRel(
+				depot.depotEntryId,
+				String(site.id)
+			);
+
+			await apiHelpers.jsonWebServicesJournal.addWebContent({
+				ddmStructureId: basicWebContentStructureId,
+				groupId: depot.groupId,
+				titleMap: {en_US: depotWebContent},
+			});
+
+			const folder = await apiHelpers.jsonWebServicesJournal.addFolder({
+				groupId: depot.groupId,
+				name: depotFolderName,
+			});
+
+			await apiHelpers.jsonWebServicesJournal.addWebContent({
+				ddmStructureId: basicWebContentStructureId,
+				folderId: folder.folderId,
+				groupId: depot.groupId,
+				titleMap: {en_US: depotFolderWebContent},
+			});
+
+			await journalEditArticlePage.goto({
+				siteUrl: site.friendlyUrlPath,
+				structureName,
+			});
+
+			await page
+				.getByTestId(fieldName)
+				.getByRole('button', {name: 'Select'})
+				.click();
+
+			const iframe = page.frameLocator('iframe[title="Web Content"]');
+
+			// Everywhere surfaces the site and asset library root web content
+
+			await setWebContentScope(iframe, 'Everywhere');
+
+			await expect(iframe.getByText(depotWebContent)).toBeVisible();
+
+			await expect(iframe.getByText(siteWebContent)).toBeVisible();
+
+			// Clearing the filter reverts to the current site only
+
+			await iframe.getByRole('button', {name: 'Clear'}).click();
+
+			await expect(iframe.getByText(siteWebContent)).toBeVisible();
+
+			await expect(iframe.getByText(depotWebContent)).toHaveCount(0);
+
+			// Everywhere again, the asset library folder holds its web content
+
+			await setWebContentScope(iframe, 'Everywhere');
+
+			await iframe.getByText(depotFolderName, {exact: true}).click();
+
+			await expect(iframe.getByText(depotFolderWebContent)).toBeVisible();
+		}
+		finally {
+			await apiHelpers.jsonWebServicesDepot.deleteDepotEntry(
+				depot.depotEntryId
+			);
+		}
 	}
 );
 
@@ -556,7 +739,7 @@ baseTest(
 			.click();
 
 		let categoryCheckbox = page
-			.frameLocator(`iframe[title="Select ${vocabularyName1}"]`)
+			.getByRole('dialog', {name: `Select ${vocabularyName1}`})
 			.locator('li')
 			.filter({hasText: `${category1}`})
 			.getByRole('checkbox');
@@ -570,7 +753,7 @@ baseTest(
 			.click();
 
 		categoryCheckbox = page
-			.frameLocator(`iframe[title="Select ${vocabularyName2}"]`)
+			.getByRole('dialog', {name: `Select ${vocabularyName2}`})
 			.locator('li')
 			.filter({hasText: `${category1}`})
 			.getByRole('checkbox');
@@ -709,6 +892,10 @@ baseTest(
 		await journalPage.goto(site.friendlyUrlPath);
 
 		await setItemsPerPage(page, 20);
+
+		await expect(
+			page.getByText('Showing 1 to 20 of 42 entries.')
+		).toBeVisible();
 
 		await page.getByTestId('row').nth(0).getByRole('checkbox').check();
 		await page.getByTestId('row').nth(1).getByRole('checkbox').check();
@@ -871,20 +1058,9 @@ privateContentIconTest(
 
 		await journalEditArticlePage.editArticle(title);
 
-		await journalEditArticlePage.openRelatedAsset('Basic Web Content');
+		await journalEditArticlePage.openRelatedAsset();
 
-		await journalEditArticlePage.assertPrivateContentIconInRelatedAssetPopUp(
-			'Basic Web Content'
-		);
-
-		await journalEditArticlePage.changeViewInRelatedAssetPopUp(
-			'Basic Web Content',
-			'table'
-		);
-
-		await journalEditArticlePage.assertPrivateContentIconInRelatedAssetPopUp(
-			'Basic Web Content'
-		);
+		await journalEditArticlePage.assertPrivateContentIconInRelatedAssetPopUp();
 	}
 );
 
@@ -979,12 +1155,14 @@ baseTest(
 			await journalEditArticlePage.fillContent(getRandomString());
 
 			await clickAndExpectToBeVisible({
-				autoClick: true,
+				autoClick: false,
 				target: page.getByRole('option', {
 					name: language + ' Language: Translating 1/',
 				}),
 				trigger: translationButton,
 			});
+
+			await page.keyboard.press('Escape');
 		}
 
 		await journalEditArticlePage.publishArticle();
@@ -1103,7 +1281,7 @@ baseTest(
 		await translationButton.click();
 
 		await clickAndExpectToBeVisible({
-			autoClick: true,
+			autoClick: false,
 			target: page.getByRole('option', {
 				name: 'Catalan Language: Not Translated',
 			}),
@@ -1155,6 +1333,71 @@ baseTest(
 		await translationButton.click();
 
 		await clickAndExpectToBeVisible({
+			autoClick: false,
+			target: page.getByRole('option', {
+				name: 'Catalan Language: Translated',
+			}),
+			trigger: translationButton,
+		});
+
+		await page.keyboard.press('Escape');
+
+		await translationOptionsButton.click();
+
+		await expect(markAsTranslatedButton).toBeDisabled();
+	}
+);
+
+baseTest(
+	'This is a test for the translation status of a web content with empty fields after publishing',
+	{
+		tag: '@LPD-102657',
+	},
+	async ({journalEditArticlePage, page, site}) => {
+
+		// Publish a web content with only the title filled
+
+		const title = getRandomString();
+
+		await journalEditArticlePage.goto({siteUrl: site.friendlyUrlPath});
+
+		await journalEditArticlePage.createAndPublishBasicArticle(title);
+
+		// Mark Catalan as translated without filling any field
+
+		await journalEditArticlePage.editArticle(title);
+
+		const translationButton = page.getByRole('combobox', {
+			name: 'Select a language',
+		});
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('option', {
+				name: 'Catalan Language: Not Translated',
+			}),
+			trigger: translationButton,
+		});
+
+		await page.getByLabel('Translation Options').click();
+
+		await page.getByRole('button', {name: 'Mark as Translated'}).click();
+
+		await expect(
+			page.getByRole('heading', {name: 'Mark ca_ES as Translated'})
+		).toBeVisible();
+
+		await page.getByRole('button', {name: 'Mark as Translated'}).click();
+
+		await journalEditArticlePage.publishArticle(true);
+
+		await waitForAlert(page, `Success:${title} was updated successfully.`);
+
+		// Catalan must remain translated when the web content is reopened
+
+		await journalEditArticlePage.editArticle(title);
+
+		await clickAndExpectToBeVisible({
 			autoClick: true,
 			target: page.getByRole('option', {
 				name: 'Catalan Language: Translated',
@@ -1162,9 +1405,29 @@ baseTest(
 			trigger: translationButton,
 		});
 
-		await translationOptionsButton.click();
+		// Reset the translation
 
-		await expect(markAsTranslatedButton).toBeDisabled();
+		await page.getByLabel('Translation Options').click();
+
+		await page.getByRole('button', {name: 'Reset Translation'}).click();
+
+		await page.getByRole('button', {name: 'Delete'}).click();
+
+		await journalEditArticlePage.publishArticle(true);
+
+		await waitForAlert(page, `Success:${title} was updated successfully.`);
+
+		// Catalan must remain untranslated when the web content is reopened
+
+		await journalEditArticlePage.editArticle(title);
+
+		await clickAndExpectToBeVisible({
+			autoClick: false,
+			target: page.getByRole('option', {
+				name: 'Catalan Language: Not Translated',
+			}),
+			trigger: translationButton,
+		});
 	}
 );
 
@@ -1260,6 +1523,18 @@ baseTest(
 			await fieldsWrapper.click();
 		}
 		await journalEditArticlePage.fillContent(getRandomString());
+
+		// Re-apply the Untranslated filter to refresh the view. The active
+		// filter option is inert (pointer-events: none), so toggle through
+		// another option to reselect it.
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('option', {
+				name: 'All Fields',
+			}),
+			trigger: translationFilterButton,
+		});
 
 		await clickAndExpectToBeVisible({
 			autoClick: true,
@@ -1404,7 +1679,7 @@ baseTest(
 		await translateNameAndMetadataFields(page);
 
 		await clickAndExpectToBeVisible({
-			autoClick: true,
+			autoClick: false,
 			target: page.getByRole('option', {
 				name: 'Catalan Language: Translating 1/2',
 			}),
@@ -1493,7 +1768,7 @@ baseTest(
 			name: 'Select a language',
 		});
 
-		clickAndExpectToBeVisible({
+		await clickAndExpectToBeVisible({
 			autoClick: true,
 			target: page.getByRole('option', {
 				name: 'Catalan Language: Not Translated',
@@ -1507,9 +1782,17 @@ baseTest(
 			name: localizableFieldName,
 		});
 
-		await fillAndClickOutside(page, localizableField);
+		// The Fields panel can load collapsed, so re-expand it before
+		// interacting with its fields. Close the language dropdown after each
+		// check so it does not cover the fields.
 
-		clickAndExpectToBeVisible({
+		await expect(async () => {
+			await openFieldset(page, 'Fields');
+
+			await localizableField.fill(getRandomString(), {timeout: 2000});
+		}).toPass();
+
+		await clickAndExpectToBeVisible({
 			target: page.getByRole('option', {
 				name: 'Catalan Language: Translated',
 			}),
@@ -1517,9 +1800,13 @@ baseTest(
 			trigger: translationButton,
 		});
 
+		await page.keyboard.press('Escape');
+
+		await openFieldset(page, 'Fields');
+
 		await page.getByLabel('Add Duplicate Field Text').click();
 
-		clickAndExpectToBeVisible({
+		await clickAndExpectToBeVisible({
 			target: page.getByRole('option', {
 				name: 'Catalan Language: Translating 2/3',
 			}),
@@ -1527,12 +1814,18 @@ baseTest(
 			trigger: translationButton,
 		});
 
-		await fillAndClickOutside(
-			page,
-			page.locator('input.ddm-field-text').nth(1)
-		);
+		await page.keyboard.press('Escape');
 
-		clickAndExpectToBeVisible({
+		await expect(async () => {
+			await openFieldset(page, 'Fields');
+
+			await page
+				.locator('input.ddm-field-text')
+				.nth(1)
+				.fill(getRandomString(), {timeout: 2000});
+		}).toPass();
+
+		await clickAndExpectToBeVisible({
 			target: page.getByRole('option', {
 				name: 'Catalan Language: Translated',
 			}),
@@ -1748,20 +2041,26 @@ baseTest(
 
 			await translationButton.click();
 
-			await clickAndExpectToBeVisible({
-				autoClick: true,
-				target: page.getByRole('option', {
+			await expect(
+				page.getByRole('option', {
 					name: 'Catalan Language: Translating 1/',
-				}),
-				trigger: translationButton,
-			});
+				})
+			).toBeVisible({timeout: 2000});
+
+			await page.keyboard.press('Escape');
 		}).toPass();
+
+		await clickAndExpectToBeVisible({
+			autoClick: true,
+			target: page.getByRole('option', {
+				name: 'English Language: Default',
+			}),
+			trigger: translationButton,
+		});
 
 		await journalEditArticlePage.publishArticle();
 
 		await waitForAlert(page, `Success:${title} was created successfully.`);
-
-		await page.getByLabel('Fin', {exact: true});
 
 		await journalPage.goToJournalArticleAction(
 			'Delete Translations',
@@ -1856,6 +2155,11 @@ baseTest(
 			siteUrl: site.friendlyUrlPath,
 			structureName,
 		});
+
+		// The Fields panel can load collapsed, so re-expand it before
+		// interacting with the structure field and its duplicate button.
+
+		await openFieldset(page, 'Fields');
 
 		const textField = page.getByRole('textbox', {
 			name: fieldName,
@@ -1977,35 +2281,56 @@ assetPublisherDeprecationTest(
 		await widgetPagePage.goto(widgetLayout, site.friendlyUrlPath);
 
 		await widgetPagePage.addPortlet('Asset Publisher');
+
 		await page
 			.locator('.portlet-asset-publisher')
 			.first()
 			.getByLabel('Options')
 			.click();
+
 		await page
 			.getByRole('menuitem', {exact: true, name: 'Configuration'})
 			.click();
+
 		const configurationFrame = page.frameLocator(
 			'iframe[id="modalIframe"]'
 		);
+
 		await configurationFrame
 			.getByRole('tab', {name: 'Asset Selection'})
 			.click();
+
 		await configurationFrame.getByText('Dynamic', {exact: true}).click();
-		await configurationFrame
-			.getByRole('tab', {name: 'Display Settings'})
-			.click();
-		await configurationFrame.getByLabel('Display Template').click();
-		await configurationFrame
-			.getByRole('option', {name: 'Full Content'})
-			.click();
+
+		await expect(async () => {
+			await configurationFrame
+				.getByRole('tab', {name: 'Display Settings'})
+				.click({timeout: 2000});
+
+			await configurationFrame
+				.getByLabel('Display Template')
+				.click({timeout: 2000});
+
+			await configurationFrame
+				.getByRole('option', {name: 'Full Content'})
+				.click({timeout: 2000});
+		}).toPass();
+
 		await configurationFrame.getByRole('button', {name: 'Save'}).click();
+
 		await page
 			.locator('.modal-header')
 			.getByLabel('Close', {exact: true})
 			.click();
 
-		await widgetPagePage.goto(widgetLayout, site.friendlyUrlPath);
+		await expect(async () => {
+			await widgetPagePage.goto(widgetLayout, site.friendlyUrlPath);
+
+			await expect(page.getByText('page1')).toBeVisible({timeout: 2000});
+			await expect(page.getByLabel('Go to page, 2')).toBeVisible({
+				timeout: 2000,
+			});
+		}).toPass();
 
 		await page.getByLabel('Go to page, 2').click();
 
@@ -2609,26 +2934,32 @@ baseTest(
 
 		await journalPage.goto(site.friendlyUrlPath);
 
-		await expect(page.getByText(title1)).toBeVisible();
-		await expect(page.getByText(title2)).toBeVisible();
+		const title1Link = page.getByRole('link', {exact: true, name: title1});
+		const title2Link = page.getByRole('link', {exact: true, name: title2});
 
-		await page.getByPlaceholder('Search for').fill(title1);
-		await page.getByLabel('Search for', {exact: true}).click();
+		await expect(title1Link).toBeVisible();
+		await expect(title2Link).toBeVisible();
 
-		await expect(page.getByText(title1, {exact: true})).toBeVisible();
-		await expect(page.getByText(title2)).not.toBeVisible();
+		const searchInput = page.getByPlaceholder('Search for');
+		const searchButton = page.getByLabel('Search for', {exact: true});
 
-		await page.getByPlaceholder('Search for').fill(title2);
-		await page.getByLabel('Search for', {exact: true}).click();
+		await searchInput.fill(title1);
+		await searchButton.click();
 
-		await expect(page.getByText(title1)).not.toBeVisible();
-		await expect(page.getByText(title2, {exact: true})).toBeVisible();
+		await expect(title1Link).toBeVisible();
+		await expect(title2Link).not.toBeVisible();
 
-		await page.getByPlaceholder('Search for').fill('Random Text');
-		await page.getByLabel('Search for', {exact: true}).click();
+		await searchInput.fill(title2);
+		await searchButton.click();
 
-		await expect(page.getByText(title1)).not.toBeVisible();
-		await expect(page.getByText(title2)).not.toBeVisible();
+		await expect(title1Link).not.toBeVisible();
+		await expect(title2Link).toBeVisible();
+
+		await searchInput.fill('Random Text');
+		await searchButton.click();
+
+		await expect(title1Link).not.toBeVisible();
+		await expect(title2Link).not.toBeVisible();
 	}
 );
 
@@ -2706,11 +3037,9 @@ baseTest(
 
 		await journalEditArticlePage.goto({siteUrl: site.friendlyUrlPath});
 
-		baseTest.step(
+		await baseTest.step(
 			'Change language without filling title for default language',
 			async () => {
-				await journalEditArticlePage.fillTitle('');
-
 				const translationButton = page.getByRole('combobox', {
 					name: 'Select a language',
 				});
@@ -2731,7 +3060,7 @@ baseTest(
 			}
 		);
 
-		baseTest.step('Cannot Publish With Permissions', async () => {
+		await baseTest.step('Cannot Publish With Permissions', async () => {
 			await clickAndExpectToBeVisible({
 				autoClick: true,
 				target: page.getByRole('menuitem', {
@@ -2749,10 +3078,13 @@ baseTest(
 
 			await expect(page.locator('.modal-dialog')).not.toBeVisible();
 
-			await page.getByLabel('Close').click();
+			await page
+				.locator('.alert-danger')
+				.getByRole('button', {name: 'Close'})
+				.click();
 		});
 
-		baseTest.step('Cannot Schedule Publication', async () => {
+		await baseTest.step('Cannot Schedule Publication', async () => {
 			await clickAndExpectToBeVisible({
 				autoClick: true,
 				target: page.getByRole('menuitem', {
@@ -2769,16 +3101,20 @@ baseTest(
 				.waitFor();
 
 			await expect(page.locator('.modal-dialog')).not.toBeVisible();
-			await page.getByLabel('Close').click();
+
+			await page
+				.locator('.alert-danger')
+				.getByRole('button', {name: 'Close'})
+				.click();
 		});
 
-		baseTest.step('Cannot Save as Draft', async () => {
+		await baseTest.step('Cannot Save as Draft', async () => {
 			await page.getByRole('button', {name: 'Save as Draft'}).click();
 
 			await expect(page.locator('.modal-dialog')).not.toBeVisible();
 		});
 
-		baseTest.step(
+		await baseTest.step(
 			'Can Save as Draft if default language title is filled',
 			async () => {
 				const translationButton = page.getByRole('combobox', {
@@ -2803,13 +3139,13 @@ baseTest(
 					trigger: translationButton,
 				});
 
-				await expect(page.locator('.modal-dialog')).toBeVisible();
-
-				await expect(async () => {
-					page.getByRole('heading', {
+				await clickAndExpectToBeVisible({
+					autoClick: true,
+					target: page.getByRole('heading', {
 						name: 'Save as Draft With Permissions',
-					});
-				}).toPass();
+					}),
+					trigger: page.getByRole('button', {name: 'Save as Draft'}),
+				});
 			}
 		);
 	}

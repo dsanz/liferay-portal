@@ -13,12 +13,13 @@ import ClayForm, {
 import ClayIcon from '@clayui/icon';
 import ClayLayout from '@clayui/layout';
 import ClayPanel from '@clayui/panel';
-import {ClayTooltipProvider} from '@clayui/tooltip';
 import {sub} from 'frontend-js-web';
 import React, {useState} from 'react';
 
+import HelpTooltipIcon from '../../../common/components/forms/HelpTooltipIcon';
 import {IPermissionItem} from '../../../common/components/forms/PermissionsTable';
 import {IVocabulary} from '../../../common/types/IVocabulary';
+import CategorizationProjects from '../components/CategorizationProjects';
 import CategorizationSpaces from '../components/CategorizationSpaces';
 import PermissionsFormGroup from '../components/PermissionsFormGroup';
 
@@ -42,13 +43,15 @@ export default function EditGeneralInfo({
 	locales,
 	nameInputError,
 	onChangeVocabulary,
+	projects,
 	setExternalReferenceCodeInputError,
 	setNameInputError,
+	setProjectChange,
+	setProjectInputError,
 	setSpaceChange,
 	setSpaceInputError,
 	setVocabularyPermissions,
 	showPermissions,
-	spaceInputError,
 	spritemap,
 	vocabulary,
 }: {
@@ -60,13 +63,15 @@ export default function EditGeneralInfo({
 	locales: any[];
 	nameInputError: string;
 	onChangeVocabulary: Function;
+	projects: AssetLibraryType[];
 	setExternalReferenceCodeInputError: (value: string) => void;
 	setNameInputError: Function;
+	setProjectChange: (value: boolean) => void;
+	setProjectInputError: (value: string) => void;
 	setSpaceChange: (value: boolean) => void;
 	setSpaceInputError: (value: string) => void;
 	setVocabularyPermissions: Function;
 	showPermissions: boolean;
-	spaceInputError: string;
 	spritemap: string;
 	vocabulary: IVocabulary;
 }) {
@@ -127,6 +132,17 @@ export default function EditGeneralInfo({
 		}));
 	};
 
+	const onChangeSelectedProjects = (newSelectedProjects: string[]) => {
+		onChangeVocabulary(() => ({
+			...vocabulary,
+			projects: newSelectedProjects.length
+				? newSelectedProjects.map((projectScopeKey) => ({
+						scopeKey: projectScopeKey,
+					}))
+				: [],
+		}));
+	};
+
 	const onChangeSelectedSpaces = (newSelectedSpaces: string[]) => {
 		onChangeVocabulary(() => ({
 			...vocabulary,
@@ -148,7 +164,7 @@ export default function EditGeneralInfo({
 				role="group"
 			>
 				<ClayForm.Group className="c-gap-4 d-flex flex-column p-4">
-					<ClayLayout.Row className="form-title" justify="between">
+					<ClayLayout.Row className="mx-0" justify="between">
 						<h2 className="mb-0 py-2 text-6 text-dark">
 							{Liferay.Language.get('basic-info')}
 						</h2>
@@ -187,6 +203,7 @@ export default function EditGeneralInfo({
 
 						<ClayInput
 							aria-label={Liferay.Language.get('name')}
+							disabled={vocabulary.system}
 							onBlur={handleNameBlur}
 							onChange={({target: {value}}) =>
 								onChangeName(value)
@@ -220,6 +237,7 @@ export default function EditGeneralInfo({
 							aria-label={Liferay.Language.get(
 								'external-reference-code'
 							)}
+							disabled={vocabulary.system}
 							onChange={({target: {value}}) => {
 								if (
 									value.length >
@@ -264,6 +282,7 @@ export default function EditGeneralInfo({
 						<ClayInput
 							aria-label={Liferay.Language.get('description')}
 							component="textarea"
+							disabled={vocabulary.system}
 							onChange={({target: {value}}) =>
 								onChangeDescription(value)
 							}
@@ -292,32 +311,22 @@ export default function EditGeneralInfo({
 
 						{Liferay.Language.get('allow-multiple-categories')}
 
-						<ClayTooltipProvider>
-							<span
-								className="help-text-icon ml-2"
-								title={Liferay.Language.get(
-									'multi-valued-help'
-								)}
-							>
-								<ClayIcon symbol="question-circle-full" />
-							</span>
-						</ClayTooltipProvider>
+						<HelpTooltipIcon
+							className="ml-2"
+							message={Liferay.Language.get('multi-valued-help')}
+						/>
 					</label>
 
 					<div>
 						<label>
 							{Liferay.Language.get('visibility')}
 
-							<ClayTooltipProvider>
-								<span
-									className="help-text-icon ml-2"
-									title={Liferay.Language.get(
-										'visibility-help'
-									)}
-								>
-									<ClayIcon symbol="question-circle-full" />
-								</span>
-							</ClayTooltipProvider>
+							<HelpTooltipIcon
+								className="ml-2"
+								message={Liferay.Language.get(
+									'visibility-help'
+								)}
+							/>
 						</label>
 
 						<ClaySelectWithOption
@@ -338,25 +347,39 @@ export default function EditGeneralInfo({
 			</ClayPanel>
 
 			<ClayPanel
-				aria-label="space"
+				aria-labelledby="categorization-scope-title"
 				className="mb-4"
 				collapsable={false}
 				displayType="secondary"
 				role="group"
 			>
 				<ClayForm.Group className="c-gap-4 d-flex flex-column p-4">
-					<h2 className="mb-0 py-2 text-6 text-dark">
-						{Liferay.Language.get('space')}
+					<h2
+						className="mb-0 py-2 text-6 text-dark"
+						id="categorization-scope-title"
+					>
+						{Liferay.Language.get('scope')}
 					</h2>
 
 					<CategorizationSpaces
 						assetLibraries={assetLibraries}
 						checkboxText="vocabulary"
+						disabled={vocabulary.system}
 						setSelectedSpaces={onChangeSelectedSpaces}
 						setSpaceChange={setSpaceChange}
 						setSpaceInputError={setSpaceInputError}
-						spaceInputError={spaceInputError}
 					/>
+
+					{Liferay.FeatureFlags['LPD-58677'] && (
+						<CategorizationProjects
+							checkboxText="vocabulary"
+							disabled={vocabulary.system}
+							projects={projects}
+							setProjectChange={setProjectChange}
+							setProjectInputError={setProjectInputError}
+							setSelectedProjects={onChangeSelectedProjects}
+						/>
+					)}
 				</ClayForm.Group>
 			</ClayPanel>
 

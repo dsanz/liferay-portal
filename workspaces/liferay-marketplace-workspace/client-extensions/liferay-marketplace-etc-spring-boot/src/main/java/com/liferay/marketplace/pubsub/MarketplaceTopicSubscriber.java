@@ -49,24 +49,9 @@ import org.springframework.stereotype.Service;
 @Service
 public class MarketplaceTopicSubscriber {
 
-	@PreDestroy
-	public void tearDown() {
-		for (Subscriber subscriber : _subscribers) {
-			if (subscriber != null) {
-				ApiService apiService = subscriber.stopAsync();
-
-				apiService.awaitTerminated();
-			}
-		}
-
-		if (_subscriptionAdminClient != null) {
-			_subscriptionAdminClient.close();
-		}
-	}
-
 	@PostConstruct
-	protected void activate() throws Exception {
-		GoogleCredentials googleCredentials;
+	public void postConstruct() throws Exception {
+		GoogleCredentials googleCredentials = null;
 
 		try {
 			googleCredentials = ServiceAccountCredentials.fromStream(
@@ -102,6 +87,21 @@ public class MarketplaceTopicSubscriber {
 			credentialsProvider,
 			MarketplaceConstants.
 				PUBSUB_TOPIC_NAME_KORONEIKI_PRODUCT_PURCHASE_CREATE);
+	}
+
+	@PreDestroy
+	public void preDestroy() {
+		for (Subscriber subscriber : _subscribers) {
+			if (subscriber != null) {
+				ApiService apiService = subscriber.stopAsync();
+
+				apiService.awaitTerminated();
+			}
+		}
+
+		if (_subscriptionAdminClient != null) {
+			_subscriptionAdminClient.close();
+		}
 	}
 
 	private void _subscribe(

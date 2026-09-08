@@ -8,9 +8,9 @@ import path from 'path';
 
 import {loginTest} from '../../../fixtures/loginTest';
 import getRandomString from '../../../utils/getRandomString';
-import {clientExtensionsPageTest} from './fixtures/clientExtensionsPageTest';
-import {editCustomElementPageTest} from './fixtures/editCustomElementPageTest';
-import {WaitAction} from './pages/EditClientExtensionsPage';
+import {editCustomElementPageTest} from '../custom-element/fixtures/editCustomElementPageTest';
+import {clientExtensionsPageTest} from '../fixtures/clientExtensionsPageTest';
+import {WaitAction} from '../pages/EditClientExtensionsPage';
 
 const test = mergeTests(
 	clientExtensionsPageTest,

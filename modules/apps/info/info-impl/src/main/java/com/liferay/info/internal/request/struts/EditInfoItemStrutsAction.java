@@ -524,7 +524,9 @@ public class EditInfoItemStrutsAction implements StrutsAction {
 				_fragmentEntryLinkLocalService.fetchFragmentEntryLink(
 					fragmentEntryLinkId);
 
-			if (!fragmentEntryLink.isTypeInput()) {
+			if ((fragmentEntryLink == null) ||
+				!fragmentEntryLink.isTypeInput()) {
+
 				continue;
 			}
 
@@ -588,20 +590,24 @@ public class EditInfoItemStrutsAction implements StrutsAction {
 		HttpServletRequest httpServletRequest) {
 
 		long classPK = ParamUtil.getLong(httpServletRequest, "classPK");
+
+		if (classPK > 0) {
+			return new ClassPKInfoItemIdentifier(
+				classPK, InfoItemIdentifier.VERSION_EDITABLE);
+		}
+
 		String externalReferenceCode = ParamUtil.getString(
 			httpServletRequest, "externalReferenceCode");
 
-		if (classPK > 0) {
-			return new ClassPKInfoItemIdentifier(classPK);
-		}
-		else if (Validator.isNotNull(externalReferenceCode)) {
-			return new ERCInfoItemIdentifier(
-				externalReferenceCode,
-				ParamUtil.getString(
-					httpServletRequest, "scopeExternalReferenceCode", null));
+		if (Validator.isNull(externalReferenceCode)) {
+			return null;
 		}
 
-		return null;
+		return new ERCInfoItemIdentifier(
+			externalReferenceCode,
+			ParamUtil.getString(
+				httpServletRequest, "scopeExternalReferenceCode", null),
+			InfoItemIdentifier.VERSION_EDITABLE);
 	}
 
 	private LayoutStructure _getLayoutStructure(

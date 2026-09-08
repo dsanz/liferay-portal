@@ -14,6 +14,7 @@ import com.liferay.asset.auto.tagger.service.AssetAutoTaggerEntryLocalService;
 import com.liferay.asset.kernel.model.AssetEntry;
 import com.liferay.asset.kernel.model.AssetTag;
 import com.liferay.asset.kernel.service.AssetEntryLocalService;
+import com.liferay.exportimport.kernel.lar.ExportImportThreadLocal;
 import com.liferay.portal.kernel.exception.ModelListenerException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.messaging.Destination;
@@ -26,7 +27,7 @@ import com.liferay.portal.kernel.model.ModelListener;
 import com.liferay.portal.kernel.service.GroupLocalService;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
-import com.liferay.portal.kernel.transaction.TransactionCommitCallbackUtil;
+import com.liferay.portal.kernel.transaction.TransactionCallbackUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.GroupThreadLocal;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -71,6 +72,12 @@ public class AssetEntryModelListener extends BaseModelListener<AssetEntry> {
 			AssetEntry originalAssetEntry, AssetEntry assetEntry)
 		throws ModelListenerException {
 
+		if (ExportImportThreadLocal.isImportInProcess() ||
+			ExportImportThreadLocal.isStagingInProcess()) {
+
+			return;
+		}
+
 		boolean updateAutoTags = _isUpdateAutoTags();
 
 		AssetEntry assetEntryFromDatabase =
@@ -79,7 +86,7 @@ public class AssetEntryModelListener extends BaseModelListener<AssetEntry> {
 		if (updateAutoTags ||
 			(assetEntryFromDatabase.getPublishDate() == null)) {
 
-			TransactionCommitCallbackUtil.registerCallback(
+			TransactionCallbackUtil.registerCommitCallback(
 				(Callable<Void>)() -> {
 					if (!updateAutoTags &&
 						((assetEntry.getPublishDate() == null) ||

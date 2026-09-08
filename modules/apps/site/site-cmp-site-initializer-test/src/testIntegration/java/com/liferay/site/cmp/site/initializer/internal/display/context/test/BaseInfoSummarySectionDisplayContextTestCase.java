@@ -8,7 +8,9 @@ package com.liferay.site.cmp.site.initializer.internal.display.context.test;
 import com.liferay.fragment.renderer.FragmentRenderer;
 import com.liferay.info.constants.InfoDisplayWebKeys;
 import com.liferay.object.model.ObjectEntry;
+import com.liferay.portal.kernel.security.permission.PermissionCheckerFactoryUtil;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.test.util.TestPropsValues;
 import com.liferay.portal.kernel.theme.ThemeDisplay;
 import com.liferay.portal.kernel.util.LocaleUtil;
 import com.liferay.portal.kernel.util.WebKeys;
@@ -33,7 +35,7 @@ public abstract class BaseInfoSummarySectionDisplayContextTestCase {
 		CMPTestUtil.getOrAddGroup(
 			BaseInfoSummarySectionDisplayContextTestCase.class);
 
-		projectObjectEntry = CMPTestUtil.addProjectObjectEntry();
+		cmpProjectObjectEntry = CMPTestUtil.addCMPProjectObjectEntry();
 	}
 
 	protected abstract FragmentRenderer getFragmentRenderer();
@@ -51,6 +53,9 @@ public abstract class BaseInfoSummarySectionDisplayContextTestCase {
 		themeDisplay = new ThemeDisplay() {
 			{
 				setLocale(LocaleUtil.US);
+				setPermissionChecker(
+					PermissionCheckerFactoryUtil.create(
+						TestPropsValues.getUser()));
 			}
 		};
 
@@ -68,7 +73,7 @@ public abstract class BaseInfoSummarySectionDisplayContextTestCase {
 			HttpServletRequest httpServletRequest)
 		throws Exception;
 
-	protected ObjectEntry projectObjectEntry;
+	protected ObjectEntry cmpProjectObjectEntry;
 	protected ThemeDisplay themeDisplay;
 
 }

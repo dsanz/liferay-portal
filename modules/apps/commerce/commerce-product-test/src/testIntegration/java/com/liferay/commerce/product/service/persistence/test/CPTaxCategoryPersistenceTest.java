@@ -135,7 +135,11 @@ public class CPTaxCategoryPersistenceTest {
 
 		newCPTaxCategory.setDescription(RandomTestUtil.randomString());
 
-		_cpTaxCategories.add(_persistence.update(newCPTaxCategory));
+		newCPTaxCategory.setStatus(RandomTestUtil.nextInt());
+
+		newCPTaxCategory = _persistence.update(newCPTaxCategory);
+
+		_cpTaxCategories.add(newCPTaxCategory);
 
 		CPTaxCategory existingCPTaxCategory = _persistence.findByPrimaryKey(
 			newCPTaxCategory.getPrimaryKey());
@@ -173,6 +177,8 @@ public class CPTaxCategoryPersistenceTest {
 		Assert.assertEquals(
 			existingCPTaxCategory.getDescription(),
 			newCPTaxCategory.getDescription());
+		Assert.assertEquals(
+			existingCPTaxCategory.getStatus(), newCPTaxCategory.getStatus());
 	}
 
 	@Test(expected = DuplicateCPTaxCategoryExternalReferenceCodeException.class)
@@ -258,7 +264,7 @@ public class CPTaxCategoryPersistenceTest {
 			"uuid", true, "externalReferenceCode", true, "CPTaxCategoryId",
 			true, "companyId", true, "userId", true, "userName", true,
 			"createDate", true, "modifiedDate", true, "name", true,
-			"description", true);
+			"description", true, "status", true);
 	}
 
 	@Test
@@ -562,6 +568,8 @@ public class CPTaxCategoryPersistenceTest {
 
 		cpTaxCategory.setDescription(RandomTestUtil.randomString());
 
+		cpTaxCategory.setStatus(RandomTestUtil.nextInt());
+
 		_cpTaxCategories.add(_persistence.update(cpTaxCategory));
 
 		return cpTaxCategory;
@@ -573,4 +581,4 @@ public class CPTaxCategoryPersistenceTest {
 	private ClassLoader _dynamicQueryClassLoader;
 
 }
-// LIFERAY-SERVICE-BUILDER-HASH:736322576
+// LIFERAY-SERVICE-BUILDER-HASH:-1675628399

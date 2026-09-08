@@ -33,6 +33,8 @@ public class BulkActionEntityModel implements EntityModel {
 	public BulkActionEntityModel() {
 		_entityFieldsMap = EntityModel.toEntityFieldsMap(
 			new BooleanEntityField("cmsRoot", locale -> "cms_root"),
+			new BooleanEntityField(
+				"rootDescendantNode", locale -> "rootDescendantNode"),
 			new CollectionEntityField(
 				new IntegerEntityField("groupIds", locale -> Field.GROUP_ID)),
 			new CollectionEntityField(
@@ -75,9 +77,11 @@ public class BulkActionEntityModel implements EntityModel {
 				"objectDefinitionId", locale -> "objectDefinitionId"),
 			new IntegerEntityField("scopeGroupId", locale -> "scopeGroupId"),
 			new IntegerEntityField("status", locale -> Field.STATUS),
-			new StringEntityField("cmsKind", locale -> "cms_kind"),
 			new StringEntityField("cmsSection", locale -> "cms_section"),
 			new StringEntityField("name", locale -> "name"),
+			new StringEntityField(
+				"objectDefinitionExternalReferenceCode",
+				locale -> "objectDefinitionExternalReferenceCode"),
 			new StringEntityField(
 				"title",
 				locale -> Field.getSortableFieldName(

@@ -1,0 +1,35 @@
+[
+	{
+		"externalReferenceCode": "CMSPRIMARYNAVIGATION",
+		"menuItems": [
+			{
+				"append": true,
+				"externalReferenceCode": "CMSPRIMARYNAVIGATION4",
+				"menuItems": [
+					{
+						"displayIcon": "shopping-cart",
+						"externalReferenceCode": "PIMPRIMARYNAVIGATIONPRODUCTS",
+						"friendlyURL": "/products",
+						"privateLayout": false,
+						"type": "layout"
+					}
+				],
+				"type": "node"
+			},
+			{
+				"append": true,
+				"externalReferenceCode": "CMSPRIMARYNAVIGATION8",
+				"menuItems": [
+					{
+						"displayIcon": "plug",
+						"externalReferenceCode": "PIMPRIMARYNAVIGATIONCONNECTORS",
+						"friendlyURL": "/connectors",
+						"privateLayout": false,
+						"type": "layout"
+					}
+				],
+				"type": "node"
+			}
+		]
+	}
+]

@@ -9,12 +9,15 @@ import com.liferay.petra.string.CharPool;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.internal.dao.sql.transformer.SQLFunctionTransformer;
-import com.liferay.portal.kernel.dao.db.DB;
 import com.liferay.portal.kernel.util.StringUtil;
 
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.hibernate.cfg.Configuration;
+import org.hibernate.dialect.function.SQLFunctionTemplate;
+import org.hibernate.type.StandardBasicTypes;
 
 /**
  * @author Manuel de la Peña
@@ -22,13 +25,21 @@ import java.util.regex.Pattern;
  */
 public abstract class BaseSQLTransformerLogic implements SQLTransformerLogic {
 
-	public BaseSQLTransformerLogic(DB db) {
-		_db = db;
-	}
-
 	@Override
 	public Function<String, String>[] getFunctions() {
 		return _functions;
+	}
+
+	@Override
+	public void populateSQLFunctions(Configuration configuration) {
+		Function<String, String> castClobTextFunction =
+			getCastClobTextFunction();
+
+		configuration.addSqlFunction(
+			"CAST_CLOB_TEXT",
+			new SQLFunctionTemplate(
+				StandardBasicTypes.STRING,
+				castClobTextFunction.apply("CAST_CLOB_TEXT(?1)")));
 	}
 
 	protected Function<String, String> getAggregationFunction() {
@@ -66,7 +77,7 @@ public abstract class BaseSQLTransformerLogic implements SQLTransformerLogic {
 	protected Function<String, String> getBooleanFunction() {
 		return (String sql) -> StringUtil.replace(
 			sql, new String[] {"[$FALSE$]", "[$TRUE$]"},
-			new String[] {_db.getTemplateFalse(), _db.getTemplateTrue()});
+			new String[] {"false", "true"});
 	}
 
 	protected Function<String, String> getCastClobTextFunction() {
@@ -349,7 +360,6 @@ public abstract class BaseSQLTransformerLogic implements SQLTransformerLogic {
 
 	private static final String _LOWER_OPEN = "lower(";
 
-	private final DB _db;
 	private Function[] _functions;
 
 }

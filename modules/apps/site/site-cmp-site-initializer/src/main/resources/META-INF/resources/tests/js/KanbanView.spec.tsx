@@ -11,7 +11,8 @@ import KanbanView from '../../js/components/props_transformer/views/kanban_view/
 
 jest.mock('react-dnd', () => ({
 	DndProvider: ({children}: any) => <>{children}</>,
-	useDrag: () => [{}, jest.fn()],
+	useDrag: () => [{}, jest.fn(), jest.fn()],
+	useDragLayer: () => ({isDragging: false}),
 	useDrop: () => {
 		return [{}, jest.fn()];
 	},
@@ -42,7 +43,13 @@ describe('KanbanView mapping and lifecycle', () => {
 		] as any;
 
 		const {unmount} = render(
-			<KanbanView items={items} itemsActions={[]} projectId="" />
+			<KanbanView
+				cmpProjectObjectDefinitionId={123}
+				cmpProjectObjectEntryId=""
+				hasAddTaskPermission
+				items={items}
+				itemsActions={[]}
+			/>
 		);
 
 		expect((global as any).Liferay.fire).toHaveBeenCalledWith(

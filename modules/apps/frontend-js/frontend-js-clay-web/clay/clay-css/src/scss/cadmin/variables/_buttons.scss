@@ -36,9 +36,9 @@ $cadmin-btn: map-deep-merge(
 	(
 		background-color: transparent,
 		border-color: transparent,
+		border-radius: clay-enable-rounded($cadmin-btn-border-radius),
 		border-style: solid,
 		border-width: $cadmin-btn-border-width,
-		border-radius: clay-enable-rounded($cadmin-btn-border-radius),
 		box-shadow: clay-enable-shadows($cadmin-btn-box-shadow),
 		color: $cadmin-body-color,
 		cursor: $cadmin-btn-cursor,
@@ -128,6 +128,7 @@ $cadmin-btn-font-size-lg: $cadmin-font-size-lg !default; // 18px
 $cadmin-btn-line-height-lg: $cadmin-input-btn-line-height-lg !default;
 $cadmin-btn-padding-x-lg: 24px !default; // 24px
 $cadmin-btn-padding-y-lg: 9.5px !default; // 9.5px
+
 $cadmin-btn-inline-item-font-size-lg: null !default; // 18px
 $cadmin-btn-section-font-size-lg: 13px !default; // 13px
 
@@ -176,6 +177,7 @@ $cadmin-btn-font-size-sm: $cadmin-font-size-sm !default; // 14px
 $cadmin-btn-line-height-sm: 1 !default;
 $cadmin-btn-padding-x-sm: 12px !default; // 12px
 $cadmin-btn-padding-y-sm: 7px !default; // 7px
+
 $cadmin-btn-inline-item-font-size-sm: null !default;
 $cadmin-btn-section-font-size-sm: 9px !default; // 9px
 
@@ -223,6 +225,7 @@ $cadmin-btn-sizes: () !default;
 $cadmin-btn-sizes: map-deep-merge(
 	(
 		btn-xs: (
+			border-radius: clay-enable-rounded(0.25rem),
 			font-size: 0.75rem,
 			line-height: 1.5,
 			padding-bottom: 0.125rem,
@@ -493,6 +496,7 @@ $cadmin-btn-primary: map-deep-merge(
 		background-image: clay-enable-gradients($cadmin-primary),
 		border-color: transparent,
 		color: $cadmin-white,
+
 		hover: (
 			background-color: $cadmin-primary-d1,
 			background-image: clay-enable-gradients($cadmin-primary-d1),
@@ -570,6 +574,7 @@ $cadmin-btn-success: map-deep-merge(
 		background-image: clay-enable-gradients($cadmin-success),
 		border-color: transparent,
 		color: $cadmin-white,
+
 		hover: (
 			background-color: $cadmin-success-d1,
 			background-image: clay-enable-gradients($cadmin-success-d1),
@@ -608,6 +613,7 @@ $cadmin-btn-info: map-deep-merge(
 		background-image: clay-enable-gradients($cadmin-info),
 		border-color: transparent,
 		color: $cadmin-white,
+
 		hover: (
 			background-color: $cadmin-info-d1,
 			background-image: clay-enable-gradients($cadmin-info-d1),
@@ -646,6 +652,7 @@ $cadmin-btn-warning: map-deep-merge(
 		background-image: clay-enable-gradients($cadmin-warning),
 		border-color: transparent,
 		color: $cadmin-white,
+
 		hover: (
 			background-color: $cadmin-warning-d1,
 			background-image: clay-enable-gradients($cadmin-warning-d1),
@@ -684,6 +691,7 @@ $cadmin-btn-danger: map-deep-merge(
 		background-image: clay-enable-gradients($cadmin-danger),
 		border-color: transparent,
 		color: $cadmin-white,
+
 		hover: (
 			background-color: $cadmin-danger-d1,
 			background-image: clay-enable-gradients($cadmin-danger-d1),
@@ -761,6 +769,7 @@ $cadmin-btn-dark: map-deep-merge(
 		background-image: clay-enable-gradients($cadmin-dark),
 		border-color: transparent,
 		color: $cadmin-white,
+
 		hover: (
 			background-color: $cadmin-dark-d1,
 			background-image: clay-enable-gradients($cadmin-dark-d1),
@@ -826,6 +835,80 @@ $cadmin-btn-link: map-deep-merge(
 	$cadmin-btn-link
 );
 
+$cadmin-btn-ai: () !default;
+$cadmin-btn-ai: map-deep-merge(
+	(
+		background-color: $cadmin-purple,
+		border-color: transparent,
+		color: $cadmin-white,
+		hover: (
+			background-color: $cadmin-purple-d1,
+			border-color: transparent,
+			color: $cadmin-white,
+		),
+
+		focus: (
+			background-color: $cadmin-purple-d1,
+			border-color: transparent,
+			color: $cadmin-white,
+		),
+
+		active: (
+			background-color: $cadmin-purple-d2,
+			border-color: transparent,
+			color: $cadmin-white,
+		),
+
+		disabled: (
+			background-color: $cadmin-purple,
+			border-color: transparent,
+			color: $cadmin-white,
+		),
+	),
+	$cadmin-btn-ai
+);
+
+$cadmin-btn-ai-gradient: () !default;
+$cadmin-btn-ai-gradient: map-deep-merge(
+	(
+		background-image:
+			linear-gradient(270deg, $cadmin-primary 0%, $cadmin-purple-d2 100%),
+		border-color: transparent,
+		box-shadow: 0 0 8px 0
+			unquote('hsl(from #{$cadmin-purple} h s l / 0.15)'),
+		hover: (
+			background-image:
+				linear-gradient(
+					270deg,
+					$cadmin-primary-d1 0%,
+					$cadmin-purple-d3 100%
+				),
+			border-color: transparent,
+		),
+
+		active: (
+			background-image:
+				linear-gradient(
+					270deg,
+					$cadmin-primary-d2 0%,
+					$cadmin-purple-d4 100%
+				),
+			border-color: transparent,
+		),
+
+		disabled: (
+			background-image:
+				linear-gradient(
+					270deg,
+					$cadmin-primary 0%,
+					$cadmin-purple-d2 100%
+				),
+			border-color: transparent,
+		),
+	),
+	$cadmin-btn-ai-gradient
+);
+
 $cadmin-btn-palette: () !default;
 $cadmin-btn-palette: map-deep-merge(
 	(
@@ -847,6 +930,29 @@ $cadmin-btn-palette: map-deep-merge(
 
 		link: $cadmin-btn-link,
 
+		ai: $cadmin-btn-ai,
+
+		'.btn-ai-gradient': $cadmin-btn-ai-gradient,
+
+		'.btn-outline-ai.btn-ai-link': (
+			hover: (
+				background-color: transparent,
+				color: $cadmin-purple-d1,
+				text-decoration: underline,
+			),
+
+			focus: (
+				background-color: transparent,
+				color: $cadmin-purple-d1,
+				text-decoration: underline,
+			),
+
+			active: (
+				background-color: transparent,
+				color: $cadmin-purple-d2,
+			),
+		),
+
 		btn-beta: (
 			background-color: $cadmin-light-l1,
 			color: $cadmin-info-d1,
@@ -865,7 +971,33 @@ $cadmin-btn-palette: map-deep-merge(
 
 		'.btn-translucent': (
 			extend: '%clay-btn-xs',
+
 			border-radius: clay-enable-rounded($cadmin-rounded-pill),
+		),
+
+		'.btn-translucent.btn-ai': (
+			background-color:
+				unquote('hsl(from #{$cadmin-purple} h s l / 0.04)'),
+			border-color: transparent,
+			color: $cadmin-purple,
+
+			hover: (
+				background-color:
+					unquote('hsl(from #{$cadmin-purple} h s l / 0.06)'),
+				color: $cadmin-purple,
+			),
+
+			focus: (
+				background-color:
+					unquote('hsl(from #{$cadmin-purple} h s l / 0.06)'),
+				color: $cadmin-purple,
+			),
+
+			active: (
+				background-color:
+					unquote('hsl(from #{$cadmin-purple} h s l / 0.08)'),
+				color: $cadmin-purple,
+			),
 		),
 
 		'.btn-translucent.btn-primary': (
@@ -1199,6 +1331,41 @@ $cadmin-btn-outline-primary: map-deep-merge(
 	$cadmin-btn-outline-primary
 );
 
+$cadmin-btn-outline-ai: () !default;
+$cadmin-btn-outline-ai: map-deep-merge(
+	(
+		border-color: $cadmin-purple,
+		color: $cadmin-purple,
+
+		hover: (
+			background-color:
+				unquote('hsl(from #{$cadmin-purple} h s l / 0.06)'),
+			border-color: $cadmin-purple,
+			color: $cadmin-purple-d1,
+		),
+
+		focus: (
+			background-color:
+				unquote('hsl(from #{$cadmin-purple} h s l / 0.06)'),
+			color: $cadmin-purple-d1,
+		),
+
+		active: (
+			background-color:
+				unquote('hsl(from #{$cadmin-purple} h s l / 0.12)'),
+			border-color: $cadmin-purple,
+			color: $cadmin-purple-d1,
+		),
+
+		disabled: (
+			background-color: transparent,
+			border-color: $cadmin-purple,
+			color: $cadmin-purple,
+		),
+	),
+	$cadmin-btn-outline-ai
+);
+
 $cadmin-btn-outline-secondary: () !default;
 $cadmin-btn-outline-secondary: map-deep-merge(
 	(
@@ -1481,6 +1648,8 @@ $cadmin-btn-outline-palette: () !default;
 $cadmin-btn-outline-palette: map-deep-merge(
 	(
 		primary: $cadmin-btn-outline-primary,
+
+		ai: $cadmin-btn-outline-ai,
 
 		secondary: $cadmin-btn-outline-secondary,
 
