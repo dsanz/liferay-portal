@@ -129,6 +129,18 @@ public interface ImageTransformationConfiguration {
 	 * multiplies the number of distinct objects held at the edge by the number
 	 * of variant widths.
 	 * </p>
+	 *
+	 * <p>
+	 * Two shapes are reported as problems whenever this configuration is read,
+	 * because both render without error and neither is what was meant. Several
+	 * breakpoints that generate the same image produce sources a browser could
+	 * have chosen between itself, and belong in the <code>sizes</code> of a
+	 * single unconditional preset. Breakpoints that generate different output
+	 * formats cannot work at all: a source is matched on its media condition,
+	 * so a browser that does not support the format has nothing to fall back
+	 * to, and the format has to be negotiated at the edge from the
+	 * <code>Accept</code> header instead.
+	 * </p>
 	 */
 	@Meta.AD(
 		deflt = "default.default.sizes=100vw", name = "presets",

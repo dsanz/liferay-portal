@@ -103,6 +103,15 @@ public final class ImagePreset {
 	 * Returns the transformations to apply to every candidate generated for
 	 * this condition, such as a crop that differs between viewports.
 	 *
+	 * <p>
+	 * Declared per preset, and therefore per media condition. Every candidate a
+	 * preset generates shares this map and differs from its siblings only in
+	 * width, which is what makes the candidates sharing a <code>srcset</code>
+	 * the same picture at different sizes, as that attribute requires.
+	 * Transformations that varied per candidate would offer a browser two
+	 * different pictures and let it pick either.
+	 * </p>
+	 *
 	 * @return the transformations
 	 */
 	public Map<String, String> getTransformations() {

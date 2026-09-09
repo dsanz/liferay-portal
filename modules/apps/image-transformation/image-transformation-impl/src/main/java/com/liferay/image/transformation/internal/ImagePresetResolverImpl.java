@@ -10,6 +10,7 @@ import com.liferay.image.transformation.ImagePresetGroup;
 import com.liferay.image.transformation.ImagePresetResolver;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfiguration;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
+import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationValidator;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
@@ -128,7 +129,44 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 
 		_parsedPresets.put(companyId, parsedPresets);
 
+		_report(companyId, parsedPresets._imagePresetGroups);
+
 		return parsedPresets._imagePresetGroups;
+	}
+
+	/**
+	 * Logs what the configuration renders and anything wrong with it.
+	 *
+	 * <p>
+	 * Reached only when the configuration has actually changed, which is both
+	 * when an administrator is in a position to act on it and the only time it
+	 * says anything new. Reporting per request would bury it.
+	 * </p>
+	 */
+	private void _report(
+		long companyId, Map<String, ImagePresetGroup> imagePresetGroups) {
+
+		if (_log.isWarnEnabled()) {
+			for (String problem :
+					ImageTransformationConfigurationValidator.validate(
+						imagePresetGroups)) {
+
+				_log.warn(problem);
+			}
+		}
+
+		if (!_log.isDebugEnabled()) {
+			return;
+		}
+
+		for (ImagePresetGroup imagePresetGroup : imagePresetGroups.values()) {
+			_log.debug(
+				StringBundler.concat(
+					"Preset group ", imagePresetGroup.getName(), " of company ",
+					companyId, " renders ",
+					ImageTransformationConfigurationValidator.getMarkupShape(
+						imagePresetGroup)));
+		}
 	}
 
 	/**
