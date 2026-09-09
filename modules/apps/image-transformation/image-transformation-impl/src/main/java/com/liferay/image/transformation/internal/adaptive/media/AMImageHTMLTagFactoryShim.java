@@ -8,7 +8,7 @@ package com.liferay.image.transformation.internal.adaptive.media;
 import com.liferay.adaptive.media.image.html.AMImageHTMLTagFactory;
 import com.liferay.image.transformation.ImageHTMLTagFactory;
 import com.liferay.image.transformation.ImageResourceFactory;
-import com.liferay.image.transformation.ResponsiveImageRequest;
+import com.liferay.image.transformation.ResponsiveImageRequestBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.ServiceContext;
@@ -83,7 +83,7 @@ public class AMImageHTMLTagFactoryShim implements AMImageHTMLTagFactory {
 
 		return _imageHTMLTagFactory.create(
 			originalImgTag,
-			ResponsiveImageRequest.builder(
+			ResponsiveImageRequestBuilder.imageResource(
 				_imageResourceFactory.fromFileEntry(fileEntry)
 			).httpServletRequest(
 				_getHttpServletRequest()

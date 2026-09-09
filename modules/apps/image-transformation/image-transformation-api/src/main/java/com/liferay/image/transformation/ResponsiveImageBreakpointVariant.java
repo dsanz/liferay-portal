@@ -20,12 +20,38 @@ package com.liferay.image.transformation;
  * behavior and no plausible second implementation.
  * </p>
  *
+ * <p>
+ * Immutable, and built through {@link
+ * ResponsiveImageBreakpointVariantBuilder}.
+ * </p>
+ *
  * @author Daniel Sanz
  */
 public final class ResponsiveImageBreakpointVariant {
 
-	public static Builder builder(String url) {
-		return new Builder(url);
+	/**
+	 * Prefer {@link ResponsiveImageBreakpointVariantBuilder}, which names the
+	 * optional arguments. This is public only because Liferay's coding standards
+	 * have no way to spell a package private constructor, and the builder has to
+	 * reach it from its own compilation unit.
+	 *
+	 * @param identifier a stable identifier, or <code>null</code>
+	 * @param label a human readable label, or <code>null</code>
+	 * @param mimeType the mime type, or <code>null</code>
+	 * @param size the byte size, or <code>null</code>
+	 * @param url the URL this candidate is fetched from
+	 * @param width the width in pixels, or <code>null</code>
+	 */
+	public ResponsiveImageBreakpointVariant(
+		String identifier, String label, String mimeType, Long size, String url,
+		Integer width) {
+
+		_identifier = identifier;
+		_label = label;
+		_mimeType = mimeType;
+		_size = size;
+		_url = url;
+		_width = width;
 	}
 
 	/**
@@ -103,68 +129,6 @@ public final class ResponsiveImageBreakpointVariant {
 	 */
 	public Integer getWidth() {
 		return _width;
-	}
-
-	public static final class Builder {
-
-		public ResponsiveImageBreakpointVariant build() {
-			return new ResponsiveImageBreakpointVariant(
-				_identifier, _label, _mimeType, _size, _url, _width);
-		}
-
-		public Builder identifier(String identifier) {
-			_identifier = identifier;
-
-			return this;
-		}
-
-		public Builder label(String label) {
-			_label = label;
-
-			return this;
-		}
-
-		public Builder mimeType(String mimeType) {
-			_mimeType = mimeType;
-
-			return this;
-		}
-
-		public Builder size(Long size) {
-			_size = size;
-
-			return this;
-		}
-
-		public Builder width(Integer width) {
-			_width = width;
-
-			return this;
-		}
-
-		private Builder(String url) {
-			_url = url;
-		}
-
-		private String _identifier;
-		private String _label;
-		private String _mimeType;
-		private Long _size;
-		private final String _url;
-		private Integer _width;
-
-	}
-
-	private ResponsiveImageBreakpointVariant(
-		String identifier, String label, String mimeType, Long size, String url,
-		Integer width) {
-
-		_identifier = identifier;
-		_label = label;
-		_mimeType = mimeType;
-		_size = size;
-		_url = url;
-		_width = width;
 	}
 
 	private final String _identifier;

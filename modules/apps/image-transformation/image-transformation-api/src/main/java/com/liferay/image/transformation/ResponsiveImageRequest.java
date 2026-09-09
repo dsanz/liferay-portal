@@ -18,13 +18,13 @@ import jakarta.servlet.http.HttpServletRequest;
  * has exactly one implementation.
  * </p>
  *
+ * <p>
+ * Immutable, and built through {@link ResponsiveImageRequestBuilder}.
+ * </p>
+ *
  * @author Daniel Sanz
  */
 public final class ResponsiveImageRequest {
-
-	public static Builder builder(ImageResource imageResource) {
-		return new Builder(imageResource);
-	}
 
 	/**
 	 * Returns a request for the given image with no preset and lazy
@@ -34,9 +34,31 @@ public final class ResponsiveImageRequest {
 	 * @return the request
 	 */
 	public static ResponsiveImageRequest of(ImageResource imageResource) {
-		return new Builder(
+		return ResponsiveImageRequestBuilder.imageResource(
 			imageResource
 		).build();
+	}
+
+	/**
+	 * Prefer {@link ResponsiveImageRequestBuilder}, which names the optional
+	 * arguments. This is public only because Liferay's coding standards have no
+	 * way to spell a package private constructor, and the builder has to reach
+	 * it from its own compilation unit.
+	 *
+	 * @param httpServletRequest the request being served, or <code>null</code>
+	 * @param imageResource the image to transform
+	 * @param lazy whether to lazily load, or <code>null</code> to defer to the
+	 *        preset
+	 * @param presetName the preset name, or <code>null</code> for the default
+	 */
+	public ResponsiveImageRequest(
+		HttpServletRequest httpServletRequest, ImageResource imageResource,
+		Boolean lazy, String presetName) {
+
+		_httpServletRequest = httpServletRequest;
+		_imageResource = imageResource;
+		_lazy = lazy;
+		_presetName = presetName;
 	}
 
 	/**
@@ -106,58 +128,6 @@ public final class ResponsiveImageRequest {
 	 */
 	public String getPresetName() {
 		return _presetName;
-	}
-
-	public static final class Builder {
-
-		public ResponsiveImageRequest build() {
-			return new ResponsiveImageRequest(
-				_httpServletRequest, _imageResource, _lazy, _presetName);
-		}
-
-		public Builder httpServletRequest(
-			HttpServletRequest httpServletRequest) {
-
-			_httpServletRequest = httpServletRequest;
-
-			return this;
-		}
-
-		public Builder lazy(Boolean lazy) {
-			_lazy = lazy;
-
-			return this;
-		}
-
-		public Builder presetName(String presetName) {
-			_presetName = presetName;
-
-			return this;
-		}
-
-		private Builder(ImageResource imageResource) {
-			if (imageResource == null) {
-				throw new IllegalArgumentException("Image resource is null");
-			}
-
-			_imageResource = imageResource;
-		}
-
-		private HttpServletRequest _httpServletRequest;
-		private final ImageResource _imageResource;
-		private Boolean _lazy;
-		private String _presetName;
-
-	}
-
-	private ResponsiveImageRequest(
-		HttpServletRequest httpServletRequest, ImageResource imageResource,
-		Boolean lazy, String presetName) {
-
-		_httpServletRequest = httpServletRequest;
-		_imageResource = imageResource;
-		_lazy = lazy;
-		_presetName = presetName;
 	}
 
 	private final HttpServletRequest _httpServletRequest;

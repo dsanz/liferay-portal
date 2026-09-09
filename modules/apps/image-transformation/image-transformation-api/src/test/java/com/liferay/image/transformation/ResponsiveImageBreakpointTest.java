@@ -115,7 +115,7 @@ public class ResponsiveImageBreakpointTest {
 				responsiveImageBreakpoint.getVariants();
 
 		responsiveImageBreakpointVariants.add(
-			ResponsiveImageBreakpointVariant.builder(
+			ResponsiveImageBreakpointVariantBuilder.url(
 				"/other.jpg"
 			).build());
 	}
@@ -128,12 +128,12 @@ public class ResponsiveImageBreakpointTest {
 
 	private final List<ResponsiveImageBreakpointVariant> _variants =
 		Arrays.asList(
-			ResponsiveImageBreakpointVariant.builder(
+			ResponsiveImageBreakpointVariantBuilder.url(
 				"/photo.jpg?width=320"
 			).width(
 				320
 			).build(),
-			ResponsiveImageBreakpointVariant.builder(
+			ResponsiveImageBreakpointVariantBuilder.url(
 				"/photo.jpg?width=640"
 			).width(
 				640

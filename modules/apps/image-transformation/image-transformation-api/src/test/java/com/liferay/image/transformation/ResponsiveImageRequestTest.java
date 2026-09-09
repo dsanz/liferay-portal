@@ -28,7 +28,7 @@ public class ResponsiveImageRequestTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testBuilderRejectsMissingImageResource() {
-		ResponsiveImageRequest.builder(null);
+		ResponsiveImageRequestBuilder.imageResource(null);
 	}
 
 	@Test
@@ -50,7 +50,7 @@ public class ResponsiveImageRequestTest {
 	@Test
 	public void testCarriesAHttpServletRequestWhenGiven() {
 		ResponsiveImageRequest responsiveImageRequest =
-			ResponsiveImageRequest.builder(
+			ResponsiveImageRequestBuilder.imageResource(
 				_imageResource
 			).httpServletRequest(
 				_httpServletRequest
@@ -82,7 +82,7 @@ public class ResponsiveImageRequestTest {
 		// flag that decides whether the automatic strategy may be used at all.
 
 		ResponsiveImageRequest responsiveImageRequest =
-			ResponsiveImageRequest.builder(
+			ResponsiveImageRequestBuilder.imageResource(
 				_imageResource
 			).lazy(
 				false
@@ -94,7 +94,7 @@ public class ResponsiveImageRequestTest {
 	@Test
 	public void testPresetNameIsCarried() {
 		ResponsiveImageRequest responsiveImageRequest =
-			ResponsiveImageRequest.builder(
+			ResponsiveImageRequestBuilder.imageResource(
 				_imageResource
 			).presetName(
 				"card"

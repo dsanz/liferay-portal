@@ -13,6 +13,7 @@ import com.liferay.image.transformation.ResponsiveImage;
 import com.liferay.image.transformation.ResponsiveImageBreakpoint;
 import com.liferay.image.transformation.ResponsiveImageBreakpointVariant;
 import com.liferay.image.transformation.ResponsiveImageRequest;
+import com.liferay.image.transformation.ResponsiveImageRequestBuilder;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfiguration;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
@@ -350,7 +351,7 @@ public class CDNImageTransformationProviderTest {
 	}
 
 	private ResponsiveImageRequest _request() {
-		return ResponsiveImageRequest.builder(
+		return ResponsiveImageRequestBuilder.imageResource(
 			_imageResource
 		).httpServletRequest(
 			_httpServletRequest

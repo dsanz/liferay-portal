@@ -12,6 +12,7 @@ import com.liferay.image.transformation.ImageResource;
 import com.liferay.image.transformation.ResponsiveImage;
 import com.liferay.image.transformation.ResponsiveImageBreakpoint;
 import com.liferay.image.transformation.ResponsiveImageBreakpointVariant;
+import com.liferay.image.transformation.ResponsiveImageBreakpointVariantBuilder;
 import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.internal.ImageTransformationFactory;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfiguration;
@@ -334,7 +335,7 @@ public class CDNImageTransformationProvider
 			).build();
 
 			responsiveImageBreakpointVariants.add(
-				ResponsiveImageBreakpointVariant.builder(
+				ResponsiveImageBreakpointVariantBuilder.url(
 					_buildURL(
 						companySettings, responsiveImageRequest,
 						imageResource.getURL(), widthTransformations)

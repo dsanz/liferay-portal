@@ -19,6 +19,7 @@ import com.liferay.image.transformation.ImageResource;
 import com.liferay.image.transformation.ResponsiveImage;
 import com.liferay.image.transformation.ResponsiveImageBreakpoint;
 import com.liferay.image.transformation.ResponsiveImageBreakpointVariant;
+import com.liferay.image.transformation.ResponsiveImageBreakpointVariantBuilder;
 import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
 import com.liferay.petra.string.StringBundler;
@@ -129,7 +130,7 @@ public class AMImageTransformationProvider
 					// a candidate the browser could have used.
 
 					responsiveImageBreakpointVariant =
-						ResponsiveImageBreakpointVariant.builder(
+						ResponsiveImageBreakpointVariantBuilder.url(
 							url
 						).build();
 				}
@@ -242,7 +243,7 @@ public class AMImageTransformationProvider
 
 			responsiveImageBreakpointVariants.put(
 				url,
-				ResponsiveImageBreakpointVariant.builder(
+				ResponsiveImageBreakpointVariantBuilder.url(
 					url
 				).identifier(
 					amImageEntry.getConfigurationUuid()
