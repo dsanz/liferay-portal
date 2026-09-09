@@ -6,7 +6,7 @@
 package com.liferay.image.transformation.internal.configuration;
 
 import com.liferay.image.transformation.ImagePreset;
-import com.liferay.image.transformation.ImagePresetGroup;
+import com.liferay.image.transformation.ImagePresetBreakpoint;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
@@ -33,9 +33,9 @@ public class ImageTransformationConfigurationValidatorTest {
 	@Test
 	public void testArtDirectedBreakpointsAreNotReported() {
 		List<String> problems = _validate(
-			_imagePresetGroup(
-				_imagePreset("narrow", null, "50vw", "crop", "1:1"),
-				_imagePreset("wide", null, "50vw", "crop", "16:9")));
+			_imagePreset(
+				_imagePresetBreakpoint("narrow", null, "50vw", "crop", "1:1"),
+				_imagePresetBreakpoint("wide", null, "50vw", "crop", "16:9")));
 
 		Assert.assertEquals(problems.toString(), 0, problems.size());
 	}
@@ -48,9 +48,9 @@ public class ImageTransformationConfigurationValidatorTest {
 		// without breakpoints.
 
 		List<String> problems = _validate(
-			_imagePresetGroup(
-				_imagePreset("narrow", 640, "100vw", "crop", "1:1"),
-				_imagePreset("wide", 2560, "50vw", "crop", "1:1")));
+			_imagePreset(
+				_imagePresetBreakpoint("narrow", 640, "100vw", "crop", "1:1"),
+				_imagePresetBreakpoint("wide", 2560, "50vw", "crop", "1:1")));
 
 		Assert.assertEquals(problems.toString(), 0, problems.size());
 	}
@@ -58,9 +58,11 @@ public class ImageTransformationConfigurationValidatorTest {
 	@Test
 	public void testFormatSwitchIsReported() {
 		List<String> problems = _validate(
-			_imagePresetGroup(
-				_imagePreset("narrow", null, "100vw", "format", "webp"),
-				_imagePreset("wide", null, "50vw", "format", "avif")));
+			_imagePreset(
+				_imagePresetBreakpoint(
+					"narrow", null, "100vw", "format", "webp"),
+				_imagePresetBreakpoint(
+					"wide", null, "50vw", "format", "avif")));
 
 		Assert.assertEquals(problems.toString(), 1, problems.size());
 
@@ -76,9 +78,9 @@ public class ImageTransformationConfigurationValidatorTest {
 		// what the sizes attribute of a single image element already says.
 
 		List<String> problems = _validate(
-			_imagePresetGroup(
-				_imagePreset("narrow", null, "100vw", "crop", "1:1"),
-				_imagePreset("wide", null, "50vw", "crop", "1:1")));
+			_imagePreset(
+				_imagePresetBreakpoint("narrow", null, "100vw", "crop", "1:1"),
+				_imagePresetBreakpoint("wide", null, "50vw", "crop", "1:1")));
 
 		Assert.assertEquals(problems.toString(), 1, problems.size());
 
@@ -93,9 +95,11 @@ public class ImageTransformationConfigurationValidatorTest {
 		Assert.assertEquals(
 			MarkupShape.PICTURE,
 			ImageTransformationConfigurationValidator.getMarkupShape(
-				_imagePresetGroup(
-					_imagePreset("narrow", null, "100vw", "crop", "1:1"),
-					_imagePreset("wide", null, "50vw", "crop", "16:9"))));
+				_imagePreset(
+					_imagePresetBreakpoint(
+						"narrow", null, "100vw", "crop", "1:1"),
+					_imagePresetBreakpoint(
+						"wide", null, "50vw", "crop", "16:9"))));
 	}
 
 	@Test
@@ -107,11 +111,19 @@ public class ImageTransformationConfigurationValidatorTest {
 		Assert.assertEquals(
 			MarkupShape.IMG,
 			ImageTransformationConfigurationValidator.getMarkupShape(
-				_imagePresetGroup(
-					_imagePreset("default", null, "100vw", "crop", "1:1"))));
+				_imagePreset(
+					_imagePresetBreakpoint(
+						"default", null, "100vw", "crop", "1:1"))));
 	}
 
 	private ImagePreset _imagePreset(
+		ImagePresetBreakpoint... imagePresetBreakpoints) {
+
+		return new ImagePreset(
+			null, null, _NAME_HERO, Arrays.asList(imagePresetBreakpoints));
+	}
+
+	private ImagePresetBreakpoint _imagePresetBreakpoint(
 		String breakpointName, Integer maxWidth, String sizes,
 		String transformationKey, String transformationValue) {
 
@@ -125,19 +137,14 @@ public class ImageTransformationConfigurationValidatorTest {
 			mediaQuery = "(min-width: 768px)";
 		}
 
-		return new ImagePreset(
+		return new ImagePresetBreakpoint(
 			false, breakpointName, maxWidth, mediaQuery, sizes,
 			transformations);
 	}
 
-	private ImagePresetGroup _imagePresetGroup(ImagePreset... imagePresets) {
-		return new ImagePresetGroup(
-			null, null, _NAME_HERO, Arrays.asList(imagePresets));
-	}
-
-	private List<String> _validate(ImagePresetGroup imagePresetGroup) {
+	private List<String> _validate(ImagePreset imagePreset) {
 		return ImageTransformationConfigurationValidator.validate(
-			Collections.singletonMap(_NAME_HERO, imagePresetGroup));
+			Collections.singletonMap(_NAME_HERO, imagePreset));
 	}
 
 	private static final String _NAME_DEFAULT = "default";

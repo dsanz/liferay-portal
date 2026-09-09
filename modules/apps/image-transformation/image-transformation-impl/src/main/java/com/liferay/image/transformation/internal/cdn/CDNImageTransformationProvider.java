@@ -6,12 +6,12 @@
 package com.liferay.image.transformation.internal.cdn;
 
 import com.liferay.image.transformation.ImagePreset;
-import com.liferay.image.transformation.ImagePresetGroup;
+import com.liferay.image.transformation.ImagePresetBreakpoint;
 import com.liferay.image.transformation.ImagePresetResolver;
 import com.liferay.image.transformation.ImageResource;
-import com.liferay.image.transformation.ImageVariant;
-import com.liferay.image.transformation.ImageVariantGroup;
 import com.liferay.image.transformation.ResponsiveImage;
+import com.liferay.image.transformation.ResponsiveImageBreakpoint;
+import com.liferay.image.transformation.ResponsiveImageBreakpointVariant;
 import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.internal.ImageTransformationFactory;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfiguration;
@@ -81,7 +81,7 @@ public class CDNImageTransformationProvider
 		return _getResponsiveImage(
 			responsiveImageRequest, companyId,
 			_imagePresetResolver.resolve(
-				companyId, responsiveImageRequest.getPresetGroupName()));
+				companyId, responsiveImageRequest.getPresetName()));
 	}
 
 	@Override
@@ -112,15 +112,15 @@ public class CDNImageTransformationProvider
 	}
 
 	/**
-	 * Renders a single <code>&lt;img&gt;</code> when the group declares one
-	 * preset, and <code>&lt;picture&gt;</code> when it declares several.
+	 * Renders a single <code>&lt;img&gt;</code> when the preset declares one
+	 * breakpoint, and <code>&lt;picture&gt;</code> when it declares several.
 	 *
 	 * <p>
 	 * The shape comes from {@link
 	 * ImageTransformationConfigurationValidator#getMarkupShape}, which reads
-	 * the configured presets rather than the variant groups that survived
+	 * the configured presets rather than the breakpoints that survived
 	 * generation. A preset whose ladder came back empty is skipped, so counting
-	 * variant groups instead would quietly downgrade an art directed placement
+	 * breakpoints instead would quietly downgrade an art directed placement
 	 * to a plain <code>&lt;img&gt;</code> and drop the media conditions that
 	 * made it art directed.
 	 * </p>
@@ -139,30 +139,31 @@ public class CDNImageTransformationProvider
 		long companyId = _imageTransformationConfigurationHelper.getCompanyId(
 			responsiveImageRequest);
 
-		ImagePresetGroup imagePresetGroup = _imagePresetResolver.resolve(
-			companyId, responsiveImageRequest.getPresetGroupName());
+		ImagePreset imagePreset = _imagePresetResolver.resolve(
+			companyId, responsiveImageRequest.getPresetName());
 
 		ResponsiveImage responsiveImage = _getResponsiveImage(
-			responsiveImageRequest, companyId, imagePresetGroup);
+			responsiveImageRequest, companyId, imagePreset);
 
-		List<ImageVariantGroup> imageVariantGroups =
-			responsiveImage.getVariantGroups();
+		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints =
+			responsiveImage.getBreakpoints();
 
-		if (imageVariantGroups.isEmpty()) {
+		if (responsiveImageBreakpoints.isEmpty()) {
 			return originalImgTag;
 		}
 
-		boolean lazy = _isLazy(imagePresetGroup, responsiveImageRequest);
+		boolean lazy = _isLazy(imagePreset, responsiveImageRequest);
 
 		MarkupShape markupShape =
 			ImageTransformationConfigurationValidator.getMarkupShape(
-				imagePresetGroup);
+				imagePreset);
 
 		if (markupShape == MarkupShape.IMG) {
-			return _renderImg(imageVariantGroups.get(0), lazy, originalImgTag);
+			return _renderImg(
+				responsiveImageBreakpoints.get(0), lazy, originalImgTag);
 		}
 
-		return _renderPicture(imageVariantGroups, lazy, originalImgTag);
+		return _renderPicture(responsiveImageBreakpoints, lazy, originalImgTag);
 	}
 
 	@Activate
@@ -238,79 +239,40 @@ public class CDNImageTransformationProvider
 		return companySettings;
 	}
 
-	private List<ImageVariant> _getImageVariants(
-		CompanySettings companySettings, ImagePreset imagePreset,
-		ResponsiveImageRequest responsiveImageRequest, List<Integer> widths) {
-
-		ImageResource imageResource = responsiveImageRequest.getImageResource();
-
-		// Precedence runs from broadest to narrowest: installation wide
-		// defaults, then this placement's art direction, then the width.
-		// Callers contribute none of it, so every transformation the site
-		// issues is visible in configuration.
-
-		Map<String, String> transformations = HashMapBuilder.putAll(
-			companySettings._defaultTransformations
-		).putAll(
-			imagePreset.getTransformations()
-		).build();
-
-		List<ImageVariant> imageVariants = new ArrayList<>(widths.size());
-
-		for (Integer width : widths) {
-			Map<String, String> widthTransformations = HashMapBuilder.putAll(
-				transformations
-			).put(
-				"width", String.valueOf(width)
-			).build();
-
-			imageVariants.add(
-				ImageVariant.builder(
-					_buildURL(
-						companySettings, responsiveImageRequest,
-						imageResource.getURL(), widthTransformations)
-				).identifier(
-					String.valueOf(width)
-				).label(
-					width + "px"
-				).width(
-					width
-				).build());
-		}
-
-		return imageVariants;
-	}
-
 	private ResponsiveImage _getResponsiveImage(
 		ResponsiveImageRequest responsiveImageRequest, long companyId,
-		ImagePresetGroup imagePresetGroup) {
+		ImagePreset imagePreset) {
 
 		CompanySettings companySettings = _getCompanySettings(companyId);
 
-		List<ImagePreset> imagePresets = imagePresetGroup.getPresets();
+		List<ImagePresetBreakpoint> imagePresetBreakpoints =
+			imagePreset.getBreakpoints();
 
-		boolean lazy = _isLazy(imagePresetGroup, responsiveImageRequest);
+		boolean lazy = _isLazy(imagePreset, responsiveImageRequest);
 
-		List<ImageVariantGroup> imageVariantGroups = new ArrayList<>(
-			imagePresets.size());
+		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints =
+			new ArrayList<>(imagePresetBreakpoints.size());
 
-		for (ImagePreset imagePreset : imagePresets) {
-			List<Integer> widths = _getWidths(companySettings, imagePreset);
+		for (ImagePresetBreakpoint imagePresetBreakpoint :
+				imagePresetBreakpoints) {
+
+			List<Integer> widths = _getWidths(
+				companySettings, imagePresetBreakpoint);
 
 			if (widths.isEmpty()) {
 				continue;
 			}
 
-			imageVariantGroups.add(
-				ImageVariantGroup.from(
-					imagePreset,
-					_getImageVariants(
-						companySettings, imagePreset, responsiveImageRequest,
-						widths),
+			responsiveImageBreakpoints.add(
+				ResponsiveImageBreakpoint.from(
+					imagePresetBreakpoint,
+					_getResponsiveImageBreakpointVariants(
+						companySettings, imagePresetBreakpoint,
+						responsiveImageRequest, widths),
 					lazy));
 		}
 
-		if (!_isTransformed(imageVariantGroups)) {
+		if (!_isTransformed(responsiveImageBreakpoints)) {
 
 			// No renderer is bound, so every width built the same URL. Emitting
 			// them would advertise one image at seven different widths, and the
@@ -336,16 +298,69 @@ public class CDNImageTransformationProvider
 		// behavior change and not part of moving the method.
 
 		return new ResponsiveImage(
-			imageVariantGroups,
+			responsiveImageBreakpoints,
 			responsiveImageRequest.getImageResource(
 			).getURL());
 	}
 
-	private String _getSrcSet(List<ImageVariant> imageVariants) {
-		StringBundler sb = new StringBundler(imageVariants.size() * 4);
+	private List<ResponsiveImageBreakpointVariant>
+		_getResponsiveImageBreakpointVariants(
+			CompanySettings companySettings,
+			ImagePresetBreakpoint imagePresetBreakpoint,
+			ResponsiveImageRequest responsiveImageRequest,
+			List<Integer> widths) {
 
-		for (ImageVariant imageVariant : imageVariants) {
-			if (imageVariant.getWidth() == null) {
+		ImageResource imageResource = responsiveImageRequest.getImageResource();
+
+		// Precedence runs from broadest to narrowest: installation wide
+		// defaults, then this placement's art direction, then the width.
+		// Callers contribute none of it, so every transformation the site
+		// issues is visible in configuration.
+
+		Map<String, String> transformations = HashMapBuilder.putAll(
+			companySettings._defaultTransformations
+		).putAll(
+			imagePresetBreakpoint.getTransformations()
+		).build();
+
+		List<ResponsiveImageBreakpointVariant>
+			responsiveImageBreakpointVariants = new ArrayList<>(widths.size());
+
+		for (Integer width : widths) {
+			Map<String, String> widthTransformations = HashMapBuilder.putAll(
+				transformations
+			).put(
+				"width", String.valueOf(width)
+			).build();
+
+			responsiveImageBreakpointVariants.add(
+				ResponsiveImageBreakpointVariant.builder(
+					_buildURL(
+						companySettings, responsiveImageRequest,
+						imageResource.getURL(), widthTransformations)
+				).identifier(
+					String.valueOf(width)
+				).label(
+					width + "px"
+				).width(
+					width
+				).build());
+		}
+
+		return responsiveImageBreakpointVariants;
+	}
+
+	private String _getSrcSet(
+		List<ResponsiveImageBreakpointVariant>
+			responsiveImageBreakpointVariants) {
+
+		StringBundler sb = new StringBundler(
+			responsiveImageBreakpointVariants.size() * 4);
+
+		for (ResponsiveImageBreakpointVariant responsiveImageBreakpointVariant :
+				responsiveImageBreakpointVariants) {
+
+			if (responsiveImageBreakpointVariant.getWidth() == null) {
 				continue;
 			}
 
@@ -353,9 +368,9 @@ public class CDNImageTransformationProvider
 				sb.append(StringPool.COMMA_AND_SPACE);
 			}
 
-			sb.append(imageVariant.getURL());
+			sb.append(responsiveImageBreakpointVariant.getURL());
 			sb.append(StringPool.SPACE);
-			sb.append(imageVariant.getWidth());
+			sb.append(responsiveImageBreakpointVariant.getWidth());
 			sb.append("w");
 		}
 
@@ -380,9 +395,10 @@ public class CDNImageTransformationProvider
 	 * </p>
 	 */
 	private List<Integer> _getWidths(
-		CompanySettings companySettings, ImagePreset imagePreset) {
+		CompanySettings companySettings,
+		ImagePresetBreakpoint imagePresetBreakpoint) {
 
-		Integer maxWidth = imagePreset.getMaxWidth();
+		Integer maxWidth = imagePresetBreakpoint.getMaxWidth();
 
 		List<Integer> widths = new ArrayList<>(
 			companySettings._variantWidths.size());
@@ -415,7 +431,7 @@ public class CDNImageTransformationProvider
 	 * it said anything, otherwise what the placement declares, otherwise eager.
 	 */
 	private boolean _isLazy(
-		ImagePresetGroup imagePresetGroup,
+		ImagePreset imagePreset,
 		ResponsiveImageRequest responsiveImageRequest) {
 
 		Boolean lazy = responsiveImageRequest.getLazy();
@@ -424,7 +440,7 @@ public class CDNImageTransformationProvider
 			return lazy;
 		}
 
-		lazy = imagePresetGroup.getLazy();
+		lazy = imagePreset.getLazy();
 
 		if (lazy != null) {
 			return lazy;
@@ -437,32 +453,43 @@ public class CDNImageTransformationProvider
 	 * Returns <code>true</code> if building actually changed anything.
 	 *
 	 * <p>
-	 * Two variants in one group differ only by width, so identical URLs mean
-	 * the width never reached the URL. Comparing within a group rather than
+	 * Two variants in one breakpoint differ only by width, so identical URLs mean
+	 * the width never reached the URL. Comparing within a breakpoint rather than
 	 * against the original is what makes this work regardless of the CDN host
 	 * and proxy path the builder prepends.
 	 * </p>
 	 */
-	private boolean _isTransformed(List<ImageVariantGroup> imageVariantGroups) {
-		for (ImageVariantGroup imageVariantGroup : imageVariantGroups) {
-			List<ImageVariant> imageVariants = imageVariantGroup.getVariants();
+	private boolean _isTransformed(
+		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints) {
 
-			if (imageVariants.size() < 2) {
+		for (ResponsiveImageBreakpoint responsiveImageBreakpoint :
+				responsiveImageBreakpoints) {
+
+			List<ResponsiveImageBreakpointVariant>
+				responsiveImageBreakpointVariants =
+					responsiveImageBreakpoint.getVariants();
+
+			if (responsiveImageBreakpointVariants.size() < 2) {
 				continue;
 			}
 
-			ImageVariant firstImageVariant = imageVariants.get(0);
-			ImageVariant secondImageVariant = imageVariants.get(1);
+			ResponsiveImageBreakpointVariant
+				firstResponsiveImageBreakpointVariant =
+					responsiveImageBreakpointVariants.get(0);
+			ResponsiveImageBreakpointVariant
+				secondResponsiveImageBreakpointVariant =
+					responsiveImageBreakpointVariants.get(1);
 
 			return !Objects.equals(
-				firstImageVariant.getURL(), secondImageVariant.getURL());
+				firstResponsiveImageBreakpointVariant.getURL(),
+				secondResponsiveImageBreakpointVariant.getURL());
 		}
 
 		return true;
 	}
 
 	private String _renderImg(
-		ImageVariantGroup imageVariantGroup, boolean lazy,
+		ResponsiveImageBreakpoint responsiveImageBreakpoint, boolean lazy,
 		String originalImgTag) {
 
 		StringBundler sb = new StringBundler(7);
@@ -470,10 +497,10 @@ public class CDNImageTransformationProvider
 		sb.append("srcset=\"");
 		sb.append(
 			HtmlUtil.escapeAttribute(
-				_getSrcSet(imageVariantGroup.getVariants())));
+				_getSrcSet(responsiveImageBreakpoint.getVariants())));
 		sb.append("\"");
 
-		String sizes = imageVariantGroup.getSizes();
+		String sizes = responsiveImageBreakpoint.getSizes();
 
 		if (!Validator.isBlank(sizes)) {
 			sb.append(" sizes=\"");
@@ -492,16 +519,18 @@ public class CDNImageTransformationProvider
 	}
 
 	private String _renderPicture(
-		List<ImageVariantGroup> imageVariantGroups, boolean lazy,
-		String originalImgTag) {
+		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints,
+		boolean lazy, String originalImgTag) {
 
 		StringBundler sb = new StringBundler(
-			(imageVariantGroups.size() * 7) + 3);
+			(responsiveImageBreakpoints.size() * 7) + 3);
 
 		sb.append("<picture>");
 
-		for (ImageVariantGroup imageVariantGroup : imageVariantGroups) {
-			String mediaQuery = imageVariantGroup.getMediaQuery();
+		for (ResponsiveImageBreakpoint responsiveImageBreakpoint :
+				responsiveImageBreakpoints) {
+
+			String mediaQuery = responsiveImageBreakpoint.getMediaQuery();
 
 			if (Validator.isBlank(mediaQuery)) {
 				continue;
@@ -512,10 +541,10 @@ public class CDNImageTransformationProvider
 			sb.append("\" srcset=\"");
 			sb.append(
 				HtmlUtil.escapeAttribute(
-					_getSrcSet(imageVariantGroup.getVariants())));
+					_getSrcSet(responsiveImageBreakpoint.getVariants())));
 			sb.append("\"");
 
-			String sizes = imageVariantGroup.getSizes();
+			String sizes = responsiveImageBreakpoint.getSizes();
 
 			if (!Validator.isBlank(sizes)) {
 				sb.append(" sizes=\"");
@@ -526,14 +555,15 @@ public class CDNImageTransformationProvider
 			sb.append(" />");
 		}
 
-		// The last group also feeds the img element, which is both the fallback
-		// for browsers without picture support and the final source when no
-		// media condition matches.
+		// The last breakpoint also feeds the img element, which is both the
+		// fallback for browsers without picture support and the final source
+		// when no media condition matches.
 
 		sb.append(
 			_renderImg(
-				imageVariantGroups.get(imageVariantGroups.size() - 1), lazy,
-				originalImgTag));
+				responsiveImageBreakpoints.get(
+					responsiveImageBreakpoints.size() - 1),
+				lazy, originalImgTag));
 
 		sb.append("</picture>");
 

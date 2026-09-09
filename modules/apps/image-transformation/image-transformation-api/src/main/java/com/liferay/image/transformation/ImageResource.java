@@ -19,7 +19,7 @@ package com.liferay.image.transformation;
  *
  * <p>
  * This is the <b>input</b> to a transformation; the outputs are {@link
- * ImageVariant} instances.
+ * ResponsiveImageBreakpointVariant} instances.
  * </p>
  *
  * <p>
@@ -36,7 +36,7 @@ package com.liferay.image.transformation;
  * queries per image, and they buy less than they appear to: with upscaling
  * disabled, a variant wider than the original simply returns the original, so
  * truncating a ladder at the source width mainly forfeits resolution the
- * browser could have used. Bound ladders with {@link ImagePreset#getMaxWidth()}
+ * browser could have used. Bound ladders with {@link ImagePresetBreakpoint#getMaxWidth()}
  * instead, which describes the rendered size and costs nothing to read.
  * </p>
  *

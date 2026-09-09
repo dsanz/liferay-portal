@@ -6,10 +6,10 @@
 package com.liferay.image.transformation.internal.configuration;
 
 /**
- * The element a preset group renders as.
+ * The element a preset renders as.
  *
  * <p>
- * Decided by how many media conditions a group declares and by nothing else. A
+ * Decided by how many media conditions a preset declares and by nothing else. A
  * transformation belongs to a preset and a preset is a media condition, so art
  * direction can only ever arrive as several presets; reading the
  * transformations to look for a crop would answer the same question less

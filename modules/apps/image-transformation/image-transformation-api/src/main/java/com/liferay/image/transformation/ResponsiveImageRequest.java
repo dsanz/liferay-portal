@@ -27,7 +27,7 @@ public final class ResponsiveImageRequest {
 	}
 
 	/**
-	 * Returns a request for the given image with no preset group and lazy
+	 * Returns a request for the given image with no preset and lazy
 	 * loading enabled, which reproduces current behavior.
 	 *
 	 * @param  imageResource the image to transform
@@ -75,7 +75,7 @@ public final class ResponsiveImageRequest {
 
 	/**
 	 * Returns whether the rendered image should be lazily loaded, or
-	 * <code>null</code> to use the preset group's default.
+	 * <code>null</code> to use the preset's default.
 	 *
 	 * <p>
 	 * Deliberately per call rather than per placement. Whether an image is
@@ -91,28 +91,28 @@ public final class ResponsiveImageRequest {
 	 * </p>
 	 *
 	 * @return whether to lazily load, or <code>null</code> to defer to the
-	 *         preset group
+	 *         preset
 	 */
 	public Boolean getLazy() {
 		return _lazy;
 	}
 
 	/**
-	 * Returns the name of the configured preset group describing where this
+	 * Returns the name of the configured preset describing where this
 	 * image sits in the page layout (for example <code>card</code>), or
 	 * <code>null</code> to use the default.
 	 *
-	 * @return the preset group name, or <code>null</code>
+	 * @return the preset name, or <code>null</code>
 	 */
-	public String getPresetGroupName() {
-		return _presetGroupName;
+	public String getPresetName() {
+		return _presetName;
 	}
 
 	public static final class Builder {
 
 		public ResponsiveImageRequest build() {
 			return new ResponsiveImageRequest(
-				_httpServletRequest, _imageResource, _lazy, _presetGroupName);
+				_httpServletRequest, _imageResource, _lazy, _presetName);
 		}
 
 		public Builder httpServletRequest(
@@ -129,8 +129,8 @@ public final class ResponsiveImageRequest {
 			return this;
 		}
 
-		public Builder presetGroupName(String presetGroupName) {
-			_presetGroupName = presetGroupName;
+		public Builder presetName(String presetName) {
+			_presetName = presetName;
 
 			return this;
 		}
@@ -146,23 +146,23 @@ public final class ResponsiveImageRequest {
 		private HttpServletRequest _httpServletRequest;
 		private final ImageResource _imageResource;
 		private Boolean _lazy;
-		private String _presetGroupName;
+		private String _presetName;
 
 	}
 
 	private ResponsiveImageRequest(
 		HttpServletRequest httpServletRequest, ImageResource imageResource,
-		Boolean lazy, String presetGroupName) {
+		Boolean lazy, String presetName) {
 
 		_httpServletRequest = httpServletRequest;
 		_imageResource = imageResource;
 		_lazy = lazy;
-		_presetGroupName = presetGroupName;
+		_presetName = presetName;
 	}
 
 	private final HttpServletRequest _httpServletRequest;
 	private final ImageResource _imageResource;
 	private final Boolean _lazy;
-	private final String _presetGroupName;
+	private final String _presetName;
 
 }

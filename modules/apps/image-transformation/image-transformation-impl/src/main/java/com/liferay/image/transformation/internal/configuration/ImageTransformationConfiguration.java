@@ -35,7 +35,7 @@ public interface ImageTransformationConfiguration {
 	 * <p>
 	 * Declared here once and referenced by name from {@link #presets()}, so a
 	 * theme's grid lives in a single place instead of being repeated inside
-	 * every preset group.
+	 * every preset.
 	 * </p>
 	 *
 	 * <p>
@@ -68,14 +68,14 @@ public interface ImageTransformationConfiguration {
 	public String[] defaultTransformations();
 
 	/**
-	 * Preset groups, as flat <code>key=value</code> entries in one of two
+	 * Presets, as flat <code>key=value</code> entries in one of two
 	 * forms:
 	 *
 	 * <p>
-	 * <code>&lt;group&gt;.label</code> names the group for authoring UIs and
-	 * <code>&lt;group&gt;.lazy</code> says whether images in this placement are
+	 * <code>&lt;preset&gt;.label</code> names the preset for authoring UIs and
+	 * <code>&lt;preset&gt;.lazy</code> says whether images in this placement are
 	 * lazily loaded by default.
-	 * <code>&lt;group&gt;.&lt;breakpoint&gt;.sizes</code>,
+	 * <code>&lt;preset&gt;.&lt;breakpoint&gt;.sizes</code>,
 	 * <code>.transformations</code>, <code>.maxWidth</code> and
 	 * <code>.autoSizes</code> describe what to generate at one breakpoint,
 	 * which must be one declared in {@link #breakpoints()}.
@@ -123,7 +123,7 @@ public interface ImageTransformationConfiguration {
 	 * </p>
 	 *
 	 * <p>
-	 * A group with one preset and no media condition renders as a plain
+	 * A preset with one breakpoint and no media condition renders as a plain
 	 * <code>&lt;img&gt;</code>; several presets render as
 	 * <code>&lt;picture&gt;</code>. Note that each additional breakpoint
 	 * multiplies the number of distinct objects held at the edge by the number

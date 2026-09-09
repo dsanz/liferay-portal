@@ -6,7 +6,7 @@
 package com.liferay.image.transformation.internal.configuration;
 
 import com.liferay.image.transformation.ImagePreset;
-import com.liferay.image.transformation.ImagePresetGroup;
+import com.liferay.image.transformation.ImagePresetBreakpoint;
 import com.liferay.petra.string.StringBundler;
 
 import java.util.ArrayList;
@@ -22,8 +22,9 @@ import java.util.Objects;
  * Both answers are pure functions of configuration: no image, no request and no
  * deployed renderer participate, so a whole configuration can be checked when
  * it is edited rather than one placement at a time when it is served. That
- * matters because the standing hazard of responsive images is silence — a group
- * describing the wrong layout still renders, just wrongly, and reports nothing.
+ * matters because the standing hazard of responsive images is silence — a
+ * preset describing the wrong layout still renders, just wrongly, and reports
+ * nothing.
  * </p>
  *
  * <p>
@@ -49,17 +50,16 @@ import java.util.Objects;
 public class ImageTransformationConfigurationValidator {
 
 	/**
-	 * Returns the element the given group renders as.
+	 * Returns the element the given preset renders as.
 	 *
-	 * @param  imagePresetGroup the group
+	 * @param  imagePreset the preset
 	 * @return the element
 	 */
-	public static MarkupShape getMarkupShape(
-		ImagePresetGroup imagePresetGroup) {
+	public static MarkupShape getMarkupShape(ImagePreset imagePreset) {
+		List<ImagePresetBreakpoint> imagePresetBreakpoints =
+			imagePreset.getBreakpoints();
 
-		List<ImagePreset> imagePresets = imagePresetGroup.getPresets();
-
-		if (imagePresets.size() > 1) {
+		if (imagePresetBreakpoints.size() > 1) {
 			return MarkupShape.PICTURE;
 		}
 
@@ -69,26 +69,25 @@ public class ImageTransformationConfigurationValidator {
 	/**
 	 * Returns one message per problem found, or an empty list.
 	 *
-	 * @param  imagePresetGroups the groups parsed from configuration
+	 * @param  imagePresets the presets parsed from configuration
 	 * @return the problems
 	 */
-	public static List<String> validate(
-		Map<String, ImagePresetGroup> imagePresetGroups) {
-
+	public static List<String> validate(Map<String, ImagePreset> imagePresets) {
 		List<String> problems = new ArrayList<>();
 
-		for (ImagePresetGroup imagePresetGroup : imagePresetGroups.values()) {
-			List<ImagePreset> imagePresets = imagePresetGroup.getPresets();
+		for (ImagePreset imagePreset : imagePresets.values()) {
+			List<ImagePresetBreakpoint> imagePresetBreakpoints =
+				imagePreset.getBreakpoints();
 
-			if (imagePresets.size() < 2) {
+			if (imagePresetBreakpoints.size() < 2) {
 				continue;
 			}
 
-			if (_isInterchangeable(imagePresets)) {
+			if (_isInterchangeable(imagePresetBreakpoints)) {
 				problems.add(
 					StringBundler.concat(
-						"Preset group ", imagePresetGroup.getName(),
-						" declares ", imagePresets.size(),
+						"Preset ", imagePreset.getName(), " declares ",
+						imagePresetBreakpoints.size(),
 						" breakpoints that generate the same image, so it ",
 						"renders a <picture> whose sources are ",
 						"interchangeable. Declare a single unconditional ",
@@ -97,10 +96,10 @@ public class ImageTransformationConfigurationValidator {
 						"choice to the browser"));
 			}
 
-			if (_isFormatSwitching(imagePresets)) {
+			if (_isFormatSwitching(imagePresetBreakpoints)) {
 				problems.add(
 					StringBundler.concat(
-						"Preset group ", imagePresetGroup.getName(),
+						"Preset ", imagePreset.getName(),
 						" changes output format between breakpoints, which a ",
 						"<source> cannot express: it is selected by media ",
 						"condition alone, so a browser that does not support ",
@@ -117,10 +116,13 @@ public class ImageTransformationConfigurationValidator {
 	 * Returns the format selecting transformations of a preset, which are the
 	 * ones a media condition is the wrong way to choose between.
 	 */
-	private static Map<String, String> _getFormats(ImagePreset imagePreset) {
+	private static Map<String, String> _getFormats(
+		ImagePresetBreakpoint imagePresetBreakpoint) {
+
 		Map<String, String> formats = new LinkedHashMap<>();
 
-		Map<String, String> transformations = imagePreset.getTransformations();
+		Map<String, String> transformations =
+			imagePresetBreakpoint.getTransformations();
 
 		for (String formatKey : _FORMAT_KEYS) {
 			String value = transformations.get(formatKey);
@@ -133,11 +135,16 @@ public class ImageTransformationConfigurationValidator {
 		return formats;
 	}
 
-	private static boolean _isFormatSwitching(List<ImagePreset> imagePresets) {
-		Map<String, String> formats = _getFormats(imagePresets.get(0));
+	private static boolean _isFormatSwitching(
+		List<ImagePresetBreakpoint> imagePresetBreakpoints) {
 
-		for (ImagePreset imagePreset : imagePresets) {
-			if (!formats.equals(_getFormats(imagePreset))) {
+		Map<String, String> formats = _getFormats(
+			imagePresetBreakpoints.get(0));
+
+		for (ImagePresetBreakpoint imagePresetBreakpoint :
+				imagePresetBreakpoints) {
+
+			if (!formats.equals(_getFormats(imagePresetBreakpoint))) {
 				return true;
 			}
 		}
@@ -147,7 +154,7 @@ public class ImageTransformationConfigurationValidator {
 
 	/**
 	 * Returns whether every preset generates the same candidates, in which case
-	 * the sources they render are substitutable and the group had no reason to
+	 * the sources they render are substitutable and the preset had no reason to
 	 * be art directed.
 	 *
 	 * <p>
@@ -157,16 +164,23 @@ public class ImageTransformationConfigurationValidator {
 	 * already holds a media condition per breakpoint.
 	 * </p>
 	 */
-	private static boolean _isInterchangeable(List<ImagePreset> imagePresets) {
-		ImagePreset firstImagePreset = imagePresets.get(0);
+	private static boolean _isInterchangeable(
+		List<ImagePresetBreakpoint> imagePresetBreakpoints) {
 
-		Integer maxWidth = firstImagePreset.getMaxWidth();
+		ImagePresetBreakpoint firstImagePresetBreakpoint =
+			imagePresetBreakpoints.get(0);
+
+		Integer maxWidth = firstImagePresetBreakpoint.getMaxWidth();
 		Map<String, String> transformations =
-			firstImagePreset.getTransformations();
+			firstImagePresetBreakpoint.getTransformations();
 
-		for (ImagePreset imagePreset : imagePresets) {
-			if (!Objects.equals(maxWidth, imagePreset.getMaxWidth()) ||
-				!transformations.equals(imagePreset.getTransformations())) {
+		for (ImagePresetBreakpoint imagePresetBreakpoint :
+				imagePresetBreakpoints) {
+
+			if (!Objects.equals(
+					maxWidth, imagePresetBreakpoint.getMaxWidth()) ||
+				!transformations.equals(
+					imagePresetBreakpoint.getTransformations())) {
 
 				return false;
 			}

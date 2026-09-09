@@ -72,7 +72,7 @@ public class ResponsiveImageRequestTest {
 			ResponsiveImageRequest.of(_imageResource);
 
 		Assert.assertNull(responsiveImageRequest.getLazy());
-		Assert.assertNull(responsiveImageRequest.getPresetGroupName());
+		Assert.assertNull(responsiveImageRequest.getPresetName());
 	}
 
 	@Test
@@ -92,16 +92,15 @@ public class ResponsiveImageRequestTest {
 	}
 
 	@Test
-	public void testPresetGroupNameIsCarried() {
+	public void testPresetNameIsCarried() {
 		ResponsiveImageRequest responsiveImageRequest =
 			ResponsiveImageRequest.builder(
 				_imageResource
-			).presetGroupName(
+			).presetName(
 				"card"
 			).build();
 
-		Assert.assertEquals(
-			"card", responsiveImageRequest.getPresetGroupName());
+		Assert.assertEquals("card", responsiveImageRequest.getPresetName());
 	}
 
 	private final HttpServletRequest _httpServletRequest = Mockito.mock(

@@ -16,9 +16,9 @@ import com.liferay.adaptive.media.image.service.AMImageEntryLocalService;
 import com.liferay.adaptive.media.image.url.AMImageURLFactory;
 import com.liferay.image.transformation.FileEntryImageResource;
 import com.liferay.image.transformation.ImageResource;
-import com.liferay.image.transformation.ImageVariant;
-import com.liferay.image.transformation.ImageVariantGroup;
 import com.liferay.image.transformation.ResponsiveImage;
+import com.liferay.image.transformation.ResponsiveImageBreakpoint;
+import com.liferay.image.transformation.ResponsiveImageBreakpointVariant;
 import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
 import com.liferay.petra.string.StringBundler;
@@ -67,7 +67,7 @@ public class AMImageTransformationProvider
 	}
 
 	/**
-	 * Returns one group per media condition, each holding the single rendition
+	 * Returns one breakpoint per media condition, each holding the single rendition
 	 * that condition selects, falling back to the untransformed original.
 	 *
 	 * <p>
@@ -96,10 +96,12 @@ public class AMImageTransformationProvider
 			return ResponsiveImage.passthrough(imageResource.getURL());
 		}
 
-		Map<String, ImageVariant> imageVariants = _getImageVariants(fileEntry);
+		Map<String, ResponsiveImageBreakpointVariant>
+			responsiveImageBreakpointVariants =
+				_getResponsiveImageBreakpointVariants(fileEntry);
 
-		List<ImageVariantGroup> imageVariantGroups = new ArrayList<>(
-			mediaQueries.size());
+		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints =
+			new ArrayList<>(mediaQueries.size());
 
 		for (MediaQuery mediaQuery : mediaQueries) {
 			String mediaQueryString = _getMediaQueryString(mediaQuery);
@@ -108,46 +110,53 @@ public class AMImageTransformationProvider
 				continue;
 			}
 
-			List<ImageVariant> groupImageVariants = new ArrayList<>();
+			List<ResponsiveImageBreakpointVariant>
+				groupResponsiveImageBreakpointVariants = new ArrayList<>();
 
 			for (String url :
 					StringUtil.split(mediaQuery.getSrc(), StringPool.COMMA)) {
 
 				url = StringUtil.trim(url);
 
-				ImageVariant imageVariant = imageVariants.get(url);
+				ResponsiveImageBreakpointVariant
+					responsiveImageBreakpointVariant =
+						responsiveImageBreakpointVariants.get(url);
 
-				if (imageVariant == null) {
+				if (responsiveImageBreakpointVariant == null) {
 
 					// The URL is known but its rendition record is not, so emit
 					// what is certain and leave the rest null rather than drop
 					// a candidate the browser could have used.
 
-					imageVariant = ImageVariant.builder(
-						url
-					).build();
+					responsiveImageBreakpointVariant =
+						ResponsiveImageBreakpointVariant.builder(
+							url
+						).build();
 				}
 
-				groupImageVariants.add(imageVariant);
+				groupResponsiveImageBreakpointVariants.add(
+					responsiveImageBreakpointVariant);
 			}
 
-			if (groupImageVariants.isEmpty()) {
+			if (groupResponsiveImageBreakpointVariants.isEmpty()) {
 				continue;
 			}
 
-			// No sizes: a group holding one candidate has nothing to
+			// No sizes: a breakpoint holding one candidate has nothing to
 			// disambiguate.
 
-			imageVariantGroups.add(
-				ImageVariantGroup.of(
-					mediaQueryString, null, groupImageVariants));
+			responsiveImageBreakpoints.add(
+				ResponsiveImageBreakpoint.of(
+					mediaQueryString, null,
+					groupResponsiveImageBreakpointVariants));
 		}
 
 		// The untransformed original as fallback: Adaptive Media's renditions
 		// are pregenerated at fixed widths, and picking one of them as the
 		// default would silently prefer a size nobody asked for.
 
-		return new ResponsiveImage(imageVariantGroups, imageResource.getURL());
+		return new ResponsiveImage(
+			responsiveImageBreakpoints, imageResource.getURL());
 	}
 
 	@Override
@@ -183,10 +192,33 @@ public class AMImageTransformationProvider
 			originalImgTag, fileEntryImageResource.getFileEntry());
 	}
 
-	private Map<String, ImageVariant> _getImageVariants(FileEntry fileEntry)
+	private String _getMediaQueryString(MediaQuery mediaQuery) {
+		List<Condition> conditions = mediaQuery.getConditions();
+
+		if (ListUtil.isEmpty(conditions)) {
+			return null;
+		}
+
+		String[] conditionStrings = new String[conditions.size()];
+
+		for (int i = 0; i < conditionStrings.length; i++) {
+			Condition condition = conditions.get(i);
+
+			conditionStrings[i] = StringBundler.concat(
+				StringPool.OPEN_PARENTHESIS, condition.getAttribute(),
+				StringPool.COLON, condition.getValue(),
+				StringPool.CLOSE_PARENTHESIS);
+		}
+
+		return StringUtil.merge(conditionStrings, " and ");
+	}
+
+	private Map<String, ResponsiveImageBreakpointVariant>
+			_getResponsiveImageBreakpointVariants(FileEntry fileEntry)
 		throws PortalException {
 
-		Map<String, ImageVariant> imageVariants = new HashMap<>();
+		Map<String, ResponsiveImageBreakpointVariant>
+			responsiveImageBreakpointVariants = new HashMap<>();
 
 		FileVersion fileVersion = fileEntry.getFileVersion();
 
@@ -208,9 +240,9 @@ public class AMImageTransformationProvider
 				_amImageURLFactory.createFileEntryURL(
 					fileVersion, amImageConfigurationEntry));
 
-			imageVariants.put(
+			responsiveImageBreakpointVariants.put(
 				url,
-				ImageVariant.builder(
+				ResponsiveImageBreakpointVariant.builder(
 					url
 				).identifier(
 					amImageEntry.getConfigurationUuid()
@@ -223,28 +255,7 @@ public class AMImageTransformationProvider
 				).build());
 		}
 
-		return imageVariants;
-	}
-
-	private String _getMediaQueryString(MediaQuery mediaQuery) {
-		List<Condition> conditions = mediaQuery.getConditions();
-
-		if (ListUtil.isEmpty(conditions)) {
-			return null;
-		}
-
-		String[] conditionStrings = new String[conditions.size()];
-
-		for (int i = 0; i < conditionStrings.length; i++) {
-			Condition condition = conditions.get(i);
-
-			conditionStrings[i] = StringBundler.concat(
-				StringPool.OPEN_PARENTHESIS, condition.getAttribute(),
-				StringPool.COLON, condition.getValue(),
-				StringPool.CLOSE_PARENTHESIS);
-		}
-
-		return StringUtil.merge(conditionStrings, " and ");
+		return responsiveImageBreakpointVariants;
 	}
 
 	@Reference

@@ -18,29 +18,31 @@ import java.util.List;
  *
  * <pre>
  * ResponsiveImage        the image, plus a fallback src
- *   ImageVariantGroup    which variants apply, and how wide they render
- *     ImageVariant       which one the browser picks
+ *   ResponsiveImageBreakpoint    which variants apply, and how wide they render
+ *     ResponsiveImageBreakpointVariant       which one the browser picks
  * </pre>
  *
  * <p>
- * Mirrors {@link ImagePresetGroup} on the output side: a group of presets
- * describes what to generate per breakpoint, and a group of variants holds what
- * was generated. One is produced from the other by {@link #from}.
+ * Mirrors {@link ImagePresetBreakpoint} on the result side: the preset
+ * breakpoint describes what to generate, and this holds what was generated. One
+ * is produced from the other by {@link #from}.
  * </p>
  *
  * <p>
  * The level exists because a media condition can never attach to an individual
  * variant; in markup it belongs to a <code>&lt;source&gt;</code>. Both current
- * providers happen to use one axis only (Adaptive Media: many groups of one
- * variant; a CDN: one group of many), but art direction needs both at once.
+ * providers happen to use one axis only (Adaptive Media: many breakpoints of
+ * one variant; a CDN: one breakpoint of many), but art direction needs both at
+ * once.
  * </p>
  *
  * @author Daniel Sanz
  */
-public final class ImageVariantGroup {
+public final class ResponsiveImageBreakpoint {
 
 	/**
-	 * Returns a group carrying the layout of the preset it was generated from.
+	 * Returns a breakpoint carrying the layout of the preset breakpoint it was
+	 * generated from.
 	 *
 	 * <p>
 	 * The single place the media condition and sizes cross over from
@@ -55,49 +57,51 @@ public final class ImageVariantGroup {
 	 * receive a real value.
 	 * </p>
 	 *
-	 * @param  imagePreset the preset whose transformations produced the
+	 * @param  imagePresetBreakpoint the preset whose transformations produced the
 	 *         variants
 	 * @param  variants the generated candidates
 	 * @param  lazy whether the image is lazily loaded
-	 * @return the group
+	 * @return the breakpoint
 	 */
-	public static ImageVariantGroup from(
-		ImagePreset imagePreset, List<ImageVariant> variants, boolean lazy) {
+	public static ResponsiveImageBreakpoint from(
+		ImagePresetBreakpoint imagePresetBreakpoint,
+		List<ResponsiveImageBreakpointVariant> variants, boolean lazy) {
 
-		String sizes = imagePreset.getSizes();
+		String sizes = imagePresetBreakpoint.getSizes();
 
-		if (lazy && imagePreset.isAutoSizes() && (sizes != null)) {
+		if (lazy && imagePresetBreakpoint.isAutoSizes() && (sizes != null)) {
 			sizes = "auto, " + sizes;
 		}
 
-		return new ImageVariantGroup(
-			imagePreset.getMediaQuery(), sizes, variants);
+		return new ResponsiveImageBreakpoint(
+			imagePresetBreakpoint.getMediaQuery(), sizes, variants);
 	}
 
 	/**
-	 * Returns a group the provider determined for itself, having ignored any
+	 * Returns a breakpoint the provider determined for itself, having ignored any
 	 * preset.
 	 *
 	 * @param  mediaQuery the media condition, or <code>null</code> for the
-	 *         unconditional group
-	 * @param  sizes the sizes attribute, or <code>null</code> when this group
+	 *         unconditional breakpoint
+	 * @param  sizes the sizes attribute, or <code>null</code> when this breakpoint
 	 *         holds a single candidate and has nothing to disambiguate
 	 * @param  variants the candidates
-	 * @return the group
+	 * @return the breakpoint
 	 */
-	public static ImageVariantGroup of(
-		String mediaQuery, String sizes, List<ImageVariant> variants) {
+	public static ResponsiveImageBreakpoint of(
+		String mediaQuery, String sizes,
+		List<ResponsiveImageBreakpointVariant> variants) {
 
-		return new ImageVariantGroup(mediaQuery, sizes, variants);
+		return new ResponsiveImageBreakpoint(mediaQuery, sizes, variants);
 	}
 
 	/**
-	 * Returns the media condition under which this group applies, or
+	 * Returns the media condition under which this breakpoint applies, or
 	 * <code>null</code> if it applies unconditionally.
 	 *
 	 * <p>
-	 * A single unconditional group renders as a plain <code>&lt;img&gt;</code>;
-	 * several groups render as <code>&lt;picture&gt;</code>. Order is
+	 * A single unconditional breakpoint renders as a plain <code>&lt;img&gt;</code>;
+	 * several render as <code>&lt;picture&gt;</code>. Order is
 	 * significant, because source matching is first wins.
 	 * </p>
 	 *
@@ -108,13 +112,13 @@ public final class ImageVariantGroup {
 	}
 
 	/**
-	 * Returns the <code>sizes</code> attribute for this group, or
+	 * Returns the <code>sizes</code> attribute for this breakpoint, or
 	 * <code>null</code>.
 	 *
 	 * <p>
-	 * Describes how wide the image renders under this group's media condition,
+	 * Describes how wide the image renders under this breakpoint's media condition,
 	 * which is what turns the candidates' width descriptors into a selection.
-	 * Meaningless without them, so a group of one candidate has none.
+	 * Meaningless without them, so a breakpoint holding one candidate has none.
 	 * </p>
 	 *
 	 * @return the sizes attribute value, or <code>null</code>
@@ -124,16 +128,17 @@ public final class ImageVariantGroup {
 	}
 
 	/**
-	 * Returns this group's candidates.
+	 * Returns this breakpoint's candidates.
 	 *
 	 * @return the candidates
 	 */
-	public List<ImageVariant> getVariants() {
+	public List<ResponsiveImageBreakpointVariant> getVariants() {
 		return _variants;
 	}
 
-	private ImageVariantGroup(
-		String mediaQuery, String sizes, List<ImageVariant> variants) {
+	private ResponsiveImageBreakpoint(
+		String mediaQuery, String sizes,
+		List<ResponsiveImageBreakpointVariant> variants) {
 
 		_mediaQuery = mediaQuery;
 		_sizes = sizes;
@@ -142,6 +147,6 @@ public final class ImageVariantGroup {
 
 	private final String _mediaQuery;
 	private final String _sizes;
-	private final List<ImageVariant> _variants;
+	private final List<ResponsiveImageBreakpointVariant> _variants;
 
 }

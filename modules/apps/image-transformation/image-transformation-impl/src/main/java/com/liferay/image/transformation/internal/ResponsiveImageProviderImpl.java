@@ -6,8 +6,8 @@
 package com.liferay.image.transformation.internal;
 
 import com.liferay.image.transformation.ImageResource;
-import com.liferay.image.transformation.ImageVariantGroup;
 import com.liferay.image.transformation.ResponsiveImage;
+import com.liferay.image.transformation.ResponsiveImageBreakpoint;
 import com.liferay.image.transformation.ResponsiveImageProvider;
 import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
@@ -65,10 +65,10 @@ public class ResponsiveImageProviderImpl implements ResponsiveImageProvider {
 			return ResponsiveImage.passthrough(imageResource.getURL());
 		}
 
-		List<ImageVariantGroup> imageVariantGroups =
-			responsiveImage.getVariantGroups();
+		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints =
+			responsiveImage.getBreakpoints();
 
-		if (imageVariantGroups.isEmpty()) {
+		if (responsiveImageBreakpoints.isEmpty()) {
 			return ResponsiveImage.passthrough(imageResource.getURL());
 		}
 

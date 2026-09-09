@@ -6,22 +6,23 @@
 package com.liferay.image.transformation;
 
 import java.util.Collections;
-import java.util.Map;
+import java.util.List;
 
 /**
- * How an image should be generated under one media condition.
+ * A named placement describing one place an image sits in a layout.
  *
  * <p>
- * One entry of an {@link ImagePresetGroup}, and the recipe whose result is an
- * {@link ImageVariantGroup}: the media condition and sizes pass through
- * unchanged, while the transformations are consumed to produce the candidates.
- * {@link ImageVariantGroup#from} performs that crossing.
+ * What a caller asks for: a fragment says it is rendering a <code>card</code>,
+ * and configuration supplies one {@link ImagePresetBreakpoint} per breakpoint. Presets
+ * exist because <code>sizes</code> and art direction are properties of the
+ * placement, not of the image or of the provider serving it, and a hero and a
+ * card on the same page need different values.
  * </p>
  *
  * <p>
- * A request, not a command. A provider limited to renditions generated in
- * advance cannot honor an arbitrary crop, and determines its own groups
- * instead.
+ * These duplicate the theme's CSS layout and nothing keeps the two in sync,
+ * which is the standing hazard of responsive images: a stale preset still
+ * renders, just at the wrong size, with no error anywhere.
  * </p>
  *
  * @author Daniel Sanz
@@ -29,119 +30,81 @@ import java.util.Map;
 public final class ImagePreset {
 
 	public ImagePreset(
-		boolean autoSizes, String breakpointName, Integer maxWidth,
-		String mediaQuery, String sizes, Map<String, String> transformations) {
+		String label, Boolean lazy, String name,
+		List<ImagePresetBreakpoint> presets) {
 
-		_autoSizes = autoSizes;
-		_breakpointName = breakpointName;
-		_maxWidth = maxWidth;
-		_mediaQuery = mediaQuery;
-		_sizes = sizes;
-		_transformations = Collections.unmodifiableMap(transformations);
+		_label = label;
+		_lazy = lazy;
+		_name = name;
+		_presets = Collections.unmodifiableList(presets);
 	}
 
 	/**
-	 * Returns the name of the breakpoint this preset was declared against, for
-	 * diagnostics.
-	 *
-	 * @return the breakpoint name
-	 */
-	public String getBreakpointName() {
-		return _breakpointName;
-	}
-
-	/**
-	 * Returns the widest rendition worth generating for this placement, or
-	 * <code>null</code> for no limit.
+	 * Returns this preset's breakpoints, in the order they must be rendered.
 	 *
 	 * <p>
-	 * A placement that renders small has no use for the widest configured
-	 * variant: a 96 pixel thumbnail advertising a 2560 pixel candidate ships
-	 * seven URLs of markup for an image the browser will never choose.
+	 * Ordering comes from the order breakpoints are declared, not from the
+	 * order presets appear, so it is decided once for the whole installation
+	 * rather than per preset. Source matching is first wins, and the
+	 * unconditional preset always sorts last because it is the catch all.
 	 * </p>
 	 *
 	 * <p>
-	 * A <b>soft</b> limit: the smallest candidate at or above this width is
-	 * still included, because that is the one the browser needs, and excluding
-	 * it would leave nothing usable. Set it to the rendered width multiplied by
-	 * the highest pixel density worth serving.
+	 * One preset is the ordinary case and produces a plain
+	 * <code>&lt;img&gt;</code>. Several describe art direction and render as
+	 * <code>&lt;picture&gt;</code>, which multiplies the number of distinct
+	 * objects held at the edge by the number of variant widths.
+	 * </p>
+	 *
+	 * @return the presets
+	 */
+	public List<ImagePresetBreakpoint> getBreakpoints() {
+		return _presets;
+	}
+
+	/**
+	 * Returns a human readable name for this preset, or <code>null</code>.
+	 *
+	 * @return the label, or <code>null</code>
+	 */
+	public String getLabel() {
+		return _label;
+	}
+
+	/**
+	 * Returns whether images in this placement are lazily loaded by default, or
+	 * <code>null</code> if the placement does not say.
+	 *
+	 * <p>
+	 * On the preset rather than on a breakpoint, because an image is loaded once:
+	 * laziness is a property of the image element, not of a media condition.
+	 * A caller that knows better overrides it per instance.
 	 * </p>
 	 *
 	 * <p>
-	 * The only bound on a ladder. Nothing truncates by the original image's
-	 * width, so this is what stops a small placement advertising candidates it
-	 * will never use.
+	 * Undeclared means eager. Loading eagerly costs bandwidth; loading the
+	 * largest contentful image lazily costs a Core Web Vital, so the safer
+	 * default is the one that cannot regress it.
 	 * </p>
 	 *
-	 * @return the maximum width in pixels, or <code>null</code>
+	 * @return whether to lazily load, or <code>null</code> if undeclared
 	 */
-	public Integer getMaxWidth() {
-		return _maxWidth;
+	public Boolean getLazy() {
+		return _lazy;
 	}
 
 	/**
-	 * Returns the media condition this preset applies under, resolved from the
-	 * named breakpoint, or <code>null</code> for the unconditional preset.
+	 * Returns the name callers use to request this preset.
 	 *
-	 * @return the media condition, or <code>null</code>
+	 * @return the name
 	 */
-	public String getMediaQuery() {
-		return _mediaQuery;
+	public String getName() {
+		return _name;
 	}
 
-	/**
-	 * Returns the <code>sizes</code> attribute describing how wide the image
-	 * renders under this condition, or <code>null</code>.
-	 *
-	 * @return the sizes attribute value, or <code>null</code>
-	 */
-	public String getSizes() {
-		return _sizes;
-	}
-
-	/**
-	 * Returns the transformations to apply to every candidate generated for
-	 * this condition, such as a crop that differs between viewports.
-	 *
-	 * <p>
-	 * Declared per preset, and therefore per media condition. Every candidate a
-	 * preset generates shares this map and differs from its siblings only in
-	 * width, which is what makes the candidates sharing a <code>srcset</code>
-	 * the same picture at different sizes, as that attribute requires.
-	 * Transformations that varied per candidate would offer a browser two
-	 * different pictures and let it pick either.
-	 * </p>
-	 *
-	 * @return the transformations
-	 */
-	public Map<String, String> getTransformations() {
-		return _transformations;
-	}
-
-	/**
-	 * Returns <code>true</code> if this condition's width is best determined by
-	 * layout rather than declared.
-	 *
-	 * <p>
-	 * An opt in, and only an opt in: it adds the <code>auto</code> keyword in
-	 * front of {@link #getSizes()}, which stays mandatory and serves both as
-	 * the fallback for browsers without automatic sizing and as the value used
-	 * when the image is not lazily loaded. Automatic sizing is only honored on
-	 * a lazily loaded image, so this alone never produces
-	 * <code>sizes="auto"</code>.
-	 * </p>
-	 *
-	 * @return <code>true</code> if automatic sizing may be used
-	 */
-	public boolean isAutoSizes() {
-		return _autoSizes;
-	}
-
-	private final boolean _autoSizes;
-	private final String _breakpointName;
-	private final Integer _maxWidth;
-	private final String _mediaQuery;
-	private final String _sizes;
-	private final Map<String, String> _transformations;
+	private final String _label;
+	private final Boolean _lazy;
+	private final String _name;
+	private final List<ImagePresetBreakpoint> _presets;
 
 }

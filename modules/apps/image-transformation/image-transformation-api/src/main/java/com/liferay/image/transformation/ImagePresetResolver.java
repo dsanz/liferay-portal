@@ -6,16 +6,16 @@
 package com.liferay.image.transformation;
 
 /**
- * Resolves a preset group name against configuration.
+ * Resolves a preset name against configuration.
  *
  * <p>
- * Preset groups are framework owned rather than provider owned, so that layout
+ * Presets are framework owned rather than provider owned, so that layout
  * is described once regardless of which provider is serving images. Providers
  * consume this; they do not define it.
  * </p>
  *
  * <p>
- * Configuration is instance scoped, so the same group name can resolve
+ * Configuration is instance scoped, so the same preset name can resolve
  * differently for two companies in the same JVM.
  * </p>
  *
@@ -24,10 +24,10 @@ package com.liferay.image.transformation;
 public interface ImagePresetResolver {
 
 	/**
-	 * Returns the preset group for the given request.
+	 * Returns the preset for the given request.
 	 *
 	 * <p>
-	 * Never returns <code>null</code>. An unknown or unnamed group resolves to
+	 * Never returns <code>null</code>. An unknown or unnamed preset resolves to
 	 * a single unconditional preset, which renders as a plain
 	 * <code>&lt;img&gt;</code> spanning the viewport, so a typo in
 	 * configuration degrades to a working image rather than to none.
@@ -35,10 +35,10 @@ public interface ImagePresetResolver {
 	 *
 	 * @param  companyId the company whose configuration applies, or
 	 *         <code>0</code> for the system configuration
-	 * @param  presetGroupName the group name, or <code>null</code> for the
+	 * @param  presetName the preset name, or <code>null</code> for the
 	 *         default
-	 * @return the preset group
+	 * @return the preset
 	 */
-	public ImagePresetGroup resolve(long companyId, String presetGroupName);
+	public ImagePreset resolve(long companyId, String presetName);
 
 }

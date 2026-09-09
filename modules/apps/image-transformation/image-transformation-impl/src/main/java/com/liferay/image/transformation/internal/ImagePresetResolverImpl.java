@@ -6,7 +6,7 @@
 package com.liferay.image.transformation.internal;
 
 import com.liferay.image.transformation.ImagePreset;
-import com.liferay.image.transformation.ImagePresetGroup;
+import com.liferay.image.transformation.ImagePresetBreakpoint;
 import com.liferay.image.transformation.ImagePresetResolver;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfiguration;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
@@ -34,19 +34,19 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 /**
- * Parses the flat preset configuration into {@link ImagePresetGroup} objects.
+ * Parses the flat preset configuration into {@link ImagePreset} objects.
  *
  * <p>
  * Flat because OSGi configuration files are flat: they hold typed key value
  * pairs and arrays of strings, with no nesting. The breakpoint segment in a
- * preset key is what lets one group describe several media conditions without a
+ * preset key is what lets one preset describe several media conditions without a
  * structured format.
  * </p>
  *
  * <p>
  * Breakpoints are parsed separately and referenced by name, so a media
  * condition is written once for the whole installation rather than repeated in
- * every group that uses it.
+ * every preset that uses it.
  * </p>
  *
  * @author Daniel Sanz
@@ -55,25 +55,23 @@ import org.osgi.service.component.annotations.Reference;
 public class ImagePresetResolverImpl implements ImagePresetResolver {
 
 	@Override
-	public ImagePresetGroup resolve(long companyId, String presetGroupName) {
-		if (Validator.isBlank(presetGroupName)) {
-			presetGroupName = _NAME_DEFAULT;
+	public ImagePreset resolve(long companyId, String presetName) {
+		if (Validator.isBlank(presetName)) {
+			presetName = _NAME_DEFAULT;
 		}
 
-		ImagePresetGroup imagePresetGroup = _getImagePresetGroups(
+		ImagePreset imagePreset = _getImagePresets(
 			companyId
 		).get(
-			presetGroupName
+			presetName
 		);
 
-		if (imagePresetGroup != null) {
-			return imagePresetGroup;
+		if (imagePreset != null) {
+			return imagePreset;
 		}
 
 		if (_log.isDebugEnabled()) {
-			_log.debug(
-				"No preset group named " + presetGroupName +
-					", using fallback");
+			_log.debug("No preset named " + presetName + ", using fallback");
 		}
 
 		return _FALLBACK;
@@ -88,7 +86,7 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 	}
 
 	/**
-	 * Returns the parsed groups for a company, reparsing only when the
+	 * Returns the parsed presets for a company, reparsing only when the
 	 * underlying configuration has actually changed.
 	 *
 	 * <p>
@@ -98,9 +96,7 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 	 * invalidation on.
 	 * </p>
 	 */
-	private Map<String, ImagePresetGroup> _getImagePresetGroups(
-		long companyId) {
-
+	private Map<String, ImagePreset> _getImagePresets(long companyId) {
 		ImageTransformationConfiguration imageTransformationConfiguration =
 			_imageTransformationConfigurationHelper.
 				getImageTransformationConfiguration(companyId);
@@ -120,18 +116,17 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 		if ((parsedPresets != null) &&
 			(parsedPresets._contentHash == contentHash)) {
 
-			return parsedPresets._imagePresetGroups;
+			return parsedPresets._imagePresets;
 		}
 
 		parsedPresets = new ParsedPresets(
-			contentHash,
-			_toImagePresetGroups(_toBreakpoints(breakpoints), presets));
+			contentHash, _toImagePresets(_toBreakpoints(breakpoints), presets));
 
 		_parsedPresets.put(companyId, parsedPresets);
 
-		_report(companyId, parsedPresets._imagePresetGroups);
+		_report(companyId, parsedPresets._imagePresets);
 
-		return parsedPresets._imagePresetGroups;
+		return parsedPresets._imagePresets;
 	}
 
 	/**
@@ -144,12 +139,12 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 	 * </p>
 	 */
 	private void _report(
-		long companyId, Map<String, ImagePresetGroup> imagePresetGroups) {
+		long companyId, Map<String, ImagePreset> imagePresets) {
 
 		if (_log.isWarnEnabled()) {
 			for (String problem :
 					ImageTransformationConfigurationValidator.validate(
-						imagePresetGroups)) {
+						imagePresets)) {
 
 				_log.warn(problem);
 			}
@@ -159,13 +154,13 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 			return;
 		}
 
-		for (ImagePresetGroup imagePresetGroup : imagePresetGroups.values()) {
+		for (ImagePreset imagePreset : imagePresets.values()) {
 			_log.debug(
 				StringBundler.concat(
-					"Preset group ", imagePresetGroup.getName(), " of company ",
-					companyId, " renders ",
+					"Preset ", imagePreset.getName(), " of company ", companyId,
+					" renders ",
 					ImageTransformationConfigurationValidator.getMarkupShape(
-						imagePresetGroup)));
+						imagePreset)));
 		}
 	}
 
@@ -220,7 +215,51 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 		return mediaQueries;
 	}
 
-	private Map<String, ImagePresetGroup> _toImagePresetGroups(
+	/**
+	 * Orders presets by breakpoint declaration order rather than by the order a
+	 * preset's own keys appear, so ordering is decided once for the whole
+	 * installation. The unconditional preset always sorts last, being the catch
+	 * all.
+	 */
+	private List<ImagePresetBreakpoint> _toImagePresetBreakpoints(
+		Map<String, String> breakpoints,
+		Map<String, Map<String, String>> breakpointProperties) {
+
+		List<ImagePresetBreakpoint> imagePresetBreakpoints = new ArrayList<>(
+			breakpointProperties.size());
+
+		for (Map.Entry<String, String> entry : breakpoints.entrySet()) {
+			Map<String, String> properties = breakpointProperties.get(
+				entry.getKey());
+
+			if (properties == null) {
+				continue;
+			}
+
+			imagePresetBreakpoints.add(
+				new ImagePresetBreakpoint(
+					GetterUtil.getBoolean(properties.get(_AUTO_SIZES)),
+					entry.getKey(), _toMaxWidth(properties.get(_MAX_WIDTH)),
+					entry.getValue(), properties.get(_SIZES),
+					_toTransformations(properties.get(_TRANSFORMATIONS))));
+		}
+
+		Map<String, String> properties = breakpointProperties.get(
+			_NAME_DEFAULT);
+
+		if (properties != null) {
+			imagePresetBreakpoints.add(
+				new ImagePresetBreakpoint(
+					GetterUtil.getBoolean(properties.get(_AUTO_SIZES)),
+					_NAME_DEFAULT, _toMaxWidth(properties.get(_MAX_WIDTH)),
+					null, properties.get(_SIZES),
+					_toTransformations(properties.get(_TRANSFORMATIONS))));
+		}
+
+		return imagePresetBreakpoints;
+	}
+
+	private Map<String, ImagePreset> _toImagePresets(
 		Map<String, String> breakpoints, String[] presets) {
 
 		if (presets == null) {
@@ -229,7 +268,7 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 
 		Map<String, String> labels = new LinkedHashMap<>();
 		Map<String, Boolean> lazyValues = new LinkedHashMap<>();
-		Map<String, Map<String, Map<String, String>>> groups =
+		Map<String, Map<String, Map<String, String>>> presetProperties =
 			new LinkedHashMap<>();
 
 		for (String preset : presets) {
@@ -286,71 +325,28 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 				continue;
 			}
 
-			Map<String, Map<String, String>> group = groups.computeIfAbsent(
-				keyParts[0], groupName -> new LinkedHashMap<>());
+			Map<String, Map<String, String>> breakpointProperties =
+				presetProperties.computeIfAbsent(
+					keyParts[0], presetName -> new LinkedHashMap<>());
 
-			Map<String, String> breakpointPreset = group.computeIfAbsent(
-				keyParts[1], breakpointName -> new LinkedHashMap<>());
+			Map<String, String> properties =
+				breakpointProperties.computeIfAbsent(
+					keyParts[1], breakpointName -> new LinkedHashMap<>());
 
-			breakpointPreset.put(keyParts[2], value);
+			properties.put(keyParts[2], value);
 		}
 
-		Map<String, ImagePresetGroup> imagePresetGroups = new LinkedHashMap<>();
+		Map<String, ImagePreset> imagePresets = new LinkedHashMap<>();
 
 		for (Map.Entry<String, Map<String, Map<String, String>>> entry :
-				groups.entrySet()) {
+				presetProperties.entrySet()) {
 
-			imagePresetGroups.put(
+			imagePresets.put(
 				entry.getKey(),
-				new ImagePresetGroup(
+				new ImagePreset(
 					labels.get(entry.getKey()), lazyValues.get(entry.getKey()),
 					entry.getKey(),
-					_toImagePresets(breakpoints, entry.getValue())));
-		}
-
-		return imagePresetGroups;
-	}
-
-	/**
-	 * Orders presets by breakpoint declaration order rather than by the order a
-	 * group's own keys appear, so ordering is decided once for the whole
-	 * installation. The unconditional preset always sorts last, being the catch
-	 * all.
-	 */
-	private List<ImagePreset> _toImagePresets(
-		Map<String, String> breakpoints,
-		Map<String, Map<String, String>> group) {
-
-		List<ImagePreset> imagePresets = new ArrayList<>(group.size());
-
-		for (Map.Entry<String, String> entry : breakpoints.entrySet()) {
-			Map<String, String> breakpointPreset = group.get(entry.getKey());
-
-			if (breakpointPreset == null) {
-				continue;
-			}
-
-			imagePresets.add(
-				new ImagePreset(
-					GetterUtil.getBoolean(breakpointPreset.get(_AUTO_SIZES)),
-					entry.getKey(),
-					_toMaxWidth(breakpointPreset.get(_MAX_WIDTH)),
-					entry.getValue(), breakpointPreset.get(_SIZES),
-					_toTransformations(
-						breakpointPreset.get(_TRANSFORMATIONS))));
-		}
-
-		Map<String, String> breakpointPreset = group.get(_NAME_DEFAULT);
-
-		if (breakpointPreset != null) {
-			imagePresets.add(
-				new ImagePreset(
-					GetterUtil.getBoolean(breakpointPreset.get(_AUTO_SIZES)),
-					_NAME_DEFAULT,
-					_toMaxWidth(breakpointPreset.get(_MAX_WIDTH)), null,
-					breakpointPreset.get(_SIZES),
-					_toTransformations(
-						breakpointPreset.get(_TRANSFORMATIONS))));
+					_toImagePresetBreakpoints(breakpoints, entry.getValue())));
 		}
 
 		return imagePresets;
@@ -402,10 +398,10 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 
 	private static final String _AUTO_SIZES = "autoSizes";
 
-	private static final ImagePresetGroup _FALLBACK = new ImagePresetGroup(
+	private static final ImagePreset _FALLBACK = new ImagePreset(
 		null, null, "default",
 		Collections.singletonList(
-			new ImagePreset(
+			new ImagePresetBreakpoint(
 				false, "default", null, null, "100vw",
 				Collections.<String, String>emptyMap())));
 
@@ -440,14 +436,14 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 	private static class ParsedPresets {
 
 		private ParsedPresets(
-			int contentHash, Map<String, ImagePresetGroup> imagePresetGroups) {
+			int contentHash, Map<String, ImagePreset> imagePresets) {
 
 			_contentHash = contentHash;
-			_imagePresetGroups = imagePresetGroups;
+			_imagePresets = imagePresets;
 		}
 
 		private final int _contentHash;
-		private final Map<String, ImagePresetGroup> _imagePresetGroups;
+		private final Map<String, ImagePreset> _imagePresets;
 
 	}
 

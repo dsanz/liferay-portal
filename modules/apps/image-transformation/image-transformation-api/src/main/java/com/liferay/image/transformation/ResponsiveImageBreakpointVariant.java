@@ -12,7 +12,7 @@ package com.liferay.image.transformation;
  * A candidate, in the responsive images sense: a URL plus enough about the
  * image behind it for a browser to choose, or for an author to choose. It
  * carries no media condition, because a media condition selects a whole {@link
- * ImageVariantGroup} rather than an individual candidate.
+ * ResponsiveImageBreakpoint} rather than an individual candidate.
  * </p>
  *
  * <p>
@@ -22,7 +22,7 @@ package com.liferay.image.transformation;
  *
  * @author Daniel Sanz
  */
-public final class ImageVariant {
+public final class ResponsiveImageBreakpointVariant {
 
 	public static Builder builder(String url) {
 		return new Builder(url);
@@ -107,8 +107,8 @@ public final class ImageVariant {
 
 	public static final class Builder {
 
-		public ImageVariant build() {
-			return new ImageVariant(
+		public ResponsiveImageBreakpointVariant build() {
+			return new ResponsiveImageBreakpointVariant(
 				_identifier, _label, _mimeType, _size, _url, _width);
 		}
 
@@ -155,7 +155,7 @@ public final class ImageVariant {
 
 	}
 
-	private ImageVariant(
+	private ResponsiveImageBreakpointVariant(
 		String identifier, String label, String mimeType, Long size, String url,
 		Integer width) {
 

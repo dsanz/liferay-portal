@@ -39,7 +39,7 @@ import com.liferay.portal.kernel.exception.PortalException;
  * <p>
  * Providers that honor presets obtain them from {@link ImagePresetResolver};
  * presets are framework owned. A provider that cannot honor one, because its
- * renditions were generated in advance, determines its own groups instead.
+ * renditions were generated in advance, determines its own breakpoints instead.
  * </p>
  *
  * @author Daniel Sanz
@@ -60,7 +60,7 @@ public interface ImageTransformationProvider {
 	 * {@link #isTransformable(ImageResource)} returned <code>true</code>.
 	 *
 	 * <p>
-	 * Returning the whole answer rather than only the groups puts the fallback
+	 * Returning the whole answer rather than only the breakpoints puts the fallback
 	 * <code>src</code> in the hands of whoever knows what a good one is. A
 	 * provider generating a ladder on demand can point it at a middle rendition
 	 * instead of the untransformed original, which may be far larger than
@@ -68,7 +68,7 @@ public interface ImageTransformationProvider {
 	 * </p>
 	 *
 	 * @param  responsiveImageRequest what the caller wants
-	 * @return the resolved image, possibly with no variant groups
+	 * @return the resolved image, possibly with no breakpoints
 	 * @throws PortalException if the resource could not be read
 	 */
 	public ResponsiveImage getResponsiveImage(
