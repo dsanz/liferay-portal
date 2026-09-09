@@ -16,6 +16,8 @@ import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.internal.ImageTransformationFactory;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfiguration;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
+import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationValidator;
+import com.liferay.image.transformation.internal.configuration.MarkupShape;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -76,63 +78,10 @@ public class CDNImageTransformationProvider
 		long companyId = _imageTransformationConfigurationHelper.getCompanyId(
 			responsiveImageRequest);
 
-		ImagePresetGroup imagePresetGroup = _imagePresetResolver.resolve(
-			companyId, responsiveImageRequest.getPresetGroupName());
-
-		CompanySettings companySettings = _getCompanySettings(companyId);
-
-		List<ImagePreset> imagePresets = imagePresetGroup.getPresets();
-
-		boolean lazy = _isLazy(imagePresetGroup, responsiveImageRequest);
-
-		List<ImageVariantGroup> imageVariantGroups = new ArrayList<>(
-			imagePresets.size());
-
-		for (ImagePreset imagePreset : imagePresets) {
-			List<Integer> widths = _getWidths(companySettings, imagePreset);
-
-			if (widths.isEmpty()) {
-				continue;
-			}
-
-			imageVariantGroups.add(
-				ImageVariantGroup.from(
-					imagePreset,
-					_getImageVariants(
-						companySettings, imagePreset, responsiveImageRequest,
-						widths),
-					lazy));
-		}
-
-		if (!_isTransformed(imageVariantGroups)) {
-
-			// No renderer is bound, so every width built the same URL. Emitting
-			// them would advertise one image at seven different widths, and the
-			// browser would trust the descriptors and render at the wrong
-			// density. An untransformed image is the honest answer.
-
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					StringBundler.concat(
-						"No image transformation URL renderer named \"",
-						companySettings._rendererName,
-						"\" is deployed, serving untransformed images"));
-			}
-
-			return ResponsiveImage.passthrough(
-				responsiveImageRequest.getImageResource(
-				).getURL());
-		}
-
-		// Still the untransformed original. Now that the provider owns this
-		// choice it could point at a middle rendition instead, which would be
-		// a kinder default for a browser ignoring srcset, but that is a
-		// behavior change and not part of moving the method.
-
-		return new ResponsiveImage(
-			imageVariantGroups,
-			responsiveImageRequest.getImageResource(
-			).getURL());
+		return _getResponsiveImage(
+			responsiveImageRequest, companyId,
+			_imagePresetResolver.resolve(
+				companyId, responsiveImageRequest.getPresetGroupName()));
 	}
 
 	@Override
@@ -163,8 +112,18 @@ public class CDNImageTransformationProvider
 	}
 
 	/**
-	 * Renders a single <code>&lt;img&gt;</code> when the preset has one group,
-	 * and <code>&lt;picture&gt;</code> when it describes art direction.
+	 * Renders a single <code>&lt;img&gt;</code> when the group declares one
+	 * preset, and <code>&lt;picture&gt;</code> when it declares several.
+	 *
+	 * <p>
+	 * The shape comes from {@link
+	 * ImageTransformationConfigurationValidator#getMarkupShape}, which reads
+	 * the configured presets rather than the variant groups that survived
+	 * generation. A preset whose ladder came back empty is skipped, so counting
+	 * variant groups instead would quietly downgrade an art directed placement
+	 * to a plain <code>&lt;img&gt;</code> and drop the media conditions that
+	 * made it art directed.
+	 * </p>
 	 *
 	 * <p>
 	 * Wrapping a lone source in <code>&lt;picture&gt;</code> would be pure
@@ -177,8 +136,14 @@ public class CDNImageTransformationProvider
 	public String render(
 		String originalImgTag, ResponsiveImageRequest responsiveImageRequest) {
 
-		ResponsiveImage responsiveImage = getResponsiveImage(
+		long companyId = _imageTransformationConfigurationHelper.getCompanyId(
 			responsiveImageRequest);
+
+		ImagePresetGroup imagePresetGroup = _imagePresetResolver.resolve(
+			companyId, responsiveImageRequest.getPresetGroupName());
+
+		ResponsiveImage responsiveImage = _getResponsiveImage(
+			responsiveImageRequest, companyId, imagePresetGroup);
 
 		List<ImageVariantGroup> imageVariantGroups =
 			responsiveImage.getVariantGroups();
@@ -187,14 +152,13 @@ public class CDNImageTransformationProvider
 			return originalImgTag;
 		}
 
-		boolean lazy = _isLazy(
-			_imagePresetResolver.resolve(
-				_imageTransformationConfigurationHelper.getCompanyId(
-					responsiveImageRequest),
-				responsiveImageRequest.getPresetGroupName()),
-			responsiveImageRequest);
+		boolean lazy = _isLazy(imagePresetGroup, responsiveImageRequest);
 
-		if (imageVariantGroups.size() == 1) {
+		MarkupShape markupShape =
+			ImageTransformationConfigurationValidator.getMarkupShape(
+				imagePresetGroup);
+
+		if (markupShape == MarkupShape.IMG) {
 			return _renderImg(imageVariantGroups.get(0), lazy, originalImgTag);
 		}
 
@@ -315,6 +279,66 @@ public class CDNImageTransformationProvider
 		}
 
 		return imageVariants;
+	}
+
+	private ResponsiveImage _getResponsiveImage(
+		ResponsiveImageRequest responsiveImageRequest, long companyId,
+		ImagePresetGroup imagePresetGroup) {
+
+		CompanySettings companySettings = _getCompanySettings(companyId);
+
+		List<ImagePreset> imagePresets = imagePresetGroup.getPresets();
+
+		boolean lazy = _isLazy(imagePresetGroup, responsiveImageRequest);
+
+		List<ImageVariantGroup> imageVariantGroups = new ArrayList<>(
+			imagePresets.size());
+
+		for (ImagePreset imagePreset : imagePresets) {
+			List<Integer> widths = _getWidths(companySettings, imagePreset);
+
+			if (widths.isEmpty()) {
+				continue;
+			}
+
+			imageVariantGroups.add(
+				ImageVariantGroup.from(
+					imagePreset,
+					_getImageVariants(
+						companySettings, imagePreset, responsiveImageRequest,
+						widths),
+					lazy));
+		}
+
+		if (!_isTransformed(imageVariantGroups)) {
+
+			// No renderer is bound, so every width built the same URL. Emitting
+			// them would advertise one image at seven different widths, and the
+			// browser would trust the descriptors and render at the wrong
+			// density. An untransformed image is the honest answer.
+
+			if (_log.isWarnEnabled()) {
+				_log.warn(
+					StringBundler.concat(
+						"No image transformation URL renderer named \"",
+						companySettings._rendererName,
+						"\" is deployed, serving untransformed images"));
+			}
+
+			return ResponsiveImage.passthrough(
+				responsiveImageRequest.getImageResource(
+				).getURL());
+		}
+
+		// Still the untransformed original. Now that the provider owns this
+		// choice it could point at a middle rendition instead, which would be
+		// a kinder default for a browser ignoring srcset, but that is a
+		// behavior change and not part of moving the method.
+
+		return new ResponsiveImage(
+			imageVariantGroups,
+			responsiveImageRequest.getImageResource(
+			).getURL());
 	}
 
 	private String _getSrcSet(List<ImageVariant> imageVariants) {
