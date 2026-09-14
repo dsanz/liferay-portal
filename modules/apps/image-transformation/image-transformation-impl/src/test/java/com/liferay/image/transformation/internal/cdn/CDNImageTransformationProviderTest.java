@@ -89,7 +89,7 @@ public class CDNImageTransformationProviderTest {
 		);
 
 		Mockito.when(
-			_imageTransformationConfiguration.rendererName()
+			_imageTransformationConfiguration.urlRendererName()
 		).thenReturn(
 			"fastly"
 		);

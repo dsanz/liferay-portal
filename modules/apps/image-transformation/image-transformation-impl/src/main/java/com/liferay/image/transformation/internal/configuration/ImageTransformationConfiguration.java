@@ -181,7 +181,7 @@ public interface ImageTransformationConfiguration {
 	 * </p>
 	 */
 	@Meta.AD(deflt = "", name = "renderer-name", required = false)
-	public String rendererName();
+	public String urlRendererName();
 
 	/**
 	 * The widths available to generate, in pixels.

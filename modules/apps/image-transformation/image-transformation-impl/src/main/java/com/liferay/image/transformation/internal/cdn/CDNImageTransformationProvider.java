@@ -188,7 +188,7 @@ public class CDNImageTransformationProvider
 				absolutePortalURLBuilder.forTransformedImage(
 					url
 				).rendererName(
-					companySettings._rendererName
+					companySettings._urlRendererName
 				);
 
 		for (Map.Entry<String, String> entry : transformations.entrySet()) {
@@ -231,7 +231,7 @@ public class CDNImageTransformationProvider
 
 		companySettings = new CompanySettings(
 			contentHash, _toMap(defaultTransformations),
-			imageTransformationConfiguration.rendererName(),
+			imageTransformationConfiguration.urlRendererName(),
 			_toWidths(variantWidths));
 
 		_companySettings.put(companyId, companySettings);
@@ -325,7 +325,7 @@ public class CDNImageTransformationProvider
 				_log.warn(
 					StringBundler.concat(
 						"No image transformation URL renderer named \"",
-						companySettings._rendererName,
+						companySettings._urlRendererName,
 						"\" is deployed, serving untransformed images"));
 			}
 
@@ -631,17 +631,17 @@ public class CDNImageTransformationProvider
 
 		private CompanySettings(
 			int contentHash, Map<String, String> defaultTransformations,
-			String rendererName, TreeSet<Integer> variantWidths) {
+			String urlRendererName, TreeSet<Integer> variantWidths) {
 
 			_contentHash = contentHash;
 			_defaultTransformations = defaultTransformations;
-			_rendererName = rendererName;
+			_urlRendererName = urlRendererName;
 			_variantWidths = variantWidths;
 		}
 
 		private final int _contentHash;
 		private final Map<String, String> _defaultTransformations;
-		private final String _rendererName;
+		private final String _urlRendererName;
 		private final TreeSet<Integer> _variantWidths;
 
 	}
