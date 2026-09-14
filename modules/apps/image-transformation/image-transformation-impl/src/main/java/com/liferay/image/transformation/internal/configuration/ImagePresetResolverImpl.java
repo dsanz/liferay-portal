@@ -5,7 +5,6 @@
 
 package com.liferay.image.transformation.internal.configuration;
 
-import com.liferay.image.transformation.internal.ImageTransformationFactory;
 import com.liferay.image.transformation.preset.BreakpointPreset;
 import com.liferay.image.transformation.preset.ImagePreset;
 import com.liferay.image.transformation.preset.ImagePresetResolver;
@@ -78,9 +77,8 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 	@Activate
 	protected void activate() {
 		_imageTransformationConfigurationHelper =
-			ImageTransformationFactory.
-				createImageTransformationConfigurationHelper(
-					_configurationProvider, _portal);
+			new ImageTransformationConfigurationHelper(
+				_configurationProvider, _portal);
 	}
 
 	/**

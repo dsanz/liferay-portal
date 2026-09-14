@@ -27,8 +27,14 @@ import java.util.function.Supplier;
  * </p>
  *
  * <p>
- * A plain object built by {@link ImageTransformationFactory} rather than an
- * OSGi component; its consumers are services and inject what it needs.
+ * Constructed directly by the components that need it, and deliberately not
+ * registered as an OSGi component. It implements no interface, so registering
+ * it means naming its own class in the <code>service</code> attribute, which
+ * reads as redundant and is easy to "simplify" into <code>service = {}</code>.
+ * A component in that state is active but registers nothing, leaving every
+ * reference to it unsatisfied while the bundle still starts cleanly and the
+ * tests still pass. Constructing it from collaborators the consumer already
+ * injects removes that failure mode entirely.
  * </p>
  *
  * @author Daniel Sanz

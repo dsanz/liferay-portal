@@ -11,7 +11,6 @@ import com.liferay.image.transformation.ImageBreakpointVariantBuilder;
 import com.liferay.image.transformation.ImageResource;
 import com.liferay.image.transformation.ResponsiveImage;
 import com.liferay.image.transformation.ResponsiveImageRequest;
-import com.liferay.image.transformation.internal.ImageTransformationFactory;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfiguration;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationValidator;
@@ -169,9 +168,8 @@ public class CDNImageTransformationProvider
 	@Activate
 	protected void activate() {
 		_imageTransformationConfigurationHelper =
-			ImageTransformationFactory.
-				createImageTransformationConfigurationHelper(
-					_configurationProvider, _portal);
+			new ImageTransformationConfigurationHelper(
+				_configurationProvider, _portal);
 	}
 
 	private String _buildURL(

@@ -10,6 +10,7 @@ import com.liferay.image.transformation.ImageResource;
 import com.liferay.image.transformation.ResponsiveImage;
 import com.liferay.image.transformation.ResponsiveImageProvider;
 import com.liferay.image.transformation.ResponsiveImageRequest;
+import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.exception.PortalException;
@@ -78,12 +79,10 @@ public class ResponsiveImageProviderImpl implements ResponsiveImageProvider {
 	@Activate
 	protected void activate() {
 		_imageTransformationProviderSelector =
-			ImageTransformationFactory.
-				createImageTransformationProviderSelector(
-					ImageTransformationFactory.
-						createImageTransformationConfigurationHelper(
-							_configurationProvider, _portal),
-					() -> _imageTransformationProviders);
+			new ImageTransformationProviderSelector(
+				new ImageTransformationConfigurationHelper(
+					_configurationProvider, _portal),
+				() -> _imageTransformationProviders);
 	}
 
 	@Reference
