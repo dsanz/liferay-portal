@@ -28,12 +28,12 @@ import java.util.List;
  * <code>&lt;picture&gt;</code>
  * </li>
  * <li>
- * {@link ResponsiveImageBreakpoint} is a source set together with a source size
+ * {@link ImageBreakpoint} is a source set together with a source size
  * list; it renders as a <code>&lt;source&gt;</code>, as the
  * <code>&lt;img&gt;</code>, or as both
  * </li>
  * <li>
- * {@link ResponsiveImageBreakpointVariant} is an image candidate string; it
+ * {@link ImageBreakpointVariant} is an image candidate string; it
  * renders as one <code>srcset</code> entry
  * </li>
  * </ul>
@@ -69,13 +69,11 @@ public final class ResponsiveImage {
 	 */
 	public static ResponsiveImage passthrough(String src) {
 		return new ResponsiveImage(
-			Collections.<ResponsiveImageBreakpoint>emptyList(), src);
+			Collections.<ImageBreakpoint>emptyList(), src);
 	}
 
-	public ResponsiveImage(
-		List<ResponsiveImageBreakpoint> variantGroups, String src) {
-
-		_variantGroups = Collections.unmodifiableList(variantGroups);
+	public ResponsiveImage(List<ImageBreakpoint> imageBreakpoints, String src) {
+		_imageBreakpoints = Collections.unmodifiableList(imageBreakpoints);
 		_src = src;
 	}
 
@@ -91,8 +89,8 @@ public final class ResponsiveImage {
 	 *
 	 * @return the breakpoints
 	 */
-	public List<ResponsiveImageBreakpoint> getBreakpoints() {
-		return _variantGroups;
+	public List<ImageBreakpoint> getImageBreakpoints() {
+		return _imageBreakpoints;
 	}
 
 	/**
@@ -105,7 +103,7 @@ public final class ResponsiveImage {
 		return _src;
 	}
 
+	private final List<ImageBreakpoint> _imageBreakpoints;
 	private final String _src;
-	private final List<ResponsiveImageBreakpoint> _variantGroups;
 
 }

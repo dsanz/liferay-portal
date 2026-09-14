@@ -5,9 +5,9 @@
 
 package com.liferay.image.transformation.internal;
 
+import com.liferay.image.transformation.ImageBreakpoint;
 import com.liferay.image.transformation.ImageResource;
 import com.liferay.image.transformation.ResponsiveImage;
-import com.liferay.image.transformation.ResponsiveImageBreakpoint;
 import com.liferay.image.transformation.ResponsiveImageProvider;
 import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
@@ -65,10 +65,10 @@ public class ResponsiveImageProviderImpl implements ResponsiveImageProvider {
 			return ResponsiveImage.passthrough(imageResource.getURL());
 		}
 
-		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints =
-			responsiveImage.getBreakpoints();
+		List<ImageBreakpoint> imageBreakpoints =
+			responsiveImage.getImageBreakpoints();
 
-		if (responsiveImageBreakpoints.isEmpty()) {
+		if (imageBreakpoints.isEmpty()) {
 			return ResponsiveImage.passthrough(imageResource.getURL());
 		}
 

@@ -42,38 +42,26 @@ import com.liferay.portal.kernel.exception.PortalException;
  * renditions were generated in advance, determines its own breakpoints instead.
  * </p>
  *
+ * * <p>
+ * Implemented here, not called here. Consumers call {@link
+ * com.liferay.image.transformation.ResponsiveImageProvider#getResponsiveImage},
+ * which carries the same signature but a stronger contract: it selects the
+ * configured provider and turns any empty or absent answer into a passthrough.
+ * An implementation of this interface is therefore free to return nothing when
+ * it cannot handle a resource, and should not synthesize a fallback of its own.
+ * </p>
+ *
+ <p>
+ * Deliberately not <code>@ProviderType</code>. The two vocabularies invert the
+ * word: in <em>service provider interface</em> the provider is the third party
+ * plugging in, while <code>@ProviderType</code> marks a type only this API's
+ * own implementation provides. Anyone adding a CDN implements this, so consumer
+ * semantics is correct and adding a method here is a breaking change.
+ * </p>
+ *
  * @author Daniel Sanz
  */
 public interface ImageTransformationProvider {
-
-	/**
-	 * Returns the name identifying this provider (for example
-	 * <code>adaptive-media</code> or <code>cdn</code>).
-	 *
-	 * @return the provider name
-	 */
-	public String getName();
-
-	/**
-	 * Returns the renditions of the given image, grouped by the media condition
-	 * they apply under, together with the URL to fall back to. Only called when
-	 * {@link #isTransformable(ImageResource)} returned <code>true</code>.
-	 *
-	 * <p>
-	 * Returning the whole answer rather than only the breakpoints puts the fallback
-	 * <code>src</code> in the hands of whoever knows what a good one is. A
-	 * provider generating a ladder on demand can point it at a middle rendition
-	 * instead of the untransformed original, which may be far larger than
-	 * anything a browser ignoring <code>srcset</code> should be handed.
-	 * </p>
-	 *
-	 * @param  responsiveImageRequest what the caller wants
-	 * @return the resolved image, possibly with no breakpoints
-	 * @throws PortalException if the resource could not be read
-	 */
-	public ResponsiveImage getResponsiveImage(
-			ResponsiveImageRequest responsiveImageRequest)
-		throws PortalException;
 
 	/**
 	 * Returns <code>true</code> if this provider can transform the given
@@ -90,7 +78,36 @@ public interface ImageTransformationProvider {
 	 * @param  imageResource the image to test
 	 * @return <code>true</code> if this provider can transform the image
 	 */
-	public boolean isTransformable(ImageResource imageResource);
+	public boolean canTransform(ImageResource imageResource);
+
+	/**
+	 * Returns the name identifying this provider (for example
+	 * <code>adaptive-media</code> or <code>cdn</code>).
+	 *
+	 * @return the provider name
+	 */
+	public String getName();
+
+	/**
+	 * Returns the renditions of the given image, grouped by the media condition
+	 * they apply under, together with the URL to fall back to. Only called when
+	 * {@link #canTransform(ImageResource)} returned <code>true</code>.
+	 *
+	 * <p>
+	 * Returning the whole answer rather than only the breakpoints puts the fallback
+	 * <code>src</code> in the hands of whoever knows what a good one is. A
+	 * provider generating a ladder on demand can point it at a middle rendition
+	 * instead of the untransformed original, which may be far larger than
+	 * anything a browser ignoring <code>srcset</code> should be handed.
+	 * </p>
+	 *
+	 * @param  responsiveImageRequest what the caller wants
+	 * @return the resolved image, possibly with no breakpoints
+	 * @throws PortalException if the resource could not be read
+	 */
+	public ResponsiveImage getResponsiveImage(
+			ResponsiveImageRequest responsiveImageRequest)
+		throws PortalException;
 
 	/**
 	 * Returns markup for the given image.

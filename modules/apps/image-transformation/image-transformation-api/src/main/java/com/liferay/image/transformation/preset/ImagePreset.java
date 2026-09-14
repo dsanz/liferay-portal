@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.image.transformation;
+package com.liferay.image.transformation.preset;
 
 import java.util.Collections;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
  *
  * <p>
  * What a caller asks for: a fragment says it is rendering a <code>card</code>,
- * and configuration supplies one {@link ImagePresetBreakpoint} per breakpoint. Presets
+ * and configuration supplies one {@link BreakpointPreset} per breakpoint. Presets
  * exist because <code>sizes</code> and art direction are properties of the
  * placement, not of the image or of the provider serving it, and a hero and a
  * card on the same page need different values.
@@ -31,12 +31,13 @@ public final class ImagePreset {
 
 	public ImagePreset(
 		String label, Boolean lazy, String name,
-		List<ImagePresetBreakpoint> presets) {
+		List<BreakpointPreset> presets) {
 
 		_label = label;
 		_lazy = lazy;
 		_name = name;
-		_presets = Collections.unmodifiableList(presets);
+
+		_breakpointPresets = Collections.unmodifiableList(presets);
 	}
 
 	/**
@@ -58,8 +59,8 @@ public final class ImagePreset {
 	 *
 	 * @return the presets
 	 */
-	public List<ImagePresetBreakpoint> getBreakpoints() {
-		return _presets;
+	public List<BreakpointPreset> getBreakpointPresets() {
+		return _breakpointPresets;
 	}
 
 	/**
@@ -102,9 +103,9 @@ public final class ImagePreset {
 		return _name;
 	}
 
+	private final List<BreakpointPreset> _breakpointPresets;
 	private final String _label;
 	private final Boolean _lazy;
 	private final String _name;
-	private final List<ImagePresetBreakpoint> _presets;
 
 }

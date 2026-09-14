@@ -80,7 +80,7 @@ public class ImageTransformationProviderSelector {
 		for (ImageTransformationProvider imageTransformationProvider :
 				imageTransformationProviders) {
 
-			if (!imageTransformationProvider.isTransformable(imageResource)) {
+			if (!imageTransformationProvider.canTransform(imageResource)) {
 				continue;
 			}
 

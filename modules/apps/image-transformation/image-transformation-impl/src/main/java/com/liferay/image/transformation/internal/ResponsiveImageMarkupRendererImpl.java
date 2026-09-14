@@ -5,7 +5,7 @@
 
 package com.liferay.image.transformation.internal;
 
-import com.liferay.image.transformation.ImageHTMLTagFactory;
+import com.liferay.image.transformation.ResponsiveImageMarkupRenderer;
 import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
@@ -31,11 +31,12 @@ import org.osgi.service.component.annotations.ReferencePolicyOption;
  *
  * @author Daniel Sanz
  */
-@Component(service = ImageHTMLTagFactory.class)
-public class ImageHTMLTagFactoryImpl implements ImageHTMLTagFactory {
+@Component(service = ResponsiveImageMarkupRenderer.class)
+public class ResponsiveImageMarkupRendererImpl
+	implements ResponsiveImageMarkupRenderer {
 
 	@Override
-	public String create(
+	public String render(
 			String originalImgTag,
 			ResponsiveImageRequest responsiveImageRequest)
 		throws PortalException {

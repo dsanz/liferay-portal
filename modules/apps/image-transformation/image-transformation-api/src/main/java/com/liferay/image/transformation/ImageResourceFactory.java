@@ -8,6 +8,8 @@ package com.liferay.image.transformation;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 
+import org.osgi.annotation.versioning.ProviderType;
+
 /**
  * Creates {@link ImageResource} instances.
  *
@@ -19,6 +21,7 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
  *
  * @author Daniel Sanz
  */
+@ProviderType
 public interface ImageResourceFactory {
 
 	/**

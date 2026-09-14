@@ -6,10 +6,10 @@
 package com.liferay.image.transformation;
 
 /**
- * Builds a {@link ResponsiveImageBreakpointVariant}.
+ * Builds a {@link ImageBreakpointVariant}.
  *
  * <pre>
- * ResponsiveImageBreakpointVariantBuilder.url(
+ * ImageBreakpointVariantBuilder.url(
  *     url
  * ).width(
  *     640
@@ -33,50 +33,48 @@ package com.liferay.image.transformation;
  *
  * @author Daniel Sanz
  */
-public class ResponsiveImageBreakpointVariantBuilder {
+public class ImageBreakpointVariantBuilder {
 
-	public static ResponsiveImageBreakpointVariantBuilder url(String url) {
-		return new ResponsiveImageBreakpointVariantBuilder(url);
+	public static ImageBreakpointVariantBuilder url(String url) {
+		return new ImageBreakpointVariantBuilder(url);
 	}
 
-	public ResponsiveImageBreakpointVariant build() {
-		return new ResponsiveImageBreakpointVariant(
+	public ImageBreakpointVariant build() {
+		return new ImageBreakpointVariant(
 			_identifier, _label, _mimeType, _size, _url, _width);
 	}
 
-	public ResponsiveImageBreakpointVariantBuilder identifier(
-		String identifier) {
-
+	public ImageBreakpointVariantBuilder identifier(String identifier) {
 		_identifier = identifier;
 
 		return this;
 	}
 
-	public ResponsiveImageBreakpointVariantBuilder label(String label) {
+	public ImageBreakpointVariantBuilder label(String label) {
 		_label = label;
 
 		return this;
 	}
 
-	public ResponsiveImageBreakpointVariantBuilder mimeType(String mimeType) {
+	public ImageBreakpointVariantBuilder mimeType(String mimeType) {
 		_mimeType = mimeType;
 
 		return this;
 	}
 
-	public ResponsiveImageBreakpointVariantBuilder size(Long size) {
+	public ImageBreakpointVariantBuilder size(Long size) {
 		_size = size;
 
 		return this;
 	}
 
-	public ResponsiveImageBreakpointVariantBuilder width(Integer width) {
+	public ImageBreakpointVariantBuilder width(Integer width) {
 		_width = width;
 
 		return this;
 	}
 
-	private ResponsiveImageBreakpointVariantBuilder(String url) {
+	private ImageBreakpointVariantBuilder(String url) {
 		_url = url;
 	}
 

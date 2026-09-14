@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.image.transformation;
+package com.liferay.image.transformation.preset;
 
 import java.util.Collections;
 import java.util.Map;
@@ -13,9 +13,9 @@ import java.util.Map;
  *
  * <p>
  * One entry of an {@link ImagePreset}, and the recipe whose result is an
- * {@link ResponsiveImageBreakpoint}: the media condition and sizes pass through
+ * {@link ImageBreakpoint}: the media condition and sizes pass through
  * unchanged, while the transformations are consumed to produce the candidates.
- * {@link ResponsiveImageBreakpoint#from} performs that crossing.
+ * {@link ImageBreakpoint#from} performs that crossing.
  * </p>
  *
  * <p>
@@ -26,9 +26,9 @@ import java.util.Map;
  *
  * @author Daniel Sanz
  */
-public final class ImagePresetBreakpoint {
+public final class BreakpointPreset {
 
-	public ImagePresetBreakpoint(
+	public BreakpointPreset(
 		boolean autoSizes, String breakpointName, Integer maxWidth,
 		String mediaQuery, String sizes, Map<String, String> transformations) {
 

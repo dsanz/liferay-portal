@@ -7,24 +7,40 @@ package com.liferay.image.transformation;
 
 import com.liferay.portal.kernel.exception.PortalException;
 
+import org.osgi.annotation.versioning.ProviderType;
+
 /**
  * Produces responsive image markup, whatever transformation provider is active.
  *
  * <p>
- * The umbrella every consumer should call when it needs an image tag, replacing
+ * The umbrella every consumer should call when it needs image markup, replacing
  * direct calls to provider specific factories.
+ * </p>
+ *
+ * <p>
+ * Markup rather than a tag, because a preset declaring several breakpoints
+ * renders a <code>&lt;picture&gt;</code> wrapping one
+ * <code>&lt;source&gt;</code> per breakpoint, not a single element.
  * </p>
  *
  * <p>
  * Holds no markup knowledge itself. It selects the active provider and hands
  * off to that provider's {@link
- * com.liferay.image.transformation.spi.ImageMarkupRenderer}, because what an
- * image tag should look like depends on how the variants were produced.
+ * com.liferay.image.transformation.spi.ImageTransformationProvider#render},
+ * because what the markup should look like depends on how the variants were
+ * produced.
+ * </p>
+ *
+ * <p>
+ * The markup half of the consumer API. {@link ResponsiveImageProvider} is the
+ * model half, for callers that need the variants as data rather than as a
+ * string.
  * </p>
  *
  * @author Daniel Sanz
  */
-public interface ImageHTMLTagFactory {
+@ProviderType
+public interface ResponsiveImageMarkupRenderer {
 
 	/**
 	 * Returns responsive markup wrapping the given image tag.
@@ -41,7 +57,7 @@ public interface ImageHTMLTagFactory {
 	 * @return the responsive markup
 	 * @throws PortalException if the resource could not be read
 	 */
-	public String create(
+	public String render(
 			String originalImgTag,
 			ResponsiveImageRequest responsiveImageRequest)
 		throws PortalException;

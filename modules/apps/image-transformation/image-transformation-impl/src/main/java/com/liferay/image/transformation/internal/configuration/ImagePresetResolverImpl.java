@@ -3,14 +3,12 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.image.transformation.internal;
+package com.liferay.image.transformation.internal.configuration;
 
-import com.liferay.image.transformation.ImagePreset;
-import com.liferay.image.transformation.ImagePresetBreakpoint;
-import com.liferay.image.transformation.ImagePresetResolver;
-import com.liferay.image.transformation.internal.configuration.ImageTransformationConfiguration;
-import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
-import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationValidator;
+import com.liferay.image.transformation.internal.ImageTransformationFactory;
+import com.liferay.image.transformation.preset.BreakpointPreset;
+import com.liferay.image.transformation.preset.ImagePreset;
+import com.liferay.image.transformation.preset.ImagePresetResolver;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
@@ -165,6 +163,50 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 	}
 
 	/**
+	 * Orders presets by breakpoint declaration order rather than by the order a
+	 * preset's own keys appear, so ordering is decided once for the whole
+	 * installation. The unconditional preset always sorts last, being the catch
+	 * all.
+	 */
+	private List<BreakpointPreset> _toBreakpointPresets(
+		Map<String, String> breakpoints,
+		Map<String, Map<String, String>> breakpointProperties) {
+
+		List<BreakpointPreset> breakpointPresets = new ArrayList<>(
+			breakpointProperties.size());
+
+		for (Map.Entry<String, String> entry : breakpoints.entrySet()) {
+			Map<String, String> properties = breakpointProperties.get(
+				entry.getKey());
+
+			if (properties == null) {
+				continue;
+			}
+
+			breakpointPresets.add(
+				new BreakpointPreset(
+					GetterUtil.getBoolean(properties.get(_AUTO_SIZES)),
+					entry.getKey(), _toMaxWidth(properties.get(_MAX_WIDTH)),
+					entry.getValue(), properties.get(_SIZES),
+					_toTransformations(properties.get(_TRANSFORMATIONS))));
+		}
+
+		Map<String, String> properties = breakpointProperties.get(
+			_NAME_DEFAULT);
+
+		if (properties != null) {
+			breakpointPresets.add(
+				new BreakpointPreset(
+					GetterUtil.getBoolean(properties.get(_AUTO_SIZES)),
+					_NAME_DEFAULT, _toMaxWidth(properties.get(_MAX_WIDTH)),
+					null, properties.get(_SIZES),
+					_toTransformations(properties.get(_TRANSFORMATIONS))));
+		}
+
+		return breakpointPresets;
+	}
+
+	/**
 	 * Returns the declared media conditions by name, in declaration order.
 	 *
 	 * <p>
@@ -213,50 +255,6 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 		}
 
 		return mediaQueries;
-	}
-
-	/**
-	 * Orders presets by breakpoint declaration order rather than by the order a
-	 * preset's own keys appear, so ordering is decided once for the whole
-	 * installation. The unconditional preset always sorts last, being the catch
-	 * all.
-	 */
-	private List<ImagePresetBreakpoint> _toImagePresetBreakpoints(
-		Map<String, String> breakpoints,
-		Map<String, Map<String, String>> breakpointProperties) {
-
-		List<ImagePresetBreakpoint> imagePresetBreakpoints = new ArrayList<>(
-			breakpointProperties.size());
-
-		for (Map.Entry<String, String> entry : breakpoints.entrySet()) {
-			Map<String, String> properties = breakpointProperties.get(
-				entry.getKey());
-
-			if (properties == null) {
-				continue;
-			}
-
-			imagePresetBreakpoints.add(
-				new ImagePresetBreakpoint(
-					GetterUtil.getBoolean(properties.get(_AUTO_SIZES)),
-					entry.getKey(), _toMaxWidth(properties.get(_MAX_WIDTH)),
-					entry.getValue(), properties.get(_SIZES),
-					_toTransformations(properties.get(_TRANSFORMATIONS))));
-		}
-
-		Map<String, String> properties = breakpointProperties.get(
-			_NAME_DEFAULT);
-
-		if (properties != null) {
-			imagePresetBreakpoints.add(
-				new ImagePresetBreakpoint(
-					GetterUtil.getBoolean(properties.get(_AUTO_SIZES)),
-					_NAME_DEFAULT, _toMaxWidth(properties.get(_MAX_WIDTH)),
-					null, properties.get(_SIZES),
-					_toTransformations(properties.get(_TRANSFORMATIONS))));
-		}
-
-		return imagePresetBreakpoints;
 	}
 
 	private Map<String, ImagePreset> _toImagePresets(
@@ -346,7 +344,7 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 				new ImagePreset(
 					labels.get(entry.getKey()), lazyValues.get(entry.getKey()),
 					entry.getKey(),
-					_toImagePresetBreakpoints(breakpoints, entry.getValue())));
+					_toBreakpointPresets(breakpoints, entry.getValue())));
 		}
 
 		return imagePresets;
@@ -401,7 +399,7 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 	private static final ImagePreset _FALLBACK = new ImagePreset(
 		null, null, "default",
 		Collections.singletonList(
-			new ImagePresetBreakpoint(
+			new BreakpointPreset(
 				false, "default", null, null, "100vw",
 				Collections.<String, String>emptyMap())));
 

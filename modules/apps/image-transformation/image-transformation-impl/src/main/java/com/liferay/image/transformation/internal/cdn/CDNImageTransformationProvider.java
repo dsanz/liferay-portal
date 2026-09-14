@@ -5,20 +5,20 @@
 
 package com.liferay.image.transformation.internal.cdn;
 
-import com.liferay.image.transformation.ImagePreset;
-import com.liferay.image.transformation.ImagePresetBreakpoint;
-import com.liferay.image.transformation.ImagePresetResolver;
+import com.liferay.image.transformation.ImageBreakpoint;
+import com.liferay.image.transformation.ImageBreakpointVariant;
+import com.liferay.image.transformation.ImageBreakpointVariantBuilder;
 import com.liferay.image.transformation.ImageResource;
 import com.liferay.image.transformation.ResponsiveImage;
-import com.liferay.image.transformation.ResponsiveImageBreakpoint;
-import com.liferay.image.transformation.ResponsiveImageBreakpointVariant;
-import com.liferay.image.transformation.ResponsiveImageBreakpointVariantBuilder;
 import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.internal.ImageTransformationFactory;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfiguration;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationValidator;
 import com.liferay.image.transformation.internal.configuration.MarkupShape;
+import com.liferay.image.transformation.preset.BreakpointPreset;
+import com.liferay.image.transformation.preset.ImagePreset;
+import com.liferay.image.transformation.preset.ImagePresetResolver;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -68,25 +68,7 @@ public class CDNImageTransformationProvider
 	public static final String NAME = "cdn";
 
 	@Override
-	public String getName() {
-		return NAME;
-	}
-
-	@Override
-	public ResponsiveImage getResponsiveImage(
-		ResponsiveImageRequest responsiveImageRequest) {
-
-		long companyId = _imageTransformationConfigurationHelper.getCompanyId(
-			responsiveImageRequest);
-
-		return _getResponsiveImage(
-			responsiveImageRequest, companyId,
-			_imagePresetResolver.resolve(
-				companyId, responsiveImageRequest.getPresetName()));
-	}
-
-	@Override
-	public boolean isTransformable(ImageResource imageResource) {
+	public boolean canTransform(ImageResource imageResource) {
 		if (imageResource == null) {
 			return false;
 		}
@@ -110,6 +92,24 @@ public class CDNImageTransformationProvider
 		}
 
 		return true;
+	}
+
+	@Override
+	public String getName() {
+		return NAME;
+	}
+
+	@Override
+	public ResponsiveImage getResponsiveImage(
+		ResponsiveImageRequest responsiveImageRequest) {
+
+		long companyId = _imageTransformationConfigurationHelper.getCompanyId(
+			responsiveImageRequest);
+
+		return _getResponsiveImage(
+			responsiveImageRequest, companyId,
+			_imagePresetResolver.resolve(
+				companyId, responsiveImageRequest.getPresetName()));
 	}
 
 	/**
@@ -146,10 +146,10 @@ public class CDNImageTransformationProvider
 		ResponsiveImage responsiveImage = _getResponsiveImage(
 			responsiveImageRequest, companyId, imagePreset);
 
-		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints =
-			responsiveImage.getBreakpoints();
+		List<ImageBreakpoint> imageBreakpoints =
+			responsiveImage.getImageBreakpoints();
 
-		if (responsiveImageBreakpoints.isEmpty()) {
+		if (imageBreakpoints.isEmpty()) {
 			return originalImgTag;
 		}
 
@@ -160,11 +160,10 @@ public class CDNImageTransformationProvider
 				imagePreset);
 
 		if (markupShape == MarkupShape.IMG) {
-			return _renderImg(
-				responsiveImageBreakpoints.get(0), lazy, originalImgTag);
+			return _renderImg(imageBreakpoints.get(0), lazy, originalImgTag);
 		}
 
-		return _renderPicture(responsiveImageBreakpoints, lazy, originalImgTag);
+		return _renderPicture(imageBreakpoints, lazy, originalImgTag);
 	}
 
 	@Activate
@@ -240,40 +239,82 @@ public class CDNImageTransformationProvider
 		return companySettings;
 	}
 
+	private List<ImageBreakpointVariant> _getImageBreakpointVariants(
+		CompanySettings companySettings, BreakpointPreset breakpointPreset,
+		ResponsiveImageRequest responsiveImageRequest, List<Integer> widths) {
+
+		ImageResource imageResource = responsiveImageRequest.getImageResource();
+
+		// Precedence runs from broadest to narrowest: installation wide
+		// defaults, then this placement's art direction, then the width.
+		// Callers contribute none of it, so every transformation the site
+		// issues is visible in configuration.
+
+		Map<String, String> transformations = HashMapBuilder.putAll(
+			companySettings._defaultTransformations
+		).putAll(
+			breakpointPreset.getTransformations()
+		).build();
+
+		List<ImageBreakpointVariant> imageBreakpointVariants = new ArrayList<>(
+			widths.size());
+
+		for (Integer width : widths) {
+			Map<String, String> widthTransformations = HashMapBuilder.putAll(
+				transformations
+			).put(
+				"width", String.valueOf(width)
+			).build();
+
+			imageBreakpointVariants.add(
+				ImageBreakpointVariantBuilder.url(
+					_buildURL(
+						companySettings, responsiveImageRequest,
+						imageResource.getURL(), widthTransformations)
+				).identifier(
+					String.valueOf(width)
+				).label(
+					width + "px"
+				).width(
+					width
+				).build());
+		}
+
+		return imageBreakpointVariants;
+	}
+
 	private ResponsiveImage _getResponsiveImage(
 		ResponsiveImageRequest responsiveImageRequest, long companyId,
 		ImagePreset imagePreset) {
 
 		CompanySettings companySettings = _getCompanySettings(companyId);
 
-		List<ImagePresetBreakpoint> imagePresetBreakpoints =
-			imagePreset.getBreakpoints();
+		List<BreakpointPreset> breakpointPresets =
+			imagePreset.getBreakpointPresets();
 
 		boolean lazy = _isLazy(imagePreset, responsiveImageRequest);
 
-		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints =
-			new ArrayList<>(imagePresetBreakpoints.size());
+		List<ImageBreakpoint> imageBreakpoints = new ArrayList<>(
+			breakpointPresets.size());
 
-		for (ImagePresetBreakpoint imagePresetBreakpoint :
-				imagePresetBreakpoints) {
-
+		for (BreakpointPreset breakpointPreset : breakpointPresets) {
 			List<Integer> widths = _getWidths(
-				companySettings, imagePresetBreakpoint);
+				companySettings, breakpointPreset);
 
 			if (widths.isEmpty()) {
 				continue;
 			}
 
-			responsiveImageBreakpoints.add(
-				ResponsiveImageBreakpoint.from(
-					imagePresetBreakpoint,
-					_getResponsiveImageBreakpointVariants(
-						companySettings, imagePresetBreakpoint,
+			imageBreakpoints.add(
+				ImageBreakpoint.from(
+					breakpointPreset,
+					_getImageBreakpointVariants(
+						companySettings, breakpointPreset,
 						responsiveImageRequest, widths),
 					lazy));
 		}
 
-		if (!_isTransformed(responsiveImageBreakpoints)) {
+		if (!_isTransformed(imageBreakpoints)) {
 
 			// No renderer is bound, so every width built the same URL. Emitting
 			// them would advertise one image at seven different widths, and the
@@ -299,69 +340,21 @@ public class CDNImageTransformationProvider
 		// behavior change and not part of moving the method.
 
 		return new ResponsiveImage(
-			responsiveImageBreakpoints,
+			imageBreakpoints,
 			responsiveImageRequest.getImageResource(
 			).getURL());
 	}
 
-	private List<ResponsiveImageBreakpointVariant>
-		_getResponsiveImageBreakpointVariants(
-			CompanySettings companySettings,
-			ImagePresetBreakpoint imagePresetBreakpoint,
-			ResponsiveImageRequest responsiveImageRequest,
-			List<Integer> widths) {
-
-		ImageResource imageResource = responsiveImageRequest.getImageResource();
-
-		// Precedence runs from broadest to narrowest: installation wide
-		// defaults, then this placement's art direction, then the width.
-		// Callers contribute none of it, so every transformation the site
-		// issues is visible in configuration.
-
-		Map<String, String> transformations = HashMapBuilder.putAll(
-			companySettings._defaultTransformations
-		).putAll(
-			imagePresetBreakpoint.getTransformations()
-		).build();
-
-		List<ResponsiveImageBreakpointVariant>
-			responsiveImageBreakpointVariants = new ArrayList<>(widths.size());
-
-		for (Integer width : widths) {
-			Map<String, String> widthTransformations = HashMapBuilder.putAll(
-				transformations
-			).put(
-				"width", String.valueOf(width)
-			).build();
-
-			responsiveImageBreakpointVariants.add(
-				ResponsiveImageBreakpointVariantBuilder.url(
-					_buildURL(
-						companySettings, responsiveImageRequest,
-						imageResource.getURL(), widthTransformations)
-				).identifier(
-					String.valueOf(width)
-				).label(
-					width + "px"
-				).width(
-					width
-				).build());
-		}
-
-		return responsiveImageBreakpointVariants;
-	}
-
 	private String _getSrcSet(
-		List<ResponsiveImageBreakpointVariant>
-			responsiveImageBreakpointVariants) {
+		List<ImageBreakpointVariant> imageBreakpointVariants) {
 
 		StringBundler sb = new StringBundler(
-			responsiveImageBreakpointVariants.size() * 4);
+			imageBreakpointVariants.size() * 4);
 
-		for (ResponsiveImageBreakpointVariant responsiveImageBreakpointVariant :
-				responsiveImageBreakpointVariants) {
+		for (ImageBreakpointVariant imageBreakpointVariant :
+				imageBreakpointVariants) {
 
-			if (responsiveImageBreakpointVariant.getWidth() == null) {
+			if (imageBreakpointVariant.getWidth() == null) {
 				continue;
 			}
 
@@ -369,9 +362,9 @@ public class CDNImageTransformationProvider
 				sb.append(StringPool.COMMA_AND_SPACE);
 			}
 
-			sb.append(responsiveImageBreakpointVariant.getURL());
+			sb.append(imageBreakpointVariant.getURL());
 			sb.append(StringPool.SPACE);
-			sb.append(responsiveImageBreakpointVariant.getWidth());
+			sb.append(imageBreakpointVariant.getWidth());
 			sb.append("w");
 		}
 
@@ -396,10 +389,9 @@ public class CDNImageTransformationProvider
 	 * </p>
 	 */
 	private List<Integer> _getWidths(
-		CompanySettings companySettings,
-		ImagePresetBreakpoint imagePresetBreakpoint) {
+		CompanySettings companySettings, BreakpointPreset breakpointPreset) {
 
-		Integer maxWidth = imagePresetBreakpoint.getMaxWidth();
+		Integer maxWidth = breakpointPreset.getMaxWidth();
 
 		List<Integer> widths = new ArrayList<>(
 			companySettings._variantWidths.size());
@@ -460,48 +452,40 @@ public class CDNImageTransformationProvider
 	 * and proxy path the builder prepends.
 	 * </p>
 	 */
-	private boolean _isTransformed(
-		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints) {
+	private boolean _isTransformed(List<ImageBreakpoint> imageBreakpoints) {
+		for (ImageBreakpoint imageBreakpoint : imageBreakpoints) {
+			List<ImageBreakpointVariant> imageBreakpointVariants =
+				imageBreakpoint.getVariants();
 
-		for (ResponsiveImageBreakpoint responsiveImageBreakpoint :
-				responsiveImageBreakpoints) {
-
-			List<ResponsiveImageBreakpointVariant>
-				responsiveImageBreakpointVariants =
-					responsiveImageBreakpoint.getVariants();
-
-			if (responsiveImageBreakpointVariants.size() < 2) {
+			if (imageBreakpointVariants.size() < 2) {
 				continue;
 			}
 
-			ResponsiveImageBreakpointVariant
-				firstResponsiveImageBreakpointVariant =
-					responsiveImageBreakpointVariants.get(0);
-			ResponsiveImageBreakpointVariant
-				secondResponsiveImageBreakpointVariant =
-					responsiveImageBreakpointVariants.get(1);
+			ImageBreakpointVariant firstImageBreakpointVariant =
+				imageBreakpointVariants.get(0);
+			ImageBreakpointVariant secondImageBreakpointVariant =
+				imageBreakpointVariants.get(1);
 
 			return !Objects.equals(
-				firstResponsiveImageBreakpointVariant.getURL(),
-				secondResponsiveImageBreakpointVariant.getURL());
+				firstImageBreakpointVariant.getURL(),
+				secondImageBreakpointVariant.getURL());
 		}
 
 		return true;
 	}
 
 	private String _renderImg(
-		ResponsiveImageBreakpoint responsiveImageBreakpoint, boolean lazy,
-		String originalImgTag) {
+		ImageBreakpoint imageBreakpoint, boolean lazy, String originalImgTag) {
 
 		StringBundler sb = new StringBundler(7);
 
 		sb.append("srcset=\"");
 		sb.append(
 			HtmlUtil.escapeAttribute(
-				_getSrcSet(responsiveImageBreakpoint.getVariants())));
+				_getSrcSet(imageBreakpoint.getVariants())));
 		sb.append("\"");
 
-		String sizes = responsiveImageBreakpoint.getSizes();
+		String sizes = imageBreakpoint.getSizes();
 
 		if (!Validator.isBlank(sizes)) {
 			sb.append(" sizes=\"");
@@ -520,18 +504,15 @@ public class CDNImageTransformationProvider
 	}
 
 	private String _renderPicture(
-		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints,
-		boolean lazy, String originalImgTag) {
+		List<ImageBreakpoint> imageBreakpoints, boolean lazy,
+		String originalImgTag) {
 
-		StringBundler sb = new StringBundler(
-			(responsiveImageBreakpoints.size() * 7) + 3);
+		StringBundler sb = new StringBundler((imageBreakpoints.size() * 7) + 3);
 
 		sb.append("<picture>");
 
-		for (ResponsiveImageBreakpoint responsiveImageBreakpoint :
-				responsiveImageBreakpoints) {
-
-			String mediaQuery = responsiveImageBreakpoint.getMediaQuery();
+		for (ImageBreakpoint imageBreakpoint : imageBreakpoints) {
+			String mediaQuery = imageBreakpoint.getMediaQuery();
 
 			if (Validator.isBlank(mediaQuery)) {
 				continue;
@@ -542,10 +523,10 @@ public class CDNImageTransformationProvider
 			sb.append("\" srcset=\"");
 			sb.append(
 				HtmlUtil.escapeAttribute(
-					_getSrcSet(responsiveImageBreakpoint.getVariants())));
+					_getSrcSet(imageBreakpoint.getVariants())));
 			sb.append("\"");
 
-			String sizes = responsiveImageBreakpoint.getSizes();
+			String sizes = imageBreakpoint.getSizes();
 
 			if (!Validator.isBlank(sizes)) {
 				sb.append(" sizes=\"");
@@ -562,9 +543,8 @@ public class CDNImageTransformationProvider
 
 		sb.append(
 			_renderImg(
-				responsiveImageBreakpoints.get(
-					responsiveImageBreakpoints.size() - 1),
-				lazy, originalImgTag));
+				imageBreakpoints.get(imageBreakpoints.size() - 1), lazy,
+				originalImgTag));
 
 		sb.append("</picture>");
 

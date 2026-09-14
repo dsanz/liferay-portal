@@ -12,7 +12,7 @@ package com.liferay.image.transformation;
  * A candidate, in the responsive images sense: a URL plus enough about the
  * image behind it for a browser to choose, or for an author to choose. It
  * carries no media condition, because a media condition selects a whole {@link
- * ResponsiveImageBreakpoint} rather than an individual candidate.
+ * ImageBreakpoint} rather than an individual candidate.
  * </p>
  *
  * <p>
@@ -22,15 +22,15 @@ package com.liferay.image.transformation;
  *
  * <p>
  * Immutable, and built through {@link
- * ResponsiveImageBreakpointVariantBuilder}.
+ * ImageBreakpointVariantBuilder}.
  * </p>
  *
  * @author Daniel Sanz
  */
-public final class ResponsiveImageBreakpointVariant {
+public final class ImageBreakpointVariant {
 
 	/**
-	 * Prefer {@link ResponsiveImageBreakpointVariantBuilder}, which names the
+	 * Prefer {@link ImageBreakpointVariantBuilder}, which names the
 	 * optional arguments. This is public only because Liferay's coding standards
 	 * have no way to spell a package private constructor, and the builder has to
 	 * reach it from its own compilation unit.
@@ -42,7 +42,7 @@ public final class ResponsiveImageBreakpointVariant {
 	 * @param url the URL this candidate is fetched from
 	 * @param width the width in pixels, or <code>null</code>
 	 */
-	public ResponsiveImageBreakpointVariant(
+	public ImageBreakpointVariant(
 		String identifier, String label, String mimeType, Long size, String url,
 		Integer width) {
 

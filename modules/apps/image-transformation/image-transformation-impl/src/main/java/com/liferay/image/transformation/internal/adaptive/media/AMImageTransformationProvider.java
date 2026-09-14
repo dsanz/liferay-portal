@@ -15,11 +15,11 @@ import com.liferay.adaptive.media.image.model.AMImageEntry;
 import com.liferay.adaptive.media.image.service.AMImageEntryLocalService;
 import com.liferay.adaptive.media.image.url.AMImageURLFactory;
 import com.liferay.image.transformation.FileEntryImageResource;
+import com.liferay.image.transformation.ImageBreakpoint;
+import com.liferay.image.transformation.ImageBreakpointVariant;
+import com.liferay.image.transformation.ImageBreakpointVariantBuilder;
 import com.liferay.image.transformation.ImageResource;
 import com.liferay.image.transformation.ResponsiveImage;
-import com.liferay.image.transformation.ResponsiveImageBreakpoint;
-import com.liferay.image.transformation.ResponsiveImageBreakpointVariant;
-import com.liferay.image.transformation.ResponsiveImageBreakpointVariantBuilder;
 import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
 import com.liferay.petra.string.StringBundler;
@@ -63,6 +63,11 @@ public class AMImageTransformationProvider
 	public static final String NAME = "adaptive-media";
 
 	@Override
+	public boolean canTransform(ImageResource imageResource) {
+		return imageResource instanceof FileEntryImageResource;
+	}
+
+	@Override
 	public String getName() {
 		return NAME;
 	}
@@ -97,12 +102,11 @@ public class AMImageTransformationProvider
 			return ResponsiveImage.passthrough(imageResource.getURL());
 		}
 
-		Map<String, ResponsiveImageBreakpointVariant>
-			responsiveImageBreakpointVariants =
-				_getResponsiveImageBreakpointVariants(fileEntry);
+		Map<String, ImageBreakpointVariant> imageBreakpointVariants =
+			_getImageBreakpointVariants(fileEntry);
 
-		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints =
-			new ArrayList<>(mediaQueries.size());
+		List<ImageBreakpoint> imageBreakpoints = new ArrayList<>(
+			mediaQueries.size());
 
 		for (MediaQuery mediaQuery : mediaQueries) {
 			String mediaQueryString = _getMediaQueryString(mediaQuery);
@@ -111,58 +115,48 @@ public class AMImageTransformationProvider
 				continue;
 			}
 
-			List<ResponsiveImageBreakpointVariant>
-				groupResponsiveImageBreakpointVariants = new ArrayList<>();
+			List<ImageBreakpointVariant> groupImageBreakpointVariants =
+				new ArrayList<>();
 
 			for (String url :
 					StringUtil.split(mediaQuery.getSrc(), StringPool.COMMA)) {
 
 				url = StringUtil.trim(url);
 
-				ResponsiveImageBreakpointVariant
-					responsiveImageBreakpointVariant =
-						responsiveImageBreakpointVariants.get(url);
+				ImageBreakpointVariant imageBreakpointVariant =
+					imageBreakpointVariants.get(url);
 
-				if (responsiveImageBreakpointVariant == null) {
+				if (imageBreakpointVariant == null) {
 
 					// The URL is known but its rendition record is not, so emit
 					// what is certain and leave the rest null rather than drop
 					// a candidate the browser could have used.
 
-					responsiveImageBreakpointVariant =
-						ResponsiveImageBreakpointVariantBuilder.url(
-							url
-						).build();
+					imageBreakpointVariant = ImageBreakpointVariantBuilder.url(
+						url
+					).build();
 				}
 
-				groupResponsiveImageBreakpointVariants.add(
-					responsiveImageBreakpointVariant);
+				groupImageBreakpointVariants.add(imageBreakpointVariant);
 			}
 
-			if (groupResponsiveImageBreakpointVariants.isEmpty()) {
+			if (groupImageBreakpointVariants.isEmpty()) {
 				continue;
 			}
 
 			// No sizes: a breakpoint holding one candidate has nothing to
 			// disambiguate.
 
-			responsiveImageBreakpoints.add(
-				ResponsiveImageBreakpoint.of(
-					mediaQueryString, null,
-					groupResponsiveImageBreakpointVariants));
+			imageBreakpoints.add(
+				ImageBreakpoint.of(
+					mediaQueryString, null, groupImageBreakpointVariants));
 		}
 
 		// The untransformed original as fallback: Adaptive Media's renditions
 		// are pregenerated at fixed widths, and picking one of them as the
 		// default would silently prefer a size nobody asked for.
 
-		return new ResponsiveImage(
-			responsiveImageBreakpoints, imageResource.getURL());
-	}
-
-	@Override
-	public boolean isTransformable(ImageResource imageResource) {
-		return imageResource instanceof FileEntryImageResource;
+		return new ResponsiveImage(imageBreakpoints, imageResource.getURL());
 	}
 
 	/**
@@ -193,33 +187,12 @@ public class AMImageTransformationProvider
 			originalImgTag, fileEntryImageResource.getFileEntry());
 	}
 
-	private String _getMediaQueryString(MediaQuery mediaQuery) {
-		List<Condition> conditions = mediaQuery.getConditions();
-
-		if (ListUtil.isEmpty(conditions)) {
-			return null;
-		}
-
-		String[] conditionStrings = new String[conditions.size()];
-
-		for (int i = 0; i < conditionStrings.length; i++) {
-			Condition condition = conditions.get(i);
-
-			conditionStrings[i] = StringBundler.concat(
-				StringPool.OPEN_PARENTHESIS, condition.getAttribute(),
-				StringPool.COLON, condition.getValue(),
-				StringPool.CLOSE_PARENTHESIS);
-		}
-
-		return StringUtil.merge(conditionStrings, " and ");
-	}
-
-	private Map<String, ResponsiveImageBreakpointVariant>
-			_getResponsiveImageBreakpointVariants(FileEntry fileEntry)
+	private Map<String, ImageBreakpointVariant> _getImageBreakpointVariants(
+			FileEntry fileEntry)
 		throws PortalException {
 
-		Map<String, ResponsiveImageBreakpointVariant>
-			responsiveImageBreakpointVariants = new HashMap<>();
+		Map<String, ImageBreakpointVariant> imageBreakpointVariants =
+			new HashMap<>();
 
 		FileVersion fileVersion = fileEntry.getFileVersion();
 
@@ -241,9 +214,9 @@ public class AMImageTransformationProvider
 				_amImageURLFactory.createFileEntryURL(
 					fileVersion, amImageConfigurationEntry));
 
-			responsiveImageBreakpointVariants.put(
+			imageBreakpointVariants.put(
 				url,
-				ResponsiveImageBreakpointVariantBuilder.url(
+				ImageBreakpointVariantBuilder.url(
 					url
 				).identifier(
 					amImageEntry.getConfigurationUuid()
@@ -256,7 +229,28 @@ public class AMImageTransformationProvider
 				).build());
 		}
 
-		return responsiveImageBreakpointVariants;
+		return imageBreakpointVariants;
+	}
+
+	private String _getMediaQueryString(MediaQuery mediaQuery) {
+		List<Condition> conditions = mediaQuery.getConditions();
+
+		if (ListUtil.isEmpty(conditions)) {
+			return null;
+		}
+
+		String[] conditionStrings = new String[conditions.size()];
+
+		for (int i = 0; i < conditionStrings.length; i++) {
+			Condition condition = conditions.get(i);
+
+			conditionStrings[i] = StringBundler.concat(
+				StringPool.OPEN_PARENTHESIS, condition.getAttribute(),
+				StringPool.COLON, condition.getValue(),
+				StringPool.CLOSE_PARENTHESIS);
+		}
+
+		return StringUtil.merge(conditionStrings, " and ");
 	}
 
 	@Reference

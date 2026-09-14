@@ -5,8 +5,8 @@
 
 package com.liferay.image.transformation.internal.configuration;
 
-import com.liferay.image.transformation.ImagePreset;
-import com.liferay.image.transformation.ImagePresetBreakpoint;
+import com.liferay.image.transformation.preset.BreakpointPreset;
+import com.liferay.image.transformation.preset.ImagePreset;
 import com.liferay.petra.string.StringBundler;
 
 import java.util.ArrayList;
@@ -56,10 +56,10 @@ public class ImageTransformationConfigurationValidator {
 	 * @return the element
 	 */
 	public static MarkupShape getMarkupShape(ImagePreset imagePreset) {
-		List<ImagePresetBreakpoint> imagePresetBreakpoints =
-			imagePreset.getBreakpoints();
+		List<BreakpointPreset> breakpointPresets =
+			imagePreset.getBreakpointPresets();
 
-		if (imagePresetBreakpoints.size() > 1) {
+		if (breakpointPresets.size() > 1) {
 			return MarkupShape.PICTURE;
 		}
 
@@ -76,18 +76,18 @@ public class ImageTransformationConfigurationValidator {
 		List<String> problems = new ArrayList<>();
 
 		for (ImagePreset imagePreset : imagePresets.values()) {
-			List<ImagePresetBreakpoint> imagePresetBreakpoints =
-				imagePreset.getBreakpoints();
+			List<BreakpointPreset> breakpointPresets =
+				imagePreset.getBreakpointPresets();
 
-			if (imagePresetBreakpoints.size() < 2) {
+			if (breakpointPresets.size() < 2) {
 				continue;
 			}
 
-			if (_isInterchangeable(imagePresetBreakpoints)) {
+			if (_isInterchangeable(breakpointPresets)) {
 				problems.add(
 					StringBundler.concat(
 						"Preset ", imagePreset.getName(), " declares ",
-						imagePresetBreakpoints.size(),
+						breakpointPresets.size(),
 						" breakpoints that generate the same image, so it ",
 						"renders a <picture> whose sources are ",
 						"interchangeable. Declare a single unconditional ",
@@ -96,7 +96,7 @@ public class ImageTransformationConfigurationValidator {
 						"choice to the browser"));
 			}
 
-			if (_isFormatSwitching(imagePresetBreakpoints)) {
+			if (_isFormatSwitching(breakpointPresets)) {
 				problems.add(
 					StringBundler.concat(
 						"Preset ", imagePreset.getName(),
@@ -117,12 +117,12 @@ public class ImageTransformationConfigurationValidator {
 	 * ones a media condition is the wrong way to choose between.
 	 */
 	private static Map<String, String> _getFormats(
-		ImagePresetBreakpoint imagePresetBreakpoint) {
+		BreakpointPreset breakpointPreset) {
 
 		Map<String, String> formats = new LinkedHashMap<>();
 
 		Map<String, String> transformations =
-			imagePresetBreakpoint.getTransformations();
+			breakpointPreset.getTransformations();
 
 		for (String formatKey : _FORMAT_KEYS) {
 			String value = transformations.get(formatKey);
@@ -136,15 +136,12 @@ public class ImageTransformationConfigurationValidator {
 	}
 
 	private static boolean _isFormatSwitching(
-		List<ImagePresetBreakpoint> imagePresetBreakpoints) {
+		List<BreakpointPreset> breakpointPresets) {
 
-		Map<String, String> formats = _getFormats(
-			imagePresetBreakpoints.get(0));
+		Map<String, String> formats = _getFormats(breakpointPresets.get(0));
 
-		for (ImagePresetBreakpoint imagePresetBreakpoint :
-				imagePresetBreakpoints) {
-
-			if (!formats.equals(_getFormats(imagePresetBreakpoint))) {
+		for (BreakpointPreset breakpointPreset : breakpointPresets) {
+			if (!formats.equals(_getFormats(breakpointPreset))) {
 				return true;
 			}
 		}
@@ -165,22 +162,18 @@ public class ImageTransformationConfigurationValidator {
 	 * </p>
 	 */
 	private static boolean _isInterchangeable(
-		List<ImagePresetBreakpoint> imagePresetBreakpoints) {
+		List<BreakpointPreset> breakpointPresets) {
 
-		ImagePresetBreakpoint firstImagePresetBreakpoint =
-			imagePresetBreakpoints.get(0);
+		BreakpointPreset firstBreakpointPreset = breakpointPresets.get(0);
 
-		Integer maxWidth = firstImagePresetBreakpoint.getMaxWidth();
+		Integer maxWidth = firstBreakpointPreset.getMaxWidth();
 		Map<String, String> transformations =
-			firstImagePresetBreakpoint.getTransformations();
+			firstBreakpointPreset.getTransformations();
 
-		for (ImagePresetBreakpoint imagePresetBreakpoint :
-				imagePresetBreakpoints) {
-
-			if (!Objects.equals(
-					maxWidth, imagePresetBreakpoint.getMaxWidth()) ||
+		for (BreakpointPreset breakpointPreset : breakpointPresets) {
+			if (!Objects.equals(maxWidth, breakpointPreset.getMaxWidth()) ||
 				!transformations.equals(
-					imagePresetBreakpoint.getTransformations())) {
+					breakpointPreset.getTransformations())) {
 
 				return false;
 			}

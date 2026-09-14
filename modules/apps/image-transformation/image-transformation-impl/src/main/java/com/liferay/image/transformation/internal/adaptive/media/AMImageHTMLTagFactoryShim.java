@@ -6,8 +6,8 @@
 package com.liferay.image.transformation.internal.adaptive.media;
 
 import com.liferay.adaptive.media.image.html.AMImageHTMLTagFactory;
-import com.liferay.image.transformation.ImageHTMLTagFactory;
 import com.liferay.image.transformation.ImageResourceFactory;
+import com.liferay.image.transformation.ResponsiveImageMarkupRenderer;
 import com.liferay.image.transformation.ResponsiveImageRequestBuilder;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -40,7 +40,7 @@ import org.osgi.service.component.annotations.Reference;
  * <ol>
  * <li>
  * Migrate the ten call sites from {@code AMImageHTMLTagFactory#create(String,
- * FileEntry)} to {@link ImageHTMLTagFactory#create(String,
+ * FileEntry)} to {@link ResponsiveImageMarkupRenderer#render(String,
  * com.liferay.image.transformation.ImageResource,
  * ResponsiveImageRequest)}, obtaining the
  * resource from {@link ImageResourceFactory}.
@@ -81,7 +81,7 @@ public class AMImageHTMLTagFactoryShim implements AMImageHTMLTagFactory {
 		// most of the time there is nothing to find. Absent it, the company
 		// comes from the ambient one and the CDN host is resolved per company.
 
-		return _imageHTMLTagFactory.create(
+		return _responsiveImageMarkupRenderer.render(
 			originalImgTag,
 			ResponsiveImageRequestBuilder.imageResource(
 				_imageResourceFactory.fromFileEntry(fileEntry)
@@ -102,9 +102,9 @@ public class AMImageHTMLTagFactoryShim implements AMImageHTMLTagFactory {
 	}
 
 	@Reference
-	private ImageHTMLTagFactory _imageHTMLTagFactory;
+	private ImageResourceFactory _imageResourceFactory;
 
 	@Reference
-	private ImageResourceFactory _imageResourceFactory;
+	private ResponsiveImageMarkupRenderer _responsiveImageMarkupRenderer;
 
 }

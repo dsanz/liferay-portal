@@ -13,13 +13,13 @@ package com.liferay.image.transformation;
  * OSGi modules, in the legacy portal image path, or on a completely different
  * host. Providers that need more than this interface exposes narrow the type
  * (see {@link FileEntryImageResource}) and use {@link
- * com.liferay.image.transformation.spi.ImageTransformationProvider#isTransformable}
+ * com.liferay.image.transformation.spi.ImageTransformationProvider#canTransform}
  * to decline resources they cannot serve.
  * </p>
  *
  * <p>
  * This is the <b>input</b> to a transformation; the outputs are {@link
- * ResponsiveImageBreakpointVariant} instances.
+ * ImageBreakpointVariant} instances.
  * </p>
  *
  * <p>
@@ -36,8 +36,15 @@ package com.liferay.image.transformation;
  * queries per image, and they buy less than they appear to: with upscaling
  * disabled, a variant wider than the original simply returns the original, so
  * truncating a ladder at the source width mainly forfeits resolution the
- * browser could have used. Bound ladders with {@link ImagePresetBreakpoint#getMaxWidth()}
+ * browser could have used. Bound ladders with {@link BreakpointPreset#getMaxWidth()}
  * instead, which describes the rendered size and costs nothing to read.
+ * </p>
+ *
+ * <p>
+ * Deliberately not <code>@ProviderType</code>, unlike the factories in this
+ * package. A caller with an image that is not a document library file entry, in
+ * an OSGi bundle or on another host, implements this, so adding a method here
+ * is a breaking change.
  * </p>
  *
  * @author Daniel Sanz

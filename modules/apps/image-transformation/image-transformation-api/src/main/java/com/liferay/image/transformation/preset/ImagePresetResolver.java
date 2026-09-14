@@ -3,7 +3,9 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.image.transformation;
+package com.liferay.image.transformation.preset;
+
+import org.osgi.annotation.versioning.ProviderType;
 
 /**
  * Resolves a preset name against configuration.
@@ -21,6 +23,7 @@ package com.liferay.image.transformation;
  *
  * @author Daniel Sanz
  */
+@ProviderType
 public interface ImagePresetResolver {
 
 	/**
