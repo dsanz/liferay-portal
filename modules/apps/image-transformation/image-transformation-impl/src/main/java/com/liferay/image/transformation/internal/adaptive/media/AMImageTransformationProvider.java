@@ -263,16 +263,16 @@ public class AMImageTransformationProvider
 	 * Targets Adaptive Media's own implementation explicitly.
 	 *
 	 * <p>
-	 * {@link AMImageHTMLTagFactoryShim} also implements this interface, at a
+	 * {@link ResponsiveImageAMImageHTMLTagFactory} also implements this interface, at a
 	 * higher service ranking, and delegates back into the umbrella. Binding it
 	 * here would recurse until the stack ran out. The filter selects any
-	 * implementation that is not the shim, without depending on Adaptive
-	 * Media's internal component names, and should be deleted along with the
-	 * shim once its callers have migrated.
+	 * implementation that is not the delegating one, without depending on Adaptive
+	 * Media's internal component names, and should be deleted along with it
+	 * once its callers have migrated.
 	 * </p>
 	 */
 	@Reference(
-		target = "(!(" + AMImageHTMLTagFactoryShim.PROPERTY_SHIM + "=true))"
+		target = "(!(" + ResponsiveImageAMImageHTMLTagFactory.PROPERTY_DELEGATING + "=true))"
 	)
 	private AMImageHTMLTagFactory _amImageHTMLTagFactory;
 

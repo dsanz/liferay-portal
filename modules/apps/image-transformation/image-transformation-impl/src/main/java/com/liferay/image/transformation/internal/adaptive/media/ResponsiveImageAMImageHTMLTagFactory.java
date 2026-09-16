@@ -41,13 +41,12 @@ import org.osgi.service.component.annotations.Reference;
  * <li>
  * Migrate the ten call sites from {@code AMImageHTMLTagFactory#create(String,
  * FileEntry)} to {@link ResponsiveImageMarkupRenderer#render(String,
- * com.liferay.image.transformation.ImageResource,
- * ResponsiveImageRequest)}, obtaining the
+ * com.liferay.image.transformation.ResponsiveImageRequest)}, obtaining the
  * resource from {@link ImageResourceFactory}.
  * </li>
- * <li>Delete this class and {@link #PROPERTY_SHIM}.</li>
+ * <li>Delete this class and {@link #PROPERTY_DELEGATING}.</li>
  * <li>
- * Delete the {@code target} filter on {@link AMImageMarkupRenderer}'s
+ * Delete the {@code target} filter on {@link AMImageTransformationProvider}'s
  * {@code AMImageHTMLTagFactory} reference, which exists only to avoid recursing
  * back through this class.
  * </li>
@@ -63,14 +62,16 @@ import org.osgi.service.component.annotations.Reference;
  */
 @Component(
 	property = {
-		AMImageHTMLTagFactoryShim.PROPERTY_SHIM + "=true",
+		ResponsiveImageAMImageHTMLTagFactory.PROPERTY_DELEGATING + "=true",
 		"service.ranking:Integer=100"
 	},
 	service = AMImageHTMLTagFactory.class
 )
-public class AMImageHTMLTagFactoryShim implements AMImageHTMLTagFactory {
+public class ResponsiveImageAMImageHTMLTagFactory
+	implements AMImageHTMLTagFactory {
 
-	public static final String PROPERTY_SHIM = "image.transformation.shim";
+	public static final String PROPERTY_DELEGATING =
+		"image.transformation.delegating";
 
 	@Override
 	public String create(String originalImgTag, FileEntry fileEntry)
