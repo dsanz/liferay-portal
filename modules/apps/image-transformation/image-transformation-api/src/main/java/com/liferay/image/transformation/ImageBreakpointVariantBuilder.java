@@ -40,32 +40,7 @@ public class ImageBreakpointVariantBuilder {
 	}
 
 	public ImageBreakpointVariant build() {
-		return new ImageBreakpointVariant(
-			_identifier, _label, _mimeType, _size, _url, _width);
-	}
-
-	public ImageBreakpointVariantBuilder identifier(String identifier) {
-		_identifier = identifier;
-
-		return this;
-	}
-
-	public ImageBreakpointVariantBuilder label(String label) {
-		_label = label;
-
-		return this;
-	}
-
-	public ImageBreakpointVariantBuilder mimeType(String mimeType) {
-		_mimeType = mimeType;
-
-		return this;
-	}
-
-	public ImageBreakpointVariantBuilder size(Long size) {
-		_size = size;
-
-		return this;
+		return new ImageBreakpointVariant(_url, _width);
 	}
 
 	public ImageBreakpointVariantBuilder width(Integer width) {
@@ -78,10 +53,6 @@ public class ImageBreakpointVariantBuilder {
 		_url = url;
 	}
 
-	private String _identifier;
-	private String _label;
-	private String _mimeType;
-	private Long _size;
 	private final String _url;
 	private Integer _width;
 

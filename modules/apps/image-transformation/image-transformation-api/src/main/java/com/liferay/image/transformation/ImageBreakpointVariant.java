@@ -35,74 +35,12 @@ public final class ImageBreakpointVariant {
 	 * have no way to spell a package private constructor, and the builder has to
 	 * reach it from its own compilation unit.
 	 *
-	 * @param identifier a stable identifier, or <code>null</code>
-	 * @param label a human readable label, or <code>null</code>
-	 * @param mimeType the mime type, or <code>null</code>
-	 * @param size the byte size, or <code>null</code>
 	 * @param url the URL this candidate is fetched from
 	 * @param width the width in pixels, or <code>null</code>
 	 */
-	public ImageBreakpointVariant(
-		String identifier, String label, String mimeType, Long size, String url,
-		Integer width) {
-
-		_identifier = identifier;
-		_label = label;
-		_mimeType = mimeType;
-		_size = size;
+	public ImageBreakpointVariant(String url, Integer width) {
 		_url = url;
 		_width = width;
-	}
-
-	/**
-	 * Returns a stable identifier for this rendition, or <code>null</code>.
-	 *
-	 * <p>
-	 * Adaptive Media uses its configuration entry UUID; a provider generating
-	 * widths on demand can use the width. Authoring UIs need something to store
-	 * when the author picks a rendition.
-	 * </p>
-	 *
-	 * @return the identifier, or <code>null</code>
-	 */
-	public String getIdentifier() {
-		return _identifier;
-	}
-
-	/**
-	 * Returns a human readable name for this rendition, or <code>null</code>.
-	 *
-	 * @return the label, or <code>null</code>
-	 */
-	public String getLabel() {
-		return _label;
-	}
-
-	/**
-	 * Returns this rendition's mime type, or <code>null</code> if it is the
-	 * same as the original.
-	 *
-	 * @return the mime type, or <code>null</code>
-	 */
-	public String getMimeType() {
-		return _mimeType;
-	}
-
-	/**
-	 * Returns this rendition's size in bytes, or <code>null</code> if unknown.
-	 *
-	 * <p>
-	 * Unknown is the normal case for a provider that generates renditions on
-	 * demand: nothing has been produced yet, and the eventual size depends on
-	 * format negotiation. Only providers backed by pregenerated files can
-	 * answer this, so any UI that displays it must tolerate its absence rather
-	 * than assume a finite catalogue of renditions exists.
-	 * </p>
-	 *
-	 * @return the size in bytes, or <code>null</code>
-	 */
-	public Long getSize() {
-		return _size;
 	}
 
 	/**
@@ -131,10 +69,6 @@ public final class ImageBreakpointVariant {
 		return _width;
 	}
 
-	private final String _identifier;
-	private final String _label;
-	private final String _mimeType;
-	private final Long _size;
 	private final String _url;
 	private final Integer _width;
 

@@ -103,6 +103,34 @@ public final class ImagePreset {
 		return _name;
 	}
 
+	/**
+	 * Returns whether an image in this placement is lazily loaded: what the
+	 * caller asked for if it said anything, otherwise what this preset
+	 * declares, otherwise eager.
+	 *
+	 * <p>
+	 * Here rather than in each consumer because two of them need the same
+	 * answer for different reasons. Generating renditions needs it because
+	 * <code>sizes="auto"</code> is only honored on a lazily loaded image, and
+	 * rendering needs it for the <code>loading</code> attribute. Deriving it
+	 * twice would let the markup and the sizes it describes disagree.
+	 * </p>
+	 *
+	 * @param  lazy what the caller asked for, or <code>null</code> to defer
+	 * @return whether to lazily load
+	 */
+	public boolean isLazy(Boolean lazy) {
+		if (lazy != null) {
+			return lazy;
+		}
+
+		if (_lazy != null) {
+			return _lazy;
+		}
+
+		return false;
+	}
+
 	private final List<BreakpointPreset> _breakpointPresets;
 	private final String _label;
 	private final Boolean _lazy;

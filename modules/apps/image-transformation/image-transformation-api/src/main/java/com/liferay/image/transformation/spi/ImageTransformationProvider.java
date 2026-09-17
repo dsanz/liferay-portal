@@ -128,8 +128,8 @@ public interface ImageTransformationProvider {
 	 * @param  originalImgTag the original image tag, whose attributes are
 	 *         preserved
 	 * @param  responsiveImageRequest what the caller wants
-	 * @return the markup, or <code>originalImgTag</code> if nothing could be
-	 *         rendered
+	 * @return the markup, or <code>null</code> to have the framework render
+	 *         the model instead, which is what nearly every provider wants
 	 * @throws PortalException if the resource could not be read
 	 */
 	public default String render(
@@ -137,7 +137,7 @@ public interface ImageTransformationProvider {
 			ResponsiveImageRequest responsiveImageRequest)
 		throws PortalException {
 
-		return originalImgTag;
+		return null;
 	}
 
 }
