@@ -102,13 +102,9 @@ public class CDNImageTransformationProvider
 	public ResponsiveImage getResponsiveImage(
 		ResponsiveImageRequest responsiveImageRequest) {
 
-		long companyId = _imageTransformationConfigurationHelper.getCompanyId(
-			responsiveImageRequest);
-
 		return _getResponsiveImage(
-			responsiveImageRequest, companyId,
-			_imagePresetResolver.resolve(
-				companyId, responsiveImageRequest.getPresetName()));
+			responsiveImageRequest,
+			_resolveImagePreset(responsiveImageRequest));
 	}
 
 	/**
@@ -136,14 +132,10 @@ public class CDNImageTransformationProvider
 	public String render(
 		String originalImgTag, ResponsiveImageRequest responsiveImageRequest) {
 
-		long companyId = _imageTransformationConfigurationHelper.getCompanyId(
-			responsiveImageRequest);
-
-		ImagePreset imagePreset = _imagePresetResolver.resolve(
-			companyId, responsiveImageRequest.getPresetName());
+		ImagePreset imagePreset = _resolveImagePreset(responsiveImageRequest);
 
 		ResponsiveImage responsiveImage = _getResponsiveImage(
-			responsiveImageRequest, companyId, imagePreset);
+			responsiveImageRequest, imagePreset);
 
 		List<ImageBreakpoint> imageBreakpoints =
 			responsiveImage.getImageBreakpoints();
@@ -173,7 +165,7 @@ public class CDNImageTransformationProvider
 	}
 
 	private String _buildURL(
-		CompanySettings companySettings,
+		ScopedSettings scopedSettings,
 		ResponsiveImageRequest responsiveImageRequest, String url,
 		Map<String, String> transformations) {
 
@@ -186,7 +178,7 @@ public class CDNImageTransformationProvider
 				absolutePortalURLBuilder.forTransformedImage(
 					url
 				).rendererName(
-					companySettings._urlRendererName
+					scopedSettings._urlRendererName
 				);
 
 		for (Map.Entry<String, String> entry : transformations.entrySet()) {
@@ -197,48 +189,8 @@ public class CDNImageTransformationProvider
 		return transformedImageAbsolutePortalURLBuilder.build();
 	}
 
-	/**
-	 * Returns the parsed settings for a company, reparsing only when the
-	 * underlying configuration has actually changed.
-	 */
-	private CompanySettings _getCompanySettings(long companyId) {
-		ImageTransformationConfiguration imageTransformationConfiguration =
-			_imageTransformationConfigurationHelper.
-				getImageTransformationConfiguration(companyId);
-
-		if (imageTransformationConfiguration == null) {
-			return _emptyCompanySettings;
-		}
-
-		String[] defaultTransformations =
-			imageTransformationConfiguration.defaultTransformations();
-		String[] variantWidths =
-			imageTransformationConfiguration.variantWidths();
-
-		int contentHash =
-			(31 * Arrays.hashCode(defaultTransformations)) +
-				Arrays.hashCode(variantWidths);
-
-		CompanySettings companySettings = _companySettings.get(companyId);
-
-		if ((companySettings != null) &&
-			(companySettings._contentHash == contentHash)) {
-
-			return companySettings;
-		}
-
-		companySettings = new CompanySettings(
-			contentHash, _toMap(defaultTransformations),
-			imageTransformationConfiguration.urlRendererName(),
-			_toWidths(variantWidths));
-
-		_companySettings.put(companyId, companySettings);
-
-		return companySettings;
-	}
-
 	private List<ImageBreakpointVariant> _getImageBreakpointVariants(
-		CompanySettings companySettings, BreakpointPreset breakpointPreset,
+		ScopedSettings scopedSettings, BreakpointPreset breakpointPreset,
 		ResponsiveImageRequest responsiveImageRequest, List<Integer> widths) {
 
 		ImageResource imageResource = responsiveImageRequest.getImageResource();
@@ -249,7 +201,7 @@ public class CDNImageTransformationProvider
 		// issues is visible in configuration.
 
 		Map<String, String> transformations = HashMapBuilder.putAll(
-			companySettings._defaultTransformations
+			scopedSettings._defaultTransformations
 		).putAll(
 			breakpointPreset.getTransformations()
 		).build();
@@ -267,7 +219,7 @@ public class CDNImageTransformationProvider
 			imageBreakpointVariants.add(
 				ImageBreakpointVariantBuilder.url(
 					_buildURL(
-						companySettings, responsiveImageRequest,
+						scopedSettings, responsiveImageRequest,
 						imageResource.getURL(), widthTransformations)
 				).identifier(
 					String.valueOf(width)
@@ -282,10 +234,11 @@ public class CDNImageTransformationProvider
 	}
 
 	private ResponsiveImage _getResponsiveImage(
-		ResponsiveImageRequest responsiveImageRequest, long companyId,
+		ResponsiveImageRequest responsiveImageRequest,
 		ImagePreset imagePreset) {
 
-		CompanySettings companySettings = _getCompanySettings(companyId);
+		ScopedSettings scopedSettings = _getScopedSettings(
+			responsiveImageRequest);
 
 		List<BreakpointPreset> breakpointPresets =
 			imagePreset.getBreakpointPresets();
@@ -296,8 +249,7 @@ public class CDNImageTransformationProvider
 			breakpointPresets.size());
 
 		for (BreakpointPreset breakpointPreset : breakpointPresets) {
-			List<Integer> widths = _getWidths(
-				companySettings, breakpointPreset);
+			List<Integer> widths = _getWidths(scopedSettings, breakpointPreset);
 
 			if (widths.isEmpty()) {
 				continue;
@@ -307,7 +259,7 @@ public class CDNImageTransformationProvider
 				ImageBreakpoint.from(
 					breakpointPreset,
 					_getImageBreakpointVariants(
-						companySettings, breakpointPreset,
+						scopedSettings, breakpointPreset,
 						responsiveImageRequest, widths),
 					lazy));
 		}
@@ -323,7 +275,7 @@ public class CDNImageTransformationProvider
 				_log.warn(
 					StringBundler.concat(
 						"No image transformation URL renderer named \"",
-						companySettings._urlRendererName,
+						scopedSettings._urlRendererName,
 						"\" is deployed, serving untransformed images"));
 			}
 
@@ -341,6 +293,56 @@ public class CDNImageTransformationProvider
 			imageBreakpoints,
 			responsiveImageRequest.getImageResource(
 			).getURL());
+	}
+
+	/**
+	 * Returns the parsed settings for a company, reparsing only when the
+	 * underlying configuration has actually changed.
+	 */
+	private ScopedSettings _getScopedSettings(
+		ResponsiveImageRequest responsiveImageRequest) {
+
+		long companyId = _imageTransformationConfigurationHelper.getCompanyId(
+			responsiveImageRequest);
+		long groupId = _imageTransformationConfigurationHelper.getGroupId(
+			responsiveImageRequest);
+
+		ImageTransformationConfiguration imageTransformationConfiguration =
+			_imageTransformationConfigurationHelper.
+				getImageTransformationConfiguration(groupId, companyId);
+
+		if (imageTransformationConfiguration == null) {
+			return _emptyScopedSettings;
+		}
+
+		String[] defaultTransformations =
+			imageTransformationConfiguration.defaultTransformations();
+		String[] variantWidths =
+			imageTransformationConfiguration.variantWidths();
+
+		int contentHash =
+			(31 * Arrays.hashCode(defaultTransformations)) +
+				Arrays.hashCode(variantWidths);
+
+		long scopeKey = _imageTransformationConfigurationHelper.getScopeKey(
+			groupId, companyId);
+
+		ScopedSettings scopedSettings = _scopedSettings.get(scopeKey);
+
+		if ((scopedSettings != null) &&
+			(scopedSettings._contentHash == contentHash)) {
+
+			return scopedSettings;
+		}
+
+		scopedSettings = new ScopedSettings(
+			contentHash, _toMap(defaultTransformations),
+			imageTransformationConfiguration.urlRendererName(),
+			_toWidths(variantWidths));
+
+		_scopedSettings.put(scopeKey, scopedSettings);
+
+		return scopedSettings;
 	}
 
 	private String _getSrcSet(
@@ -387,14 +389,14 @@ public class CDNImageTransformationProvider
 	 * </p>
 	 */
 	private List<Integer> _getWidths(
-		CompanySettings companySettings, BreakpointPreset breakpointPreset) {
+		ScopedSettings scopedSettings, BreakpointPreset breakpointPreset) {
 
 		Integer maxWidth = breakpointPreset.getMaxWidth();
 
 		List<Integer> widths = new ArrayList<>(
-			companySettings._variantWidths.size());
+			scopedSettings._variantWidths.size());
 
-		for (Integer width : companySettings._variantWidths) {
+		for (Integer width : scopedSettings._variantWidths) {
 			widths.add(width);
 
 			if ((maxWidth != null) && (width >= maxWidth)) {
@@ -549,6 +551,27 @@ public class CDNImageTransformationProvider
 		return sb.toString();
 	}
 
+	/**
+	 * Returns the preset this request asks for, resolved against the narrowest
+	 * scope the request can name.
+	 *
+	 * <p>
+	 * The scope is derived here rather than passed around, because it is a
+	 * property of the request and carrying it alongside would let the two
+	 * disagree.
+	 * </p>
+	 */
+	private ImagePreset _resolveImagePreset(
+		ResponsiveImageRequest responsiveImageRequest) {
+
+		return _imagePresetResolver.resolve(
+			_imageTransformationConfigurationHelper.getGroupId(
+				responsiveImageRequest),
+			_imageTransformationConfigurationHelper.getCompanyId(
+				responsiveImageRequest),
+			responsiveImageRequest.getPresetName());
+	}
+
 	private Map<String, String> _toMap(String[] entries) {
 		if (entries == null) {
 			return Collections.emptyMap();
@@ -601,17 +624,14 @@ public class CDNImageTransformationProvider
 	private static final Log _log = LogFactoryUtil.getLog(
 		CDNImageTransformationProvider.class);
 
-	private static final CompanySettings _emptyCompanySettings =
-		new CompanySettings(
+	private static final ScopedSettings _emptyScopedSettings =
+		new ScopedSettings(
 			0, Collections.<String, String>emptyMap(), null, new TreeSet<>());
 	private static final List<String> _excludedMimeTypes = Arrays.asList(
 		"image/svg+xml", "image/x-icon");
 
 	@Reference
 	private AbsolutePortalURLBuilderFactory _absolutePortalURLBuilderFactory;
-
-	private final Map<Long, CompanySettings> _companySettings =
-		new ConcurrentHashMap<>();
 
 	@Reference
 	private ConfigurationProvider _configurationProvider;
@@ -625,9 +645,12 @@ public class CDNImageTransformationProvider
 	@Reference
 	private Portal _portal;
 
-	private static class CompanySettings {
+	private final Map<Long, ScopedSettings> _scopedSettings =
+		new ConcurrentHashMap<>();
 
-		private CompanySettings(
+	private static class ScopedSettings {
+
+		private ScopedSettings(
 			int contentHash, Map<String, String> defaultTransformations,
 			String urlRendererName, TreeSet<Integer> variantWidths) {
 

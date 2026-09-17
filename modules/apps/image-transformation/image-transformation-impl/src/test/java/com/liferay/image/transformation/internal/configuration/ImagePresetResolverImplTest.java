@@ -35,7 +35,7 @@ public class ImagePresetResolverImplTest {
 	public void setUp() {
 		Mockito.when(
 			_imageTransformationConfigurationHelper.
-				getImageTransformationConfiguration(_COMPANY_ID)
+				getImageTransformationConfiguration(0, _COMPANY_ID)
 		).thenReturn(
 			_imageTransformationConfiguration
 		);
@@ -124,7 +124,7 @@ public class ImagePresetResolverImplTest {
 			});
 
 		ImagePreset imagePreset = _imagePresetResolverImpl.resolve(
-			_COMPANY_ID, "hero");
+			0, _COMPANY_ID, "hero");
 
 		Assert.assertEquals("Hero", imagePreset.getLabel());
 
@@ -152,7 +152,7 @@ public class ImagePresetResolverImplTest {
 		_givenConfiguration(new String[0], new String[0]);
 
 		ImagePreset imagePreset = _imagePresetResolverImpl.resolve(
-			_COMPANY_ID, "nonexistent");
+			0, _COMPANY_ID, "nonexistent");
 
 		List<BreakpointPreset> breakpointPresets =
 			imagePreset.getBreakpointPresets();
@@ -196,7 +196,7 @@ public class ImagePresetResolverImplTest {
 
 	private List<BreakpointPreset> _presetsOf(String presetName) {
 		ImagePreset imagePreset = _imagePresetResolverImpl.resolve(
-			_COMPANY_ID, presetName);
+			0, _COMPANY_ID, presetName);
 
 		return imagePreset.getBreakpointPresets();
 	}

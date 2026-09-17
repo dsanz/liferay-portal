@@ -45,6 +45,7 @@ public final class ResponsiveImageRequest {
 	 * way to spell a package private constructor, and the builder has to reach
 	 * it from its own compilation unit.
 	 *
+	 * @param groupId the site being rendered for, or <code>0</code>
 	 * @param httpServletRequest the request being served, or <code>null</code>
 	 * @param imageResource the image to transform
 	 * @param lazy whether to lazily load, or <code>null</code> to defer to the
@@ -52,13 +53,57 @@ public final class ResponsiveImageRequest {
 	 * @param presetName the preset name, or <code>null</code> for the default
 	 */
 	public ResponsiveImageRequest(
-		HttpServletRequest httpServletRequest, ImageResource imageResource,
-		Boolean lazy, String presetName) {
+		long groupId, HttpServletRequest httpServletRequest,
+		ImageResource imageResource, Boolean lazy, String presetName) {
 
+		_groupId = groupId;
 		_httpServletRequest = httpServletRequest;
 		_imageResource = imageResource;
 		_lazy = lazy;
 		_presetName = presetName;
+	}
+
+	/**
+	 * Returns the site the caller declared, or <code>0</code> to have one
+	 * derived.
+	 *
+	 * <p>
+	 * What was declared, not what will be used. Left at <code>0</code> the
+	 * framework takes the rendering site from the theme display of {@link
+	 * #getHttpServletRequest}, then from the ambient service context, and
+	 * failing both resolves the configuration at company scope. So
+	 * <code>0</code> means "work it out", not "no site".
+	 * </p>
+	 *
+	 * <p>
+	 * Worth declaring only when there is no request to derive it from, which is
+	 * the case for export and import, staging, and scheduled work. A declared
+	 * site wins over the derived one, so a caller that sets it is asserting it
+	 * knows better than the page being served.
+	 * </p>
+	 *
+	 * <p>
+	 * The <em>rendering</em> site, not the site the image is stored in. Presets
+	 * describe how a page lays images out, so the same image placed on two
+	 * sites must resolve two different sets of presets. Taking it from the
+	 * resource instead would read the layout of whichever site happens to own
+	 * the file, silently, which for an image in a shared asset library is never
+	 * the right answer.
+	 * </p>
+	 *
+	 * <p>
+	 * Explicit rather than inferred because most callers cannot know it. The
+	 * content transformer chain hands over a string with no context at all, and
+	 * there is no ambient group the way there is an ambient company, so a
+	 * framework that guessed would be wrong without saying so. Left at
+	 * <code>0</code> the configuration falls back to the company, which is what
+	 * the group scope cascades to anyway.
+	 * </p>
+	 *
+	 * @return the site ID, or <code>0</code>
+	 */
+	public long getGroupId() {
+		return _groupId;
 	}
 
 	/**
@@ -130,6 +175,7 @@ public final class ResponsiveImageRequest {
 		return _presetName;
 	}
 
+	private final long _groupId;
 	private final HttpServletRequest _httpServletRequest;
 	private final ImageResource _imageResource;
 	private final Boolean _lazy;

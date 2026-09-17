@@ -44,7 +44,25 @@ public class ResponsiveImageRequestBuilder {
 
 	public ResponsiveImageRequest build() {
 		return new ResponsiveImageRequest(
-			_httpServletRequest, _imageResource, _lazy, _presetName);
+			_groupId, _httpServletRequest, _imageResource, _lazy, _presetName);
+	}
+
+	/**
+	 * Declares the site this image is rendered for, overriding the site the
+	 * framework would otherwise derive from the request.
+	 *
+	 * <p>
+	 * Needed only where there is no request to derive from, such as export and
+	 * import, which knows its site from the portlet data context. Callers that
+	 * pass a request should leave this alone and let the theme display answer,
+	 * since setting both makes this one win and a stale value would then read
+	 * the wrong site's layout without failing.
+	 * </p>
+	 */
+	public ResponsiveImageRequestBuilder groupId(long groupId) {
+		_groupId = groupId;
+
+		return this;
 	}
 
 	public ResponsiveImageRequestBuilder httpServletRequest(
@@ -75,6 +93,7 @@ public class ResponsiveImageRequestBuilder {
 		_imageResource = imageResource;
 	}
 
+	private long _groupId;
 	private HttpServletRequest _httpServletRequest;
 	private final ImageResource _imageResource;
 	private Boolean _lazy;

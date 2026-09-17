@@ -116,6 +116,8 @@ public class ImageTransformationProviderSelector {
 		ImageTransformationConfiguration imageTransformationConfiguration =
 			_imageTransformationConfigurationHelper.
 				getImageTransformationConfiguration(
+					_imageTransformationConfigurationHelper.getGroupId(
+						responsiveImageRequest),
 					_imageTransformationConfigurationHelper.getCompanyId(
 						responsiveImageRequest));
 

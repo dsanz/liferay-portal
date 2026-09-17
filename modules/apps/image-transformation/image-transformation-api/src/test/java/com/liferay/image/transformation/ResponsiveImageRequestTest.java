@@ -76,6 +76,20 @@ public class ResponsiveImageRequestTest {
 	}
 
 	@Test
+	public void testDefersToTheCompanyWhenNoSiteIsGiven() {
+		ResponsiveImageRequest responsiveImageRequest =
+			ResponsiveImageRequestBuilder.imageResource(
+				_imageResource
+			).build();
+
+		// Zero rather than the resource's site. The site an image is stored in
+		// is a different question from the site it is rendered on, and group
+		// scoped configuration cascades to the company anyway.
+
+		Assert.assertEquals(0, responsiveImageRequest.getGroupId());
+	}
+
+	@Test
 	public void testEagerRequestCarriesLazyFalse() {
 
 		// sizes="auto" is only valid alongside loading="lazy", so this is the
@@ -101,6 +115,18 @@ public class ResponsiveImageRequestTest {
 			).build();
 
 		Assert.assertEquals("card", responsiveImageRequest.getPresetName());
+	}
+
+	@Test
+	public void testSiteIsCarried() {
+		ResponsiveImageRequest responsiveImageRequest =
+			ResponsiveImageRequestBuilder.imageResource(
+				_imageResource
+			).groupId(
+				12345
+			).build();
+
+		Assert.assertEquals(12345, responsiveImageRequest.getGroupId());
 	}
 
 	private final HttpServletRequest _httpServletRequest = Mockito.mock(

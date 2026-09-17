@@ -77,7 +77,7 @@ public class CDNImageTransformationProviderTest {
 
 		Mockito.when(
 			_imageTransformationConfigurationHelper.
-				getImageTransformationConfiguration(_COMPANY_ID)
+				getImageTransformationConfiguration(0, _COMPANY_ID)
 		).thenReturn(
 			_imageTransformationConfiguration
 		);
@@ -316,7 +316,8 @@ public class CDNImageTransformationProviderTest {
 	private void _givenPresetGroup(BreakpointPreset... breakpointPresets) {
 		Mockito.when(
 			_imagePresetResolver.resolve(
-				Mockito.anyLong(), Mockito.nullable(String.class))
+				Mockito.anyLong(), Mockito.anyLong(),
+				Mockito.nullable(String.class))
 		).thenReturn(
 			new ImagePreset(
 				null, null, "test", Arrays.asList(breakpointPresets))

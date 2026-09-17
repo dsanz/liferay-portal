@@ -36,12 +36,14 @@ public interface ImagePresetResolver {
 	 * configuration degrades to a working image rather than to none.
 	 * </p>
 	 *
-	 * @param  companyId the company whose configuration applies, or
-	 *         <code>0</code> for the system configuration
+	 * @param  groupId the site being rendered for, or <code>0</code> to resolve
+	 *         against the company instead
+	 * @param  companyId the company, used when no site is given and as the
+	 *         fallback the group scope cascades to
 	 * @param  presetName the preset name, or <code>null</code> for the
 	 *         default
 	 * @return the preset
 	 */
-	public ImagePreset resolve(long companyId, String presetName);
+	public ImagePreset resolve(long groupId, long companyId, String presetName);
 
 }

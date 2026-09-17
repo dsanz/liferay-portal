@@ -14,7 +14,7 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
  */
 @ExtendedObjectClassDefinition(
 	category = "adaptive-media",
-	scope = ExtendedObjectClassDefinition.Scope.COMPANY
+	scope = ExtendedObjectClassDefinition.Scope.GROUP
 )
 @Meta.OCD(
 	id = "com.liferay.image.transformation.internal.configuration.ImageTransformationConfiguration",

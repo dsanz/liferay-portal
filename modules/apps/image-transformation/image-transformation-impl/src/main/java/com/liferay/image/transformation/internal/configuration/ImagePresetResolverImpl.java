@@ -52,16 +52,17 @@ import org.osgi.service.component.annotations.Reference;
 public class ImagePresetResolverImpl implements ImagePresetResolver {
 
 	@Override
-	public ImagePreset resolve(long companyId, String presetName) {
+	public ImagePreset resolve(
+		long groupId, long companyId, String presetName) {
+
 		if (Validator.isBlank(presetName)) {
 			presetName = _NAME_DEFAULT;
 		}
 
-		ImagePreset imagePreset = _getImagePresets(
-			companyId
-		).get(
-			presetName
-		);
+		Map<String, ImagePreset> imagePresets = _getImagePresets(
+			groupId, companyId);
+
+		ImagePreset imagePreset = imagePresets.get(presetName);
 
 		if (imagePreset != null) {
 			return imagePreset;
@@ -92,10 +93,12 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 	 * invalidation on.
 	 * </p>
 	 */
-	private Map<String, ImagePreset> _getImagePresets(long companyId) {
+	private Map<String, ImagePreset> _getImagePresets(
+		long groupId, long companyId) {
+
 		ImageTransformationConfiguration imageTransformationConfiguration =
 			_imageTransformationConfigurationHelper.
-				getImageTransformationConfiguration(companyId);
+				getImageTransformationConfiguration(groupId, companyId);
 
 		if (imageTransformationConfiguration == null) {
 			return Collections.emptyMap();
@@ -107,7 +110,10 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 		int contentHash =
 			(31 * Arrays.hashCode(breakpoints)) + Arrays.hashCode(presets);
 
-		ParsedPresets parsedPresets = _parsedPresets.get(companyId);
+		long scopeKey = _imageTransformationConfigurationHelper.getScopeKey(
+			groupId, companyId);
+
+		ParsedPresets parsedPresets = _parsedPresets.get(scopeKey);
 
 		if ((parsedPresets != null) &&
 			(parsedPresets._contentHash == contentHash)) {
@@ -118,9 +124,9 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 		parsedPresets = new ParsedPresets(
 			contentHash, _toImagePresets(_toBreakpoints(breakpoints), presets));
 
-		_parsedPresets.put(companyId, parsedPresets);
+		_parsedPresets.put(scopeKey, parsedPresets);
 
-		_report(companyId, parsedPresets._imagePresets);
+		_report(scopeKey, parsedPresets._imagePresets);
 
 		return parsedPresets._imagePresets;
 	}
@@ -134,9 +140,7 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 	 * says anything new. Reporting per request would bury it.
 	 * </p>
 	 */
-	private void _report(
-		long companyId, Map<String, ImagePreset> imagePresets) {
-
+	private void _report(long scopeKey, Map<String, ImagePreset> imagePresets) {
 		if (_log.isWarnEnabled()) {
 			for (String problem :
 					ImageTransformationConfigurationValidator.validate(
@@ -153,7 +157,7 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 		for (ImagePreset imagePreset : imagePresets.values()) {
 			_log.debug(
 				StringBundler.concat(
-					"Preset ", imagePreset.getName(), " of company ", companyId,
+					"Preset ", imagePreset.getName(), " of scope ", scopeKey,
 					" renders ",
 					ImageTransformationConfigurationValidator.getMarkupShape(
 						imagePreset)));
