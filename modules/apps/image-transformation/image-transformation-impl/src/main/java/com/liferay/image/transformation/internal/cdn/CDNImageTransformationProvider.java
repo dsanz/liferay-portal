@@ -13,20 +13,16 @@ import com.liferay.image.transformation.ResponsiveImage;
 import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfiguration;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
-import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationValidator;
-import com.liferay.image.transformation.internal.configuration.MarkupShape;
 import com.liferay.image.transformation.preset.BreakpointPreset;
 import com.liferay.image.transformation.preset.ImagePreset;
 import com.liferay.image.transformation.preset.ImagePresetResolver;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
-import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
@@ -39,7 +35,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -107,56 +102,6 @@ public class CDNImageTransformationProvider
 			_resolveImagePreset(responsiveImageRequest));
 	}
 
-	/**
-	 * Renders a single <code>&lt;img&gt;</code> when the preset declares one
-	 * breakpoint, and <code>&lt;picture&gt;</code> when it declares several.
-	 *
-	 * <p>
-	 * The shape comes from {@link
-	 * ImageTransformationConfigurationValidator#getMarkupShape}, which reads
-	 * the configured presets rather than the breakpoints that survived
-	 * generation. A preset whose ladder came back empty is skipped, so counting
-	 * breakpoints instead would quietly downgrade an art directed placement
-	 * to a plain <code>&lt;img&gt;</code> and drop the media conditions that
-	 * made it art directed.
-	 * </p>
-	 *
-	 * <p>
-	 * Wrapping a lone source in <code>&lt;picture&gt;</code> would be pure
-	 * overhead, and enumerating breakpoints when only resolution varies would
-	 * discard what the browser knows about pixel density, network conditions,
-	 * and its own cache.
-	 * </p>
-	 */
-	@Override
-	public String render(
-		String originalImgTag, ResponsiveImageRequest responsiveImageRequest) {
-
-		ImagePreset imagePreset = _resolveImagePreset(responsiveImageRequest);
-
-		ResponsiveImage responsiveImage = _getResponsiveImage(
-			responsiveImageRequest, imagePreset);
-
-		List<ImageBreakpoint> imageBreakpoints =
-			responsiveImage.getImageBreakpoints();
-
-		if (imageBreakpoints.isEmpty()) {
-			return originalImgTag;
-		}
-
-		boolean lazy = _isLazy(imagePreset, responsiveImageRequest);
-
-		MarkupShape markupShape =
-			ImageTransformationConfigurationValidator.getMarkupShape(
-				imagePreset);
-
-		if (markupShape == MarkupShape.IMG) {
-			return _renderImg(imageBreakpoints.get(0), lazy, originalImgTag);
-		}
-
-		return _renderPicture(imageBreakpoints, lazy, originalImgTag);
-	}
-
 	@Activate
 	protected void activate() {
 		_imageTransformationConfigurationHelper =
@@ -221,10 +166,6 @@ public class CDNImageTransformationProvider
 					_buildURL(
 						scopedSettings, responsiveImageRequest,
 						imageResource.getURL(), widthTransformations)
-				).identifier(
-					String.valueOf(width)
-				).label(
-					width + "px"
 				).width(
 					width
 				).build());
@@ -243,7 +184,7 @@ public class CDNImageTransformationProvider
 		List<BreakpointPreset> breakpointPresets =
 			imagePreset.getBreakpointPresets();
 
-		boolean lazy = _isLazy(imagePreset, responsiveImageRequest);
+		boolean lazy = imagePreset.isLazy(responsiveImageRequest.getLazy());
 
 		List<ImageBreakpoint> imageBreakpoints = new ArrayList<>(
 			breakpointPresets.size());
@@ -262,26 +203,6 @@ public class CDNImageTransformationProvider
 						scopedSettings, breakpointPreset,
 						responsiveImageRequest, widths),
 					lazy));
-		}
-
-		if (!_isTransformed(imageBreakpoints)) {
-
-			// No renderer is bound, so every width built the same URL. Emitting
-			// them would advertise one image at seven different widths, and the
-			// browser would trust the descriptors and render at the wrong
-			// density. An untransformed image is the honest answer.
-
-			if (_log.isWarnEnabled()) {
-				_log.warn(
-					StringBundler.concat(
-						"No image transformation URL renderer named \"",
-						scopedSettings._urlRendererName,
-						"\" is deployed, serving untransformed images"));
-			}
-
-			return ResponsiveImage.passthrough(
-				responsiveImageRequest.getImageResource(
-				).getURL());
 		}
 
 		// Still the untransformed original. Now that the provider owns this
@@ -345,32 +266,6 @@ public class CDNImageTransformationProvider
 		return scopedSettings;
 	}
 
-	private String _getSrcSet(
-		List<ImageBreakpointVariant> imageBreakpointVariants) {
-
-		StringBundler sb = new StringBundler(
-			imageBreakpointVariants.size() * 4);
-
-		for (ImageBreakpointVariant imageBreakpointVariant :
-				imageBreakpointVariants) {
-
-			if (imageBreakpointVariant.getWidth() == null) {
-				continue;
-			}
-
-			if (sb.index() > 0) {
-				sb.append(StringPool.COMMA_AND_SPACE);
-			}
-
-			sb.append(imageBreakpointVariant.getURL());
-			sb.append(StringPool.SPACE);
-			sb.append(imageBreakpointVariant.getWidth());
-			sb.append("w");
-		}
-
-		return sb.toString();
-	}
-
 	/**
 	 * Returns the widths worth generating, bounded by the placement's maximum.
 	 *
@@ -405,150 +300,6 @@ public class CDNImageTransformationProvider
 		}
 
 		return widths;
-	}
-
-	private String _injectAttributes(String imgTag, String attributes) {
-		int i = imgTag.indexOf("<img");
-
-		if (i == -1) {
-			return imgTag;
-		}
-
-		return StringBundler.concat(
-			imgTag.substring(0, i + 4), StringPool.SPACE, attributes,
-			imgTag.substring(i + 4));
-	}
-
-	/**
-	 * Returns whether this image is lazily loaded: what the caller asked for if
-	 * it said anything, otherwise what the placement declares, otherwise eager.
-	 */
-	private boolean _isLazy(
-		ImagePreset imagePreset,
-		ResponsiveImageRequest responsiveImageRequest) {
-
-		Boolean lazy = responsiveImageRequest.getLazy();
-
-		if (lazy != null) {
-			return lazy;
-		}
-
-		lazy = imagePreset.getLazy();
-
-		if (lazy != null) {
-			return lazy;
-		}
-
-		return false;
-	}
-
-	/**
-	 * Returns <code>true</code> if building actually changed anything.
-	 *
-	 * <p>
-	 * Two variants in one breakpoint differ only by width, so identical URLs mean
-	 * the width never reached the URL. Comparing within a breakpoint rather than
-	 * against the original is what makes this work regardless of the CDN host
-	 * and proxy path the builder prepends.
-	 * </p>
-	 */
-	private boolean _isTransformed(List<ImageBreakpoint> imageBreakpoints) {
-		for (ImageBreakpoint imageBreakpoint : imageBreakpoints) {
-			List<ImageBreakpointVariant> imageBreakpointVariants =
-				imageBreakpoint.getVariants();
-
-			if (imageBreakpointVariants.size() < 2) {
-				continue;
-			}
-
-			ImageBreakpointVariant firstImageBreakpointVariant =
-				imageBreakpointVariants.get(0);
-			ImageBreakpointVariant secondImageBreakpointVariant =
-				imageBreakpointVariants.get(1);
-
-			return !Objects.equals(
-				firstImageBreakpointVariant.getURL(),
-				secondImageBreakpointVariant.getURL());
-		}
-
-		return true;
-	}
-
-	private String _renderImg(
-		ImageBreakpoint imageBreakpoint, boolean lazy, String originalImgTag) {
-
-		StringBundler sb = new StringBundler(7);
-
-		sb.append("srcset=\"");
-		sb.append(
-			HtmlUtil.escapeAttribute(
-				_getSrcSet(imageBreakpoint.getVariants())));
-		sb.append("\"");
-
-		String sizes = imageBreakpoint.getSizes();
-
-		if (!Validator.isBlank(sizes)) {
-			sb.append(" sizes=\"");
-			sb.append(HtmlUtil.escapeAttribute(sizes));
-			sb.append("\"");
-		}
-
-		// sizes="auto" is only honored on a lazily loaded image, so the two
-		// attributes have to be emitted together or not at all.
-
-		if (lazy && !originalImgTag.contains("loading=")) {
-			sb.append(" loading=\"lazy\"");
-		}
-
-		return _injectAttributes(originalImgTag, sb.toString());
-	}
-
-	private String _renderPicture(
-		List<ImageBreakpoint> imageBreakpoints, boolean lazy,
-		String originalImgTag) {
-
-		StringBundler sb = new StringBundler((imageBreakpoints.size() * 7) + 3);
-
-		sb.append("<picture>");
-
-		for (ImageBreakpoint imageBreakpoint : imageBreakpoints) {
-			String mediaQuery = imageBreakpoint.getMediaQuery();
-
-			if (Validator.isBlank(mediaQuery)) {
-				continue;
-			}
-
-			sb.append("<source media=\"");
-			sb.append(HtmlUtil.escapeAttribute(mediaQuery));
-			sb.append("\" srcset=\"");
-			sb.append(
-				HtmlUtil.escapeAttribute(
-					_getSrcSet(imageBreakpoint.getVariants())));
-			sb.append("\"");
-
-			String sizes = imageBreakpoint.getSizes();
-
-			if (!Validator.isBlank(sizes)) {
-				sb.append(" sizes=\"");
-				sb.append(HtmlUtil.escapeAttribute(sizes));
-				sb.append("\"");
-			}
-
-			sb.append(" />");
-		}
-
-		// The last breakpoint also feeds the img element, which is both the
-		// fallback for browsers without picture support and the final source
-		// when no media condition matches.
-
-		sb.append(
-			_renderImg(
-				imageBreakpoints.get(imageBreakpoints.size() - 1), lazy,
-				originalImgTag));
-
-		sb.append("</picture>");
-
-		return sb.toString();
 	}
 
 	/**

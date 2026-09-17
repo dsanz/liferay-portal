@@ -177,7 +177,7 @@ public class AMImageTransformationProvider
 		ImageResource imageResource = responsiveImageRequest.getImageResource();
 
 		if (!(imageResource instanceof FileEntryImageResource)) {
-			return originalImgTag;
+			return null;
 		}
 
 		FileEntryImageResource fileEntryImageResource =
@@ -218,12 +218,6 @@ public class AMImageTransformationProvider
 				url,
 				ImageBreakpointVariantBuilder.url(
 					url
-				).identifier(
-					amImageEntry.getConfigurationUuid()
-				).label(
-					amImageConfigurationEntry.getName()
-				).size(
-					amImageEntry.getSize()
 				).width(
 					amImageEntry.getWidth()
 				).build());
