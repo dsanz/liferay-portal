@@ -27,7 +27,7 @@ import java.util.Map;
  *
  * <p>
  * Register with a {@link #RENDERER_NAME} service property naming the provider,
- * which is how callers select one:
+ * which is how a caller finds the one its configuration asks for:
  * </p>
  *
  * <pre>
@@ -49,9 +49,15 @@ import java.util.Map;
 public interface ImageTransformationURLRenderer {
 
 	/**
-	 * The service property naming the provider this renderer speaks for, and
-	 * the value {@link TransformedImageAbsolutePortalURLBuilder#rendererName(
-	 * String)} is matched against.
+	 * The service property naming the provider this renderer speaks for.
+	 *
+	 * <p>
+	 * Resolving a name to a renderer is the caller's job, not this package's:
+	 * the name comes from the caller's own configuration, so it indexes the
+	 * registered renderers itself and hands the chosen one to {@link
+	 * TransformedImageAbsolutePortalURLBuilder#renderer(
+	 * ImageTransformationURLRenderer)}.
+	 * </p>
 	 */
 	public static final String RENDERER_NAME =
 		"image.transformation.renderer.name";

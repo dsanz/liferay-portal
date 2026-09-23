@@ -16,11 +16,13 @@ import com.liferay.image.transformation.internal.configuration.ImageTransformati
 import com.liferay.image.transformation.preset.BreakpointPreset;
 import com.liferay.image.transformation.preset.ImagePreset;
 import com.liferay.image.transformation.preset.ImagePresetResolver;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilderFactory;
+import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
 import com.liferay.portal.url.builder.TransformedImageAbsolutePortalURLBuilder;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -105,6 +107,15 @@ public class CDNImageTransformationProviderTest {
 		ReflectionTestUtil.setFieldValue(
 			_cdnImageTransformationProvider, "_absolutePortalURLBuilderFactory",
 			_absolutePortalURLBuilderFactory);
+		Mockito.when(
+			_serviceTrackerMap.getService("fastly")
+		).thenReturn(
+			_imageTransformationURLRenderer
+		);
+
+		ReflectionTestUtil.setFieldValue(
+			_cdnImageTransformationProvider, "_serviceTrackerMap",
+			_serviceTrackerMap);
 		ReflectionTestUtil.setFieldValue(
 			_cdnImageTransformationProvider, "_imagePresetResolver",
 			_imagePresetResolver);
@@ -117,16 +128,19 @@ public class CDNImageTransformationProviderTest {
 	@Test
 	public void testConfiguredRendererNameReachesTheURLBuilder() {
 
-		// Which vendor spells the URLs is a configuration decision, so the
-		// builder must be told rather than left to pick by service ranking.
+		// Which vendor spells the URLs is a configuration decision, so this
+		// provider resolves the configured name against the registered
+		// renderers and hands the builder the one it found, rather than
+		// leaving the builder to pick by service ranking.
 
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
 
 		_firstGroupVariants();
 
 		Assert.assertEquals(
-			_rendererNames.toString(), Collections.singleton("fastly"),
-			_rendererNames);
+			_imageTransformationURLRenderers.toString(),
+			Collections.singleton(_imageTransformationURLRenderer),
+			_imageTransformationURLRenderers);
 	}
 
 	@Test
@@ -314,12 +328,12 @@ public class CDNImageTransformationProviderTest {
 						TransformedImageAbsolutePortalURLBuilder.class);
 
 				Mockito.when(
-					transformedImageAbsolutePortalURLBuilder.rendererName(
-						Mockito.nullable(String.class))
+					transformedImageAbsolutePortalURLBuilder.renderer(
+						Mockito.nullable(ImageTransformationURLRenderer.class))
 				).thenAnswer(
-					rendererNameInvocation -> {
-						_rendererNames.add(
-							rendererNameInvocation.getArgument(0));
+					rendererInvocation -> {
+						_imageTransformationURLRenderers.add(
+							rendererInvocation.getArgument(0));
 
 						return transformedImageAbsolutePortalURLBuilder;
 					}
@@ -405,6 +419,14 @@ public class CDNImageTransformationProviderTest {
 	private final ImageTransformationConfigurationHelper
 		_imageTransformationConfigurationHelper = Mockito.mock(
 			ImageTransformationConfigurationHelper.class);
-	private final Set<String> _rendererNames = new HashSet<>();
+	private final ImageTransformationURLRenderer
+		_imageTransformationURLRenderer = Mockito.mock(
+			ImageTransformationURLRenderer.class);
+	private final Set<ImageTransformationURLRenderer>
+		_imageTransformationURLRenderers = new HashSet<>();
+
+	@SuppressWarnings("unchecked")
+	private final ServiceTrackerMap<String, ImageTransformationURLRenderer>
+		_serviceTrackerMap = Mockito.mock(ServiceTrackerMap.class);
 
 }

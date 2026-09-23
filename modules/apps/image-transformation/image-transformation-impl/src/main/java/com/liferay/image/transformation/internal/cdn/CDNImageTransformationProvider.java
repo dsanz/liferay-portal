@@ -17,6 +17,8 @@ import com.liferay.image.transformation.preset.BreakpointPreset;
 import com.liferay.image.transformation.preset.ImagePreset;
 import com.liferay.image.transformation.preset.ImagePresetResolver;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.log.Log;
@@ -27,6 +29,7 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilderFactory;
+import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
 import com.liferay.portal.url.builder.TransformedImageAbsolutePortalURLBuilder;
 
 import java.util.ArrayList;
@@ -38,8 +41,10 @@ import java.util.Map;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
@@ -103,10 +108,24 @@ public class CDNImageTransformationProvider
 	}
 
 	@Activate
-	protected void activate() {
+	protected void activate(BundleContext bundleContext) {
 		_imageTransformationConfigurationHelper =
 			new ImageTransformationConfigurationHelper(
 				_configurationProvider, _portal);
+
+		// Indexed by name here rather than in the URL builder: the name comes
+		// from this provider's own configuration, so this is where resolving it
+		// belongs. Empty is normal, and means transformations are dropped
+		// rather than that anything is wrong.
+
+		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+			bundleContext, ImageTransformationURLRenderer.class,
+			ImageTransformationURLRenderer.RENDERER_NAME);
+	}
+
+	@Deactivate
+	protected void deactivate() {
+		_serviceTrackerMap.close();
 	}
 
 	private String _buildURL(
@@ -122,8 +141,9 @@ public class CDNImageTransformationProvider
 			transformedImageAbsolutePortalURLBuilder =
 				absolutePortalURLBuilder.forTransformedImage(
 					url
-				).rendererName(
-					scopedSettings._urlRendererName
+				).renderer(
+					_getImageTransformationURLRenderer(
+						scopedSettings._urlRendererName)
 				);
 
 		for (Map.Entry<String, String> entry : transformations.entrySet()) {
@@ -172,6 +192,23 @@ public class CDNImageTransformationProvider
 		}
 
 		return imageBreakpointVariants;
+	}
+
+	private ImageTransformationURLRenderer _getImageTransformationURLRenderer(
+		String urlRendererName) {
+
+		if (Validator.isBlank(urlRendererName)) {
+			return null;
+		}
+
+		ImageTransformationURLRenderer imageTransformationURLRenderer =
+			_serviceTrackerMap.getService(urlRendererName);
+
+		if ((imageTransformationURLRenderer == null) && _log.isDebugEnabled()) {
+			_log.debug("No URL renderer is named " + urlRendererName);
+		}
+
+		return imageTransformationURLRenderer;
 	}
 
 	private ResponsiveImage _getResponsiveImage(
@@ -398,6 +435,8 @@ public class CDNImageTransformationProvider
 
 	private final Map<Long, ScopedSettings> _scopedSettings =
 		new ConcurrentHashMap<>();
+	private ServiceTrackerMap<String, ImageTransformationURLRenderer>
+		_serviceTrackerMap;
 
 	private static class ScopedSettings {
 

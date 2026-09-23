@@ -5,10 +5,8 @@
 
 package com.liferay.portal.url.builder.internal;
 
-import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
 import com.liferay.portal.url.builder.TransformedImageAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.internal.util.URLUtil;
@@ -31,13 +29,9 @@ public class TransformedImageAbsolutePortalURLBuilderImpl
 	public static final String TRANSFORMATION_WIDTH = "width";
 
 	public TransformedImageAbsolutePortalURLBuilderImpl(
-		String cdnHost,
-		ServiceTrackerMap<String, ImageTransformationURLRenderer>
-			serviceTrackerMap,
-		String pathProxy, String imagePath) {
+		String cdnHost, String pathProxy, String imagePath) {
 
 		_cdnHost = cdnHost;
-		_serviceTrackerMap = serviceTrackerMap;
 		_pathProxy = pathProxy;
 		_imagePath = imagePath;
 
@@ -54,18 +48,13 @@ public class TransformedImageAbsolutePortalURLBuilderImpl
 
 		String url = sb.toString();
 
-		if (_transformations.isEmpty()) {
+		if (_transformations.isEmpty() ||
+			(_imageTransformationURLRenderer == null)) {
+
 			return url;
 		}
 
-		ImageTransformationURLRenderer imageTransformationURLRenderer =
-			_getImageTransformationURLRenderer();
-
-		if (imageTransformationURLRenderer == null) {
-			return url;
-		}
-
-		return imageTransformationURLRenderer.render(url, _transformations);
+		return _imageTransformationURLRenderer.render(url, _transformations);
 	}
 
 	@Override
@@ -104,10 +93,10 @@ public class TransformedImageAbsolutePortalURLBuilderImpl
 	}
 
 	@Override
-	public TransformedImageAbsolutePortalURLBuilder rendererName(
-		String rendererName) {
+	public TransformedImageAbsolutePortalURLBuilder renderer(
+		ImageTransformationURLRenderer imageTransformationURLRenderer) {
 
-		_rendererName = rendererName;
+		_imageTransformationURLRenderer = imageTransformationURLRenderer;
 
 		return this;
 	}
@@ -117,23 +106,11 @@ public class TransformedImageAbsolutePortalURLBuilderImpl
 		return param(TRANSFORMATION_WIDTH, String.valueOf(width));
 	}
 
-	private ImageTransformationURLRenderer
-		_getImageTransformationURLRenderer() {
-
-		if ((_serviceTrackerMap == null) || Validator.isBlank(_rendererName)) {
-			return null;
-		}
-
-		return _serviceTrackerMap.getService(_rendererName);
-	}
-
 	private final String _cdnHost;
 	private boolean _ignoreCDNHost;
 	private final String _imagePath;
+	private ImageTransformationURLRenderer _imageTransformationURLRenderer;
 	private final String _pathProxy;
-	private String _rendererName;
-	private final ServiceTrackerMap<String, ImageTransformationURLRenderer>
-		_serviceTrackerMap;
 
 	/**
 	 * Sorted so that equal transformations always render to a byte identical

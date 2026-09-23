@@ -50,7 +50,7 @@ public class PortalImageAbsolutePortalURLBuilderTest
 
 		_absolutePortalURLBuilder = new AbsolutePortalURLBuilderImpl(
 			mockCacheHelper(),
-			mockHashedFilesRegistry(CachingStrategy.DO_NOT_USE_HASHES), null,
+			mockHashedFilesRegistry(CachingStrategy.DO_NOT_USE_HASHES),
 			mockPortal(context, proxy, cdnHost), mockHttpServletRequest());
 
 		_portalImageAbsolutePortalURLBuilder =

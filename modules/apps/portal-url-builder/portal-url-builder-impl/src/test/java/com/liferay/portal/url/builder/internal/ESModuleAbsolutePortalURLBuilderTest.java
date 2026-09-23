@@ -96,7 +96,7 @@ public class ESModuleAbsolutePortalURLBuilderTest
 		super.setUp();
 
 		_absolutePortalURLBuilder = new AbsolutePortalURLBuilderImpl(
-			mockCacheHelper(), mockHashedFilesRegistry(cachingStrategy), null,
+			mockCacheHelper(), mockHashedFilesRegistry(cachingStrategy),
 			mockPortal(context, proxy, cdnHost), mockHttpServletRequest());
 	}
 

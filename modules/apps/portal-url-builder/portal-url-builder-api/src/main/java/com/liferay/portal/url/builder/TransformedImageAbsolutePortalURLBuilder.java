@@ -71,23 +71,22 @@ public interface TransformedImageAbsolutePortalURLBuilder
 	public TransformedImageAbsolutePortalURLBuilder quality(int quality);
 
 	/**
-	 * Selects which registered {@link ImageTransformationURLRenderer} spells
-	 * the transformations, by its {@link
-	 * ImageTransformationURLRenderer#RENDERER_NAME} service property.
+	 * Sets the renderer that spells the transformations.
 	 *
 	 * <p>
 	 * Required in order for anything to be transformed. Which provider serves a
-	 * given image is a configuration decision belonging to the caller, so this
-	 * builder resolves the name but never guesses it: with no name, or a name
-	 * nothing is registered under, the transformations are dropped and the
-	 * untransformed URL is returned.
+	 * given image is a configuration decision, and the caller is the one
+	 * holding that configuration, so it supplies the renderer rather than
+	 * naming one for this builder to look up. Passing <code>null</code>, which
+	 * is what a caller that cannot resolve one should do, drops the
+	 * transformations and returns the untransformed URL.
 	 * </p>
 	 *
-	 * @param  rendererName the renderer's name, for example <code>fastly</code>
+	 * @param  imageTransformationURLRenderer the renderer, or <code>null</code>
 	 * @return this builder
 	 */
-	public TransformedImageAbsolutePortalURLBuilder rendererName(
-		String rendererName);
+	public TransformedImageAbsolutePortalURLBuilder renderer(
+		ImageTransformationURLRenderer imageTransformationURLRenderer);
 
 	/**
 	 * Requests the given output width, in pixels.
