@@ -143,11 +143,11 @@ public class AbsolutePortalURLBuilderImpl implements AbsolutePortalURLBuilder {
 
 	@Override
 	public TransformedImageAbsolutePortalURLBuilder forTransformedImage(
-		String relativeURL) {
+		String imagePath) {
 
 		return new TransformedImageAbsolutePortalURLBuilderImpl(
 			_getCDNHost(_httpServletRequest), _serviceTrackerMap, _pathProxy,
-			relativeURL);
+			imagePath);
 	}
 
 	@Override

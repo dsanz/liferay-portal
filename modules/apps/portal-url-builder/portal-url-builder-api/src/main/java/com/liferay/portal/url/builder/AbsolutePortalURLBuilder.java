@@ -129,17 +129,17 @@ public interface AbsolutePortalURLBuilder {
 	 * provider may transform on the fly.
 	 *
 	 * <p>
-	 * Unlike the other builders, the relative URL is not resolved against a
-	 * well known portal root: transformable images live wherever their
-	 * repository put them, so the caller supplies a complete portal relative
-	 * path (e.g. /documents/...).
+	 * Unlike the other builders, the path is not resolved against a well known
+	 * portal root: transformable images live wherever their repository put
+	 * them, so the caller supplies a complete portal relative path (e.g.
+	 * /documents/...).
 	 * </p>
 	 *
-	 * @param  relativeURL the image's portal relative URL
+	 * @param  imagePath the image's portal relative path
 	 * @return a URL builder for transformable images
 	 */
 	public TransformedImageAbsolutePortalURLBuilder forTransformedImage(
-		String relativeURL);
+		String imagePath);
 
 	/**
 	 * Returns a URL builder for a JavaScript file using the new caching

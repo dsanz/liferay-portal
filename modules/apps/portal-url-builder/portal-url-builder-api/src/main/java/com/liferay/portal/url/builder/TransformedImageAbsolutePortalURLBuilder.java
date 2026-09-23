@@ -13,7 +13,7 @@ import com.liferay.portal.url.builder.facet.CDNAwareAbsolutePortalURLBuilder;
  * transform on the fly.
  *
  * <p>
- * Unlike the other builders in this package, the relative URL passed to {@link
+ * Unlike the other builders in this package, the path passed to {@link
  * AbsolutePortalURLBuilder#forTransformedImage(String)} is <b>not</b> resolved
  * against a well known portal root such as {@code Portal#PATH_IMAGE}. Images
  * that can be transformed live wherever the repository put them (for example

@@ -34,12 +34,12 @@ public class TransformedImageAbsolutePortalURLBuilderImpl
 		String cdnHost,
 		ServiceTrackerMap<String, ImageTransformationURLRenderer>
 			serviceTrackerMap,
-		String pathProxy, String relativeURL) {
+		String pathProxy, String imagePath) {
 
 		_cdnHost = cdnHost;
 		_serviceTrackerMap = serviceTrackerMap;
 		_pathProxy = pathProxy;
-		_relativeURL = relativeURL;
+		_imagePath = imagePath;
 
 		_ignoreCDNHost = false;
 	}
@@ -50,7 +50,7 @@ public class TransformedImageAbsolutePortalURLBuilderImpl
 
 		URLUtil.appendURL(
 			sb, _cdnHost, _ignoreCDNHost, StringPool.BLANK, _pathProxy,
-			_relativeURL);
+			_imagePath);
 
 		String url = sb.toString();
 
@@ -129,8 +129,8 @@ public class TransformedImageAbsolutePortalURLBuilderImpl
 
 	private final String _cdnHost;
 	private boolean _ignoreCDNHost;
+	private final String _imagePath;
 	private final String _pathProxy;
-	private final String _relativeURL;
 	private String _rendererName;
 	private final ServiceTrackerMap<String, ImageTransformationURLRenderer>
 		_serviceTrackerMap;
