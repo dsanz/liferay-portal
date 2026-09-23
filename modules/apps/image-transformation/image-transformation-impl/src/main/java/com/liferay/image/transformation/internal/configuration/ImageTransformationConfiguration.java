@@ -180,7 +180,7 @@ public interface ImageTransformationConfiguration {
 	 * is also what happens if it names a renderer that is not deployed.
 	 * </p>
 	 */
-	@Meta.AD(deflt = "", name = "renderer-name", required = false)
+	@Meta.AD(deflt = "", name = "url-renderer-name", required = false)
 	public String urlRendererName();
 
 	/**
