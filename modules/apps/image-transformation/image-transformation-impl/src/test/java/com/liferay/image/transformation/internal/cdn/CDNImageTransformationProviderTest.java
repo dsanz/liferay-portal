@@ -328,7 +328,7 @@ public class CDNImageTransformationProviderTest {
 						TransformedImageAbsolutePortalURLBuilder.class);
 
 				Mockito.when(
-					transformedImageAbsolutePortalURLBuilder.renderer(
+					transformedImageAbsolutePortalURLBuilder.setRenderer(
 						Mockito.nullable(ImageTransformationURLRenderer.class))
 				).thenAnswer(
 					rendererInvocation -> {
@@ -340,7 +340,7 @@ public class CDNImageTransformationProviderTest {
 				);
 
 				Mockito.when(
-					transformedImageAbsolutePortalURLBuilder.param(
+					transformedImageAbsolutePortalURLBuilder.addTransformation(
 						Mockito.anyString(), Mockito.anyString())
 				).thenAnswer(
 					paramInvocation -> {

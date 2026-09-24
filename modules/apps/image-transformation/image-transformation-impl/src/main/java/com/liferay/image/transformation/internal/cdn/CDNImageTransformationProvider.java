@@ -141,13 +141,13 @@ public class CDNImageTransformationProvider
 			transformedImageAbsolutePortalURLBuilder =
 				absolutePortalURLBuilder.forTransformedImage(
 					url
-				).renderer(
+				).setRenderer(
 					_getImageTransformationURLRenderer(
 						scopedSettings._urlRendererName)
 				);
 
 		for (Map.Entry<String, String> entry : transformations.entrySet()) {
-			transformedImageAbsolutePortalURLBuilder.param(
+			transformedImageAbsolutePortalURLBuilder.addTransformation(
 				entry.getKey(), entry.getValue());
 		}
 

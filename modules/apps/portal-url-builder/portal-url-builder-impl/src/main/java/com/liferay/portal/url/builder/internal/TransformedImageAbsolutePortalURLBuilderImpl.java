@@ -20,14 +20,6 @@ import java.util.TreeMap;
 public class TransformedImageAbsolutePortalURLBuilderImpl
 	implements TransformedImageAbsolutePortalURLBuilder {
 
-	public static final String TRANSFORMATION_FORMAT = "format";
-
-	public static final String TRANSFORMATION_HEIGHT = "height";
-
-	public static final String TRANSFORMATION_QUALITY = "quality";
-
-	public static final String TRANSFORMATION_WIDTH = "width";
-
 	public TransformedImageAbsolutePortalURLBuilderImpl(
 		String cdnHost, String pathProxy, String imagePath) {
 
@@ -36,6 +28,19 @@ public class TransformedImageAbsolutePortalURLBuilderImpl
 		_imagePath = imagePath;
 
 		_ignoreCDNHost = false;
+	}
+
+	@Override
+	public TransformedImageAbsolutePortalURLBuilder addTransformation(
+		String name, String value) {
+
+		if ((name == null) || (value == null)) {
+			return this;
+		}
+
+		_transformations.put(name, value);
+
+		return this;
 	}
 
 	@Override
@@ -58,16 +63,6 @@ public class TransformedImageAbsolutePortalURLBuilderImpl
 	}
 
 	@Override
-	public TransformedImageAbsolutePortalURLBuilder format(String format) {
-		return param(TRANSFORMATION_FORMAT, format);
-	}
-
-	@Override
-	public TransformedImageAbsolutePortalURLBuilder height(int height) {
-		return param(TRANSFORMATION_HEIGHT, String.valueOf(height));
-	}
-
-	@Override
 	public TransformedImageAbsolutePortalURLBuilder ignoreCDNHost() {
 		_ignoreCDNHost = true;
 
@@ -75,35 +70,12 @@ public class TransformedImageAbsolutePortalURLBuilderImpl
 	}
 
 	@Override
-	public TransformedImageAbsolutePortalURLBuilder param(
-		String name, String value) {
-
-		if ((name == null) || (value == null)) {
-			return this;
-		}
-
-		_transformations.put(name, value);
-
-		return this;
-	}
-
-	@Override
-	public TransformedImageAbsolutePortalURLBuilder quality(int quality) {
-		return param(TRANSFORMATION_QUALITY, String.valueOf(quality));
-	}
-
-	@Override
-	public TransformedImageAbsolutePortalURLBuilder renderer(
+	public TransformedImageAbsolutePortalURLBuilder setRenderer(
 		ImageTransformationURLRenderer imageTransformationURLRenderer) {
 
 		_imageTransformationURLRenderer = imageTransformationURLRenderer;
 
 		return this;
-	}
-
-	@Override
-	public TransformedImageAbsolutePortalURLBuilder width(int width) {
-		return param(TRANSFORMATION_WIDTH, String.valueOf(width));
 	}
 
 	private final String _cdnHost;

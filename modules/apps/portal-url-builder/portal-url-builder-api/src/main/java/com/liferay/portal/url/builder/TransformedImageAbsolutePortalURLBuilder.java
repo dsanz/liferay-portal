@@ -36,39 +36,28 @@ public interface TransformedImageAbsolutePortalURLBuilder
 				<TransformedImageAbsolutePortalURLBuilder> {
 
 	/**
-	 * Requests the given output format (for example <code>webp</code>).
+	 * Requests a transformation, by the name the renderer's provider gives it.
 	 *
-	 * @param  format the output format
-	 * @return this builder
-	 */
-	public TransformedImageAbsolutePortalURLBuilder format(String format);
-
-	/**
-	 * Requests the given output height, in pixels.
+	 * <p>
+	 * Transformations are not modelled one method per option on purpose. Which
+	 * ones exist is the provider's vocabulary, not this builder's: Fastly alone
+	 * spells roughly thirty, they differ between providers, and callers get
+	 * them from configuration as name and value pairs already. Naming a few
+	 * here would imply the rest are unsupported.
+	 * </p>
 	 *
-	 * @param  height the output height
-	 * @return this builder
-	 */
-	public TransformedImageAbsolutePortalURLBuilder height(int height);
-
-	/**
-	 * Requests an arbitrary provider specific transformation. Use this for
-	 * options that this builder does not model explicitly.
+	 * <p>
+	 * Adding the same name twice replaces the earlier value, so a caller can
+	 * layer per placement transformations over defaults without checking what
+	 * is already there.
+	 * </p>
 	 *
 	 * @param  name the transformation name
 	 * @param  value the transformation value
 	 * @return this builder
 	 */
-	public TransformedImageAbsolutePortalURLBuilder param(
+	public TransformedImageAbsolutePortalURLBuilder addTransformation(
 		String name, String value);
-
-	/**
-	 * Requests the given output compression quality (0-100).
-	 *
-	 * @param  quality the output quality
-	 * @return this builder
-	 */
-	public TransformedImageAbsolutePortalURLBuilder quality(int quality);
 
 	/**
 	 * Sets the renderer that spells the transformations.
@@ -85,15 +74,7 @@ public interface TransformedImageAbsolutePortalURLBuilder
 	 * @param  imageTransformationURLRenderer the renderer, or <code>null</code>
 	 * @return this builder
 	 */
-	public TransformedImageAbsolutePortalURLBuilder renderer(
+	public TransformedImageAbsolutePortalURLBuilder setRenderer(
 		ImageTransformationURLRenderer imageTransformationURLRenderer);
-
-	/**
-	 * Requests the given output width, in pixels.
-	 *
-	 * @param  width the output width
-	 * @return this builder
-	 */
-	public TransformedImageAbsolutePortalURLBuilder width(int width);
 
 }
