@@ -26,13 +26,13 @@ import java.util.Map;
  * </p>
  *
  * <p>
- * Register with a {@link #RENDERER_NAME} service property naming the provider,
+ * Register with a {@link #URL_RENDERER_NAME} service property naming the provider,
  * which is how a caller finds the one its configuration asks for:
  * </p>
  *
  * <pre>
  * &#64;Component(
- *     property = "image.transformation.renderer.name=fastly",
+ *     property = "image.transformation.url.renderer.name=fastly",
  *     service = ImageTransformationURLRenderer.class
  * )
  * </pre>
@@ -59,8 +59,8 @@ public interface ImageTransformationURLRenderer {
 	 * ImageTransformationURLRenderer)}.
 	 * </p>
 	 */
-	public static final String RENDERER_NAME =
-		"image.transformation.renderer.name";
+	public static final String URL_RENDERER_NAME =
+		"image.transformation.url.renderer.name";
 
 	/**
 	 * Returns the URL with the given transformations applied.
