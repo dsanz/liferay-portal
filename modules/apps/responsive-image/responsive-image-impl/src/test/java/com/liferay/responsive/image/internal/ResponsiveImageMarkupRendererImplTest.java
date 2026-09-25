@@ -6,6 +6,7 @@
 package com.liferay.responsive.image.internal;
 
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.responsive.image.ImageResource;
 import com.liferay.responsive.image.ResponsiveImage;
@@ -38,6 +39,7 @@ import org.mockito.Mockito;
  *
  * @author Daniel Sanz
  */
+@FeatureFlag("LPD-94784")
 public class ResponsiveImageMarkupRendererImplTest {
 
 	@ClassRule
@@ -101,6 +103,27 @@ public class ResponsiveImageMarkupRendererImplTest {
 			_ORIGINAL_IMG_TAG, _request());
 
 		Assert.assertEquals(_ORIGINAL_IMG_TAG, markup);
+	}
+
+	@FeatureFlag(enable = false, value = "LPD-94784")
+	@Test
+	public void testPassesThroughWhenTheFeatureFlagIsDisabled()
+		throws Exception {
+
+		_givenPreset(_breakpointDefinition(null, "100vw"));
+		_givenResponsiveImage(
+			ResponsiveImageBreakpoint.of(
+				null, "100vw",
+				Arrays.asList(
+					_variant("/documents/1/2/photo.jpg?width=320", 320),
+					_variant("/documents/1/2/photo.jpg?width=640", 640))));
+
+		String markup = _responsiveImageMarkupRendererImpl.render(
+			_ORIGINAL_IMG_TAG, _request());
+
+		Assert.assertEquals(_ORIGINAL_IMG_TAG, markup);
+
+		Mockito.verifyNoInteractions(_responsiveImageProviderSelector);
 	}
 
 	@Test

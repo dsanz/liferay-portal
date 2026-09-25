@@ -11,6 +11,7 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
@@ -79,6 +80,19 @@ public class ResponsiveImageMarkupRendererImpl
 		throws PortalException {
 
 		if (responsiveImageRequest == null) {
+			return originalImgTag;
+		}
+
+		// The cut for the whole feature. Off returns the tag the caller already
+		// had, which is what it would have rendered before any of this existed.
+		// Checked per company rather than per deployment, because an OSGi
+		// registration is global while enabling a feature is not.
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				_responsiveImageConfigurationHelper.getCompanyId(
+					responsiveImageRequest),
+				"LPD-94784")) {
+
 			return originalImgTag;
 		}
 

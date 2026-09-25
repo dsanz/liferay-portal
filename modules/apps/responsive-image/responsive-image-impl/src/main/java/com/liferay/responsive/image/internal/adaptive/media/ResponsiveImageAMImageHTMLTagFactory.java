@@ -7,6 +7,7 @@ package com.liferay.responsive.image.internal.adaptive.media;
 
 import com.liferay.adaptive.media.image.html.AMImageHTMLTagFactory;
 import com.liferay.portal.kernel.exception.PortalException;
+import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
@@ -77,6 +78,18 @@ public class ResponsiveImageAMImageHTMLTagFactory
 	public String create(String originalImgTag, FileEntry fileEntry)
 		throws PortalException {
 
+		// The second cut, so that an instance with the feature off never enters
+		// the framework at all. It must hand back Adaptive Media's own markup
+		// rather than the untransformed tag, because this factory outranks the
+		// real one: returning the tag would silently drop the <picture> that
+		// Adaptive Media would have produced.
+
+		if (!FeatureFlagManagerUtil.isEnabled(
+				fileEntry.getCompanyId(), "LPD-94784")) {
+
+			return _amImageHTMLTagFactory.create(originalImgTag, fileEntry);
+		}
+
 		// Best effort on the request. This interface has no way to carry one,
 		// and the content transformer chain that calls it has none either, so
 		// most of the time there is nothing to find. Absent it, the company
@@ -101,6 +114,9 @@ public class ResponsiveImageAMImageHTMLTagFactory
 
 		return serviceContext.getRequest();
 	}
+
+	@Reference(target = "(!(" + PROPERTY_DELEGATING + "=true))")
+	private AMImageHTMLTagFactory _amImageHTMLTagFactory;
 
 	@Reference
 	private ImageResourceFactory _imageResourceFactory;
