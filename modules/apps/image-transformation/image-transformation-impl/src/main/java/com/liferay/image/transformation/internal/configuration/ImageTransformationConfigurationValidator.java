@@ -5,8 +5,6 @@
 
 package com.liferay.image.transformation.internal.configuration;
 
-import com.liferay.image.transformation.preset.BreakpointPreset;
-import com.liferay.image.transformation.preset.ImagePreset;
 import com.liferay.petra.string.StringBundler;
 
 import java.util.ArrayList;
@@ -52,14 +50,16 @@ public class ImageTransformationConfigurationValidator {
 	/**
 	 * Returns the element the given preset renders as.
 	 *
-	 * @param  imagePreset the preset
+	 * @param  presetDefinition the preset
 	 * @return the element
 	 */
-	public static MarkupShape getMarkupShape(ImagePreset imagePreset) {
-		List<BreakpointPreset> breakpointPresets =
-			imagePreset.getBreakpointPresets();
+	public static MarkupShape getMarkupShape(
+		PresetDefinition presetDefinition) {
 
-		if (breakpointPresets.size() > 1) {
+		List<BreakpointDefinition> breakpointDefinitions =
+			presetDefinition.getBreakpointDefinitions();
+
+		if (breakpointDefinitions.size() > 1) {
 			return MarkupShape.PICTURE;
 		}
 
@@ -69,25 +69,27 @@ public class ImageTransformationConfigurationValidator {
 	/**
 	 * Returns one message per problem found, or an empty list.
 	 *
-	 * @param  imagePresets the presets parsed from configuration
+	 * @param  presetDefinitions the presets parsed from configuration
 	 * @return the problems
 	 */
-	public static List<String> validate(Map<String, ImagePreset> imagePresets) {
+	public static List<String> validate(
+		Map<String, PresetDefinition> presetDefinitions) {
+
 		List<String> problems = new ArrayList<>();
 
-		for (ImagePreset imagePreset : imagePresets.values()) {
-			List<BreakpointPreset> breakpointPresets =
-				imagePreset.getBreakpointPresets();
+		for (PresetDefinition presetDefinition : presetDefinitions.values()) {
+			List<BreakpointDefinition> breakpointDefinitions =
+				presetDefinition.getBreakpointDefinitions();
 
-			if (breakpointPresets.size() < 2) {
+			if (breakpointDefinitions.size() < 2) {
 				continue;
 			}
 
-			if (_isInterchangeable(breakpointPresets)) {
+			if (_isInterchangeable(breakpointDefinitions)) {
 				problems.add(
 					StringBundler.concat(
-						"Preset ", imagePreset.getName(), " declares ",
-						breakpointPresets.size(),
+						"Preset ", presetDefinition.getName(), " declares ",
+						breakpointDefinitions.size(),
 						" breakpoints that generate the same image, so it ",
 						"renders a <picture> whose sources are ",
 						"interchangeable. Declare a single unconditional ",
@@ -96,10 +98,10 @@ public class ImageTransformationConfigurationValidator {
 						"choice to the browser"));
 			}
 
-			if (_isFormatSwitching(breakpointPresets)) {
+			if (_isFormatSwitching(breakpointDefinitions)) {
 				problems.add(
 					StringBundler.concat(
-						"Preset ", imagePreset.getName(),
+						"Preset ", presetDefinition.getName(),
 						" changes output format between breakpoints, which a ",
 						"<source> cannot express: it is selected by media ",
 						"condition alone, so a browser that does not support ",
@@ -117,12 +119,12 @@ public class ImageTransformationConfigurationValidator {
 	 * ones a media condition is the wrong way to choose between.
 	 */
 	private static Map<String, String> _getFormats(
-		BreakpointPreset breakpointPreset) {
+		BreakpointDefinition breakpointDefinition) {
 
 		Map<String, String> formats = new LinkedHashMap<>();
 
 		Map<String, String> transformations =
-			breakpointPreset.getTransformations();
+			breakpointDefinition.getTransformations();
 
 		for (String formatKey : _FORMAT_KEYS) {
 			String value = transformations.get(formatKey);
@@ -136,12 +138,14 @@ public class ImageTransformationConfigurationValidator {
 	}
 
 	private static boolean _isFormatSwitching(
-		List<BreakpointPreset> breakpointPresets) {
+		List<BreakpointDefinition> breakpointDefinitions) {
 
-		Map<String, String> formats = _getFormats(breakpointPresets.get(0));
+		Map<String, String> formats = _getFormats(breakpointDefinitions.get(0));
 
-		for (BreakpointPreset breakpointPreset : breakpointPresets) {
-			if (!formats.equals(_getFormats(breakpointPreset))) {
+		for (BreakpointDefinition breakpointDefinition :
+				breakpointDefinitions) {
+
+			if (!formats.equals(_getFormats(breakpointDefinition))) {
 				return true;
 			}
 		}
@@ -162,18 +166,21 @@ public class ImageTransformationConfigurationValidator {
 	 * </p>
 	 */
 	private static boolean _isInterchangeable(
-		List<BreakpointPreset> breakpointPresets) {
+		List<BreakpointDefinition> breakpointDefinitions) {
 
-		BreakpointPreset firstBreakpointPreset = breakpointPresets.get(0);
+		BreakpointDefinition firstBreakpointDefinition =
+			breakpointDefinitions.get(0);
 
-		Integer maxWidth = firstBreakpointPreset.getMaxWidth();
+		Integer maxWidth = firstBreakpointDefinition.getMaxWidth();
 		Map<String, String> transformations =
-			firstBreakpointPreset.getTransformations();
+			firstBreakpointDefinition.getTransformations();
 
-		for (BreakpointPreset breakpointPreset : breakpointPresets) {
-			if (!Objects.equals(maxWidth, breakpointPreset.getMaxWidth()) ||
+		for (BreakpointDefinition breakpointDefinition :
+				breakpointDefinitions) {
+
+			if (!Objects.equals(maxWidth, breakpointDefinition.getMaxWidth()) ||
 				!transformations.equals(
-					breakpointPreset.getTransformations())) {
+					breakpointDefinition.getTransformations())) {
 
 				return false;
 			}

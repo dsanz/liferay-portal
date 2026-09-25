@@ -5,9 +5,6 @@
 
 package com.liferay.image.transformation.internal.configuration;
 
-import com.liferay.image.transformation.preset.BreakpointPreset;
-import com.liferay.image.transformation.preset.ImagePreset;
-import com.liferay.image.transformation.preset.ImagePresetResolver;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
@@ -26,46 +23,46 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-
 /**
- * Parses the flat preset configuration into {@link ImagePreset} objects.
+ * Resolves a preset name against configuration.
  *
  * <p>
- * Flat because OSGi configuration files are flat: they hold typed key value
- * pairs and arrays of strings, with no nesting. The breakpoint segment in a
- * preset key is what lets one preset describe several media conditions without a
- * structured format.
+ * Presets are framework owned rather than provider owned, so that layout
+ * is described once regardless of which provider is serving images. Providers
+ * consume this; they do not define it.
  * </p>
  *
  * <p>
- * Breakpoints are parsed separately and referenced by name, so a media
- * condition is written once for the whole installation rather than repeated in
- * every preset that uses it.
+ * Configuration is instance scoped, so the same preset name can resolve
+ * differently for two companies in the same JVM.
  * </p>
  *
  * @author Daniel Sanz
  */
-@Component(service = ImagePresetResolver.class)
-public class ImagePresetResolverImpl implements ImagePresetResolver {
+public class PresetDefinitionResolver {
 
-	@Override
-	public ImagePreset resolve(
+	public PresetDefinitionResolver(
+		ConfigurationProvider configurationProvider, Portal portal) {
+
+		_imageTransformationConfigurationHelper =
+			new ImageTransformationConfigurationHelper(
+				configurationProvider, portal);
+	}
+
+	public PresetDefinition resolve(
 		long groupId, long companyId, String presetName) {
 
 		if (Validator.isBlank(presetName)) {
 			presetName = _NAME_DEFAULT;
 		}
 
-		Map<String, ImagePreset> imagePresets = _getImagePresets(
+		Map<String, PresetDefinition> presetDefinitions = _getPresetDefinitions(
 			groupId, companyId);
 
-		ImagePreset imagePreset = imagePresets.get(presetName);
+		PresetDefinition presetDefinition = presetDefinitions.get(presetName);
 
-		if (imagePreset != null) {
-			return imagePreset;
+		if (presetDefinition != null) {
+			return presetDefinition;
 		}
 
 		if (_log.isDebugEnabled()) {
@@ -73,13 +70,6 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 		}
 
 		return _FALLBACK;
-	}
-
-	@Activate
-	protected void activate() {
-		_imageTransformationConfigurationHelper =
-			new ImageTransformationConfigurationHelper(
-				_configurationProvider, _portal);
 	}
 
 	/**
@@ -93,7 +83,7 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 	 * invalidation on.
 	 * </p>
 	 */
-	private Map<String, ImagePreset> _getImagePresets(
+	private Map<String, PresetDefinition> _getPresetDefinitions(
 		long groupId, long companyId) {
 
 		ImageTransformationConfiguration imageTransformationConfiguration =
@@ -118,17 +108,18 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 		if ((parsedPresets != null) &&
 			(parsedPresets._contentHash == contentHash)) {
 
-			return parsedPresets._imagePresets;
+			return parsedPresets._presetDefinitions;
 		}
 
 		parsedPresets = new ParsedPresets(
-			contentHash, _toImagePresets(_toBreakpoints(breakpoints), presets));
+			contentHash,
+			_toPresetDefinitions(_toBreakpoints(breakpoints), presets));
 
 		_parsedPresets.put(scopeKey, parsedPresets);
 
-		_report(scopeKey, parsedPresets._imagePresets);
+		_report(scopeKey, parsedPresets._presetDefinitions);
 
-		return parsedPresets._imagePresets;
+		return parsedPresets._presetDefinitions;
 	}
 
 	/**
@@ -140,11 +131,13 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 	 * says anything new. Reporting per request would bury it.
 	 * </p>
 	 */
-	private void _report(long scopeKey, Map<String, ImagePreset> imagePresets) {
+	private void _report(
+		long scopeKey, Map<String, PresetDefinition> presetDefinitions) {
+
 		if (_log.isWarnEnabled()) {
 			for (String problem :
 					ImageTransformationConfigurationValidator.validate(
-						imagePresets)) {
+						presetDefinitions)) {
 
 				_log.warn(problem);
 			}
@@ -154,27 +147,27 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 			return;
 		}
 
-		for (ImagePreset imagePreset : imagePresets.values()) {
+		for (PresetDefinition presetDefinition : presetDefinitions.values()) {
 			_log.debug(
 				StringBundler.concat(
-					"Preset ", imagePreset.getName(), " of scope ", scopeKey,
-					" renders ",
+					"Preset ", presetDefinition.getName(), " of scope ",
+					scopeKey, " renders ",
 					ImageTransformationConfigurationValidator.getMarkupShape(
-						imagePreset)));
+						presetDefinition)));
 		}
 	}
 
 	/**
-	 * Orders presets by breakpoint declaration order rather than by the order a
-	 * preset's own keys appear, so ordering is decided once for the whole
-	 * installation. The unconditional preset always sorts last, being the catch
-	 * all.
+	 * Orders a preset's breakpoints by the order breakpoints are declared
+	 * rather than by the order the preset's own keys appear, so ordering is
+	 * decided once for the whole installation. The unconditional breakpoint
+	 * always sorts last, being the catch all.
 	 */
-	private List<BreakpointPreset> _toBreakpointPresets(
+	private List<BreakpointDefinition> _toBreakpointDefinitions(
 		Map<String, String> breakpoints,
 		Map<String, Map<String, String>> breakpointProperties) {
 
-		List<BreakpointPreset> breakpointPresets = new ArrayList<>(
+		List<BreakpointDefinition> breakpointDefinitions = new ArrayList<>(
 			breakpointProperties.size());
 
 		for (Map.Entry<String, String> entry : breakpoints.entrySet()) {
@@ -185,8 +178,8 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 				continue;
 			}
 
-			breakpointPresets.add(
-				new BreakpointPreset(
+			breakpointDefinitions.add(
+				new BreakpointDefinition(
 					GetterUtil.getBoolean(properties.get(_AUTO_SIZES)),
 					entry.getKey(), _toMaxWidth(properties.get(_MAX_WIDTH)),
 					entry.getValue(), properties.get(_SIZES),
@@ -197,15 +190,15 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 			_NAME_DEFAULT);
 
 		if (properties != null) {
-			breakpointPresets.add(
-				new BreakpointPreset(
+			breakpointDefinitions.add(
+				new BreakpointDefinition(
 					GetterUtil.getBoolean(properties.get(_AUTO_SIZES)),
 					_NAME_DEFAULT, _toMaxWidth(properties.get(_MAX_WIDTH)),
 					null, properties.get(_SIZES),
 					_toTransformations(properties.get(_TRANSFORMATIONS))));
 		}
 
-		return breakpointPresets;
+		return breakpointDefinitions;
 	}
 
 	/**
@@ -259,7 +252,25 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 		return mediaQueries;
 	}
 
-	private Map<String, ImagePreset> _toImagePresets(
+	private Integer _toMaxWidth(String value) {
+		if (Validator.isBlank(value)) {
+			return null;
+		}
+
+		int maxWidth = GetterUtil.getInteger(value);
+
+		if (maxWidth > 0) {
+			return maxWidth;
+		}
+
+		if (_log.isWarnEnabled()) {
+			_log.warn("Ignoring invalid maximum width " + value);
+		}
+
+		return null;
+	}
+
+	private Map<String, PresetDefinition> _toPresetDefinitions(
 		Map<String, String> breakpoints, String[] presets) {
 
 		if (presets == null) {
@@ -336,38 +347,20 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 			properties.put(keyParts[2], value);
 		}
 
-		Map<String, ImagePreset> imagePresets = new LinkedHashMap<>();
+		Map<String, PresetDefinition> presetDefinitions = new LinkedHashMap<>();
 
 		for (Map.Entry<String, Map<String, Map<String, String>>> entry :
 				presetProperties.entrySet()) {
 
-			imagePresets.put(
+			presetDefinitions.put(
 				entry.getKey(),
-				new ImagePreset(
+				new PresetDefinition(
 					labels.get(entry.getKey()), lazyValues.get(entry.getKey()),
 					entry.getKey(),
-					_toBreakpointPresets(breakpoints, entry.getValue())));
+					_toBreakpointDefinitions(breakpoints, entry.getValue())));
 		}
 
-		return imagePresets;
-	}
-
-	private Integer _toMaxWidth(String value) {
-		if (Validator.isBlank(value)) {
-			return null;
-		}
-
-		int maxWidth = GetterUtil.getInteger(value);
-
-		if (maxWidth > 0) {
-			return maxWidth;
-		}
-
-		if (_log.isWarnEnabled()) {
-			_log.warn("Ignoring invalid maximum width " + value);
-		}
-
-		return null;
+		return presetDefinitions;
 	}
 
 	private Map<String, String> _toTransformations(String value) {
@@ -398,10 +391,10 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 
 	private static final String _AUTO_SIZES = "autoSizes";
 
-	private static final ImagePreset _FALLBACK = new ImagePreset(
+	private static final PresetDefinition _FALLBACK = new PresetDefinition(
 		null, null, "default",
 		Collections.singletonList(
-			new BreakpointPreset(
+			new BreakpointDefinition(
 				false, "default", null, null, "100vw",
 				Collections.<String, String>emptyMap())));
 
@@ -420,30 +413,24 @@ public class ImagePresetResolverImpl implements ImagePresetResolver {
 	private static final String _TRANSFORMATIONS = "transformations";
 
 	private static final Log _log = LogFactoryUtil.getLog(
-		ImagePresetResolverImpl.class);
+		PresetDefinitionResolver.class);
 
-	@Reference
-	private ConfigurationProvider _configurationProvider;
-
-	private ImageTransformationConfigurationHelper
+	private final ImageTransformationConfigurationHelper
 		_imageTransformationConfigurationHelper;
 	private final Map<Long, ParsedPresets> _parsedPresets =
 		new ConcurrentHashMap<>();
 
-	@Reference
-	private Portal _portal;
-
 	private static class ParsedPresets {
 
 		private ParsedPresets(
-			int contentHash, Map<String, ImagePreset> imagePresets) {
+			int contentHash, Map<String, PresetDefinition> presetDefinitions) {
 
 			_contentHash = contentHash;
-			_imagePresets = imagePresets;
+			_presetDefinitions = presetDefinitions;
 		}
 
 		private final int _contentHash;
-		private final Map<String, ImagePreset> _imagePresets;
+		private final Map<String, PresetDefinition> _presetDefinitions;
 
 	}
 

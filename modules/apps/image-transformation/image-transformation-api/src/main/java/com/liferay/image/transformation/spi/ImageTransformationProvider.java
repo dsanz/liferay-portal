@@ -37,21 +37,15 @@ import com.liferay.portal.kernel.exception.PortalException;
  * </p>
  *
  * <p>
- * Providers that honor presets obtain them from {@link ImagePresetResolver};
- * presets are framework owned. A provider that cannot honor one, because its
- * renditions were generated in advance, determines its own breakpoints instead.
- * </p>
- *
- * * <p>
  * Implemented here, not called here. Consumers call {@link
- * com.liferay.image.transformation.ResponsiveImageProvider#getResponsiveImage},
- * which carries the same signature but a stronger contract: it selects the
- * configured provider and turns any empty or absent answer into a passthrough.
- * An implementation of this interface is therefore free to return nothing when
- * it cannot handle a resource, and should not synthesize a fallback of its own.
+ * com.liferay.image.transformation.ResponsiveImageMarkupRenderer#render},
+ * which carries a stronger contract: it selects the configured provider and
+ * turns any empty or absent answer into the untransformed original. An
+ * implementation of this interface is therefore free to return nothing when it
+ * cannot handle a resource, and should not synthesize a fallback of its own.
  * </p>
  *
- <p>
+ * <p>
  * Deliberately not <code>@ProviderType</code>. The two vocabularies invert the
  * word: in <em>service provider interface</em> the provider is the third party
  * plugging in, while <code>@ProviderType</code> marks a type only this API's

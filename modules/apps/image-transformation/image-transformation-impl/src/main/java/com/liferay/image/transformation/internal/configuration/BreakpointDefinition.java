@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.image.transformation.preset;
+package com.liferay.image.transformation.internal.configuration;
 
 import java.util.Collections;
 import java.util.Map;
@@ -12,10 +12,10 @@ import java.util.Map;
  * How an image should be generated under one media condition.
  *
  * <p>
- * One entry of an {@link ImagePreset}, and the recipe whose result is an
- * {@link ImageBreakpoint}: the media condition and sizes pass through
+ * One entry of an {@link PresetDefinition}, and the recipe whose result is an
+ * {@link ResponsiveImageBreakpoint}: the media condition and sizes pass through
  * unchanged, while the transformations are consumed to produce the candidates.
- * {@link ImageBreakpoint#from} performs that crossing.
+ * {@link ResponsiveImageBreakpoint#from} performs that crossing.
  * </p>
  *
  * <p>
@@ -26,9 +26,9 @@ import java.util.Map;
  *
  * @author Daniel Sanz
  */
-public final class BreakpointPreset {
+public final class BreakpointDefinition {
 
-	public BreakpointPreset(
+	public BreakpointDefinition(
 		boolean autoSizes, String breakpointName, Integer maxWidth,
 		String mediaQuery, String sizes, Map<String, String> transformations) {
 
@@ -41,8 +41,8 @@ public final class BreakpointPreset {
 	}
 
 	/**
-	 * Returns the name of the breakpoint this preset was declared against, for
-	 * diagnostics.
+	 * Returns the name this breakpoint was declared under in the breakpoints
+	 * configuration, for diagnostics.
 	 *
 	 * @return the breakpoint name
 	 */
@@ -80,8 +80,8 @@ public final class BreakpointPreset {
 	}
 
 	/**
-	 * Returns the media condition this preset applies under, resolved from the
-	 * named breakpoint, or <code>null</code> for the unconditional preset.
+	 * Returns the media condition this breakpoint applies under, resolved from
+	 * its declaration, or <code>null</code> for the unconditional breakpoint.
 	 *
 	 * @return the media condition, or <code>null</code>
 	 */
@@ -100,14 +100,39 @@ public final class BreakpointPreset {
 	}
 
 	/**
+	 * Returns the <code>sizes</code> attribute for an image loaded the given
+	 * way, prefixed with the <code>auto</code> keyword when this breakpoint
+	 * opts in and the image is lazily loaded.
+	 *
+	 * <p>
+	 * The rule lives here rather than at the call site because whether
+	 * automatic sizing applies is a property of the breakpoint's configuration
+	 * and of nothing else. A browser honors <code>auto</code> only on a lazily
+	 * loaded image, so emitting it otherwise would be an invalid attribute
+	 * rather than an ignored hint.
+	 * </p>
+	 *
+	 * @param  lazy whether the image is lazily loaded
+	 * @return the sizes attribute value, or <code>null</code>
+	 */
+	public String getSizes(boolean lazy) {
+		if (!lazy || !_autoSizes || (_sizes == null)) {
+			return _sizes;
+		}
+
+		return "auto, " + _sizes;
+	}
+
+	/**
 	 * Returns the transformations to apply to every candidate generated for
 	 * this condition, such as a crop that differs between viewports.
 	 *
 	 * <p>
-	 * Declared per preset, and therefore per media condition. Every candidate a
-	 * preset generates shares this map and differs from its siblings only in
-	 * width, which is what makes the candidates sharing a <code>srcset</code>
-	 * the same picture at different sizes, as that attribute requires.
+	 * Declared per breakpoint, and therefore per media condition. Every
+	 * candidate a breakpoint generates shares this map and differs from its
+	 * siblings only in width, which is what makes the candidates sharing a
+	 * <code>srcset</code> the same picture at different sizes, as that
+	 * attribute requires.
 	 * Transformations that varied per candidate would offer a browser two
 	 * different pictures and let it pick either.
 	 * </p>

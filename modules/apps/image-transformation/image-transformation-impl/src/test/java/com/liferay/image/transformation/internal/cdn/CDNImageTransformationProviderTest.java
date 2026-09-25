@@ -5,17 +5,17 @@
 
 package com.liferay.image.transformation.internal.cdn;
 
-import com.liferay.image.transformation.ImageBreakpoint;
-import com.liferay.image.transformation.ImageBreakpointVariant;
 import com.liferay.image.transformation.ImageResource;
 import com.liferay.image.transformation.ResponsiveImage;
+import com.liferay.image.transformation.ResponsiveImageBreakpoint;
+import com.liferay.image.transformation.ResponsiveImageBreakpointVariant;
 import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.ResponsiveImageRequestBuilder;
+import com.liferay.image.transformation.internal.configuration.BreakpointDefinition;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfiguration;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
-import com.liferay.image.transformation.preset.BreakpointPreset;
-import com.liferay.image.transformation.preset.ImagePreset;
-import com.liferay.image.transformation.preset.ImagePresetResolver;
+import com.liferay.image.transformation.internal.configuration.PresetDefinition;
+import com.liferay.image.transformation.internal.configuration.PresetDefinitionResolver;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
@@ -117,8 +117,8 @@ public class CDNImageTransformationProviderTest {
 			_cdnImageTransformationProvider, "_serviceTrackerMap",
 			_serviceTrackerMap);
 		ReflectionTestUtil.setFieldValue(
-			_cdnImageTransformationProvider, "_imagePresetResolver",
-			_imagePresetResolver);
+			_cdnImageTransformationProvider, "_presetDefinitionResolver",
+			_presetDefinitionResolver);
 		ReflectionTestUtil.setFieldValue(
 			_cdnImageTransformationProvider,
 			"_imageTransformationConfigurationHelper",
@@ -193,16 +193,18 @@ public class CDNImageTransformationProviderTest {
 
 		_givenPresetGroup(_preset(null, 500, null, "500px"));
 
-		List<ImageBreakpointVariant> imageBreakpointVariants =
-			_firstGroupVariants();
+		List<ResponsiveImageBreakpointVariant>
+			responsiveImageBreakpointVariants = _firstGroupVariants();
 
 		Assert.assertEquals(
-			imageBreakpointVariants.toString(), 2,
-			imageBreakpointVariants.size());
+			responsiveImageBreakpointVariants.toString(), 2,
+			responsiveImageBreakpointVariants.size());
 		Assert.assertEquals(
-			Integer.valueOf(320), _widthOf(imageBreakpointVariants, 0));
+			Integer.valueOf(320),
+			_widthOf(responsiveImageBreakpointVariants, 0));
 		Assert.assertEquals(
-			Integer.valueOf(640), _widthOf(imageBreakpointVariants, 1));
+			Integer.valueOf(640),
+			_widthOf(responsiveImageBreakpointVariants, 1));
 	}
 
 	@Test
@@ -218,8 +220,8 @@ public class CDNImageTransformationProviderTest {
 				_requestWithoutHttpServletRequest());
 
 		Assert.assertFalse(
-			String.valueOf(responsiveImage.getImageBreakpoints()),
-			responsiveImage.getImageBreakpoints(
+			String.valueOf(responsiveImage.getBreakpoints()),
+			responsiveImage.getBreakpoints(
 			).isEmpty());
 	}
 
@@ -228,62 +230,65 @@ public class CDNImageTransformationProviderTest {
 		_givenPresetGroup(
 			_preset("narrow", null, "(max-width: 767px)", "100vw", "crop=1:1"));
 
-		List<ImageBreakpointVariant> imageBreakpointVariants =
-			_firstGroupVariants();
+		List<ResponsiveImageBreakpointVariant>
+			responsiveImageBreakpointVariants = _firstGroupVariants();
 
 		Assert.assertEquals(
-			imageBreakpointVariants.toString(), 3,
-			imageBreakpointVariants.size());
+			responsiveImageBreakpointVariants.toString(), 3,
+			responsiveImageBreakpointVariants.size());
 
-		ImageBreakpointVariant imageBreakpointVariant =
-			imageBreakpointVariants.get(0);
+		ResponsiveImageBreakpointVariant responsiveImageBreakpointVariant =
+			responsiveImageBreakpointVariants.get(0);
 
 		Assert.assertEquals(
-			Integer.valueOf(320), imageBreakpointVariant.getWidth());
+			Integer.valueOf(320), responsiveImageBreakpointVariant.getWidth());
 		Assert.assertEquals(
 			"/documents/1/2/photo.jpg?crop=1%3A1&disable=upscale&width=320",
-			imageBreakpointVariant.getURL());
+			responsiveImageBreakpointVariant.getURL());
 	}
 
-	private List<ImageBreakpointVariant> _firstGroupVariants() {
+	private List<ResponsiveImageBreakpointVariant> _firstGroupVariants() {
 		ResponsiveImage responsiveImage =
 			_cdnImageTransformationProvider.getResponsiveImage(_request());
 
-		List<ImageBreakpoint> imageBreakpoints =
-			responsiveImage.getImageBreakpoints();
+		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints =
+			responsiveImage.getBreakpoints();
 
-		ImageBreakpoint imageBreakpoint = imageBreakpoints.get(0);
+		ResponsiveImageBreakpoint responsiveImageBreakpoint =
+			responsiveImageBreakpoints.get(0);
 
-		return imageBreakpoint.getVariants();
+		return responsiveImageBreakpoint.getVariants();
 	}
 
-	private void _givenPresetGroup(BreakpointPreset... breakpointPresets) {
+	private void _givenPresetGroup(
+		BreakpointDefinition... breakpointDefinitions) {
+
 		Mockito.when(
-			_imagePresetResolver.resolve(
+			_presetDefinitionResolver.resolve(
 				Mockito.anyLong(), Mockito.anyLong(),
 				Mockito.nullable(String.class))
 		).thenReturn(
-			new ImagePreset(
-				null, null, "test", Arrays.asList(breakpointPresets))
+			new PresetDefinition(
+				null, null, "test", Arrays.asList(breakpointDefinitions))
 		);
 	}
 
-	private BreakpointPreset _preset(
+	private BreakpointDefinition _preset(
 		String breakpointName, Integer maxWidth, String mediaQuery,
 		String sizes) {
 
-		return new BreakpointPreset(
+		return new BreakpointDefinition(
 			false, breakpointName, maxWidth, mediaQuery, sizes,
 			Collections.<String, String>emptyMap());
 	}
 
-	private BreakpointPreset _preset(
+	private BreakpointDefinition _preset(
 		String breakpointName, Integer maxWidth, String mediaQuery,
 		String sizes, String transformation) {
 
 		int i = transformation.indexOf('=');
 
-		return new BreakpointPreset(
+		return new BreakpointDefinition(
 			false, breakpointName, maxWidth, mediaQuery, sizes,
 			HashMapBuilder.put(
 				transformation.substring(0, i), transformation.substring(i + 1)
@@ -390,12 +395,14 @@ public class CDNImageTransformationProviderTest {
 	}
 
 	private Integer _widthOf(
-		List<ImageBreakpointVariant> imageBreakpointVariants, int index) {
+		List<ResponsiveImageBreakpointVariant>
+			responsiveImageBreakpointVariants,
+		int index) {
 
-		ImageBreakpointVariant imageBreakpointVariant =
-			imageBreakpointVariants.get(index);
+		ResponsiveImageBreakpointVariant responsiveImageBreakpointVariant =
+			responsiveImageBreakpointVariants.get(index);
 
-		return imageBreakpointVariant.getWidth();
+		return responsiveImageBreakpointVariant.getWidth();
 	}
 
 	private static final long _COMPANY_ID = 42L;
@@ -409,8 +416,6 @@ public class CDNImageTransformationProviderTest {
 		_cdnImageTransformationProvider = new CDNImageTransformationProvider();
 	private final HttpServletRequest _httpServletRequest = Mockito.mock(
 		HttpServletRequest.class);
-	private final ImagePresetResolver _imagePresetResolver = Mockito.mock(
-		ImagePresetResolver.class);
 	private final ImageResource _imageResource = Mockito.mock(
 		ImageResource.class);
 	private final ImageTransformationConfiguration
@@ -424,6 +429,8 @@ public class CDNImageTransformationProviderTest {
 			ImageTransformationURLRenderer.class);
 	private final Set<ImageTransformationURLRenderer>
 		_imageTransformationURLRenderers = new HashSet<>();
+	private final PresetDefinitionResolver _presetDefinitionResolver =
+		Mockito.mock(PresetDefinitionResolver.class);
 
 	@SuppressWarnings("unchecked")
 	private final ServiceTrackerMap<String, ImageTransformationURLRenderer>

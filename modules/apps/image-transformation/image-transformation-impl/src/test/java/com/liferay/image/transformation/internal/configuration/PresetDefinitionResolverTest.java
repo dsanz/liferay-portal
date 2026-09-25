@@ -5,8 +5,6 @@
 
 package com.liferay.image.transformation.internal.configuration;
 
-import com.liferay.image.transformation.preset.BreakpointPreset;
-import com.liferay.image.transformation.preset.ImagePreset;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
@@ -24,7 +22,7 @@ import org.mockito.Mockito;
 /**
  * @author Daniel Sanz
  */
-public class ImagePresetResolverImplTest {
+public class PresetDefinitionResolverTest {
 
 	@ClassRule
 	@Rule
@@ -41,7 +39,8 @@ public class ImagePresetResolverImplTest {
 		);
 
 		ReflectionTestUtil.setFieldValue(
-			_imagePresetResolverImpl, "_imageTransformationConfigurationHelper",
+			_presetDefinitionResolver,
+			"_imageTransformationConfigurationHelper",
 			_imageTransformationConfigurationHelper);
 	}
 
@@ -51,16 +50,19 @@ public class ImagePresetResolverImplTest {
 			new String[] {"wide.media=(min-width: 768px)"},
 			new String[] {"hero.default.sizes=100vw", "hero.wide.sizes=50vw"});
 
-		List<BreakpointPreset> breakpointPresets = _presetsOf("hero");
+		List<BreakpointDefinition> breakpointDefinitions = _presetsOf("hero");
 
 		Assert.assertEquals(
-			breakpointPresets.toString(), 2, breakpointPresets.size());
-		Assert.assertEquals("wide", _breakpointNameOf(breakpointPresets, 0));
-		Assert.assertEquals("default", _breakpointNameOf(breakpointPresets, 1));
+			breakpointDefinitions.toString(), 2, breakpointDefinitions.size());
+		Assert.assertEquals(
+			"wide", _breakpointNameOf(breakpointDefinitions, 0));
+		Assert.assertEquals(
+			"default", _breakpointNameOf(breakpointDefinitions, 1));
 
-		BreakpointPreset breakpointPreset = breakpointPresets.get(1);
+		BreakpointDefinition breakpointDefinition = breakpointDefinitions.get(
+			1);
 
-		Assert.assertNull(breakpointPreset.getMediaQuery());
+		Assert.assertNull(breakpointDefinition.getMediaQuery());
 	}
 
 	@Test
@@ -71,10 +73,10 @@ public class ImagePresetResolverImplTest {
 				"thumb.default.sizes=96px", "thumb.default.maxWidth=320"
 			});
 
-		BreakpointPreset breakpointPreset = _firstPresetOf("thumb");
+		BreakpointDefinition breakpointDefinition = _firstPresetOf("thumb");
 
 		Assert.assertEquals(
-			Integer.valueOf(320), breakpointPreset.getMaxWidth());
+			Integer.valueOf(320), breakpointDefinition.getMaxWidth());
 	}
 
 	@Test
@@ -91,10 +93,12 @@ public class ImagePresetResolverImplTest {
 			},
 			new String[] {"hero.wide.sizes=50vw", "hero.narrow.sizes=100vw"});
 
-		List<BreakpointPreset> breakpointPresets = _presetsOf("hero");
+		List<BreakpointDefinition> breakpointDefinitions = _presetsOf("hero");
 
-		Assert.assertEquals("narrow", _breakpointNameOf(breakpointPresets, 0));
-		Assert.assertEquals("wide", _breakpointNameOf(breakpointPresets, 1));
+		Assert.assertEquals(
+			"narrow", _breakpointNameOf(breakpointDefinitions, 0));
+		Assert.assertEquals(
+			"wide", _breakpointNameOf(breakpointDefinitions, 1));
 	}
 
 	@Test
@@ -107,11 +111,12 @@ public class ImagePresetResolverImplTest {
 			new String[] {"narrow.media=(max-width: 767px)"},
 			new String[] {"hero.narow.sizes=100vw", "hero.narrow.sizes=50vw"});
 
-		List<BreakpointPreset> breakpointPresets = _presetsOf("hero");
+		List<BreakpointDefinition> breakpointDefinitions = _presetsOf("hero");
 
 		Assert.assertEquals(
-			breakpointPresets.toString(), 1, breakpointPresets.size());
-		Assert.assertEquals("narrow", _breakpointNameOf(breakpointPresets, 0));
+			breakpointDefinitions.toString(), 1, breakpointDefinitions.size());
+		Assert.assertEquals(
+			"narrow", _breakpointNameOf(breakpointDefinitions, 0));
 	}
 
 	@Test
@@ -123,19 +128,19 @@ public class ImagePresetResolverImplTest {
 				"hero.narrow.transformations=crop=1:1,quality=80"
 			});
 
-		ImagePreset imagePreset = _imagePresetResolverImpl.resolve(
+		PresetDefinition presetDefinition = _presetDefinitionResolver.resolve(
 			0, _COMPANY_ID, "hero");
 
-		Assert.assertEquals("Hero", imagePreset.getLabel());
+		Assert.assertEquals("Hero", presetDefinition.getLabel());
 
-		BreakpointPreset breakpointPreset = _firstPresetOf("hero");
+		BreakpointDefinition breakpointDefinition = _firstPresetOf("hero");
 
 		Assert.assertEquals(
-			"(max-width: 767px)", breakpointPreset.getMediaQuery());
-		Assert.assertEquals("100vw", breakpointPreset.getSizes());
+			"(max-width: 767px)", breakpointDefinition.getMediaQuery());
+		Assert.assertEquals("100vw", breakpointDefinition.getSizes());
 
 		Map<String, String> transformations =
-			breakpointPreset.getTransformations();
+			breakpointDefinition.getTransformations();
 
 		Assert.assertEquals(
 			transformations.toString(), 2, transformations.size());
@@ -151,33 +156,36 @@ public class ImagePresetResolverImplTest {
 
 		_givenConfiguration(new String[0], new String[0]);
 
-		ImagePreset imagePreset = _imagePresetResolverImpl.resolve(
+		PresetDefinition presetDefinition = _presetDefinitionResolver.resolve(
 			0, _COMPANY_ID, "nonexistent");
 
-		List<BreakpointPreset> breakpointPresets =
-			imagePreset.getBreakpointPresets();
+		List<BreakpointDefinition> breakpointDefinitions =
+			presetDefinition.getBreakpointDefinitions();
 
 		Assert.assertEquals(
-			breakpointPresets.toString(), 1, breakpointPresets.size());
+			breakpointDefinitions.toString(), 1, breakpointDefinitions.size());
 
-		BreakpointPreset breakpointPreset = breakpointPresets.get(0);
+		BreakpointDefinition breakpointDefinition = breakpointDefinitions.get(
+			0);
 
-		Assert.assertNull(breakpointPreset.getMediaQuery());
-		Assert.assertEquals("100vw", breakpointPreset.getSizes());
+		Assert.assertNull(breakpointDefinition.getMediaQuery());
+		Assert.assertEquals("100vw", breakpointDefinition.getSizes());
 	}
 
 	private String _breakpointNameOf(
-		List<BreakpointPreset> breakpointPresets, int index) {
+		List<BreakpointDefinition> breakpointDefinitions, int index) {
 
-		BreakpointPreset breakpointPreset = breakpointPresets.get(index);
+		BreakpointDefinition breakpointDefinition = breakpointDefinitions.get(
+			index);
 
-		return breakpointPreset.getBreakpointName();
+		return breakpointDefinition.getBreakpointName();
 	}
 
-	private BreakpointPreset _firstPresetOf(String presetName) {
-		List<BreakpointPreset> breakpointPresets = _presetsOf(presetName);
+	private BreakpointDefinition _firstPresetOf(String presetName) {
+		List<BreakpointDefinition> breakpointDefinitions = _presetsOf(
+			presetName);
 
-		return breakpointPresets.get(0);
+		return breakpointDefinitions.get(0);
 	}
 
 	private void _givenConfiguration(String[] breakpoints, String[] presets) {
@@ -194,22 +202,22 @@ public class ImagePresetResolverImplTest {
 		);
 	}
 
-	private List<BreakpointPreset> _presetsOf(String presetName) {
-		ImagePreset imagePreset = _imagePresetResolverImpl.resolve(
+	private List<BreakpointDefinition> _presetsOf(String presetName) {
+		PresetDefinition presetDefinition = _presetDefinitionResolver.resolve(
 			0, _COMPANY_ID, presetName);
 
-		return imagePreset.getBreakpointPresets();
+		return presetDefinition.getBreakpointDefinitions();
 	}
 
 	private static final long _COMPANY_ID = 42L;
 
-	private final ImagePresetResolverImpl _imagePresetResolverImpl =
-		new ImagePresetResolverImpl();
 	private final ImageTransformationConfiguration
 		_imageTransformationConfiguration = Mockito.mock(
 			ImageTransformationConfiguration.class);
 	private final ImageTransformationConfigurationHelper
 		_imageTransformationConfigurationHelper = Mockito.mock(
 			ImageTransformationConfigurationHelper.class);
+	private final PresetDefinitionResolver _presetDefinitionResolver =
+		new PresetDefinitionResolver(null, null);
 
 }

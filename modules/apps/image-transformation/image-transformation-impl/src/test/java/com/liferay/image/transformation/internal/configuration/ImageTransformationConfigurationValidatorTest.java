@@ -5,8 +5,6 @@
 
 package com.liferay.image.transformation.internal.configuration;
 
-import com.liferay.image.transformation.preset.BreakpointPreset;
-import com.liferay.image.transformation.preset.ImagePreset;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
@@ -33,9 +31,9 @@ public class ImageTransformationConfigurationValidatorTest {
 	@Test
 	public void testArtDirectedBreakpointsAreNotReported() {
 		List<String> problems = _validate(
-			_imagePreset(
-				_breakpointPreset("narrow", null, "50vw", "crop", "1:1"),
-				_breakpointPreset("wide", null, "50vw", "crop", "16:9")));
+			_presetDefinition(
+				_breakpointDefinition("narrow", null, "50vw", "crop", "1:1"),
+				_breakpointDefinition("wide", null, "50vw", "crop", "16:9")));
 
 		Assert.assertEquals(problems.toString(), 0, problems.size());
 	}
@@ -48,9 +46,9 @@ public class ImageTransformationConfigurationValidatorTest {
 		// without breakpoints.
 
 		List<String> problems = _validate(
-			_imagePreset(
-				_breakpointPreset("narrow", 640, "100vw", "crop", "1:1"),
-				_breakpointPreset("wide", 2560, "50vw", "crop", "1:1")));
+			_presetDefinition(
+				_breakpointDefinition("narrow", 640, "100vw", "crop", "1:1"),
+				_breakpointDefinition("wide", 2560, "50vw", "crop", "1:1")));
 
 		Assert.assertEquals(problems.toString(), 0, problems.size());
 	}
@@ -58,9 +56,10 @@ public class ImageTransformationConfigurationValidatorTest {
 	@Test
 	public void testFormatSwitchIsReported() {
 		List<String> problems = _validate(
-			_imagePreset(
-				_breakpointPreset("narrow", null, "100vw", "format", "webp"),
-				_breakpointPreset("wide", null, "50vw", "format", "avif")));
+			_presetDefinition(
+				_breakpointDefinition(
+					"narrow", null, "100vw", "format", "webp"),
+				_breakpointDefinition("wide", null, "50vw", "format", "avif")));
 
 		Assert.assertEquals(problems.toString(), 1, problems.size());
 
@@ -76,9 +75,9 @@ public class ImageTransformationConfigurationValidatorTest {
 		// what the sizes attribute of a single image element already says.
 
 		List<String> problems = _validate(
-			_imagePreset(
-				_breakpointPreset("narrow", null, "100vw", "crop", "1:1"),
-				_breakpointPreset("wide", null, "50vw", "crop", "1:1")));
+			_presetDefinition(
+				_breakpointDefinition("narrow", null, "100vw", "crop", "1:1"),
+				_breakpointDefinition("wide", null, "50vw", "crop", "1:1")));
 
 		Assert.assertEquals(problems.toString(), 1, problems.size());
 
@@ -93,9 +92,11 @@ public class ImageTransformationConfigurationValidatorTest {
 		Assert.assertEquals(
 			MarkupShape.PICTURE,
 			ImageTransformationConfigurationValidator.getMarkupShape(
-				_imagePreset(
-					_breakpointPreset("narrow", null, "100vw", "crop", "1:1"),
-					_breakpointPreset("wide", null, "50vw", "crop", "16:9"))));
+				_presetDefinition(
+					_breakpointDefinition(
+						"narrow", null, "100vw", "crop", "1:1"),
+					_breakpointDefinition(
+						"wide", null, "50vw", "crop", "16:9"))));
 	}
 
 	@Test
@@ -107,12 +108,12 @@ public class ImageTransformationConfigurationValidatorTest {
 		Assert.assertEquals(
 			MarkupShape.IMG,
 			ImageTransformationConfigurationValidator.getMarkupShape(
-				_imagePreset(
-					_breakpointPreset(
+				_presetDefinition(
+					_breakpointDefinition(
 						"default", null, "100vw", "crop", "1:1"))));
 	}
 
-	private BreakpointPreset _breakpointPreset(
+	private BreakpointDefinition _breakpointDefinition(
 		String breakpointName, Integer maxWidth, String sizes,
 		String transformationKey, String transformationValue) {
 
@@ -126,19 +127,21 @@ public class ImageTransformationConfigurationValidatorTest {
 			mediaQuery = "(min-width: 768px)";
 		}
 
-		return new BreakpointPreset(
+		return new BreakpointDefinition(
 			false, breakpointName, maxWidth, mediaQuery, sizes,
 			transformations);
 	}
 
-	private ImagePreset _imagePreset(BreakpointPreset... breakpointPresets) {
-		return new ImagePreset(
-			null, null, _NAME_HERO, Arrays.asList(breakpointPresets));
+	private PresetDefinition _presetDefinition(
+		BreakpointDefinition... breakpointDefinitions) {
+
+		return new PresetDefinition(
+			null, null, _NAME_HERO, Arrays.asList(breakpointDefinitions));
 	}
 
-	private List<String> _validate(ImagePreset imagePreset) {
+	private List<String> _validate(PresetDefinition presetDefinition) {
 		return ImageTransformationConfigurationValidator.validate(
-			Collections.singletonMap(_NAME_HERO, imagePreset));
+			Collections.singletonMap(_NAME_HERO, presetDefinition));
 	}
 
 	private static final String _NAME_DEFAULT = "default";

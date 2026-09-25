@@ -5,17 +5,17 @@
 
 package com.liferay.image.transformation.internal;
 
-import com.liferay.image.transformation.ImageBreakpoint;
-import com.liferay.image.transformation.ImageBreakpointVariant;
-import com.liferay.image.transformation.ImageBreakpointVariantBuilder;
 import com.liferay.image.transformation.ImageResource;
 import com.liferay.image.transformation.ResponsiveImage;
+import com.liferay.image.transformation.ResponsiveImageBreakpoint;
+import com.liferay.image.transformation.ResponsiveImageBreakpointVariant;
+import com.liferay.image.transformation.ResponsiveImageBreakpointVariantBuilder;
 import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.ResponsiveImageRequestBuilder;
+import com.liferay.image.transformation.internal.configuration.BreakpointDefinition;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
-import com.liferay.image.transformation.preset.BreakpointPreset;
-import com.liferay.image.transformation.preset.ImagePreset;
-import com.liferay.image.transformation.preset.ImagePresetResolver;
+import com.liferay.image.transformation.internal.configuration.PresetDefinition;
+import com.liferay.image.transformation.internal.configuration.PresetDefinitionResolver;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
@@ -71,8 +71,8 @@ public class ResponsiveImageMarkupRendererImplTest {
 		);
 
 		ReflectionTestUtil.setFieldValue(
-			_responsiveImageMarkupRendererImpl, "_imagePresetResolver",
-			_imagePresetResolver);
+			_responsiveImageMarkupRendererImpl, "_presetDefinitionResolver",
+			_presetDefinitionResolver);
 		ReflectionTestUtil.setFieldValue(
 			_responsiveImageMarkupRendererImpl,
 			"_imageTransformationConfigurationHelper",
@@ -89,9 +89,9 @@ public class ResponsiveImageMarkupRendererImplTest {
 		// Every width built the same URL, so no renderer is bound. Emitting the
 		// descriptors would have the browser trust them and pick wrong.
 
-		_givenPreset(_breakpointPreset(null, "100vw"));
+		_givenPreset(_breakpointDefinition(null, "100vw"));
 		_givenResponsiveImage(
-			ImageBreakpoint.of(
+			ResponsiveImageBreakpoint.of(
 				null, "100vw",
 				Arrays.asList(
 					_variant("/documents/1/2/photo.jpg", 320),
@@ -122,9 +122,9 @@ public class ResponsiveImageMarkupRendererImplTest {
 
 	@Test
 	public void testRendersImgForASingleBreakpoint() throws Exception {
-		_givenPreset(_breakpointPreset(null, "100vw"));
+		_givenPreset(_breakpointDefinition(null, "100vw"));
 		_givenResponsiveImage(
-			ImageBreakpoint.of(
+			ResponsiveImageBreakpoint.of(
 				null, "100vw",
 				Arrays.asList(
 					_variant("/documents/1/2/photo.jpg?width=320", 320),
@@ -150,14 +150,14 @@ public class ResponsiveImageMarkupRendererImplTest {
 		// cannot express.
 
 		_givenPreset(
-			_breakpointPreset("(max-width: 767px)", "100vw"),
-			_breakpointPreset("(min-width: 768px)", "50vw"));
+			_breakpointDefinition("(max-width: 767px)", "100vw"),
+			_breakpointDefinition("(min-width: 768px)", "50vw"));
 		_givenResponsiveImage(
-			ImageBreakpoint.of(
+			ResponsiveImageBreakpoint.of(
 				"(max-width: 767px)", "100vw",
 				Collections.singletonList(
 					_variant("/documents/1/2/photo.jpg?crop=1%3A1", 320))),
-			ImageBreakpoint.of(
+			ResponsiveImageBreakpoint.of(
 				"(min-width: 768px)", "50vw",
 				Collections.singletonList(
 					_variant("/documents/1/2/photo.jpg?crop=16%3A9", 960))));
@@ -178,29 +178,31 @@ public class ResponsiveImageMarkupRendererImplTest {
 		Assert.assertTrue(markup, markup.contains("sizes=\"50vw\""));
 	}
 
-	private BreakpointPreset _breakpointPreset(
+	private BreakpointDefinition _breakpointDefinition(
 		String mediaQuery, String sizes) {
 
-		return new BreakpointPreset(
+		return new BreakpointDefinition(
 			false, "test", null, mediaQuery, sizes,
 			Collections.<String, String>emptyMap());
 	}
 
-	private void _givenPreset(BreakpointPreset... breakpointPresets) {
+	private void _givenPreset(BreakpointDefinition... breakpointDefinitions) {
 		Mockito.when(
-			_imagePresetResolver.resolve(
+			_presetDefinitionResolver.resolve(
 				Mockito.anyLong(), Mockito.anyLong(),
 				Mockito.nullable(String.class))
 		).thenReturn(
-			new ImagePreset(
-				null, null, "test", Arrays.asList(breakpointPresets))
+			new PresetDefinition(
+				null, null, "test", Arrays.asList(breakpointDefinitions))
 		);
 	}
 
-	private void _givenResponsiveImage(ImageBreakpoint... imageBreakpoints)
+	private void _givenResponsiveImage(
+			ResponsiveImageBreakpoint... responsiveImageBreakpoints)
 		throws Exception {
 
-		List<ImageBreakpoint> list = Arrays.asList(imageBreakpoints);
+		List<ResponsiveImageBreakpoint> list = Arrays.asList(
+			responsiveImageBreakpoints);
 
 		Mockito.when(
 			_imageTransformationProvider.getResponsiveImage(
@@ -216,8 +218,8 @@ public class ResponsiveImageMarkupRendererImplTest {
 		).build();
 	}
 
-	private ImageBreakpointVariant _variant(String url, int width) {
-		return ImageBreakpointVariantBuilder.url(
+	private ResponsiveImageBreakpointVariant _variant(String url, int width) {
+		return ResponsiveImageBreakpointVariantBuilder.url(
 			url
 		).width(
 			width
@@ -227,8 +229,6 @@ public class ResponsiveImageMarkupRendererImplTest {
 	private static final String _ORIGINAL_IMG_TAG =
 		"<img alt=\"A photo\" src=\"/documents/1/2/photo.jpg\" />";
 
-	private final ImagePresetResolver _imagePresetResolver = Mockito.mock(
-		ImagePresetResolver.class);
 	private final ImageResource _imageResource = Mockito.mock(
 		ImageResource.class);
 	private final ImageTransformationConfigurationHelper
@@ -239,6 +239,8 @@ public class ResponsiveImageMarkupRendererImplTest {
 	private final ImageTransformationProviderSelector
 		_imageTransformationProviderSelector = Mockito.mock(
 			ImageTransformationProviderSelector.class);
+	private final PresetDefinitionResolver _presetDefinitionResolver =
+		Mockito.mock(PresetDefinitionResolver.class);
 	private final ResponsiveImageMarkupRendererImpl
 		_responsiveImageMarkupRendererImpl =
 			new ResponsiveImageMarkupRendererImpl();

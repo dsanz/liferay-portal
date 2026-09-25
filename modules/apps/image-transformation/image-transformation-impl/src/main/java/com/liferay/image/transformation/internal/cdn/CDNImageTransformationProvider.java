@@ -5,17 +5,17 @@
 
 package com.liferay.image.transformation.internal.cdn;
 
-import com.liferay.image.transformation.ImageBreakpoint;
-import com.liferay.image.transformation.ImageBreakpointVariant;
-import com.liferay.image.transformation.ImageBreakpointVariantBuilder;
 import com.liferay.image.transformation.ImageResource;
 import com.liferay.image.transformation.ResponsiveImage;
+import com.liferay.image.transformation.ResponsiveImageBreakpoint;
+import com.liferay.image.transformation.ResponsiveImageBreakpointVariant;
+import com.liferay.image.transformation.ResponsiveImageBreakpointVariantBuilder;
 import com.liferay.image.transformation.ResponsiveImageRequest;
+import com.liferay.image.transformation.internal.configuration.BreakpointDefinition;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfiguration;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
-import com.liferay.image.transformation.preset.BreakpointPreset;
-import com.liferay.image.transformation.preset.ImagePreset;
-import com.liferay.image.transformation.preset.ImagePresetResolver;
+import com.liferay.image.transformation.internal.configuration.PresetDefinition;
+import com.liferay.image.transformation.internal.configuration.PresetDefinitionResolver;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
@@ -104,7 +104,7 @@ public class CDNImageTransformationProvider
 
 		return _getResponsiveImage(
 			responsiveImageRequest,
-			_resolveImagePreset(responsiveImageRequest));
+			_resolvePresetDefinition(responsiveImageRequest));
 	}
 
 	@Activate
@@ -112,6 +112,9 @@ public class CDNImageTransformationProvider
 		_imageTransformationConfigurationHelper =
 			new ImageTransformationConfigurationHelper(
 				_configurationProvider, _portal);
+
+		_presetDefinitionResolver = new PresetDefinitionResolver(
+			_configurationProvider, _portal);
 
 		// Indexed by name here rather than in the URL builder: the name comes
 		// from this provider's own configuration, so this is where resolving it
@@ -154,46 +157,6 @@ public class CDNImageTransformationProvider
 		return transformedImageAbsolutePortalURLBuilder.build();
 	}
 
-	private List<ImageBreakpointVariant> _getImageBreakpointVariants(
-		ScopedSettings scopedSettings, BreakpointPreset breakpointPreset,
-		ResponsiveImageRequest responsiveImageRequest, List<Integer> widths) {
-
-		ImageResource imageResource = responsiveImageRequest.getImageResource();
-
-		// Precedence runs from broadest to narrowest: installation wide
-		// defaults, then this placement's art direction, then the width.
-		// Callers contribute none of it, so every transformation the site
-		// issues is visible in configuration.
-
-		Map<String, String> transformations = HashMapBuilder.putAll(
-			scopedSettings._defaultTransformations
-		).putAll(
-			breakpointPreset.getTransformations()
-		).build();
-
-		List<ImageBreakpointVariant> imageBreakpointVariants = new ArrayList<>(
-			widths.size());
-
-		for (Integer width : widths) {
-			Map<String, String> widthTransformations = HashMapBuilder.putAll(
-				transformations
-			).put(
-				"width", String.valueOf(width)
-			).build();
-
-			imageBreakpointVariants.add(
-				ImageBreakpointVariantBuilder.url(
-					_buildURL(
-						scopedSettings, responsiveImageRequest,
-						imageResource.getURL(), widthTransformations)
-				).width(
-					width
-				).build());
-		}
-
-		return imageBreakpointVariants;
-	}
-
 	private ImageTransformationURLRenderer _getImageTransformationURLRenderer(
 		String urlRendererName) {
 
@@ -213,33 +176,37 @@ public class CDNImageTransformationProvider
 
 	private ResponsiveImage _getResponsiveImage(
 		ResponsiveImageRequest responsiveImageRequest,
-		ImagePreset imagePreset) {
+		PresetDefinition presetDefinition) {
 
 		ScopedSettings scopedSettings = _getScopedSettings(
 			responsiveImageRequest);
 
-		List<BreakpointPreset> breakpointPresets =
-			imagePreset.getBreakpointPresets();
+		List<BreakpointDefinition> breakpointDefinitions =
+			presetDefinition.getBreakpointDefinitions();
 
-		boolean lazy = imagePreset.isLazy(responsiveImageRequest.getLazy());
+		boolean lazy = presetDefinition.isLazy(
+			responsiveImageRequest.getLazy());
 
-		List<ImageBreakpoint> imageBreakpoints = new ArrayList<>(
-			breakpointPresets.size());
+		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints =
+			new ArrayList<>(breakpointDefinitions.size());
 
-		for (BreakpointPreset breakpointPreset : breakpointPresets) {
-			List<Integer> widths = _getWidths(scopedSettings, breakpointPreset);
+		for (BreakpointDefinition breakpointDefinition :
+				breakpointDefinitions) {
+
+			List<Integer> widths = _getWidths(
+				scopedSettings, breakpointDefinition);
 
 			if (widths.isEmpty()) {
 				continue;
 			}
 
-			imageBreakpoints.add(
-				ImageBreakpoint.from(
-					breakpointPreset,
-					_getImageBreakpointVariants(
-						scopedSettings, breakpointPreset,
-						responsiveImageRequest, widths),
-					lazy));
+			responsiveImageBreakpoints.add(
+				ResponsiveImageBreakpoint.of(
+					breakpointDefinition.getMediaQuery(),
+					breakpointDefinition.getSizes(lazy),
+					_getResponsiveImageBreakpointVariants(
+						scopedSettings, breakpointDefinition,
+						responsiveImageRequest, widths)));
 		}
 
 		// Still the untransformed original. Now that the provider owns this
@@ -248,9 +215,52 @@ public class CDNImageTransformationProvider
 		// behavior change and not part of moving the method.
 
 		return new ResponsiveImage(
-			imageBreakpoints,
+			responsiveImageBreakpoints,
 			responsiveImageRequest.getImageResource(
 			).getURL());
+	}
+
+	private List<ResponsiveImageBreakpointVariant>
+		_getResponsiveImageBreakpointVariants(
+			ScopedSettings scopedSettings,
+			BreakpointDefinition breakpointDefinition,
+			ResponsiveImageRequest responsiveImageRequest,
+			List<Integer> widths) {
+
+		ImageResource imageResource = responsiveImageRequest.getImageResource();
+
+		// Precedence runs from broadest to narrowest: installation wide
+		// defaults, then this placement's art direction, then the width.
+		// Callers contribute none of it, so every transformation the site
+		// issues is visible in configuration.
+
+		Map<String, String> transformations = HashMapBuilder.putAll(
+			scopedSettings._defaultTransformations
+		).putAll(
+			breakpointDefinition.getTransformations()
+		).build();
+
+		List<ResponsiveImageBreakpointVariant>
+			responsiveImageBreakpointVariants = new ArrayList<>(widths.size());
+
+		for (Integer width : widths) {
+			Map<String, String> widthTransformations = HashMapBuilder.putAll(
+				transformations
+			).put(
+				"width", String.valueOf(width)
+			).build();
+
+			responsiveImageBreakpointVariants.add(
+				ResponsiveImageBreakpointVariantBuilder.url(
+					_buildURL(
+						scopedSettings, responsiveImageRequest,
+						imageResource.getURL(), widthTransformations)
+				).width(
+					width
+				).build());
+		}
+
+		return responsiveImageBreakpointVariants;
 	}
 
 	/**
@@ -321,9 +331,10 @@ public class CDNImageTransformationProvider
 	 * </p>
 	 */
 	private List<Integer> _getWidths(
-		ScopedSettings scopedSettings, BreakpointPreset breakpointPreset) {
+		ScopedSettings scopedSettings,
+		BreakpointDefinition breakpointDefinition) {
 
-		Integer maxWidth = breakpointPreset.getMaxWidth();
+		Integer maxWidth = breakpointDefinition.getMaxWidth();
 
 		List<Integer> widths = new ArrayList<>(
 			scopedSettings._variantWidths.size());
@@ -349,10 +360,10 @@ public class CDNImageTransformationProvider
 	 * disagree.
 	 * </p>
 	 */
-	private ImagePreset _resolveImagePreset(
+	private PresetDefinition _resolvePresetDefinition(
 		ResponsiveImageRequest responsiveImageRequest) {
 
-		return _imagePresetResolver.resolve(
+		return _presetDefinitionResolver.resolve(
 			_imageTransformationConfigurationHelper.getGroupId(
 				responsiveImageRequest),
 			_imageTransformationConfigurationHelper.getCompanyId(
@@ -424,15 +435,13 @@ public class CDNImageTransformationProvider
 	@Reference
 	private ConfigurationProvider _configurationProvider;
 
-	@Reference
-	private ImagePresetResolver _imagePresetResolver;
-
 	private ImageTransformationConfigurationHelper
 		_imageTransformationConfigurationHelper;
 
 	@Reference
 	private Portal _portal;
 
+	private PresetDefinitionResolver _presetDefinitionResolver;
 	private final Map<Long, ScopedSettings> _scopedSettings =
 		new ConcurrentHashMap<>();
 	private ServiceTrackerMap<String, ImageTransformationURLRenderer>

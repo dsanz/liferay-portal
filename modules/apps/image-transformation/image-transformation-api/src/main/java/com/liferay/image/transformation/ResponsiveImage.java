@@ -28,12 +28,12 @@ import java.util.List;
  * <code>&lt;picture&gt;</code>
  * </li>
  * <li>
- * {@link ImageBreakpoint} is a source set together with a source size
+ * {@link ResponsiveImageBreakpoint} is a source set together with a source size
  * list; it renders as a <code>&lt;source&gt;</code>, as the
  * <code>&lt;img&gt;</code>, or as both
  * </li>
  * <li>
- * {@link ImageBreakpointVariant} is an image candidate string; it
+ * {@link ResponsiveImageBreakpointVariant} is an image candidate string; it
  * renders as one <code>srcset</code> entry
  * </li>
  * </ul>
@@ -48,7 +48,7 @@ import java.util.List;
  * </p>
  *
  * <p>
- * Mirrors {@link ImagePreset} level for level, and deliberately stays separate
+ * Mirrors a configured preset level for level, and deliberately stays separate
  * from it. A preset is one shared object per company, parsed when configuration
  * changes; this is one object per image per request. Adaptive Media also
  * produces these without ever holding a preset, so the result model cannot be
@@ -69,11 +69,15 @@ public final class ResponsiveImage {
 	 */
 	public static ResponsiveImage passthrough(String src) {
 		return new ResponsiveImage(
-			Collections.<ImageBreakpoint>emptyList(), src);
+			Collections.<ResponsiveImageBreakpoint>emptyList(), src);
 	}
 
-	public ResponsiveImage(List<ImageBreakpoint> imageBreakpoints, String src) {
-		_imageBreakpoints = Collections.unmodifiableList(imageBreakpoints);
+	public ResponsiveImage(
+		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints,
+		String src) {
+
+		_responsiveImageBreakpoints = Collections.unmodifiableList(
+			responsiveImageBreakpoints);
 		_src = src;
 	}
 
@@ -89,8 +93,8 @@ public final class ResponsiveImage {
 	 *
 	 * @return the breakpoints
 	 */
-	public List<ImageBreakpoint> getImageBreakpoints() {
-		return _imageBreakpoints;
+	public List<ResponsiveImageBreakpoint> getBreakpoints() {
+		return _responsiveImageBreakpoints;
 	}
 
 	/**
@@ -103,7 +107,7 @@ public final class ResponsiveImage {
 		return _src;
 	}
 
-	private final List<ImageBreakpoint> _imageBreakpoints;
+	private final List<ResponsiveImageBreakpoint> _responsiveImageBreakpoints;
 	private final String _src;
 
 }

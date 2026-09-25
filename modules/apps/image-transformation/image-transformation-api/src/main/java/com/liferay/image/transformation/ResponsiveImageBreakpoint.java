@@ -5,8 +5,6 @@
 
 package com.liferay.image.transformation;
 
-import com.liferay.image.transformation.preset.BreakpointPreset;
-
 import java.util.Collections;
 import java.util.List;
 
@@ -20,12 +18,12 @@ import java.util.List;
  *
  * <pre>
  * ResponsiveImage        the image, plus a fallback src
- *   ImageBreakpoint    which variants apply, and how wide they render
- *     ImageBreakpointVariant       which one the browser picks
+ *   ResponsiveImageBreakpoint    which variants apply, and how wide they render
+ *     ResponsiveImageBreakpointVariant       which one the browser picks
  * </pre>
  *
  * <p>
- * Mirrors {@link BreakpointPreset} on the result side: the preset
+ * Mirrors a configured preset breakpoint on the result side: the preset
  * breakpoint describes what to generate, and this holds what was generated. One
  * is produced from the other by {@link #from}.
  * </p>
@@ -40,44 +38,7 @@ import java.util.List;
  *
  * @author Daniel Sanz
  */
-public final class ImageBreakpoint {
-
-	/**
-	 * Returns a breakpoint carrying the layout of the preset breakpoint it was
-	 * generated from.
-	 *
-	 * <p>
-	 * The single place the media condition and sizes cross over from
-	 * configuration into output, so a provider cannot drift from the preset it
-	 * was asked to honor.
-	 * </p>
-	 *
-	 * <p>
-	 * Automatic sizing is applied here, and only when the image is lazily
-	 * loaded, because that is the only case a browser honors it. The declared
-	 * sizes is kept behind the keyword so that browsers without support still
-	 * receive a real value.
-	 * </p>
-	 *
-	 * @param  breakpointPreset the preset whose transformations produced the
-	 *         variants
-	 * @param  variants the generated candidates
-	 * @param  lazy whether the image is lazily loaded
-	 * @return the breakpoint
-	 */
-	public static ImageBreakpoint from(
-		BreakpointPreset breakpointPreset,
-		List<ImageBreakpointVariant> variants, boolean lazy) {
-
-		String sizes = breakpointPreset.getSizes();
-
-		if (lazy && breakpointPreset.isAutoSizes() && (sizes != null)) {
-			sizes = "auto, " + sizes;
-		}
-
-		return new ImageBreakpoint(
-			breakpointPreset.getMediaQuery(), sizes, variants);
-	}
+public final class ResponsiveImageBreakpoint {
 
 	/**
 	 * Returns a breakpoint the provider determined for itself, having ignored any
@@ -90,11 +51,11 @@ public final class ImageBreakpoint {
 	 * @param  variants the candidates
 	 * @return the breakpoint
 	 */
-	public static ImageBreakpoint of(
+	public static ResponsiveImageBreakpoint of(
 		String mediaQuery, String sizes,
-		List<ImageBreakpointVariant> variants) {
+		List<ResponsiveImageBreakpointVariant> variants) {
 
-		return new ImageBreakpoint(mediaQuery, sizes, variants);
+		return new ResponsiveImageBreakpoint(mediaQuery, sizes, variants);
 	}
 
 	/**
@@ -134,13 +95,13 @@ public final class ImageBreakpoint {
 	 *
 	 * @return the candidates
 	 */
-	public List<ImageBreakpointVariant> getVariants() {
+	public List<ResponsiveImageBreakpointVariant> getVariants() {
 		return _variants;
 	}
 
-	private ImageBreakpoint(
+	private ResponsiveImageBreakpoint(
 		String mediaQuery, String sizes,
-		List<ImageBreakpointVariant> variants) {
+		List<ResponsiveImageBreakpointVariant> variants) {
 
 		_mediaQuery = mediaQuery;
 		_sizes = sizes;
@@ -149,6 +110,6 @@ public final class ImageBreakpoint {
 
 	private final String _mediaQuery;
 	private final String _sizes;
-	private final List<ImageBreakpointVariant> _variants;
+	private final List<ResponsiveImageBreakpointVariant> _variants;
 
 }

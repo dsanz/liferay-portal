@@ -6,10 +6,10 @@
 package com.liferay.image.transformation;
 
 /**
- * Builds a {@link ImageBreakpointVariant}.
+ * Builds a {@link ResponsiveImageBreakpointVariant}.
  *
  * <pre>
- * ImageBreakpointVariantBuilder.url(
+ * ResponsiveImageBreakpointVariantBuilder.url(
  *     url
  * ).width(
  *     640
@@ -33,23 +33,23 @@ package com.liferay.image.transformation;
  *
  * @author Daniel Sanz
  */
-public class ImageBreakpointVariantBuilder {
+public class ResponsiveImageBreakpointVariantBuilder {
 
-	public static ImageBreakpointVariantBuilder url(String url) {
-		return new ImageBreakpointVariantBuilder(url);
+	public static ResponsiveImageBreakpointVariantBuilder url(String url) {
+		return new ResponsiveImageBreakpointVariantBuilder(url);
 	}
 
-	public ImageBreakpointVariant build() {
-		return new ImageBreakpointVariant(_url, _width);
+	public ResponsiveImageBreakpointVariant build() {
+		return new ResponsiveImageBreakpointVariant(_url, _width);
 	}
 
-	public ImageBreakpointVariantBuilder width(Integer width) {
+	public ResponsiveImageBreakpointVariantBuilder width(Integer width) {
 		_width = width;
 
 		return this;
 	}
 
-	private ImageBreakpointVariantBuilder(String url) {
+	private ResponsiveImageBreakpointVariantBuilder(String url) {
 		_url = url;
 	}
 

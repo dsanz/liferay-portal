@@ -31,12 +31,6 @@ import org.osgi.annotation.versioning.ProviderType;
  * produced.
  * </p>
  *
- * <p>
- * The markup half of the consumer API. {@link ResponsiveImageProvider} is the
- * model half, for callers that need the variants as data rather than as a
- * string.
- * </p>
- *
  * @author Daniel Sanz
  */
 @ProviderType

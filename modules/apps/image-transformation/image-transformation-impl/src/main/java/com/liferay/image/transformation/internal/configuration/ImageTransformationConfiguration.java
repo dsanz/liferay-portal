@@ -135,7 +135,8 @@ public interface ImageTransformationConfiguration {
 	 * because both render without error and neither is what was meant. Several
 	 * breakpoints that generate the same image produce sources a browser could
 	 * have chosen between itself, and belong in the <code>sizes</code> of a
-	 * single unconditional preset. Breakpoints that generate different output
+	 * single unconditional breakpoint. Breakpoints that generate different
+	 * output
 	 * formats cannot work at all: a source is matched on its media condition,
 	 * so a browser that does not support the format has nothing to fall back
 	 * to, and the format has to be negotiated at the edge from the

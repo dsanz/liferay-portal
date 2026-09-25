@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.image.transformation.preset;
+package com.liferay.image.transformation.internal.configuration;
 
 import java.util.Collections;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.List;
  *
  * <p>
  * What a caller asks for: a fragment says it is rendering a <code>card</code>,
- * and configuration supplies one {@link BreakpointPreset} per breakpoint. Presets
+ * and configuration supplies one {@link BreakpointDefinition} per breakpoint. Presets
  * exist because <code>sizes</code> and art direction are properties of the
  * placement, not of the image or of the provider serving it, and a hero and a
  * card on the same page need different values.
@@ -27,17 +27,18 @@ import java.util.List;
  *
  * @author Daniel Sanz
  */
-public final class ImagePreset {
+public final class PresetDefinition {
 
-	public ImagePreset(
+	public PresetDefinition(
 		String label, Boolean lazy, String name,
-		List<BreakpointPreset> presets) {
+		List<BreakpointDefinition> breakpointDefinitions) {
 
 		_label = label;
 		_lazy = lazy;
 		_name = name;
 
-		_breakpointPresets = Collections.unmodifiableList(presets);
+		_breakpointDefinitions = Collections.unmodifiableList(
+			breakpointDefinitions);
 	}
 
 	/**
@@ -47,20 +48,20 @@ public final class ImagePreset {
 	 * Ordering comes from the order breakpoints are declared, not from the
 	 * order presets appear, so it is decided once for the whole installation
 	 * rather than per preset. Source matching is first wins, and the
-	 * unconditional preset always sorts last because it is the catch all.
+	 * unconditional breakpoint always sorts last because it is the catch all.
 	 * </p>
 	 *
 	 * <p>
-	 * One preset is the ordinary case and produces a plain
+	 * One breakpoint is the ordinary case and produces a plain
 	 * <code>&lt;img&gt;</code>. Several describe art direction and render as
 	 * <code>&lt;picture&gt;</code>, which multiplies the number of distinct
 	 * objects held at the edge by the number of variant widths.
 	 * </p>
 	 *
-	 * @return the presets
+	 * @return this preset's breakpoints
 	 */
-	public List<BreakpointPreset> getBreakpointPresets() {
-		return _breakpointPresets;
+	public List<BreakpointDefinition> getBreakpointDefinitions() {
+		return _breakpointDefinitions;
 	}
 
 	/**
@@ -131,7 +132,7 @@ public final class ImagePreset {
 		return false;
 	}
 
-	private final List<BreakpointPreset> _breakpointPresets;
+	private final List<BreakpointDefinition> _breakpointDefinitions;
 	private final String _label;
 	private final Boolean _lazy;
 	private final String _name;

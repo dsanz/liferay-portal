@@ -5,17 +5,17 @@
 
 package com.liferay.image.transformation.internal;
 
-import com.liferay.image.transformation.ImageBreakpoint;
-import com.liferay.image.transformation.ImageBreakpointVariant;
 import com.liferay.image.transformation.ImageResource;
 import com.liferay.image.transformation.ResponsiveImage;
+import com.liferay.image.transformation.ResponsiveImageBreakpoint;
+import com.liferay.image.transformation.ResponsiveImageBreakpointVariant;
 import com.liferay.image.transformation.ResponsiveImageMarkupRenderer;
 import com.liferay.image.transformation.ResponsiveImageRequest;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationHelper;
 import com.liferay.image.transformation.internal.configuration.ImageTransformationConfigurationValidator;
 import com.liferay.image.transformation.internal.configuration.MarkupShape;
-import com.liferay.image.transformation.preset.ImagePreset;
-import com.liferay.image.transformation.preset.ImagePresetResolver;
+import com.liferay.image.transformation.internal.configuration.PresetDefinition;
+import com.liferay.image.transformation.internal.configuration.PresetDefinitionResolver;
 import com.liferay.image.transformation.spi.ImageTransformationProvider;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
@@ -110,10 +110,11 @@ public class ResponsiveImageMarkupRendererImpl
 			return originalImgTag;
 		}
 
-		List<ImageBreakpoint> imageBreakpoints =
-			responsiveImage.getImageBreakpoints();
+		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints =
+			responsiveImage.getBreakpoints();
 
-		if (imageBreakpoints.isEmpty() || !_isTransformed(imageBreakpoints)) {
+		if (responsiveImageBreakpoints.isEmpty() ||
+			!_isTransformed(responsiveImageBreakpoints)) {
 
 			// Nothing was generated, or every width built the same URL because
 			// no renderer is bound. Emitting the descriptors anyway would have
@@ -122,24 +123,26 @@ public class ResponsiveImageMarkupRendererImpl
 			return originalImgTag;
 		}
 
-		ImagePreset imagePreset = _imagePresetResolver.resolve(
+		PresetDefinition presetDefinition = _presetDefinitionResolver.resolve(
 			_imageTransformationConfigurationHelper.getGroupId(
 				responsiveImageRequest),
 			_imageTransformationConfigurationHelper.getCompanyId(
 				responsiveImageRequest),
 			responsiveImageRequest.getPresetName());
 
-		boolean lazy = imagePreset.isLazy(responsiveImageRequest.getLazy());
+		boolean lazy = presetDefinition.isLazy(
+			responsiveImageRequest.getLazy());
 
 		MarkupShape markupShape =
 			ImageTransformationConfigurationValidator.getMarkupShape(
-				imagePreset);
+				presetDefinition);
 
 		if (markupShape == MarkupShape.IMG) {
-			return _renderImg(imageBreakpoints.get(0), lazy, originalImgTag);
+			return _renderImg(
+				responsiveImageBreakpoints.get(0), lazy, originalImgTag);
 		}
 
-		return _renderPicture(imageBreakpoints, lazy, originalImgTag);
+		return _renderPicture(responsiveImageBreakpoints, lazy, originalImgTag);
 	}
 
 	@Activate
@@ -148,6 +151,9 @@ public class ResponsiveImageMarkupRendererImpl
 			new ImageTransformationConfigurationHelper(
 				_configurationProvider, _portal);
 
+		_presetDefinitionResolver = new PresetDefinitionResolver(
+			_configurationProvider, _portal);
+
 		_imageTransformationProviderSelector =
 			new ImageTransformationProviderSelector(
 				_imageTransformationConfigurationHelper,
@@ -155,15 +161,16 @@ public class ResponsiveImageMarkupRendererImpl
 	}
 
 	private String _getSrcSet(
-		List<ImageBreakpointVariant> imageBreakpointVariants) {
+		List<ResponsiveImageBreakpointVariant>
+			responsiveImageBreakpointVariants) {
 
 		StringBundler sb = new StringBundler(
-			imageBreakpointVariants.size() * 4);
+			responsiveImageBreakpointVariants.size() * 4);
 
-		for (ImageBreakpointVariant imageBreakpointVariant :
-				imageBreakpointVariants) {
+		for (ResponsiveImageBreakpointVariant responsiveImageBreakpointVariant :
+				responsiveImageBreakpointVariants) {
 
-			if (imageBreakpointVariant.getWidth() == null) {
+			if (responsiveImageBreakpointVariant.getWidth() == null) {
 				continue;
 			}
 
@@ -171,9 +178,9 @@ public class ResponsiveImageMarkupRendererImpl
 				sb.append(StringPool.COMMA_AND_SPACE);
 			}
 
-			sb.append(imageBreakpointVariant.getURL());
+			sb.append(responsiveImageBreakpointVariant.getURL());
 			sb.append(StringPool.SPACE);
-			sb.append(imageBreakpointVariant.getWidth());
+			sb.append(responsiveImageBreakpointVariant.getWidth());
 			sb.append("w");
 		}
 
@@ -202,40 +209,48 @@ public class ResponsiveImageMarkupRendererImpl
 	 * and proxy path the builder prepends.
 	 * </p>
 	 */
-	private boolean _isTransformed(List<ImageBreakpoint> imageBreakpoints) {
-		for (ImageBreakpoint imageBreakpoint : imageBreakpoints) {
-			List<ImageBreakpointVariant> imageBreakpointVariants =
-				imageBreakpoint.getVariants();
+	private boolean _isTransformed(
+		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints) {
 
-			if (imageBreakpointVariants.size() < 2) {
+		for (ResponsiveImageBreakpoint responsiveImageBreakpoint :
+				responsiveImageBreakpoints) {
+
+			List<ResponsiveImageBreakpointVariant>
+				responsiveImageBreakpointVariants =
+					responsiveImageBreakpoint.getVariants();
+
+			if (responsiveImageBreakpointVariants.size() < 2) {
 				continue;
 			}
 
-			ImageBreakpointVariant firstImageBreakpointVariant =
-				imageBreakpointVariants.get(0);
-			ImageBreakpointVariant secondImageBreakpointVariant =
-				imageBreakpointVariants.get(1);
+			ResponsiveImageBreakpointVariant
+				firstResponsiveImageBreakpointVariant =
+					responsiveImageBreakpointVariants.get(0);
+			ResponsiveImageBreakpointVariant
+				secondResponsiveImageBreakpointVariant =
+					responsiveImageBreakpointVariants.get(1);
 
 			return !Objects.equals(
-				firstImageBreakpointVariant.getURL(),
-				secondImageBreakpointVariant.getURL());
+				firstResponsiveImageBreakpointVariant.getURL(),
+				secondResponsiveImageBreakpointVariant.getURL());
 		}
 
 		return true;
 	}
 
 	private String _renderImg(
-		ImageBreakpoint imageBreakpoint, boolean lazy, String originalImgTag) {
+		ResponsiveImageBreakpoint responsiveImageBreakpoint, boolean lazy,
+		String originalImgTag) {
 
 		StringBundler sb = new StringBundler(7);
 
 		sb.append("srcset=\"");
 		sb.append(
 			HtmlUtil.escapeAttribute(
-				_getSrcSet(imageBreakpoint.getVariants())));
+				_getSrcSet(responsiveImageBreakpoint.getVariants())));
 		sb.append("\"");
 
-		String sizes = imageBreakpoint.getSizes();
+		String sizes = responsiveImageBreakpoint.getSizes();
 
 		if (!Validator.isBlank(sizes)) {
 			sb.append(" sizes=\"");
@@ -254,15 +269,18 @@ public class ResponsiveImageMarkupRendererImpl
 	}
 
 	private String _renderPicture(
-		List<ImageBreakpoint> imageBreakpoints, boolean lazy,
-		String originalImgTag) {
+		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints,
+		boolean lazy, String originalImgTag) {
 
-		StringBundler sb = new StringBundler((imageBreakpoints.size() * 7) + 3);
+		StringBundler sb = new StringBundler(
+			(responsiveImageBreakpoints.size() * 7) + 3);
 
 		sb.append("<picture>");
 
-		for (ImageBreakpoint imageBreakpoint : imageBreakpoints) {
-			String mediaQuery = imageBreakpoint.getMediaQuery();
+		for (ResponsiveImageBreakpoint responsiveImageBreakpoint :
+				responsiveImageBreakpoints) {
+
+			String mediaQuery = responsiveImageBreakpoint.getMediaQuery();
 
 			if (Validator.isBlank(mediaQuery)) {
 				continue;
@@ -273,10 +291,10 @@ public class ResponsiveImageMarkupRendererImpl
 			sb.append("\" srcset=\"");
 			sb.append(
 				HtmlUtil.escapeAttribute(
-					_getSrcSet(imageBreakpoint.getVariants())));
+					_getSrcSet(responsiveImageBreakpoint.getVariants())));
 			sb.append("\"");
 
-			String sizes = imageBreakpoint.getSizes();
+			String sizes = responsiveImageBreakpoint.getSizes();
 
 			if (!Validator.isBlank(sizes)) {
 				sb.append(" sizes=\"");
@@ -293,8 +311,9 @@ public class ResponsiveImageMarkupRendererImpl
 
 		sb.append(
 			_renderImg(
-				imageBreakpoints.get(imageBreakpoints.size() - 1), lazy,
-				originalImgTag));
+				responsiveImageBreakpoints.get(
+					responsiveImageBreakpoints.size() - 1),
+				lazy, originalImgTag));
 
 		sb.append("</picture>");
 
@@ -325,9 +344,6 @@ public class ResponsiveImageMarkupRendererImpl
 	@Reference
 	private ConfigurationProvider _configurationProvider;
 
-	@Reference
-	private ImagePresetResolver _imagePresetResolver;
-
 	private ImageTransformationConfigurationHelper
 		_imageTransformationConfigurationHelper;
 
@@ -344,5 +360,7 @@ public class ResponsiveImageMarkupRendererImpl
 
 	@Reference
 	private Portal _portal;
+
+	private PresetDefinitionResolver _presetDefinitionResolver;
 
 }
