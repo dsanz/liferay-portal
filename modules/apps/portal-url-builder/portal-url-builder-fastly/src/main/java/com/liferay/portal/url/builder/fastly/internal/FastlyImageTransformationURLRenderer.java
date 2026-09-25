@@ -36,14 +36,16 @@ import org.osgi.service.component.annotations.Component;
  *
  * @author Daniel Sanz
  */
-@Component(
-	property = ImageTransformationURLRenderer.URL_RENDERER_NAME + "=" + FastlyImageTransformationURLRenderer.NAME,
-	service = ImageTransformationURLRenderer.class
-)
+@Component(service = ImageTransformationURLRenderer.class)
 public class FastlyImageTransformationURLRenderer
 	implements ImageTransformationURLRenderer {
 
 	public static final String NAME = "fastly";
+
+	@Override
+	public String getName() {
+		return NAME;
+	}
 
 	@Override
 	public String render(String url, Map<String, String> transformations) {

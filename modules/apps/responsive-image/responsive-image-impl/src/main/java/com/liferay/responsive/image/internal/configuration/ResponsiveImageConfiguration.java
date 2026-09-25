@@ -165,9 +165,8 @@ public interface ResponsiveImageConfiguration {
 
 	/**
 	 * Name of the image optimization provider whose URL vocabulary is used, for
-	 * example <code>fastly</code>. Must match the
-	 * <code>image.transformation.url.renderer.name</code> service property of a
-	 * deployed renderer.
+	 * example <code>fastly</code>. Must match the name reported by a deployed
+	 * {@code ImageTransformationURLRenderer}.
 	 *
 	 * <p>
 	 * Separate from {@link #providerName()} because the two are orthogonal: the

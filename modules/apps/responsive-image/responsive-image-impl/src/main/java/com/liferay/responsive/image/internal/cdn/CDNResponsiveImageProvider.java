@@ -5,8 +5,8 @@
 
 package com.liferay.responsive.image.internal.cdn;
 
-import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
-import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.log.Log;
@@ -115,19 +115,13 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 		_presetDefinitionResolver = new PresetDefinitionResolver(
 			_configurationProvider, _portal);
 
-		// Indexed by name here rather than in the URL builder: the name comes
-		// from this provider's own configuration, so this is where resolving it
-		// belongs. Empty is normal, and means transformations are dropped
-		// rather than that anything is wrong.
-
-		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
-			bundleContext, ImageTransformationURLRenderer.class,
-			ImageTransformationURLRenderer.URL_RENDERER_NAME);
+		_serviceTrackerList = ServiceTrackerListFactory.open(
+			bundleContext, ImageTransformationURLRenderer.class);
 	}
 
 	@Deactivate
 	protected void deactivate() {
-		_serviceTrackerMap.close();
+		_serviceTrackerList.close();
 	}
 
 	private String _buildURL(
@@ -163,14 +157,21 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 			return null;
 		}
 
-		ImageTransformationURLRenderer imageTransformationURLRenderer =
-			_serviceTrackerMap.getService(urlRendererName);
+		for (ImageTransformationURLRenderer imageTransformationURLRenderer :
+				_serviceTrackerList) {
 
-		if ((imageTransformationURLRenderer == null) && _log.isDebugEnabled()) {
+			if (urlRendererName.equals(
+					imageTransformationURLRenderer.getName())) {
+
+				return imageTransformationURLRenderer;
+			}
+		}
+
+		if (_log.isDebugEnabled()) {
 			_log.debug("No URL renderer is named " + urlRendererName);
 		}
 
-		return imageTransformationURLRenderer;
+		return null;
 	}
 
 	private ResponsiveImage _getResponsiveImage(
@@ -441,8 +442,8 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 		_responsiveImageConfigurationHelper;
 	private final Map<Long, ScopedSettings> _scopedSettings =
 		new ConcurrentHashMap<>();
-	private ServiceTrackerMap<String, ImageTransformationURLRenderer>
-		_serviceTrackerMap;
+	private ServiceTrackerList<ImageTransformationURLRenderer>
+		_serviceTrackerList;
 
 	private static class ScopedSettings {
 

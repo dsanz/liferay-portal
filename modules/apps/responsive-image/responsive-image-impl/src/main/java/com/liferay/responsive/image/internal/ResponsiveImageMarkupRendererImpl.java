@@ -5,6 +5,8 @@
 
 package com.liferay.responsive.image.internal;
 
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
@@ -28,12 +30,11 @@ import com.liferay.responsive.image.spi.ResponsiveImageProvider;
 import java.util.List;
 import java.util.Objects;
 
+import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
 import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.component.annotations.ReferencePolicyOption;
 
 /**
  * Turns the active provider's renditions into an image tag.
@@ -145,7 +146,10 @@ public class ResponsiveImageMarkupRendererImpl
 	}
 
 	@Activate
-	protected void activate() {
+	protected void activate(BundleContext bundleContext) {
+		_serviceTrackerList = ServiceTrackerListFactory.open(
+			bundleContext, ResponsiveImageProvider.class);
+
 		_responsiveImageConfigurationHelper =
 			new ResponsiveImageConfigurationHelper(
 				_configurationProvider, _portal);
@@ -154,8 +158,12 @@ public class ResponsiveImageMarkupRendererImpl
 			_configurationProvider, _portal);
 
 		_responsiveImageProviderSelector = new ResponsiveImageProviderSelector(
-			_responsiveImageConfigurationHelper,
-			() -> _responsiveImageProviders);
+			_responsiveImageConfigurationHelper, _serviceTrackerList::toList);
+	}
+
+	@Deactivate
+	protected void deactivate() {
+		_serviceTrackerList.close();
 	}
 
 	private String _getSrcSet(
@@ -348,14 +356,7 @@ public class ResponsiveImageMarkupRendererImpl
 	private PresetDefinitionResolver _presetDefinitionResolver;
 	private ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper;
-
-	@Reference(
-		cardinality = ReferenceCardinality.MULTIPLE,
-		policy = ReferencePolicy.DYNAMIC,
-		policyOption = ReferencePolicyOption.GREEDY
-	)
-	private volatile List<ResponsiveImageProvider> _responsiveImageProviders;
-
 	private ResponsiveImageProviderSelector _responsiveImageProviderSelector;
+	private ServiceTrackerList<ResponsiveImageProvider> _serviceTrackerList;
 
 }

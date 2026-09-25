@@ -5,7 +5,7 @@
 
 package com.liferay.responsive.image.internal.cdn;
 
-import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
@@ -108,14 +108,25 @@ public class CDNResponsiveImageProviderTest {
 			_cdnResponsiveImageProvider, "_absolutePortalURLBuilderFactory",
 			_absolutePortalURLBuilderFactory);
 		Mockito.when(
-			_serviceTrackerMap.getService("fastly")
+			_imageTransformationURLRenderer.getName()
 		).thenReturn(
-			_imageTransformationURLRenderer
+			"fastly"
+		);
+
+		Mockito.when(
+			_serviceTrackerList.iterator()
+		).thenAnswer(
+			invocation -> {
+				List<ImageTransformationURLRenderer> renderers =
+					Collections.singletonList(_imageTransformationURLRenderer);
+
+				return renderers.iterator();
+			}
 		);
 
 		ReflectionTestUtil.setFieldValue(
-			_cdnResponsiveImageProvider, "_serviceTrackerMap",
-			_serviceTrackerMap);
+			_cdnResponsiveImageProvider, "_serviceTrackerList",
+			_serviceTrackerList);
 		ReflectionTestUtil.setFieldValue(
 			_cdnResponsiveImageProvider, "_presetDefinitionResolver",
 			_presetDefinitionResolver);
@@ -431,7 +442,7 @@ public class CDNResponsiveImageProviderTest {
 			ResponsiveImageConfigurationHelper.class);
 
 	@SuppressWarnings("unchecked")
-	private final ServiceTrackerMap<String, ImageTransformationURLRenderer>
-		_serviceTrackerMap = Mockito.mock(ServiceTrackerMap.class);
+	private final ServiceTrackerList<ImageTransformationURLRenderer>
+		_serviceTrackerList = Mockito.mock(ServiceTrackerList.class);
 
 }
