@@ -10,10 +10,10 @@ import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.responsive.image.ImageResource;
+import com.liferay.responsive.image.ResponsiveImageProvider;
 import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfiguration;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
-import com.liferay.responsive.image.spi.ResponsiveImageProvider;
 
 import java.util.List;
 import java.util.function.Supplier;

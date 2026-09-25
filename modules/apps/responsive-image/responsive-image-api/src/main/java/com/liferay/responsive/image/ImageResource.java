@@ -13,8 +13,8 @@ package com.liferay.responsive.image;
  * OSGi modules, in the legacy portal image path, or on a completely different
  * host. Providers that need more than this interface exposes narrow the type
  * (see {@link FileEntryImageResource}) and use {@link
- * com.liferay.responsive.image.spi.ResponsiveImageProvider#canTransform}
- * to decline resources they cannot serve.
+ * ResponsiveImageProvider#canTransform} to decline resources they cannot
+ * serve.
  * </p>
  *
  * <p>

@@ -27,8 +27,8 @@ import com.liferay.responsive.image.ResponsiveImage;
 import com.liferay.responsive.image.ResponsiveImageBreakpoint;
 import com.liferay.responsive.image.ResponsiveImageBreakpointVariant;
 import com.liferay.responsive.image.ResponsiveImageBreakpointVariantBuilder;
+import com.liferay.responsive.image.ResponsiveImageProvider;
 import com.liferay.responsive.image.ResponsiveImageRequest;
-import com.liferay.responsive.image.spi.ResponsiveImageProvider;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -19,13 +19,13 @@ import com.liferay.responsive.image.ResponsiveImage;
 import com.liferay.responsive.image.ResponsiveImageBreakpoint;
 import com.liferay.responsive.image.ResponsiveImageBreakpointVariant;
 import com.liferay.responsive.image.ResponsiveImageMarkupRenderer;
+import com.liferay.responsive.image.ResponsiveImageProvider;
 import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.internal.configuration.MarkupShape;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
 import com.liferay.responsive.image.internal.configuration.PresetDefinitionResolver;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationValidator;
-import com.liferay.responsive.image.spi.ResponsiveImageProvider;
 
 import java.util.List;
 import java.util.Objects;

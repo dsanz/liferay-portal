@@ -12,13 +12,13 @@ import com.liferay.responsive.image.ResponsiveImage;
 import com.liferay.responsive.image.ResponsiveImageBreakpoint;
 import com.liferay.responsive.image.ResponsiveImageBreakpointVariant;
 import com.liferay.responsive.image.ResponsiveImageBreakpointVariantBuilder;
+import com.liferay.responsive.image.ResponsiveImageProvider;
 import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageRequestBuilder;
 import com.liferay.responsive.image.internal.configuration.BreakpointDefinition;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
 import com.liferay.responsive.image.internal.configuration.PresetDefinitionResolver;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
-import com.liferay.responsive.image.spi.ResponsiveImageProvider;
 
 import java.util.Arrays;
 import java.util.Collections;

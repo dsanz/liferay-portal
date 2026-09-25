@@ -25,9 +25,8 @@ import org.osgi.annotation.versioning.ProviderType;
  *
  * <p>
  * Holds no markup knowledge itself. It selects the active provider and hands
- * off to that provider's {@link
- * com.liferay.responsive.image.spi.ResponsiveImageProvider#render},
- * because what the markup should look like depends on how the variants were
+ * off to that provider's {@link ResponsiveImageProvider#render}, because what
+ * the markup should look like depends on how the variants were
  * produced.
  * </p>
  *
