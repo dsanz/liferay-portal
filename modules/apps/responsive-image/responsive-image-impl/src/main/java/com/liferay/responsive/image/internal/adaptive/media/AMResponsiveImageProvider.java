@@ -93,7 +93,7 @@ public class AMResponsiveImageProvider implements ResponsiveImageProvider {
 			fileEntry);
 
 		if (ListUtil.isEmpty(mediaQueries)) {
-			return ResponsiveImage.passthrough(imageResource.getURL());
+			return new ResponsiveImage(imageResource.getURL());
 		}
 
 		Map<String, ResponsiveImageCandidate> responsiveImageCandidates =

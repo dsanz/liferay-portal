@@ -59,25 +59,23 @@ import java.util.List;
  */
 public final class ResponsiveImage {
 
-	/**
-	 * Returns a result carrying only the untransformed URL, used whenever no
-	 * provider claimed the resource so that callers always get something
-	 * renderable.
-	 *
-	 * @param  src the untransformed URL
-	 * @return the passthrough result
-	 */
-	public static ResponsiveImage passthrough(String src) {
-		return new ResponsiveImage(
-			Collections.<ResponsiveImageSource>emptyList(), src);
-	}
-
 	public ResponsiveImage(
 		List<ResponsiveImageSource> responsiveImageSources, String src) {
 
 		_responsiveImageSources = Collections.unmodifiableList(
 			responsiveImageSources);
 		_src = src;
+	}
+
+	/**
+	 * Constructs a result carrying only the untransformed URL, used whenever no
+	 * provider claimed the resource so that callers always get something
+	 * renderable.
+	 *
+	 * @param src the untransformed URL
+	 */
+	public ResponsiveImage(String src) {
+		this(Collections.<ResponsiveImageSource>emptyList(), src);
 	}
 
 	/**
