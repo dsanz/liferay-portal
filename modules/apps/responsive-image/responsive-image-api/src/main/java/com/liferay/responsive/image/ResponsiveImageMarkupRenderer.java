@@ -36,18 +36,24 @@ import org.osgi.annotation.versioning.ProviderType;
 public interface ResponsiveImageMarkupRenderer {
 
 	/**
-	 * Returns responsive markup wrapping the given image tag.
+	 * Returns responsive markup wrapping the given image tag, or
+	 * <code>null</code> when nothing was produced.
 	 *
 	 * <p>
-	 * Returns <code>originalImgTag</code> unchanged when no provider supports
-	 * the resource, so this is always safe to call.
+	 * <code>null</code> means the framework declined: the feature is off, no
+	 * provider is configured, the configured one does not support this
+	 * resource, or it produced nothing usable. It is distinct from returning
+	 * the tag unchanged, because a caller that outranks another renderer has
+	 * to know whether to hand over to it. A caller with nothing to hand over
+	 * to renders <code>originalImgTag</code>.
 	 * </p>
 	 *
 	 * @param  originalImgTag the original image tag, whose attributes are
 	 *         preserved
 	 * @param  responsiveImageRequest what the caller wants; use {@link
 	 *         ResponsiveImageRequest#of(ImageResource)} for current behavior
-	 * @return the responsive markup
+	 * @return the responsive markup, or <code>null</code> if the framework
+	 *         declined
 	 * @throws PortalException if the resource could not be read
 	 */
 	public String render(

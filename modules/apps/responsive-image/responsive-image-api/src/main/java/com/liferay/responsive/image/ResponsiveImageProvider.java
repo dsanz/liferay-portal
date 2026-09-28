@@ -8,7 +8,7 @@ package com.liferay.responsive.image;
 import com.liferay.portal.kernel.exception.PortalException;
 
 /**
- * Produces renditions of an image, and the markup that presents them.
+ * Produces the renditions of an image, as a model for a renderer to present.
  *
  * <p>
  * Register an implementation as an OSGi service to add a way of generating
@@ -18,29 +18,20 @@ import com.liferay.portal.kernel.exception.PortalException;
  * </p>
  *
  * <p>
- * Both producing the model and rendering it live here, on one interface,
- * because they must agree. Markup shape follows from how renditions were
- * produced: a provider limited to a fixed set of pregenerated renditions needs
- * <code>&lt;source media&gt;</code>, while one that generates any width on
- * demand wants <code>srcset</code> and lets the browser choose. Splitting them
- * across two registrations would allow a company to end up with one provider's
- * renditions presented by another's markup.
- * </p>
- *
- * <p>
- * Both are still needed. Rendering is not the only consumer of the model: the
- * page editor's rendition picker presents it as JSON, and its adaptive media
- * processor patches URLs onto existing DOM elements. Neither wants a tag.
+ * Markup is deliberately not produced here. Rendering is not the only consumer
+ * of the model: the page editor's rendition picker presents it as JSON, and
+ * its adaptive media processor patches URLs onto existing DOM elements.
+ * Neither wants a tag, and one renderer over one model is what stops two
+ * consumers disagreeing about the renditions.
  * </p>
  *
  * <p>
  * Implemented here, not called here. Consumers call {@link
  * com.liferay.responsive.image.ResponsiveImageMarkupRenderer#render},
- * which carries a stronger contract: it selects the configured provider and
- * turns any empty or absent answer into the original URL. An
- * implementation of this interface is therefore free to return nothing when it
- * does not support a resource, and should not synthesize a fallback of its
- * own.
+ * which selects the configured provider and answers
+ * <code>null</code> when none produced anything. An implementation of this
+ * interface is therefore free to return nothing when it does not support a
+ * resource, and should not synthesize a fallback of its own.
  * </p>
  *
  * <p>
@@ -99,36 +90,5 @@ public interface ResponsiveImageProvider {
 	 * @return <code>true</code> if this provider supports the image
 	 */
 	public boolean isSupported(ImageResource imageResource);
-
-	/**
-	 * Returns markup for the given image.
-	 *
-	 * <p>
-	 * Defaulted so a provider contributing only to model consumers need not
-	 * implement it; its callers get the original tag back unchanged.
-	 * </p>
-	 *
-	 * <p>
-	 * An implementation that builds its own markup should call {@link
-	 * #getResponsiveImage} rather than resolving renditions a second way, so
-	 * that what is rendered and what model consumers see cannot diverge. An
-	 * implementation that delegates to a provider's existing renderer is
-	 * trusted to be self consistent, which is the price of not rewriting it.
-	 * </p>
-	 *
-	 * @param  originalImgTag the original image tag, whose attributes are
-	 *         preserved
-	 * @param  responsiveImageRequest what the caller wants
-	 * @return the markup, or <code>null</code> to have the framework render
-	 *         the model instead, which is what nearly every provider wants
-	 * @throws PortalException if the resource could not be read
-	 */
-	public default String render(
-			String originalImgTag,
-			ResponsiveImageRequest responsiveImageRequest)
-		throws PortalException {
-
-		return null;
-	}
 
 }

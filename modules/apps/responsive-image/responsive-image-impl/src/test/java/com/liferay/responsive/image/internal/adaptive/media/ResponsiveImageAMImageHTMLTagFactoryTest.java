@@ -6,6 +6,7 @@
 package com.liferay.responsive.image.internal.adaptive.media;
 
 import com.liferay.adaptive.media.image.html.AMImageHTMLTagFactory;
+import com.liferay.adaptive.media.image.html.constants.AMImageHTMLConstants;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.test.rule.FeatureFlag;
@@ -80,16 +81,64 @@ public class ResponsiveImageAMImageHTMLTagFactoryTest {
 	}
 
 	@Test
+	public void testDelegatesToAdaptiveMediaWhenTheFrameworkDeclines()
+		throws Exception {
+
+		// Null is the framework saying it produced nothing, which is what
+		// an unconfigured site answers now that Adaptive Media is no longer
+		// a provider. Its own renderer has to answer instead.
+
+		_whenFrameworkRenders(null);
+
+		Mockito.when(
+			_amImageHTMLTagFactory.create(_ORIGINAL_IMG_TAG, _fileEntry)
+		).thenReturn(
+			"<picture>adaptive media</picture>"
+		);
+
+		Assert.assertEquals(
+			"<picture>adaptive media</picture>",
+			_responsiveImageAMImageHTMLTagFactory.create(
+				_ORIGINAL_IMG_TAG, _fileEntry));
+	}
+
+	@Test
+	public void testMarksThePictureWithTheFileEntryId() throws Exception {
+
+		// Byte identical to what Adaptive Media's own factory opens with,
+		// because its content transformer matches that whole literal to decide
+		// whether an image was already wrapped.
+
+		Mockito.when(
+			_fileEntry.getFileEntryId()
+		).thenReturn(
+			1989L
+		);
+
+		_whenFrameworkRenders(
+			"<picture><source srcset=\"a 320w\" />" + _ORIGINAL_IMG_TAG +
+				"</picture>");
+
+		String markup = _responsiveImageAMImageHTMLTagFactory.create(
+			_ORIGINAL_IMG_TAG, _fileEntry);
+
+		Assert.assertTrue(
+			markup,
+			markup.startsWith(
+				"<picture " +
+					AMImageHTMLConstants.ATTRIBUTE_NAME_FILE_ENTRY_ID +
+						"=\"1989\">"));
+		Assert.assertTrue(markup, markup.endsWith("</picture>"));
+	}
+
+	@Test
 	public void testRendersThroughTheFrameworkWhenTheFeatureFlagIsEnabled()
 		throws Exception {
 
-		Mockito.when(
-			_responsiveImageMarkupRenderer.render(
-				Mockito.eq(_ORIGINAL_IMG_TAG),
-				Mockito.any(ResponsiveImageRequest.class))
-		).thenReturn(
-			"<img srcset=\"...\" />"
-		);
+		// Byte identical, which also says an <img> is left unmarked: only a
+		// <picture> carries the file entry id in Adaptive Media's markup.
+
+		_whenFrameworkRenders("<img srcset=\"...\" />");
 
 		Assert.assertEquals(
 			"<img srcset=\"...\" />",
@@ -97,6 +146,16 @@ public class ResponsiveImageAMImageHTMLTagFactoryTest {
 				_ORIGINAL_IMG_TAG, _fileEntry));
 
 		Mockito.verifyNoInteractions(_amImageHTMLTagFactory);
+	}
+
+	private void _whenFrameworkRenders(String markup) throws Exception {
+		Mockito.when(
+			_responsiveImageMarkupRenderer.render(
+				Mockito.eq(_ORIGINAL_IMG_TAG),
+				Mockito.any(ResponsiveImageRequest.class))
+		).thenReturn(
+			markup
+		);
 	}
 
 	private static final String _ORIGINAL_IMG_TAG =

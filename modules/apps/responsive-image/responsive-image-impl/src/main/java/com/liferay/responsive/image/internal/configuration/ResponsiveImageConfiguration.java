@@ -167,8 +167,8 @@ public interface ResponsiveImageConfiguration {
 
 	/**
 	 * Name of the active provider (for example <code>cdn</code> or
-	 * <code>adaptive-media</code>). Left blank, the framework falls back to
-	 * Adaptive Media, preserving current behavior.
+	 * <code>cdn</code>). Left blank, the framework declines and images are
+	 * served by Adaptive Media exactly as before.
 	 *
 	 * <p>
 	 * Selection is by name rather than by service ranking so that the active

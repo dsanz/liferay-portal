@@ -18,12 +18,14 @@ import com.liferay.responsive.image.ResponsiveImageRequestBuilder;
 import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
 import com.liferay.responsive.image.internal.configuration.PresetDefinitionResolver;
+import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfiguration;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
 import com.liferay.responsive.image.internal.configuration.SourceDefinition;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -55,21 +57,33 @@ public class ResponsiveImageMarkupRendererImplTest {
 			"/documents/1/2/photo.jpg"
 		);
 
+		// Selection is by configured name, so the fixture has to name the
+		// provider under test and have it accept the resource.
+
 		Mockito.when(
-			_responsiveImageProviderSelector.getResponsiveImageProvider(
-				Mockito.any(ResponsiveImageRequest.class))
+			_responsiveImageProvider.getName()
 		).thenReturn(
-			_responsiveImageProvider
+			_PROVIDER_NAME
 		);
 
-		// Null means "I do not render my own markup", which is what every
-		// provider but Adaptive Media says.
+		Mockito.when(
+			_responsiveImageProvider.isSupported(
+				Mockito.any(ImageResource.class))
+		).thenReturn(
+			true
+		);
 
 		Mockito.when(
-			_responsiveImageProvider.render(
-				Mockito.anyString(), Mockito.any(ResponsiveImageRequest.class))
+			_responsiveImageConfiguration.providerName()
 		).thenReturn(
-			null
+			_PROVIDER_NAME
+		);
+
+		Mockito.when(
+			_responsiveImageConfigurationHelper.getResponsiveImageConfiguration(
+				Mockito.anyLong(), Mockito.anyLong())
+		).thenReturn(
+			_responsiveImageConfiguration
 		);
 
 		ReflectionTestUtil.setFieldValue(
@@ -81,15 +95,41 @@ public class ResponsiveImageMarkupRendererImplTest {
 			_responsiveImageConfigurationHelper);
 		ReflectionTestUtil.setFieldValue(
 			_responsiveImageMarkupRendererImpl,
-			"_responsiveImageProviderSelector",
-			_responsiveImageProviderSelector);
+			"_responsiveImageProvidersSupplier",
+			(Supplier<List<ResponsiveImageProvider>>)
+				() -> Collections.singletonList(_responsiveImageProvider));
 	}
 
 	@Test
-	public void testPassesThroughWhenNothingWasTransformed() throws Exception {
+	public void testDeclinesWhenNoProviderIsConfigured() throws Exception {
+
+		// Unconfigured must not fall through to whichever provider happens
+		// to be registered. Deploying this bundle cannot change how existing
+		// images are served.
+
+		Mockito.when(
+			_responsiveImageConfiguration.providerName()
+		).thenReturn(
+			""
+		);
+
+		Assert.assertNull(
+			_responsiveImageMarkupRendererImpl.render(
+				_ORIGINAL_IMG_TAG, _request()));
+
+		Mockito.verify(
+			_responsiveImageProvider, Mockito.never()
+		).getResponsiveImage(
+			Mockito.any(ResponsiveImageRequest.class)
+		);
+	}
+
+	@Test
+	public void testDeclinesWhenNothingWasTransformed() throws Exception {
 
 		// Every width built the same URL, so no renderer is bound. Emitting the
-		// descriptors would have the browser trust them and pick wrong.
+		// descriptors would have the browser trust them and pick wrong, and
+		// declining lets the caller fall back to Adaptive Media.
 
 		_givenPreset(_sourceDefinition(null, "100vw"));
 		_givenResponsiveImage(
@@ -99,17 +139,35 @@ public class ResponsiveImageMarkupRendererImplTest {
 					_candidate("/documents/1/2/photo.jpg", 320),
 					_candidate("/documents/1/2/photo.jpg", 640))));
 
-		String markup = _responsiveImageMarkupRendererImpl.render(
-			_ORIGINAL_IMG_TAG, _request());
+		Assert.assertNull(
+			_responsiveImageMarkupRendererImpl.render(
+				_ORIGINAL_IMG_TAG, _request()));
+	}
 
-		Assert.assertEquals(_ORIGINAL_IMG_TAG, markup);
+	@Test
+	public void testDeclinesWhenTheConfiguredProviderIsNotDeployed()
+		throws Exception {
+
+		Mockito.when(
+			_responsiveImageConfiguration.providerName()
+		).thenReturn(
+			"absent"
+		);
+
+		Assert.assertNull(
+			_responsiveImageMarkupRendererImpl.render(
+				_ORIGINAL_IMG_TAG, _request()));
+
+		Mockito.verify(
+			_responsiveImageProvider, Mockito.never()
+		).getResponsiveImage(
+			Mockito.any(ResponsiveImageRequest.class)
+		);
 	}
 
 	@FeatureFlag(enable = false, value = "LPD-94784")
 	@Test
-	public void testPassesThroughWhenTheFeatureFlagIsDisabled()
-		throws Exception {
-
+	public void testDeclinesWhenTheFeatureFlagIsDisabled() throws Exception {
 		_givenPreset(_sourceDefinition(null, "100vw"));
 		_givenResponsiveImage(
 			ResponsiveImageSource.of(
@@ -118,29 +176,11 @@ public class ResponsiveImageMarkupRendererImplTest {
 					_candidate("/documents/1/2/photo.jpg?width=320", 320),
 					_candidate("/documents/1/2/photo.jpg?width=640", 640))));
 
-		String markup = _responsiveImageMarkupRendererImpl.render(
-			_ORIGINAL_IMG_TAG, _request());
+		Assert.assertNull(
+			_responsiveImageMarkupRendererImpl.render(
+				_ORIGINAL_IMG_TAG, _request()));
 
-		Assert.assertEquals(_ORIGINAL_IMG_TAG, markup);
-
-		Mockito.verifyNoInteractions(_responsiveImageProviderSelector);
-	}
-
-	@Test
-	public void testPassesThroughWhenTheProviderRendersItsOwnMarkup()
-		throws Exception {
-
-		Mockito.when(
-			_responsiveImageProvider.render(
-				Mockito.anyString(), Mockito.any(ResponsiveImageRequest.class))
-		).thenReturn(
-			"<picture>adaptive media</picture>"
-		);
-
-		String markup = _responsiveImageMarkupRendererImpl.render(
-			_ORIGINAL_IMG_TAG, _request());
-
-		Assert.assertEquals("<picture>adaptive media</picture>", markup);
+		Mockito.verifyNoInteractions(_responsiveImageProvider);
 	}
 
 	@Test
@@ -252,10 +292,14 @@ public class ResponsiveImageMarkupRendererImplTest {
 	private static final String _ORIGINAL_IMG_TAG =
 		"<img alt=\"A photo\" src=\"/documents/1/2/photo.jpg\" />";
 
+	private static final String _PROVIDER_NAME = "test";
+
 	private final ImageResource _imageResource = Mockito.mock(
 		ImageResource.class);
 	private final PresetDefinitionResolver _presetDefinitionResolver =
 		Mockito.mock(PresetDefinitionResolver.class);
+	private final ResponsiveImageConfiguration _responsiveImageConfiguration =
+		Mockito.mock(ResponsiveImageConfiguration.class);
 	private final ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper = Mockito.mock(
 			ResponsiveImageConfigurationHelper.class);
@@ -264,8 +308,5 @@ public class ResponsiveImageMarkupRendererImplTest {
 			new ResponsiveImageMarkupRendererImpl();
 	private final ResponsiveImageProvider _responsiveImageProvider =
 		Mockito.mock(ResponsiveImageProvider.class);
-	private final ResponsiveImageProviderSelector
-		_responsiveImageProviderSelector = Mockito.mock(
-			ResponsiveImageProviderSelector.class);
 
 }

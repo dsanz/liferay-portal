@@ -12,6 +12,8 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
+import com.liferay.portal.kernel.log.Log;
+import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
@@ -25,11 +27,13 @@ import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.internal.configuration.MarkupShape;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
 import com.liferay.responsive.image.internal.configuration.PresetDefinitionResolver;
+import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfiguration;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationValidator;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -70,8 +74,9 @@ public class ResponsiveImageMarkupRendererImpl
 	 * </p>
 	 *
 	 * <p>
-	 * Returns the original tag whenever anything is missing or no URL was
-	 * actually transformed, so this is always safe to call.
+	 * Returns <code>null</code> whenever anything is missing or no URL was
+	 * actually transformed, so that a caller outranking Adaptive Media's own
+	 * renderer can tell that it has to hand over.
 	 * </p>
 	 */
 	@Override
@@ -81,7 +86,7 @@ public class ResponsiveImageMarkupRendererImpl
 		throws PortalException {
 
 		if (responsiveImageRequest == null) {
-			return originalImgTag;
+			return null;
 		}
 
 		// The cut for the whole feature. Off returns the tag the caller already
@@ -94,35 +99,27 @@ public class ResponsiveImageMarkupRendererImpl
 					responsiveImageRequest),
 				"LPD-94784")) {
 
-			return originalImgTag;
+			return null;
 		}
 
 		ImageResource imageResource = responsiveImageRequest.getImageResource();
 
 		if (imageResource == null) {
-			return originalImgTag;
+			return null;
 		}
 
 		ResponsiveImageProvider responsiveImageProvider =
-			_responsiveImageProviderSelector.getResponsiveImageProvider(
-				responsiveImageRequest);
+			_getResponsiveImageProvider(imageResource, responsiveImageRequest);
 
 		if (responsiveImageProvider == null) {
-			return originalImgTag;
-		}
-
-		String markup = responsiveImageProvider.render(
-			originalImgTag, responsiveImageRequest);
-
-		if (markup != null) {
-			return markup;
+			return null;
 		}
 
 		ResponsiveImage responsiveImage =
 			responsiveImageProvider.getResponsiveImage(responsiveImageRequest);
 
 		if (responsiveImage == null) {
-			return originalImgTag;
+			return null;
 		}
 
 		List<ResponsiveImageSource> responsiveImageSources =
@@ -135,7 +132,7 @@ public class ResponsiveImageMarkupRendererImpl
 			// no renderer is bound. Emitting the descriptors anyway would have
 			// the browser trust them and render at the wrong density.
 
-			return originalImgTag;
+			return null;
 		}
 
 		PresetDefinition presetDefinition = _presetDefinitionResolver.resolve(
@@ -172,13 +169,77 @@ public class ResponsiveImageMarkupRendererImpl
 		_presetDefinitionResolver = new PresetDefinitionResolver(
 			_configurationProvider, _portal);
 
-		_responsiveImageProviderSelector = new ResponsiveImageProviderSelector(
-			_responsiveImageConfigurationHelper, _serviceTrackerList::toList);
+		_responsiveImageProvidersSupplier = _serviceTrackerList::toList;
 	}
 
 	@Deactivate
 	protected void deactivate() {
 		_serviceTrackerList.close();
+	}
+
+	private String _getProviderName(
+		ResponsiveImageRequest responsiveImageRequest) {
+
+		ResponsiveImageConfiguration responsiveImageConfiguration =
+			_responsiveImageConfigurationHelper.getResponsiveImageConfiguration(
+				_responsiveImageConfigurationHelper.getGroupId(
+					responsiveImageRequest),
+				_responsiveImageConfigurationHelper.getCompanyId(
+					responsiveImageRequest));
+
+		if (responsiveImageConfiguration == null) {
+			return null;
+		}
+
+		return responsiveImageConfiguration.providerName();
+	}
+
+	/**
+	 * Returns the provider configured for this request, or <code>null</code>.
+	 *
+	 * <p>
+	 * Selection is by configured name, never by service ranking, and an
+	 * unconfigured site selects nothing rather than the first provider that
+	 * happens to be registered. Deploying this bundle must not change how
+	 * existing images are served, and the caller falls back to Adaptive Media
+	 * on null.
+	 * </p>
+	 */
+	private ResponsiveImageProvider _getResponsiveImageProvider(
+		ImageResource imageResource,
+		ResponsiveImageRequest responsiveImageRequest) {
+
+		List<ResponsiveImageProvider> responsiveImageProviders =
+			_responsiveImageProvidersSupplier.get();
+
+		if (responsiveImageProviders == null) {
+			return null;
+		}
+
+		String providerName = _getProviderName(responsiveImageRequest);
+
+		if (Validator.isBlank(providerName)) {
+			return null;
+		}
+
+		for (ResponsiveImageProvider responsiveImageProvider :
+				responsiveImageProviders) {
+
+			if (responsiveImageProvider.isSupported(imageResource) &&
+				providerName.equals(responsiveImageProvider.getName())) {
+
+				return responsiveImageProvider;
+			}
+		}
+
+		if (_log.isDebugEnabled()) {
+			_log.debug(
+				StringBundler.concat(
+					"No provider named ", providerName, " supports ",
+					imageResource.getURL()));
+		}
+
+		return null;
 	}
 
 	private String _getSrcSet(
@@ -359,6 +420,9 @@ public class ResponsiveImageMarkupRendererImpl
 	 * </p>
 	 */
 	@Reference
+	private static final Log _log = LogFactoryUtil.getLog(
+		ResponsiveImageMarkupRendererImpl.class);
+
 	private ConfigurationProvider _configurationProvider;
 
 	@Reference
@@ -367,7 +431,8 @@ public class ResponsiveImageMarkupRendererImpl
 	private PresetDefinitionResolver _presetDefinitionResolver;
 	private ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper;
-	private ResponsiveImageProviderSelector _responsiveImageProviderSelector;
+	private Supplier<List<ResponsiveImageProvider>>
+		_responsiveImageProvidersSupplier;
 	private ServiceTrackerList<ResponsiveImageProvider> _serviceTrackerList;
 
 }

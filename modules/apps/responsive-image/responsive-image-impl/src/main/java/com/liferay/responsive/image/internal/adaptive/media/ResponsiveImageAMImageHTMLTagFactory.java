@@ -6,6 +6,9 @@
 package com.liferay.responsive.image.internal.adaptive.media;
 
 import com.liferay.adaptive.media.image.html.AMImageHTMLTagFactory;
+import com.liferay.adaptive.media.image.html.constants.AMImageHTMLConstants;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.repository.model.FileEntry;
@@ -43,14 +46,10 @@ import org.osgi.service.component.annotations.Reference;
  * Migrate the ten call sites from {@code AMImageHTMLTagFactory#create(String,
  * FileEntry)} to {@link ResponsiveImageMarkupRenderer#render(String,
  * com.liferay.responsive.image.ResponsiveImageRequest)}, obtaining the
- * resource from {@link ImageResourceFactory}.
+ * resource from {@link ImageResourceFactory} and rendering the original tag
+ * when it answers <code>null</code>.
  * </li>
  * <li>Delete this class.</li>
- * <li>
- * Delete the {@code target} filter on {@link AMResponsiveImageProvider}'s
- * {@code AMImageHTMLTagFactory} reference, which exists only to avoid recursing
- * back through this class.
- * </li>
  * </ol>
  *
  * <p>
@@ -89,13 +88,25 @@ public class ResponsiveImageAMImageHTMLTagFactory
 		// most of the time there is nothing to find. Absent it, the company
 		// comes from the ambient one and the CDN host is resolved per company.
 
-		return _responsiveImageMarkupRenderer.render(
+		String markup = _responsiveImageMarkupRenderer.render(
 			originalImgTag,
 			ResponsiveImageRequestBuilder.imageResource(
 				_imageResourceFactory.fromFileEntry(fileEntry)
 			).httpServletRequest(
 				_getHttpServletRequest()
 			).build());
+
+		// The framework declined, so Adaptive Media answers exactly as it did
+		// before this existed. Its markup carries a data-fileentryid on the
+		// <picture> that its own content transformer and its export and import
+		// processor both match on, so handing back the original tag here would
+		// break them.
+
+		if (markup == null) {
+			return _amImageHTMLTagFactory.create(originalImgTag, fileEntry);
+		}
+
+		return _markPicture(markup, fileEntry);
 	}
 
 	private HttpServletRequest _getHttpServletRequest() {
@@ -110,6 +121,37 @@ public class ResponsiveImageAMImageHTMLTagFactory
 	}
 
 	/**
+	 * Marks a <code>&lt;picture&gt;</code> the way Adaptive Media marks its
+	 * own.
+	 *
+	 * <p>
+	 * Two Adaptive Media components read the file entry id from the opening
+	 * tag: its content transformer uses it as an idempotency guard, matching
+	 * the whole <code>&lt;picture data-fileentryid="N"&gt;</code> literal, and
+	 * its export and import processor selects on it to regenerate sources on
+	 * import. Markup missing it is wrapped a second time and survives an
+	 * import still pointing at the source installation.
+	 * </p>
+	 *
+	 * <p>
+	 * Here rather than in the renderer because this is Adaptive Media's
+	 * private protocol between three of its own classes. The framework has no
+	 * business knowing it, and it should disappear with this class.
+	 * </p>
+	 */
+	private String _markPicture(String markup, FileEntry fileEntry) {
+		if (!markup.startsWith(_OPEN_TAG_PICTURE)) {
+			return markup;
+		}
+
+		return StringBundler.concat(
+			_OPEN_TAG_PICTURE, StringPool.SPACE,
+			AMImageHTMLConstants.ATTRIBUTE_NAME_FILE_ENTRY_ID, "=\"",
+			fileEntry.getFileEntryId(), "\"",
+			markup.substring(_OPEN_TAG_PICTURE.length()));
+	}
+
+	/**
 	 * Binds Adaptive Media's own implementation, by excluding this one.
 	 *
 	 * <p>
@@ -119,6 +161,8 @@ public class ResponsiveImageAMImageHTMLTagFactory
 	 * its internals.
 	 * </p>
 	 */
+	private static final String _OPEN_TAG_PICTURE = "<picture";
+
 	@Reference(
 		target = "(!(component.name=com.liferay.responsive.image.internal.adaptive.media.ResponsiveImageAMImageHTMLTagFactory))"
 	)
