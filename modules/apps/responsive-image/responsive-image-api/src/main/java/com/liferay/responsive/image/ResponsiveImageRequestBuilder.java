@@ -21,7 +21,7 @@ import jakarta.servlet.http.HttpServletRequest;
  * <p>
  * Entered through a static method carrying the one required value, as {@link
  * com.liferay.portal.kernel.util.HashMapBuilder} is entered through its first
- * put. A request without an image has nothing to transform, and this way there
+ * put. A request without an image has nothing to render, and this way there
  * is no partially built state to reach: the constructor is private, so the
  * image cannot be omitted or supplied twice.
  * </p>

@@ -10,7 +10,7 @@ import com.liferay.portal.kernel.exception.PortalException;
 import org.osgi.annotation.versioning.ProviderType;
 
 /**
- * Produces responsive image markup, whatever transformation provider is active.
+ * Produces responsive image markup, whatever provider is active.
  *
  * <p>
  * The umbrella every consumer should call when it needs image markup, replacing
@@ -39,8 +39,8 @@ public interface ResponsiveImageMarkupRenderer {
 	 * Returns responsive markup wrapping the given image tag.
 	 *
 	 * <p>
-	 * Returns <code>originalImgTag</code> unchanged when no provider can
-	 * transform the resource, so this is always safe to call.
+	 * Returns <code>originalImgTag</code> unchanged when no provider supports
+	 * the resource, so this is always safe to call.
 	 * </p>
 	 *
 	 * @param  originalImgTag the original image tag, whose attributes are

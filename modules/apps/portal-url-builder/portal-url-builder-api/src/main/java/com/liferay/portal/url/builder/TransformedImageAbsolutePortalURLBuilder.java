@@ -15,8 +15,8 @@ import com.liferay.portal.url.builder.facet.CDNAwareAbsolutePortalURLBuilder;
  * <p>
  * Unlike the other builders in this package, the path passed to {@link
  * AbsolutePortalURLBuilder#forTransformedImage(String)} is <b>not</b> resolved
- * against a well known portal root such as {@code Portal#PATH_IMAGE}. Images
- * that can be transformed live wherever the repository put them (for example
+ * against a well known portal root such as {@code Portal#PATH_IMAGE}. These
+ * images live wherever the repository put them (for example
  * {@code /documents/...}), so the caller supplies a complete portal relative
  * path.
  * </p>

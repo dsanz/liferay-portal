@@ -37,7 +37,7 @@ public class ResponsiveImageRequestTest {
 		// Content transformers and template transformer listeners take a
 		// string and return a string, and no portal wide thread local carries
 		// the current request. Requiring one would leave those paths unable to
-		// ask for a transformed image at all.
+		// ask for responsive markup at all.
 
 		ResponsiveImageRequest responsiveImageRequest =
 			ResponsiveImageRequest.of(_imageResource);

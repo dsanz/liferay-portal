@@ -6,25 +6,26 @@
 package com.liferay.responsive.image;
 
 /**
- * The original image to be transformed, independently of where it is stored.
+ * The original image a provider generates renditions from, independently of
+ * where it is stored.
  *
  * <p>
- * Deliberately not tied to {@code FileEntry}: transformable images also live in
+ * Deliberately not tied to {@code FileEntry}: the images to render also live in
  * OSGi modules, in the legacy portal image path, or on a completely different
  * host. Providers that need more than this interface exposes narrow the type
  * (see {@link FileEntryImageResource}) and use {@link
- * ResponsiveImageProvider#canTransform} to decline resources they cannot
+ * ResponsiveImageProvider#isSupported} to decline resources they cannot
  * serve.
  * </p>
  *
  * <p>
- * This is the <b>input</b> to a transformation; the outputs are {@link
+ * This is the <b>input</b>; the outputs are {@link
  * ResponsiveImageCandidate} instances.
  * </p>
  *
  * <p>
  * Deliberately carries nothing about cache freshness either. How long a
- * transformed image may be held is decided by the <code>Cache-Control</code>
+ * generated rendition may be held is decided by the <code>Cache-Control</code>
  * the origin returns and by the CDN's own invalidation, both of which are
  * configured elsewhere. Encoding a version into the URL here would be cache
  * policy smuggled in as a transformation parameter.
@@ -56,7 +57,7 @@ public interface ImageResource {
 	 *
 	 * <p>
 	 * Providers use it to decline formats that must not be resampled, such as
-	 * SVG, where transforming would rasterize a vector and lose the point of
+	 * SVG, where resampling would rasterize a vector and lose the point of
 	 * shipping it.
 	 * </p>
 	 *
@@ -64,8 +65,8 @@ public interface ImageResource {
 	 * Frequently <code>null</code> outside the document library, which always
 	 * stores it. A caller pointing at a module resource or a foreign host may
 	 * simply not know, and providers are expected to decline rather than guess:
-	 * an untransformed image is a worse outcome than a transformed one, but a
-	 * rasterized logo is worse than both.
+	 * serving the original untouched is a worse outcome than serving a
+	 * rendition, but a rasterized logo is worse than both.
 	 * </p>
 	 *
 	 * @return the mime type, or <code>null</code>

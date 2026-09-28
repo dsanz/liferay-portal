@@ -84,7 +84,7 @@ public class ResponsiveImageProviderSelector {
 		for (ResponsiveImageProvider responsiveImageProvider :
 				responsiveImageProviders) {
 
-			if (!responsiveImageProvider.canTransform(imageResource)) {
+			if (!responsiveImageProvider.isSupported(imageResource)) {
 				continue;
 			}
 
@@ -100,8 +100,8 @@ public class ResponsiveImageProviderSelector {
 		if (_log.isDebugEnabled()) {
 			_log.debug(
 				StringBundler.concat(
-					"No provider named ", providerName,
-					" was able to transform ", imageResource.getURL()));
+					"No provider named ", providerName, " supports ",
+					imageResource.getURL()));
 		}
 
 		return fallbackResponsiveImageProvider;

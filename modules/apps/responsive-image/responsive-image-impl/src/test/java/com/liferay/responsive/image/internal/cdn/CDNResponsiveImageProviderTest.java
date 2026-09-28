@@ -189,7 +189,7 @@ public class CDNResponsiveImageProviderTest {
 		);
 
 		Assert.assertFalse(
-			_cdnResponsiveImageProvider.canTransform(_imageResource));
+			_cdnResponsiveImageProvider.isSupported(_imageResource));
 	}
 
 	@Test
@@ -201,7 +201,7 @@ public class CDNResponsiveImageProviderTest {
 		);
 
 		Assert.assertFalse(
-			_cdnResponsiveImageProvider.canTransform(_imageResource));
+			_cdnResponsiveImageProvider.isSupported(_imageResource));
 	}
 
 	@Test
@@ -213,7 +213,7 @@ public class CDNResponsiveImageProviderTest {
 		);
 
 		Assert.assertFalse(
-			_cdnResponsiveImageProvider.canTransform(_imageResource));
+			_cdnResponsiveImageProvider.isSupported(_imageResource));
 	}
 
 	@Test
@@ -241,7 +241,7 @@ public class CDNResponsiveImageProviderTest {
 	public void testTransformsWithoutAHttpServletRequest() {
 
 		// The content transformer chain has no request to give, and refusing
-		// to transform there would leave web content unoptimized.
+		// there would leave web content unoptimized.
 
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
 

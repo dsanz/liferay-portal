@@ -154,10 +154,9 @@ public interface ResponsiveImageConfiguration {
 	 * could have chosen between itself, and belong in the <code>sizes</code> of
 	 * a single unconditional entry. Media conditions that generate different
 	 * output formats cannot work at all: a source is matched on its media
-	 * condition,
-	 * so a browser that does not support the format has nothing to fall back
-	 * to, and the format has to be negotiated at the edge from the
-	 * <code>Accept</code> header instead.
+	 * condition, so a browser that does not support the format has nothing
+	 * to fall back to, and the format has to be negotiated at the edge from
+	 * the <code>Accept</code> header instead.
 	 * </p>
 	 */
 	@Meta.AD(
@@ -167,9 +166,9 @@ public interface ResponsiveImageConfiguration {
 	public String[] presets();
 
 	/**
-	 * Name of the active transformation provider (for example
-	 * <code>cdn</code> or <code>adaptive-media</code>). Left blank, the
-	 * framework falls back to Adaptive Media, preserving current behavior.
+	 * Name of the active provider (for example <code>cdn</code> or
+	 * <code>adaptive-media</code>). Left blank, the framework falls back to
+	 * Adaptive Media, preserving current behavior.
 	 *
 	 * <p>
 	 * Selection is by name rather than by service ranking so that the active

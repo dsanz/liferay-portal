@@ -49,7 +49,7 @@ import java.util.List;
  *
  * <p>
  * Mirrors a configured preset level for level, and deliberately stays separate
- * from it. A preset is one shared object per company, parsed when configuration
+ * from it. A preset is one shared object per site, parsed when configuration
  * changes; this is one object per image per request. Adaptive Media also
  * produces these without ever holding a preset, so the result model cannot be
  * the configuration model.
@@ -82,7 +82,7 @@ public final class ResponsiveImage {
 
 	/**
 	 * Returns the sources, or an empty list when no provider could
-	 * transform the resource. Empty is not an error: callers render a plain
+	 * support the resource. Empty is not an error: callers render a plain
 	 * image tag pointing at {@link #getSrc()}.
 	 *
 	 * <p>

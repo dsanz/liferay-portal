@@ -39,7 +39,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 /**
- * Adapts Adaptive Media to the transformation SPI.
+ * Adapts Adaptive Media to {@link ResponsiveImageProvider}.
  *
  * <p>
  * The only class in this bundle that imports Adaptive Media, and the reason its
@@ -62,18 +62,13 @@ public class AMResponsiveImageProvider implements ResponsiveImageProvider {
 	public static final String NAME = "adaptive-media";
 
 	@Override
-	public boolean canTransform(ImageResource imageResource) {
-		return imageResource instanceof FileEntryImageResource;
-	}
-
-	@Override
 	public String getName() {
 		return NAME;
 	}
 
 	/**
 	 * Returns one source per media condition, each holding the single rendition
-	 * that condition selects, falling back to the untransformed original.
+	 * that condition selects, falling back to the original URL.
 	 *
 	 * <p>
 	 * Joins two Adaptive Media sources: {@code MediaQueryProvider} supplies the
@@ -152,12 +147,17 @@ public class AMResponsiveImageProvider implements ResponsiveImageProvider {
 					mediaQueryString, null, groupResponsiveImageCandidates));
 		}
 
-		// The untransformed original as fallback: Adaptive Media's renditions
+		// The original URL as fallback: Adaptive Media's renditions
 		// are pregenerated at fixed widths, and picking one of them as the
 		// default would silently prefer a size nobody asked for.
 
 		return new ResponsiveImage(
 			responsiveImageSources, imageResource.getURL());
+	}
+
+	@Override
+	public boolean isSupported(ImageResource imageResource) {
+		return imageResource instanceof FileEntryImageResource;
 	}
 
 	/**

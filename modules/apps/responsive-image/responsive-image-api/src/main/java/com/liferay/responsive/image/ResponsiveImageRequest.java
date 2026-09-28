@@ -30,7 +30,7 @@ public final class ResponsiveImageRequest {
 	 * Returns a request for the given image with no preset and lazy
 	 * loading enabled, which reproduces current behavior.
 	 *
-	 * @param  imageResource the image to transform
+	 * @param  imageResource the image to render responsively
 	 * @return the request
 	 */
 	public static ResponsiveImageRequest of(ImageResource imageResource) {
@@ -47,7 +47,7 @@ public final class ResponsiveImageRequest {
 	 *
 	 * @param groupId the site being rendered for, or <code>0</code>
 	 * @param httpServletRequest the request being served, or <code>null</code>
-	 * @param imageResource the image to transform
+	 * @param imageResource the image to render responsively
 	 * @param lazy whether to lazily load, or <code>null</code> to defer to the
 	 *        preset
 	 * @param presetName the preset name, or <code>null</code> for the default
@@ -132,7 +132,7 @@ public final class ResponsiveImageRequest {
 	}
 
 	/**
-	 * Returns the image to transform.
+	 * Returns the image to render responsively.
 	 *
 	 * @return the image
 	 */

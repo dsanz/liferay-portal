@@ -11,8 +11,8 @@ import com.liferay.portal.kernel.exception.PortalException;
  * Produces renditions of an image, and the markup that presents them.
  *
  * <p>
- * Register an implementation as an OSGi service to add a source of transformed
- * images. Which one is used is decided by configuration, by name, rather than
+ * Register an implementation as an OSGi service to add a way of generating
+ * renditions. Which one is used is decided by configuration, by name, rather than
  * by service ranking: ranking is workable with two implementations and becomes
  * opaque once several are deployed at once, and the choice is per company.
  * </p>
@@ -37,9 +37,10 @@ import com.liferay.portal.kernel.exception.PortalException;
  * Implemented here, not called here. Consumers call {@link
  * com.liferay.responsive.image.ResponsiveImageMarkupRenderer#render},
  * which carries a stronger contract: it selects the configured provider and
- * turns any empty or absent answer into the untransformed original. An
+ * turns any empty or absent answer into the original URL. An
  * implementation of this interface is therefore free to return nothing when it
- * cannot handle a resource, and should not synthesize a fallback of its own.
+ * does not support a resource, and should not synthesize a fallback of its
+ * own.
  * </p>
  *
  * <p>
@@ -55,23 +56,6 @@ import com.liferay.portal.kernel.exception.PortalException;
 public interface ResponsiveImageProvider {
 
 	/**
-	 * Returns <code>true</code> if this provider can transform the given
-	 * image.
-	 *
-	 * <p>
-	 * Expected to return <code>false</code> generously. A provider backed by a
-	 * CDN can only transform images that the CDN actually serves, so an image
-	 * on a third party host is out of reach no matter what parameters are
-	 * appended to it. Formats that must not be resampled, such as SVG, should
-	 * be declined here too.
-	 * </p>
-	 *
-	 * @param  imageResource the image to test
-	 * @return <code>true</code> if this provider can transform the image
-	 */
-	public boolean canTransform(ImageResource imageResource);
-
-	/**
 	 * Returns the name identifying this provider (for example
 	 * <code>adaptive-media</code> or <code>cdn</code>).
 	 *
@@ -82,13 +66,13 @@ public interface ResponsiveImageProvider {
 	/**
 	 * Returns the renditions of the given image, grouped by the media condition
 	 * they apply under, together with the URL to fall back to. Only called when
-	 * {@link #canTransform(ImageResource)} returned <code>true</code>.
+	 * {@link #isSupported(ImageResource)} returned <code>true</code>.
 	 *
 	 * <p>
 	 * Returning the whole answer rather than only the sources puts the fallback
 	 * <code>src</code> in the hands of whoever knows what a good one is. A
 	 * provider generating a ladder on demand can point it at a middle rendition
-	 * instead of the untransformed original, which may be far larger than
+	 * instead of the original URL, which may be far larger than
 	 * anything a browser ignoring <code>srcset</code> should be handed.
 	 * </p>
 	 *
@@ -99,6 +83,22 @@ public interface ResponsiveImageProvider {
 	public ResponsiveImage getResponsiveImage(
 			ResponsiveImageRequest responsiveImageRequest)
 		throws PortalException;
+
+	/**
+	 * Returns <code>true</code> if this provider supports the given image.
+	 *
+	 * <p>
+	 * Expected to return <code>false</code> generously. A provider backed by a
+	 * CDN supports only images that the CDN actually serves, so an image
+	 * on a third party host is out of reach no matter what parameters are
+	 * appended to it. Formats that must not be resampled, such as SVG, should
+	 * be declined here too.
+	 * </p>
+	 *
+	 * @param  imageResource the image to test
+	 * @return <code>true</code> if this provider supports the image
+	 */
+	public boolean isSupported(ImageResource imageResource);
 
 	/**
 	 * Returns markup for the given image.

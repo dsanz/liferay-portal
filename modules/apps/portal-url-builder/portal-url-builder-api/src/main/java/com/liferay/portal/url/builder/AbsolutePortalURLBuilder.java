@@ -130,13 +130,13 @@ public interface AbsolutePortalURLBuilder {
 	 *
 	 * <p>
 	 * Unlike the other builders, the path is not resolved against a well known
-	 * portal root: transformable images live wherever their repository put
+	 * portal root: these images live wherever their repository put
 	 * them, so the caller supplies a complete portal relative path (e.g.
 	 * /documents/...).
 	 * </p>
 	 *
 	 * @param  imagePath the image's portal relative path
-	 * @return a URL builder for transformable images
+	 * @return a URL builder for the image
 	 */
 	public TransformedImageAbsolutePortalURLBuilder forTransformedImage(
 		String imagePath);

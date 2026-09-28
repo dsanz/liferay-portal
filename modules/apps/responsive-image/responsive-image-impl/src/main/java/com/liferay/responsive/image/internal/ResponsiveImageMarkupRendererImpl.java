@@ -70,7 +70,7 @@ public class ResponsiveImageMarkupRendererImpl
 	 * </p>
 	 *
 	 * <p>
-	 * Returns the original tag whenever anything is missing or nothing was
+	 * Returns the original tag whenever anything is missing or no URL was
 	 * actually transformed, so this is always safe to call.
 	 * </p>
 	 */

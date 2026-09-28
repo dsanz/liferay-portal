@@ -66,7 +66,21 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 	public static final String NAME = "cdn";
 
 	@Override
-	public boolean canTransform(ImageResource imageResource) {
+	public String getName() {
+		return NAME;
+	}
+
+	@Override
+	public ResponsiveImage getResponsiveImage(
+		ResponsiveImageRequest responsiveImageRequest) {
+
+		return _getResponsiveImage(
+			responsiveImageRequest,
+			_resolvePresetDefinition(responsiveImageRequest));
+	}
+
+	@Override
+	public boolean isSupported(ImageResource imageResource) {
 		if (imageResource == null) {
 			return false;
 		}
@@ -90,20 +104,6 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 		}
 
 		return true;
-	}
-
-	@Override
-	public String getName() {
-		return NAME;
-	}
-
-	@Override
-	public ResponsiveImage getResponsiveImage(
-		ResponsiveImageRequest responsiveImageRequest) {
-
-		return _getResponsiveImage(
-			responsiveImageRequest,
-			_resolvePresetDefinition(responsiveImageRequest));
 	}
 
 	@Activate
@@ -206,7 +206,7 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 						responsiveImageRequest, widths)));
 		}
 
-		// Still the untransformed original. Now that the provider owns this
+		// Still the original URL. Now that the provider owns this
 		// choice it could point at a middle rendition instead, which would be
 		// a kinder default for a browser ignoring srcset, but that is a
 		// behavior change and not part of moving the method.

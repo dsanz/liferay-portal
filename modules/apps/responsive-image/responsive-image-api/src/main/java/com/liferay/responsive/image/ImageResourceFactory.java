@@ -44,7 +44,7 @@ public interface ImageResourceFactory {
 	 *
 	 * @param  url the image URL
 	 * @param  mimeType the image mime type, or <code>null</code> if unknown, in
-	 *         which case providers will decline to transform it
+	 *         which case providers will decline it
 	 * @return the resource
 	 */
 	public ImageResource fromURL(String url, String mimeType);

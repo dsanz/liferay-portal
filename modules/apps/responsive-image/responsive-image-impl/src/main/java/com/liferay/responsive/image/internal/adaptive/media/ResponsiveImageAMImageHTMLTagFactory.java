@@ -74,7 +74,7 @@ public class ResponsiveImageAMImageHTMLTagFactory
 
 		// The second cut, so that an instance with the feature off never enters
 		// the framework at all. It must hand back Adaptive Media's own markup
-		// rather than the untransformed tag, because this factory outranks the
+		// rather than the original tag, because this factory outranks the
 		// real one: returning the tag would silently drop the <picture> that
 		// Adaptive Media would have produced.
 
