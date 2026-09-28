@@ -212,7 +212,7 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 		// behavior change and not part of moving the method.
 
 		return new ResponsiveImage(
-			responsiveImageSources,
+			lazy, responsiveImageSources,
 			responsiveImageRequest.getImageResource(
 			).getURL());
 	}

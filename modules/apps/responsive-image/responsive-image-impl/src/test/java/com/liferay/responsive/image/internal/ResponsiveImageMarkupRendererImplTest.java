@@ -133,7 +133,7 @@ public class ResponsiveImageMarkupRendererImplTest {
 
 		_givenPreset(_sourceDefinition(null, "100vw"));
 		_givenResponsiveImage(
-			ResponsiveImageSource.of(
+			false, ResponsiveImageSource.of(
 				null, "100vw",
 				Arrays.asList(
 					_candidate("/documents/1/2/photo.jpg", 320),
@@ -170,7 +170,7 @@ public class ResponsiveImageMarkupRendererImplTest {
 	public void testDeclinesWhenTheFeatureFlagIsDisabled() throws Exception {
 		_givenPreset(_sourceDefinition(null, "100vw"));
 		_givenResponsiveImage(
-			ResponsiveImageSource.of(
+			false, ResponsiveImageSource.of(
 				null, "100vw",
 				Arrays.asList(
 					_candidate("/documents/1/2/photo.jpg?width=320", 320),
@@ -184,10 +184,31 @@ public class ResponsiveImageMarkupRendererImplTest {
 	}
 
 	@Test
+	public void testRendersLoadingLazyFromTheModel() throws Exception {
+
+		// The provider decides this, having already needed it to spell the
+		// sizes attribute. The renderer reads it back rather than resolving
+		// the preset a second time and risking a different answer.
+
+		_givenPreset(_sourceDefinition(null, "100vw"));
+		_givenResponsiveImage(
+			true, ResponsiveImageSource.of(
+				null, "100vw",
+				Arrays.asList(
+					_candidate("/documents/1/2/photo.jpg?width=320", 320),
+					_candidate("/documents/1/2/photo.jpg?width=640", 640))));
+
+		String markup = _responsiveImageMarkupRendererImpl.render(
+			_ORIGINAL_IMG_TAG, _request());
+
+		Assert.assertTrue(markup, markup.contains("loading=\"lazy\""));
+	}
+
+	@Test
 	public void testRendersImgForASingleSource() throws Exception {
 		_givenPreset(_sourceDefinition(null, "100vw"));
 		_givenResponsiveImage(
-			ResponsiveImageSource.of(
+			false, ResponsiveImageSource.of(
 				null, "100vw",
 				Arrays.asList(
 					_candidate("/documents/1/2/photo.jpg?width=320", 320),
@@ -216,7 +237,7 @@ public class ResponsiveImageMarkupRendererImplTest {
 			_sourceDefinition("(max-width: 767px)", "100vw"),
 			_sourceDefinition("(min-width: 768px)", "50vw"));
 		_givenResponsiveImage(
-			ResponsiveImageSource.of(
+			false, ResponsiveImageSource.of(
 				"(max-width: 767px)", "100vw",
 				Collections.singletonList(
 					_candidate("/documents/1/2/photo.jpg?crop=1%3A1", 320))),
@@ -261,7 +282,7 @@ public class ResponsiveImageMarkupRendererImplTest {
 	}
 
 	private void _givenResponsiveImage(
-			ResponsiveImageSource... responsiveImageSources)
+			boolean lazy, ResponsiveImageSource... responsiveImageSources)
 		throws Exception {
 
 		List<ResponsiveImageSource> list = Arrays.asList(
@@ -271,7 +292,7 @@ public class ResponsiveImageMarkupRendererImplTest {
 			_responsiveImageProvider.getResponsiveImage(
 				Mockito.any(ResponsiveImageRequest.class))
 		).thenReturn(
-			new ResponsiveImage(list, "/documents/1/2/photo.jpg")
+			new ResponsiveImage(lazy, list, "/documents/1/2/photo.jpg")
 		);
 	}
 

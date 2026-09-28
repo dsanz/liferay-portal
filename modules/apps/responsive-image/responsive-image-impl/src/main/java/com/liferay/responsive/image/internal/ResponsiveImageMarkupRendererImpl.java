@@ -143,19 +143,18 @@ public class ResponsiveImageMarkupRendererImpl
 					responsiveImageRequest),
 				responsiveImageRequest.getPresetName());
 
-		boolean lazy = presetDefinition.isLazy(
-			responsiveImageRequest.getLazy());
-
 		MarkupShape markupShape =
 			ResponsiveImageConfigurationValidator.getMarkupShape(
 				presetDefinition);
 
 		if (markupShape == MarkupShape.IMG) {
 			return _renderImg(
-				responsiveImageSources.get(0), lazy, originalImgTag);
+				responsiveImageSources.get(0), responsiveImage.isLazy(),
+				originalImgTag);
 		}
 
-		return _renderPicture(responsiveImageSources, lazy, originalImgTag);
+		return _renderPicture(
+			responsiveImageSources, responsiveImage.isLazy(), originalImgTag);
 	}
 
 	@Activate

@@ -60,8 +60,10 @@ import java.util.List;
 public final class ResponsiveImage {
 
 	public ResponsiveImage(
-		List<ResponsiveImageSource> responsiveImageSources, String src) {
+		boolean lazy, List<ResponsiveImageSource> responsiveImageSources,
+		String src) {
 
+		_lazy = lazy;
 		_responsiveImageSources = Collections.unmodifiableList(
 			responsiveImageSources);
 		_src = src;
@@ -75,7 +77,7 @@ public final class ResponsiveImage {
 	 * @param src the untransformed URL
 	 */
 	public ResponsiveImage(String src) {
-		this(Collections.<ResponsiveImageSource>emptyList(), src);
+		this(false, Collections.<ResponsiveImageSource>emptyList(), src);
 	}
 
 	/**
@@ -104,6 +106,23 @@ public final class ResponsiveImage {
 		return _src;
 	}
 
+	/**
+	 * Returns whether this image should be loaded lazily.
+	 *
+	 * <p>
+	 * Decided by the provider, which already had to know it in order to spell
+	 * the <code>sizes</code> attribute. Resolving it a second time at render
+	 * time would mean two layers reading configuration the provider may never
+	 * have held, and disagreeing without anything catching it.
+	 * </p>
+	 *
+	 * @return <code>true</code> if this image should be loaded lazily
+	 */
+	public boolean isLazy() {
+		return _lazy;
+	}
+
+	private final boolean _lazy;
 	private final List<ResponsiveImageSource> _responsiveImageSources;
 	private final String _src;
 
