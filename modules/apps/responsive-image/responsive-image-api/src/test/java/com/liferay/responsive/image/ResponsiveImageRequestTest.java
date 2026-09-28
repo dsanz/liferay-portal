@@ -62,20 +62,6 @@ public class ResponsiveImageRequestTest {
 	}
 
 	@Test
-	public void testDefersLazinessToConfigurationByDefault() {
-
-		// Null rather than true: defaulting every image to lazy would lazily
-		// load the largest contentful one, which costs a Core Web Vital. The
-		// placement decides unless this caller says otherwise.
-
-		ResponsiveImageRequest responsiveImageRequest =
-			ResponsiveImageRequest.of(_imageResource);
-
-		Assert.assertNull(responsiveImageRequest.getLazy());
-		Assert.assertNull(responsiveImageRequest.getPresetName());
-	}
-
-	@Test
 	public void testDefersToTheCompanyWhenNoSiteIsGiven() {
 		ResponsiveImageRequest responsiveImageRequest =
 			ResponsiveImageRequestBuilder.imageResource(
@@ -90,19 +76,15 @@ public class ResponsiveImageRequestTest {
 	}
 
 	@Test
-	public void testEagerRequestCarriesLazyFalse() {
+	public void testNamesNoPresetByDefault() {
 
-		// sizes="auto" is only valid alongside loading="lazy", so this is the
-		// flag that decides whether the automatic strategy may be used at all.
+		// A caller that knows nothing about the placement says nothing, and
+		// the preset decides everything about it, laziness included.
 
 		ResponsiveImageRequest responsiveImageRequest =
-			ResponsiveImageRequestBuilder.imageResource(
-				_imageResource
-			).lazy(
-				false
-			).build();
+			ResponsiveImageRequest.of(_imageResource);
 
-		Assert.assertEquals(Boolean.FALSE, responsiveImageRequest.getLazy());
+		Assert.assertNull(responsiveImageRequest.getPresetName());
 	}
 
 	@Test

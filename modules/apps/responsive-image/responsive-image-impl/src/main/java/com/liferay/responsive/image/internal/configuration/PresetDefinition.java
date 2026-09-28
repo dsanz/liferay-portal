@@ -50,28 +50,6 @@ public final class PresetDefinition {
 	}
 
 	/**
-	 * Returns whether images in this placement are lazily loaded by default, or
-	 * <code>null</code> if the placement does not say.
-	 *
-	 * <p>
-	 * On the preset rather than on a source, because an image is loaded once:
-	 * laziness is a property of the image element, not of a media condition.
-	 * A caller that knows better overrides it per instance.
-	 * </p>
-	 *
-	 * <p>
-	 * Undeclared means eager. Loading eagerly costs bandwidth; loading the
-	 * largest contentful image lazily costs a Core Web Vital, so the safer
-	 * default is the one that cannot regress it.
-	 * </p>
-	 *
-	 * @return whether to lazily load, or <code>null</code> if undeclared
-	 */
-	public Boolean getLazy() {
-		return _lazy;
-	}
-
-	/**
 	 * Returns the name callers use to request this preset.
 	 *
 	 * @return the name
@@ -104,26 +82,32 @@ public final class PresetDefinition {
 	}
 
 	/**
-	 * Returns whether an image in this placement is lazily loaded: what the
-	 * caller asked for if it said anything, otherwise what this preset
-	 * declares, otherwise eager.
+	 * Returns whether an image in this placement is lazily loaded.
+	 *
+	 * <p>
+	 * On the preset rather than on a source, because an image is loaded
+	 * once: laziness is a property of the image element, not of a media
+	 * condition.
+	 * </p>
+	 *
+	 * <p>
+	 * Undeclared means eager. Loading eagerly costs bandwidth; loading the
+	 * largest contentful image lazily costs a Core Web Vital, so the safer
+	 * default is the one that cannot regress it.
+	 * </p>
 	 *
 	 * <p>
 	 * Here rather than in each consumer because two of them need the same
 	 * answer for different reasons. Generating renditions needs it because
-	 * <code>sizes="auto"</code> is only honored on a lazily loaded image, and
-	 * rendering needs it for the <code>loading</code> attribute. Deriving it
-	 * twice would let the markup and the sizes it describes disagree.
+	 * <code>sizes="auto"</code> is only honored on a lazily loaded image,
+	 * and rendering needs it for the <code>loading</code> attribute.
+	 * Deriving it twice would let the markup and the sizes it describes
+	 * disagree.
 	 * </p>
 	 *
-	 * @param  lazy what the caller asked for, or <code>null</code> to defer
 	 * @return whether to lazily load
 	 */
-	public boolean isLazy(Boolean lazy) {
-		if (lazy != null) {
-			return lazy;
-		}
-
+	public boolean isLazy() {
 		if (_lazy != null) {
 			return _lazy;
 		}

@@ -27,8 +27,8 @@ import jakarta.servlet.http.HttpServletRequest;
 public final class ResponsiveImageRequest {
 
 	/**
-	 * Returns a request for the given image with no preset and lazy
-	 * loading enabled, which reproduces current behavior.
+	 * Returns a request for the given image with no preset, which is what
+	 * a caller that knows nothing about the placement wants.
 	 *
 	 * @param  imageResource the image to render responsively
 	 * @return the request
@@ -48,18 +48,15 @@ public final class ResponsiveImageRequest {
 	 * @param groupId the site being rendered for, or <code>0</code>
 	 * @param httpServletRequest the request being served, or <code>null</code>
 	 * @param imageResource the image to render responsively
-	 * @param lazy whether to lazily load, or <code>null</code> to defer to the
-	 *        preset
 	 * @param presetName the preset name, or <code>null</code> for the default
 	 */
 	public ResponsiveImageRequest(
 		long groupId, HttpServletRequest httpServletRequest,
-		ImageResource imageResource, Boolean lazy, String presetName) {
+		ImageResource imageResource, String presetName) {
 
 		_groupId = groupId;
 		_httpServletRequest = httpServletRequest;
 		_imageResource = imageResource;
-		_lazy = lazy;
 		_presetName = presetName;
 	}
 
@@ -141,30 +138,6 @@ public final class ResponsiveImageRequest {
 	}
 
 	/**
-	 * Returns whether the rendered image should be lazily loaded, or
-	 * <code>null</code> to use the preset's default.
-	 *
-	 * <p>
-	 * Deliberately per call rather than per placement. Whether an image is
-	 * lazily loaded depends on where <em>this</em> instance sits on the page,
-	 * not on what kind of slot it occupies: the same card is above the fold in
-	 * the first row and below it further down, and lazily loading the largest
-	 * contentful image is a measurable regression.
-	 * </p>
-	 *
-	 * <p>
-	 * Also decides whether automatic sizing may be used at all, since
-	 * <code>sizes="auto"</code> is only honored on a lazily loaded image.
-	 * </p>
-	 *
-	 * @return whether to lazily load, or <code>null</code> to defer to the
-	 *         preset
-	 */
-	public Boolean getLazy() {
-		return _lazy;
-	}
-
-	/**
 	 * Returns the name of the configured preset describing where this
 	 * image sits in the page layout (for example <code>card</code>), or
 	 * <code>null</code> to use the default.
@@ -178,7 +151,6 @@ public final class ResponsiveImageRequest {
 	private final long _groupId;
 	private final HttpServletRequest _httpServletRequest;
 	private final ImageResource _imageResource;
-	private final Boolean _lazy;
 	private final String _presetName;
 
 }

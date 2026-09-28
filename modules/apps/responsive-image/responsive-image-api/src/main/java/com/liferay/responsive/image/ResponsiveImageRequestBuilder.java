@@ -44,7 +44,7 @@ public class ResponsiveImageRequestBuilder {
 
 	public ResponsiveImageRequest build() {
 		return new ResponsiveImageRequest(
-			_groupId, _httpServletRequest, _imageResource, _lazy, _presetName);
+			_groupId, _httpServletRequest, _imageResource, _presetName);
 	}
 
 	/**
@@ -73,12 +73,6 @@ public class ResponsiveImageRequestBuilder {
 		return this;
 	}
 
-	public ResponsiveImageRequestBuilder lazy(Boolean lazy) {
-		_lazy = lazy;
-
-		return this;
-	}
-
 	public ResponsiveImageRequestBuilder presetName(String presetName) {
 		_presetName = presetName;
 
@@ -96,7 +90,6 @@ public class ResponsiveImageRequestBuilder {
 	private long _groupId;
 	private HttpServletRequest _httpServletRequest;
 	private final ImageResource _imageResource;
-	private Boolean _lazy;
 	private String _presetName;
 
 }

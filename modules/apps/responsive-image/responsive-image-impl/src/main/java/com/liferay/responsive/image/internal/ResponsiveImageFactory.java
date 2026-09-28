@@ -178,8 +178,7 @@ public class ResponsiveImageFactory {
 		List<SourceDefinition> sourceDefinitions =
 			presetDefinition.getSourceDefinitions();
 
-		boolean lazy = presetDefinition.isLazy(
-			responsiveImageRequest.getLazy());
+		boolean lazy = presetDefinition.isLazy();
 
 		List<ResponsiveImageSource> responsiveImageSources = new ArrayList<>(
 			sourceDefinitions.size());
