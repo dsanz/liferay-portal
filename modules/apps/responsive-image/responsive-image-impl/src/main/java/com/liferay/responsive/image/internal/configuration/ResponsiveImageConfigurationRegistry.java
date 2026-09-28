@@ -19,9 +19,12 @@ import com.liferay.responsive.image.constants.ResponsiveImagePresetConstants;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -48,9 +51,9 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Daniel Sanz
  */
-public class PresetDefinitionRegistry {
+public class ResponsiveImageConfigurationRegistry {
 
-	public PresetDefinitionRegistry(
+	public ResponsiveImageConfigurationRegistry(
 		ConfigurationProvider configurationProvider, Portal portal) {
 
 		_responsiveImageConfigurationHelper =
@@ -80,28 +83,169 @@ public class PresetDefinitionRegistry {
 	public PresetDefinition getPresetDefinition(
 		long groupId, long companyId, String presetName) {
 
-		if (Validator.isBlank(presetName)) {
-			presetName = ResponsiveImagePresetConstants.DEFAULT;
-		}
-
-		Map<String, PresetDefinition> presetDefinitions = _getPresetDefinitions(
+		ScopedConfiguration scopedConfiguration = getScopedConfiguration(
 			groupId, companyId);
 
-		PresetDefinition presetDefinition = presetDefinitions.get(presetName);
+		return scopedConfiguration.getPresetDefinition(presetName);
+	}
 
-		if (presetDefinition != null) {
-			return presetDefinition;
+	/**
+	 * Returns this scope's whole parsed configuration, reparsing only when it
+	 * has actually changed.
+	 *
+	 * <p>
+	 * One parse, one hash, one memo. Splitting the settings across two of
+	 * each meant two hashes over the same object, and one of them forgot a
+	 * field, so changing the URL renderer name did nothing until some other
+	 * setting moved.
+	 * </p>
+	 *
+	 * <p>
+	 * Memoized on the configuration's own contents rather than invalidated by
+	 * an event: a stale memo would silently serve the previous layout after an
+	 * administrator edited it, and there is no reliable notification to hang
+	 * invalidation on.
+	 * </p>
+	 */
+	public ScopedConfiguration getScopedConfiguration(
+		long groupId, long companyId) {
+
+		ResponsiveImageConfiguration responsiveImageConfiguration =
+			_responsiveImageConfigurationHelper.getResponsiveImageConfiguration(
+				groupId, companyId);
+
+		// Unreadable configuration must not take the built in presets with it.
+		// A component naming one is entitled to an answer precisely when
+		// something else has gone wrong.
+
+		if (responsiveImageConfiguration == null) {
+			return BuiltInScopedConfigurationHolder._scopedConfiguration;
 		}
 
-		if (_log.isDebugEnabled()) {
-			_log.debug("No preset named " + presetName + ", using the default");
+		String[] candidateWidths =
+			responsiveImageConfiguration.candidateWidths();
+		String[] defaultTransformations =
+			responsiveImageConfiguration.defaultTransformations();
+		String[] mediaConditions =
+			responsiveImageConfiguration.mediaConditions();
+		String[] presets = responsiveImageConfiguration.presets();
+		String urlRendererName = responsiveImageConfiguration.urlRendererName();
+
+		// Every setting held below has to be hashed here. Leaving one out
+		// means an administrator changing it alone sees nothing happen.
+
+		int contentHash = Objects.hash(
+			Arrays.hashCode(candidateWidths),
+			Arrays.hashCode(defaultTransformations),
+			Arrays.hashCode(mediaConditions), Arrays.hashCode(presets),
+			urlRendererName);
+
+		long scopeKey = _responsiveImageConfigurationHelper.getScopeKey(
+			groupId, companyId);
+
+		ScopedConfiguration scopedConfiguration = _scopedConfigurations.get(
+			scopeKey);
+
+		if ((scopedConfiguration != null) &&
+			(scopedConfiguration._getContentHash() == contentHash)) {
+
+			return scopedConfiguration;
 		}
 
-		// A name nobody declared is the same situation as no name at all, so
-		// both end up on the scope's own default rather than on two different
-		// answers. It is always present, being built in.
+		scopedConfiguration = new ScopedConfiguration(
+			_toWidths(candidateWidths), contentHash,
+			_toEntries(defaultTransformations),
+			_toPresetDefinitions(_toMediaConditions(mediaConditions), presets),
+			urlRendererName);
 
-		return presetDefinitions.get(ResponsiveImagePresetConstants.DEFAULT);
+		_scopedConfigurations.put(scopeKey, scopedConfiguration);
+
+		_report(scopeKey, scopedConfiguration._getPresetDefinitions());
+
+		return scopedConfiguration;
+	}
+
+	/**
+	 * Everything one scope's configuration parses into.
+	 *
+	 * <p>
+	 * Held as one object so that a caller reads the configuration once and
+	 * cannot see two settings from two different edits.
+	 * </p>
+	 */
+	public static class ScopedConfiguration {
+
+		public TreeSet<Integer> getCandidateWidths() {
+			return _candidateWidths;
+		}
+
+		public Map<String, String> getDefaultTransformations() {
+			return _defaultTransformations;
+		}
+
+		/**
+		 * Returns the preset of the given name, never <code>null</code>.
+		 *
+		 * <p>
+		 * A blank name and a name nobody declared both answer with this
+		 * scope's own default preset, because they are the same situation: no
+		 * usable preset was named. A name published in {@code
+		 * ResponsiveImagePresetConstants} never takes that path, being seeded
+		 * before any configuration is read.
+		 * </p>
+		 */
+		public PresetDefinition getPresetDefinition(String presetName) {
+			if (Validator.isBlank(presetName)) {
+				presetName = ResponsiveImagePresetConstants.DEFAULT;
+			}
+
+			PresetDefinition presetDefinition = _presetDefinitions.get(
+				presetName);
+
+			if (presetDefinition != null) {
+				return presetDefinition;
+			}
+
+			if (_log.isDebugEnabled()) {
+				_log.debug(
+					"No preset named " + presetName + ", using the default");
+			}
+
+			return _presetDefinitions.get(
+				ResponsiveImagePresetConstants.DEFAULT);
+		}
+
+		public String getURLRendererName() {
+			return _urlRendererName;
+		}
+
+		private ScopedConfiguration(
+			TreeSet<Integer> candidateWidths, int contentHash,
+			Map<String, String> defaultTransformations,
+			Map<String, PresetDefinition> presetDefinitions,
+			String urlRendererName) {
+
+			_candidateWidths = candidateWidths;
+			_contentHash = contentHash;
+			_defaultTransformations = defaultTransformations;
+			_presetDefinitions = presetDefinitions;
+			_urlRendererName = urlRendererName;
+		}
+
+		private int _getContentHash() {
+			return _contentHash;
+		}
+
+		private Map<String, PresetDefinition> _getPresetDefinitions() {
+			return _presetDefinitions;
+		}
+
+		private final TreeSet<Integer> _candidateWidths;
+		private final int _contentHash;
+		private final Map<String, String> _defaultTransformations;
+		private final Map<String, PresetDefinition> _presetDefinitions;
+		private final String _urlRendererName;
+
 	}
 
 	/**
@@ -328,62 +472,6 @@ public class PresetDefinitionRegistry {
 	}
 
 	/**
-	 * Returns the parsed presets for a company, reparsing only when the
-	 * underlying configuration has actually changed.
-	 *
-	 * <p>
-	 * Memoized on the configuration's own contents rather than invalidated by
-	 * an event: a stale cache would silently serve the previous layout after an
-	 * administrator edited it, and there is no reliable notification to hang
-	 * invalidation on.
-	 * </p>
-	 */
-	private Map<String, PresetDefinition> _getPresetDefinitions(
-		long groupId, long companyId) {
-
-		ResponsiveImageConfiguration responsiveImageConfiguration =
-			_responsiveImageConfigurationHelper.getResponsiveImageConfiguration(
-				groupId, companyId);
-
-		// Unreadable configuration must not take the built in presets with it.
-		// A component naming one is entitled to an answer precisely when
-		// something else has gone wrong.
-
-		if (responsiveImageConfiguration == null) {
-			return _builtInPresetDefinitions;
-		}
-
-		String[] mediaConditions =
-			responsiveImageConfiguration.mediaConditions();
-		String[] presets = responsiveImageConfiguration.presets();
-
-		int contentHash =
-			(31 * Arrays.hashCode(mediaConditions)) + Arrays.hashCode(presets);
-
-		long scopeKey = _responsiveImageConfigurationHelper.getScopeKey(
-			groupId, companyId);
-
-		ScopedPresetDefinitions scopedPresetDefinitions =
-			_scopedPresetDefinitions.get(scopeKey);
-
-		if ((scopedPresetDefinitions != null) &&
-			(scopedPresetDefinitions._contentHash == contentHash)) {
-
-			return scopedPresetDefinitions._presetDefinitions;
-		}
-
-		scopedPresetDefinitions = new ScopedPresetDefinitions(
-			contentHash,
-			_toPresetDefinitions(_toMediaConditions(mediaConditions), presets));
-
-		_scopedPresetDefinitions.put(scopeKey, scopedPresetDefinitions);
-
-		_report(scopeKey, scopedPresetDefinitions._presetDefinitions);
-
-		return scopedPresetDefinitions._presetDefinitions;
-	}
-
-	/**
 	 * Logs what the configuration renders and anything wrong with it.
 	 *
 	 * <p>
@@ -416,6 +504,34 @@ public class PresetDefinitionRegistry {
 					ResponsiveImageConfigurationValidator.getMarkupShape(
 						presetDefinition)));
 		}
+	}
+
+	private Map<String, String> _toEntries(String[] entries) {
+		if (entries == null) {
+			return Collections.emptyMap();
+		}
+
+		Map<String, String> map = new HashMap<>();
+
+		for (String entry : entries) {
+			if (Validator.isBlank(entry)) {
+				continue;
+			}
+
+			int i = entry.indexOf(StringPool.EQUAL);
+
+			if (i <= 0) {
+				if (_log.isWarnEnabled()) {
+					_log.warn("Ignoring malformed entry " + entry);
+				}
+
+				continue;
+			}
+
+			map.put(entry.substring(0, i), entry.substring(i + 1));
+		}
+
+		return map;
 	}
 
 	/**
@@ -472,6 +588,27 @@ public class PresetDefinitionRegistry {
 		}
 
 		return mediaConditions;
+	}
+
+	private TreeSet<Integer> _toWidths(String[] candidateWidths) {
+		TreeSet<Integer> widths = new TreeSet<>();
+
+		if (candidateWidths == null) {
+			return widths;
+		}
+
+		for (String candidateWidth : candidateWidths) {
+			int width = GetterUtil.getInteger(candidateWidth);
+
+			if (width > 0) {
+				widths.add(width);
+			}
+			else if (_log.isWarnEnabled()) {
+				_log.warn("Ignoring invalid candidate width " + candidateWidth);
+			}
+		}
+
+		return widths;
 	}
 
 	private static final String _AUTO_SIZES = "autoSizes";
@@ -536,32 +673,11 @@ public class PresetDefinitionRegistry {
 	private static final String _TRANSFORMATIONS = "transformations";
 
 	private static final Log _log = LogFactoryUtil.getLog(
-		PresetDefinitionRegistry.class);
-
-	/**
-	 * The built in presets alone, with nothing configured.
-	 *
-	 * <p>
-	 * They are the same for every company and every site, so they are built
-	 * once rather than per scope, and they are what a scope with no readable
-	 * configuration resolves against.
-	 * </p>
-	 */
-	private static final Map<String, PresetDefinition>
-		_builtInPresetDefinitions;
-
-	static {
-
-		// Unmodifiable because this one map is handed to every scope for the
-		// life of the process, unlike the per scope maps beside it.
-
-		_builtInPresetDefinitions = Collections.unmodifiableMap(
-			_toPresetDefinitions(Collections.emptyMap(), new String[0]));
-	}
+		ResponsiveImageConfigurationRegistry.class);
 
 	private final ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper;
-	private final Map<Long, ScopedPresetDefinitions> _scopedPresetDefinitions =
+	private final Map<Long, ScopedConfiguration> _scopedConfigurations =
 		new ConcurrentHashMap<>();
 
 	/**
@@ -574,10 +690,10 @@ public class PresetDefinitionRegistry {
 	 * </p>
 	 *
 	 * <p>
-	 * Lazy loading and automatic sizing are set by name rather than passed in,
-	 * because the two are booleans and Liferay orders parameters
-	 * alphabetically, which would put them next to each other in a table that
-	 * is read far more often than it is written.
+	 * Lazy loading and automatic sizing are set by name rather than passed
+	 * in, because the two are booleans and Liferay orders parameters
+	 * alphabetically, which would put them next to each other in a table
+	 * that is read far more often than it is written.
 	 * </p>
 	 */
 	private static class BuiltInPreset {
@@ -612,17 +728,33 @@ public class PresetDefinitionRegistry {
 
 	}
 
-	private static class ScopedPresetDefinitions {
+	/**
+	 * The built in presets alone, with nothing configured.
+	 *
+	 * <p>
+	 * They are the same for every company and every site, so they are built
+	 * once rather than per scope, and this is what a scope with no readable
+	 * configuration resolves against. There is no renderer name and no
+	 * ladder, so such a scope still declines, but it declines with its
+	 * presets intact.
+	 * </p>
+	 *
+	 * <p>
+	 * A holder rather than a static block, because a block would have to
+	 * appear after {@code _BUILT_IN_PRESETS} to see it initialized, and the
+	 * source formatter decides where terms go. Deferring to first use makes
+	 * the order irrelevant.
+	 * </p>
+	 */
+	private static class BuiltInScopedConfigurationHolder {
 
-		private ScopedPresetDefinitions(
-			int contentHash, Map<String, PresetDefinition> presetDefinitions) {
-
-			_contentHash = contentHash;
-			_presetDefinitions = presetDefinitions;
-		}
-
-		private final int _contentHash;
-		private final Map<String, PresetDefinition> _presetDefinitions;
+		private static final ScopedConfiguration _scopedConfiguration =
+			new ScopedConfiguration(
+				new TreeSet<>(), 0, Collections.<String, String>emptyMap(),
+				Collections.unmodifiableMap(
+					_toPresetDefinitions(
+						Collections.emptyMap(), new String[0])),
+				null);
 
 	}
 

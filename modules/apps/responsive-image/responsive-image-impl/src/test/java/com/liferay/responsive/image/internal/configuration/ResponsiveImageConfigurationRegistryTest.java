@@ -26,7 +26,7 @@ import org.mockito.Mockito;
 /**
  * @author Daniel Sanz
  */
-public class PresetDefinitionRegistryTest {
+public class ResponsiveImageConfigurationRegistryTest {
 
 	@ClassRule
 	@Rule
@@ -43,7 +43,8 @@ public class PresetDefinitionRegistryTest {
 		);
 
 		ReflectionTestUtil.setFieldValue(
-			_presetDefinitionRegistry, "_responsiveImageConfigurationHelper",
+			_responsiveImageConfigurationRegistry,
+			"_responsiveImageConfigurationHelper",
 			_responsiveImageConfigurationHelper);
 	}
 
@@ -86,7 +87,7 @@ public class PresetDefinitionRegistryTest {
 			String presetName = (String)field.get(null);
 
 			PresetDefinition presetDefinition =
-				_presetDefinitionRegistry.getPresetDefinition(
+				_responsiveImageConfigurationRegistry.getPresetDefinition(
 					0, _COMPANY_ID, presetName);
 
 			Assert.assertEquals(
@@ -105,13 +106,14 @@ public class PresetDefinitionRegistryTest {
 			new String[] {"custom.label=Custom", "custom.default.sizes=50vw"});
 
 		PresetDefinition presetDefinition =
-			_presetDefinitionRegistry.getPresetDefinition(
+			_responsiveImageConfigurationRegistry.getPresetDefinition(
 				0, _COMPANY_ID, "card");
 
 		Assert.assertEquals("card", presetDefinition.getName());
 
-		presetDefinition = _presetDefinitionRegistry.getPresetDefinition(
-			0, _COMPANY_ID, "custom");
+		presetDefinition =
+			_responsiveImageConfigurationRegistry.getPresetDefinition(
+				0, _COMPANY_ID, "custom");
 
 		Assert.assertEquals("custom", presetDefinition.getName());
 	}
@@ -135,12 +137,47 @@ public class PresetDefinitionRegistryTest {
 			String presetName = (String)field.get(null);
 
 			PresetDefinition presetDefinition =
-				_presetDefinitionRegistry.getPresetDefinition(
+				_responsiveImageConfigurationRegistry.getPresetDefinition(
 					0, _COMPANY_ID, presetName);
 
 			Assert.assertEquals(
 				field.getName(), presetName, presetDefinition.getName());
 		}
+	}
+
+	@Test
+	public void testChangingAnySettingInvalidatesTheMemo() {
+
+		// One hash over every setting held. The URL renderer name was once
+		// stored but not hashed, so turning the feature on or off did
+		// nothing until some other setting moved.
+
+		_givenConfiguration(new String[0], new String[0]);
+
+		Mockito.when(
+			_responsiveImageConfiguration.urlRendererName()
+		).thenReturn(
+			"fastly"
+		);
+
+		ResponsiveImageConfigurationRegistry.ScopedConfiguration
+			scopedConfiguration =
+				_responsiveImageConfigurationRegistry.getScopedConfiguration(
+					0, _COMPANY_ID);
+
+		Assert.assertEquals("fastly", scopedConfiguration.getURLRendererName());
+
+		Mockito.when(
+			_responsiveImageConfiguration.urlRendererName()
+		).thenReturn(
+			""
+		);
+
+		scopedConfiguration =
+			_responsiveImageConfigurationRegistry.getScopedConfiguration(
+				0, _COMPANY_ID);
+
+		Assert.assertEquals("", scopedConfiguration.getURLRendererName());
 	}
 
 	@Test
@@ -159,7 +196,7 @@ public class PresetDefinitionRegistryTest {
 			Integer.valueOf(960), sourceDefinition.getMaxWidth());
 
 		PresetDefinition presetDefinition =
-			_presetDefinitionRegistry.getPresetDefinition(
+			_responsiveImageConfigurationRegistry.getPresetDefinition(
 				0, _COMPANY_ID, "card");
 
 		Assert.assertEquals("Card", presetDefinition.getLabel());
@@ -251,7 +288,7 @@ public class PresetDefinitionRegistryTest {
 			});
 
 		PresetDefinition presetDefinition =
-			_presetDefinitionRegistry.getPresetDefinition(
+			_responsiveImageConfigurationRegistry.getPresetDefinition(
 				0, _COMPANY_ID, "hero");
 
 		Assert.assertEquals("Hero", presetDefinition.getLabel());
@@ -280,7 +317,7 @@ public class PresetDefinitionRegistryTest {
 		_givenConfiguration(new String[0], new String[0]);
 
 		PresetDefinition presetDefinition =
-			_presetDefinitionRegistry.getPresetDefinition(
+			_responsiveImageConfigurationRegistry.getPresetDefinition(
 				0, _COMPANY_ID, "nonexistent");
 
 		List<SourceDefinition> sourceDefinitions =
@@ -306,7 +343,7 @@ public class PresetDefinitionRegistryTest {
 			new String[0], new String[] {"default.default.sizes=42vw"});
 
 		PresetDefinition presetDefinition =
-			_presetDefinitionRegistry.getPresetDefinition(
+			_responsiveImageConfigurationRegistry.getPresetDefinition(
 				0, _COMPANY_ID, "nonexistent");
 
 		Assert.assertEquals(
@@ -352,7 +389,7 @@ public class PresetDefinitionRegistryTest {
 
 	private List<SourceDefinition> _presetsOf(String presetName) {
 		PresetDefinition presetDefinition =
-			_presetDefinitionRegistry.getPresetDefinition(
+			_responsiveImageConfigurationRegistry.getPresetDefinition(
 				0, _COMPANY_ID, presetName);
 
 		return presetDefinition.getSourceDefinitions();
@@ -360,12 +397,13 @@ public class PresetDefinitionRegistryTest {
 
 	private static final long _COMPANY_ID = 42L;
 
-	private final PresetDefinitionRegistry _presetDefinitionRegistry =
-		new PresetDefinitionRegistry(null, null);
 	private final ResponsiveImageConfiguration _responsiveImageConfiguration =
 		Mockito.mock(ResponsiveImageConfiguration.class);
 	private final ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper = Mockito.mock(
 			ResponsiveImageConfigurationHelper.class);
+	private final ResponsiveImageConfigurationRegistry
+		_responsiveImageConfigurationRegistry =
+			new ResponsiveImageConfigurationRegistry(null, null);
 
 }

@@ -18,9 +18,9 @@ import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageRequestBuilder;
 import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
-import com.liferay.responsive.image.internal.configuration.PresetDefinitionRegistry;
-import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfiguration;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
+import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationRegistry;
+import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationRegistry.ScopedConfiguration;
 import com.liferay.responsive.image.internal.configuration.SourceDefinition;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -75,29 +76,34 @@ public class ResponsiveImageFactoryTest {
 			_COMPANY_ID
 		);
 
+		// The registry parses configuration; this only consumes what it
+		// hands back.
+
 		Mockito.when(
-			_responsiveImageConfigurationHelper.getResponsiveImageConfiguration(
-				0, _COMPANY_ID)
+			_responsiveImageConfigurationRegistry.getScopedConfiguration(
+				Mockito.anyLong(), Mockito.anyLong())
 		).thenReturn(
-			_responsiveImageConfiguration
+			_scopedConfiguration
 		);
 
 		Mockito.when(
-			_responsiveImageConfiguration.defaultTransformations()
+			_scopedConfiguration.getDefaultTransformations()
 		).thenReturn(
-			new String[] {"disable=upscale"}
+			HashMapBuilder.put(
+				"disable", "upscale"
+			).build()
 		);
 
 		Mockito.when(
-			_responsiveImageConfiguration.urlRendererName()
+			_scopedConfiguration.getURLRendererName()
 		).thenReturn(
 			"fastly"
 		);
 
 		Mockito.when(
-			_responsiveImageConfiguration.candidateWidths()
+			_scopedConfiguration.getCandidateWidths()
 		).thenReturn(
-			new String[] {"320", "640", "1280"}
+			new TreeSet<>(Arrays.asList(320, 640, 1280))
 		);
 
 		Mockito.when(
@@ -109,7 +115,8 @@ public class ResponsiveImageFactoryTest {
 		_setUpAbsolutePortalURLBuilderFactory(true);
 
 		_responsiveImageFactory = new ResponsiveImageFactory(
-			_absolutePortalURLBuilderFactory, _presetDefinitionRegistry,
+			_absolutePortalURLBuilderFactory,
+			_responsiveImageConfigurationRegistry,
 			_responsiveImageConfigurationHelper,
 			() -> Collections.singletonList(_imageTransformationURLRenderer));
 	}
@@ -137,35 +144,6 @@ public class ResponsiveImageFactoryTest {
 	}
 
 	@Test
-	public void testChangingTheURLRendererNameTakesEffect() throws Exception {
-
-		// The renderer name is the switch, so a memo that does not notice it
-		// changing leaves an administrator turning the feature on or off with
-		// nothing happening until some other setting moves.
-
-		_givenPresetGroup(_preset(null, null, null, "100vw"));
-
-		_responsiveImageFactory.create(_request());
-
-		Assert.assertEquals(
-			Collections.singleton(_imageTransformationURLRenderer),
-			_imageTransformationURLRenderers);
-
-		_imageTransformationURLRenderers.clear();
-
-		Mockito.when(
-			_responsiveImageConfiguration.urlRendererName()
-		).thenReturn(
-			"not-deployed"
-		);
-
-		_responsiveImageFactory.create(_request());
-
-		Assert.assertEquals(
-			Collections.singleton(null), _imageTransformationURLRenderers);
-	}
-
-	@Test
 	public void testConfiguredRendererNameReachesTheURLBuilder() {
 
 		// Which vendor spells the URLs is a configuration decision, so this
@@ -181,6 +159,26 @@ public class ResponsiveImageFactoryTest {
 			_imageTransformationURLRenderers.toString(),
 			Collections.singleton(_imageTransformationURLRenderer),
 			_imageTransformationURLRenderers);
+	}
+
+	@Test
+	public void testDeclinesBeforeBuildingWhenNoRendererIsDeployed()
+		throws Exception {
+
+		// The renderer name is the switch. Off, nothing should be built at
+		// all rather than a ladder whose URLs all come back identical.
+
+		_givenPresetGroup(_preset(null, null, null, "100vw"));
+
+		Mockito.when(
+			_scopedConfiguration.getURLRendererName()
+		).thenReturn(
+			"not-deployed"
+		);
+
+		Assert.assertNull(_responsiveImageFactory.create(_request()));
+
+		Mockito.verifyNoInteractions(_absolutePortalURLBuilderFactory);
 	}
 
 	@Test
@@ -274,8 +272,7 @@ public class ResponsiveImageFactoryTest {
 
 	private void _givenPresetGroup(SourceDefinition... sourceDefinitions) {
 		Mockito.when(
-			_presetDefinitionRegistry.getPresetDefinition(
-				Mockito.anyLong(), Mockito.anyLong(),
+			_scopedConfiguration.getPresetDefinition(
 				Mockito.nullable(String.class))
 		).thenReturn(
 			new PresetDefinition(
@@ -429,13 +426,14 @@ public class ResponsiveImageFactoryTest {
 			ImageTransformationURLRenderer.class);
 	private final Set<ImageTransformationURLRenderer>
 		_imageTransformationURLRenderers = new HashSet<>();
-	private final PresetDefinitionRegistry _presetDefinitionRegistry =
-		Mockito.mock(PresetDefinitionRegistry.class);
-	private final ResponsiveImageConfiguration _responsiveImageConfiguration =
-		Mockito.mock(ResponsiveImageConfiguration.class);
 	private final ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper = Mockito.mock(
 			ResponsiveImageConfigurationHelper.class);
+	private final ResponsiveImageConfigurationRegistry
+		_responsiveImageConfigurationRegistry = Mockito.mock(
+			ResponsiveImageConfigurationRegistry.class);
 	private ResponsiveImageFactory _responsiveImageFactory;
+	private final ScopedConfiguration _scopedConfiguration = Mockito.mock(
+		ScopedConfiguration.class);
 
 }

@@ -15,10 +15,7 @@ import com.liferay.responsive.image.ResponsiveImageCandidateBuilder;
 import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageRequestBuilder;
 import com.liferay.responsive.image.ResponsiveImageSource;
-import com.liferay.responsive.image.internal.configuration.PresetDefinition;
-import com.liferay.responsive.image.internal.configuration.PresetDefinitionRegistry;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
-import com.liferay.responsive.image.internal.configuration.SourceDefinition;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -55,9 +52,6 @@ public class ResponsiveImageMarkupRendererImplTest {
 		);
 
 		ReflectionTestUtil.setFieldValue(
-			_responsiveImageMarkupRendererImpl, "_presetDefinitionRegistry",
-			_presetDefinitionRegistry);
-		ReflectionTestUtil.setFieldValue(
 			_responsiveImageMarkupRendererImpl,
 			"_responsiveImageConfigurationHelper",
 			_responsiveImageConfigurationHelper);
@@ -73,7 +67,6 @@ public class ResponsiveImageMarkupRendererImplTest {
 		// descriptors would have the browser trust them and pick wrong, and
 		// declining lets the caller fall back to Adaptive Media.
 
-		_givenPreset(_sourceDefinition(null, "100vw"));
 		_givenResponsiveImage(
 			false,
 			ResponsiveImageSource.of(
@@ -90,7 +83,6 @@ public class ResponsiveImageMarkupRendererImplTest {
 	@FeatureFlag(enable = false, value = "LPD-94784")
 	@Test
 	public void testDeclinesWhenTheFeatureFlagIsDisabled() throws Exception {
-		_givenPreset(_sourceDefinition(null, "100vw"));
 		_givenResponsiveImage(
 			false,
 			ResponsiveImageSource.of(
@@ -108,7 +100,6 @@ public class ResponsiveImageMarkupRendererImplTest {
 
 	@Test
 	public void testRendersImgForASingleSource() throws Exception {
-		_givenPreset(_sourceDefinition(null, "100vw"));
 		_givenResponsiveImage(
 			false,
 			ResponsiveImageSource.of(
@@ -137,7 +128,6 @@ public class ResponsiveImageMarkupRendererImplTest {
 		// sizes attribute. The renderer reads it back rather than resolving
 		// the preset a second time and risking a different answer.
 
-		_givenPreset(_sourceDefinition(null, "100vw"));
 		_givenResponsiveImage(
 			true,
 			ResponsiveImageSource.of(
@@ -158,9 +148,6 @@ public class ResponsiveImageMarkupRendererImplTest {
 		// Two sources mean the crop differs by viewport, which srcset alone
 		// cannot express.
 
-		_givenPreset(
-			_sourceDefinition("(max-width: 767px)", "100vw"),
-			_sourceDefinition("(min-width: 768px)", "50vw"));
 		_givenResponsiveImage(
 			false,
 			ResponsiveImageSource.of(
@@ -196,17 +183,6 @@ public class ResponsiveImageMarkupRendererImplTest {
 		).build();
 	}
 
-	private void _givenPreset(SourceDefinition... sourceDefinitions) {
-		Mockito.when(
-			_presetDefinitionRegistry.getPresetDefinition(
-				Mockito.anyLong(), Mockito.anyLong(),
-				Mockito.nullable(String.class))
-		).thenReturn(
-			new PresetDefinition(
-				null, null, "test", Arrays.asList(sourceDefinitions))
-		);
-	}
-
 	private void _givenResponsiveImage(
 			boolean lazy, ResponsiveImageSource... responsiveImageSources)
 		throws Exception {
@@ -228,21 +204,11 @@ public class ResponsiveImageMarkupRendererImplTest {
 		).build();
 	}
 
-	private SourceDefinition _sourceDefinition(
-		String mediaQuery, String sizes) {
-
-		return new SourceDefinition(
-			false, "test", null, mediaQuery, sizes,
-			Collections.<String, String>emptyMap());
-	}
-
 	private static final String _ORIGINAL_IMG_TAG =
 		"<img alt=\"A photo\" src=\"/documents/1/2/photo.jpg\" />";
 
 	private final ImageResource _imageResource = Mockito.mock(
 		ImageResource.class);
-	private final PresetDefinitionRegistry _presetDefinitionRegistry =
-		Mockito.mock(PresetDefinitionRegistry.class);
 	private final ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper = Mockito.mock(
 			ResponsiveImageConfigurationHelper.class);

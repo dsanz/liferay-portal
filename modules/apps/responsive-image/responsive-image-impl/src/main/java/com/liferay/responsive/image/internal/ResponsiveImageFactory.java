@@ -8,7 +8,6 @@ package com.liferay.responsive.image.internal;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
@@ -22,20 +21,15 @@ import com.liferay.responsive.image.ResponsiveImageCandidateBuilder;
 import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
-import com.liferay.responsive.image.internal.configuration.PresetDefinitionRegistry;
-import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfiguration;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
+import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationRegistry;
+import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationRegistry.ScopedConfiguration;
 import com.liferay.responsive.image.internal.configuration.SourceDefinition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.TreeSet;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 
 /**
@@ -57,13 +51,15 @@ public class ResponsiveImageFactory {
 
 	public ResponsiveImageFactory(
 		AbsolutePortalURLBuilderFactory absolutePortalURLBuilderFactory,
-		PresetDefinitionRegistry presetDefinitionRegistry,
+		ResponsiveImageConfigurationRegistry
+			responsiveImageConfigurationRegistry,
 		ResponsiveImageConfigurationHelper responsiveImageConfigurationHelper,
 		Supplier<List<ImageTransformationURLRenderer>>
 			imageTransformationURLRenderersSupplier) {
 
 		_absolutePortalURLBuilderFactory = absolutePortalURLBuilderFactory;
-		_presetDefinitionRegistry = presetDefinitionRegistry;
+		_responsiveImageConfigurationRegistry =
+			responsiveImageConfigurationRegistry;
 		_responsiveImageConfigurationHelper =
 			responsiveImageConfigurationHelper;
 		_imageTransformationURLRenderersSupplier =
@@ -87,11 +83,35 @@ public class ResponsiveImageFactory {
 			return null;
 		}
 
-		return _getResponsiveImage(responsiveImageRequest);
+		// One read of this scope's configuration, so the presets and the
+		// ladder cannot come from two different edits.
+
+		ScopedConfiguration scopedConfiguration =
+			_responsiveImageConfigurationRegistry.getScopedConfiguration(
+				_responsiveImageConfigurationHelper.getGroupId(
+					responsiveImageRequest),
+				_responsiveImageConfigurationHelper.getCompanyId(
+					responsiveImageRequest));
+
+		ImageTransformationURLRenderer imageTransformationURLRenderer =
+			_getImageTransformationURLRenderer(
+				scopedConfiguration.getURLRendererName());
+
+		// The renderer name is the switch. Unset, or naming one that is not
+		// deployed, means decline here rather than build a ladder whose URLs
+		// would all come back identical and be thrown away downstream.
+
+		if (imageTransformationURLRenderer == null) {
+			return null;
+		}
+
+		return _getResponsiveImage(
+			imageTransformationURLRenderer, responsiveImageRequest,
+			scopedConfiguration);
 	}
 
 	private String _buildURL(
-		ScopedSettings scopedSettings,
+		ImageTransformationURLRenderer imageTransformationURLRenderer,
 		ResponsiveImageRequest responsiveImageRequest, String url,
 		Map<String, String> transformations) {
 
@@ -104,8 +124,7 @@ public class ResponsiveImageFactory {
 				absolutePortalURLBuilder.forTransformedImage(
 					url
 				).setRenderer(
-					_getImageTransformationURLRenderer(
-						scopedSettings._urlRendererName)
+					imageTransformationURLRenderer
 				);
 
 		for (Map.Entry<String, String> entry : transformations.entrySet()) {
@@ -148,13 +167,13 @@ public class ResponsiveImageFactory {
 	}
 
 	private ResponsiveImage _getResponsiveImage(
-		ResponsiveImageRequest responsiveImageRequest) {
+		ImageTransformationURLRenderer imageTransformationURLRenderer,
+		ResponsiveImageRequest responsiveImageRequest,
+		ScopedConfiguration scopedConfiguration) {
 
-		ScopedSettings scopedSettings = _getScopedSettings(
-			responsiveImageRequest);
-
-		PresetDefinition presetDefinition = _resolvePresetDefinition(
-			responsiveImageRequest);
+		PresetDefinition presetDefinition =
+			scopedConfiguration.getPresetDefinition(
+				responsiveImageRequest.getPresetName());
 
 		List<SourceDefinition> sourceDefinitions =
 			presetDefinition.getSourceDefinitions();
@@ -166,7 +185,8 @@ public class ResponsiveImageFactory {
 			sourceDefinitions.size());
 
 		for (SourceDefinition sourceDefinition : sourceDefinitions) {
-			List<Integer> widths = _getWidths(scopedSettings, sourceDefinition);
+			List<Integer> widths = _getWidths(
+				scopedConfiguration, sourceDefinition);
 
 			if (widths.isEmpty()) {
 				continue;
@@ -177,8 +197,8 @@ public class ResponsiveImageFactory {
 					sourceDefinition.getMediaQuery(),
 					sourceDefinition.getSizes(lazy),
 					_getResponsiveImageCandidates(
-						scopedSettings, sourceDefinition,
-						responsiveImageRequest, widths)));
+						imageTransformationURLRenderer, scopedConfiguration,
+						sourceDefinition, responsiveImageRequest, widths)));
 		}
 
 		// Still the original URL. Now that the provider owns this
@@ -193,7 +213,9 @@ public class ResponsiveImageFactory {
 	}
 
 	private List<ResponsiveImageCandidate> _getResponsiveImageCandidates(
-		ScopedSettings scopedSettings, SourceDefinition sourceDefinition,
+		ImageTransformationURLRenderer imageTransformationURLRenderer,
+		ScopedConfiguration scopedConfiguration,
+		SourceDefinition sourceDefinition,
 		ResponsiveImageRequest responsiveImageRequest, List<Integer> widths) {
 
 		ImageResource imageResource = responsiveImageRequest.getImageResource();
@@ -204,7 +226,7 @@ public class ResponsiveImageFactory {
 		// issues is visible in configuration.
 
 		Map<String, String> transformations = HashMapBuilder.putAll(
-			scopedSettings._defaultTransformations
+			scopedConfiguration.getDefaultTransformations()
 		).putAll(
 			sourceDefinition.getTransformations()
 		).build();
@@ -222,7 +244,7 @@ public class ResponsiveImageFactory {
 			responsiveImageCandidates.add(
 				ResponsiveImageCandidateBuilder.url(
 					_buildURL(
-						scopedSettings, responsiveImageRequest,
+						imageTransformationURLRenderer, responsiveImageRequest,
 						imageResource.getURL(), widthTransformations)
 				).width(
 					width
@@ -230,60 +252,6 @@ public class ResponsiveImageFactory {
 		}
 
 		return responsiveImageCandidates;
-	}
-
-	/**
-	 * Returns the parsed settings for a company, reparsing only when the
-	 * underlying configuration has actually changed.
-	 */
-	private ScopedSettings _getScopedSettings(
-		ResponsiveImageRequest responsiveImageRequest) {
-
-		long companyId = _responsiveImageConfigurationHelper.getCompanyId(
-			responsiveImageRequest);
-		long groupId = _responsiveImageConfigurationHelper.getGroupId(
-			responsiveImageRequest);
-
-		ResponsiveImageConfiguration responsiveImageConfiguration =
-			_responsiveImageConfigurationHelper.getResponsiveImageConfiguration(
-				groupId, companyId);
-
-		if (responsiveImageConfiguration == null) {
-			return _emptyScopedSettings;
-		}
-
-		String[] defaultTransformations =
-			responsiveImageConfiguration.defaultTransformations();
-		String[] candidateWidths =
-			responsiveImageConfiguration.candidateWidths();
-		String urlRendererName = responsiveImageConfiguration.urlRendererName();
-
-		// Every value held below has to be hashed here. Leaving one out
-		// means an administrator changing it alone sees nothing happen,
-		// which is what this memo did to the renderer name.
-
-		int contentHash = Objects.hash(
-			Arrays.hashCode(defaultTransformations),
-			Arrays.hashCode(candidateWidths), urlRendererName);
-
-		long scopeKey = _responsiveImageConfigurationHelper.getScopeKey(
-			groupId, companyId);
-
-		ScopedSettings scopedSettings = _scopedSettings.get(scopeKey);
-
-		if ((scopedSettings != null) &&
-			(scopedSettings._contentHash == contentHash)) {
-
-			return scopedSettings;
-		}
-
-		scopedSettings = new ScopedSettings(
-			contentHash, _toMap(defaultTransformations), urlRendererName,
-			_toWidths(candidateWidths));
-
-		_scopedSettings.put(scopeKey, scopedSettings);
-
-		return scopedSettings;
 	}
 
 	/**
@@ -304,14 +272,16 @@ public class ResponsiveImageFactory {
 	 * </p>
 	 */
 	private List<Integer> _getWidths(
-		ScopedSettings scopedSettings, SourceDefinition sourceDefinition) {
+		ScopedConfiguration scopedConfiguration,
+		SourceDefinition sourceDefinition) {
 
 		Integer maxWidth = sourceDefinition.getMaxWidth();
 
 		List<Integer> widths = new ArrayList<>(
-			scopedSettings._candidateWidths.size());
+			scopedConfiguration.getCandidateWidths(
+			).size());
 
-		for (Integer width : scopedSettings._candidateWidths) {
+		for (Integer width : scopedConfiguration.getCandidateWidths()) {
 			widths.add(width);
 
 			if ((maxWidth != null) && (width >= maxWidth)) {
@@ -358,72 +328,9 @@ public class ResponsiveImageFactory {
 	 * disagree.
 	 * </p>
 	 */
-	private PresetDefinition _resolvePresetDefinition(
-		ResponsiveImageRequest responsiveImageRequest) {
-
-		return _presetDefinitionRegistry.getPresetDefinition(
-			_responsiveImageConfigurationHelper.getGroupId(
-				responsiveImageRequest),
-			_responsiveImageConfigurationHelper.getCompanyId(
-				responsiveImageRequest),
-			responsiveImageRequest.getPresetName());
-	}
-
-	private Map<String, String> _toMap(String[] entries) {
-		if (entries == null) {
-			return Collections.emptyMap();
-		}
-
-		Map<String, String> map = new HashMap<>();
-
-		for (String entry : entries) {
-			if (Validator.isBlank(entry)) {
-				continue;
-			}
-
-			int i = entry.indexOf(StringPool.EQUAL);
-
-			if (i <= 0) {
-				if (_log.isWarnEnabled()) {
-					_log.warn("Ignoring malformed entry " + entry);
-				}
-
-				continue;
-			}
-
-			map.put(entry.substring(0, i), entry.substring(i + 1));
-		}
-
-		return map;
-	}
-
-	private TreeSet<Integer> _toWidths(String[] candidateWidths) {
-		TreeSet<Integer> widths = new TreeSet<>();
-
-		if (candidateWidths == null) {
-			return widths;
-		}
-
-		for (String candidateWidth : candidateWidths) {
-			int width = GetterUtil.getInteger(candidateWidth);
-
-			if (width > 0) {
-				widths.add(width);
-			}
-			else if (_log.isWarnEnabled()) {
-				_log.warn("Ignoring invalid candidate width " + candidateWidth);
-			}
-		}
-
-		return widths;
-	}
-
 	private static final Log _log = LogFactoryUtil.getLog(
 		ResponsiveImageFactory.class);
 
-	private static final ScopedSettings _emptyScopedSettings =
-		new ScopedSettings(
-			0, Collections.<String, String>emptyMap(), null, new TreeSet<>());
 	private static final List<String> _excludedMimeTypes = Arrays.asList(
 		"image/svg+xml", "image/x-icon");
 
@@ -431,29 +338,9 @@ public class ResponsiveImageFactory {
 		_absolutePortalURLBuilderFactory;
 	private final Supplier<List<ImageTransformationURLRenderer>>
 		_imageTransformationURLRenderersSupplier;
-	private final PresetDefinitionRegistry _presetDefinitionRegistry;
 	private final ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper;
-	private final Map<Long, ScopedSettings> _scopedSettings =
-		new ConcurrentHashMap<>();
-
-	private static class ScopedSettings {
-
-		private ScopedSettings(
-			int contentHash, Map<String, String> defaultTransformations,
-			String urlRendererName, TreeSet<Integer> candidateWidths) {
-
-			_contentHash = contentHash;
-			_defaultTransformations = defaultTransformations;
-			_urlRendererName = urlRendererName;
-			_candidateWidths = candidateWidths;
-		}
-
-		private final TreeSet<Integer> _candidateWidths;
-		private final int _contentHash;
-		private final Map<String, String> _defaultTransformations;
-		private final String _urlRendererName;
-
-	}
+	private final ResponsiveImageConfigurationRegistry
+		_responsiveImageConfigurationRegistry;
 
 }
