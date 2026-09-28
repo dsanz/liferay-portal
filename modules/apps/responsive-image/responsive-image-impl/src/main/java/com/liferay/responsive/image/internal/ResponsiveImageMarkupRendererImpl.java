@@ -17,11 +17,11 @@ import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.responsive.image.ImageResource;
 import com.liferay.responsive.image.ResponsiveImage;
-import com.liferay.responsive.image.ResponsiveImageBreakpoint;
-import com.liferay.responsive.image.ResponsiveImageBreakpointVariant;
+import com.liferay.responsive.image.ResponsiveImageCandidate;
 import com.liferay.responsive.image.ResponsiveImageMarkupRenderer;
 import com.liferay.responsive.image.ResponsiveImageProvider;
 import com.liferay.responsive.image.ResponsiveImageRequest;
+import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.internal.configuration.MarkupShape;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
 import com.liferay.responsive.image.internal.configuration.PresetDefinitionResolver;
@@ -56,14 +56,15 @@ public class ResponsiveImageMarkupRendererImpl
 
 	/**
 	 * Renders a single <code>&lt;img&gt;</code> when the preset declares one
-	 * breakpoint, and <code>&lt;picture&gt;</code> when it declares several.
+	 * media condition, and <code>&lt;picture&gt;</code> when it declares
+	 * several.
 	 *
 	 * <p>
 	 * The shape comes from {@link
 	 * ResponsiveImageConfigurationValidator#getMarkupShape}, which reads
-	 * the configured presets rather than the breakpoints that survived
+	 * the configured presets rather than the sources that survived
 	 * generation. A preset whose ladder came back empty is skipped, so counting
-	 * breakpoints instead would quietly downgrade an art directed placement to
+	 * sources instead would quietly downgrade an art directed placement to
 	 * a plain <code>&lt;img&gt;</code> and drop the media conditions that made
 	 * it art directed.
 	 * </p>
@@ -124,11 +125,11 @@ public class ResponsiveImageMarkupRendererImpl
 			return originalImgTag;
 		}
 
-		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints =
-			responsiveImage.getBreakpoints();
+		List<ResponsiveImageSource> responsiveImageSources =
+			responsiveImage.getSources();
 
-		if (responsiveImageBreakpoints.isEmpty() ||
-			!_isTransformed(responsiveImageBreakpoints)) {
+		if (responsiveImageSources.isEmpty() ||
+			!_isTransformed(responsiveImageSources)) {
 
 			// Nothing was generated, or every width built the same URL because
 			// no renderer is bound. Emitting the descriptors anyway would have
@@ -153,10 +154,10 @@ public class ResponsiveImageMarkupRendererImpl
 
 		if (markupShape == MarkupShape.IMG) {
 			return _renderImg(
-				responsiveImageBreakpoints.get(0), lazy, originalImgTag);
+				responsiveImageSources.get(0), lazy, originalImgTag);
 		}
 
-		return _renderPicture(responsiveImageBreakpoints, lazy, originalImgTag);
+		return _renderPicture(responsiveImageSources, lazy, originalImgTag);
 	}
 
 	@Activate
@@ -181,16 +182,15 @@ public class ResponsiveImageMarkupRendererImpl
 	}
 
 	private String _getSrcSet(
-		List<ResponsiveImageBreakpointVariant>
-			responsiveImageBreakpointVariants) {
+		List<ResponsiveImageCandidate> responsiveImageCandidates) {
 
 		StringBundler sb = new StringBundler(
-			responsiveImageBreakpointVariants.size() * 4);
+			responsiveImageCandidates.size() * 4);
 
-		for (ResponsiveImageBreakpointVariant responsiveImageBreakpointVariant :
-				responsiveImageBreakpointVariants) {
+		for (ResponsiveImageCandidate responsiveImageCandidate :
+				responsiveImageCandidates) {
 
-			if (responsiveImageBreakpointVariant.getWidth() == null) {
+			if (responsiveImageCandidate.getWidth() == null) {
 				continue;
 			}
 
@@ -198,9 +198,9 @@ public class ResponsiveImageMarkupRendererImpl
 				sb.append(StringPool.COMMA_AND_SPACE);
 			}
 
-			sb.append(responsiveImageBreakpointVariant.getURL());
+			sb.append(responsiveImageCandidate.getURL());
 			sb.append(StringPool.SPACE);
-			sb.append(responsiveImageBreakpointVariant.getWidth());
+			sb.append(responsiveImageCandidate.getWidth());
 			sb.append("w");
 		}
 
@@ -223,43 +223,40 @@ public class ResponsiveImageMarkupRendererImpl
 	 * Returns <code>true</code> if building actually changed anything.
 	 *
 	 * <p>
-	 * Two variants in one breakpoint differ only by width, so identical URLs mean
-	 * the width never reached the URL. Comparing within a breakpoint rather than
+	 * Two candidates in one source differ only by width, so identical URLs mean
+	 * the width never reached the URL. Comparing within a source rather than
 	 * against the original is what makes this work regardless of the CDN host
 	 * and proxy path the builder prepends.
 	 * </p>
 	 */
 	private boolean _isTransformed(
-		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints) {
+		List<ResponsiveImageSource> responsiveImageSources) {
 
-		for (ResponsiveImageBreakpoint responsiveImageBreakpoint :
-				responsiveImageBreakpoints) {
+		for (ResponsiveImageSource responsiveImageSource :
+				responsiveImageSources) {
 
-			List<ResponsiveImageBreakpointVariant>
-				responsiveImageBreakpointVariants =
-					responsiveImageBreakpoint.getVariants();
+			List<ResponsiveImageCandidate> responsiveImageCandidates =
+				responsiveImageSource.getCandidates();
 
-			if (responsiveImageBreakpointVariants.size() < 2) {
+			if (responsiveImageCandidates.size() < 2) {
 				continue;
 			}
 
-			ResponsiveImageBreakpointVariant
-				firstResponsiveImageBreakpointVariant =
-					responsiveImageBreakpointVariants.get(0);
-			ResponsiveImageBreakpointVariant
-				secondResponsiveImageBreakpointVariant =
-					responsiveImageBreakpointVariants.get(1);
+			ResponsiveImageCandidate firstResponsiveImageCandidate =
+				responsiveImageCandidates.get(0);
+			ResponsiveImageCandidate secondResponsiveImageCandidate =
+				responsiveImageCandidates.get(1);
 
 			return !Objects.equals(
-				firstResponsiveImageBreakpointVariant.getURL(),
-				secondResponsiveImageBreakpointVariant.getURL());
+				firstResponsiveImageCandidate.getURL(),
+				secondResponsiveImageCandidate.getURL());
 		}
 
 		return true;
 	}
 
 	private String _renderImg(
-		ResponsiveImageBreakpoint responsiveImageBreakpoint, boolean lazy,
+		ResponsiveImageSource responsiveImageSource, boolean lazy,
 		String originalImgTag) {
 
 		StringBundler sb = new StringBundler(7);
@@ -267,10 +264,10 @@ public class ResponsiveImageMarkupRendererImpl
 		sb.append("srcset=\"");
 		sb.append(
 			HtmlUtil.escapeAttribute(
-				_getSrcSet(responsiveImageBreakpoint.getVariants())));
+				_getSrcSet(responsiveImageSource.getCandidates())));
 		sb.append("\"");
 
-		String sizes = responsiveImageBreakpoint.getSizes();
+		String sizes = responsiveImageSource.getSizes();
 
 		if (!Validator.isBlank(sizes)) {
 			sb.append(" sizes=\"");
@@ -289,18 +286,18 @@ public class ResponsiveImageMarkupRendererImpl
 	}
 
 	private String _renderPicture(
-		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints,
-		boolean lazy, String originalImgTag) {
+		List<ResponsiveImageSource> responsiveImageSources, boolean lazy,
+		String originalImgTag) {
 
 		StringBundler sb = new StringBundler(
-			(responsiveImageBreakpoints.size() * 7) + 3);
+			(responsiveImageSources.size() * 7) + 3);
 
 		sb.append("<picture>");
 
-		for (ResponsiveImageBreakpoint responsiveImageBreakpoint :
-				responsiveImageBreakpoints) {
+		for (ResponsiveImageSource responsiveImageSource :
+				responsiveImageSources) {
 
-			String mediaQuery = responsiveImageBreakpoint.getMediaQuery();
+			String mediaQuery = responsiveImageSource.getMediaQuery();
 
 			if (Validator.isBlank(mediaQuery)) {
 				continue;
@@ -311,10 +308,10 @@ public class ResponsiveImageMarkupRendererImpl
 			sb.append("\" srcset=\"");
 			sb.append(
 				HtmlUtil.escapeAttribute(
-					_getSrcSet(responsiveImageBreakpoint.getVariants())));
+					_getSrcSet(responsiveImageSource.getCandidates())));
 			sb.append("\"");
 
-			String sizes = responsiveImageBreakpoint.getSizes();
+			String sizes = responsiveImageSource.getSizes();
 
 			if (!Validator.isBlank(sizes)) {
 				sb.append(" sizes=\"");
@@ -325,14 +322,13 @@ public class ResponsiveImageMarkupRendererImpl
 			sb.append(" />");
 		}
 
-		// The last breakpoint also feeds the img element, which is both the
+		// The last source also feeds the img element, which is both the
 		// fallback for browsers without picture support and the final source
 		// when no media condition matches.
 
 		sb.append(
 			_renderImg(
-				responsiveImageBreakpoints.get(
-					responsiveImageBreakpoints.size() - 1),
+				responsiveImageSources.get(responsiveImageSources.size() - 1),
 				lazy, originalImgTag));
 
 		sb.append("</picture>");
@@ -342,21 +338,22 @@ public class ResponsiveImageMarkupRendererImpl
 
 	/**
 	 * Renders a single <code>&lt;img&gt;</code> when the preset declares one
-	 * breakpoint, and <code>&lt;picture&gt;</code> when it declares several.
+	 * media condition, and <code>&lt;picture&gt;</code> when it declares
+	 * several.
 	 *
 	 * <p>
 	 * The shape comes from {@link
 	 * ResponsiveImageConfigurationValidator#getMarkupShape}, which reads
-	 * the configured presets rather than the breakpoints that survived
+	 * the configured presets rather than the sources that survived
 	 * generation. A preset whose ladder came back empty is skipped, so counting
-	 * breakpoints instead would quietly downgrade an art directed placement
+	 * sources instead would quietly downgrade an art directed placement
 	 * to a plain <code>&lt;img&gt;</code> and drop the media conditions that
 	 * made it art directed.
 	 * </p>
 	 *
 	 * <p>
 	 * Wrapping a lone source in <code>&lt;picture&gt;</code> would be pure
-	 * overhead, and enumerating breakpoints when only resolution varies would
+	 * overhead, and enumerating sources when only resolution varies would
 	 * discard what the browser knows about pixel density, network conditions,
 	 * and its own cache.
 	 * </p>

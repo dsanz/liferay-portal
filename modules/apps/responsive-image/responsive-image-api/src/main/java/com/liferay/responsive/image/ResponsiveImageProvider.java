@@ -85,7 +85,7 @@ public interface ResponsiveImageProvider {
 	 * {@link #canTransform(ImageResource)} returned <code>true</code>.
 	 *
 	 * <p>
-	 * Returning the whole answer rather than only the breakpoints puts the fallback
+	 * Returning the whole answer rather than only the sources puts the fallback
 	 * <code>src</code> in the hands of whoever knows what a good one is. A
 	 * provider generating a ladder on demand can point it at a middle rendition
 	 * instead of the untransformed original, which may be far larger than
@@ -93,7 +93,7 @@ public interface ResponsiveImageProvider {
 	 * </p>
 	 *
 	 * @param  responsiveImageRequest what the caller wants
-	 * @return the resolved image, possibly with no breakpoints
+	 * @return the resolved image, possibly with no sources
 	 * @throws PortalException if the resource could not be read
 	 */
 	public ResponsiveImage getResponsiveImage(

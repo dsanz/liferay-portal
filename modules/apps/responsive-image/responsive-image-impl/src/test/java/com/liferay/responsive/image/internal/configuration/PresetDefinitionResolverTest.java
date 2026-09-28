@@ -44,24 +44,23 @@ public class PresetDefinitionResolverTest {
 	}
 
 	@Test
-	public void testDefaultBreakpointSortsLastAsTheCatchAll() {
+	public void testDefaultMediaConditionSortsLastAsTheCatchAll() {
 		_givenConfiguration(
 			new String[] {"wide.media=(min-width: 768px)"},
 			new String[] {"hero.default.sizes=100vw", "hero.wide.sizes=50vw"});
 
-		List<BreakpointDefinition> breakpointDefinitions = _presetsOf("hero");
+		List<SourceDefinition> sourceDefinitions = _presetsOf("hero");
 
 		Assert.assertEquals(
-			breakpointDefinitions.toString(), 2, breakpointDefinitions.size());
+			sourceDefinitions.toString(), 2, sourceDefinitions.size());
 		Assert.assertEquals(
-			"wide", _breakpointNameOf(breakpointDefinitions, 0));
+			"wide", _mediaConditionNameOf(sourceDefinitions, 0));
 		Assert.assertEquals(
-			"default", _breakpointNameOf(breakpointDefinitions, 1));
+			"default", _mediaConditionNameOf(sourceDefinitions, 1));
 
-		BreakpointDefinition breakpointDefinition = breakpointDefinitions.get(
-			1);
+		SourceDefinition sourceDefinition = sourceDefinitions.get(1);
 
-		Assert.assertNull(breakpointDefinition.getMediaQuery());
+		Assert.assertNull(sourceDefinition.getMediaQuery());
 	}
 
 	@Test
@@ -72,14 +71,14 @@ public class PresetDefinitionResolverTest {
 				"thumb.default.sizes=96px", "thumb.default.maxWidth=320"
 			});
 
-		BreakpointDefinition breakpointDefinition = _firstPresetOf("thumb");
+		SourceDefinition sourceDefinition = _firstPresetOf("thumb");
 
 		Assert.assertEquals(
-			Integer.valueOf(320), breakpointDefinition.getMaxWidth());
+			Integer.valueOf(320), sourceDefinition.getMaxWidth());
 	}
 
 	@Test
-	public void testOrderingComesFromBreakpointDeclarationNotPresetOrder() {
+	public void testOrderingComesFromMediaConditionDeclarationNotPresetOrder() {
 
 		// Source matching is first wins, so this ordering decides which image
 		// a browser picks. Declaring it once for the installation is what stops
@@ -92,34 +91,34 @@ public class PresetDefinitionResolverTest {
 			},
 			new String[] {"hero.wide.sizes=50vw", "hero.narrow.sizes=100vw"});
 
-		List<BreakpointDefinition> breakpointDefinitions = _presetsOf("hero");
+		List<SourceDefinition> sourceDefinitions = _presetsOf("hero");
 
 		Assert.assertEquals(
-			"narrow", _breakpointNameOf(breakpointDefinitions, 0));
+			"narrow", _mediaConditionNameOf(sourceDefinitions, 0));
 		Assert.assertEquals(
-			"wide", _breakpointNameOf(breakpointDefinitions, 1));
+			"wide", _mediaConditionNameOf(sourceDefinitions, 1));
 	}
 
 	@Test
-	public void testPresetsReferencingAnUndeclaredBreakpointAreDropped() {
+	public void testPresetsReferencingAnUndeclaredMediaConditionAreDropped() {
 
-		// A typo would otherwise become an unconditional breakpoint that
-		// shadows every breakpoint after it.
+		// A typo would otherwise become an unconditional source that
+		// shadows every source after it.
 
 		_givenConfiguration(
 			new String[] {"narrow.media=(max-width: 767px)"},
 			new String[] {"hero.narow.sizes=100vw", "hero.narrow.sizes=50vw"});
 
-		List<BreakpointDefinition> breakpointDefinitions = _presetsOf("hero");
+		List<SourceDefinition> sourceDefinitions = _presetsOf("hero");
 
 		Assert.assertEquals(
-			breakpointDefinitions.toString(), 1, breakpointDefinitions.size());
+			sourceDefinitions.toString(), 1, sourceDefinitions.size());
 		Assert.assertEquals(
-			"narrow", _breakpointNameOf(breakpointDefinitions, 0));
+			"narrow", _mediaConditionNameOf(sourceDefinitions, 0));
 	}
 
 	@Test
-	public void testResolvesMediaQueryFromTheNamedBreakpoint() {
+	public void testResolvesMediaConditionFromTheNamedDeclaration() {
 		_givenConfiguration(
 			new String[] {"narrow.media=(max-width: 767px)"},
 			new String[] {
@@ -132,14 +131,14 @@ public class PresetDefinitionResolverTest {
 
 		Assert.assertEquals("Hero", presetDefinition.getLabel());
 
-		BreakpointDefinition breakpointDefinition = _firstPresetOf("hero");
+		SourceDefinition sourceDefinition = _firstPresetOf("hero");
 
 		Assert.assertEquals(
-			"(max-width: 767px)", breakpointDefinition.getMediaQuery());
-		Assert.assertEquals("100vw", breakpointDefinition.getSizes());
+			"(max-width: 767px)", sourceDefinition.getMediaQuery());
+		Assert.assertEquals("100vw", sourceDefinition.getSizes());
 
 		Map<String, String> transformations =
-			breakpointDefinition.getTransformations();
+			sourceDefinition.getTransformations();
 
 		Assert.assertEquals(
 			transformations.toString(), 2, transformations.size());
@@ -158,40 +157,31 @@ public class PresetDefinitionResolverTest {
 		PresetDefinition presetDefinition = _presetDefinitionResolver.resolve(
 			0, _COMPANY_ID, "nonexistent");
 
-		List<BreakpointDefinition> breakpointDefinitions =
-			presetDefinition.getBreakpointDefinitions();
+		List<SourceDefinition> sourceDefinitions =
+			presetDefinition.getSourceDefinitions();
 
 		Assert.assertEquals(
-			breakpointDefinitions.toString(), 1, breakpointDefinitions.size());
+			sourceDefinitions.toString(), 1, sourceDefinitions.size());
 
-		BreakpointDefinition breakpointDefinition = breakpointDefinitions.get(
-			0);
+		SourceDefinition sourceDefinition = sourceDefinitions.get(0);
 
-		Assert.assertNull(breakpointDefinition.getMediaQuery());
-		Assert.assertEquals("100vw", breakpointDefinition.getSizes());
+		Assert.assertNull(sourceDefinition.getMediaQuery());
+		Assert.assertEquals("100vw", sourceDefinition.getSizes());
 	}
 
-	private String _breakpointNameOf(
-		List<BreakpointDefinition> breakpointDefinitions, int index) {
+	private SourceDefinition _firstPresetOf(String presetName) {
+		List<SourceDefinition> sourceDefinitions = _presetsOf(presetName);
 
-		BreakpointDefinition breakpointDefinition = breakpointDefinitions.get(
-			index);
-
-		return breakpointDefinition.getBreakpointName();
+		return sourceDefinitions.get(0);
 	}
 
-	private BreakpointDefinition _firstPresetOf(String presetName) {
-		List<BreakpointDefinition> breakpointDefinitions = _presetsOf(
-			presetName);
+	private void _givenConfiguration(
+		String[] mediaConditions, String[] presets) {
 
-		return breakpointDefinitions.get(0);
-	}
-
-	private void _givenConfiguration(String[] breakpoints, String[] presets) {
 		Mockito.when(
-			_responsiveImageConfiguration.breakpoints()
+			_responsiveImageConfiguration.mediaConditions()
 		).thenReturn(
-			breakpoints
+			mediaConditions
 		);
 
 		Mockito.when(
@@ -201,11 +191,19 @@ public class PresetDefinitionResolverTest {
 		);
 	}
 
-	private List<BreakpointDefinition> _presetsOf(String presetName) {
+	private String _mediaConditionNameOf(
+		List<SourceDefinition> sourceDefinitions, int index) {
+
+		SourceDefinition sourceDefinition = sourceDefinitions.get(index);
+
+		return sourceDefinition.getMediaConditionName();
+	}
+
+	private List<SourceDefinition> _presetsOf(String presetName) {
 		PresetDefinition presetDefinition = _presetDefinitionResolver.resolve(
 			0, _COMPANY_ID, presetName);
 
-		return presetDefinition.getBreakpointDefinitions();
+		return presetDefinition.getSourceDefinitions();
 	}
 
 	private static final long _COMPANY_ID = 42L;

@@ -10,16 +10,16 @@ import com.liferay.portal.test.rule.FeatureFlag;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.responsive.image.ImageResource;
 import com.liferay.responsive.image.ResponsiveImage;
-import com.liferay.responsive.image.ResponsiveImageBreakpoint;
-import com.liferay.responsive.image.ResponsiveImageBreakpointVariant;
-import com.liferay.responsive.image.ResponsiveImageBreakpointVariantBuilder;
+import com.liferay.responsive.image.ResponsiveImageCandidate;
+import com.liferay.responsive.image.ResponsiveImageCandidateBuilder;
 import com.liferay.responsive.image.ResponsiveImageProvider;
 import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageRequestBuilder;
-import com.liferay.responsive.image.internal.configuration.BreakpointDefinition;
+import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
 import com.liferay.responsive.image.internal.configuration.PresetDefinitionResolver;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
+import com.liferay.responsive.image.internal.configuration.SourceDefinition;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -91,13 +91,13 @@ public class ResponsiveImageMarkupRendererImplTest {
 		// Every width built the same URL, so no renderer is bound. Emitting the
 		// descriptors would have the browser trust them and pick wrong.
 
-		_givenPreset(_breakpointDefinition(null, "100vw"));
+		_givenPreset(_sourceDefinition(null, "100vw"));
 		_givenResponsiveImage(
-			ResponsiveImageBreakpoint.of(
+			ResponsiveImageSource.of(
 				null, "100vw",
 				Arrays.asList(
-					_variant("/documents/1/2/photo.jpg", 320),
-					_variant("/documents/1/2/photo.jpg", 640))));
+					_candidate("/documents/1/2/photo.jpg", 320),
+					_candidate("/documents/1/2/photo.jpg", 640))));
 
 		String markup = _responsiveImageMarkupRendererImpl.render(
 			_ORIGINAL_IMG_TAG, _request());
@@ -110,13 +110,13 @@ public class ResponsiveImageMarkupRendererImplTest {
 	public void testPassesThroughWhenTheFeatureFlagIsDisabled()
 		throws Exception {
 
-		_givenPreset(_breakpointDefinition(null, "100vw"));
+		_givenPreset(_sourceDefinition(null, "100vw"));
 		_givenResponsiveImage(
-			ResponsiveImageBreakpoint.of(
+			ResponsiveImageSource.of(
 				null, "100vw",
 				Arrays.asList(
-					_variant("/documents/1/2/photo.jpg?width=320", 320),
-					_variant("/documents/1/2/photo.jpg?width=640", 640))));
+					_candidate("/documents/1/2/photo.jpg?width=320", 320),
+					_candidate("/documents/1/2/photo.jpg?width=640", 640))));
 
 		String markup = _responsiveImageMarkupRendererImpl.render(
 			_ORIGINAL_IMG_TAG, _request());
@@ -144,14 +144,14 @@ public class ResponsiveImageMarkupRendererImplTest {
 	}
 
 	@Test
-	public void testRendersImgForASingleBreakpoint() throws Exception {
-		_givenPreset(_breakpointDefinition(null, "100vw"));
+	public void testRendersImgForASingleSource() throws Exception {
+		_givenPreset(_sourceDefinition(null, "100vw"));
 		_givenResponsiveImage(
-			ResponsiveImageBreakpoint.of(
+			ResponsiveImageSource.of(
 				null, "100vw",
 				Arrays.asList(
-					_variant("/documents/1/2/photo.jpg?width=320", 320),
-					_variant("/documents/1/2/photo.jpg?width=640", 640))));
+					_candidate("/documents/1/2/photo.jpg?width=320", 320),
+					_candidate("/documents/1/2/photo.jpg?width=640", 640))));
 
 		String markup = _responsiveImageMarkupRendererImpl.render(
 			_ORIGINAL_IMG_TAG, _request());
@@ -169,21 +169,21 @@ public class ResponsiveImageMarkupRendererImplTest {
 	@Test
 	public void testRendersPictureForArtDirection() throws Exception {
 
-		// Two breakpoints mean the crop differs by viewport, which srcset alone
+		// Two sources mean the crop differs by viewport, which srcset alone
 		// cannot express.
 
 		_givenPreset(
-			_breakpointDefinition("(max-width: 767px)", "100vw"),
-			_breakpointDefinition("(min-width: 768px)", "50vw"));
+			_sourceDefinition("(max-width: 767px)", "100vw"),
+			_sourceDefinition("(min-width: 768px)", "50vw"));
 		_givenResponsiveImage(
-			ResponsiveImageBreakpoint.of(
+			ResponsiveImageSource.of(
 				"(max-width: 767px)", "100vw",
 				Collections.singletonList(
-					_variant("/documents/1/2/photo.jpg?crop=1%3A1", 320))),
-			ResponsiveImageBreakpoint.of(
+					_candidate("/documents/1/2/photo.jpg?crop=1%3A1", 320))),
+			ResponsiveImageSource.of(
 				"(min-width: 768px)", "50vw",
 				Collections.singletonList(
-					_variant("/documents/1/2/photo.jpg?crop=16%3A9", 960))));
+					_candidate("/documents/1/2/photo.jpg?crop=16%3A9", 960))));
 
 		String markup = _responsiveImageMarkupRendererImpl.render(
 			_ORIGINAL_IMG_TAG, _request());
@@ -195,37 +195,37 @@ public class ResponsiveImageMarkupRendererImplTest {
 		Assert.assertTrue(
 			markup, markup.contains("media=\"(min-width: 768px)\""));
 
-		// The img inside carries the last breakpoint, serving both as the
+		// The img inside carries the last source, serving both as the
 		// fallback and as the source used when no media condition matches.
 
 		Assert.assertTrue(markup, markup.contains("sizes=\"50vw\""));
 	}
 
-	private BreakpointDefinition _breakpointDefinition(
-		String mediaQuery, String sizes) {
-
-		return new BreakpointDefinition(
-			false, "test", null, mediaQuery, sizes,
-			Collections.<String, String>emptyMap());
+	private ResponsiveImageCandidate _candidate(String url, int width) {
+		return ResponsiveImageCandidateBuilder.url(
+			url
+		).width(
+			width
+		).build();
 	}
 
-	private void _givenPreset(BreakpointDefinition... breakpointDefinitions) {
+	private void _givenPreset(SourceDefinition... sourceDefinitions) {
 		Mockito.when(
 			_presetDefinitionResolver.resolve(
 				Mockito.anyLong(), Mockito.anyLong(),
 				Mockito.nullable(String.class))
 		).thenReturn(
 			new PresetDefinition(
-				null, null, "test", Arrays.asList(breakpointDefinitions))
+				null, null, "test", Arrays.asList(sourceDefinitions))
 		);
 	}
 
 	private void _givenResponsiveImage(
-			ResponsiveImageBreakpoint... responsiveImageBreakpoints)
+			ResponsiveImageSource... responsiveImageSources)
 		throws Exception {
 
-		List<ResponsiveImageBreakpoint> list = Arrays.asList(
-			responsiveImageBreakpoints);
+		List<ResponsiveImageSource> list = Arrays.asList(
+			responsiveImageSources);
 
 		Mockito.when(
 			_responsiveImageProvider.getResponsiveImage(
@@ -241,12 +241,12 @@ public class ResponsiveImageMarkupRendererImplTest {
 		).build();
 	}
 
-	private ResponsiveImageBreakpointVariant _variant(String url, int width) {
-		return ResponsiveImageBreakpointVariantBuilder.url(
-			url
-		).width(
-			width
-		).build();
+	private SourceDefinition _sourceDefinition(
+		String mediaQuery, String sizes) {
+
+		return new SourceDefinition(
+			false, "test", null, mediaQuery, sizes,
+			Collections.<String, String>emptyMap());
 	}
 
 	private static final String _ORIGINAL_IMG_TAG =

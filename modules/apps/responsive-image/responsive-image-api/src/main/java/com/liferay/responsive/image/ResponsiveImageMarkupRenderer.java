@@ -18,15 +18,15 @@ import org.osgi.annotation.versioning.ProviderType;
  * </p>
  *
  * <p>
- * Markup rather than a tag, because a preset declaring several breakpoints
+ * Markup rather than a tag, because a preset declaring several media conditions
  * renders a <code>&lt;picture&gt;</code> wrapping one
- * <code>&lt;source&gt;</code> per breakpoint, not a single element.
+ * <code>&lt;source&gt;</code> per media condition, not a single element.
  * </p>
  *
  * <p>
  * Holds no markup knowledge itself. It selects the active provider and hands
  * off to that provider's {@link ResponsiveImageProvider#render}, because what
- * the markup should look like depends on how the variants were
+ * the markup should look like depends on how the candidates were
  * produced.
  * </p>
  *

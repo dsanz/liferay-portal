@@ -24,11 +24,11 @@ import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.responsive.image.FileEntryImageResource;
 import com.liferay.responsive.image.ImageResource;
 import com.liferay.responsive.image.ResponsiveImage;
-import com.liferay.responsive.image.ResponsiveImageBreakpoint;
-import com.liferay.responsive.image.ResponsiveImageBreakpointVariant;
-import com.liferay.responsive.image.ResponsiveImageBreakpointVariantBuilder;
+import com.liferay.responsive.image.ResponsiveImageCandidate;
+import com.liferay.responsive.image.ResponsiveImageCandidateBuilder;
 import com.liferay.responsive.image.ResponsiveImageProvider;
 import com.liferay.responsive.image.ResponsiveImageRequest;
+import com.liferay.responsive.image.ResponsiveImageSource;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -72,7 +72,7 @@ public class AMResponsiveImageProvider implements ResponsiveImageProvider {
 	}
 
 	/**
-	 * Returns one breakpoint per media condition, each holding the single rendition
+	 * Returns one source per media condition, each holding the single rendition
 	 * that condition selects, falling back to the untransformed original.
 	 *
 	 * <p>
@@ -101,12 +101,11 @@ public class AMResponsiveImageProvider implements ResponsiveImageProvider {
 			return ResponsiveImage.passthrough(imageResource.getURL());
 		}
 
-		Map<String, ResponsiveImageBreakpointVariant>
-			responsiveImageBreakpointVariants =
-				_getResponsiveImageBreakpointVariants(fileEntry);
+		Map<String, ResponsiveImageCandidate> responsiveImageCandidates =
+			_getResponsiveImageCandidates(fileEntry);
 
-		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints =
-			new ArrayList<>(mediaQueries.size());
+		List<ResponsiveImageSource> responsiveImageSources = new ArrayList<>(
+			mediaQueries.size());
 
 		for (MediaQuery mediaQuery : mediaQueries) {
 			String mediaQueryString = _getMediaQueryString(mediaQuery);
@@ -115,45 +114,42 @@ public class AMResponsiveImageProvider implements ResponsiveImageProvider {
 				continue;
 			}
 
-			List<ResponsiveImageBreakpointVariant>
-				groupResponsiveImageBreakpointVariants = new ArrayList<>();
+			List<ResponsiveImageCandidate> groupResponsiveImageCandidates =
+				new ArrayList<>();
 
 			for (String url :
 					StringUtil.split(mediaQuery.getSrc(), StringPool.COMMA)) {
 
 				url = StringUtil.trim(url);
 
-				ResponsiveImageBreakpointVariant
-					responsiveImageBreakpointVariant =
-						responsiveImageBreakpointVariants.get(url);
+				ResponsiveImageCandidate responsiveImageCandidate =
+					responsiveImageCandidates.get(url);
 
-				if (responsiveImageBreakpointVariant == null) {
+				if (responsiveImageCandidate == null) {
 
 					// The URL is known but its rendition record is not, so emit
 					// what is certain and leave the rest null rather than drop
 					// a candidate the browser could have used.
 
-					responsiveImageBreakpointVariant =
-						ResponsiveImageBreakpointVariantBuilder.url(
+					responsiveImageCandidate =
+						ResponsiveImageCandidateBuilder.url(
 							url
 						).build();
 				}
 
-				groupResponsiveImageBreakpointVariants.add(
-					responsiveImageBreakpointVariant);
+				groupResponsiveImageCandidates.add(responsiveImageCandidate);
 			}
 
-			if (groupResponsiveImageBreakpointVariants.isEmpty()) {
+			if (groupResponsiveImageCandidates.isEmpty()) {
 				continue;
 			}
 
-			// No sizes: a breakpoint holding one candidate has nothing to
+			// No sizes: a source holding one candidate has nothing to
 			// disambiguate.
 
-			responsiveImageBreakpoints.add(
-				ResponsiveImageBreakpoint.of(
-					mediaQueryString, null,
-					groupResponsiveImageBreakpointVariants));
+			responsiveImageSources.add(
+				ResponsiveImageSource.of(
+					mediaQueryString, null, groupResponsiveImageCandidates));
 		}
 
 		// The untransformed original as fallback: Adaptive Media's renditions
@@ -161,7 +157,7 @@ public class AMResponsiveImageProvider implements ResponsiveImageProvider {
 		// default would silently prefer a size nobody asked for.
 
 		return new ResponsiveImage(
-			responsiveImageBreakpoints, imageResource.getURL());
+			responsiveImageSources, imageResource.getURL());
 	}
 
 	/**
@@ -213,12 +209,12 @@ public class AMResponsiveImageProvider implements ResponsiveImageProvider {
 		return StringUtil.merge(conditionStrings, " and ");
 	}
 
-	private Map<String, ResponsiveImageBreakpointVariant>
-			_getResponsiveImageBreakpointVariants(FileEntry fileEntry)
+	private Map<String, ResponsiveImageCandidate> _getResponsiveImageCandidates(
+			FileEntry fileEntry)
 		throws PortalException {
 
-		Map<String, ResponsiveImageBreakpointVariant>
-			responsiveImageBreakpointVariants = new HashMap<>();
+		Map<String, ResponsiveImageCandidate> responsiveImageCandidates =
+			new HashMap<>();
 
 		FileVersion fileVersion = fileEntry.getFileVersion();
 
@@ -240,16 +236,16 @@ public class AMResponsiveImageProvider implements ResponsiveImageProvider {
 				_amImageURLFactory.createFileEntryURL(
 					fileVersion, amImageConfigurationEntry));
 
-			responsiveImageBreakpointVariants.put(
+			responsiveImageCandidates.put(
 				url,
-				ResponsiveImageBreakpointVariantBuilder.url(
+				ResponsiveImageCandidateBuilder.url(
 					url
 				).width(
 					amImageEntry.getWidth()
 				).build());
 		}
 
-		return responsiveImageBreakpointVariants;
+		return responsiveImageCandidates;
 	}
 
 	@Reference

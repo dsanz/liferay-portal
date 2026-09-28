@@ -30,10 +30,10 @@ import java.util.Objects;
  * differently cropped candidates inside a single <code>srcset</code>, which
  * asks the browser to treat two different pictures as interchangeable.
  * It is unreachable rather than unchecked. A transformation is declared on a
- * preset, a preset carries one media condition, and the variants generated
+ * preset, a preset carries one media condition, and the candidates generated
  * within one preset differ only in width, so candidates that share a
  * <code>srcset</code> are the same picture at different sizes by construction.
- * Allowing transformations per variant would end that, and would make this the
+ * Allowing transformations per candidate would end that, and would make this the
  * place to catch it.
  * </p>
  *
@@ -56,10 +56,10 @@ public class ResponsiveImageConfigurationValidator {
 	public static MarkupShape getMarkupShape(
 		PresetDefinition presetDefinition) {
 
-		List<BreakpointDefinition> breakpointDefinitions =
-			presetDefinition.getBreakpointDefinitions();
+		List<SourceDefinition> sourceDefinitions =
+			presetDefinition.getSourceDefinitions();
 
-		if (breakpointDefinitions.size() > 1) {
+		if (sourceDefinitions.size() > 1) {
 			return MarkupShape.PICTURE;
 		}
 
@@ -78,36 +78,36 @@ public class ResponsiveImageConfigurationValidator {
 		List<String> problems = new ArrayList<>();
 
 		for (PresetDefinition presetDefinition : presetDefinitions.values()) {
-			List<BreakpointDefinition> breakpointDefinitions =
-				presetDefinition.getBreakpointDefinitions();
+			List<SourceDefinition> sourceDefinitions =
+				presetDefinition.getSourceDefinitions();
 
-			if (breakpointDefinitions.size() < 2) {
+			if (sourceDefinitions.size() < 2) {
 				continue;
 			}
 
-			if (_isInterchangeable(breakpointDefinitions)) {
+			if (_isInterchangeable(sourceDefinitions)) {
 				problems.add(
 					StringBundler.concat(
 						"Preset ", presetDefinition.getName(), " declares ",
-						breakpointDefinitions.size(),
-						" breakpoints that generate the same image, so it ",
-						"renders a <picture> whose sources are ",
+						sourceDefinitions.size(),
+						" media conditions that generate the same image, so ",
+						"it renders a <picture> whose sources are ",
 						"interchangeable. Declare a single unconditional ",
-						"preset and move the breakpoints into its sizes ",
+						"preset and move the media conditions into its sizes ",
 						"attribute, which renders an <img> and leaves the ",
 						"choice to the browser"));
 			}
 
-			if (_isFormatSwitching(breakpointDefinitions)) {
+			if (_isFormatSwitching(sourceDefinitions)) {
 				problems.add(
 					StringBundler.concat(
 						"Preset ", presetDefinition.getName(),
-						" changes output format between breakpoints, which a ",
-						"<source> cannot express: it is selected by media ",
-						"condition alone, so a browser that does not support ",
-						"the format has nothing to fall back to. Negotiate ",
-						"the format at the edge from the Accept header ",
-						"instead"));
+						" changes output format between media conditions, ",
+						"which a <source> cannot express: it is selected by ",
+						"media condition alone, so a browser that does not ",
+						"support the format has nothing to fall back to. ",
+						"Negotiate the format at the edge from the Accept ",
+						"header instead"));
 			}
 		}
 
@@ -119,12 +119,12 @@ public class ResponsiveImageConfigurationValidator {
 	 * ones a media condition is the wrong way to choose between.
 	 */
 	private static Map<String, String> _getFormats(
-		BreakpointDefinition breakpointDefinition) {
+		SourceDefinition sourceDefinition) {
 
 		Map<String, String> formats = new LinkedHashMap<>();
 
 		Map<String, String> transformations =
-			breakpointDefinition.getTransformations();
+			sourceDefinition.getTransformations();
 
 		for (String formatKey : _FORMAT_KEYS) {
 			String value = transformations.get(formatKey);
@@ -138,14 +138,12 @@ public class ResponsiveImageConfigurationValidator {
 	}
 
 	private static boolean _isFormatSwitching(
-		List<BreakpointDefinition> breakpointDefinitions) {
+		List<SourceDefinition> sourceDefinitions) {
 
-		Map<String, String> formats = _getFormats(breakpointDefinitions.get(0));
+		Map<String, String> formats = _getFormats(sourceDefinitions.get(0));
 
-		for (BreakpointDefinition breakpointDefinition :
-				breakpointDefinitions) {
-
-			if (!formats.equals(_getFormats(breakpointDefinition))) {
+		for (SourceDefinition sourceDefinition : sourceDefinitions) {
+			if (!formats.equals(_getFormats(sourceDefinition))) {
 				return true;
 			}
 		}
@@ -160,27 +158,24 @@ public class ResponsiveImageConfigurationValidator {
 	 *
 	 * <p>
 	 * A differing maximum width is not counted, because it truncates the ladder
-	 * per breakpoint and a single <code>&lt;img&gt;</code> carries one ladder.
+	 * per source and a single <code>&lt;img&gt;</code> carries one ladder.
 	 * Differing sizes alone is the case worth reporting: one sizes attribute
-	 * already holds a media condition per breakpoint.
+	 * already holds a media condition per entry.
 	 * </p>
 	 */
 	private static boolean _isInterchangeable(
-		List<BreakpointDefinition> breakpointDefinitions) {
+		List<SourceDefinition> sourceDefinitions) {
 
-		BreakpointDefinition firstBreakpointDefinition =
-			breakpointDefinitions.get(0);
+		SourceDefinition firstSourceDefinition = sourceDefinitions.get(0);
 
-		Integer maxWidth = firstBreakpointDefinition.getMaxWidth();
+		Integer maxWidth = firstSourceDefinition.getMaxWidth();
 		Map<String, String> transformations =
-			firstBreakpointDefinition.getTransformations();
+			firstSourceDefinition.getTransformations();
 
-		for (BreakpointDefinition breakpointDefinition :
-				breakpointDefinitions) {
-
-			if (!Objects.equals(maxWidth, breakpointDefinition.getMaxWidth()) ||
+		for (SourceDefinition sourceDefinition : sourceDefinitions) {
+			if (!Objects.equals(maxWidth, sourceDefinition.getMaxWidth()) ||
 				!transformations.equals(
-					breakpointDefinition.getTransformations())) {
+					sourceDefinition.getTransformations())) {
 
 				return false;
 			}

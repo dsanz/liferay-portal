@@ -94,11 +94,12 @@ public class PresetDefinitionResolver {
 			return Collections.emptyMap();
 		}
 
-		String[] breakpoints = responsiveImageConfiguration.breakpoints();
+		String[] mediaConditions =
+			responsiveImageConfiguration.mediaConditions();
 		String[] presets = responsiveImageConfiguration.presets();
 
 		int contentHash =
-			(31 * Arrays.hashCode(breakpoints)) + Arrays.hashCode(presets);
+			(31 * Arrays.hashCode(mediaConditions)) + Arrays.hashCode(presets);
 
 		long scopeKey = _responsiveImageConfigurationHelper.getScopeKey(
 			groupId, companyId);
@@ -113,7 +114,7 @@ public class PresetDefinitionResolver {
 
 		parsedPresets = new ParsedPresets(
 			contentHash,
-			_toPresetDefinitions(_toBreakpoints(breakpoints), presets));
+			_toPresetDefinitions(_toMediaConditions(mediaConditions), presets));
 
 		_parsedPresets.put(scopeKey, parsedPresets);
 
@@ -157,101 +158,6 @@ public class PresetDefinitionResolver {
 		}
 	}
 
-	/**
-	 * Orders a preset's breakpoints by the order breakpoints are declared
-	 * rather than by the order the preset's own keys appear, so ordering is
-	 * decided once for the whole installation. The unconditional breakpoint
-	 * always sorts last, being the catch all.
-	 */
-	private List<BreakpointDefinition> _toBreakpointDefinitions(
-		Map<String, String> breakpoints,
-		Map<String, Map<String, String>> breakpointProperties) {
-
-		List<BreakpointDefinition> breakpointDefinitions = new ArrayList<>(
-			breakpointProperties.size());
-
-		for (Map.Entry<String, String> entry : breakpoints.entrySet()) {
-			Map<String, String> properties = breakpointProperties.get(
-				entry.getKey());
-
-			if (properties == null) {
-				continue;
-			}
-
-			breakpointDefinitions.add(
-				new BreakpointDefinition(
-					GetterUtil.getBoolean(properties.get(_AUTO_SIZES)),
-					entry.getKey(), _toMaxWidth(properties.get(_MAX_WIDTH)),
-					entry.getValue(), properties.get(_SIZES),
-					_toTransformations(properties.get(_TRANSFORMATIONS))));
-		}
-
-		Map<String, String> properties = breakpointProperties.get(
-			_NAME_DEFAULT);
-
-		if (properties != null) {
-			breakpointDefinitions.add(
-				new BreakpointDefinition(
-					GetterUtil.getBoolean(properties.get(_AUTO_SIZES)),
-					_NAME_DEFAULT, _toMaxWidth(properties.get(_MAX_WIDTH)),
-					null, properties.get(_SIZES),
-					_toTransformations(properties.get(_TRANSFORMATIONS))));
-		}
-
-		return breakpointDefinitions;
-	}
-
-	/**
-	 * Returns the declared media conditions by name, in declaration order.
-	 *
-	 * <p>
-	 * That order is what fixes the order presets render in. Browser source
-	 * matching is first wins, so reordering this configuration renders
-	 * different images without reporting anything.
-	 * </p>
-	 */
-	private Map<String, String> _toBreakpoints(String[] breakpoints) {
-		Map<String, String> mediaQueries = new LinkedHashMap<>();
-
-		if (breakpoints == null) {
-			return mediaQueries;
-		}
-
-		for (String breakpoint : breakpoints) {
-			if (Validator.isBlank(breakpoint)) {
-				continue;
-			}
-
-			int i = breakpoint.indexOf(StringPool.EQUAL);
-
-			if (i <= 0) {
-				if (_log.isWarnEnabled()) {
-					_log.warn(
-						"Ignoring malformed breakpoint entry " + breakpoint);
-				}
-
-				continue;
-			}
-
-			String key = StringUtil.trim(breakpoint.substring(0, i));
-
-			String[] keyParts = StringUtil.split(key, StringPool.PERIOD);
-
-			if ((keyParts.length != 2) || !_MEDIA.equals(keyParts[1])) {
-				if (_log.isWarnEnabled()) {
-					_log.warn("Ignoring unrecognized breakpoint key " + key);
-				}
-
-				continue;
-			}
-
-			mediaQueries.put(
-				keyParts[0], StringUtil.trim(breakpoint.substring(i + 1)));
-		}
-
-		return mediaQueries;
-	}
-
 	private Integer _toMaxWidth(String value) {
 		if (Validator.isBlank(value)) {
 			return null;
@@ -270,8 +176,64 @@ public class PresetDefinitionResolver {
 		return null;
 	}
 
+	/**
+	 * Returns the declared media conditions by name, in declaration order.
+	 *
+	 * <p>
+	 * That order is what fixes the order presets render in. Browser source
+	 * matching is first wins, so reordering this configuration renders
+	 * different images without reporting anything.
+	 * </p>
+	 */
+	private Map<String, String> _toMediaConditions(
+		String[] mediaConditionEntries) {
+
+		Map<String, String> mediaConditions = new LinkedHashMap<>();
+
+		if (mediaConditionEntries == null) {
+			return mediaConditions;
+		}
+
+		for (String mediaConditionEntry : mediaConditionEntries) {
+			if (Validator.isBlank(mediaConditionEntry)) {
+				continue;
+			}
+
+			int i = mediaConditionEntry.indexOf(StringPool.EQUAL);
+
+			if (i <= 0) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Ignoring malformed media condition entry " +
+							mediaConditionEntry);
+				}
+
+				continue;
+			}
+
+			String key = StringUtil.trim(mediaConditionEntry.substring(0, i));
+
+			String[] keyParts = StringUtil.split(key, StringPool.PERIOD);
+
+			if ((keyParts.length != 2) || !_MEDIA.equals(keyParts[1])) {
+				if (_log.isWarnEnabled()) {
+					_log.warn(
+						"Ignoring unrecognized media condition key " + key);
+				}
+
+				continue;
+			}
+
+			mediaConditions.put(
+				keyParts[0],
+				StringUtil.trim(mediaConditionEntry.substring(i + 1)));
+		}
+
+		return mediaConditions;
+	}
+
 	private Map<String, PresetDefinition> _toPresetDefinitions(
-		Map<String, String> breakpoints, String[] presets) {
+		Map<String, String> mediaConditions, String[] presets) {
 
 		if (presets == null) {
 			return Collections.emptyMap();
@@ -323,26 +285,25 @@ public class PresetDefinitionResolver {
 			}
 
 			if (!_NAME_DEFAULT.equals(keyParts[1]) &&
-				!breakpoints.containsKey(keyParts[1])) {
+				!mediaConditions.containsKey(keyParts[1])) {
 
 				if (_log.isWarnEnabled()) {
 					_log.warn(
 						StringBundler.concat(
 							"Ignoring preset key ", key,
-							" because no breakpoint named ", keyParts[1],
+							" because no media condition named ", keyParts[1],
 							" is declared"));
 				}
 
 				continue;
 			}
 
-			Map<String, Map<String, String>> breakpointProperties =
+			Map<String, Map<String, String>> sourceProperties =
 				presetProperties.computeIfAbsent(
 					keyParts[0], presetName -> new LinkedHashMap<>());
 
-			Map<String, String> properties =
-				breakpointProperties.computeIfAbsent(
-					keyParts[1], breakpointName -> new LinkedHashMap<>());
+			Map<String, String> properties = sourceProperties.computeIfAbsent(
+				keyParts[1], mediaConditionName -> new LinkedHashMap<>());
 
 			properties.put(keyParts[2], value);
 		}
@@ -357,10 +318,53 @@ public class PresetDefinitionResolver {
 				new PresetDefinition(
 					labels.get(entry.getKey()), lazyValues.get(entry.getKey()),
 					entry.getKey(),
-					_toBreakpointDefinitions(breakpoints, entry.getValue())));
+					_toSourceDefinitions(mediaConditions, entry.getValue())));
 		}
 
 		return presetDefinitions;
+	}
+
+	/**
+	 * Orders a preset's source definitions by the order media conditions are
+	 * declared rather than by the order the preset's own keys appear, so
+	 * ordering is decided once for the whole installation. The unconditional
+	 * media condition always sorts last, being the catch all.
+	 */
+	private List<SourceDefinition> _toSourceDefinitions(
+		Map<String, String> mediaConditions,
+		Map<String, Map<String, String>> sourceProperties) {
+
+		List<SourceDefinition> sourceDefinitions = new ArrayList<>(
+			sourceProperties.size());
+
+		for (Map.Entry<String, String> entry : mediaConditions.entrySet()) {
+			Map<String, String> properties = sourceProperties.get(
+				entry.getKey());
+
+			if (properties == null) {
+				continue;
+			}
+
+			sourceDefinitions.add(
+				new SourceDefinition(
+					GetterUtil.getBoolean(properties.get(_AUTO_SIZES)),
+					entry.getKey(), _toMaxWidth(properties.get(_MAX_WIDTH)),
+					entry.getValue(), properties.get(_SIZES),
+					_toTransformations(properties.get(_TRANSFORMATIONS))));
+		}
+
+		Map<String, String> properties = sourceProperties.get(_NAME_DEFAULT);
+
+		if (properties != null) {
+			sourceDefinitions.add(
+				new SourceDefinition(
+					GetterUtil.getBoolean(properties.get(_AUTO_SIZES)),
+					_NAME_DEFAULT, _toMaxWidth(properties.get(_MAX_WIDTH)),
+					null, properties.get(_SIZES),
+					_toTransformations(properties.get(_TRANSFORMATIONS))));
+		}
+
+		return sourceDefinitions;
 	}
 
 	private Map<String, String> _toTransformations(String value) {
@@ -394,7 +398,7 @@ public class PresetDefinitionResolver {
 	private static final PresetDefinition _FALLBACK = new PresetDefinition(
 		null, null, "default",
 		Collections.singletonList(
-			new BreakpointDefinition(
+			new SourceDefinition(
 				false, "default", null, null, "100vw",
 				Collections.<String, String>emptyMap())));
 

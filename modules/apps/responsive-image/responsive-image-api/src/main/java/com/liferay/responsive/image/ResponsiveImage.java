@@ -28,12 +28,12 @@ import java.util.List;
  * <code>&lt;picture&gt;</code>
  * </li>
  * <li>
- * {@link ResponsiveImageBreakpoint} is a source set together with a source size
+ * {@link ResponsiveImageSource} is a source set together with a source size
  * list; it renders as a <code>&lt;source&gt;</code>, as the
  * <code>&lt;img&gt;</code>, or as both
  * </li>
  * <li>
- * {@link ResponsiveImageBreakpointVariant} is an image candidate string; it
+ * {@link ResponsiveImageCandidate} is an image candidate string; it
  * renders as one <code>srcset</code> entry
  * </li>
  * </ul>
@@ -69,37 +69,36 @@ public final class ResponsiveImage {
 	 */
 	public static ResponsiveImage passthrough(String src) {
 		return new ResponsiveImage(
-			Collections.<ResponsiveImageBreakpoint>emptyList(), src);
+			Collections.<ResponsiveImageSource>emptyList(), src);
 	}
 
 	public ResponsiveImage(
-		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints,
-		String src) {
+		List<ResponsiveImageSource> responsiveImageSources, String src) {
 
-		_responsiveImageBreakpoints = Collections.unmodifiableList(
-			responsiveImageBreakpoints);
+		_responsiveImageSources = Collections.unmodifiableList(
+			responsiveImageSources);
 		_src = src;
 	}
 
 	/**
-	 * Returns the breakpoints, or an empty list when no provider could
+	 * Returns the sources, or an empty list when no provider could
 	 * transform the resource. Empty is not an error: callers render a plain
 	 * image tag pointing at {@link #getSrc()}.
 	 *
 	 * <p>
-	 * Order is significant. Source matching is first wins, so a breakpoint with a
+	 * Order is significant. Source matching is first wins, so a source with a
 	 * narrower media condition must precede a broader one.
 	 * </p>
 	 *
-	 * @return the breakpoints
+	 * @return the sources
 	 */
-	public List<ResponsiveImageBreakpoint> getBreakpoints() {
-		return _responsiveImageBreakpoints;
+	public List<ResponsiveImageSource> getSources() {
+		return _responsiveImageSources;
 	}
 
 	/**
 	 * Returns the URL for the fallback <code>src</code> attribute. Always
-	 * usable, whether or not any breakpoint was produced.
+	 * usable, whether or not any source was produced.
 	 *
 	 * @return the fallback URL
 	 */
@@ -107,7 +106,7 @@ public final class ResponsiveImage {
 		return _src;
 	}
 
-	private final List<ResponsiveImageBreakpoint> _responsiveImageBreakpoints;
+	private final List<ResponsiveImageSource> _responsiveImageSources;
 	private final String _src;
 
 }

@@ -21,16 +21,16 @@ import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
 import com.liferay.portal.url.builder.TransformedImageAbsolutePortalURLBuilder;
 import com.liferay.responsive.image.ImageResource;
 import com.liferay.responsive.image.ResponsiveImage;
-import com.liferay.responsive.image.ResponsiveImageBreakpoint;
-import com.liferay.responsive.image.ResponsiveImageBreakpointVariant;
-import com.liferay.responsive.image.ResponsiveImageBreakpointVariantBuilder;
+import com.liferay.responsive.image.ResponsiveImageCandidate;
+import com.liferay.responsive.image.ResponsiveImageCandidateBuilder;
 import com.liferay.responsive.image.ResponsiveImageProvider;
 import com.liferay.responsive.image.ResponsiveImageRequest;
-import com.liferay.responsive.image.internal.configuration.BreakpointDefinition;
+import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
 import com.liferay.responsive.image.internal.configuration.PresetDefinitionResolver;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfiguration;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
+import com.liferay.responsive.image.internal.configuration.SourceDefinition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,7 +52,7 @@ import org.osgi.service.component.annotations.Reference;
  * widths on demand.
  *
  * <p>
- * Provider agnostic on purpose. It owns the variant ladder, the preset, and the
+ * Provider agnostic on purpose. It owns the candidate ladder, the preset, and the
  * markup, and delegates only the URL vocabulary to the registered {@link
  * ImageTransformationURLRenderer}, so supporting another CDN is one small
  * renderer rather than another copy of this class.
@@ -181,31 +181,28 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 		ScopedSettings scopedSettings = _getScopedSettings(
 			responsiveImageRequest);
 
-		List<BreakpointDefinition> breakpointDefinitions =
-			presetDefinition.getBreakpointDefinitions();
+		List<SourceDefinition> sourceDefinitions =
+			presetDefinition.getSourceDefinitions();
 
 		boolean lazy = presetDefinition.isLazy(
 			responsiveImageRequest.getLazy());
 
-		List<ResponsiveImageBreakpoint> responsiveImageBreakpoints =
-			new ArrayList<>(breakpointDefinitions.size());
+		List<ResponsiveImageSource> responsiveImageSources = new ArrayList<>(
+			sourceDefinitions.size());
 
-		for (BreakpointDefinition breakpointDefinition :
-				breakpointDefinitions) {
-
-			List<Integer> widths = _getWidths(
-				scopedSettings, breakpointDefinition);
+		for (SourceDefinition sourceDefinition : sourceDefinitions) {
+			List<Integer> widths = _getWidths(scopedSettings, sourceDefinition);
 
 			if (widths.isEmpty()) {
 				continue;
 			}
 
-			responsiveImageBreakpoints.add(
-				ResponsiveImageBreakpoint.of(
-					breakpointDefinition.getMediaQuery(),
-					breakpointDefinition.getSizes(lazy),
-					_getResponsiveImageBreakpointVariants(
-						scopedSettings, breakpointDefinition,
+			responsiveImageSources.add(
+				ResponsiveImageSource.of(
+					sourceDefinition.getMediaQuery(),
+					sourceDefinition.getSizes(lazy),
+					_getResponsiveImageCandidates(
+						scopedSettings, sourceDefinition,
 						responsiveImageRequest, widths)));
 		}
 
@@ -215,17 +212,14 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 		// behavior change and not part of moving the method.
 
 		return new ResponsiveImage(
-			responsiveImageBreakpoints,
+			responsiveImageSources,
 			responsiveImageRequest.getImageResource(
 			).getURL());
 	}
 
-	private List<ResponsiveImageBreakpointVariant>
-		_getResponsiveImageBreakpointVariants(
-			ScopedSettings scopedSettings,
-			BreakpointDefinition breakpointDefinition,
-			ResponsiveImageRequest responsiveImageRequest,
-			List<Integer> widths) {
+	private List<ResponsiveImageCandidate> _getResponsiveImageCandidates(
+		ScopedSettings scopedSettings, SourceDefinition sourceDefinition,
+		ResponsiveImageRequest responsiveImageRequest, List<Integer> widths) {
 
 		ImageResource imageResource = responsiveImageRequest.getImageResource();
 
@@ -237,11 +231,11 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 		Map<String, String> transformations = HashMapBuilder.putAll(
 			scopedSettings._defaultTransformations
 		).putAll(
-			breakpointDefinition.getTransformations()
+			sourceDefinition.getTransformations()
 		).build();
 
-		List<ResponsiveImageBreakpointVariant>
-			responsiveImageBreakpointVariants = new ArrayList<>(widths.size());
+		List<ResponsiveImageCandidate> responsiveImageCandidates =
+			new ArrayList<>(widths.size());
 
 		for (Integer width : widths) {
 			Map<String, String> widthTransformations = HashMapBuilder.putAll(
@@ -250,8 +244,8 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 				"width", String.valueOf(width)
 			).build();
 
-			responsiveImageBreakpointVariants.add(
-				ResponsiveImageBreakpointVariantBuilder.url(
+			responsiveImageCandidates.add(
+				ResponsiveImageCandidateBuilder.url(
 					_buildURL(
 						scopedSettings, responsiveImageRequest,
 						imageResource.getURL(), widthTransformations)
@@ -260,7 +254,7 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 				).build());
 		}
 
-		return responsiveImageBreakpointVariants;
+		return responsiveImageCandidates;
 	}
 
 	/**
@@ -285,11 +279,12 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 
 		String[] defaultTransformations =
 			responsiveImageConfiguration.defaultTransformations();
-		String[] variantWidths = responsiveImageConfiguration.variantWidths();
+		String[] candidateWidths =
+			responsiveImageConfiguration.candidateWidths();
 
 		int contentHash =
 			(31 * Arrays.hashCode(defaultTransformations)) +
-				Arrays.hashCode(variantWidths);
+				Arrays.hashCode(candidateWidths);
 
 		long scopeKey = _responsiveImageConfigurationHelper.getScopeKey(
 			groupId, companyId);
@@ -305,7 +300,7 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 		scopedSettings = new ScopedSettings(
 			contentHash, _toMap(defaultTransformations),
 			responsiveImageConfiguration.urlRendererName(),
-			_toWidths(variantWidths));
+			_toWidths(candidateWidths));
 
 		_scopedSettings.put(scopeKey, scopedSettings);
 
@@ -325,20 +320,19 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 	 * <p>
 	 * Nothing bounds this by the original's width. Doing so would cost several
 	 * metadata queries per image and would forfeit resolution rather than
-	 * protect it: with upscaling disabled, a variant wider than the original
+	 * protect it: with upscaling disabled, a candidate wider than the original
 	 * returns the original, which is the best the source can give.
 	 * </p>
 	 */
 	private List<Integer> _getWidths(
-		ScopedSettings scopedSettings,
-		BreakpointDefinition breakpointDefinition) {
+		ScopedSettings scopedSettings, SourceDefinition sourceDefinition) {
 
-		Integer maxWidth = breakpointDefinition.getMaxWidth();
+		Integer maxWidth = sourceDefinition.getMaxWidth();
 
 		List<Integer> widths = new ArrayList<>(
-			scopedSettings._variantWidths.size());
+			scopedSettings._candidateWidths.size());
 
-		for (Integer width : scopedSettings._variantWidths) {
+		for (Integer width : scopedSettings._candidateWidths) {
 			widths.add(width);
 
 			if ((maxWidth != null) && (width >= maxWidth)) {
@@ -398,21 +392,21 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 		return map;
 	}
 
-	private TreeSet<Integer> _toWidths(String[] variantWidths) {
+	private TreeSet<Integer> _toWidths(String[] candidateWidths) {
 		TreeSet<Integer> widths = new TreeSet<>();
 
-		if (variantWidths == null) {
+		if (candidateWidths == null) {
 			return widths;
 		}
 
-		for (String variantWidth : variantWidths) {
-			int width = GetterUtil.getInteger(variantWidth);
+		for (String candidateWidth : candidateWidths) {
+			int width = GetterUtil.getInteger(candidateWidth);
 
 			if (width > 0) {
 				widths.add(width);
 			}
 			else if (_log.isWarnEnabled()) {
-				_log.warn("Ignoring invalid variant width " + variantWidth);
+				_log.warn("Ignoring invalid candidate width " + candidateWidth);
 			}
 		}
 
@@ -449,18 +443,18 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 
 		private ScopedSettings(
 			int contentHash, Map<String, String> defaultTransformations,
-			String urlRendererName, TreeSet<Integer> variantWidths) {
+			String urlRendererName, TreeSet<Integer> candidateWidths) {
 
 			_contentHash = contentHash;
 			_defaultTransformations = defaultTransformations;
 			_urlRendererName = urlRendererName;
-			_variantWidths = variantWidths;
+			_candidateWidths = candidateWidths;
 		}
 
+		private final TreeSet<Integer> _candidateWidths;
 		private final int _contentHash;
 		private final Map<String, String> _defaultTransformations;
 		private final String _urlRendererName;
-		private final TreeSet<Integer> _variantWidths;
 
 	}
 

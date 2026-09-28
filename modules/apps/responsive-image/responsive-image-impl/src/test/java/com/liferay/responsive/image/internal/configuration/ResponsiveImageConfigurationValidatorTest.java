@@ -29,11 +29,11 @@ public class ResponsiveImageConfigurationValidatorTest {
 		LiferayUnitTestRule.INSTANCE;
 
 	@Test
-	public void testArtDirectedBreakpointsAreNotReported() {
+	public void testArtDirectedSourcesAreNotReported() {
 		List<String> problems = _validate(
 			_presetDefinition(
-				_breakpointDefinition("narrow", null, "50vw", "crop", "1:1"),
-				_breakpointDefinition("wide", null, "50vw", "crop", "16:9")));
+				_sourceDefinition("narrow", null, "50vw", "crop", "1:1"),
+				_sourceDefinition("wide", null, "50vw", "crop", "16:9")));
 
 		Assert.assertEquals(problems.toString(), 0, problems.size());
 	}
@@ -43,12 +43,12 @@ public class ResponsiveImageConfigurationValidatorTest {
 
 		// The candidates are the same picture, but a single image element
 		// carries a single ladder, so the truncation cannot be expressed
-		// without breakpoints.
+		// without several media conditions.
 
 		List<String> problems = _validate(
 			_presetDefinition(
-				_breakpointDefinition("narrow", 640, "100vw", "crop", "1:1"),
-				_breakpointDefinition("wide", 2560, "50vw", "crop", "1:1")));
+				_sourceDefinition("narrow", 640, "100vw", "crop", "1:1"),
+				_sourceDefinition("wide", 2560, "50vw", "crop", "1:1")));
 
 		Assert.assertEquals(problems.toString(), 0, problems.size());
 	}
@@ -57,9 +57,8 @@ public class ResponsiveImageConfigurationValidatorTest {
 	public void testFormatSwitchIsReported() {
 		List<String> problems = _validate(
 			_presetDefinition(
-				_breakpointDefinition(
-					"narrow", null, "100vw", "format", "webp"),
-				_breakpointDefinition("wide", null, "50vw", "format", "avif")));
+				_sourceDefinition("narrow", null, "100vw", "format", "webp"),
+				_sourceDefinition("wide", null, "50vw", "format", "avif")));
 
 		Assert.assertEquals(problems.toString(), 1, problems.size());
 
@@ -69,15 +68,15 @@ public class ResponsiveImageConfigurationValidatorTest {
 	}
 
 	@Test
-	public void testInterchangeableBreakpointsAreReported() {
+	public void testInterchangeableSourcesAreReported() {
 
 		// Nothing distinguishes the sources but how wide they render, which is
 		// what the sizes attribute of a single image element already says.
 
 		List<String> problems = _validate(
 			_presetDefinition(
-				_breakpointDefinition("narrow", null, "100vw", "crop", "1:1"),
-				_breakpointDefinition("wide", null, "50vw", "crop", "1:1")));
+				_sourceDefinition("narrow", null, "100vw", "crop", "1:1"),
+				_sourceDefinition("wide", null, "50vw", "crop", "1:1")));
 
 		Assert.assertEquals(problems.toString(), 1, problems.size());
 
@@ -93,10 +92,8 @@ public class ResponsiveImageConfigurationValidatorTest {
 			MarkupShape.PICTURE,
 			ResponsiveImageConfigurationValidator.getMarkupShape(
 				_presetDefinition(
-					_breakpointDefinition(
-						"narrow", null, "100vw", "crop", "1:1"),
-					_breakpointDefinition(
-						"wide", null, "50vw", "crop", "16:9"))));
+					_sourceDefinition("narrow", null, "100vw", "crop", "1:1"),
+					_sourceDefinition("wide", null, "50vw", "crop", "16:9"))));
 	}
 
 	@Test
@@ -109,12 +106,19 @@ public class ResponsiveImageConfigurationValidatorTest {
 			MarkupShape.IMG,
 			ResponsiveImageConfigurationValidator.getMarkupShape(
 				_presetDefinition(
-					_breakpointDefinition(
+					_sourceDefinition(
 						"default", null, "100vw", "crop", "1:1"))));
 	}
 
-	private BreakpointDefinition _breakpointDefinition(
-		String breakpointName, Integer maxWidth, String sizes,
+	private PresetDefinition _presetDefinition(
+		SourceDefinition... sourceDefinitions) {
+
+		return new PresetDefinition(
+			null, null, _NAME_HERO, Arrays.asList(sourceDefinitions));
+	}
+
+	private SourceDefinition _sourceDefinition(
+		String mediaConditionName, Integer maxWidth, String sizes,
 		String transformationKey, String transformationValue) {
 
 		Map<String, String> transformations = HashMapBuilder.put(
@@ -123,20 +127,13 @@ public class ResponsiveImageConfigurationValidatorTest {
 
 		String mediaQuery = null;
 
-		if (!_NAME_DEFAULT.equals(breakpointName)) {
+		if (!_NAME_DEFAULT.equals(mediaConditionName)) {
 			mediaQuery = "(min-width: 768px)";
 		}
 
-		return new BreakpointDefinition(
-			false, breakpointName, maxWidth, mediaQuery, sizes,
+		return new SourceDefinition(
+			false, mediaConditionName, maxWidth, mediaQuery, sizes,
 			transformations);
-	}
-
-	private PresetDefinition _presetDefinition(
-		BreakpointDefinition... breakpointDefinitions) {
-
-		return new PresetDefinition(
-			null, null, _NAME_HERO, Arrays.asList(breakpointDefinitions));
 	}
 
 	private List<String> _validate(PresetDefinition presetDefinition) {

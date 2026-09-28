@@ -9,11 +9,10 @@ package com.liferay.responsive.image.internal.configuration;
  * The element a preset renders as.
  *
  * <p>
- * Decided by how many media conditions a preset declares and by nothing else. A
- * transformation belongs to a preset and a preset is a media condition, so art
- * direction can only ever arrive as several presets; reading the
- * transformations to look for a crop would answer the same question less
- * reliably.
+ * Decided by how many media conditions a preset declares and by nothing else.
+ * A transformation belongs to one of those conditions, so art direction can
+ * only ever arrive as several of them; reading the transformations to look
+ * for a crop would answer the same question less reliably.
  * </p>
  *
  * @author Daniel Sanz

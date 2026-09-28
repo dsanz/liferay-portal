@@ -6,7 +6,7 @@
 package com.liferay.responsive.image;
 
 /**
- * The source image to be transformed, independently of where it is stored.
+ * The original image to be transformed, independently of where it is stored.
  *
  * <p>
  * Deliberately not tied to {@code FileEntry}: transformable images also live in
@@ -19,7 +19,7 @@ package com.liferay.responsive.image;
  *
  * <p>
  * This is the <b>input</b> to a transformation; the outputs are {@link
- * ResponsiveImageBreakpointVariant} instances.
+ * ResponsiveImageCandidate} instances.
  * </p>
  *
  * <p>
@@ -34,9 +34,9 @@ package com.liferay.responsive.image;
  * Deliberately carries no intrinsic dimensions. They are obtainable for a
  * document library file, but only through raw metadata at a cost of several
  * queries per image, and they buy less than they appear to: with upscaling
- * disabled, a variant wider than the original simply returns the original, so
+ * disabled, a candidate wider than the original simply returns the original, so
  * truncating a ladder at the source width mainly forfeits resolution the
- * browser could have used. Bound ladders with a preset breakpoint's maximum width
+ * browser could have used. Bound ladders with a source definition's maximum width
  * instead, which describes the rendered size and costs nothing to read.
  * </p>
  *

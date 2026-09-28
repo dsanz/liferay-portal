@@ -13,7 +13,7 @@ import java.util.List;
  *
  * <p>
  * What a caller asks for: a fragment says it is rendering a <code>card</code>,
- * and configuration supplies one {@link BreakpointDefinition} per breakpoint. Presets
+ * and configuration supplies one {@link SourceDefinition} per media condition. Presets
  * exist because <code>sizes</code> and art direction are properties of the
  * placement, not of the image or of the provider serving it, and a hero and a
  * card on the same page need different values.
@@ -31,37 +31,13 @@ public final class PresetDefinition {
 
 	public PresetDefinition(
 		String label, Boolean lazy, String name,
-		List<BreakpointDefinition> breakpointDefinitions) {
+		List<SourceDefinition> sourceDefinitions) {
 
 		_label = label;
 		_lazy = lazy;
 		_name = name;
 
-		_breakpointDefinitions = Collections.unmodifiableList(
-			breakpointDefinitions);
-	}
-
-	/**
-	 * Returns this preset's breakpoints, in the order they must be rendered.
-	 *
-	 * <p>
-	 * Ordering comes from the order breakpoints are declared, not from the
-	 * order presets appear, so it is decided once for the whole installation
-	 * rather than per preset. Source matching is first wins, and the
-	 * unconditional breakpoint always sorts last because it is the catch all.
-	 * </p>
-	 *
-	 * <p>
-	 * One breakpoint is the ordinary case and produces a plain
-	 * <code>&lt;img&gt;</code>. Several describe art direction and render as
-	 * <code>&lt;picture&gt;</code>, which multiplies the number of distinct
-	 * objects held at the edge by the number of variant widths.
-	 * </p>
-	 *
-	 * @return this preset's breakpoints
-	 */
-	public List<BreakpointDefinition> getBreakpointDefinitions() {
-		return _breakpointDefinitions;
+		_sourceDefinitions = Collections.unmodifiableList(sourceDefinitions);
 	}
 
 	/**
@@ -78,7 +54,7 @@ public final class PresetDefinition {
 	 * <code>null</code> if the placement does not say.
 	 *
 	 * <p>
-	 * On the preset rather than on a breakpoint, because an image is loaded once:
+	 * On the preset rather than on a source, because an image is loaded once:
 	 * laziness is a property of the image element, not of a media condition.
 	 * A caller that knows better overrides it per instance.
 	 * </p>
@@ -102,6 +78,29 @@ public final class PresetDefinition {
 	 */
 	public String getName() {
 		return _name;
+	}
+
+	/**
+	 * Returns this preset's source definitions, in the order they must be rendered.
+	 *
+	 * <p>
+	 * Ordering comes from the order media conditions are declared, not from the
+	 * order presets appear, so it is decided once for the whole installation
+	 * rather than per preset. Source matching is first wins, and the
+	 * unconditional media condition always sorts last because it is the catch all.
+	 * </p>
+	 *
+	 * <p>
+	 * One source definition is the ordinary case and produces a plain
+	 * <code>&lt;img&gt;</code>. Several describe art direction and render as
+	 * <code>&lt;picture&gt;</code>, which multiplies the number of distinct
+	 * objects held at the edge by the number of candidate widths.
+	 * </p>
+	 *
+	 * @return this preset's source definitions
+	 */
+	public List<SourceDefinition> getSourceDefinitions() {
+		return _sourceDefinitions;
 	}
 
 	/**
@@ -132,9 +131,9 @@ public final class PresetDefinition {
 		return false;
 	}
 
-	private final List<BreakpointDefinition> _breakpointDefinitions;
 	private final String _label;
 	private final Boolean _lazy;
 	private final String _name;
+	private final List<SourceDefinition> _sourceDefinitions;
 
 }

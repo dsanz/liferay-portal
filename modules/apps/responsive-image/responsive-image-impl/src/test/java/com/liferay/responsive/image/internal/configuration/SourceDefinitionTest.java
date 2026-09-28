@@ -17,7 +17,7 @@ import org.junit.Test;
 /**
  * @author Daniel Sanz
  */
-public class BreakpointDefinitionTest {
+public class SourceDefinitionTest {
 
 	@ClassRule
 	@Rule
@@ -30,10 +30,9 @@ public class BreakpointDefinitionTest {
 		// A browser only honors sizes="auto" on a lazily loaded image, so
 		// emitting it here would be an invalid attribute rather than a hint.
 
-		BreakpointDefinition breakpointDefinition =
-			_autoSizesBreakpointDefinition();
+		SourceDefinition sourceDefinition = _autoSizesSourceDefinition();
 
-		Assert.assertEquals("100vw", breakpointDefinition.getSizes(false));
+		Assert.assertEquals("100vw", sourceDefinition.getSizes(false));
 	}
 
 	@Test
@@ -42,28 +41,27 @@ public class BreakpointDefinitionTest {
 		// The declared value stays behind the keyword so that a browser
 		// without automatic sizing still receives a real one.
 
-		BreakpointDefinition breakpointDefinition =
-			_autoSizesBreakpointDefinition();
+		SourceDefinition sourceDefinition = _autoSizesSourceDefinition();
 
-		Assert.assertEquals("auto, 100vw", breakpointDefinition.getSizes(true));
+		Assert.assertEquals("auto, 100vw", sourceDefinition.getSizes(true));
 	}
 
 	@Test
 	public void testSizesAreUntouchedWithoutAutoSizes() {
 
-		// Automatic sizing is an opt in. A breakpoint that did not ask for it
+		// Automatic sizing is an opt in. A source that did not ask for it
 		// must render the declared value whether or not the image is lazy.
 
-		BreakpointDefinition breakpointDefinition = new BreakpointDefinition(
+		SourceDefinition sourceDefinition = new SourceDefinition(
 			false, "default", null, null, "100vw",
 			Collections.<String, String>emptyMap());
 
-		Assert.assertEquals("100vw", breakpointDefinition.getSizes(true));
-		Assert.assertEquals("100vw", breakpointDefinition.getSizes(false));
+		Assert.assertEquals("100vw", sourceDefinition.getSizes(true));
+		Assert.assertEquals("100vw", sourceDefinition.getSizes(false));
 	}
 
-	private BreakpointDefinition _autoSizesBreakpointDefinition() {
-		return new BreakpointDefinition(
+	private SourceDefinition _autoSizesSourceDefinition() {
+		return new SourceDefinition(
 			true, "default", null, null, "100vw",
 			Collections.<String, String>emptyMap());
 	}

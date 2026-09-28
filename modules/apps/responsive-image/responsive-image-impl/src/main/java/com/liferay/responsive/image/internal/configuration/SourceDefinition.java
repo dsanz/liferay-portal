@@ -13,41 +13,31 @@ import java.util.Map;
  *
  * <p>
  * One entry of an {@link PresetDefinition}, and the recipe whose result is an
- * {@link ResponsiveImageBreakpoint}: the media condition and sizes pass through
+ * {@link ResponsiveImageSource}: the media condition and sizes pass through
  * unchanged, while the transformations are consumed to produce the candidates.
- * {@link ResponsiveImageBreakpoint#from} performs that crossing.
+ * {@link ResponsiveImageSource#from} performs that crossing.
  * </p>
  *
  * <p>
  * A request, not a command. A provider limited to renditions generated in
- * advance cannot honor an arbitrary crop, and determines its own breakpoints
+ * advance cannot honor an arbitrary crop, and determines its own sources
  * instead.
  * </p>
  *
  * @author Daniel Sanz
  */
-public final class BreakpointDefinition {
+public final class SourceDefinition {
 
-	public BreakpointDefinition(
-		boolean autoSizes, String breakpointName, Integer maxWidth,
+	public SourceDefinition(
+		boolean autoSizes, String mediaConditionName, Integer maxWidth,
 		String mediaQuery, String sizes, Map<String, String> transformations) {
 
 		_autoSizes = autoSizes;
-		_breakpointName = breakpointName;
+		_mediaConditionName = mediaConditionName;
 		_maxWidth = maxWidth;
 		_mediaQuery = mediaQuery;
 		_sizes = sizes;
 		_transformations = Collections.unmodifiableMap(transformations);
-	}
-
-	/**
-	 * Returns the name this breakpoint was declared under in the breakpoints
-	 * configuration, for diagnostics.
-	 *
-	 * @return the breakpoint name
-	 */
-	public String getBreakpointName() {
-		return _breakpointName;
 	}
 
 	/**
@@ -56,7 +46,7 @@ public final class BreakpointDefinition {
 	 *
 	 * <p>
 	 * A placement that renders small has no use for the widest configured
-	 * variant: a 96 pixel thumbnail advertising a 2560 pixel candidate ships
+	 * candidate: a 96 pixel thumbnail advertising a 2560 pixel candidate ships
 	 * seven URLs of markup for an image the browser will never choose.
 	 * </p>
 	 *
@@ -80,8 +70,18 @@ public final class BreakpointDefinition {
 	}
 
 	/**
-	 * Returns the media condition this breakpoint applies under, resolved from
-	 * its declaration, or <code>null</code> for the unconditional breakpoint.
+	 * Returns the name this source was declared under in the media conditions
+	 * configuration, for diagnostics.
+	 *
+	 * @return the media condition name
+	 */
+	public String getMediaConditionName() {
+		return _mediaConditionName;
+	}
+
+	/**
+	 * Returns the media condition this source applies under, resolved from
+	 * its declaration, or <code>null</code> for the unconditional source.
 	 *
 	 * @return the media condition, or <code>null</code>
 	 */
@@ -101,12 +101,12 @@ public final class BreakpointDefinition {
 
 	/**
 	 * Returns the <code>sizes</code> attribute for an image loaded the given
-	 * way, prefixed with the <code>auto</code> keyword when this breakpoint
+	 * way, prefixed with the <code>auto</code> keyword when this source
 	 * opts in and the image is lazily loaded.
 	 *
 	 * <p>
 	 * The rule lives here rather than at the call site because whether
-	 * automatic sizing applies is a property of the breakpoint's configuration
+	 * automatic sizing applies is a property of the source's configuration
 	 * and of nothing else. A browser honors <code>auto</code> only on a lazily
 	 * loaded image, so emitting it otherwise would be an invalid attribute
 	 * rather than an ignored hint.
@@ -128,8 +128,8 @@ public final class BreakpointDefinition {
 	 * this condition, such as a crop that differs between viewports.
 	 *
 	 * <p>
-	 * Declared per breakpoint, and therefore per media condition. Every
-	 * candidate a breakpoint generates shares this map and differs from its
+	 * Declared per source, and therefore per media condition. Every
+	 * candidate a source generates shares this map and differs from its
 	 * siblings only in width, which is what makes the candidates sharing a
 	 * <code>srcset</code> the same picture at different sizes, as that
 	 * attribute requires.
@@ -163,8 +163,8 @@ public final class BreakpointDefinition {
 	}
 
 	private final boolean _autoSizes;
-	private final String _breakpointName;
 	private final Integer _maxWidth;
+	private final String _mediaConditionName;
 	private final String _mediaQuery;
 	private final String _sizes;
 	private final Map<String, String> _transformations;

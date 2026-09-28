@@ -24,8 +24,43 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 public interface ResponsiveImageConfiguration {
 
 	/**
-	 * Breakpoints available to presets, as
-	 * <code>&lt;breakpoint&gt;.media=&lt;media condition&gt;</code> entries.
+	 * The widths available to generate, in pixels.
+	 *
+	 * <p>
+	 * Two costs pull in opposite directions: every extra width is another
+	 * distinct CDN cache object, while wider gaps mean shipping more pixels
+	 * than needed. The default is a roughly 1.4x ladder, which caps overshoot
+	 * near 2x the pixel count.
+	 * </p>
+	 */
+	@Meta.AD(
+		deflt = "320|480|640|960|1280|1920|2560", name = "candidate-widths",
+		required = false
+	)
+	public String[] candidateWidths();
+
+	/**
+	 * Transformations applied to every generated rendition, as
+	 * <code>name=value</code> entries. The escape hatch for provider options
+	 * this framework does not model (for example <code>optimize=medium</code>).
+	 *
+	 * <p>
+	 * Defaults to disabling upscaling, which is what makes it safe not to bound
+	 * ladders by the original's width: a candidate wider than the source then
+	 * returns the source instead of an enlarged copy of it, so the widest
+	 * candidates cost no extra bytes when an author uploads a small image.
+	 * </p>
+	 */
+	@Meta.AD(
+		deflt = "disable=upscale", name = "default-transformations",
+		required = false
+	)
+	public String[] defaultTransformations();
+
+	/**
+	 * The media conditions available to presets, typically a theme's
+	 * breakpoints, as <code>&lt;name&gt;.media=&lt;media condition&gt;</code>
+	 * entries.
 	 *
 	 * <pre>
 	 * narrow.media=(max-width: 767px)
@@ -39,33 +74,15 @@ public interface ResponsiveImageConfiguration {
 	 * </p>
 	 *
 	 * <p>
-	 * <b>Order matters.</b> Presets render in the order their breakpoints are
-	 * declared here, and browser source matching is first wins, so a narrower
+	 * <b>Order matters.</b> Presets render in the order their media conditions
+	 * are declared here, and browser source matching is first wins, so a narrower
 	 * media condition must precede a broader one. The reserved name
 	 * <code>default</code> means no media condition and always renders last, as
 	 * the catch all.
 	 * </p>
 	 */
-	@Meta.AD(deflt = "", name = "breakpoints", required = false)
-	public String[] breakpoints();
-
-	/**
-	 * Transformations applied to every generated rendition, as
-	 * <code>name=value</code> entries. The escape hatch for provider options
-	 * this framework does not model (for example <code>optimize=medium</code>).
-	 *
-	 * <p>
-	 * Defaults to disabling upscaling, which is what makes it safe not to bound
-	 * ladders by the original's width: a variant wider than the source then
-	 * returns the source instead of an enlarged copy of it, so the widest
-	 * candidates cost no extra bytes when an author uploads a small image.
-	 * </p>
-	 */
-	@Meta.AD(
-		deflt = "disable=upscale", name = "default-transformations",
-		required = false
-	)
-	public String[] defaultTransformations();
+	@Meta.AD(deflt = "", name = "media-conditions", required = false)
+	public String[] mediaConditions();
 
 	/**
 	 * Presets, as flat <code>key=value</code> entries in one of two
@@ -75,10 +92,10 @@ public interface ResponsiveImageConfiguration {
 	 * <code>&lt;preset&gt;.label</code> names the preset for authoring UIs and
 	 * <code>&lt;preset&gt;.lazy</code> says whether images in this placement are
 	 * lazily loaded by default.
-	 * <code>&lt;preset&gt;.&lt;breakpoint&gt;.sizes</code>,
+	 * <code>&lt;preset&gt;.&lt;media condition&gt;.sizes</code>,
 	 * <code>.transformations</code>, <code>.maxWidth</code> and
-	 * <code>.autoSizes</code> describe what to generate at one breakpoint,
-	 * which must be one declared in {@link #breakpoints()}.
+	 * <code>.autoSizes</code> describe what to generate under one media
+	 * condition, which must be one declared in {@link #mediaConditions()}.
 	 * </p>
 	 *
 	 * <pre>
@@ -106,7 +123,7 @@ public interface ResponsiveImageConfiguration {
 	 *
 	 * <p>
 	 * <code>autoSizes</code> puts the <code>auto</code> keyword in front of
-	 * that breakpoint's <code>sizes</code>, letting the browser measure the
+	 * that source's <code>sizes</code>, letting the browser measure the
 	 * container instead of trusting a value that duplicates the theme's CSS.
 	 * It applies only when the image is lazily loaded, because that is the only
 	 * case a browser honors it, and <code>sizes</code> stays mandatory so that
@@ -123,21 +140,21 @@ public interface ResponsiveImageConfiguration {
 	 * </p>
 	 *
 	 * <p>
-	 * A preset with one breakpoint and no media condition renders as a plain
-	 * <code>&lt;img&gt;</code>; several presets render as
-	 * <code>&lt;picture&gt;</code>. Note that each additional breakpoint
+	 * A preset with a single unconditional entry renders as a plain
+	 * <code>&lt;img&gt;</code>; several entries render as
+	 * <code>&lt;picture&gt;</code>. Note that each additional media condition
 	 * multiplies the number of distinct objects held at the edge by the number
-	 * of variant widths.
+	 * of candidate widths.
 	 * </p>
 	 *
 	 * <p>
 	 * Two shapes are reported as problems whenever this configuration is read,
 	 * because both render without error and neither is what was meant. Several
-	 * breakpoints that generate the same image produce sources a browser could
-	 * have chosen between itself, and belong in the <code>sizes</code> of a
-	 * single unconditional breakpoint. Breakpoints that generate different
-	 * output
-	 * formats cannot work at all: a source is matched on its media condition,
+	 * media conditions that generate the same image produce sources a browser
+	 * could have chosen between itself, and belong in the <code>sizes</code> of
+	 * a single unconditional entry. Media conditions that generate different
+	 * output formats cannot work at all: a source is matched on its media
+	 * condition,
 	 * so a browser that does not support the format has nothing to fall back
 	 * to, and the format has to be negotiated at the edge from the
 	 * <code>Accept</code> header instead.
@@ -182,21 +199,5 @@ public interface ResponsiveImageConfiguration {
 	 */
 	@Meta.AD(deflt = "", name = "url-renderer-name", required = false)
 	public String urlRendererName();
-
-	/**
-	 * The widths available to generate, in pixels.
-	 *
-	 * <p>
-	 * Two costs pull in opposite directions: every extra width is another
-	 * distinct CDN cache object, while wider gaps mean shipping more pixels
-	 * than needed. The default is a roughly 1.4x ladder, which caps overshoot
-	 * near 2x the pixel count.
-	 * </p>
-	 */
-	@Meta.AD(
-		deflt = "320|480|640|960|1280|1920|2560", name = "variant-widths",
-		required = false
-	)
-	public String[] variantWidths();
 
 }
