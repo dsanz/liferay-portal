@@ -265,13 +265,13 @@ public class AMResponsiveImageProvider implements ResponsiveImageProvider {
 	 * {@link ResponsiveImageAMImageHTMLTagFactory} also implements this interface, at a
 	 * higher service ranking, and delegates back into the umbrella. Binding it
 	 * here would recurse until the stack ran out. The filter selects any
-	 * implementation that is not the delegating one, without depending on Adaptive
-	 * Media's internal component names, and should be deleted along with it
-	 * once its callers have migrated.
+	 * implementation that is not the delegating one, by excluding that single
+	 * component by name, and should be deleted along with it once its callers
+	 * have migrated.
 	 * </p>
 	 */
 	@Reference(
-		target = "(!(" + ResponsiveImageAMImageHTMLTagFactory.PROPERTY_DELEGATING + "=true))"
+		target = "(!(component.name=com.liferay.responsive.image.internal.adaptive.media.ResponsiveImageAMImageHTMLTagFactory))"
 	)
 	private AMImageHTMLTagFactory _amImageHTMLTagFactory;
 

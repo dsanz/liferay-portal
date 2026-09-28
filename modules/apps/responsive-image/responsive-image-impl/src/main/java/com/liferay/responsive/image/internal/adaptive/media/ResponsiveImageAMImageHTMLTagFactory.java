@@ -45,7 +45,7 @@ import org.osgi.service.component.annotations.Reference;
  * com.liferay.responsive.image.ResponsiveImageRequest)}, obtaining the
  * resource from {@link ImageResourceFactory}.
  * </li>
- * <li>Delete this class and {@link #PROPERTY_DELEGATING}.</li>
+ * <li>Delete this class.</li>
  * <li>
  * Delete the {@code target} filter on {@link AMResponsiveImageProvider}'s
  * {@code AMImageHTMLTagFactory} reference, which exists only to avoid recursing
@@ -62,17 +62,11 @@ import org.osgi.service.component.annotations.Reference;
  * @author Daniel Sanz
  */
 @Component(
-	property = {
-		ResponsiveImageAMImageHTMLTagFactory.PROPERTY_DELEGATING + "=true",
-		"service.ranking:Integer=100"
-	},
+	property = "service.ranking:Integer=100",
 	service = AMImageHTMLTagFactory.class
 )
 public class ResponsiveImageAMImageHTMLTagFactory
 	implements AMImageHTMLTagFactory {
-
-	public static final String PROPERTY_DELEGATING =
-		"image.transformation.delegating";
 
 	@Override
 	public String create(String originalImgTag, FileEntry fileEntry)
@@ -115,7 +109,19 @@ public class ResponsiveImageAMImageHTMLTagFactory
 		return serviceContext.getRequest();
 	}
 
-	@Reference(target = "(!(" + PROPERTY_DELEGATING + "=true))")
+	/**
+	 * Binds Adaptive Media's own implementation, by excluding this one.
+	 *
+	 * <p>
+	 * Selecting on {@code component.name} keeps the exclusion to the single
+	 * component it is about, this one, and needs no marker property on it. The
+	 * name is this class, so nothing here depends on how Adaptive Media names
+	 * its internals.
+	 * </p>
+	 */
+	@Reference(
+		target = "(!(component.name=com.liferay.responsive.image.internal.adaptive.media.ResponsiveImageAMImageHTMLTagFactory))"
+	)
 	private AMImageHTMLTagFactory _amImageHTMLTagFactory;
 
 	@Reference
