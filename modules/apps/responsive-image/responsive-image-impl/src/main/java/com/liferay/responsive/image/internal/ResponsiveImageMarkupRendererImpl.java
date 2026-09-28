@@ -36,54 +36,20 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.component.annotations.Reference;
 
 /**
- * Turns the active provider's renditions into an image tag.
- *
- * <p>
- * Selects the provider, asks it for the model, and renders it. A provider that
- * renders its own markup says so by returning something from {@link
- * ResponsiveImageProvider#render}; everything else is rendered here, from
- * the model alone, so that adding a provider does not mean writing markup
- * again.
- * </p>
- *
  * @author Daniel Sanz
  */
 @Component(service = ResponsiveImageMarkupRenderer.class)
 public class ResponsiveImageMarkupRendererImpl
 	implements ResponsiveImageMarkupRenderer {
 
-	/**
-	 * Renders a single <code>&lt;img&gt;</code> when nothing was art
-	 * directed, and <code>&lt;picture&gt;</code> when something was.
-	 *
-	 * <p>
-	 * The shape follows from the sources themselves: a media condition on any
-	 * of them means <code>&lt;picture&gt;</code>, because that is exactly
-	 * when there is a <code>&lt;source&gt;</code> worth emitting.
-	 * </p>
-	 *
-	 * <p>
-	 * Returns <code>null</code> whenever anything is missing or no URL was
-	 * actually transformed, so that a caller outranking Adaptive Media's own
-	 * renderer can tell that it has to hand over.
-	 * </p>
-	 */
 	@Override
 	public String render(
 			String originalImgTag,
 			ResponsiveImageRequest responsiveImageRequest)
 		throws PortalException {
 
-		if (responsiveImageRequest == null) {
-			return null;
-		}
-
-		// The cut for the whole feature. Off returns the tag the caller already
-		// had, which is what it would have rendered before any of this existed.
-		// Checked per company rather than per deployment, because an OSGi
-		// registration is global while enabling a feature is not.
-
-		if (!FeatureFlagManagerUtil.isEnabled(
+		if ((responsiveImageRequest == null) ||
+			!FeatureFlagManagerUtil.isEnabled(
 				_responsiveImageConfigurationHelper.getCompanyId(
 					responsiveImageRequest),
 				"LPD-94784")) {
@@ -109,12 +75,6 @@ public class ResponsiveImageMarkupRendererImpl
 
 		if (responsiveImageSources.isEmpty() ||
 			_hasCandidatesWithSameURL(responsiveImageSources)) {
-
-			// Nothing was generated, or a renderer that is deployed could not
-			// apply the transformations and handed every width the same URL
-			// back, which its contract allows. Emitting the descriptors anyway
-			// would have the browser trust them and render at the wrong
-			// density.
 
 			return null;
 		}
@@ -177,30 +137,6 @@ public class ResponsiveImageMarkupRendererImpl
 		return sb.toString();
 	}
 
-	/**
-	 * Returns <code>true</code> if the widths never reached the URLs.
-	 *
-	 * <p>
-	 * Two candidates in one source differ only by width, so identical URLs
-	 * mean the width never reached the URL. Comparing within a source rather
-	 * than against the original is what makes this work regardless of the CDN
-	 * host and proxy path the builder prepends.
-	 * </p>
-	 *
-	 * <p>
-	 * What reaches this is a renderer that <b>is</b> deployed and returned the
-	 * URL untouched, which {@code ImageTransformationURLRenderer#render}
-	 * permits when it cannot apply any of the transformations. A scope with no
-	 * renderer at all never gets this far: that is the feature being off, and
-	 * it is answered before a ladder is built.
-	 * </p>
-	 *
-	 * <p>
-	 * A source holding a single candidate cannot be compared, so it passes.
-	 * The descriptor may then be wrong, but there is nothing for a browser to
-	 * choose between.
-	 * </p>
-	 */
 	private boolean _hasCandidatesWithSameURL(
 		List<ResponsiveImageSource> responsiveImageSources) {
 
@@ -320,22 +256,6 @@ public class ResponsiveImageMarkupRendererImpl
 		return sb.toString();
 	}
 
-	/**
-	 * Returns whether these sources need a <code>&lt;picture&gt;</code>.
-	 *
-	 * <p>
-	 * True when any source carries a media condition, which is exactly when
-	 * {@link #_renderPicture} has a <code>&lt;source&gt;</code> to emit: it
-	 * skips the unconditional ones, so wrapping without one would produce a
-	 * <code>&lt;picture&gt;</code> holding nothing but the image.
-	 * </p>
-	 *
-	 * <p>
-	 * Read from the sources rather than from the preset they were generated
-	 * against. The preset says what was asked for; these are what came back,
-	 * and they are what is about to be rendered.
-	 * </p>
-	 */
 	private boolean _requiresPictureElement(
 		List<ResponsiveImageSource> responsiveImageSources) {
 
@@ -350,27 +270,6 @@ public class ResponsiveImageMarkupRendererImpl
 		return false;
 	}
 
-	/**
-	 * Renders a single <code>&lt;img&gt;</code> when nothing was art
-	 * directed, and <code>&lt;picture&gt;</code> when something was.
-	 *
-	 * <p>
-	 * The shape comes from {@link
-	 * ResponsiveImageConfigurationValidator#getMarkupShape}, which reads
-	 * the configured presets rather than the sources that survived
-	 * generation. A preset whose ladder came back empty is skipped, so counting
-	 * sources instead would quietly downgrade an art directed placement
-	 * to a plain <code>&lt;img&gt;</code> and drop the media conditions that
-	 * made it art directed.
-	 * </p>
-	 *
-	 * <p>
-	 * Wrapping a lone source in <code>&lt;picture&gt;</code> would be pure
-	 * overhead, and enumerating sources when only resolution varies would
-	 * discard what the browser knows about pixel density, network conditions,
-	 * and its own cache.
-	 * </p>
-	 */
 	@Reference
 	private AbsolutePortalURLBuilderFactory _absolutePortalURLBuilderFactory;
 

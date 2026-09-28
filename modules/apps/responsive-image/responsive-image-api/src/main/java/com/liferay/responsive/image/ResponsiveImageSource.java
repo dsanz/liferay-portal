@@ -27,20 +27,12 @@ import java.util.List;
  * describes what to generate, and this holds what was generated.
  * </p>
  *
- * <p>
- * The level exists because a media condition can never attach to an individual
- * candidate; in markup it belongs to a <code>&lt;source&gt;</code>. Both current
- * providers happen to use one axis only (Adaptive Media: many sources of one
- * candidate; a CDN: one source of many), but art direction needs both at once.
- * </p>
- *
  * @author Daniel Sanz
  */
 public final class ResponsiveImageSource {
 
 	/**
-	 * Returns a source the provider determined for itself, having ignored any
-	 * preset.
+	 * Returns a source, having ignored any preset.
 	 *
 	 * @param  mediaQuery the media condition, or <code>null</code> for the
 	 *         unconditional source
@@ -68,12 +60,6 @@ public final class ResponsiveImageSource {
 	/**
 	 * Returns the media condition under which this source applies, or
 	 * <code>null</code> if it applies unconditionally.
-	 *
-	 * <p>
-	 * A single unconditional source renders as a plain <code>&lt;img&gt;</code>;
-	 * several render as <code>&lt;picture&gt;</code>. Order is
-	 * significant, because source matching is first wins.
-	 * </p>
 	 *
 	 * @return the media condition, or <code>null</code>
 	 */

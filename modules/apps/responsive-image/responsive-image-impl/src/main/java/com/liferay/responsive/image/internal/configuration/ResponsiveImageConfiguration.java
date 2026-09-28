@@ -41,15 +41,7 @@ public interface ResponsiveImageConfiguration {
 
 	/**
 	 * Transformations applied to every generated rendition, as
-	 * <code>name=value</code> entries. The escape hatch for provider options
-	 * this framework does not model (for example <code>optimize=medium</code>).
-	 *
-	 * <p>
-	 * Defaults to disabling upscaling, which is what makes it safe not to bound
-	 * ladders by the original's width: a candidate wider than the source then
-	 * returns the source instead of an enlarged copy of it, so the widest
-	 * candidates cost no extra bytes when an author uploads a small image.
-	 * </p>
+	 * <code>name=value</code> entries.
 	 */
 	@Meta.AD(
 		deflt = "disable=upscale", name = "default-transformations",
@@ -66,20 +58,6 @@ public interface ResponsiveImageConfiguration {
 	 * narrow.media=(max-width: 767px)
 	 * wide.media=(min-width: 768px)
 	 * </pre>
-	 *
-	 * <p>
-	 * Declared here once and referenced by name from {@link #presets()}, so a
-	 * theme's grid lives in a single place instead of being repeated inside
-	 * every preset.
-	 * </p>
-	 *
-	 * <p>
-	 * <b>Order matters.</b> Presets render in the order their media conditions
-	 * are declared here, and browser source matching is first wins, so a narrower
-	 * media condition must precede a broader one. The reserved name
-	 * <code>default</code> means no media condition and always renders last, as
-	 * the catch all.
-	 * </p>
 	 */
 	@Meta.AD(deflt = "", name = "media-conditions", required = false)
 	public String[] mediaConditions();
@@ -112,52 +90,6 @@ public interface ResponsiveImageConfiguration {
 	 * card.lazy=true
 	 * card.default.autoSizes=true
 	 * </pre>
-	 *
-	 * <p>
-	 * <code>lazy</code> is undeclared by default, which means eager. Loading
-	 * eagerly costs bandwidth, while lazily loading the largest contentful
-	 * image costs a Core Web Vital, so the default is the one that cannot
-	 * regress it. A caller that knows where a particular image sits on the page
-	 * overrides it per instance.
-	 * </p>
-	 *
-	 * <p>
-	 * <code>autoSizes</code> puts the <code>auto</code> keyword in front of
-	 * that source's <code>sizes</code>, letting the browser measure the
-	 * container instead of trusting a value that duplicates the theme's CSS.
-	 * It applies only when the image is lazily loaded, because that is the only
-	 * case a browser honors it, and <code>sizes</code> stays mandatory so that
-	 * browsers without support still receive a real value.
-	 * </p>
-	 *
-	 * <p>
-	 * <code>maxWidth</code> stops a small placement from advertising the whole
-	 * ladder: a 96 pixel thumbnail otherwise ships seven URLs for an image the
-	 * browser will never choose. Set it to the rendered width multiplied by the
-	 * highest pixel density worth serving. It is not derived from
-	 * <code>sizes</code>, because only absolute lengths could be resolved
-	 * server side and a wrong guess degrades image quality with no error.
-	 * </p>
-	 *
-	 * <p>
-	 * A preset with a single unconditional entry renders as a plain
-	 * <code>&lt;img&gt;</code>; several entries render as
-	 * <code>&lt;picture&gt;</code>. Note that each additional media condition
-	 * multiplies the number of distinct objects held at the edge by the number
-	 * of candidate widths.
-	 * </p>
-	 *
-	 * <p>
-	 * Two shapes are reported as problems whenever this configuration is read,
-	 * because both render without error and neither is what was meant. Several
-	 * media conditions that generate the same image produce sources a browser
-	 * could have chosen between itself, and belong in the <code>sizes</code> of
-	 * a single unconditional entry. Media conditions that generate different
-	 * output formats cannot work at all: a source is matched on its media
-	 * condition, so a browser that does not support the format has nothing
-	 * to fall back to, and the format has to be negotiated at the edge from
-	 * the <code>Accept</code> header instead.
-	 * </p>
 	 */
 	@Meta.AD(deflt = "", name = "presets", required = false)
 	public String[] presets();
@@ -166,19 +98,6 @@ public interface ResponsiveImageConfiguration {
 	 * Name of the image optimization service whose URL vocabulary is used,
 	 * for example <code>fastly</code>. Must match the name reported by a
 	 * deployed {@code ImageTransformationURLRenderer}.
-	 *
-	 * <p>
-	 * <b>This is the switch.</b> Left blank, or naming a renderer that is not
-	 * deployed, the framework produces nothing and images are served by
-	 * Adaptive Media exactly as before. It is site scoped, so one site can be
-	 * moved over while the rest are not.
-	 * </p>
-	 *
-	 * <p>
-	 * Named rather than chosen by service ranking, so the active renderer is
-	 * greppable in configuration instead of implied by numbers spread across
-	 * bundles.
-	 * </p>
 	 */
 	@Meta.AD(deflt = "", name = "url-renderer-name", required = false)
 	public String urlRendererName();

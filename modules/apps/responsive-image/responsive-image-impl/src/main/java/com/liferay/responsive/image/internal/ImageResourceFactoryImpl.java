@@ -48,16 +48,6 @@ public class ImageResourceFactoryImpl implements ImageResourceFactory {
 		return serviceContext.getThemeDisplay();
 	}
 
-	/**
-	 * Returns the URL of the <b>original</b> file, not of a pregenerated
-	 * derivative.
-	 *
-	 * <p>
-	 * This matters: an image optimization provider asked to resize an
-	 * already-resized image resamples twice, losing quality for no benefit, and
-	 * leaves the derivative pipeline doing work nobody consumes.
-	 * </p>
-	 */
 	private String _getURL(FileEntry fileEntry) throws PortalException {
 		return _dlURLHelper.getPreviewURL(
 			fileEntry, fileEntry.getFileVersion(), _getThemeDisplay(),

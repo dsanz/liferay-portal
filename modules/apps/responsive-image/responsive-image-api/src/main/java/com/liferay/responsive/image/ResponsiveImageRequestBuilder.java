@@ -8,30 +8,6 @@ package com.liferay.responsive.image;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
- * Builds a {@link ResponsiveImageRequest}.
- *
- * <pre>
- * ResponsiveImageRequestBuilder.imageResource(
- *     imageResource
- * ).presetName(
- *     "card"
- * ).build()
- * </pre>
- *
- * <p>
- * Entered through a static method carrying the one required value, as {@link
- * com.liferay.portal.kernel.util.HashMapBuilder} is entered through its first
- * put. A request without an image has nothing to render, and this way there
- * is no partially built state to reach: the constructor is private, so the
- * image cannot be omitted or supplied twice.
- * </p>
- *
- * <p>
- * Accumulates values and constructs at {@link #build}, rather than mutating a
- * held instance as builders over Service Builder models do, because the request
- * it produces is immutable.
- * </p>
- *
  * @author Daniel Sanz
  */
 public class ResponsiveImageRequestBuilder {
@@ -47,18 +23,6 @@ public class ResponsiveImageRequestBuilder {
 			_groupId, _httpServletRequest, _imageResource, _presetName);
 	}
 
-	/**
-	 * Declares the site this image is rendered for, overriding the site the
-	 * framework would otherwise derive from the request.
-	 *
-	 * <p>
-	 * Needed only where there is no request to derive from, such as export and
-	 * import, which knows its site from the portlet data context. Callers that
-	 * pass a request should leave this alone and let the theme display answer,
-	 * since setting both makes this one win and a stale value would then read
-	 * the wrong site's layout without failing.
-	 * </p>
-	 */
 	public ResponsiveImageRequestBuilder groupId(long groupId) {
 		_groupId = groupId;
 

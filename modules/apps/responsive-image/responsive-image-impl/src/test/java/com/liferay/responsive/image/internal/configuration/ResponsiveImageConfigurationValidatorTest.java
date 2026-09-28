@@ -40,11 +40,6 @@ public class ResponsiveImageConfigurationValidatorTest {
 
 	@Test
 	public void testDifferingMaximumWidthIsNotInterchangeable() {
-
-		// The candidates are the same picture, but a single image element
-		// carries a single ladder, so the truncation cannot be expressed
-		// without several media conditions.
-
 		List<String> problems = _validate(
 			_presetDefinition(
 				_sourceDefinition("narrow", 640, "100vw", "crop", "1:1"),
@@ -69,10 +64,6 @@ public class ResponsiveImageConfigurationValidatorTest {
 
 	@Test
 	public void testInterchangeableSourcesAreReported() {
-
-		// Nothing distinguishes the sources but how wide they render, which is
-		// what the sizes attribute of a single image element already says.
-
 		List<String> problems = _validate(
 			_presetDefinition(
 				_sourceDefinition("narrow", null, "100vw", "crop", "1:1"),
@@ -84,30 +75,6 @@ public class ResponsiveImageConfigurationValidatorTest {
 
 		Assert.assertTrue(problem, problem.contains("hero"));
 		Assert.assertTrue(problem, problem.contains("interchangeable"));
-	}
-
-	@Test
-	public void testSeveralPresetsRenderPicture() {
-		Assert.assertEquals(
-			MarkupShape.PICTURE,
-			ResponsiveImageConfigurationValidator.getMarkupShape(
-				_presetDefinition(
-					_sourceDefinition("narrow", null, "100vw", "crop", "1:1"),
-					_sourceDefinition("wide", null, "50vw", "crop", "16:9"))));
-	}
-
-	@Test
-	public void testSinglePresetRendersImg() {
-
-		// A crop does not make it art direction. One media condition is one
-		// source, and a lone source is an image element.
-
-		Assert.assertEquals(
-			MarkupShape.IMG,
-			ResponsiveImageConfigurationValidator.getMarkupShape(
-				_presetDefinition(
-					_sourceDefinition(
-						"default", null, "100vw", "crop", "1:1"))));
 	}
 
 	private PresetDefinition _presetDefinition(

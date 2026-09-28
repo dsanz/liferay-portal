@@ -8,27 +8,16 @@ package com.liferay.responsive.image;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
- * Everything one call needs: which image, where it sits, and the context it is
- * being rendered in.
- *
- * <p>
- * Deliberately a concrete class and not an interface. Nobody implements this;
- * consumers build it and providers read it. As an interface it would have to be
- * a consumer type, making every new field a breaking change for a holder that
- * has exactly one implementation.
- * </p>
- *
- * <p>
- * Immutable, and built through {@link ResponsiveImageRequestBuilder}.
- * </p>
+ * A request for a responsive image. Includes everything one call needs: which
+ * image, where it sits, and the context it is being rendered in.
  *
  * @author Daniel Sanz
  */
 public final class ResponsiveImageRequest {
 
 	/**
-	 * Returns a request for the given image with no preset, which is what
-	 * a caller that knows nothing about the placement wants.
+	 * Returns a request for the given image, when placement information is not
+	 * available to the caller.
 	 *
 	 * @param  imageResource the image to render responsively
 	 * @return the request
@@ -40,10 +29,8 @@ public final class ResponsiveImageRequest {
 	}
 
 	/**
-	 * Prefer {@link ResponsiveImageRequestBuilder}, which names the optional
-	 * arguments. This is public only because Liferay's coding standards have no
-	 * way to spell a package private constructor, and the builder has to reach
-	 * it from its own compilation unit.
+	 * Returns a request for the given image, when placement information is
+	 * available to the caller.
 	 *
 	 * @param groupId the site being rendered for, or <code>0</code>
 	 * @param httpServletRequest the request being served, or <code>null</code>
@@ -62,13 +49,14 @@ public final class ResponsiveImageRequest {
 
 	/**
 	 * Returns the site the caller declared, or <code>0</code> to have one
-	 * derived.
+	 * derived. Refers to the <em>rendering</em> site, not the site the image
+	 * is stored in. Presets describe how a page lays images out, so the same
+	 * image placed on two sites must resolve two different sets of presets.
 	 *
 	 * <p>
-	 * What was declared, not what will be used. Left at <code>0</code> the
-	 * framework takes the rendering site from the theme display of {@link
-	 * #getHttpServletRequest}, then from the ambient service context, and
-	 * failing both resolves the configuration at company scope. So
+	 * Left at <code>0</code> the framework takes the rendering site from the
+	 * theme display of {@link #getHttpServletRequest}, then from the service
+	 * context, and failing both resolves the configuration at company scope. So
 	 * <code>0</code> means "work it out", not "no site".
 	 * </p>
 	 *
@@ -77,24 +65,6 @@ public final class ResponsiveImageRequest {
 	 * the case for export and import, staging, and scheduled work. A declared
 	 * site wins over the derived one, so a caller that sets it is asserting it
 	 * knows better than the page being served.
-	 * </p>
-	 *
-	 * <p>
-	 * The <em>rendering</em> site, not the site the image is stored in. Presets
-	 * describe how a page lays images out, so the same image placed on two
-	 * sites must resolve two different sets of presets. Taking it from the
-	 * resource instead would read the layout of whichever site happens to own
-	 * the file, silently, which for an image in a shared asset library is never
-	 * the right answer.
-	 * </p>
-	 *
-	 * <p>
-	 * Explicit rather than inferred because most callers cannot know it. The
-	 * content transformer chain hands over a string with no context at all, and
-	 * there is no ambient group the way there is an ambient company, so a
-	 * framework that guessed would be wrong without saying so. Left at
-	 * <code>0</code> the configuration falls back to the company, which is what
-	 * the group scope cascades to anyway.
 	 * </p>
 	 *
 	 * @return the site ID, or <code>0</code>
@@ -115,11 +85,8 @@ public final class ResponsiveImageRequest {
 	 *
 	 * <p>
 	 * Optional rather than required, because several rendering paths genuinely
-	 * have none to give. Content transformers and template transformer
-	 * listeners take a string and return a string, and there is no portal wide
-	 * thread local carrying the current request. Without it, the company comes
-	 * from the ambient one and the CDN host is resolved per company rather than
-	 * per request.
+	 * have none to give. Without it, the company comes from the ambient one
+	 * and the CDN host is resolved per company rather than per request.
 	 * </p>
 	 *
 	 * @return the servlet request, or <code>null</code>
@@ -138,8 +105,8 @@ public final class ResponsiveImageRequest {
 	}
 
 	/**
-	 * Returns the name of the configured preset describing where this
-	 * image sits in the page layout (for example <code>card</code>), or
+	 * Returns the name of the configured preset describing where this image
+	 * sits in the page layout (for example <code>card</code>), or
 	 * <code>null</code> to use the default.
 	 *
 	 * @return the preset name, or <code>null</code>

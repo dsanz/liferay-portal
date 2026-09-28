@@ -83,12 +83,6 @@ public class TransformedImageAbsolutePortalURLBuilderImpl
 	private final String _imagePath;
 	private ImageTransformationURLRenderer _imageTransformationURLRenderer;
 	private final String _pathProxy;
-
-	/**
-	 * Sorted so that equal transformations always render to a byte identical
-	 * URL. Two URLs that differ only in parameter order are distinct cache
-	 * objects for an identical image.
-	 */
 	private final Map<String, String> _transformations = new TreeMap<>();
 
 }

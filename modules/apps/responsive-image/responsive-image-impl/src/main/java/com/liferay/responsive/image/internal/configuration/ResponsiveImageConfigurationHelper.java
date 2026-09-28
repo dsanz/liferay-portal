@@ -55,13 +55,6 @@ public class ResponsiveImageConfigurationHelper {
 	 * Returns the company this call is being made for, or <code>0</code> if it
 	 * could not be determined.
 	 *
-	 * <p>
-	 * Prefers the caller's request, because that is explicit and cannot be
-	 * wrong. Falls back to the ambient company, which is set for most portal
-	 * work but not all of it, and is exactly the kind of implicit state that
-	 * fails quietly during export or a scheduled job.
-	 * </p>
-	 *
 	 * @param  responsiveImageRequest the request, or <code>null</code>
 	 * @return the company ID, or <code>0</code>
 	 */
@@ -96,21 +89,6 @@ public class ResponsiveImageConfigurationHelper {
 
 	/**
 	 * Returns the site this image is being rendered for, or <code>0</code>.
-	 *
-	 * <p>
-	 * What the caller supplied wins. Otherwise the rendering site is taken from
-	 * the theme display, and failing that from the ambient service context.
-	 * Both name the site a page is being served for, which is the question this
-	 * is asking.
-	 * </p>
-	 *
-	 * <p>
-	 * Note what is deliberately absent: the site of the image itself. That is a
-	 * different question, and for a file in a shared asset library it is never
-	 * the right answer, so falling back to it would read one site's layout
-	 * while rendering another's without ever saying so. Better to return
-	 * <code>0</code> and let the configuration cascade to the company.
-	 * </p>
 	 *
 	 * @param  responsiveImageRequest the request, or <code>null</code>
 	 * @return the site ID, or <code>0</code>
@@ -166,13 +144,6 @@ public class ResponsiveImageConfigurationHelper {
 	/**
 	 * Returns the configuration for the narrowest scope the caller could name.
 	 *
-	 * <p>
-	 * A site when one is given, otherwise the company, otherwise the system.
-	 * Reading the site configuration already falls back to the company and then
-	 * to the metatype defaults, so a site that configures nothing is not a
-	 * special case here.
-	 * </p>
-	 *
 	 * @param  groupId the site, or <code>0</code>
 	 * @param  companyId the company, or <code>0</code>
 	 * @return the configuration, or <code>null</code> if it could not be read
@@ -207,20 +178,6 @@ public class ResponsiveImageConfigurationHelper {
 		}
 	}
 
-	/**
-	 * Returns a key identifying the scope a configuration was read for, so that
-	 * parsed results can be cached per scope.
-	 *
-	 * <p>
-	 * Sites are keyed positive and companies negative, because the two ID
-	 * spaces are distinct and a shared map would otherwise let a site borrow a
-	 * company's parsed presets.
-	 * </p>
-	 *
-	 * @param  groupId the site, or <code>0</code>
-	 * @param  companyId the company, or <code>0</code>
-	 * @return the scope key
-	 */
 	public long getScopeKey(long groupId, long companyId) {
 		if (groupId > 0) {
 			return groupId;

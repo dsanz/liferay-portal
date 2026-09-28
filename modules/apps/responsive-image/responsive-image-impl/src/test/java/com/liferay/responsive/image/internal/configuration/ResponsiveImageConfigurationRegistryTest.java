@@ -6,6 +6,7 @@
 package com.liferay.responsive.image.internal.configuration;
 
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.responsive.image.constants.ResponsiveImagePresetConstants;
 
@@ -50,10 +51,6 @@ public class ResponsiveImageConfigurationRegistryTest {
 
 	@Test
 	public void testArtDirectingABuiltInKeepsItsUnconditionalSource() {
-
-		// The built in entry becomes the catch all, which is what a browser
-		// falls back to when no media condition matches.
-
 		_givenConfiguration(
 			new String[] {"narrow.media=(max-width: 767px)"},
 			new String[] {"hero.narrow.sizes=50vw"});
@@ -71,11 +68,6 @@ public class ResponsiveImageConfigurationRegistryTest {
 	@Test
 	public void testBuiltInPresetsExistWithoutAnyConfiguration()
 		throws Exception {
-
-		// Every published constant has to resolve, or a rendering surface
-		// naming one silently falls back to a different size. Read from the
-		// class rather than a list here, so publishing a constant without
-		// seeding the preset fails immediately.
 
 		_givenConfiguration(new String[0], new String[0]);
 
@@ -97,10 +89,6 @@ public class ResponsiveImageConfigurationRegistryTest {
 
 	@Test
 	public void testBuiltInPresetsSurviveAConfigurationThatOmitsThem() {
-
-		// There is no way to spell a removal, which is what makes the
-		// guarantee hold. Configuring one preset must not drop the rest.
-
 		_givenConfiguration(
 			new String[0],
 			new String[] {"custom.label=Custom", "custom.default.sizes=50vw"});
@@ -121,10 +109,6 @@ public class ResponsiveImageConfigurationRegistryTest {
 	@Test
 	public void testBuiltInPresetsSurviveAnUnreadableConfiguration()
 		throws Exception {
-
-		// The helper answers null when the configuration is absent or could
-		// not be read. Losing the built ins there would break the guarantee
-		// exactly when a caller most needs it to hold.
 
 		Mockito.when(
 			_responsiveImageConfigurationHelper.getResponsiveImageConfiguration(
@@ -147,11 +131,6 @@ public class ResponsiveImageConfigurationRegistryTest {
 
 	@Test
 	public void testChangingAnySettingInvalidatesTheMemo() {
-
-		// One hash over every setting held. The URL renderer name was once
-		// stored but not hashed, so turning the feature on or off did
-		// nothing until some other setting moved.
-
 		_givenConfiguration(new String[0], new String[0]);
 
 		Mockito.when(
@@ -182,10 +161,6 @@ public class ResponsiveImageConfigurationRegistryTest {
 
 	@Test
 	public void testConfigurationOverridesOneKeyOfABuiltInPreset() {
-
-		// Everything not restated has to keep coming from the built in, or a
-		// site changing one value stops inheriting later changes to the rest.
-
 		_givenConfiguration(
 			new String[0], new String[] {"card.default.sizes=25vw"});
 
@@ -238,11 +213,6 @@ public class ResponsiveImageConfigurationRegistryTest {
 
 	@Test
 	public void testOrderingComesFromMediaConditionDeclarationNotPresetOrder() {
-
-		// Source matching is first wins, so this ordering decides which image
-		// a browser picks. Declaring it once for the installation is what stops
-		// a reordered preset list changing rendering silently.
-
 		_givenConfiguration(
 			new String[] {
 				"narrow.media=(max-width: 767px)",
@@ -260,10 +230,6 @@ public class ResponsiveImageConfigurationRegistryTest {
 
 	@Test
 	public void testPresetsReferencingAnUndeclaredMediaConditionAreDropped() {
-
-		// A typo would otherwise become an unconditional source that
-		// shadows every source after it.
-
 		_givenConfiguration(
 			new String[] {"narrow.media=(max-width: 767px)"},
 			new String[] {
@@ -310,10 +276,6 @@ public class ResponsiveImageConfigurationRegistryTest {
 
 	@Test
 	public void testUnknownNameFallsBackToAWorkingImage() {
-
-		// A typo in configuration should degrade to a plain full width image
-		// rather than to no image.
-
 		_givenConfiguration(new String[0], new String[0]);
 
 		PresetDefinition presetDefinition =
@@ -334,11 +296,6 @@ public class ResponsiveImageConfigurationRegistryTest {
 
 	@Test
 	public void testUnknownNameFallsBackToTheConfiguredDefault() {
-
-		// Falling back to the scope's own default rather than to a hardcoded
-		// one, so a site that said what its unclassified images look like gets
-		// that answer for a name nobody declared too.
-
 		_givenConfiguration(
 			new String[0], new String[] {"default.default.sizes=42vw"});
 
@@ -395,7 +352,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 		return presetDefinition.getSourceDefinitions();
 	}
 
-	private static final long _COMPANY_ID = 42L;
+	private static final long _COMPANY_ID = RandomTestUtil.randomLong();
 
 	private final ResponsiveImageConfiguration _responsiveImageConfiguration =
 		Mockito.mock(ResponsiveImageConfiguration.class);

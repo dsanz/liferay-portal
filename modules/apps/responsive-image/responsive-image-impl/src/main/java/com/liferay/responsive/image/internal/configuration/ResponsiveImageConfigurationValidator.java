@@ -14,64 +14,10 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * Answers what a configuration renders, and what it renders dishonestly.
- *
- * <p>
- * Both answers are pure functions of configuration: no image, no request and no
- * deployed renderer participate, so a whole configuration can be checked when
- * it is edited rather than one placement at a time when it is served. That
- * matters because the standing hazard of responsive images is silence — a
- * preset describing the wrong layout still renders, just wrongly, and reports
- * nothing.
- * </p>
- *
- * <p>
- * The mistake this deliberately does not look for is the serious one:
- * differently cropped candidates inside a single <code>srcset</code>, which
- * asks the browser to treat two different pictures as interchangeable.
- * It is unreachable rather than unchecked. A transformation is declared on a
- * preset, a preset carries one media condition, and the candidates generated
- * within one preset differ only in width, so candidates that share a
- * <code>srcset</code> are the same picture at different sizes by construction.
- * Allowing transformations per candidate would end that, and would make this the
- * place to catch it.
- * </p>
- *
- * <p>
- * Problems are reported as text because the only consumer is the log. A
- * configuration UI wanting to place them against the field that caused them
- * would want a structured type instead.
- * </p>
- *
  * @author Daniel Sanz
  */
 public class ResponsiveImageConfigurationValidator {
 
-	/**
-	 * Returns the element the given preset renders as.
-	 *
-	 * @param  presetDefinition the preset
-	 * @return the element
-	 */
-	public static MarkupShape getMarkupShape(
-		PresetDefinition presetDefinition) {
-
-		List<SourceDefinition> sourceDefinitions =
-			presetDefinition.getSourceDefinitions();
-
-		if (sourceDefinitions.size() > 1) {
-			return MarkupShape.PICTURE;
-		}
-
-		return MarkupShape.IMG;
-	}
-
-	/**
-	 * Returns one message per problem found, or an empty list.
-	 *
-	 * @param  presetDefinitions the presets parsed from configuration
-	 * @return the problems
-	 */
 	public static List<String> validate(
 		Map<String, PresetDefinition> presetDefinitions) {
 
@@ -114,10 +60,6 @@ public class ResponsiveImageConfigurationValidator {
 		return problems;
 	}
 
-	/**
-	 * Returns the format selecting transformations of a preset, which are the
-	 * ones a media condition is the wrong way to choose between.
-	 */
 	private static Map<String, String> _getFormats(
 		SourceDefinition sourceDefinition) {
 
@@ -151,18 +93,6 @@ public class ResponsiveImageConfigurationValidator {
 		return false;
 	}
 
-	/**
-	 * Returns whether every preset generates the same candidates, in which case
-	 * the sources they render are substitutable and the preset had no reason to
-	 * be art directed.
-	 *
-	 * <p>
-	 * A differing maximum width is not counted, because it truncates the ladder
-	 * per source and a single <code>&lt;img&gt;</code> carries one ladder.
-	 * Differing sizes alone is the case worth reporting: one sizes attribute
-	 * already holds a media condition per entry.
-	 * </p>
-	 */
 	private static boolean _isInterchangeable(
 		List<SourceDefinition> sourceDefinitions) {
 

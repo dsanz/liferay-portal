@@ -12,16 +12,9 @@ import java.util.Map;
  * How an image should be generated under one media condition.
  *
  * <p>
- * One entry of an {@link PresetDefinition}, and the recipe whose result is an
+ * One entry of a {@link PresetDefinition}, and the recipe whose result is an
  * {@link ResponsiveImageSource}: the media condition and sizes pass through
  * unchanged, while the transformations are consumed to produce the candidates.
- * {@link ResponsiveImageSource#from} performs that crossing.
- * </p>
- *
- * <p>
- * A request, not a command. A provider limited to renditions generated in
- * advance cannot honor an arbitrary crop, and determines its own sources
- * instead.
  * </p>
  *
  * @author Daniel Sanz
@@ -55,12 +48,6 @@ public final class SourceDefinition {
 	 * still included, because that is the one the browser needs, and excluding
 	 * it would leave nothing usable. Set it to the rendered width multiplied by
 	 * the highest pixel density worth serving.
-	 * </p>
-	 *
-	 * <p>
-	 * The only bound on a ladder. Nothing truncates by the original image's
-	 * width, so this is what stops a small placement advertising candidates it
-	 * will never use.
 	 * </p>
 	 *
 	 * @return the maximum width in pixels, or <code>null</code>
@@ -104,14 +91,6 @@ public final class SourceDefinition {
 	 * way, prefixed with the <code>auto</code> keyword when this source
 	 * opts in and the image is lazily loaded.
 	 *
-	 * <p>
-	 * The rule lives here rather than at the call site because whether
-	 * automatic sizing applies is a property of the source's configuration
-	 * and of nothing else. A browser honors <code>auto</code> only on a lazily
-	 * loaded image, so emitting it otherwise would be an invalid attribute
-	 * rather than an ignored hint.
-	 * </p>
-	 *
 	 * @param  lazy whether the image is lazily loaded
 	 * @return the sizes attribute value, or <code>null</code>
 	 */
@@ -127,16 +106,6 @@ public final class SourceDefinition {
 	 * Returns the transformations to apply to every candidate generated for
 	 * this condition, such as a crop that differs between viewports.
 	 *
-	 * <p>
-	 * Declared per source, and therefore per media condition. Every
-	 * candidate a source generates shares this map and differs from its
-	 * siblings only in width, which is what makes the candidates sharing a
-	 * <code>srcset</code> the same picture at different sizes, as that
-	 * attribute requires.
-	 * Transformations that varied per candidate would offer a browser two
-	 * different pictures and let it pick either.
-	 * </p>
-	 *
 	 * @return the transformations
 	 */
 	public Map<String, String> getTransformations() {
@@ -147,14 +116,6 @@ public final class SourceDefinition {
 	 * Returns <code>true</code> if this condition's width is best determined by
 	 * layout rather than declared.
 	 *
-	 * <p>
-	 * An opt in, and only an opt in: it adds the <code>auto</code> keyword in
-	 * front of {@link #getSizes()}, which stays mandatory and serves both as
-	 * the fallback for browsers without automatic sizing and as the value used
-	 * when the image is not lazily loaded. Automatic sizing is only honored on
-	 * a lazily loaded image, so this alone never produces
-	 * <code>sizes="auto"</code>.
-	 * </p>
 	 *
 	 * @return <code>true</code> if automatic sizing may be used
 	 */

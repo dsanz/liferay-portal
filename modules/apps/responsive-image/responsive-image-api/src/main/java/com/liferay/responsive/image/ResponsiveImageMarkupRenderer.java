@@ -10,24 +10,11 @@ import com.liferay.portal.kernel.exception.PortalException;
 import org.osgi.annotation.versioning.ProviderType;
 
 /**
- * Produces responsive image markup, whatever provider is active.
+ * Produces responsive image markup, whatever url renderer is active.
  *
  * <p>
  * The umbrella every consumer should call when it needs image markup, replacing
- * direct calls to provider specific factories.
- * </p>
- *
- * <p>
- * Markup rather than a tag, because a preset declaring several media conditions
- * renders a <code>&lt;picture&gt;</code> wrapping one
- * <code>&lt;source&gt;</code> per media condition, not a single element.
- * </p>
- *
- * <p>
- * Holds no markup knowledge itself. It selects the active provider and hands
- * off to that provider's {@link ResponsiveImageProvider#render}, because what
- * the markup should look like depends on how the candidates were
- * produced.
+ * direct calls to specific factories.
  * </p>
  *
  * @author Daniel Sanz
@@ -38,15 +25,6 @@ public interface ResponsiveImageMarkupRenderer {
 	/**
 	 * Returns responsive markup wrapping the given image tag, or
 	 * <code>null</code> when nothing was produced.
-	 *
-	 * <p>
-	 * <code>null</code> means the framework declined: the feature is off, no
-	 * provider is configured, the configured one does not support this
-	 * resource, or it produced nothing usable. It is distinct from returning
-	 * the tag unchanged, because a caller that outranks another renderer has
-	 * to know whether to hand over to it. A caller with nothing to hand over
-	 * to renders <code>originalImgTag</code>.
-	 * </p>
 	 *
 	 * @param  originalImgTag the original image tag, whose attributes are
 	 *         preserved

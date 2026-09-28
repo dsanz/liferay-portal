@@ -26,10 +26,6 @@ public class SourceDefinitionTest {
 
 	@Test
 	public void testAutoSizesIsIgnoredWhenNotLazy() {
-
-		// A browser only honors sizes="auto" on a lazily loaded image, so
-		// emitting it here would be an invalid attribute rather than a hint.
-
 		SourceDefinition sourceDefinition = _autoSizesSourceDefinition();
 
 		Assert.assertEquals("100vw", sourceDefinition.getSizes(false));
@@ -37,10 +33,6 @@ public class SourceDefinitionTest {
 
 	@Test
 	public void testAutoSizesKeepsDeclaredSizesAsFallback() {
-
-		// The declared value stays behind the keyword so that a browser
-		// without automatic sizing still receives a real one.
-
 		SourceDefinition sourceDefinition = _autoSizesSourceDefinition();
 
 		Assert.assertEquals("auto, 100vw", sourceDefinition.getSizes(true));
@@ -48,10 +40,6 @@ public class SourceDefinitionTest {
 
 	@Test
 	public void testSizesAreUntouchedWithoutAutoSizes() {
-
-		// Automatic sizing is an opt in. A source that did not ask for it
-		// must render the declared value whether or not the image is lazy.
-
 		SourceDefinition sourceDefinition = new SourceDefinition(
 			false, "default", null, null, "100vw",
 			Collections.<String, String>emptyMap());

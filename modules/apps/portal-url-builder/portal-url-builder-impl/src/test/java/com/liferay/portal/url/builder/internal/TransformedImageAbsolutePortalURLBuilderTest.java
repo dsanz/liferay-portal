@@ -5,6 +5,7 @@
 
 package com.liferay.portal.url.builder.internal;
 
+import com.liferay.petra.string.StringBundler;
 import com.liferay.portal.kernel.frontend.hashed.files.CachingStrategy;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
@@ -69,20 +70,12 @@ public class TransformedImageAbsolutePortalURLBuilderTest
 
 	@Test
 	public void test() {
-
-		// The path is not resolved against a portal root, so unlike the other
-		// builders the context never appears.
-
 		Assert.assertEquals(
 			_RESULTS[index], _transformedImageAbsolutePortalURLBuilder.build());
 	}
 
 	@Test
 	public void testAddingATransformationTwiceReplacesTheValue() {
-
-		// Per placement transformations layer over defaults without the
-		// caller checking what is already there.
-
 		_transformedImageAbsolutePortalURLBuilder.addTransformation(
 			"width", "320"
 		).addTransformation(
@@ -123,10 +116,6 @@ public class TransformedImageAbsolutePortalURLBuilderTest
 
 	@Test
 	public void testRendererIsNotConsultedWithoutTransformations() {
-
-		// Nothing to spell means nothing to ask, so an image with no
-		// transformations is served from its own URL.
-
 		_transformedImageAbsolutePortalURLBuilder.setRenderer(
 			_imageTransformationURLRenderer);
 
@@ -153,10 +142,6 @@ public class TransformedImageAbsolutePortalURLBuilderTest
 
 	@Test
 	public void testTransformationsAreDroppedWithoutARenderer() {
-
-		// A caller that cannot resolve one passes null, and must still get a
-		// usable URL rather than a half spelled one.
-
 		_transformedImageAbsolutePortalURLBuilder.addTransformation(
 			"width", "320"
 		).setRenderer(
@@ -169,11 +154,6 @@ public class TransformedImageAbsolutePortalURLBuilderTest
 
 	@Test
 	public void testTransformationsAreSpelledInACanonicalOrder() {
-
-		// Two URLs differing only in parameter order are distinct cache
-		// objects for an identical image, so the order cannot follow the
-		// order the caller happened to add them in.
-
 		_transformedImageAbsolutePortalURLBuilder.addTransformation(
 			"width", "320"
 		).addTransformation(
@@ -237,7 +217,8 @@ public class TransformedImageAbsolutePortalURLBuilderTest
 				sb.append('?');
 
 				transformations.forEach(
-					(name, value) -> sb.append(name + "=" + value + "&"));
+					(name, value) -> sb.append(
+						StringBundler.concat(name, "=", value, "&")));
 
 				sb.setLength(sb.length() - 1);
 

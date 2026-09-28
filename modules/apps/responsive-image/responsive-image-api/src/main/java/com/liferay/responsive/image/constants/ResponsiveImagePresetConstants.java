@@ -6,20 +6,8 @@
 package com.liferay.responsive.image.constants;
 
 /**
- * The presets every installation has, whatever is configured.
+ * The responsive image presets every installation has, whatever is configured.
  *
- * <p>
- * A component naming one of these can assume it resolves. They are seeded
- * before the configured presets are read, and a list of <code>key=value</code>
- * entries has no way to spell a removal, so configuration can change what they
- * render but cannot take them away.
- * </p>
- *
- * <p>
- * Name a constant rather than the string it holds. The point of publishing them
- * is that a rendering surface asking for a preset and the registry seeding it
- * cannot drift apart.
- * </p>
  *
  * @author Daniel Sanz
  */

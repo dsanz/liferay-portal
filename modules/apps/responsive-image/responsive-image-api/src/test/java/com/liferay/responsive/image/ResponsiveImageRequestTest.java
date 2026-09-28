@@ -33,12 +33,6 @@ public class ResponsiveImageRequestTest {
 
 	@Test
 	public void testBuildsWithoutAHttpServletRequest() {
-
-		// Content transformers and template transformer listeners take a
-		// string and return a string, and no portal wide thread local carries
-		// the current request. Requiring one would leave those paths unable to
-		// ask for responsive markup at all.
-
 		ResponsiveImageRequest responsiveImageRequest =
 			ResponsiveImageRequest.of(_imageResource);
 
@@ -68,19 +62,11 @@ public class ResponsiveImageRequestTest {
 				_imageResource
 			).build();
 
-		// Zero rather than the resource's site. The site an image is stored in
-		// is a different question from the site it is rendered on, and group
-		// scoped configuration cascades to the company anyway.
-
 		Assert.assertEquals(0, responsiveImageRequest.getGroupId());
 	}
 
 	@Test
 	public void testNamesNoPresetByDefault() {
-
-		// A caller that knows nothing about the placement says nothing, and
-		// the preset decides everything about it, laziness included.
-
 		ResponsiveImageRequest responsiveImageRequest =
 			ResponsiveImageRequest.of(_imageResource);
 

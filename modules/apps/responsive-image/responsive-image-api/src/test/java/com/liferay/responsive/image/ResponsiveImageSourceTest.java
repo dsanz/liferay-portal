@@ -42,11 +42,6 @@ public class ResponsiveImageSourceTest {
 
 	@Test
 	public void testOfAllowsAProviderToDetermineItsOwnGroup() {
-
-		// Adaptive Media never sees a preset: its media conditions come from
-		// its own configuration entries, and a source of one candidate
-		// has no sizes to disambiguate.
-
 		ResponsiveImageSource responsiveImageSource = ResponsiveImageSource.of(
 			"(max-width: 640px)", null, _candidates);
 
@@ -57,10 +52,6 @@ public class ResponsiveImageSourceTest {
 
 	@Test
 	public void testUnconditionalGroupHasNoMediaQuery() {
-
-		// One unconditional source is what renders as a plain img rather
-		// than as a picture element.
-
 		ResponsiveImageSource responsiveImageSource = ResponsiveImageSource.of(
 			null, "100vw", Collections.<ResponsiveImageCandidate>emptyList());
 

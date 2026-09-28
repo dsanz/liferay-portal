@@ -25,9 +25,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 /**
- * Covers which of the two Adaptive Media tag factories answers, since this one
- * outranks the real one and therefore owns the feature's outermost cut.
- *
  * @author Daniel Sanz
  */
 @FeatureFlag("LPD-94784")
@@ -62,10 +59,6 @@ public class ResponsiveImageAMImageHTMLTagFactoryTest {
 	public void testDelegatesToAdaptiveMediaWhenTheFeatureFlagIsDisabled()
 		throws Exception {
 
-		// Returning the original tag here would drop the <picture> Adaptive
-		// Media renders today, because nothing else answers once this factory
-		// outranks it.
-
 		Mockito.when(
 			_amImageHTMLTagFactory.create(_ORIGINAL_IMG_TAG, _fileEntry)
 		).thenReturn(
@@ -84,10 +77,6 @@ public class ResponsiveImageAMImageHTMLTagFactoryTest {
 	public void testDelegatesToAdaptiveMediaWhenTheFrameworkDeclines()
 		throws Exception {
 
-		// Null is the framework saying it produced nothing, which is what
-		// an unconfigured site answers now that Adaptive Media is no longer
-		// a provider. Its own renderer has to answer instead.
-
 		_whenFrameworkRenders(null);
 
 		Mockito.when(
@@ -104,11 +93,6 @@ public class ResponsiveImageAMImageHTMLTagFactoryTest {
 
 	@Test
 	public void testMarksThePictureWithTheFileEntryId() throws Exception {
-
-		// Byte identical to what Adaptive Media's own factory opens with,
-		// because its content transformer matches that whole literal to decide
-		// whether an image was already wrapped.
-
 		Mockito.when(
 			_fileEntry.getFileEntryId()
 		).thenReturn(
@@ -134,9 +118,6 @@ public class ResponsiveImageAMImageHTMLTagFactoryTest {
 	@Test
 	public void testRendersThroughTheFrameworkWhenTheFeatureFlagIsEnabled()
 		throws Exception {
-
-		// Byte identical, which also says an <img> is left unmarked: only a
-		// <picture> carries the file entry id in Adaptive Media's markup.
 
 		_whenFrameworkRenders("<img srcset=\"...\" />");
 

@@ -30,9 +30,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 /**
- * Wires the renderer to a mocked provider, so that what is asserted is the
- * markup built from a model rather than anything a particular provider does.
- *
  * @author Daniel Sanz
  */
 @FeatureFlag("LPD-94784")
@@ -62,11 +59,6 @@ public class ResponsiveImageMarkupRendererImplTest {
 
 	@Test
 	public void testDeclinesWhenNothingWasTransformed() throws Exception {
-
-		// Every width built the same URL, so no renderer is bound. Emitting the
-		// descriptors would have the browser trust them and pick wrong, and
-		// declining lets the caller fall back to Adaptive Media.
-
 		_givenResponsiveImage(
 			false,
 			ResponsiveImageSource.of(
@@ -123,11 +115,6 @@ public class ResponsiveImageMarkupRendererImplTest {
 
 	@Test
 	public void testRendersLoadingLazyFromTheModel() throws Exception {
-
-		// The provider decides this, having already needed it to spell the
-		// sizes attribute. The renderer reads it back rather than resolving
-		// the preset a second time and risking a different answer.
-
 		_givenResponsiveImage(
 			true,
 			ResponsiveImageSource.of(
@@ -144,10 +131,6 @@ public class ResponsiveImageMarkupRendererImplTest {
 
 	@Test
 	public void testRendersPictureForArtDirection() throws Exception {
-
-		// Two sources mean the crop differs by viewport, which srcset alone
-		// cannot express.
-
 		_givenResponsiveImage(
 			false,
 			ResponsiveImageSource.of(
@@ -168,9 +151,6 @@ public class ResponsiveImageMarkupRendererImplTest {
 			markup, markup.contains("media=\"(max-width: 767px)\""));
 		Assert.assertTrue(
 			markup, markup.contains("media=\"(min-width: 768px)\""));
-
-		// The img inside carries the last source, serving both as the
-		// fallback and as the source used when no media condition matches.
 
 		Assert.assertTrue(markup, markup.contains("sizes=\"50vw\""));
 	}

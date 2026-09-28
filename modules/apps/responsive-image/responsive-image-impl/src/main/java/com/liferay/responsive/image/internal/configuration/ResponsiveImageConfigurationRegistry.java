@@ -30,25 +30,6 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Holds the presets a scope has, and hands one back by name.
  *
- * <p>
- * Owns three things a caller should not have to know about: the built in
- * presets, the parsing of the configured entries layered over them, and the
- * memo that keeps both off the rendering path. What is left is a name in and a
- * definition out, which is why {@link #getPresetDefinition} always answers,
- * falling back rather than reporting that a name is unknown.
- * </p>
- *
- * <p>
- * Presets are framework owned rather than provider owned, so that layout
- * is described once regardless of which provider is serving images. Providers
- * consume this; they do not define it.
- * </p>
- *
- * <p>
- * Configuration is instance scoped, so the same preset name can resolve
- * differently for two companies in the same JVM.
- * </p>
- *
  * @author Daniel Sanz
  */
 public class ResponsiveImageConfigurationRegistry {
@@ -63,16 +44,6 @@ public class ResponsiveImageConfigurationRegistry {
 
 	/**
 	 * Returns the preset of the given name, never <code>null</code>.
-	 *
-	 * <p>
-	 * A blank name and a name nobody declared both answer with the scope's
-	 * own default preset, because they are the same situation: no usable
-	 * preset was named. A typo in configuration should cost an optimization,
-	 * not the image. A name published in {@code
-	 * ResponsiveImagePresetConstants} never takes that path: those are seeded
-	 * before any configuration is read, which is also why the default is
-	 * always there to fall back to.
-	 * </p>
 	 *
 	 * @param  groupId the site being rendered for, or <code>0</code>
 	 * @param  companyId the company whose configuration applies
@@ -92,20 +63,6 @@ public class ResponsiveImageConfigurationRegistry {
 	/**
 	 * Returns this scope's whole parsed configuration, reparsing only when it
 	 * has actually changed.
-	 *
-	 * <p>
-	 * One parse, one hash, one memo. Splitting the settings across two of
-	 * each meant two hashes over the same object, and one of them forgot a
-	 * field, so changing the URL renderer name did nothing until some other
-	 * setting moved.
-	 * </p>
-	 *
-	 * <p>
-	 * Memoized on the configuration's own contents rather than invalidated by
-	 * an event: a stale memo would silently serve the previous layout after an
-	 * administrator edited it, and there is no reliable notification to hang
-	 * invalidation on.
-	 * </p>
 	 */
 	public ScopedConfiguration getScopedConfiguration(
 		long groupId, long companyId) {
@@ -113,10 +70,6 @@ public class ResponsiveImageConfigurationRegistry {
 		ResponsiveImageConfiguration responsiveImageConfiguration =
 			_responsiveImageConfigurationHelper.getResponsiveImageConfiguration(
 				groupId, companyId);
-
-		// Unreadable configuration must not take the built in presets with it.
-		// A component naming one is entitled to an answer precisely when
-		// something else has gone wrong.
 
 		if (responsiveImageConfiguration == null) {
 			return BuiltInScopedConfigurationHolder._scopedConfiguration;
@@ -130,9 +83,6 @@ public class ResponsiveImageConfigurationRegistry {
 			responsiveImageConfiguration.mediaConditions();
 		String[] presets = responsiveImageConfiguration.presets();
 		String urlRendererName = responsiveImageConfiguration.urlRendererName();
-
-		// Every setting held below has to be hashed here. Leaving one out
-		// means an administrator changing it alone sees nothing happen.
 
 		int contentHash = Objects.hash(
 			Arrays.hashCode(candidateWidths),
@@ -165,14 +115,6 @@ public class ResponsiveImageConfigurationRegistry {
 		return scopedConfiguration;
 	}
 
-	/**
-	 * Everything one scope's configuration parses into.
-	 *
-	 * <p>
-	 * Held as one object so that a caller reads the configuration once and
-	 * cannot see two settings from two different edits.
-	 * </p>
-	 */
 	public static class ScopedConfiguration {
 
 		public TreeSet<Integer> getCandidateWidths() {
@@ -183,17 +125,6 @@ public class ResponsiveImageConfigurationRegistry {
 			return _defaultTransformations;
 		}
 
-		/**
-		 * Returns the preset of the given name, never <code>null</code>.
-		 *
-		 * <p>
-		 * A blank name and a name nobody declared both answer with this
-		 * scope's own default preset, because they are the same situation: no
-		 * usable preset was named. A name published in {@code
-		 * ResponsiveImagePresetConstants} never takes that path, being seeded
-		 * before any configuration is read.
-		 * </p>
-		 */
 		public PresetDefinition getPresetDefinition(String presetName) {
 			if (Validator.isBlank(presetName)) {
 				presetName = ResponsiveImagePresetConstants.DEFAULT;
@@ -248,19 +179,7 @@ public class ResponsiveImageConfigurationRegistry {
 
 	}
 
-	/**
-	 * Writes the built in presets into the maps the parser fills, before it
-	 * reads a single configured entry.
-	 *
-	 * <p>
-	 * Seeding the properties rather than finished {@link PresetDefinition}
-	 * objects is what keeps a configured key overriding one field and leaving
-	 * the rest. A built definition cannot express "unset": merging two of them
-	 * would turn a site that only changed <code>sizes</code> into one that also
-	 * silently turned automatic sizing off.
-	 * </p>
-	 */
-	private static void _seedBuiltInPresets(
+	private static void _addBuiltInPresets(
 		Map<String, String> labels, Map<String, Boolean> lazyValues,
 		Map<String, Map<String, Map<String, String>>> presetProperties) {
 
@@ -314,7 +233,7 @@ public class ResponsiveImageConfigurationRegistry {
 		Map<String, Map<String, Map<String, String>>> presetProperties =
 			new LinkedHashMap<>();
 
-		_seedBuiltInPresets(labels, lazyValues, presetProperties);
+		_addBuiltInPresets(labels, lazyValues, presetProperties);
 
 		if (presets == null) {
 			presets = new String[0];
@@ -497,12 +416,14 @@ public class ResponsiveImageConfigurationRegistry {
 		}
 
 		for (PresetDefinition presetDefinition : presetDefinitions.values()) {
+			List<SourceDefinition> sourceDefinitions =
+				presetDefinition.getSourceDefinitions();
+
 			_log.debug(
 				StringBundler.concat(
 					"Preset ", presetDefinition.getName(), " of scope ",
-					scopeKey, " renders ",
-					ResponsiveImageConfigurationValidator.getMarkupShape(
-						presetDefinition)));
+					scopeKey, " declares ", sourceDefinitions.size(),
+					" media conditions"));
 		}
 	}
 
@@ -534,15 +455,6 @@ public class ResponsiveImageConfigurationRegistry {
 		return map;
 	}
 
-	/**
-	 * Returns the declared media conditions by name, in declaration order.
-	 *
-	 * <p>
-	 * That order is what fixes the order presets render in. Browser source
-	 * matching is first wins, so reordering this configuration renders
-	 * different images without reporting anything.
-	 * </p>
-	 */
 	private Map<String, String> _toMediaConditions(
 		String[] mediaConditionEntries) {
 
@@ -613,31 +525,6 @@ public class ResponsiveImageConfigurationRegistry {
 
 	private static final String _AUTO_SIZES = "autoSizes";
 
-	/**
-	 * The presets every installation has, whatever is configured.
-	 *
-	 * <p>
-	 * Parsed ahead of the configured entries, so a configured key of the same
-	 * name overwrites the built in value and every key left unset keeps it. A
-	 * site that only wants a different <code>sizes</code> for cards writes that
-	 * one entry and still inherits the label, the loading behavior and the
-	 * maximum width.
-	 * </p>
-	 *
-	 * <p>
-	 * They cannot be removed, because a list of <code>key=value</code> entries
-	 * has no way to spell a removal. That is the point: a component rendering a
-	 * card can name the preset without first checking whether someone deleted
-	 * it, and without a silent fall back to a different size. Hiding one from an
-	 * authoring UI is a separate concern from deleting it and needs its own key.
-	 * </p>
-	 *
-	 * <p>
-	 * All of them are unconditional. Art direction means several media
-	 * conditions, which are declared per installation, so a built in preset
-	 * naming one would be dropped wherever that name is not declared.
-	 * </p>
-	 */
 	private static final BuiltInPreset[] _BUILT_IN_PRESETS = {
 		new BuiltInPreset(
 			"Default", null, ResponsiveImagePresetConstants.DEFAULT, "100vw"
@@ -680,22 +567,6 @@ public class ResponsiveImageConfigurationRegistry {
 	private final Map<Long, ScopedConfiguration> _scopedConfigurations =
 		new ConcurrentHashMap<>();
 
-	/**
-	 * One row of the built in table.
-	 *
-	 * <p>
-	 * Deliberately not a {@link PresetDefinition}. This carries only what a
-	 * built in sets, so that everything it leaves out stays genuinely unset
-	 * and a configured entry can fill it in.
-	 * </p>
-	 *
-	 * <p>
-	 * Lazy loading and automatic sizing are set by name rather than passed
-	 * in, because the two are booleans and Liferay orders parameters
-	 * alphabetically, which would put them next to each other in a table
-	 * that is read far more often than it is written.
-	 * </p>
-	 */
 	private static class BuiltInPreset {
 
 		public BuiltInPreset(
@@ -728,24 +599,6 @@ public class ResponsiveImageConfigurationRegistry {
 
 	}
 
-	/**
-	 * The built in presets alone, with nothing configured.
-	 *
-	 * <p>
-	 * They are the same for every company and every site, so they are built
-	 * once rather than per scope, and this is what a scope with no readable
-	 * configuration resolves against. There is no renderer name and no
-	 * ladder, so such a scope still declines, but it declines with its
-	 * presets intact.
-	 * </p>
-	 *
-	 * <p>
-	 * A holder rather than a static block, because a block would have to
-	 * appear after {@code _BUILT_IN_PRESETS} to see it initialized, and the
-	 * source formatter decides where terms go. Deferring to first use makes
-	 * the order irrelevant.
-	 * </p>
-	 */
 	private static class BuiltInScopedConfigurationHolder {
 
 		private static final ScopedConfiguration _scopedConfiguration =

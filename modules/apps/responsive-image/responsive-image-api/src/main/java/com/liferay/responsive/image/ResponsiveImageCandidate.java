@@ -15,29 +15,10 @@ package com.liferay.responsive.image;
  * ResponsiveImageSource} rather than an individual candidate.
  * </p>
  *
- * <p>
- * A concrete class rather than an interface: an immutable output value with no
- * behavior and no plausible second implementation.
- * </p>
- *
- * <p>
- * Immutable, and built through {@link
- * ResponsiveImageCandidateBuilder}.
- * </p>
- *
  * @author Daniel Sanz
  */
 public final class ResponsiveImageCandidate {
 
-	/**
-	 * Prefer {@link ResponsiveImageCandidateBuilder}, which names the
-	 * optional arguments. This is public only because Liferay's coding standards
-	 * have no way to spell a package private constructor, and the builder has to
-	 * reach it from its own compilation unit.
-	 *
-	 * @param url the URL this candidate is fetched from
-	 * @param width the candidate's intrinsic width in pixels, or <code>null</code>
-	 */
 	public ResponsiveImageCandidate(String url, Integer width) {
 		_url = url;
 		_width = width;
@@ -55,13 +36,6 @@ public final class ResponsiveImageCandidate {
 	/**
 	 * Returns this rendition's width in pixels, or <code>null</code> if
 	 * unknown.
-	 *
-	 * <p>
-	 * A fact about the rendition, independent of how a browser selects it. When
-	 * rendered into a <code>srcset</code> it becomes the <code>w</code>
-	 * descriptor, which the browser trusts without verifying: if it does not
-	 * match the width the URL actually serves, selection silently picks wrong.
-	 * </p>
 	 *
 	 * @return the width in pixels, or <code>null</code>
 	 */

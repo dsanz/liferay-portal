@@ -5,6 +5,7 @@
 
 package com.liferay.responsive.image.internal;
 
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
@@ -43,9 +44,6 @@ import org.junit.Test;
 import org.mockito.Mockito;
 
 /**
- * Wires the provider to a mocked servlet request and URL builder, so that what
- * is asserted is the markup a browser would actually receive.
- *
  * @author Daniel Sanz
  */
 public class ResponsiveImageFactoryTest {
@@ -75,9 +73,6 @@ public class ResponsiveImageFactoryTest {
 		).thenReturn(
 			_COMPANY_ID
 		);
-
-		// The registry parses configuration; this only consumes what it
-		// hands back.
 
 		Mockito.when(
 			_responsiveImageConfigurationRegistry.getScopedConfiguration(
@@ -145,12 +140,6 @@ public class ResponsiveImageFactoryTest {
 
 	@Test
 	public void testConfiguredRendererNameReachesTheURLBuilder() {
-
-		// Which vendor spells the URLs is a configuration decision, so this
-		// provider resolves the configured name against the registered
-		// renderers and hands the builder the one it found, rather than
-		// leaving the builder to pick by service ranking.
-
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
 
 		_firstGroupCandidates();
@@ -164,9 +153,6 @@ public class ResponsiveImageFactoryTest {
 	@Test
 	public void testDeclinesBeforeBuildingWhenNoRendererIsDeployed()
 		throws Exception {
-
-		// The renderer name is the switch. Off, nothing should be built at
-		// all rather than a ladder whose URLs all come back identical.
 
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
 
@@ -183,11 +169,6 @@ public class ResponsiveImageFactoryTest {
 
 	@Test
 	public void testDeclinesImagesTheCDNDoesNotFront() {
-
-		// An absolute URL on another host never reaches the optimizer, so
-		// appending parameters would change the URL without changing the
-		// response.
-
 		Mockito.when(
 			_imageResource.getURL()
 		).thenReturn(
@@ -221,11 +202,6 @@ public class ResponsiveImageFactoryTest {
 
 	@Test
 	public void testMaxWidthTruncatesLadderKeepingTheBoundaryWidth() {
-
-		// A soft cap: 640 is above the 500 pixel maximum but is the smallest
-		// candidate that satisfies it, so it must survive. Filtering strictly
-		// below would leave only 320.
-
 		_givenPresetGroup(_preset(null, 500, null, "500px"));
 
 		List<ResponsiveImageCandidate> responsiveImageCandidates =
@@ -242,10 +218,6 @@ public class ResponsiveImageFactoryTest {
 
 	@Test
 	public void testTransformsWithoutAHttpServletRequest() {
-
-		// The content transformer chain has no request to give, and refusing
-		// there would leave web content unoptimized.
-
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
 
 		ResponsiveImage responsiveImage = _responsiveImageFactory.create(
@@ -314,11 +286,6 @@ public class ResponsiveImageFactoryTest {
 		return ResponsiveImageRequest.of(_imageResource);
 	}
 
-	/**
-	 * Stands in for the real builder, which lives in a package this module
-	 * cannot see. When <code>transforming</code> is false it returns the URL
-	 * untouched, reproducing what happens when no vendor renderer is deployed.
-	 */
 	private void _setUpAbsolutePortalURLBuilderFactory(boolean transforming) {
 		Mockito.when(
 			_absolutePortalURLBuilderFactory.getAbsolutePortalURLBuilder(
@@ -410,7 +377,7 @@ public class ResponsiveImageFactoryTest {
 		return responsiveImageCandidate.getWidth();
 	}
 
-	private static final long _COMPANY_ID = 42L;
+	private static final long _COMPANY_ID = RandomTestUtil.randomLong();
 
 	private final AbsolutePortalURLBuilder _absolutePortalURLBuilder =
 		Mockito.mock(AbsolutePortalURLBuilder.class);

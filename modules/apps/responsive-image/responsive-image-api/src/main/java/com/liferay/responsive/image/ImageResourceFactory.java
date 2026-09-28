@@ -11,14 +11,6 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 import org.osgi.annotation.versioning.ProviderType;
 
 /**
- * Creates {@link ImageResource} instances.
- *
- * <p>
- * A service rather than static factory methods because resolving a file entry's
- * URL and intrinsic dimensions needs collaborators that consumers should not
- * have to wire up themselves.
- * </p>
- *
  * @author Daniel Sanz
  */
 @ProviderType
@@ -37,14 +29,8 @@ public interface ImageResourceFactory {
 	/**
 	 * Returns a resource for an image at an arbitrary URL.
 	 *
-	 * <p>
-	 * A URL on a host the CDN does not front cannot be transformed at all, and
-	 * providers are expected to decline it.
-	 * </p>
-	 *
 	 * @param  url the image URL
-	 * @param  mimeType the image mime type, or <code>null</code> if unknown, in
-	 *         which case providers will decline it
+	 * @param  mimeType the image mime type, or <code>null</code> if unknown
 	 * @return the resource
 	 */
 	public ImageResource fromURL(String url, String mimeType);

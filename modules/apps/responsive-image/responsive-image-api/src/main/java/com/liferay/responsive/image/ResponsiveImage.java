@@ -9,12 +9,13 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * A resolved image, ready to be rendered or serialized.
+ * A resolved image, ready to be rendered or serialized in a responsive way.
  *
  * <p>
- * A model rather than a markup string on purpose. Content rewriting needs HTML,
- * but the page editor needs JSON and patches attributes onto elements that
- * already exist, and both should go through the same provider.
+ * A model rather than a markup string on purpose, because different pieces
+ * require different renditions. Content rewriting needs HTML, but the page
+ * editor needs JSON and patches attributes onto elements that
+ * already exist.
  * </p>
  *
  * <p>
@@ -70,9 +71,8 @@ public final class ResponsiveImage {
 	}
 
 	/**
-	 * Constructs a result carrying only the untransformed URL, used whenever no
-	 * provider claimed the resource so that callers always get something
-	 * renderable.
+	 * Constructs a result carrying only the untransformed URL, used whenever
+	 * resource is not claimed, so that callers always get something renderable.
 	 *
 	 * @param src the untransformed URL
 	 */
@@ -81,7 +81,7 @@ public final class ResponsiveImage {
 	}
 
 	/**
-	 * Returns the sources, or an empty list when no provider could
+	 * Returns the sources, or an empty list when no systemr could
 	 * support the resource. Empty is not an error: callers render a plain
 	 * image tag pointing at {@link #getSrc()}.
 	 *
@@ -108,13 +108,6 @@ public final class ResponsiveImage {
 
 	/**
 	 * Returns whether this image should be loaded lazily.
-	 *
-	 * <p>
-	 * Decided by the provider, which already had to know it in order to spell
-	 * the <code>sizes</code> attribute. Resolving it a second time at render
-	 * time would mean two layers reading configuration the provider may never
-	 * have held, and disagreeing without anything catching it.
-	 * </p>
 	 *
 	 * @return <code>true</code> if this image should be loaded lazily
 	 */

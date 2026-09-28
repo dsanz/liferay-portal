@@ -12,15 +12,7 @@ package com.liferay.responsive.image;
  * <p>
  * Deliberately not tied to {@code FileEntry}: the images to render also live in
  * OSGi modules, in the legacy portal image path, or on a completely different
- * host. Providers that need more than this interface exposes narrow the type
- * (see {@link FileEntryImageResource}) and use {@link
- * ResponsiveImageProvider#isSupported} to decline resources they cannot
- * serve.
- * </p>
- *
- * <p>
- * This is the <b>input</b>; the outputs are {@link
- * ResponsiveImageCandidate} instances.
+ * host.
  * </p>
  *
  * <p>
@@ -32,20 +24,8 @@ package com.liferay.responsive.image;
  * </p>
  *
  * <p>
- * Deliberately carries no intrinsic dimensions. They are obtainable for a
- * document library file, but only through raw metadata at a cost of several
- * queries per image, and they buy less than they appear to: with upscaling
- * disabled, a candidate wider than the original simply returns the original, so
- * truncating a ladder at the source width mainly forfeits resolution the
- * browser could have used. Bound ladders with a source definition's maximum width
- * instead, which describes the rendered size and costs nothing to read.
- * </p>
- *
- * <p>
- * Deliberately not <code>@ProviderType</code>, unlike the factories in this
- * package. A caller with an image that is not a document library file entry, in
- * an OSGi bundle or on another host, implements this, so adding a method here
- * is a breaking change.
+ * Deliberately carries no intrinsic dimensions, as they are not cheaply
+ * obtainable in general.
  * </p>
  *
  * @author Daniel Sanz
@@ -54,20 +34,6 @@ public interface ImageResource {
 
 	/**
 	 * Returns the image's mime type, or <code>null</code> if it is not known.
-	 *
-	 * <p>
-	 * Providers use it to decline formats that must not be resampled, such as
-	 * SVG, where resampling would rasterize a vector and lose the point of
-	 * shipping it.
-	 * </p>
-	 *
-	 * <p>
-	 * Frequently <code>null</code> outside the document library, which always
-	 * stores it. A caller pointing at a module resource or a foreign host may
-	 * simply not know, and providers are expected to decline rather than guess:
-	 * serving the original untouched is a worse outcome than serving a
-	 * rendition, but a rasterized logo is worse than both.
-	 * </p>
 	 *
 	 * @return the mime type, or <code>null</code>
 	 */

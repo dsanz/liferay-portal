@@ -38,20 +38,6 @@ public interface TransformedImageAbsolutePortalURLBuilder
 	/**
 	 * Requests a transformation, by the name the renderer's provider gives it.
 	 *
-	 * <p>
-	 * Transformations are not modelled one method per option on purpose. Which
-	 * ones exist is the provider's vocabulary, not this builder's: Fastly alone
-	 * spells roughly thirty, they differ between providers, and callers get
-	 * them from configuration as name and value pairs already. Naming a few
-	 * here would imply the rest are unsupported.
-	 * </p>
-	 *
-	 * <p>
-	 * Adding the same name twice replaces the earlier value, so a caller can
-	 * layer per placement transformations over defaults without checking what
-	 * is already there.
-	 * </p>
-	 *
 	 * @param  name the transformation name
 	 * @param  value the transformation value
 	 * @return this builder
@@ -63,12 +49,8 @@ public interface TransformedImageAbsolutePortalURLBuilder
 	 * Sets the renderer that spells the transformations.
 	 *
 	 * <p>
-	 * Required in order for anything to be transformed. Which provider serves a
-	 * given image is a configuration decision, and the caller is the one
-	 * holding that configuration, so it supplies the renderer rather than
-	 * naming one for this builder to look up. Passing <code>null</code>, which
-	 * is what a caller that cannot resolve one should do, drops the
-	 * transformations and returns the untransformed URL.
+	 * Passing <code>null</code> drops the transformations and returns the
+	 * untransformed URL.
 	 * </p>
 	 *
 	 * @param  imageTransformationURLRenderer the renderer, or <code>null</code>

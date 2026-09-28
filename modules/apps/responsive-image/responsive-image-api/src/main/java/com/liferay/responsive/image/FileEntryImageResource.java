@@ -10,11 +10,6 @@ import com.liferay.portal.kernel.repository.model.FileEntry;
 /**
  * An {@link ImageResource} backed by a document library file entry.
  *
- * <p>
- * Providers whose model is file entry keyed (Adaptive Media, for one) accept
- * only this narrower type and decline everything else.
- * </p>
- *
  * @author Daniel Sanz
  */
 public interface FileEntryImageResource extends ImageResource {
