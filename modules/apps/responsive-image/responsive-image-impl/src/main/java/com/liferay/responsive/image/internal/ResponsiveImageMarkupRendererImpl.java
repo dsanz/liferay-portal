@@ -12,28 +12,24 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
+import com.liferay.portal.url.builder.AbsolutePortalURLBuilderFactory;
+import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
 import com.liferay.responsive.image.ImageResource;
 import com.liferay.responsive.image.ResponsiveImage;
 import com.liferay.responsive.image.ResponsiveImageCandidate;
 import com.liferay.responsive.image.ResponsiveImageMarkupRenderer;
-import com.liferay.responsive.image.ResponsiveImageProvider;
 import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.internal.configuration.MarkupShape;
-import com.liferay.responsive.image.internal.configuration.PresetDefinition;
 import com.liferay.responsive.image.internal.configuration.PresetDefinitionRegistry;
-import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfiguration;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationValidator;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Supplier;
 
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.annotations.Activate;
@@ -108,15 +104,8 @@ public class ResponsiveImageMarkupRendererImpl
 			return null;
 		}
 
-		ResponsiveImageProvider responsiveImageProvider =
-			_getResponsiveImageProvider(imageResource, responsiveImageRequest);
-
-		if (responsiveImageProvider == null) {
-			return null;
-		}
-
-		ResponsiveImage responsiveImage =
-			responsiveImageProvider.getResponsiveImage(responsiveImageRequest);
+		ResponsiveImage responsiveImage = _responsiveImageFactory.create(
+			responsiveImageRequest);
 
 		if (responsiveImage == null) {
 			return null;
@@ -135,17 +124,14 @@ public class ResponsiveImageMarkupRendererImpl
 			return null;
 		}
 
-		PresetDefinition presetDefinition =
-			_presetDefinitionRegistry.getPresetDefinition(
-				_responsiveImageConfigurationHelper.getGroupId(
-					responsiveImageRequest),
-				_responsiveImageConfigurationHelper.getCompanyId(
-					responsiveImageRequest),
-				responsiveImageRequest.getPresetName());
-
 		MarkupShape markupShape =
 			ResponsiveImageConfigurationValidator.getMarkupShape(
-				presetDefinition);
+				_presetDefinitionRegistry.getPresetDefinition(
+					_responsiveImageConfigurationHelper.getGroupId(
+						responsiveImageRequest),
+					_responsiveImageConfigurationHelper.getCompanyId(
+						responsiveImageRequest),
+					responsiveImageRequest.getPresetName()));
 
 		if (markupShape == MarkupShape.IMG) {
 			return _renderImg(
@@ -160,7 +146,7 @@ public class ResponsiveImageMarkupRendererImpl
 	@Activate
 	protected void activate(BundleContext bundleContext) {
 		_serviceTrackerList = ServiceTrackerListFactory.open(
-			bundleContext, ResponsiveImageProvider.class);
+			bundleContext, ImageTransformationURLRenderer.class);
 
 		_responsiveImageConfigurationHelper =
 			new ResponsiveImageConfigurationHelper(
@@ -169,77 +155,14 @@ public class ResponsiveImageMarkupRendererImpl
 		_presetDefinitionRegistry = new PresetDefinitionRegistry(
 			_configurationProvider, _portal);
 
-		_responsiveImageProvidersSupplier = _serviceTrackerList::toList;
+		_responsiveImageFactory = new ResponsiveImageFactory(
+			_absolutePortalURLBuilderFactory, _presetDefinitionRegistry,
+			_responsiveImageConfigurationHelper, _serviceTrackerList::toList);
 	}
 
 	@Deactivate
 	protected void deactivate() {
 		_serviceTrackerList.close();
-	}
-
-	private String _getProviderName(
-		ResponsiveImageRequest responsiveImageRequest) {
-
-		ResponsiveImageConfiguration responsiveImageConfiguration =
-			_responsiveImageConfigurationHelper.getResponsiveImageConfiguration(
-				_responsiveImageConfigurationHelper.getGroupId(
-					responsiveImageRequest),
-				_responsiveImageConfigurationHelper.getCompanyId(
-					responsiveImageRequest));
-
-		if (responsiveImageConfiguration == null) {
-			return null;
-		}
-
-		return responsiveImageConfiguration.providerName();
-	}
-
-	/**
-	 * Returns the provider configured for this request, or <code>null</code>.
-	 *
-	 * <p>
-	 * Selection is by configured name, never by service ranking, and an
-	 * unconfigured site selects nothing rather than the first provider that
-	 * happens to be registered. Deploying this bundle must not change how
-	 * existing images are served, and the caller falls back to Adaptive Media
-	 * on null.
-	 * </p>
-	 */
-	private ResponsiveImageProvider _getResponsiveImageProvider(
-		ImageResource imageResource,
-		ResponsiveImageRequest responsiveImageRequest) {
-
-		List<ResponsiveImageProvider> responsiveImageProviders =
-			_responsiveImageProvidersSupplier.get();
-
-		if (responsiveImageProviders == null) {
-			return null;
-		}
-
-		String providerName = _getProviderName(responsiveImageRequest);
-
-		if (Validator.isBlank(providerName)) {
-			return null;
-		}
-
-		for (ResponsiveImageProvider responsiveImageProvider :
-				responsiveImageProviders) {
-
-			if (responsiveImageProvider.isSupported(imageResource) &&
-				providerName.equals(responsiveImageProvider.getName())) {
-
-				return responsiveImageProvider;
-			}
-		}
-
-		if (_log.isDebugEnabled()) {
-			_log.debug(
-				StringBundler.concat(
-					"No provider named ", providerName, " supports ",
-					imageResource.getURL()));
-		}
-
-		return null;
 	}
 
 	private String _getSrcSet(
@@ -420,9 +343,9 @@ public class ResponsiveImageMarkupRendererImpl
 	 * </p>
 	 */
 	@Reference
-	private static final Log _log = LogFactoryUtil.getLog(
-		ResponsiveImageMarkupRendererImpl.class);
+	private AbsolutePortalURLBuilderFactory _absolutePortalURLBuilderFactory;
 
+	@Reference
 	private ConfigurationProvider _configurationProvider;
 
 	@Reference
@@ -431,8 +354,8 @@ public class ResponsiveImageMarkupRendererImpl
 	private PresetDefinitionRegistry _presetDefinitionRegistry;
 	private ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper;
-	private Supplier<List<ResponsiveImageProvider>>
-		_responsiveImageProvidersSupplier;
-	private ServiceTrackerList<ResponsiveImageProvider> _serviceTrackerList;
+	private ResponsiveImageFactory _responsiveImageFactory;
+	private ServiceTrackerList<ImageTransformationURLRenderer>
+		_serviceTrackerList;
 
 }

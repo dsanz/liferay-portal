@@ -163,34 +163,21 @@ public interface ResponsiveImageConfiguration {
 	public String[] presets();
 
 	/**
-	 * Name of the active provider (for example <code>cdn</code> or
-	 * <code>cdn</code>). Left blank, the framework declines and images are
-	 * served by Adaptive Media exactly as before.
+	 * Name of the image optimization service whose URL vocabulary is used,
+	 * for example <code>fastly</code>. Must match the name reported by a
+	 * deployed {@code ImageTransformationURLRenderer}.
 	 *
 	 * <p>
-	 * Selection is by name rather than by service ranking so that the active
-	 * provider is greppable in configuration instead of implied by numbers
-	 * spread across bundles.
-	 * </p>
-	 */
-	@Meta.AD(deflt = "", name = "provider-name", required = false)
-	public String providerName();
-
-	/**
-	 * Name of the image optimization provider whose URL vocabulary is used, for
-	 * example <code>fastly</code>. Must match the name reported by a deployed
-	 * {@code ImageTransformationURLRenderer}.
-	 *
-	 * <p>
-	 * Separate from {@link #providerName()} because the two are orthogonal: the
-	 * provider decides how renditions are produced, the renderer decides how
-	 * their URLs are spelled. Adaptive Media is a provider with no renderer, and
-	 * the generic CDN provider works with any of them.
+	 * <b>This is the switch.</b> Left blank, or naming a renderer that is not
+	 * deployed, the framework produces nothing and images are served by
+	 * Adaptive Media exactly as before. It is site scoped, so one site can be
+	 * moved over while the rest are not.
 	 * </p>
 	 *
 	 * <p>
-	 * Left blank, nothing is transformed and images are served untouched, which
-	 * is also what happens if it names a renderer that is not deployed.
+	 * Named rather than chosen by service ranking, so the active renderer is
+	 * greppable in configuration instead of implied by numbers spread across
+	 * bundles.
 	 * </p>
 	 */
 	@Meta.AD(deflt = "", name = "url-renderer-name", required = false)

@@ -3,17 +3,13 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.responsive.image.internal.cdn;
+package com.liferay.responsive.image.internal;
 
-import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
-import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
-import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilderFactory;
@@ -23,7 +19,6 @@ import com.liferay.responsive.image.ImageResource;
 import com.liferay.responsive.image.ResponsiveImage;
 import com.liferay.responsive.image.ResponsiveImageCandidate;
 import com.liferay.responsive.image.ResponsiveImageCandidateBuilder;
-import com.liferay.responsive.image.ResponsiveImageProvider;
 import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
@@ -38,90 +33,61 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
-
-import org.osgi.framework.BundleContext;
-import org.osgi.service.component.annotations.Activate;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Deactivate;
-import org.osgi.service.component.annotations.Reference;
+import java.util.function.Supplier;
 
 /**
- * Generates renditions by asking an image optimization provider for arbitrary
- * widths on demand.
+ * Builds a {@link ResponsiveImage} by asking an image optimization service for
+ * arbitrary widths on demand.
  *
  * <p>
- * Provider agnostic on purpose. It owns the candidate ladder, the preset, and the
- * markup, and delegates only the URL vocabulary to the registered {@link
- * ImageTransformationURLRenderer}, so supporting another CDN is one small
- * renderer rather than another copy of this class.
+ * Vendor agnostic. It owns the candidate ladder and the preset, and delegates
+ * only the URL vocabulary to the configured {@link
+ * ImageTransformationURLRenderer}, so supporting another optimizer is one
+ * small renderer rather than another copy of this class. That is also why
+ * there is no provider abstraction above it: everything except the URL
+ * spelling is the same whoever serves the bytes.
  * </p>
  *
  * @author Daniel Sanz
  */
-@Component(service = ResponsiveImageProvider.class)
-public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
+public class ResponsiveImageFactory {
 
-	public static final String NAME = "cdn";
+	public ResponsiveImageFactory(
+		AbsolutePortalURLBuilderFactory absolutePortalURLBuilderFactory,
+		PresetDefinitionRegistry presetDefinitionRegistry,
+		ResponsiveImageConfigurationHelper responsiveImageConfigurationHelper,
+		Supplier<List<ImageTransformationURLRenderer>>
+			imageTransformationURLRenderersSupplier) {
 
-	@Override
-	public String getName() {
-		return NAME;
+		_absolutePortalURLBuilderFactory = absolutePortalURLBuilderFactory;
+		_presetDefinitionRegistry = presetDefinitionRegistry;
+		_responsiveImageConfigurationHelper =
+			responsiveImageConfigurationHelper;
+		_imageTransformationURLRenderersSupplier =
+			imageTransformationURLRenderersSupplier;
 	}
 
-	@Override
-	public ResponsiveImage getResponsiveImage(
+	/**
+	 * Returns the renditions for this request, or <code>null</code> if none
+	 * could be produced.
+	 *
+	 * <p>
+	 * Declines generously. An image the optimizer cannot serve, or a format
+	 * that must not be resampled, answers <code>null</code> so the caller
+	 * hands over rather than emitting a srcset of identical images.
+	 * </p>
+	 */
+	public ResponsiveImage create(
 		ResponsiveImageRequest responsiveImageRequest) {
 
-		return _getResponsiveImage(
-			responsiveImageRequest,
-			_resolvePresetDefinition(responsiveImageRequest));
-	}
-
-	@Override
-	public boolean isSupported(ImageResource imageResource) {
-		if (imageResource == null) {
-			return false;
+		if (!_isSupported(responsiveImageRequest.getImageResource())) {
+			return null;
 		}
 
-		String mimeType = imageResource.getMimeType();
-
-		if (Validator.isBlank(mimeType) || !mimeType.startsWith("image/") ||
-			_excludedMimeTypes.contains(mimeType)) {
-
-			return false;
-		}
-
-		String url = imageResource.getURL();
-
-		// An image the CDN does not front never reaches the optimizer, so
-		// appending parameters to it would change the URL without changing the
-		// response. Decline rather than emit a srcset of identical images.
-
-		if (Validator.isBlank(url) || !url.startsWith(StringPool.SLASH)) {
-			return false;
-		}
-
-		return true;
-	}
-
-	@Activate
-	protected void activate(BundleContext bundleContext) {
-		_responsiveImageConfigurationHelper =
-			new ResponsiveImageConfigurationHelper(
-				_configurationProvider, _portal);
-
-		_presetDefinitionRegistry = new PresetDefinitionRegistry(
-			_configurationProvider, _portal);
-
-		_serviceTrackerList = ServiceTrackerListFactory.open(
-			bundleContext, ImageTransformationURLRenderer.class);
-	}
-
-	@Deactivate
-	protected void deactivate() {
-		_serviceTrackerList.close();
+		return _getResponsiveImage(responsiveImageRequest);
 	}
 
 	private String _buildURL(
@@ -157,8 +123,15 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 			return null;
 		}
 
+		List<ImageTransformationURLRenderer> imageTransformationURLRenderers =
+			_imageTransformationURLRenderersSupplier.get();
+
+		if (imageTransformationURLRenderers == null) {
+			return null;
+		}
+
 		for (ImageTransformationURLRenderer imageTransformationURLRenderer :
-				_serviceTrackerList) {
+				imageTransformationURLRenderers) {
 
 			if (urlRendererName.equals(
 					imageTransformationURLRenderer.getName())) {
@@ -175,10 +148,12 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 	}
 
 	private ResponsiveImage _getResponsiveImage(
-		ResponsiveImageRequest responsiveImageRequest,
-		PresetDefinition presetDefinition) {
+		ResponsiveImageRequest responsiveImageRequest) {
 
 		ScopedSettings scopedSettings = _getScopedSettings(
+			responsiveImageRequest);
+
+		PresetDefinition presetDefinition = _resolvePresetDefinition(
 			responsiveImageRequest);
 
 		List<SourceDefinition> sourceDefinitions =
@@ -281,10 +256,15 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 			responsiveImageConfiguration.defaultTransformations();
 		String[] candidateWidths =
 			responsiveImageConfiguration.candidateWidths();
+		String urlRendererName = responsiveImageConfiguration.urlRendererName();
 
-		int contentHash =
-			(31 * Arrays.hashCode(defaultTransformations)) +
-				Arrays.hashCode(candidateWidths);
+		// Every value held below has to be hashed here. Leaving one out
+		// means an administrator changing it alone sees nothing happen,
+		// which is what this memo did to the renderer name.
+
+		int contentHash = Objects.hash(
+			Arrays.hashCode(defaultTransformations),
+			Arrays.hashCode(candidateWidths), urlRendererName);
 
 		long scopeKey = _responsiveImageConfigurationHelper.getScopeKey(
 			groupId, companyId);
@@ -298,8 +278,7 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 		}
 
 		scopedSettings = new ScopedSettings(
-			contentHash, _toMap(defaultTransformations),
-			responsiveImageConfiguration.urlRendererName(),
+			contentHash, _toMap(defaultTransformations), urlRendererName,
 			_toWidths(candidateWidths));
 
 		_scopedSettings.put(scopeKey, scopedSettings);
@@ -341,6 +320,32 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 		}
 
 		return widths;
+	}
+
+	private boolean _isSupported(ImageResource imageResource) {
+		if (imageResource == null) {
+			return false;
+		}
+
+		String mimeType = imageResource.getMimeType();
+
+		if (Validator.isBlank(mimeType) || !mimeType.startsWith("image/") ||
+			_excludedMimeTypes.contains(mimeType)) {
+
+			return false;
+		}
+
+		String url = imageResource.getURL();
+
+		// An image the CDN does not front never reaches the optimizer, so
+		// appending parameters to it would change the URL without changing the
+		// response. Decline rather than emit a srcset of identical images.
+
+		if (Validator.isBlank(url) || !url.startsWith(StringPool.SLASH)) {
+			return false;
+		}
+
+		return true;
 	}
 
 	/**
@@ -414,7 +419,7 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
-		CDNResponsiveImageProvider.class);
+		ResponsiveImageFactory.class);
 
 	private static final ScopedSettings _emptyScopedSettings =
 		new ScopedSettings(
@@ -422,22 +427,15 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 	private static final List<String> _excludedMimeTypes = Arrays.asList(
 		"image/svg+xml", "image/x-icon");
 
-	@Reference
-	private AbsolutePortalURLBuilderFactory _absolutePortalURLBuilderFactory;
-
-	@Reference
-	private ConfigurationProvider _configurationProvider;
-
-	@Reference
-	private Portal _portal;
-
-	private PresetDefinitionRegistry _presetDefinitionRegistry;
-	private ResponsiveImageConfigurationHelper
+	private final AbsolutePortalURLBuilderFactory
+		_absolutePortalURLBuilderFactory;
+	private final Supplier<List<ImageTransformationURLRenderer>>
+		_imageTransformationURLRenderersSupplier;
+	private final PresetDefinitionRegistry _presetDefinitionRegistry;
+	private final ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper;
 	private final Map<Long, ScopedSettings> _scopedSettings =
 		new ConcurrentHashMap<>();
-	private ServiceTrackerList<ImageTransformationURLRenderer>
-		_serviceTrackerList;
 
 	private static class ScopedSettings {
 

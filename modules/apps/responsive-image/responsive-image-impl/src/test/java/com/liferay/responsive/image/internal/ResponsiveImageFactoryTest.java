@@ -3,10 +3,8 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-package com.liferay.responsive.image.internal.cdn;
+package com.liferay.responsive.image.internal;
 
-import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
-import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
@@ -49,7 +47,7 @@ import org.mockito.Mockito;
  *
  * @author Daniel Sanz
  */
-public class CDNResponsiveImageProviderTest {
+public class ResponsiveImageFactoryTest {
 
 	@ClassRule
 	@Rule
@@ -102,37 +100,18 @@ public class CDNResponsiveImageProviderTest {
 			new String[] {"320", "640", "1280"}
 		);
 
-		_setUpAbsolutePortalURLBuilderFactory(true);
-
-		ReflectionTestUtil.setFieldValue(
-			_cdnResponsiveImageProvider, "_absolutePortalURLBuilderFactory",
-			_absolutePortalURLBuilderFactory);
 		Mockito.when(
 			_imageTransformationURLRenderer.getName()
 		).thenReturn(
 			"fastly"
 		);
 
-		Mockito.when(
-			_serviceTrackerList.iterator()
-		).thenAnswer(
-			invocation -> {
-				List<ImageTransformationURLRenderer> renderers =
-					Collections.singletonList(_imageTransformationURLRenderer);
+		_setUpAbsolutePortalURLBuilderFactory(true);
 
-				return renderers.iterator();
-			}
-		);
-
-		ReflectionTestUtil.setFieldValue(
-			_cdnResponsiveImageProvider, "_serviceTrackerList",
-			_serviceTrackerList);
-		ReflectionTestUtil.setFieldValue(
-			_cdnResponsiveImageProvider, "_presetDefinitionRegistry",
-			_presetDefinitionRegistry);
-		ReflectionTestUtil.setFieldValue(
-			_cdnResponsiveImageProvider, "_responsiveImageConfigurationHelper",
-			_responsiveImageConfigurationHelper);
+		_responsiveImageFactory = new ResponsiveImageFactory(
+			_absolutePortalURLBuilderFactory, _presetDefinitionRegistry,
+			_responsiveImageConfigurationHelper,
+			() -> Collections.singletonList(_imageTransformationURLRenderer));
 	}
 
 	@Test
@@ -155,6 +134,35 @@ public class CDNResponsiveImageProviderTest {
 		Assert.assertEquals(
 			"/documents/1/2/photo.jpg?crop=1%3A1&disable=upscale&width=320",
 			responsiveImageCandidate.getURL());
+	}
+
+	@Test
+	public void testChangingTheURLRendererNameTakesEffect() throws Exception {
+
+		// The renderer name is the switch, so a memo that does not notice it
+		// changing leaves an administrator turning the feature on or off with
+		// nothing happening until some other setting moves.
+
+		_givenPresetGroup(_preset(null, null, null, "100vw"));
+
+		_responsiveImageFactory.create(_request());
+
+		Assert.assertEquals(
+			Collections.singleton(_imageTransformationURLRenderer),
+			_imageTransformationURLRenderers);
+
+		_imageTransformationURLRenderers.clear();
+
+		Mockito.when(
+			_responsiveImageConfiguration.urlRendererName()
+		).thenReturn(
+			"not-deployed"
+		);
+
+		_responsiveImageFactory.create(_request());
+
+		Assert.assertEquals(
+			Collections.singleton(null), _imageTransformationURLRenderers);
 	}
 
 	@Test
@@ -188,8 +196,7 @@ public class CDNResponsiveImageProviderTest {
 			"https://example.com/photo.jpg"
 		);
 
-		Assert.assertFalse(
-			_cdnResponsiveImageProvider.isSupported(_imageResource));
+		Assert.assertNull(_responsiveImageFactory.create(_request()));
 	}
 
 	@Test
@@ -200,8 +207,7 @@ public class CDNResponsiveImageProviderTest {
 			"image/svg+xml"
 		);
 
-		Assert.assertFalse(
-			_cdnResponsiveImageProvider.isSupported(_imageResource));
+		Assert.assertNull(_responsiveImageFactory.create(_request()));
 	}
 
 	@Test
@@ -212,8 +218,7 @@ public class CDNResponsiveImageProviderTest {
 			null
 		);
 
-		Assert.assertFalse(
-			_cdnResponsiveImageProvider.isSupported(_imageResource));
+		Assert.assertNull(_responsiveImageFactory.create(_request()));
 	}
 
 	@Test
@@ -245,9 +250,8 @@ public class CDNResponsiveImageProviderTest {
 
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
 
-		ResponsiveImage responsiveImage =
-			_cdnResponsiveImageProvider.getResponsiveImage(
-				_requestWithoutHttpServletRequest());
+		ResponsiveImage responsiveImage = _responsiveImageFactory.create(
+			_requestWithoutHttpServletRequest());
 
 		Assert.assertFalse(
 			String.valueOf(responsiveImage.getSources()),
@@ -256,8 +260,8 @@ public class CDNResponsiveImageProviderTest {
 	}
 
 	private List<ResponsiveImageCandidate> _firstGroupCandidates() {
-		ResponsiveImage responsiveImage =
-			_cdnResponsiveImageProvider.getResponsiveImage(_request());
+		ResponsiveImage responsiveImage = _responsiveImageFactory.create(
+			_request());
 
 		List<ResponsiveImageSource> responsiveImageSources =
 			responsiveImage.getSources();
@@ -416,8 +420,6 @@ public class CDNResponsiveImageProviderTest {
 	private final AbsolutePortalURLBuilderFactory
 		_absolutePortalURLBuilderFactory = Mockito.mock(
 			AbsolutePortalURLBuilderFactory.class);
-	private final CDNResponsiveImageProvider _cdnResponsiveImageProvider =
-		new CDNResponsiveImageProvider();
 	private final HttpServletRequest _httpServletRequest = Mockito.mock(
 		HttpServletRequest.class);
 	private final ImageResource _imageResource = Mockito.mock(
@@ -434,9 +436,6 @@ public class CDNResponsiveImageProviderTest {
 	private final ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper = Mockito.mock(
 			ResponsiveImageConfigurationHelper.class);
-
-	@SuppressWarnings("unchecked")
-	private final ServiceTrackerList<ImageTransformationURLRenderer>
-		_serviceTrackerList = Mockito.mock(ServiceTrackerList.class);
+	private ResponsiveImageFactory _responsiveImageFactory;
 
 }
