@@ -27,7 +27,7 @@ import com.liferay.responsive.image.ResponsiveImageProvider;
 import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
-import com.liferay.responsive.image.internal.configuration.PresetDefinitionResolver;
+import com.liferay.responsive.image.internal.configuration.PresetDefinitionRegistry;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfiguration;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
 import com.liferay.responsive.image.internal.configuration.SourceDefinition;
@@ -112,7 +112,7 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 			new ResponsiveImageConfigurationHelper(
 				_configurationProvider, _portal);
 
-		_presetDefinitionResolver = new PresetDefinitionResolver(
+		_presetDefinitionRegistry = new PresetDefinitionRegistry(
 			_configurationProvider, _portal);
 
 		_serviceTrackerList = ServiceTrackerListFactory.open(
@@ -356,7 +356,7 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 	private PresetDefinition _resolvePresetDefinition(
 		ResponsiveImageRequest responsiveImageRequest) {
 
-		return _presetDefinitionResolver.resolve(
+		return _presetDefinitionRegistry.getPresetDefinition(
 			_responsiveImageConfigurationHelper.getGroupId(
 				responsiveImageRequest),
 			_responsiveImageConfigurationHelper.getCompanyId(
@@ -431,7 +431,7 @@ public class CDNResponsiveImageProvider implements ResponsiveImageProvider {
 	@Reference
 	private Portal _portal;
 
-	private PresetDefinitionResolver _presetDefinitionResolver;
+	private PresetDefinitionRegistry _presetDefinitionRegistry;
 	private ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper;
 	private final Map<Long, ScopedSettings> _scopedSettings =

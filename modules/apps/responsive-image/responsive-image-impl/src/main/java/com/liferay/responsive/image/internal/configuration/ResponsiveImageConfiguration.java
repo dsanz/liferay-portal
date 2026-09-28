@@ -159,10 +159,7 @@ public interface ResponsiveImageConfiguration {
 	 * the <code>Accept</code> header instead.
 	 * </p>
 	 */
-	@Meta.AD(
-		deflt = "default.default.sizes=100vw", name = "presets",
-		required = false
-	)
+	@Meta.AD(deflt = "", name = "presets", required = false)
 	public String[] presets();
 
 	/**

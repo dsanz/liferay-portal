@@ -26,7 +26,7 @@ import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.internal.configuration.MarkupShape;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
-import com.liferay.responsive.image.internal.configuration.PresetDefinitionResolver;
+import com.liferay.responsive.image.internal.configuration.PresetDefinitionRegistry;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfiguration;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationValidator;
@@ -135,12 +135,13 @@ public class ResponsiveImageMarkupRendererImpl
 			return null;
 		}
 
-		PresetDefinition presetDefinition = _presetDefinitionResolver.resolve(
-			_responsiveImageConfigurationHelper.getGroupId(
-				responsiveImageRequest),
-			_responsiveImageConfigurationHelper.getCompanyId(
-				responsiveImageRequest),
-			responsiveImageRequest.getPresetName());
+		PresetDefinition presetDefinition =
+			_presetDefinitionRegistry.getPresetDefinition(
+				_responsiveImageConfigurationHelper.getGroupId(
+					responsiveImageRequest),
+				_responsiveImageConfigurationHelper.getCompanyId(
+					responsiveImageRequest),
+				responsiveImageRequest.getPresetName());
 
 		boolean lazy = presetDefinition.isLazy(
 			responsiveImageRequest.getLazy());
@@ -166,7 +167,7 @@ public class ResponsiveImageMarkupRendererImpl
 			new ResponsiveImageConfigurationHelper(
 				_configurationProvider, _portal);
 
-		_presetDefinitionResolver = new PresetDefinitionResolver(
+		_presetDefinitionRegistry = new PresetDefinitionRegistry(
 			_configurationProvider, _portal);
 
 		_responsiveImageProvidersSupplier = _serviceTrackerList::toList;
@@ -428,7 +429,7 @@ public class ResponsiveImageMarkupRendererImpl
 	@Reference
 	private Portal _portal;
 
-	private PresetDefinitionResolver _presetDefinitionResolver;
+	private PresetDefinitionRegistry _presetDefinitionRegistry;
 	private ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper;
 	private Supplier<List<ResponsiveImageProvider>>

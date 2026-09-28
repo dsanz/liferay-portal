@@ -20,7 +20,7 @@ import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageRequestBuilder;
 import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
-import com.liferay.responsive.image.internal.configuration.PresetDefinitionResolver;
+import com.liferay.responsive.image.internal.configuration.PresetDefinitionRegistry;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfiguration;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
 import com.liferay.responsive.image.internal.configuration.SourceDefinition;
@@ -128,8 +128,8 @@ public class CDNResponsiveImageProviderTest {
 			_cdnResponsiveImageProvider, "_serviceTrackerList",
 			_serviceTrackerList);
 		ReflectionTestUtil.setFieldValue(
-			_cdnResponsiveImageProvider, "_presetDefinitionResolver",
-			_presetDefinitionResolver);
+			_cdnResponsiveImageProvider, "_presetDefinitionRegistry",
+			_presetDefinitionRegistry);
 		ReflectionTestUtil.setFieldValue(
 			_cdnResponsiveImageProvider, "_responsiveImageConfigurationHelper",
 			_responsiveImageConfigurationHelper);
@@ -270,7 +270,7 @@ public class CDNResponsiveImageProviderTest {
 
 	private void _givenPresetGroup(SourceDefinition... sourceDefinitions) {
 		Mockito.when(
-			_presetDefinitionResolver.resolve(
+			_presetDefinitionRegistry.getPresetDefinition(
 				Mockito.anyLong(), Mockito.anyLong(),
 				Mockito.nullable(String.class))
 		).thenReturn(
@@ -427,8 +427,8 @@ public class CDNResponsiveImageProviderTest {
 			ImageTransformationURLRenderer.class);
 	private final Set<ImageTransformationURLRenderer>
 		_imageTransformationURLRenderers = new HashSet<>();
-	private final PresetDefinitionResolver _presetDefinitionResolver =
-		Mockito.mock(PresetDefinitionResolver.class);
+	private final PresetDefinitionRegistry _presetDefinitionRegistry =
+		Mockito.mock(PresetDefinitionRegistry.class);
 	private final ResponsiveImageConfiguration _responsiveImageConfiguration =
 		Mockito.mock(ResponsiveImageConfiguration.class);
 	private final ResponsiveImageConfigurationHelper

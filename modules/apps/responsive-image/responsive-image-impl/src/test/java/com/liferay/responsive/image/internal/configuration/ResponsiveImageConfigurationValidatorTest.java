@@ -127,7 +127,7 @@ public class ResponsiveImageConfigurationValidatorTest {
 
 		String mediaQuery = null;
 
-		if (!_NAME_DEFAULT.equals(mediaConditionName)) {
+		if (!_MEDIA_CONDITION_DEFAULT.equals(mediaConditionName)) {
 			mediaQuery = "(min-width: 768px)";
 		}
 
@@ -141,7 +141,7 @@ public class ResponsiveImageConfigurationValidatorTest {
 			Collections.singletonMap(_NAME_HERO, presetDefinition));
 	}
 
-	private static final String _NAME_DEFAULT = "default";
+	private static final String _MEDIA_CONDITION_DEFAULT = "default";
 
 	private static final String _NAME_HERO = "hero";
 
