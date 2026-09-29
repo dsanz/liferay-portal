@@ -12,10 +12,10 @@ import java.util.Map;
  * concrete image optimization provider (typically a CDN).
  *
  * <p>
- * The {@link TransformedImageAbsolutePortalURLBuilder} collects transformations
- * in a provider neutral way. This interface performs the last step: turning
- * those transformations into whatever query string or path segment contract
- * the provider understands.
+ * The {@link TransformedImageAbsolutePortalURLBuilder} turns the provided
+ * transformations into whatever query string or path segment contract the
+ * provider understands, and deciding which of them the provider understands
+ * at all.
  * </p>
  *
  * <p>
@@ -41,10 +41,10 @@ public interface ImageTransformationURLRenderer {
 	 *
 	 * @param  url the image URL to transform
 	 * @param  transformations the transformations to apply, keyed by the
-	 *         provider neutral names used by {@link
-	 *         TransformedImageAbsolutePortalURLBuilder}
+	 *         provider's own parameter names
 	 * @return the transformed URL, or <code>url</code> unchanged if the
-	 *         provider cannot apply any of the transformations
+	 *         provider cannot apply any of the transformations, which includes
+	 *         the case where it recognizes none of them
 	 */
 	public String render(String url, Map<String, String> transformations);
 

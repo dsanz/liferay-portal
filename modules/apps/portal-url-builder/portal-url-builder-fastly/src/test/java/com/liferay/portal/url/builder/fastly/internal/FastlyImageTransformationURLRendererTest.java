@@ -5,6 +5,7 @@
 
 package com.liferay.portal.url.builder.fastly.internal;
 
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.LinkedHashMapBuilder;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
@@ -38,11 +39,24 @@ public class FastlyImageTransformationURLRendererTest {
 	}
 
 	@Test
+	public void testRenderDropsParametersFastlyDoesNotDefine() {
+		Assert.assertEquals(
+			"/photo.jpg?width=320",
+			_fastlyImageTransformationURLRenderer.render(
+				"/photo.jpg",
+				HashMapBuilder.put(
+					RandomTestUtil.randomString(), RandomTestUtil.randomString()
+				).put(
+					"width", "320"
+				).build()));
+	}
+
+	@Test
 	public void testRenderEncodesValues() {
 		String url = _fastlyImageTransformationURLRenderer.render(
 			"/documents/1/2/photo.jpg",
 			HashMapBuilder.put(
-				"bgColor", "rgb(1, 2, 3)"
+				"bg-color", "rgb(1, 2, 3)"
 			).build());
 
 		Assert.assertEquals(
@@ -51,11 +65,6 @@ public class FastlyImageTransformationURLRendererTest {
 
 	@Test
 	public void testRenderIsDeterministicRegardlessOfInsertionOrder() {
-
-		// Two maps holding the same transformations in opposite orders must
-		// produce byte identical URLs. Otherwise the edge holds two cache
-		// objects for one image.
-
 		Assert.assertEquals(
 			_fastlyImageTransformationURLRenderer.render(
 				"/documents/1/2/photo.jpg",
@@ -78,36 +87,24 @@ public class FastlyImageTransformationURLRendererTest {
 	}
 
 	@Test
-	public void testRenderMapsHyphenatedParameterNames() {
-
-		// Fastly spells these differently from the provider neutral names the
-		// URL builder collects.
-
-		Assert.assertEquals(
-			"/photo.jpg?bg-color=red&resize-filter=lanczos3&trim-color=white",
-			_fastlyImageTransformationURLRenderer.render(
-				"/photo.jpg",
-				HashMapBuilder.put(
-					"bgColor", "red"
-				).put(
-					"resizeFilter", "lanczos3"
-				).put(
-					"trimColor", "white"
-				).build()));
-	}
-
-	@Test
-	public void testRenderPassesUnknownParametersThrough() {
-
-		// The escape hatch: options this framework never enumerated still
-		// reach Fastly untouched.
-
+	public void testRenderPassesEveryDefinedParameterThrough() {
 		Assert.assertEquals(
 			"/photo.jpg?orient=6",
 			_fastlyImageTransformationURLRenderer.render(
 				"/photo.jpg",
 				HashMapBuilder.put(
 					"orient", "6"
+				).build()));
+	}
+
+	@Test
+	public void testRenderReturnsTheURLWhenNothingIsUnderstood() {
+		Assert.assertEquals(
+			"/photo.jpg",
+			_fastlyImageTransformationURLRenderer.render(
+				"/photo.jpg",
+				HashMapBuilder.put(
+					RandomTestUtil.randomString(), RandomTestUtil.randomString()
 				).build()));
 	}
 

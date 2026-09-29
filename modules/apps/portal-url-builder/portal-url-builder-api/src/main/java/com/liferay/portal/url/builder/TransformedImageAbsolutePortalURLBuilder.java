@@ -22,10 +22,11 @@ import com.liferay.portal.url.builder.facet.CDNAwareAbsolutePortalURLBuilder;
  * </p>
  *
  * <p>
- * Transformations are collected in a provider neutral form and rendered by the
- * registered {@link ImageTransformationURLRenderer}. When no renderer is
- * available the transformations are dropped and the untransformed URL is
- * returned, so callers always receive a usable URL.
+ * Transformations are collected as opaque name and value pairs and rendered
+ * by the registered {@link ImageTransformationURLRenderer}, which is the only
+ * thing that knows what any of them mean. When no renderer is available the
+ * transformations are dropped and the untransformed URL is returned, so
+ * callers always receive a usable URL.
  * </p>
  *
  * @author Daniel Sanz

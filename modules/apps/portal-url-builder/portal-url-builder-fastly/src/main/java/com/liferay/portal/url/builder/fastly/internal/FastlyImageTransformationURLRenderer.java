@@ -9,7 +9,6 @@ import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
-import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Validator;
 import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
 
@@ -17,9 +16,10 @@ import java.io.UnsupportedEncodingException;
 
 import java.net.URLEncoder;
 
-import java.nio.charset.StandardCharsets;
-
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import org.osgi.service.component.annotations.Component;
@@ -28,10 +28,9 @@ import org.osgi.service.component.annotations.Component;
  * Renders transformations as Fastly Image Optimizer URL parameters.
  *
  * <p>
- * The whole of Fastly's URL vocabulary lives here. Nothing above this class
- * knows that Fastly spells a background color <code>bg-color</code>, which is
- * what makes adding another provider a matter of writing a sibling of this
- * class rather than touching the framework.
+ * To minimize number of CDN cache entries, transformations not recognized by
+ * Fastly are ignored. Also, URL parameters are sorted in order to produce
+ * exactly the same URL regardless of insertion order in transformations map.
  * </p>
  *
  * @author Daniel Sanz
@@ -55,23 +54,25 @@ public class FastlyImageTransformationURLRenderer
 			return url;
 		}
 
-		// Sorted so equal transformations always render byte identically. Two
-		// URLs differing only in parameter order are distinct cache objects
-		// holding the same image, which quietly halves the hit ratio.
-
 		Map<String, String> parameters = new TreeMap<>();
 
 		for (Map.Entry<String, String> entry : transformations.entrySet()) {
-			String name = entry.getKey();
 
-			if (Validator.isBlank(name) ||
+			if (Validator.isBlank(entry.getKey()) ||
 				Validator.isBlank(entry.getValue())) {
 
 				continue;
 			}
 
-			parameters.put(
-				_parameterNames.getOrDefault(name, name), entry.getValue());
+			if (!_parameterNames.contains(entry.getKey())) {
+				if (_log.isWarnEnabled()) {
+					_log.warn("Ignoring unknown transformation " + entry.getKey());
+				}
+
+				continue;
+			}
+
+			parameters.put(entry.getKey(), entry.getValue());
 		}
 
 		if (parameters.isEmpty()) {
@@ -104,7 +105,7 @@ public class FastlyImageTransformationURLRenderer
 
 	private String _encode(String value) {
 		try {
-			return URLEncoder.encode(value, StandardCharsets.UTF_8.name());
+			return URLEncoder.encode(value, "UTF-8");
 		}
 		catch (UnsupportedEncodingException unsupportedEncodingException) {
 			if (_log.isWarnEnabled()) {
@@ -120,20 +121,17 @@ public class FastlyImageTransformationURLRenderer
 		FastlyImageTransformationURLRenderer.class);
 
 	/**
-	 * Transformation names that Fastly spells differently. Anything absent is
-	 * passed through unchanged, so callers can use parameters this framework
-	 * never enumerated.
+	 * Every parameter Fastly Image Optimizer defines.
 	 *
-	 * @see <a href="https://www.fastly.com/documentation/reference/io/">Fastly
-	 *      Image Optimizer reference</a>
+	 * @see <a href="https://www.fastly.com/documentation/reference/io/">
+	 *      Fastly Image Optimizer reference</a>
 	 */
-	private static final Map<String, String> _parameterNames =
-		HashMapBuilder.put(
-			"bgColor", "bg-color"
-		).put(
-			"resizeFilter", "resize-filter"
-		).put(
-			"trimColor", "trim-color"
-		).build();
+	private static final Set<String> _parameterNames = new HashSet<>(
+		Arrays.asList(
+			"auto", "bg-color", "blur", "brightness", "bw", "canvas",
+			"contrast", "crop", "disable", "dpr", "enable", "fit", "format",
+			"frame", "height", "level", "metadata", "optimize", "orient", "pad",
+			"precrop", "profile", "quality", "resize-filter", "saturation",
+			"sharpen", "trim", "viewbox", "width"));
 
 }
