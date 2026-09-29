@@ -162,21 +162,17 @@ public class TransformedImageAbsolutePortalURLBuilderTest
 			_imageTransformationURLRenderer
 		);
 
-		TransformedImageAbsolutePortalURLBuilder
-			transformedImageAbsolutePortalURLBuilder =
-				_absolutePortalURLBuilder.forTransformedImage(
-					"/documents/d/guest/image.png"
-				).addTransformation(
-					"quality", "80"
-				).addTransformation(
-					"width", "320"
-				).setRenderer(
-					_imageTransformationURLRenderer
-				);
-
 		Assert.assertEquals(
 			_transformedImageAbsolutePortalURLBuilder.build(),
-			transformedImageAbsolutePortalURLBuilder.build());
+			_absolutePortalURLBuilder.forTransformedImage(
+				"/documents/d/guest/image.png"
+			).addTransformation(
+				"quality", "80"
+			).addTransformation(
+				"width", "320"
+			).setRenderer(
+				_imageTransformationURLRenderer
+			).build());
 	}
 
 	@Parameterized.Parameter(1)
