@@ -19,6 +19,8 @@ import com.liferay.portal.url.builder.BundleScriptAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.BundleStylesheetAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.ComboRequestAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.ESModuleAbsolutePortalURLBuilder;
+import com.liferay.portal.url.builder.ImageTransformationAbsolutePortalURLBuilder;
+import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
 import com.liferay.portal.url.builder.PortalImageAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.PortalMainResourceAbsolutePortalURLBuilder;
 import com.liferay.portal.url.builder.PortletDependencyAbsolutePortalURLBuilder;
@@ -99,6 +101,16 @@ public class AbsolutePortalURLBuilderImpl implements AbsolutePortalURLBuilder {
 			_getCDNHost(_httpServletRequest), esModulePath,
 			_hashedFilesRegistry, _httpServletRequest, _pathModule, _pathProxy,
 			webContextName);
+	}
+
+	@Override
+	public ImageTransformationAbsolutePortalURLBuilder forImageTransformation(
+		ImageTransformationURLRenderer imageTransformationURLRenderer,
+		String resourcePath) {
+
+		return new ImageTransformationAbsolutePortalURLBuilderImpl(
+			_getCDNHost(_httpServletRequest), imageTransformationURLRenderer,
+			_pathProxy, resourcePath);
 	}
 
 	@Override
