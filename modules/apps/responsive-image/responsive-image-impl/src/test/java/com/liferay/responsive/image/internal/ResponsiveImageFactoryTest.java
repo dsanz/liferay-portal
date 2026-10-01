@@ -109,8 +109,8 @@ public class ResponsiveImageFactoryTest {
 		_setUpResponsiveImageURLTransformer();
 
 		_responsiveImageFactory = new ResponsiveImageFactory(
-			_portal, _responsiveImageConfigurationRegistry,
-			_responsiveImageConfigurationHelper, _serviceTrackerMap);
+			_portal, _responsiveImageConfigurationHelper,
+			_responsiveImageConfigurationRegistry, _serviceTrackerMap);
 	}
 
 	@Test
@@ -302,10 +302,12 @@ public class ResponsiveImageFactoryTest {
 		ResponsiveImage responsiveImage = _responsiveImageFactory.create(
 			ResponsiveImageRequest.of(_imageResource));
 
+		List<ResponsiveImageSource> responsiveImageSources =
+			responsiveImage.getSources();
+
 		Assert.assertFalse(
-			String.valueOf(responsiveImage.getSources()),
-			responsiveImage.getSources(
-			).isEmpty());
+			String.valueOf(responsiveImageSources),
+			responsiveImageSources.isEmpty());
 	}
 
 	private List<ResponsiveImageCandidate> _firstSourceCandidates() {

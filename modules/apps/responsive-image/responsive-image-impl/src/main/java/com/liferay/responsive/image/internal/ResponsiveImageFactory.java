@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 
 /**
  * @author Daniel Sanz
@@ -37,17 +38,17 @@ public class ResponsiveImageFactory {
 
 	public ResponsiveImageFactory(
 		Portal portal,
+		ResponsiveImageConfigurationHelper responsiveImageConfigurationHelper,
 		ResponsiveImageConfigurationRegistry
 			responsiveImageConfigurationRegistry,
-		ResponsiveImageConfigurationHelper responsiveImageConfigurationHelper,
 		ServiceTrackerMap<String, ResponsiveImageURLTransformer>
 			serviceTrackerMap) {
 
 		_portal = portal;
-		_responsiveImageConfigurationRegistry =
-			responsiveImageConfigurationRegistry;
 		_responsiveImageConfigurationHelper =
 			responsiveImageConfigurationHelper;
+		_responsiveImageConfigurationRegistry =
+			responsiveImageConfigurationRegistry;
 		_serviceTrackerMap = serviceTrackerMap;
 	}
 
@@ -88,7 +89,7 @@ public class ResponsiveImageFactory {
 			_getResponsiveImageSources(
 				presetDefinition, responsiveImageURLTransformer,
 				scopedConfiguration,
-				_getURL(companyId, imageResource.getURL(), scopedConfiguration))
+				_getURL(companyId, scopedConfiguration, imageResource.getURL()))
 		).build();
 	}
 
@@ -182,7 +183,7 @@ public class ResponsiveImageFactory {
 	 * </p>
 	 */
 	private String _getURL(
-		long companyId, String url, ScopedConfiguration scopedConfiguration) {
+		long companyId, ScopedConfiguration scopedConfiguration, String url) {
 
 		String host = scopedConfiguration.getCDNHost();
 
@@ -209,13 +210,14 @@ public class ResponsiveImageFactory {
 		ScopedConfiguration scopedConfiguration,
 		SourceDefinition sourceDefinition) {
 
+		TreeSet<Integer> candidateWidths =
+			scopedConfiguration.getCandidateWidths();
+
+		List<Integer> widths = new ArrayList<>(candidateWidths.size());
+
 		Integer maxWidth = sourceDefinition.getMaxWidth();
 
-		List<Integer> widths = new ArrayList<>(
-			scopedConfiguration.getCandidateWidths(
-			).size());
-
-		for (Integer width : scopedConfiguration.getCandidateWidths()) {
+		for (Integer width : candidateWidths) {
 			widths.add(width);
 
 			if ((maxWidth != null) && (width >= maxWidth)) {
@@ -234,11 +236,7 @@ public class ResponsiveImageFactory {
 		String mimeType = imageResource.getMimeType();
 
 		if (Validator.isBlank(mimeType) || !mimeType.startsWith("image/") ||
-			Arrays.asList(
-				"image/svg+xml", "image/x-icon"
-			).contains(
-				mimeType
-			)) {
+			_excludedMimeTypes.contains(mimeType)) {
 
 			return false;
 		}
@@ -254,6 +252,9 @@ public class ResponsiveImageFactory {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ResponsiveImageFactory.class);
+
+	private static final List<String> _excludedMimeTypes = Arrays.asList(
+		"image/svg+xml", "image/x-icon");
 
 	private final Portal _portal;
 	private final ResponsiveImageConfigurationHelper

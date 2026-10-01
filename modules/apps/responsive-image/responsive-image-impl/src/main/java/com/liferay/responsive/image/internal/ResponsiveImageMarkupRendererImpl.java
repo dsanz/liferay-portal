@@ -100,10 +100,10 @@ public class ResponsiveImageMarkupRendererImpl
 				_configurationProvider, _portal);
 
 		_responsiveImageFactory = new ResponsiveImageFactory(
-			_portal,
+			_portal, _responsiveImageConfigurationHelper,
 			new ResponsiveImageConfigurationRegistry(
 				_configurationProvider, _portal),
-			_responsiveImageConfigurationHelper, _serviceTrackerMap);
+			_serviceTrackerMap);
 	}
 
 	@Deactivate
