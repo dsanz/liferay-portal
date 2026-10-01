@@ -12,7 +12,7 @@ import com.liferay.portal.kernel.security.auth.CompanyThreadLocal;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
-import com.liferay.portal.url.builder.ImageTransformationAbsolutePortalURLBuilder;
+import com.liferay.portal.url.builder.TransformedImageAbsolutePortalURLBuilder;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -49,7 +49,7 @@ public class AbsolutePortalURLBuilderImplTest
 	}
 
 	@Test
-	public void testForImageTransformationOmitsCDNHostWithoutCompany() {
+	public void testForTransformedImageOmitsCDNHostWithoutCompany() {
 		_setCDNHosts(_CDN_HOST_HTTP, _CDN_HOST_HTTPS);
 
 		CompanyThreadLocal.setCompanyId(CompanyConstants.SYSTEM);
@@ -58,7 +58,7 @@ public class AbsolutePortalURLBuilderImplTest
 	}
 
 	@Test
-	public void testForImageTransformationStripsTheCDNHostTrailingSlash() {
+	public void testForTransformedImageStripsTheCDNHostTrailingSlash() {
 		_setCDNHosts(_CDN_HOST_HTTP, _CDN_HOST_HTTPS + StringPool.SLASH);
 
 		CompanyThreadLocal.setCompanyId(_COMPANY_ID);
@@ -67,7 +67,7 @@ public class AbsolutePortalURLBuilderImplTest
 	}
 
 	@Test
-	public void testForImageTransformationUsesHTTPCDNHostWhenHTTPSIsBlank() {
+	public void testForTransformedImageUsesHTTPCDNHostWhenHTTPSIsBlank() {
 		_setCDNHosts(_CDN_HOST_HTTP, StringPool.BLANK);
 
 		CompanyThreadLocal.setCompanyId(_COMPANY_ID);
@@ -76,7 +76,7 @@ public class AbsolutePortalURLBuilderImplTest
 	}
 
 	@Test
-	public void testForImageTransformationUsesHTTPSCDNHost() {
+	public void testForTransformedImageUsesHTTPSCDNHost() {
 		_setCDNHosts(_CDN_HOST_HTTP, _CDN_HOST_HTTPS);
 
 		CompanyThreadLocal.setCompanyId(_COMPANY_ID);
@@ -91,12 +91,12 @@ public class AbsolutePortalURLBuilderImplTest
 				mockHashedFilesRegistry(CachingStrategy.DO_NOT_USE_HASHES),
 				_portal, null);
 
-		ImageTransformationAbsolutePortalURLBuilder
-			imageTransformationAbsolutePortalURLBuilder =
-				absolutePortalURLBuilderImpl.forImageTransformation(
+		TransformedImageAbsolutePortalURLBuilder
+			transformedImageAbsolutePortalURLBuilder =
+				absolutePortalURLBuilderImpl.forTransformedImage(
 					null, _RESOURCE_PATH);
 
-		return imageTransformationAbsolutePortalURLBuilder.build();
+		return transformedImageAbsolutePortalURLBuilder.build();
 	}
 
 	private void _setCDNHosts(String cdnHostHttp, String cdnHostHttps) {

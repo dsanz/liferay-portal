@@ -28,7 +28,7 @@ import org.mockito.MockitoAnnotations;
 /**
  * @author Daniel Sanz
  */
-public class FastlyImageOptimizerImageTransformationURLRendererTest {
+public class FastlyImageOptimizerTransformedImageURLRendererTest {
 
 	@ClassRule
 	@Rule
@@ -245,9 +245,9 @@ public class FastlyImageOptimizerImageTransformationURLRendererTest {
 
 	private static final String _URL = RandomTestUtil.randomString();
 
-	private final FastlyImageOptimizerImageTransformationURLRenderer
+	private final FastlyImageOptimizerTransformedImageURLRenderer
 		_fastlyImageOptimizerImageTransformationURLRenderer =
-			new FastlyImageOptimizerImageTransformationURLRenderer();
+			new FastlyImageOptimizerTransformedImageURLRenderer();
 
 	@Mock
 	private Portal _portal;

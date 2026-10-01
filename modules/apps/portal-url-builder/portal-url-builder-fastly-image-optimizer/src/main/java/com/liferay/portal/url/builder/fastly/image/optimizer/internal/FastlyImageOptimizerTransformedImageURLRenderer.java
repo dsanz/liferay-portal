@@ -10,7 +10,7 @@ import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.HttpComponentsUtil;
 import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
+import com.liferay.portal.url.builder.TransformedImageURLRenderer;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -34,9 +34,9 @@ import org.osgi.service.component.annotations.Component;
  *
  * @author Daniel Sanz
  */
-@Component(service = ImageTransformationURLRenderer.class)
-public class FastlyImageOptimizerImageTransformationURLRenderer
-	implements ImageTransformationURLRenderer {
+@Component(service = TransformedImageURLRenderer.class)
+public class FastlyImageOptimizerTransformedImageURLRenderer
+	implements TransformedImageURLRenderer {
 
 	public static final String NAME = "fastlyImageOptimizer";
 
@@ -84,7 +84,7 @@ public class FastlyImageOptimizerImageTransformationURLRenderer
 	}
 
 	private static final Log _log = LogFactoryUtil.getLog(
-		FastlyImageOptimizerImageTransformationURLRenderer.class);
+		FastlyImageOptimizerTransformedImageURLRenderer.class);
 
 	/**
 	 * @see <a href="https://www.fastly.com/documentation/reference/io">
