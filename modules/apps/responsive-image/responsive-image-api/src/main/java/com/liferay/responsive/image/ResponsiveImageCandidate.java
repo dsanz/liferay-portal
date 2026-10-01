@@ -19,9 +19,14 @@ package com.liferay.responsive.image;
  */
 public final class ResponsiveImageCandidate {
 
-	public ResponsiveImageCandidate(String url, Integer width) {
-		_url = url;
-		_width = width;
+	/**
+	 * Returns a builder for a candidate at the given URL.
+	 *
+	 * @param  url the rendition's URL
+	 * @return the builder
+	 */
+	public static Builder builder(String url) {
+		return new Builder(url);
 	}
 
 	/**
@@ -41,6 +46,32 @@ public final class ResponsiveImageCandidate {
 	 */
 	public Integer getWidth() {
 		return _width;
+	}
+
+	public static class Builder {
+
+		public ResponsiveImageCandidate build() {
+			return new ResponsiveImageCandidate(_url, _width);
+		}
+
+		public Builder width(Integer width) {
+			_width = width;
+
+			return this;
+		}
+
+		private Builder(String url) {
+			_url = url;
+		}
+
+		private final String _url;
+		private Integer _width;
+
+	}
+
+	private ResponsiveImageCandidate(String url, Integer width) {
+		_url = url;
+		_width = width;
 	}
 
 	private final String _url;

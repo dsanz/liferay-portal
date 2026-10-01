@@ -83,13 +83,14 @@ public class ResponsiveImageConfigurationRegistry {
 		String[] mediaConditions =
 			responsiveImageConfiguration.mediaConditions();
 		String[] presets = responsiveImageConfiguration.presets();
-		String urlRendererName = responsiveImageConfiguration.urlRendererName();
+		String responsiveImageURLTransformerName =
+			responsiveImageConfiguration.responsiveImageURLTransformerName();
 
 		int contentHash = Objects.hash(
 			Arrays.hashCode(candidateWidths),
 			Arrays.hashCode(defaultTransformations), cdnHost,
 			Arrays.hashCode(mediaConditions), Arrays.hashCode(presets),
-			urlRendererName);
+			responsiveImageURLTransformerName);
 
 		long scopeKey = _responsiveImageConfigurationHelper.getScopeKey(
 			groupId, companyId);
@@ -107,7 +108,7 @@ public class ResponsiveImageConfigurationRegistry {
 			_toWidths(candidateWidths), contentHash,
 			_toEntries(defaultTransformations), cdnHost,
 			_toPresetDefinitions(_toMediaConditions(mediaConditions), presets),
-			urlRendererName);
+			responsiveImageURLTransformerName);
 
 		_scopedConfigurations.put(scopeKey, scopedConfiguration);
 
@@ -151,22 +152,23 @@ public class ResponsiveImageConfigurationRegistry {
 				ResponsiveImagePresetConstants.DEFAULT);
 		}
 
-		public String getURLRendererName() {
-			return _urlRendererName;
+		public String getResponsiveImageURLTransformerName() {
+			return _responsiveImageURLTransformerName;
 		}
 
 		private ScopedConfiguration(
 			TreeSet<Integer> candidateWidths, int contentHash,
 			Map<String, String> defaultTransformations, String cdnHost,
 			Map<String, PresetDefinition> presetDefinitions,
-			String urlRendererName) {
+			String responsiveImageURLTransformerName) {
 
 			_candidateWidths = candidateWidths;
 			_contentHash = contentHash;
 			_defaultTransformations = defaultTransformations;
 			_cdnHost = cdnHost;
 			_presetDefinitions = presetDefinitions;
-			_urlRendererName = urlRendererName;
+			_responsiveImageURLTransformerName =
+				responsiveImageURLTransformerName;
 		}
 
 		private int _getContentHash() {
@@ -182,7 +184,7 @@ public class ResponsiveImageConfigurationRegistry {
 		private final int _contentHash;
 		private final Map<String, String> _defaultTransformations;
 		private final Map<String, PresetDefinition> _presetDefinitions;
-		private final String _urlRendererName;
+		private final String _responsiveImageURLTransformerName;
 
 	}
 

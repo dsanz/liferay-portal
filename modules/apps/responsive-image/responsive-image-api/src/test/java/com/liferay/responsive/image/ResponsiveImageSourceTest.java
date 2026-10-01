@@ -28,22 +28,36 @@ public class ResponsiveImageSourceTest {
 
 	@Test(expected = UnsupportedOperationException.class)
 	public void testCandidatesAreUnmodifiable() {
-		ResponsiveImageSource responsiveImageSource = ResponsiveImageSource.of(
-			null, "100vw", _candidates);
+		ResponsiveImageSource responsiveImageSource =
+			ResponsiveImageSource.builder(
+			).candidates(
+				_candidates
+			).mediaQuery(
+				null
+			).sizes(
+				"100vw"
+			).build();
 
 		List<ResponsiveImageCandidate> responsiveImageCandidates =
 			responsiveImageSource.getCandidates();
 
 		responsiveImageCandidates.add(
-			ResponsiveImageCandidateBuilder.url(
+			ResponsiveImageCandidate.builder(
 				"/other.jpg"
 			).build());
 	}
 
 	@Test
 	public void testOfAllowsAProviderToDetermineItsOwnGroup() {
-		ResponsiveImageSource responsiveImageSource = ResponsiveImageSource.of(
-			"(max-width: 640px)", null, _candidates);
+		ResponsiveImageSource responsiveImageSource =
+			ResponsiveImageSource.builder(
+			).candidates(
+				_candidates
+			).mediaQuery(
+				"(max-width: 640px)"
+			).sizes(
+				null
+			).build();
 
 		Assert.assertEquals(
 			"(max-width: 640px)", responsiveImageSource.getMediaQuery());
@@ -52,19 +66,26 @@ public class ResponsiveImageSourceTest {
 
 	@Test
 	public void testUnconditionalGroupHasNoMediaQuery() {
-		ResponsiveImageSource responsiveImageSource = ResponsiveImageSource.of(
-			null, "100vw", Collections.<ResponsiveImageCandidate>emptyList());
+		ResponsiveImageSource responsiveImageSource =
+			ResponsiveImageSource.builder(
+			).candidates(
+				Collections.<ResponsiveImageCandidate>emptyList()
+			).mediaQuery(
+				null
+			).sizes(
+				"100vw"
+			).build();
 
 		Assert.assertNull(responsiveImageSource.getMediaQuery());
 	}
 
 	private final List<ResponsiveImageCandidate> _candidates = Arrays.asList(
-		ResponsiveImageCandidateBuilder.url(
+		ResponsiveImageCandidate.builder(
 			"/photo.jpg?width=320"
 		).width(
 			320
 		).build(),
-		ResponsiveImageCandidateBuilder.url(
+		ResponsiveImageCandidate.builder(
 			"/photo.jpg?width=640"
 		).width(
 			640

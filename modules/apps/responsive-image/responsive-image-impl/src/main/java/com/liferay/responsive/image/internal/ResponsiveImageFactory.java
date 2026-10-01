@@ -5,6 +5,7 @@
 
 package com.liferay.responsive.image.internal;
 
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -14,7 +15,6 @@ import com.liferay.portal.kernel.util.Validator;
 import com.liferay.responsive.image.ImageResource;
 import com.liferay.responsive.image.ResponsiveImage;
 import com.liferay.responsive.image.ResponsiveImageCandidate;
-import com.liferay.responsive.image.ResponsiveImageCandidateBuilder;
 import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.ResponsiveImageURLTransformer;
@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 /**
  * @author Daniel Sanz
@@ -40,16 +39,15 @@ public class ResponsiveImageFactory {
 		ResponsiveImageConfigurationRegistry
 			responsiveImageConfigurationRegistry,
 		ResponsiveImageConfigurationHelper responsiveImageConfigurationHelper,
-		Supplier<List<ResponsiveImageURLTransformer>>
-			responsiveImageURLTransformersSupplier) {
+		ServiceTrackerMap<String, ResponsiveImageURLTransformer>
+			serviceTrackerMap) {
 
 		_portal = portal;
 		_responsiveImageConfigurationRegistry =
 			responsiveImageConfigurationRegistry;
 		_responsiveImageConfigurationHelper =
 			responsiveImageConfigurationHelper;
-		_responsiveImageURLTransformersSupplier =
-			responsiveImageURLTransformersSupplier;
+		_serviceTrackerMap = serviceTrackerMap;
 	}
 
 	public ResponsiveImage create(
@@ -72,7 +70,7 @@ public class ResponsiveImageFactory {
 
 		ResponsiveImageURLTransformer responsiveImageURLTransformer =
 			_getResponsiveImageURLTransformer(
-				scopedConfiguration.getURLRendererName());
+				scopedConfiguration.getResponsiveImageURLTransformerName());
 
 		if (responsiveImageURLTransformer == null) {
 			return null;
@@ -82,13 +80,15 @@ public class ResponsiveImageFactory {
 			scopedConfiguration.getPresetDefinition(
 				responsiveImageRequest.getPresetName());
 
-		return new ResponsiveImage(
-			presetDefinition.isLazy(),
+		return ResponsiveImage.builder(
+		).lazy(
+			presetDefinition.isLazy()
+		).sources(
 			_getResponsiveImageSources(
 				presetDefinition, responsiveImageURLTransformer,
 				scopedConfiguration,
-				_getURL(
-					companyId, imageResource.getURL(), scopedConfiguration)));
+				_getURL(companyId, imageResource.getURL(), scopedConfiguration))
+		).build();
 	}
 
 	private List<ResponsiveImageCandidate> _getResponsiveImageCandidates(
@@ -106,15 +106,15 @@ public class ResponsiveImageFactory {
 			new ArrayList<>(widths.size());
 
 		for (Integer width : widths) {
-
 			responsiveImageCandidates.add(
-				ResponsiveImageCandidateBuilder.url(
+				ResponsiveImageCandidate.builder(
 					responsiveImageURLTransformer.transform(
-						url, HashMapBuilder.putAll(
-											imageTransformations
-										).put(
-											"width", String.valueOf(width)
-										).build())
+						url,
+						HashMapBuilder.putAll(
+							imageTransformations
+						).put(
+							"width", String.valueOf(width)
+						).build())
 				).width(
 					width
 				).build());
@@ -145,46 +145,38 @@ public class ResponsiveImageFactory {
 			}
 
 			responsiveImageSources.add(
-				ResponsiveImageSource.of(
-					sourceDefinition.getMediaQuery(),
-					sourceDefinition.getSizes(lazy),
+				ResponsiveImageSource.builder(
+				).candidates(
 					_getResponsiveImageCandidates(
 						responsiveImageURLTransformer, scopedConfiguration,
-						sourceDefinition, url, widths)));
+						sourceDefinition, url, widths)
+				).mediaQuery(
+					sourceDefinition.getMediaQuery()
+				).sizes(
+					sourceDefinition.getSizes(lazy)
+				).build());
 		}
 
 		return responsiveImageSources;
 	}
 
 	private ResponsiveImageURLTransformer _getResponsiveImageURLTransformer(
-		String urlRendererName) {
+		String responsiveImageURLTransformerName) {
 
-		if (Validator.isBlank(urlRendererName)) {
+		if (Validator.isBlank(responsiveImageURLTransformerName)) {
 			return null;
 		}
 
-		List<ResponsiveImageURLTransformer> responsiveImageURLTransformers =
-			_responsiveImageURLTransformersSupplier.get();
+		ResponsiveImageURLTransformer responsiveImageURLTransformer =
+			_serviceTrackerMap.getService(responsiveImageURLTransformerName);
 
-		if (responsiveImageURLTransformers == null) {
-			return null;
+		if ((responsiveImageURLTransformer == null) && _log.isDebugEnabled()) {
+			_log.debug(
+				"No image URL transformer is named " +
+					responsiveImageURLTransformerName);
 		}
 
-		for (ResponsiveImageURLTransformer responsiveImageURLTransformer :
-				responsiveImageURLTransformers) {
-
-			if (urlRendererName.equals(
-					responsiveImageURLTransformer.getName())) {
-
-				return responsiveImageURLTransformer;
-			}
-		}
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("No image URL transformer is named " + urlRendererName);
-		}
-
-		return null;
+		return responsiveImageURLTransformer;
 	}
 
 	/**
@@ -276,7 +268,7 @@ public class ResponsiveImageFactory {
 		_responsiveImageConfigurationHelper;
 	private final ResponsiveImageConfigurationRegistry
 		_responsiveImageConfigurationRegistry;
-	private final Supplier<List<ResponsiveImageURLTransformer>>
-		_responsiveImageURLTransformersSupplier;
+	private final ServiceTrackerMap<String, ResponsiveImageURLTransformer>
+		_serviceTrackerMap;
 
 }

@@ -16,6 +16,16 @@ import jakarta.servlet.http.HttpServletRequest;
 public final class ResponsiveImageRequest {
 
 	/**
+	 * Returns a builder for a request for the given image.
+	 *
+	 * @param  imageResource the image to render responsively
+	 * @return the builder
+	 */
+	public static Builder builder(ImageResource imageResource) {
+		return new Builder(imageResource);
+	}
+
+	/**
 	 * Returns a request for the given image, when placement information is not
 	 * available to the caller.
 	 *
@@ -23,28 +33,9 @@ public final class ResponsiveImageRequest {
 	 * @return the request
 	 */
 	public static ResponsiveImageRequest of(ImageResource imageResource) {
-		return ResponsiveImageRequestBuilder.imageResource(
+		return builder(
 			imageResource
 		).build();
-	}
-
-	/**
-	 * Returns a request for the given image, when placement information is
-	 * available to the caller.
-	 *
-	 * @param groupId the site being rendered for, or <code>0</code>
-	 * @param httpServletRequest the request being served, or <code>null</code>
-	 * @param imageResource the image to render responsively
-	 * @param presetName the preset name, or <code>null</code> for the default
-	 */
-	public ResponsiveImageRequest(
-		long groupId, HttpServletRequest httpServletRequest,
-		ImageResource imageResource, String presetName) {
-
-		_groupId = groupId;
-		_httpServletRequest = httpServletRequest;
-		_imageResource = imageResource;
-		_presetName = presetName;
 	}
 
 	/**
@@ -113,6 +104,58 @@ public final class ResponsiveImageRequest {
 	 */
 	public String getPresetName() {
 		return _presetName;
+	}
+
+	public static class Builder {
+
+		public ResponsiveImageRequest build() {
+			return new ResponsiveImageRequest(
+				_groupId, _httpServletRequest, _imageResource, _presetName);
+		}
+
+		public Builder groupId(long groupId) {
+			_groupId = groupId;
+
+			return this;
+		}
+
+		public Builder httpServletRequest(
+			HttpServletRequest httpServletRequest) {
+
+			_httpServletRequest = httpServletRequest;
+
+			return this;
+		}
+
+		public Builder presetName(String presetName) {
+			_presetName = presetName;
+
+			return this;
+		}
+
+		private Builder(ImageResource imageResource) {
+			if (imageResource == null) {
+				throw new IllegalArgumentException("Image resource is null");
+			}
+
+			_imageResource = imageResource;
+		}
+
+		private long _groupId;
+		private HttpServletRequest _httpServletRequest;
+		private final ImageResource _imageResource;
+		private String _presetName;
+
+	}
+
+	private ResponsiveImageRequest(
+		long groupId, HttpServletRequest httpServletRequest,
+		ImageResource imageResource, String presetName) {
+
+		_groupId = groupId;
+		_httpServletRequest = httpServletRequest;
+		_imageResource = imageResource;
+		_presetName = presetName;
 	}
 
 	private final long _groupId;

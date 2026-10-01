@@ -134,7 +134,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 		_givenConfiguration(new String[0], new String[0]);
 
 		Mockito.when(
-			_responsiveImageConfiguration.urlRendererName()
+			_responsiveImageConfiguration.responsiveImageURLTransformerName()
 		).thenReturn(
 			"fastly"
 		);
@@ -144,10 +144,12 @@ public class ResponsiveImageConfigurationRegistryTest {
 				_responsiveImageConfigurationRegistry.getScopedConfiguration(
 					0, _COMPANY_ID);
 
-		Assert.assertEquals("fastly", scopedConfiguration.getURLRendererName());
+		Assert.assertEquals(
+			"fastly",
+			scopedConfiguration.getResponsiveImageURLTransformerName());
 
 		Mockito.when(
-			_responsiveImageConfiguration.urlRendererName()
+			_responsiveImageConfiguration.responsiveImageURLTransformerName()
 		).thenReturn(
 			""
 		);
@@ -156,7 +158,8 @@ public class ResponsiveImageConfigurationRegistryTest {
 			_responsiveImageConfigurationRegistry.getScopedConfiguration(
 				0, _COMPANY_ID);
 
-		Assert.assertEquals("", scopedConfiguration.getURLRendererName());
+		Assert.assertEquals(
+			"", scopedConfiguration.getResponsiveImageURLTransformerName());
 	}
 
 	@Test

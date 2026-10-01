@@ -28,7 +28,7 @@ public class ResponsiveImageRequestTest {
 
 	@Test(expected = IllegalArgumentException.class)
 	public void testBuilderRejectsMissingImageResource() {
-		ResponsiveImageRequestBuilder.imageResource(null);
+		ResponsiveImageRequest.builder(null);
 	}
 
 	@Test
@@ -44,7 +44,7 @@ public class ResponsiveImageRequestTest {
 	@Test
 	public void testCarriesAHttpServletRequestWhenGiven() {
 		ResponsiveImageRequest responsiveImageRequest =
-			ResponsiveImageRequestBuilder.imageResource(
+			ResponsiveImageRequest.builder(
 				_imageResource
 			).httpServletRequest(
 				_httpServletRequest
@@ -58,7 +58,7 @@ public class ResponsiveImageRequestTest {
 	@Test
 	public void testDefersToTheCompanyWhenNoSiteIsGiven() {
 		ResponsiveImageRequest responsiveImageRequest =
-			ResponsiveImageRequestBuilder.imageResource(
+			ResponsiveImageRequest.builder(
 				_imageResource
 			).build();
 
@@ -76,7 +76,7 @@ public class ResponsiveImageRequestTest {
 	@Test
 	public void testPresetNameIsCarried() {
 		ResponsiveImageRequest responsiveImageRequest =
-			ResponsiveImageRequestBuilder.imageResource(
+			ResponsiveImageRequest.builder(
 				_imageResource
 			).presetName(
 				"card"
@@ -88,7 +88,7 @@ public class ResponsiveImageRequestTest {
 	@Test
 	public void testSiteIsCarried() {
 		ResponsiveImageRequest responsiveImageRequest =
-			ResponsiveImageRequestBuilder.imageResource(
+			ResponsiveImageRequest.builder(
 				_imageResource
 			).groupId(
 				12345

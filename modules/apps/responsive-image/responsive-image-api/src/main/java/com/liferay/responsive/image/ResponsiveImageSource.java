@@ -32,20 +32,12 @@ import java.util.List;
 public final class ResponsiveImageSource {
 
 	/**
-	 * Returns a source, having ignored any preset.
+	 * Returns a builder for a source.
 	 *
-	 * @param  mediaQuery the media condition, or <code>null</code> for the
-	 *         unconditional source
-	 * @param  sizes the sizes attribute, or <code>null</code> when this source
-	 *         holds a single candidate and has nothing to disambiguate
-	 * @param  candidates the candidates
-	 * @return the source
+	 * @return the builder
 	 */
-	public static ResponsiveImageSource of(
-		String mediaQuery, String sizes,
-		List<ResponsiveImageCandidate> candidates) {
-
-		return new ResponsiveImageSource(mediaQuery, sizes, candidates);
+	public static Builder builder() {
+		return new Builder();
 	}
 
 	/**
@@ -81,6 +73,60 @@ public final class ResponsiveImageSource {
 	 */
 	public String getSizes() {
 		return _sizes;
+	}
+
+	public static class Builder {
+
+		public ResponsiveImageSource build() {
+			return new ResponsiveImageSource(_mediaQuery, _sizes, _candidates);
+		}
+
+		/**
+		 * Sets this source's candidates.
+		 *
+		 * @param  candidates the candidates
+		 * @return this builder
+		 */
+		public Builder candidates(List<ResponsiveImageCandidate> candidates) {
+			_candidates = candidates;
+
+			return this;
+		}
+
+		/**
+		 * Sets the media condition under which this source applies. Leave it
+		 * unset for the unconditional source.
+		 *
+		 * @param  mediaQuery the media condition
+		 * @return this builder
+		 */
+		public Builder mediaQuery(String mediaQuery) {
+			_mediaQuery = mediaQuery;
+
+			return this;
+		}
+
+		/**
+		 * Sets the <code>sizes</code> attribute. Leave it unset when this
+		 * source holds a single candidate and has nothing to disambiguate.
+		 *
+		 * @param  sizes the sizes attribute value
+		 * @return this builder
+		 */
+		public Builder sizes(String sizes) {
+			_sizes = sizes;
+
+			return this;
+		}
+
+		private Builder() {
+		}
+
+		private List<ResponsiveImageCandidate> _candidates =
+			Collections.emptyList();
+		private String _mediaQuery;
+		private String _sizes;
+
 	}
 
 	private ResponsiveImageSource(

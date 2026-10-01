@@ -29,14 +29,6 @@ import java.util.Map;
 public interface ResponsiveImageURLTransformer {
 
 	/**
-	 * Returns the name of the provider this transformer speaks for, for
-	 * example <code>fastly</code>.
-	 *
-	 * @return the provider name
-	 */
-	public String getName();
-
-	/**
 	 * Returns the URL with the given image transformations applied.
 	 *
 	 * @param  url the image URL to transform

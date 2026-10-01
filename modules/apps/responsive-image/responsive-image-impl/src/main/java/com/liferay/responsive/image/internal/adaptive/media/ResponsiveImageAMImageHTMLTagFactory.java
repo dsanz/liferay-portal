@@ -16,7 +16,7 @@ import com.liferay.portal.kernel.service.ServiceContext;
 import com.liferay.portal.kernel.service.ServiceContextThreadLocal;
 import com.liferay.responsive.image.ImageResourceFactory;
 import com.liferay.responsive.image.ResponsiveImageMarkupRenderer;
-import com.liferay.responsive.image.ResponsiveImageRequestBuilder;
+import com.liferay.responsive.image.ResponsiveImageRequest;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -54,7 +54,7 @@ public class ResponsiveImageAMImageHTMLTagFactory
 
 		String markup = _responsiveImageMarkupRenderer.render(
 			originalImgTag,
-			ResponsiveImageRequestBuilder.imageResource(
+			ResponsiveImageRequest.builder(
 				_imageResourceFactory.fromFileEntry(fileEntry)
 			).httpServletRequest(
 				_getHttpServletRequest()

@@ -5,8 +5,8 @@
 
 package com.liferay.responsive.image.internal;
 
-import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerList;
-import com.liferay.osgi.service.tracker.collections.list.ServiceTrackerListFactory;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
@@ -91,8 +91,9 @@ public class ResponsiveImageMarkupRendererImpl
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		_serviceTrackerList = ServiceTrackerListFactory.open(
-			bundleContext, ResponsiveImageURLTransformer.class);
+		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
+			bundleContext, ResponsiveImageURLTransformer.class,
+			"responsive.image.url.transformer.name");
 
 		_responsiveImageConfigurationHelper =
 			new ResponsiveImageConfigurationHelper(
@@ -102,12 +103,12 @@ public class ResponsiveImageMarkupRendererImpl
 			_portal,
 			new ResponsiveImageConfigurationRegistry(
 				_configurationProvider, _portal),
-			_responsiveImageConfigurationHelper, _serviceTrackerList::toList);
+			_responsiveImageConfigurationHelper, _serviceTrackerMap);
 	}
 
 	@Deactivate
 	protected void deactivate() {
-		_serviceTrackerList.close();
+		_serviceTrackerMap.close();
 	}
 
 	private String _getSrcSet(
@@ -278,7 +279,7 @@ public class ResponsiveImageMarkupRendererImpl
 	private ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper;
 	private ResponsiveImageFactory _responsiveImageFactory;
-	private ServiceTrackerList<ResponsiveImageURLTransformer>
-		_serviceTrackerList;
+	private ServiceTrackerMap<String, ResponsiveImageURLTransformer>
+		_serviceTrackerMap;
 
 }

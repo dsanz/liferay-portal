@@ -108,7 +108,10 @@ public interface ResponsiveImageConfiguration {
 	 * for example <code>fastly</code>. Must match the name reported by a
 	 * deployed {@code ResponsiveImageURLTransformer}.
 	 */
-	@Meta.AD(deflt = "", name = "url-renderer-name", required = false)
-	public String urlRendererName();
+	@Meta.AD(
+		deflt = "", name = "responsive-image-url-transformer-name",
+		required = false
+	)
+	public String responsiveImageURLTransformerName();
 
 }

@@ -11,9 +11,7 @@ import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.responsive.image.ImageResource;
 import com.liferay.responsive.image.ResponsiveImage;
 import com.liferay.responsive.image.ResponsiveImageCandidate;
-import com.liferay.responsive.image.ResponsiveImageCandidateBuilder;
 import com.liferay.responsive.image.ResponsiveImageRequest;
-import com.liferay.responsive.image.ResponsiveImageRequestBuilder;
 import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
 
@@ -61,11 +59,16 @@ public class ResponsiveImageMarkupRendererImplTest {
 	public void testDeclinesWhenNothingWasTransformed() throws Exception {
 		_givenResponsiveImage(
 			false,
-			ResponsiveImageSource.of(
-				null, "100vw",
+			ResponsiveImageSource.builder(
+			).candidates(
 				Arrays.asList(
 					_candidate("/documents/1/2/photo.jpg", 320),
-					_candidate("/documents/1/2/photo.jpg", 640))));
+					_candidate("/documents/1/2/photo.jpg", 640))
+			).mediaQuery(
+				null
+			).sizes(
+				"100vw"
+			).build());
 
 		Assert.assertNull(
 			_responsiveImageMarkupRendererImpl.render(
@@ -77,11 +80,16 @@ public class ResponsiveImageMarkupRendererImplTest {
 	public void testDeclinesWhenTheFeatureFlagIsDisabled() throws Exception {
 		_givenResponsiveImage(
 			false,
-			ResponsiveImageSource.of(
-				null, "100vw",
+			ResponsiveImageSource.builder(
+			).candidates(
 				Arrays.asList(
 					_candidate("/documents/1/2/photo.jpg?width=320", 320),
-					_candidate("/documents/1/2/photo.jpg?width=640", 640))));
+					_candidate("/documents/1/2/photo.jpg?width=640", 640))
+			).mediaQuery(
+				null
+			).sizes(
+				"100vw"
+			).build());
 
 		Assert.assertNull(
 			_responsiveImageMarkupRendererImpl.render(
@@ -94,11 +102,16 @@ public class ResponsiveImageMarkupRendererImplTest {
 	public void testRendersImgForASingleSource() throws Exception {
 		_givenResponsiveImage(
 			false,
-			ResponsiveImageSource.of(
-				null, "100vw",
+			ResponsiveImageSource.builder(
+			).candidates(
 				Arrays.asList(
 					_candidate("/documents/1/2/photo.jpg?width=320", 320),
-					_candidate("/documents/1/2/photo.jpg?width=640", 640))));
+					_candidate("/documents/1/2/photo.jpg?width=640", 640))
+			).mediaQuery(
+				null
+			).sizes(
+				"100vw"
+			).build());
 
 		String markup = _responsiveImageMarkupRendererImpl.render(
 			_ORIGINAL_IMG_TAG, _request());
@@ -117,11 +130,16 @@ public class ResponsiveImageMarkupRendererImplTest {
 	public void testRendersLoadingLazyFromTheModel() throws Exception {
 		_givenResponsiveImage(
 			true,
-			ResponsiveImageSource.of(
-				null, "100vw",
+			ResponsiveImageSource.builder(
+			).candidates(
 				Arrays.asList(
 					_candidate("/documents/1/2/photo.jpg?width=320", 320),
-					_candidate("/documents/1/2/photo.jpg?width=640", 640))));
+					_candidate("/documents/1/2/photo.jpg?width=640", 640))
+			).mediaQuery(
+				null
+			).sizes(
+				"100vw"
+			).build());
 
 		String markup = _responsiveImageMarkupRendererImpl.render(
 			_ORIGINAL_IMG_TAG, _request());
@@ -133,14 +151,24 @@ public class ResponsiveImageMarkupRendererImplTest {
 	public void testRendersPictureForArtDirection() throws Exception {
 		_givenResponsiveImage(
 			false,
-			ResponsiveImageSource.of(
-				"(max-width: 767px)", "100vw",
+			ResponsiveImageSource.builder(
+			).candidates(
 				Collections.singletonList(
-					_candidate("/documents/1/2/photo.jpg?crop=1%3A1", 320))),
-			ResponsiveImageSource.of(
-				"(min-width: 768px)", "50vw",
+					_candidate("/documents/1/2/photo.jpg?crop=1%3A1", 320))
+			).mediaQuery(
+				"(max-width: 767px)"
+			).sizes(
+				"100vw"
+			).build(),
+			ResponsiveImageSource.builder(
+			).candidates(
 				Collections.singletonList(
-					_candidate("/documents/1/2/photo.jpg?crop=16%3A9", 960))));
+					_candidate("/documents/1/2/photo.jpg?crop=16%3A9", 960))
+			).mediaQuery(
+				"(min-width: 768px)"
+			).sizes(
+				"50vw"
+			).build());
 
 		String markup = _responsiveImageMarkupRendererImpl.render(
 			_ORIGINAL_IMG_TAG, _request());
@@ -156,7 +184,7 @@ public class ResponsiveImageMarkupRendererImplTest {
 	}
 
 	private ResponsiveImageCandidate _candidate(String url, int width) {
-		return ResponsiveImageCandidateBuilder.url(
+		return ResponsiveImageCandidate.builder(
 			url
 		).width(
 			width
@@ -174,12 +202,17 @@ public class ResponsiveImageMarkupRendererImplTest {
 			_responsiveImageFactory.create(
 				Mockito.any(ResponsiveImageRequest.class))
 		).thenReturn(
-			new ResponsiveImage(lazy, list)
+			ResponsiveImage.builder(
+			).lazy(
+				lazy
+			).sources(
+				list
+			).build()
 		);
 	}
 
 	private ResponsiveImageRequest _request() {
-		return ResponsiveImageRequestBuilder.imageResource(
+		return ResponsiveImageRequest.builder(
 			_imageResource
 		).build();
 	}

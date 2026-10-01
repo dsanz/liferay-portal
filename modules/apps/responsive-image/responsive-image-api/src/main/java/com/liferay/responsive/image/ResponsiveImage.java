@@ -60,12 +60,13 @@ import java.util.List;
  */
 public final class ResponsiveImage {
 
-	public ResponsiveImage(
-		boolean lazy, List<ResponsiveImageSource> responsiveImageSources) {
-
-		_lazy = lazy;
-		_responsiveImageSources = Collections.unmodifiableList(
-			responsiveImageSources);
+	/**
+	 * Returns a builder for a responsive image.
+	 *
+	 * @return the builder
+	 */
+	public static Builder builder() {
+		return new Builder();
 	}
 
 	/**
@@ -91,6 +92,55 @@ public final class ResponsiveImage {
 	 */
 	public boolean isLazy() {
 		return _lazy;
+	}
+
+	public static class Builder {
+
+		public ResponsiveImage build() {
+			return new ResponsiveImage(_lazy, _responsiveImageSources);
+		}
+
+		/**
+		 * Sets whether this image should be loaded lazily.
+		 *
+		 * @param  lazy whether to load lazily
+		 * @return this builder
+		 */
+		public Builder lazy(boolean lazy) {
+			_lazy = lazy;
+
+			return this;
+		}
+
+		/**
+		 * Sets this image's sources.
+		 *
+		 * @param  responsiveImageSources the sources
+		 * @return this builder
+		 */
+		public Builder sources(
+			List<ResponsiveImageSource> responsiveImageSources) {
+
+			_responsiveImageSources = responsiveImageSources;
+
+			return this;
+		}
+
+		private Builder() {
+		}
+
+		private boolean _lazy;
+		private List<ResponsiveImageSource> _responsiveImageSources =
+			Collections.emptyList();
+
+	}
+
+	private ResponsiveImage(
+		boolean lazy, List<ResponsiveImageSource> responsiveImageSources) {
+
+		_lazy = lazy;
+		_responsiveImageSources = Collections.unmodifiableList(
+			responsiveImageSources);
 	}
 
 	private final boolean _lazy;

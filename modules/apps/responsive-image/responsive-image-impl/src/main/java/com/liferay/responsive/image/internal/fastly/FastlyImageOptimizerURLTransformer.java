@@ -39,16 +39,12 @@ import org.osgi.service.component.annotations.Component;
  *
  * @author Daniel Sanz
  */
-@Component(service = ResponsiveImageURLTransformer.class)
+@Component(
+	property = "responsive.image.url.transformer.name=fastlyImageOptimizer",
+	service = ResponsiveImageURLTransformer.class
+)
 public class FastlyImageOptimizerURLTransformer
 	implements ResponsiveImageURLTransformer {
-
-	public static final String NAME = "fastlyImageOptimizer";
-
-	@Override
-	public String getName() {
-		return NAME;
-	}
 
 	@Override
 	public String transform(

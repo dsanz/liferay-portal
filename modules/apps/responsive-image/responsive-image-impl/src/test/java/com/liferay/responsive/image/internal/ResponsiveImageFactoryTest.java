@@ -5,6 +5,7 @@
 
 package com.liferay.responsive.image.internal;
 
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Portal;
@@ -13,7 +14,6 @@ import com.liferay.responsive.image.ImageResource;
 import com.liferay.responsive.image.ResponsiveImage;
 import com.liferay.responsive.image.ResponsiveImageCandidate;
 import com.liferay.responsive.image.ResponsiveImageRequest;
-import com.liferay.responsive.image.ResponsiveImageRequestBuilder;
 import com.liferay.responsive.image.ResponsiveImageSource;
 import com.liferay.responsive.image.ResponsiveImageURLTransformer;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
@@ -86,7 +86,7 @@ public class ResponsiveImageFactoryTest {
 		);
 
 		Mockito.when(
-			_scopedConfiguration.getURLRendererName()
+			_scopedConfiguration.getResponsiveImageURLTransformerName()
 		).thenReturn(
 			"fastly"
 		);
@@ -98,17 +98,16 @@ public class ResponsiveImageFactoryTest {
 		);
 
 		Mockito.when(
-			_responsiveImageURLTransformer.getName()
+			_serviceTrackerMap.getService("fastly")
 		).thenReturn(
-			"fastly"
+			_responsiveImageURLTransformer
 		);
 
 		_setUpResponsiveImageURLTransformer();
 
 		_responsiveImageFactory = new ResponsiveImageFactory(
 			_portal, _responsiveImageConfigurationRegistry,
-			_responsiveImageConfigurationHelper,
-			() -> Collections.singletonList(_responsiveImageURLTransformer));
+			_responsiveImageConfigurationHelper, _serviceTrackerMap);
 	}
 
 	@Test
@@ -191,7 +190,7 @@ public class ResponsiveImageFactoryTest {
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
 
 		Mockito.when(
-			_scopedConfiguration.getURLRendererName()
+			_scopedConfiguration.getResponsiveImageURLTransformerName()
 		).thenReturn(
 			"not-deployed"
 		);
@@ -351,7 +350,7 @@ public class ResponsiveImageFactoryTest {
 	}
 
 	private ResponsiveImageRequest _request() {
-		return ResponsiveImageRequestBuilder.imageResource(
+		return ResponsiveImageRequest.builder(
 			_imageResource
 		).httpServletRequest(
 			_httpServletRequest
@@ -438,5 +437,9 @@ public class ResponsiveImageFactoryTest {
 		Mockito.mock(ResponsiveImageURLTransformer.class);
 	private final ScopedConfiguration _scopedConfiguration = Mockito.mock(
 		ScopedConfiguration.class);
+
+	@SuppressWarnings("unchecked")
+	private final ServiceTrackerMap<String, ResponsiveImageURLTransformer>
+		_serviceTrackerMap = Mockito.mock(ServiceTrackerMap.class);
 
 }
