@@ -60,6 +60,8 @@ public class TransformedImageAbsolutePortalURLBuilderImpl
 		return this;
 	}
 
+	// TODO: shouldn't this method be called add or put?
+
 	@Override
 	public TransformedImageAbsolutePortalURLBuilder setImageTransformation(
 		String name, String value) {
