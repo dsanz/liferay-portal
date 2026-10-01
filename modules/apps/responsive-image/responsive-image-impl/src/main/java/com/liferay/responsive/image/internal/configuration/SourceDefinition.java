@@ -22,12 +22,12 @@ import java.util.Map;
 public final class SourceDefinition {
 
 	public SourceDefinition(
-		boolean autoSizes, String mediaConditionName, Integer maxWidth,
+		boolean autoSizes, Integer maxWidth, String mediaConditionName,
 		String mediaQuery, String sizes, Map<String, String> transformations) {
 
 		_autoSizes = autoSizes;
-		_mediaConditionName = mediaConditionName;
 		_maxWidth = maxWidth;
+		_mediaConditionName = mediaConditionName;
 		_mediaQuery = mediaQuery;
 		_sizes = sizes;
 		_transformations = Collections.unmodifiableMap(transformations);

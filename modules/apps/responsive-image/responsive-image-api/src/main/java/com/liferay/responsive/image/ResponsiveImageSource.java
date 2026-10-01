@@ -79,7 +79,7 @@ public final class ResponsiveImageSource {
 	public static class Builder {
 
 		public ResponsiveImageSource build() {
-			return new ResponsiveImageSource(_mediaQuery, _sizes, _candidates);
+			return new ResponsiveImageSource(_candidates, _mediaQuery, _sizes);
 		}
 
 		/**
@@ -131,12 +131,12 @@ public final class ResponsiveImageSource {
 	}
 
 	private ResponsiveImageSource(
-		String mediaQuery, String sizes,
-		List<ResponsiveImageCandidate> candidates) {
+		List<ResponsiveImageCandidate> candidates, String mediaQuery,
+		String sizes) {
 
+		_candidates = Collections.unmodifiableList(candidates);
 		_mediaQuery = mediaQuery;
 		_sizes = sizes;
-		_candidates = Collections.unmodifiableList(candidates);
 	}
 
 	private final List<ResponsiveImageCandidate> _candidates;

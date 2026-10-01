@@ -383,7 +383,7 @@ public class ResponsiveImageFactoryTest {
 		String sizes) {
 
 		return new SourceDefinition(
-			false, mediaConditionName, maxWidth, mediaQuery, sizes,
+			false, maxWidth, mediaConditionName, mediaQuery, sizes,
 			Collections.<String, String>emptyMap());
 	}
 
@@ -394,7 +394,7 @@ public class ResponsiveImageFactoryTest {
 		int i = transformation.indexOf('=');
 
 		return new SourceDefinition(
-			false, mediaConditionName, maxWidth, mediaQuery, sizes,
+			false, maxWidth, mediaConditionName, mediaQuery, sizes,
 			HashMapBuilder.put(
 				transformation.substring(0, i), transformation.substring(i + 1)
 			).build());

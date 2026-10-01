@@ -27,7 +27,7 @@ public class SourceDefinitionTest {
 	@Test
 	public void testGetSizesAreUntouchedWithoutAutoSizes() {
 		SourceDefinition sourceDefinition = new SourceDefinition(
-			false, "default", null, null, "100vw",
+			false, null, "default", null, "100vw",
 			Collections.<String, String>emptyMap());
 
 		Assert.assertEquals("100vw", sourceDefinition.getSizes(true));
@@ -50,7 +50,7 @@ public class SourceDefinitionTest {
 
 	private SourceDefinition _autoSizesSourceDefinition() {
 		return new SourceDefinition(
-			true, "default", null, null, "100vw",
+			true, null, "default", null, "100vw",
 			Collections.<String, String>emptyMap());
 	}
 

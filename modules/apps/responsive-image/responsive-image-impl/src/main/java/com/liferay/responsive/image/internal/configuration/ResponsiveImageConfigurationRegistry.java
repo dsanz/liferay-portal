@@ -206,7 +206,7 @@ public class ResponsiveImageConfigurationRegistry {
 			properties.put(_PROPERTY_SIZES, builtInPreset._sizes);
 
 			if (builtInPreset._autoSizes) {
-				properties.put(_PROPERTY_AUTO_PROPERTY_SIZES, StringPool.TRUE);
+				properties.put(_PROPERTY_AUTO_SIZES, StringPool.TRUE);
 			}
 
 			if (builtInPreset._maxWidth != null) {
@@ -354,11 +354,10 @@ public class ResponsiveImageConfigurationRegistry {
 
 			sourceDefinitions.add(
 				new SourceDefinition(
-					GetterUtil.getBoolean(
-						properties.get(_PROPERTY_AUTO_PROPERTY_SIZES)),
-					entry.getKey(),
+					GetterUtil.getBoolean(properties.get(_PROPERTY_AUTO_SIZES)),
 					_toMaxWidth(properties.get(_PROPERTY_MAX_WIDTH)),
-					entry.getValue(), properties.get(_PROPERTY_SIZES),
+					entry.getKey(), entry.getValue(),
+					properties.get(_PROPERTY_SIZES),
 					_toTransformations(
 						properties.get(_PROPERTY_TRANSFORMATIONS))));
 		}
@@ -369,10 +368,9 @@ public class ResponsiveImageConfigurationRegistry {
 		if (properties != null) {
 			sourceDefinitions.add(
 				new SourceDefinition(
-					GetterUtil.getBoolean(
-						properties.get(_PROPERTY_AUTO_PROPERTY_SIZES)),
-					_MEDIA_CONDITION_DEFAULT,
-					_toMaxWidth(properties.get(_PROPERTY_MAX_WIDTH)), null,
+					GetterUtil.getBoolean(properties.get(_PROPERTY_AUTO_SIZES)),
+					_toMaxWidth(properties.get(_PROPERTY_MAX_WIDTH)),
+					_MEDIA_CONDITION_DEFAULT, null,
 					properties.get(_PROPERTY_SIZES),
 					_toTransformations(
 						properties.get(_PROPERTY_TRANSFORMATIONS))));
@@ -564,7 +562,7 @@ public class ResponsiveImageConfigurationRegistry {
 
 	private static final String _MEDIA_CONDITION_DEFAULT = "default";
 
-	private static final String _PROPERTY_AUTO_PROPERTY_SIZES = "autoSizes";
+	private static final String _PROPERTY_AUTO_SIZES = "autoSizes";
 
 	private static final String _PROPERTY_MAX_WIDTH = "maxWidth";
 

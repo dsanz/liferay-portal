@@ -99,7 +99,7 @@ public class ResponsiveImageConfigurationValidatorTest {
 		}
 
 		return new SourceDefinition(
-			false, mediaConditionName, maxWidth, mediaQuery, sizes,
+			false, maxWidth, mediaConditionName, mediaQuery, sizes,
 			transformations);
 	}
 
