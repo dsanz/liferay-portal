@@ -79,6 +79,7 @@ public class ResponsiveImageConfigurationRegistry {
 			responsiveImageConfiguration.candidateWidths();
 		String[] defaultTransformations =
 			responsiveImageConfiguration.defaultTransformations();
+		String cdnHost = responsiveImageConfiguration.cdnHost();
 		String[] mediaConditions =
 			responsiveImageConfiguration.mediaConditions();
 		String[] presets = responsiveImageConfiguration.presets();
@@ -86,7 +87,7 @@ public class ResponsiveImageConfigurationRegistry {
 
 		int contentHash = Objects.hash(
 			Arrays.hashCode(candidateWidths),
-			Arrays.hashCode(defaultTransformations),
+			Arrays.hashCode(defaultTransformations), cdnHost,
 			Arrays.hashCode(mediaConditions), Arrays.hashCode(presets),
 			urlRendererName);
 
@@ -104,7 +105,7 @@ public class ResponsiveImageConfigurationRegistry {
 
 		scopedConfiguration = new ScopedConfiguration(
 			_toWidths(candidateWidths), contentHash,
-			_toEntries(defaultTransformations),
+			_toEntries(defaultTransformations), cdnHost,
 			_toPresetDefinitions(_toMediaConditions(mediaConditions), presets),
 			urlRendererName);
 
@@ -116,6 +117,10 @@ public class ResponsiveImageConfigurationRegistry {
 	}
 
 	public static class ScopedConfiguration {
+
+		public String getCDNHost() {
+			return _cdnHost;
+		}
 
 		public TreeSet<Integer> getCandidateWidths() {
 			return _candidateWidths;
@@ -152,13 +157,14 @@ public class ResponsiveImageConfigurationRegistry {
 
 		private ScopedConfiguration(
 			TreeSet<Integer> candidateWidths, int contentHash,
-			Map<String, String> defaultTransformations,
+			Map<String, String> defaultTransformations, String cdnHost,
 			Map<String, PresetDefinition> presetDefinitions,
 			String urlRendererName) {
 
 			_candidateWidths = candidateWidths;
 			_contentHash = contentHash;
 			_defaultTransformations = defaultTransformations;
+			_cdnHost = cdnHost;
 			_presetDefinitions = presetDefinitions;
 			_urlRendererName = urlRendererName;
 		}
@@ -172,6 +178,7 @@ public class ResponsiveImageConfigurationRegistry {
 		}
 
 		private final TreeSet<Integer> _candidateWidths;
+		private final String _cdnHost;
 		private final int _contentHash;
 		private final Map<String, String> _defaultTransformations;
 		private final Map<String, PresetDefinition> _presetDefinitions;
@@ -604,6 +611,7 @@ public class ResponsiveImageConfigurationRegistry {
 		private static final ScopedConfiguration _scopedConfiguration =
 			new ScopedConfiguration(
 				new TreeSet<>(), 0, Collections.<String, String>emptyMap(),
+				null,
 				Collections.unmodifiableMap(
 					_toPresetDefinitions(
 						Collections.emptyMap(), new String[0])),

@@ -61,29 +61,17 @@ import java.util.List;
 public final class ResponsiveImage {
 
 	public ResponsiveImage(
-		boolean lazy, List<ResponsiveImageSource> responsiveImageSources,
-		String src) {
+		boolean lazy, List<ResponsiveImageSource> responsiveImageSources) {
 
 		_lazy = lazy;
 		_responsiveImageSources = Collections.unmodifiableList(
 			responsiveImageSources);
-		_src = src;
 	}
 
 	/**
-	 * Constructs a result carrying only the untransformed URL, used whenever
-	 * resource is not claimed, so that callers always get something renderable.
-	 *
-	 * @param src the untransformed URL
-	 */
-	public ResponsiveImage(String src) {
-		this(false, Collections.<ResponsiveImageSource>emptyList(), src);
-	}
-
-	/**
-	 * Returns the sources, or an empty list when no systemr could
-	 * support the resource. Empty is not an error: callers render a plain
-	 * image tag pointing at {@link #getSrc()}.
+	 * Returns the sources, or an empty list when nothing could support the
+	 * resource. Empty is not an error: callers fall back to the image they
+	 * already have.
 	 *
 	 * <p>
 	 * Order is significant. Source matching is first wins, so a source with a
@@ -97,16 +85,6 @@ public final class ResponsiveImage {
 	}
 
 	/**
-	 * Returns the URL for the fallback <code>src</code> attribute. Always
-	 * usable, whether or not any source was produced.
-	 *
-	 * @return the fallback URL
-	 */
-	public String getSrc() {
-		return _src;
-	}
-
-	/**
 	 * Returns whether this image should be loaded lazily.
 	 *
 	 * @return <code>true</code> if this image should be loaded lazily
@@ -117,6 +95,5 @@ public final class ResponsiveImage {
 
 	private final boolean _lazy;
 	private final List<ResponsiveImageSource> _responsiveImageSources;
-	private final String _src;
 
 }

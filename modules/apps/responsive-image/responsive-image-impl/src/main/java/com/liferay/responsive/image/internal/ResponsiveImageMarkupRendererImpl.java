@@ -15,14 +15,13 @@ import com.liferay.portal.kernel.feature.flag.FeatureFlagManagerUtil;
 import com.liferay.portal.kernel.util.HtmlUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.url.builder.AbsolutePortalURLBuilderFactory;
-import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
 import com.liferay.responsive.image.ImageResource;
 import com.liferay.responsive.image.ResponsiveImage;
 import com.liferay.responsive.image.ResponsiveImageCandidate;
 import com.liferay.responsive.image.ResponsiveImageMarkupRenderer;
 import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageSource;
+import com.liferay.responsive.image.ResponsiveImageURLTransformer;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationRegistry;
 
@@ -93,14 +92,14 @@ public class ResponsiveImageMarkupRendererImpl
 	@Activate
 	protected void activate(BundleContext bundleContext) {
 		_serviceTrackerList = ServiceTrackerListFactory.open(
-			bundleContext, ImageTransformationURLRenderer.class);
+			bundleContext, ResponsiveImageURLTransformer.class);
 
 		_responsiveImageConfigurationHelper =
 			new ResponsiveImageConfigurationHelper(
 				_configurationProvider, _portal);
 
 		_responsiveImageFactory = new ResponsiveImageFactory(
-			_absolutePortalURLBuilderFactory,
+			_portal,
 			new ResponsiveImageConfigurationRegistry(
 				_configurationProvider, _portal),
 			_responsiveImageConfigurationHelper, _serviceTrackerList::toList);
@@ -271,9 +270,6 @@ public class ResponsiveImageMarkupRendererImpl
 	}
 
 	@Reference
-	private AbsolutePortalURLBuilderFactory _absolutePortalURLBuilderFactory;
-
-	@Reference
 	private ConfigurationProvider _configurationProvider;
 
 	@Reference
@@ -282,7 +278,7 @@ public class ResponsiveImageMarkupRendererImpl
 	private ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper;
 	private ResponsiveImageFactory _responsiveImageFactory;
-	private ServiceTrackerList<ImageTransformationURLRenderer>
+	private ServiceTrackerList<ResponsiveImageURLTransformer>
 		_serviceTrackerList;
 
 }

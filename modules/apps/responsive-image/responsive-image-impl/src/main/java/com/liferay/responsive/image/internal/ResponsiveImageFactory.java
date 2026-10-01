@@ -9,17 +9,15 @@ import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
-import com.liferay.portal.url.builder.AbsolutePortalURLBuilderFactory;
-import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
-import com.liferay.portal.url.builder.TransformedImageAbsolutePortalURLBuilder;
 import com.liferay.responsive.image.ImageResource;
 import com.liferay.responsive.image.ResponsiveImage;
 import com.liferay.responsive.image.ResponsiveImageCandidate;
 import com.liferay.responsive.image.ResponsiveImageCandidateBuilder;
 import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageSource;
+import com.liferay.responsive.image.ResponsiveImageURLTransformer;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationRegistry;
@@ -38,113 +36,97 @@ import java.util.function.Supplier;
 public class ResponsiveImageFactory {
 
 	public ResponsiveImageFactory(
-		AbsolutePortalURLBuilderFactory absolutePortalURLBuilderFactory,
+		Portal portal,
 		ResponsiveImageConfigurationRegistry
 			responsiveImageConfigurationRegistry,
 		ResponsiveImageConfigurationHelper responsiveImageConfigurationHelper,
-		Supplier<List<ImageTransformationURLRenderer>>
-			imageTransformationURLRenderersSupplier) {
+		Supplier<List<ResponsiveImageURLTransformer>>
+			responsiveImageURLTransformersSupplier) {
 
-		_absolutePortalURLBuilderFactory = absolutePortalURLBuilderFactory;
+		_portal = portal;
 		_responsiveImageConfigurationRegistry =
 			responsiveImageConfigurationRegistry;
 		_responsiveImageConfigurationHelper =
 			responsiveImageConfigurationHelper;
-		_imageTransformationURLRenderersSupplier =
-			imageTransformationURLRenderersSupplier;
+		_responsiveImageURLTransformersSupplier =
+			responsiveImageURLTransformersSupplier;
 	}
 
 	public ResponsiveImage create(
 		ResponsiveImageRequest responsiveImageRequest) {
 
-		if (!_isSupported(responsiveImageRequest.getImageResource())) {
+		ImageResource imageResource = responsiveImageRequest.getImageResource();
+
+		if (!_isSupported(imageResource)) {
 			return null;
 		}
+
+		long companyId = _responsiveImageConfigurationHelper.getCompanyId(
+			responsiveImageRequest);
 
 		ScopedConfiguration scopedConfiguration =
 			_responsiveImageConfigurationRegistry.getScopedConfiguration(
 				_responsiveImageConfigurationHelper.getGroupId(
 					responsiveImageRequest),
-				_responsiveImageConfigurationHelper.getCompanyId(
-					responsiveImageRequest));
+				companyId);
 
-		ImageTransformationURLRenderer imageTransformationURLRenderer =
-			_getImageTransformationURLRenderer(
+		ResponsiveImageURLTransformer responsiveImageURLTransformer =
+			_getResponsiveImageURLTransformer(
 				scopedConfiguration.getURLRendererName());
 
-		if (imageTransformationURLRenderer == null) {
+		if (responsiveImageURLTransformer == null) {
 			return null;
 		}
-
-		return _getResponsiveImage(
-			imageTransformationURLRenderer, responsiveImageRequest,
-			scopedConfiguration);
-	}
-
-	private String _buildURL(
-		ImageTransformationURLRenderer imageTransformationURLRenderer,
-		ResponsiveImageRequest responsiveImageRequest, String url,
-		Map<String, String> transformations) {
-
-		AbsolutePortalURLBuilder absolutePortalURLBuilder =
-			_absolutePortalURLBuilderFactory.getAbsolutePortalURLBuilder(
-				responsiveImageRequest.getHttpServletRequest());
-
-		TransformedImageAbsolutePortalURLBuilder
-			transformedImageAbsolutePortalURLBuilder =
-				absolutePortalURLBuilder.forTransformedImage(
-					url
-				).setRenderer(
-					imageTransformationURLRenderer
-				);
-
-		for (Map.Entry<String, String> entry : transformations.entrySet()) {
-			transformedImageAbsolutePortalURLBuilder.addTransformation(
-				entry.getKey(), entry.getValue());
-		}
-
-		return transformedImageAbsolutePortalURLBuilder.build();
-	}
-
-	private ImageTransformationURLRenderer _getImageTransformationURLRenderer(
-		String urlRendererName) {
-
-		if (Validator.isBlank(urlRendererName)) {
-			return null;
-		}
-
-		List<ImageTransformationURLRenderer> imageTransformationURLRenderers =
-			_imageTransformationURLRenderersSupplier.get();
-
-		if (imageTransformationURLRenderers == null) {
-			return null;
-		}
-
-		for (ImageTransformationURLRenderer imageTransformationURLRenderer :
-				imageTransformationURLRenderers) {
-
-			if (urlRendererName.equals(
-					imageTransformationURLRenderer.getName())) {
-
-				return imageTransformationURLRenderer;
-			}
-		}
-
-		if (_log.isDebugEnabled()) {
-			_log.debug("No URL renderer is named " + urlRendererName);
-		}
-
-		return null;
-	}
-
-	private ResponsiveImage _getResponsiveImage(
-		ImageTransformationURLRenderer imageTransformationURLRenderer,
-		ResponsiveImageRequest responsiveImageRequest,
-		ScopedConfiguration scopedConfiguration) {
 
 		PresetDefinition presetDefinition =
 			scopedConfiguration.getPresetDefinition(
 				responsiveImageRequest.getPresetName());
+
+		return new ResponsiveImage(
+			presetDefinition.isLazy(),
+			_getResponsiveImageSources(
+				presetDefinition, responsiveImageURLTransformer,
+				scopedConfiguration,
+				_getURL(
+					companyId, imageResource.getURL(), scopedConfiguration)));
+	}
+
+	private List<ResponsiveImageCandidate> _getResponsiveImageCandidates(
+		ResponsiveImageURLTransformer responsiveImageURLTransformer,
+		ScopedConfiguration scopedConfiguration,
+		SourceDefinition sourceDefinition, String url, List<Integer> widths) {
+
+		Map<String, String> imageTransformations = HashMapBuilder.putAll(
+			scopedConfiguration.getDefaultTransformations()
+		).putAll(
+			sourceDefinition.getTransformations()
+		).build();
+
+		List<ResponsiveImageCandidate> responsiveImageCandidates =
+			new ArrayList<>(widths.size());
+
+		for (Integer width : widths) {
+
+			responsiveImageCandidates.add(
+				ResponsiveImageCandidateBuilder.url(
+					responsiveImageURLTransformer.transform(
+						url, HashMapBuilder.putAll(
+											imageTransformations
+										).put(
+											"width", String.valueOf(width)
+										).build())
+				).width(
+					width
+				).build());
+		}
+
+		return responsiveImageCandidates;
+	}
+
+	private List<ResponsiveImageSource> _getResponsiveImageSources(
+		PresetDefinition presetDefinition,
+		ResponsiveImageURLTransformer responsiveImageURLTransformer,
+		ScopedConfiguration scopedConfiguration, String url) {
 
 		List<SourceDefinition> sourceDefinitions =
 			presetDefinition.getSourceDefinitions();
@@ -167,51 +149,77 @@ public class ResponsiveImageFactory {
 					sourceDefinition.getMediaQuery(),
 					sourceDefinition.getSizes(lazy),
 					_getResponsiveImageCandidates(
-						imageTransformationURLRenderer, scopedConfiguration,
-						sourceDefinition, responsiveImageRequest, widths)));
+						responsiveImageURLTransformer, scopedConfiguration,
+						sourceDefinition, url, widths)));
 		}
 
-		return new ResponsiveImage(
-			lazy, responsiveImageSources,
-			responsiveImageRequest.getImageResource(
-			).getURL());
+		return responsiveImageSources;
 	}
 
-	private List<ResponsiveImageCandidate> _getResponsiveImageCandidates(
-		ImageTransformationURLRenderer imageTransformationURLRenderer,
-		ScopedConfiguration scopedConfiguration,
-		SourceDefinition sourceDefinition,
-		ResponsiveImageRequest responsiveImageRequest, List<Integer> widths) {
+	private ResponsiveImageURLTransformer _getResponsiveImageURLTransformer(
+		String urlRendererName) {
 
-		ImageResource imageResource = responsiveImageRequest.getImageResource();
-
-		Map<String, String> transformations = HashMapBuilder.putAll(
-			scopedConfiguration.getDefaultTransformations()
-		).putAll(
-			sourceDefinition.getTransformations()
-		).build();
-
-		List<ResponsiveImageCandidate> responsiveImageCandidates =
-			new ArrayList<>(widths.size());
-
-		for (Integer width : widths) {
-			Map<String, String> widthTransformations = HashMapBuilder.putAll(
-				transformations
-			).put(
-				"width", String.valueOf(width)
-			).build();
-
-			responsiveImageCandidates.add(
-				ResponsiveImageCandidateBuilder.url(
-					_buildURL(
-						imageTransformationURLRenderer, responsiveImageRequest,
-						imageResource.getURL(), widthTransformations)
-				).width(
-					width
-				).build());
+		if (Validator.isBlank(urlRendererName)) {
+			return null;
 		}
 
-		return responsiveImageCandidates;
+		List<ResponsiveImageURLTransformer> responsiveImageURLTransformers =
+			_responsiveImageURLTransformersSupplier.get();
+
+		if (responsiveImageURLTransformers == null) {
+			return null;
+		}
+
+		for (ResponsiveImageURLTransformer responsiveImageURLTransformer :
+				responsiveImageURLTransformers) {
+
+			if (urlRendererName.equals(
+					responsiveImageURLTransformer.getName())) {
+
+				return responsiveImageURLTransformer;
+			}
+		}
+
+		if (_log.isDebugEnabled()) {
+			_log.debug("No image URL transformer is named " + urlRendererName);
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns the image URL served from the host the transformed images are
+	 * delivered by, or the URL unchanged when no host is configured.
+	 *
+	 * <p>
+	 * The configured host wins, so images can be delivered by an image
+	 * optimization service that fronts nothing else. Absent it, the company's
+	 * own CDN host is used. There is no request to tell whether the connection
+	 * is secure, so the HTTPS host is preferred.
+	 * </p>
+	 */
+	private String _getURL(
+		long companyId, String url, ScopedConfiguration scopedConfiguration) {
+
+		String host = scopedConfiguration.getCDNHost();
+
+		if (Validator.isBlank(host)) {
+			host = _portal.getCDNHostHttps(companyId);
+		}
+
+		if (Validator.isBlank(host)) {
+			host = _portal.getCDNHostHttp(companyId);
+		}
+
+		if (Validator.isBlank(host)) {
+			return url;
+		}
+
+		if (host.endsWith(StringPool.SLASH)) {
+			host = host.substring(0, host.length() - 1);
+		}
+
+		return host.concat(url);
 	}
 
 	private List<Integer> _getWidths(
@@ -263,13 +271,12 @@ public class ResponsiveImageFactory {
 	private static final List<String> _excludedMimeTypes = Arrays.asList(
 		"image/svg+xml", "image/x-icon");
 
-	private final AbsolutePortalURLBuilderFactory
-		_absolutePortalURLBuilderFactory;
-	private final Supplier<List<ImageTransformationURLRenderer>>
-		_imageTransformationURLRenderersSupplier;
+	private final Portal _portal;
 	private final ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper;
 	private final ResponsiveImageConfigurationRegistry
 		_responsiveImageConfigurationRegistry;
+	private final Supplier<List<ResponsiveImageURLTransformer>>
+		_responsiveImageURLTransformersSupplier;
 
 }

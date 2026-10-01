@@ -174,7 +174,7 @@ public class ResponsiveImageMarkupRendererImplTest {
 			_responsiveImageFactory.create(
 				Mockito.any(ResponsiveImageRequest.class))
 		).thenReturn(
-			new ResponsiveImage(lazy, list, "/documents/1/2/photo.jpg")
+			new ResponsiveImage(lazy, list)
 		);
 	}
 

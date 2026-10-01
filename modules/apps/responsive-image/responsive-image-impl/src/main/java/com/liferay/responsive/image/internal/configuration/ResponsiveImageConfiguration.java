@@ -40,6 +40,15 @@ public interface ResponsiveImageConfiguration {
 	public String[] candidateWidths();
 
 	/**
+	 * Host the transformed image URLs are served from, for example
+	 * <code>https://images.example.com</code>, so that images can be delivered
+	 * by a service that fronts nothing else. Leave it blank to use the CDN host
+	 * configured for the instance.
+	 */
+	@Meta.AD(deflt = "", name = "cdn-host", required = false)
+	public String cdnHost();
+
+	/**
 	 * Transformations applied to every generated rendition, as
 	 * <code>name=value</code> entries.
 	 */
@@ -97,7 +106,7 @@ public interface ResponsiveImageConfiguration {
 	/**
 	 * Name of the image optimization service whose URL vocabulary is used,
 	 * for example <code>fastly</code>. Must match the name reported by a
-	 * deployed {@code ImageTransformationURLRenderer}.
+	 * deployed {@code ResponsiveImageURLTransformer}.
 	 */
 	@Meta.AD(deflt = "", name = "url-renderer-name", required = false)
 	public String urlRendererName();

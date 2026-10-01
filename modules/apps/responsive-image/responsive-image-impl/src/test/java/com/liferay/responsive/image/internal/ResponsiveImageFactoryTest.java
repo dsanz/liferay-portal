@@ -7,17 +7,15 @@ package com.liferay.responsive.image.internal;
 
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
+import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
-import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
-import com.liferay.portal.url.builder.AbsolutePortalURLBuilderFactory;
-import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
-import com.liferay.portal.url.builder.TransformedImageAbsolutePortalURLBuilder;
 import com.liferay.responsive.image.ImageResource;
 import com.liferay.responsive.image.ResponsiveImage;
 import com.liferay.responsive.image.ResponsiveImageCandidate;
 import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageRequestBuilder;
 import com.liferay.responsive.image.ResponsiveImageSource;
+import com.liferay.responsive.image.ResponsiveImageURLTransformer;
 import com.liferay.responsive.image.internal.configuration.PresetDefinition;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationRegistry;
@@ -28,10 +26,8 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -102,18 +98,17 @@ public class ResponsiveImageFactoryTest {
 		);
 
 		Mockito.when(
-			_imageTransformationURLRenderer.getName()
+			_responsiveImageURLTransformer.getName()
 		).thenReturn(
 			"fastly"
 		);
 
-		_setUpAbsolutePortalURLBuilderFactory(true);
+		_setUpResponsiveImageURLTransformer();
 
 		_responsiveImageFactory = new ResponsiveImageFactory(
-			_absolutePortalURLBuilderFactory,
-			_responsiveImageConfigurationRegistry,
+			_portal, _responsiveImageConfigurationRegistry,
 			_responsiveImageConfigurationHelper,
-			() -> Collections.singletonList(_imageTransformationURLRenderer));
+			() -> Collections.singletonList(_responsiveImageURLTransformer));
 	}
 
 	@Test
@@ -139,15 +134,54 @@ public class ResponsiveImageFactoryTest {
 	}
 
 	@Test
-	public void testConfiguredRendererNameReachesTheURLBuilder() {
+	public void testConfiguredHostIsPreferredOverTheCompanyCDNHost() {
+		_givenPresetGroup(_preset(null, null, null, "100vw"));
+
+		Mockito.when(
+			_scopedConfiguration.getCDNHost()
+		).thenReturn(
+			"https://images.example.com"
+		);
+
+		Mockito.when(
+			_portal.getCDNHostHttps(_COMPANY_ID)
+		).thenReturn(
+			"https://cdn.example.com"
+		);
+
+		Assert.assertEquals(
+			"https://images.example.com/documents/1/2/photo.jpg?" +
+				"disable=upscale&width=320",
+			_urlOf(_firstGroupCandidates(), 0));
+	}
+
+	@Test
+	public void testConfiguredHostTrailingSlashIsStripped() {
+		_givenPresetGroup(_preset(null, null, null, "100vw"));
+
+		Mockito.when(
+			_scopedConfiguration.getCDNHost()
+		).thenReturn(
+			"https://images.example.com/"
+		);
+
+		Assert.assertEquals(
+			"https://images.example.com/documents/1/2/photo.jpg?" +
+				"disable=upscale&width=320",
+			_urlOf(_firstGroupCandidates(), 0));
+	}
+
+	@Test
+	public void testConfiguredRendererNameSelectsTheResponsiveImageURLTransformer() {
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
 
 		_firstGroupCandidates();
 
-		Assert.assertEquals(
-			_imageTransformationURLRenderers.toString(),
-			Collections.singleton(_imageTransformationURLRenderer),
-			_imageTransformationURLRenderers);
+		Mockito.verify(
+			_responsiveImageURLTransformer, Mockito.atLeastOnce()
+		).transform(
+			Mockito.anyString(), Mockito.anyMap()
+		);
 	}
 
 	@Test
@@ -164,7 +198,11 @@ public class ResponsiveImageFactoryTest {
 
 		Assert.assertNull(_responsiveImageFactory.create(_request()));
 
-		Mockito.verifyNoInteractions(_absolutePortalURLBuilderFactory);
+		Mockito.verify(
+			_responsiveImageURLTransformer, Mockito.never()
+		).transform(
+			Mockito.anyString(), Mockito.anyMap()
+		);
 	}
 
 	@Test
@@ -198,6 +236,44 @@ public class ResponsiveImageFactoryTest {
 		);
 
 		Assert.assertNull(_responsiveImageFactory.create(_request()));
+	}
+
+	@Test
+	public void testFallsBackToTheCompanyHTTPCDNHost() {
+		_givenPresetGroup(_preset(null, null, null, "100vw"));
+
+		Mockito.when(
+			_portal.getCDNHostHttp(_COMPANY_ID)
+		).thenReturn(
+			"http://cdn.example.com"
+		);
+
+		Assert.assertEquals(
+			"http://cdn.example.com/documents/1/2/photo.jpg?" +
+				"disable=upscale&width=320",
+			_urlOf(_firstGroupCandidates(), 0));
+	}
+
+	@Test
+	public void testFallsBackToTheCompanyHTTPSCDNHost() {
+		_givenPresetGroup(_preset(null, null, null, "100vw"));
+
+		Mockito.when(
+			_portal.getCDNHostHttp(_COMPANY_ID)
+		).thenReturn(
+			"http://cdn.example.com"
+		);
+
+		Mockito.when(
+			_portal.getCDNHostHttps(_COMPANY_ID)
+		).thenReturn(
+			"https://cdn.example.com"
+		);
+
+		Assert.assertEquals(
+			"https://cdn.example.com/documents/1/2/photo.jpg?" +
+				"disable=upscale&width=320",
+			_urlOf(_firstGroupCandidates(), 0));
 	}
 
 	@Test
@@ -286,86 +362,53 @@ public class ResponsiveImageFactoryTest {
 		return ResponsiveImageRequest.of(_imageResource);
 	}
 
-	private void _setUpAbsolutePortalURLBuilderFactory(boolean transforming) {
+	private void _setUpResponsiveImageURLTransformer() {
 		Mockito.when(
-			_absolutePortalURLBuilderFactory.getAbsolutePortalURLBuilder(
-				Mockito.nullable(HttpServletRequest.class))
-		).thenReturn(
-			_absolutePortalURLBuilder
-		);
-
-		Mockito.when(
-			_absolutePortalURLBuilder.forTransformedImage(Mockito.anyString())
+			_responsiveImageURLTransformer.transform(
+				Mockito.anyString(), Mockito.anyMap())
 		).thenAnswer(
 			invocation -> {
 				String url = invocation.getArgument(0);
 
-				Map<String, String> transformations = new TreeMap<>();
+				Map<String, String> imageTransformations = new TreeMap<>(
+					(Map<String, String>)invocation.getArgument(1));
 
-				TransformedImageAbsolutePortalURLBuilder
-					transformedImageAbsolutePortalURLBuilder = Mockito.mock(
-						TransformedImageAbsolutePortalURLBuilder.class);
+				if (imageTransformations.isEmpty()) {
+					return url;
+				}
 
-				Mockito.when(
-					transformedImageAbsolutePortalURLBuilder.setRenderer(
-						Mockito.nullable(ImageTransformationURLRenderer.class))
-				).thenAnswer(
-					rendererInvocation -> {
-						_imageTransformationURLRenderers.add(
-							rendererInvocation.getArgument(0));
+				StringBuilder sb = new StringBuilder(url);
 
-						return transformedImageAbsolutePortalURLBuilder;
+				sb.append('?');
+
+				for (Map.Entry<String, String> entry :
+						imageTransformations.entrySet()) {
+
+					if (sb.charAt(sb.length() - 1) != '?') {
+						sb.append('&');
 					}
-				);
 
-				Mockito.when(
-					transformedImageAbsolutePortalURLBuilder.addTransformation(
-						Mockito.anyString(), Mockito.anyString())
-				).thenAnswer(
-					paramInvocation -> {
-						transformations.put(
-							paramInvocation.getArgument(0),
-							paramInvocation.getArgument(1));
+					sb.append(entry.getKey());
+					sb.append('=');
+					sb.append(
+						entry.getValue(
+						).replace(
+							":", "%3A"
+						));
+				}
 
-						return transformedImageAbsolutePortalURLBuilder;
-					}
-				);
-
-				Mockito.when(
-					transformedImageAbsolutePortalURLBuilder.build()
-				).thenAnswer(
-					buildInvocation -> {
-						if (!transforming || transformations.isEmpty()) {
-							return url;
-						}
-
-						StringBuilder sb = new StringBuilder(url);
-
-						sb.append('?');
-
-						for (Map.Entry<String, String> entry :
-								transformations.entrySet()) {
-
-							if (sb.charAt(sb.length() - 1) != '?') {
-								sb.append('&');
-							}
-
-							sb.append(entry.getKey());
-							sb.append('=');
-							sb.append(
-								entry.getValue(
-								).replace(
-									":", "%3A"
-								));
-						}
-
-						return sb.toString();
-					}
-				);
-
-				return transformedImageAbsolutePortalURLBuilder;
+				return sb.toString();
 			}
 		);
+	}
+
+	private String _urlOf(
+		List<ResponsiveImageCandidate> responsiveImageCandidates, int index) {
+
+		ResponsiveImageCandidate responsiveImageCandidate =
+			responsiveImageCandidates.get(index);
+
+		return responsiveImageCandidate.getURL();
 	}
 
 	private Integer _widthOf(
@@ -379,20 +422,11 @@ public class ResponsiveImageFactoryTest {
 
 	private static final long _COMPANY_ID = RandomTestUtil.randomLong();
 
-	private final AbsolutePortalURLBuilder _absolutePortalURLBuilder =
-		Mockito.mock(AbsolutePortalURLBuilder.class);
-	private final AbsolutePortalURLBuilderFactory
-		_absolutePortalURLBuilderFactory = Mockito.mock(
-			AbsolutePortalURLBuilderFactory.class);
 	private final HttpServletRequest _httpServletRequest = Mockito.mock(
 		HttpServletRequest.class);
 	private final ImageResource _imageResource = Mockito.mock(
 		ImageResource.class);
-	private final ImageTransformationURLRenderer
-		_imageTransformationURLRenderer = Mockito.mock(
-			ImageTransformationURLRenderer.class);
-	private final Set<ImageTransformationURLRenderer>
-		_imageTransformationURLRenderers = new HashSet<>();
+	private final Portal _portal = Mockito.mock(Portal.class);
 	private final ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper = Mockito.mock(
 			ResponsiveImageConfigurationHelper.class);
@@ -400,6 +434,8 @@ public class ResponsiveImageFactoryTest {
 		_responsiveImageConfigurationRegistry = Mockito.mock(
 			ResponsiveImageConfigurationRegistry.class);
 	private ResponsiveImageFactory _responsiveImageFactory;
+	private final ResponsiveImageURLTransformer _responsiveImageURLTransformer =
+		Mockito.mock(ResponsiveImageURLTransformer.class);
 	private final ScopedConfiguration _scopedConfiguration = Mockito.mock(
 		ScopedConfiguration.class);
 

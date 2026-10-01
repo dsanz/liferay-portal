@@ -125,16 +125,6 @@ public interface AbsolutePortalURLBuilder {
 	public ServletAbsolutePortalURLBuilder forServlet(String requestURL);
 
 	/**
-	 * Returns a URL builder for images that an image optimization provider may
-	 * transform on the fly.
-	 *
-	 * @param  imagePath the image's portal relative path
-	 * @return a URL builder for the image
-	 */
-	public TransformedImageAbsolutePortalURLBuilder forTransformedImage(
-		String imagePath);
-
-	/**
 	 * Returns a URL builder for a JavaScript file using the new caching
 	 * architecture based on hashed file names.
 	 *
