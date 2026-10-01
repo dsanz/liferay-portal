@@ -9,7 +9,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * The candidates that apply under one media condition, and the condition itself.
+ * Holds the candidates that apply under one media condition, together with the
+ * condition itself.
  *
  * <p>
  * The middle level of the responsive images model, and the one that makes

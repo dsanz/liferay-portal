@@ -115,11 +115,12 @@ public class ResponsiveImageFactoryTest {
 
 	@Test
 	public void testCreateCandidatesCarryTransformationsAndWidth() {
-		_givenPresetGroup(
-			_preset("narrow", null, "(max-width: 767px)", "100vw", "crop=1:1"));
+		_givenSourceDefinitions(
+			_sourceDefinition(
+				"narrow", null, "(max-width: 767px)", "100vw", "crop=1:1"));
 
 		List<ResponsiveImageCandidate> responsiveImageCandidates =
-			_firstGroupCandidates();
+			_firstSourceCandidates();
 
 		Assert.assertEquals(
 			responsiveImageCandidates.toString(), 3,
@@ -137,7 +138,7 @@ public class ResponsiveImageFactoryTest {
 
 	@Test
 	public void testCreateConfiguredHostIsPreferredOverTheCompanyCDNHost() {
-		_givenPresetGroup(_preset(null, null, null, "100vw"));
+		_givenSourceDefinitions(_sourceDefinition(null, null, null, "100vw"));
 
 		Mockito.when(
 			_scopedConfiguration.getCDNHost()
@@ -154,12 +155,12 @@ public class ResponsiveImageFactoryTest {
 		Assert.assertEquals(
 			"https://images.example.com/documents/1/2/photo.jpg?" +
 				"disable=upscale&width=320",
-			_urlOf(_firstGroupCandidates(), 0));
+			_urlOf(_firstSourceCandidates(), 0));
 	}
 
 	@Test
 	public void testCreateConfiguredHostTrailingSlashIsStripped() {
-		_givenPresetGroup(_preset(null, null, null, "100vw"));
+		_givenSourceDefinitions(_sourceDefinition(null, null, null, "100vw"));
 
 		Mockito.when(
 			_scopedConfiguration.getCDNHost()
@@ -170,14 +171,14 @@ public class ResponsiveImageFactoryTest {
 		Assert.assertEquals(
 			"https://images.example.com/documents/1/2/photo.jpg?" +
 				"disable=upscale&width=320",
-			_urlOf(_firstGroupCandidates(), 0));
+			_urlOf(_firstSourceCandidates(), 0));
 	}
 
 	@Test
 	public void testCreateConfiguredNameSelectsTheResponsiveImageURLTransformer() {
-		_givenPresetGroup(_preset(null, null, null, "100vw"));
+		_givenSourceDefinitions(_sourceDefinition(null, null, null, "100vw"));
 
-		_firstGroupCandidates();
+		_firstSourceCandidates();
 
 		Mockito.verify(
 			_responsiveImageURLTransformer, Mockito.atLeastOnce()
@@ -223,7 +224,7 @@ public class ResponsiveImageFactoryTest {
 	public void testCreateDeclinesWhenNoResponsiveImageURLTransformerIsDeployed()
 		throws Exception {
 
-		_givenPresetGroup(_preset(null, null, null, "100vw"));
+		_givenSourceDefinitions(_sourceDefinition(null, null, null, "100vw"));
 
 		Mockito.when(
 			_scopedConfiguration.getResponsiveImageURLTransformerName()
@@ -242,7 +243,7 @@ public class ResponsiveImageFactoryTest {
 
 	@Test
 	public void testCreateFallsBackToTheCompanyHTTPCDNHost() {
-		_givenPresetGroup(_preset(null, null, null, "100vw"));
+		_givenSourceDefinitions(_sourceDefinition(null, null, null, "100vw"));
 
 		Mockito.when(
 			_portal.getCDNHostHttp(_COMPANY_ID)
@@ -253,12 +254,12 @@ public class ResponsiveImageFactoryTest {
 		Assert.assertEquals(
 			"http://cdn.example.com/documents/1/2/photo.jpg?" +
 				"disable=upscale&width=320",
-			_urlOf(_firstGroupCandidates(), 0));
+			_urlOf(_firstSourceCandidates(), 0));
 	}
 
 	@Test
 	public void testCreateFallsBackToTheCompanyHTTPSCDNHost() {
-		_givenPresetGroup(_preset(null, null, null, "100vw"));
+		_givenSourceDefinitions(_sourceDefinition(null, null, null, "100vw"));
 
 		Mockito.when(
 			_portal.getCDNHostHttp(_COMPANY_ID)
@@ -275,15 +276,15 @@ public class ResponsiveImageFactoryTest {
 		Assert.assertEquals(
 			"https://cdn.example.com/documents/1/2/photo.jpg?" +
 				"disable=upscale&width=320",
-			_urlOf(_firstGroupCandidates(), 0));
+			_urlOf(_firstSourceCandidates(), 0));
 	}
 
 	@Test
 	public void testCreateMaxWidthTruncatesLadderKeepingTheBoundaryWidth() {
-		_givenPresetGroup(_preset(null, 500, null, "500px"));
+		_givenSourceDefinitions(_sourceDefinition(null, 500, null, "500px"));
 
 		List<ResponsiveImageCandidate> responsiveImageCandidates =
-			_firstGroupCandidates();
+			_firstSourceCandidates();
 
 		Assert.assertEquals(
 			responsiveImageCandidates.toString(), 2,
@@ -296,7 +297,7 @@ public class ResponsiveImageFactoryTest {
 
 	@Test
 	public void testCreateWithoutAHttpServletRequest() {
-		_givenPresetGroup(_preset(null, null, null, "100vw"));
+		_givenSourceDefinitions(_sourceDefinition(null, null, null, "100vw"));
 
 		ResponsiveImage responsiveImage = _responsiveImageFactory.create(
 			ResponsiveImageRequest.of(_imageResource));
@@ -307,7 +308,7 @@ public class ResponsiveImageFactoryTest {
 			).isEmpty());
 	}
 
-	private List<ResponsiveImageCandidate> _firstGroupCandidates() {
+	private List<ResponsiveImageCandidate> _firstSourceCandidates() {
 		ResponsiveImage responsiveImage = _responsiveImageFactory.create(
 			_request());
 
@@ -320,7 +321,9 @@ public class ResponsiveImageFactoryTest {
 		return responsiveImageSource.getCandidates();
 	}
 
-	private void _givenPresetGroup(SourceDefinition... sourceDefinitions) {
+	private void _givenSourceDefinitions(
+		SourceDefinition... sourceDefinitions) {
+
 		Mockito.when(
 			_scopedConfiguration.getPresetDefinition(
 				Mockito.nullable(String.class))
@@ -328,28 +331,6 @@ public class ResponsiveImageFactoryTest {
 			new PresetDefinition(
 				null, null, "test", Arrays.asList(sourceDefinitions))
 		);
-	}
-
-	private SourceDefinition _preset(
-		String mediaConditionName, Integer maxWidth, String mediaQuery,
-		String sizes) {
-
-		return new SourceDefinition(
-			false, mediaConditionName, maxWidth, mediaQuery, sizes,
-			Collections.<String, String>emptyMap());
-	}
-
-	private SourceDefinition _preset(
-		String mediaConditionName, Integer maxWidth, String mediaQuery,
-		String sizes, String transformation) {
-
-		int i = transformation.indexOf('=');
-
-		return new SourceDefinition(
-			false, mediaConditionName, maxWidth, mediaQuery, sizes,
-			HashMapBuilder.put(
-				transformation.substring(0, i), transformation.substring(i + 1)
-			).build());
 	}
 
 	private ResponsiveImageRequest _request() {
@@ -395,6 +376,28 @@ public class ResponsiveImageFactoryTest {
 				return sb.toString();
 			}
 		);
+	}
+
+	private SourceDefinition _sourceDefinition(
+		String mediaConditionName, Integer maxWidth, String mediaQuery,
+		String sizes) {
+
+		return new SourceDefinition(
+			false, mediaConditionName, maxWidth, mediaQuery, sizes,
+			Collections.<String, String>emptyMap());
+	}
+
+	private SourceDefinition _sourceDefinition(
+		String mediaConditionName, Integer maxWidth, String mediaQuery,
+		String sizes, String transformation) {
+
+		int i = transformation.indexOf('=');
+
+		return new SourceDefinition(
+			false, mediaConditionName, maxWidth, mediaQuery, sizes,
+			HashMapBuilder.put(
+				transformation.substring(0, i), transformation.substring(i + 1)
+			).build());
 	}
 
 	private String _urlOf(

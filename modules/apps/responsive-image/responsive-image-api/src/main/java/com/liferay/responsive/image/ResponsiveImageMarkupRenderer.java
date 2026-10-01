@@ -10,11 +10,11 @@ import com.liferay.portal.kernel.exception.PortalException;
 import org.osgi.annotation.versioning.ProviderType;
 
 /**
- * Produces responsive image markup, whatever url renderer is active.
+ * Produces responsive image markup, whatever URL transformer is active.
  *
  * <p>
- * The umbrella every consumer should call when it needs image markup, replacing
- * direct calls to specific factories.
+ * Every consumer should call this renderer when it needs image markup, rather
+ * than calling a specific factory directly.
  * </p>
  *
  * @author Daniel Sanz
@@ -29,7 +29,7 @@ public interface ResponsiveImageMarkupRenderer {
 	 * @param  originalImgTag the original image tag, whose attributes are
 	 *         preserved
 	 * @param  responsiveImageRequest what the caller wants; use {@link
-	 *         ResponsiveImageRequest#of(ImageResource)} for current behavior
+	 *         ResponsiveImageRequest#of(ImageResource)} for the current behavior
 	 * @return the responsive markup, or <code>null</code> if the framework
 	 *         declined
 	 * @throws PortalException if the resource could not be read

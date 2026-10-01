@@ -197,7 +197,7 @@ public class ResponsiveImageMarkupRendererImplTest {
 			boolean lazy, ResponsiveImageSource... responsiveImageSources)
 		throws Exception {
 
-		List<ResponsiveImageSource> list = Arrays.asList(
+		List<ResponsiveImageSource> responsiveImageSourcesList = Arrays.asList(
 			responsiveImageSources);
 
 		Mockito.when(
@@ -208,7 +208,7 @@ public class ResponsiveImageMarkupRendererImplTest {
 			).lazy(
 				lazy
 			).sources(
-				list
+				responsiveImageSourcesList
 			).build()
 		);
 	}

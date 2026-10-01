@@ -6,7 +6,8 @@
 package com.liferay.responsive.image.constants;
 
 /**
- * The responsive image presets every installation has, whatever is configured.
+ * Lists the responsive image presets every installation has, whatever is
+ * configured.
  *
  *
  * @author Daniel Sanz

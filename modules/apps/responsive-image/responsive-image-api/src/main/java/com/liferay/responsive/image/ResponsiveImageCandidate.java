@@ -6,7 +6,7 @@
 package com.liferay.responsive.image;
 
 /**
- * One generated rendition of an {@link ImageResource}.
+ * Represents one generated rendition of an {@link ImageResource}.
  *
  * <p>
  * A candidate, in the responsive images sense: a URL plus enough about the

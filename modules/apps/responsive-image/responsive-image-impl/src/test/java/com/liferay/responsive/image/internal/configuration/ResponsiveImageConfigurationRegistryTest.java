@@ -55,7 +55,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 			new String[] {"narrow.media=(max-width: 767px)"},
 			new String[] {"hero.narrow.sizes=50vw"});
 
-		List<SourceDefinition> sourceDefinitions = _presetsOf("hero");
+		List<SourceDefinition> sourceDefinitions = _sourceDefinitionsOf("hero");
 
 		Assert.assertEquals(
 			sourceDefinitions.toString(), 2, sourceDefinitions.size());
@@ -134,7 +134,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 		_givenConfiguration(
 			new String[0], new String[] {"card.default.sizes=25vw"});
 
-		SourceDefinition sourceDefinition = _firstPresetOf("card");
+		SourceDefinition sourceDefinition = _firstSourceDefinitionOf("card");
 
 		Assert.assertEquals("25vw", sourceDefinition.getSizes(false));
 		Assert.assertEquals(
@@ -153,7 +153,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 			new String[] {"wide.media=(min-width: 768px)"},
 			new String[] {"hero.default.sizes=100vw", "hero.wide.sizes=50vw"});
 
-		List<SourceDefinition> sourceDefinitions = _presetsOf("hero");
+		List<SourceDefinition> sourceDefinitions = _sourceDefinitionsOf("hero");
 
 		Assert.assertEquals(
 			sourceDefinitions.toString(), 2, sourceDefinitions.size());
@@ -175,7 +175,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 				"thumb.default.sizes=96px", "thumb.default.maxWidth=320"
 			});
 
-		SourceDefinition sourceDefinition = _firstPresetOf("thumb");
+		SourceDefinition sourceDefinition = _firstSourceDefinitionOf("thumb");
 
 		Assert.assertEquals(
 			Integer.valueOf(320), sourceDefinition.getMaxWidth());
@@ -190,7 +190,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 			},
 			new String[] {"hero.wide.sizes=50vw", "hero.narrow.sizes=100vw"});
 
-		List<SourceDefinition> sourceDefinitions = _presetsOf("hero");
+		List<SourceDefinition> sourceDefinitions = _sourceDefinitionsOf("hero");
 
 		Assert.assertEquals(
 			"narrow", _mediaConditionNameOf(sourceDefinitions, 0));
@@ -206,7 +206,8 @@ public class ResponsiveImageConfigurationRegistryTest {
 				"custom.narow.sizes=100vw", "custom.narrow.sizes=50vw"
 			});
 
-		List<SourceDefinition> sourceDefinitions = _presetsOf("custom");
+		List<SourceDefinition> sourceDefinitions = _sourceDefinitionsOf(
+			"custom");
 
 		Assert.assertEquals(
 			sourceDefinitions.toString(), 1, sourceDefinitions.size());
@@ -229,7 +230,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 
 		Assert.assertEquals("Hero", presetDefinition.getLabel());
 
-		SourceDefinition sourceDefinition = _firstPresetOf("hero");
+		SourceDefinition sourceDefinition = _firstSourceDefinitionOf("hero");
 
 		Assert.assertEquals(
 			"(max-width: 767px)", sourceDefinition.getMediaQuery());
@@ -317,8 +318,9 @@ public class ResponsiveImageConfigurationRegistryTest {
 			"", scopedConfiguration.getResponsiveImageURLTransformerName());
 	}
 
-	private SourceDefinition _firstPresetOf(String presetName) {
-		List<SourceDefinition> sourceDefinitions = _presetsOf(presetName);
+	private SourceDefinition _firstSourceDefinitionOf(String presetName) {
+		List<SourceDefinition> sourceDefinitions = _sourceDefinitionsOf(
+			presetName);
 
 		return sourceDefinitions.get(0);
 	}
@@ -347,7 +349,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 		return sourceDefinition.getMediaConditionName();
 	}
 
-	private List<SourceDefinition> _presetsOf(String presetName) {
+	private List<SourceDefinition> _sourceDefinitionsOf(String presetName) {
 		PresetDefinition presetDefinition =
 			_responsiveImageConfigurationRegistry.getPresetDefinition(
 				0, _COMPANY_ID, presetName);

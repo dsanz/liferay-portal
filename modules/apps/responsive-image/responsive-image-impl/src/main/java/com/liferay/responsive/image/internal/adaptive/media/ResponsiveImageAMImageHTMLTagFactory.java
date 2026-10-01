@@ -24,7 +24,8 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 
 /**
- * Routes existing Adaptive Media tag factory callers through the umbrella
+ * Routes existing Adaptive Media tag factory callers through the
+ * {@link ResponsiveImageMarkupRenderer}.
  *
  * <p>
  * Registered above Adaptive Media's own implementation so that the consumers

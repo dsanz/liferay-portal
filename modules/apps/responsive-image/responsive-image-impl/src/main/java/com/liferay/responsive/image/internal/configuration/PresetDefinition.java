@@ -9,7 +9,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * A configured, named placement describing one place an image sits in a layout.
+ * Describes a configured, named placement for one place an image sits in a
+ * layout.
  *
  * @author Daniel Sanz
  */

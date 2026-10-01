@@ -203,15 +203,16 @@ public class ResponsiveImageConfigurationRegistry {
 			Map<String, String> properties = sourceProperties.computeIfAbsent(
 				_MEDIA_CONDITION_DEFAULT, name -> new LinkedHashMap<>());
 
-			properties.put(_SIZES, builtInPreset._sizes);
+			properties.put(_PROPERTY_SIZES, builtInPreset._sizes);
 
 			if (builtInPreset._autoSizes) {
-				properties.put(_AUTO_SIZES, StringPool.TRUE);
+				properties.put(_PROPERTY_AUTO_PROPERTY_SIZES, StringPool.TRUE);
 			}
 
 			if (builtInPreset._maxWidth != null) {
 				properties.put(
-					_MAX_WIDTH, String.valueOf(builtInPreset._maxWidth));
+					_PROPERTY_MAX_WIDTH,
+					String.valueOf(builtInPreset._maxWidth));
 			}
 		}
 	}
@@ -353,10 +354,13 @@ public class ResponsiveImageConfigurationRegistry {
 
 			sourceDefinitions.add(
 				new SourceDefinition(
-					GetterUtil.getBoolean(properties.get(_AUTO_SIZES)),
-					entry.getKey(), _toMaxWidth(properties.get(_MAX_WIDTH)),
-					entry.getValue(), properties.get(_SIZES),
-					_toTransformations(properties.get(_TRANSFORMATIONS))));
+					GetterUtil.getBoolean(
+						properties.get(_PROPERTY_AUTO_PROPERTY_SIZES)),
+					entry.getKey(),
+					_toMaxWidth(properties.get(_PROPERTY_MAX_WIDTH)),
+					entry.getValue(), properties.get(_PROPERTY_SIZES),
+					_toTransformations(
+						properties.get(_PROPERTY_TRANSFORMATIONS))));
 		}
 
 		Map<String, String> properties = sourceProperties.get(
@@ -365,11 +369,13 @@ public class ResponsiveImageConfigurationRegistry {
 		if (properties != null) {
 			sourceDefinitions.add(
 				new SourceDefinition(
-					GetterUtil.getBoolean(properties.get(_AUTO_SIZES)),
+					GetterUtil.getBoolean(
+						properties.get(_PROPERTY_AUTO_PROPERTY_SIZES)),
 					_MEDIA_CONDITION_DEFAULT,
-					_toMaxWidth(properties.get(_MAX_WIDTH)), null,
-					properties.get(_SIZES),
-					_toTransformations(properties.get(_TRANSFORMATIONS))));
+					_toMaxWidth(properties.get(_PROPERTY_MAX_WIDTH)), null,
+					properties.get(_PROPERTY_SIZES),
+					_toTransformations(
+						properties.get(_PROPERTY_TRANSFORMATIONS))));
 		}
 
 		return sourceDefinitions;
@@ -443,7 +449,7 @@ public class ResponsiveImageConfigurationRegistry {
 			return Collections.emptyMap();
 		}
 
-		Map<String, String> map = new HashMap<>();
+		Map<String, String> values = new HashMap<>();
 
 		for (String entry : entries) {
 			if (Validator.isBlank(entry)) {
@@ -460,10 +466,10 @@ public class ResponsiveImageConfigurationRegistry {
 				continue;
 			}
 
-			map.put(entry.substring(0, i), entry.substring(i + 1));
+			values.put(entry.substring(0, i), entry.substring(i + 1));
 		}
 
-		return map;
+		return values;
 	}
 
 	private Map<String, String> _toMediaConditions(
@@ -536,8 +542,6 @@ public class ResponsiveImageConfigurationRegistry {
 		return widths;
 	}
 
-	private static final String _AUTO_SIZES = "autoSizes";
-
 	private static final BuiltInPreset[] _BUILT_IN_PRESETS = {
 		new BuiltInPreset(
 			"Default", null, ResponsiveImagePresetConstants.DEFAULT, "100vw"
@@ -558,13 +562,15 @@ public class ResponsiveImageConfigurationRegistry {
 		).eager()
 	};
 
-	private static final String _MAX_WIDTH = "maxWidth";
-
 	private static final String _MEDIA_CONDITION_DEFAULT = "default";
 
-	private static final String _SIZES = "sizes";
+	private static final String _PROPERTY_AUTO_PROPERTY_SIZES = "autoSizes";
 
-	private static final String _TRANSFORMATIONS = "transformations";
+	private static final String _PROPERTY_MAX_WIDTH = "maxWidth";
+
+	private static final String _PROPERTY_SIZES = "sizes";
+
+	private static final String _PROPERTY_TRANSFORMATIONS = "transformations";
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ResponsiveImageConfigurationRegistry.class);

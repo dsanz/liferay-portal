@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.Map;
 
 /**
- * How an image should be generated under one media condition.
+ * Describes how an image should be generated under one media condition.
  *
  * <p>
  * One entry of a {@link PresetDefinition}, and the recipe whose result is an

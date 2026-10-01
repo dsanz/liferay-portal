@@ -73,12 +73,12 @@ public class ResponsiveImageMarkupRendererImpl
 			responsiveImage.getSources();
 
 		if (responsiveImageSources.isEmpty() ||
-			_hasCandidatesWithSameURL(responsiveImageSources)) {
+			_isUntransformed(responsiveImageSources)) {
 
 			return null;
 		}
 
-		if (_requiresPictureElement(responsiveImageSources)) {
+		if (_isPictureElementRequired(responsiveImageSources)) {
 			return _renderPicture(
 				responsiveImageSources, responsiveImage.isLazy(),
 				originalImgTag);
@@ -137,7 +137,33 @@ public class ResponsiveImageMarkupRendererImpl
 		return sb.toString();
 	}
 
-	private boolean _hasCandidatesWithSameURL(
+	private String _injectAttributes(String imgTag, String attributes) {
+		int i = imgTag.indexOf("<img");
+
+		if (i == -1) {
+			return imgTag;
+		}
+
+		return StringBundler.concat(
+			imgTag.substring(0, i + 4), StringPool.SPACE, attributes,
+			imgTag.substring(i + 4));
+	}
+
+	private boolean _isPictureElementRequired(
+		List<ResponsiveImageSource> responsiveImageSources) {
+
+		for (ResponsiveImageSource responsiveImageSource :
+				responsiveImageSources) {
+
+			if (!Validator.isBlank(responsiveImageSource.getMediaQuery())) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private boolean _isUntransformed(
 		List<ResponsiveImageSource> responsiveImageSources) {
 
 		for (ResponsiveImageSource responsiveImageSource :
@@ -161,18 +187,6 @@ public class ResponsiveImageMarkupRendererImpl
 		}
 
 		return false;
-	}
-
-	private String _injectAttributes(String imgTag, String attributes) {
-		int i = imgTag.indexOf("<img");
-
-		if (i == -1) {
-			return imgTag;
-		}
-
-		return StringBundler.concat(
-			imgTag.substring(0, i + 4), StringPool.SPACE, attributes,
-			imgTag.substring(i + 4));
 	}
 
 	private String _renderImg(
@@ -254,20 +268,6 @@ public class ResponsiveImageMarkupRendererImpl
 		sb.append("</picture>");
 
 		return sb.toString();
-	}
-
-	private boolean _requiresPictureElement(
-		List<ResponsiveImageSource> responsiveImageSources) {
-
-		for (ResponsiveImageSource responsiveImageSource :
-				responsiveImageSources) {
-
-			if (!Validator.isBlank(responsiveImageSource.getMediaQuery())) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 
 	@Reference

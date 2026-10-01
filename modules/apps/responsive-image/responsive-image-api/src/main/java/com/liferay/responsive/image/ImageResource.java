@@ -6,17 +6,19 @@
 package com.liferay.responsive.image;
 
 /**
- * The original image a provider generates renditions from, independently of
+ * Represents the original image a provider generates renditions from,
+ * independently of
  * where it is stored.
  *
  * <p>
- * Deliberately not tied to {@code FileEntry}: the images to render also live in
+ * This interface is deliberately not tied to {@code FileEntry}, because the
+ * images to render also live in
  * OSGi modules, in the legacy portal image path, or on a completely different
  * host.
  * </p>
  *
  * <p>
- * Deliberately carries nothing about cache freshness either. How long a
+ * It deliberately carries nothing about cache freshness either. How long a
  * generated rendition may be held is decided by the <code>Cache-Control</code>
  * the origin returns and by the CDN's own invalidation, both of which are
  * configured elsewhere. Encoding a version into the URL here would be cache
@@ -24,7 +26,7 @@ package com.liferay.responsive.image;
  * </p>
  *
  * <p>
- * Deliberately carries no intrinsic dimensions, as they are not cheaply
+ * It deliberately carries no intrinsic dimensions, as they are not cheaply
  * obtainable in general.
  * </p>
  *

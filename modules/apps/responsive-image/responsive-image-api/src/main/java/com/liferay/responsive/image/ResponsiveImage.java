@@ -9,7 +9,8 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * A resolved image, ready to be rendered or serialized in a responsive way.
+ * Represents a resolved image that is ready to be rendered or serialized in a
+ * responsive way.
  *
  * <p>
  * A model rather than a markup string on purpose, because different pieces
