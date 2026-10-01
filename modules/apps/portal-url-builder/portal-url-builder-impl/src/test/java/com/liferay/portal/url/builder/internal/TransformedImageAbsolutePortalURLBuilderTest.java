@@ -11,8 +11,8 @@ import com.liferay.portal.kernel.frontend.hashed.files.CachingStrategy;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.portal.url.builder.AbsolutePortalURLBuilder;
-import com.liferay.portal.url.builder.ImageTransformationAbsolutePortalURLBuilder;
-import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
+import com.liferay.portal.url.builder.TransformedImageAbsolutePortalURLBuilder;
+import com.liferay.portal.url.builder.TransformedImageURLRenderer;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,7 +33,7 @@ import org.mockito.Mockito;
  * @author Daniel Sanz
  */
 @RunWith(Parameterized.class)
-public class ImageTransformationAbsolutePortalURLBuilderTest
+public class TransformedImageAbsolutePortalURLBuilderTest
 	extends BaseAbsolutePortalURLBuilderTestCase {
 
 	@ClassRule
@@ -60,9 +60,9 @@ public class ImageTransformationAbsolutePortalURLBuilderTest
 			mockHashedFilesRegistry(CachingStrategy.DO_NOT_USE_HASHES),
 			mockPortal(context, proxy, cdnHost), mockHttpServletRequest());
 
-		_imageTransformationAbsolutePortalURLBuilder =
-			_absolutePortalURLBuilder.forImageTransformation(
-				_imageTransformationURLRenderer, _RESOURCE_PATH);
+		_transformedImageAbsolutePortalURLBuilder =
+			_absolutePortalURLBuilder.forTransformedImage(
+				_transformedImageURLRenderer, _RELATIVE_URL);
 	}
 
 	@After
@@ -74,27 +74,27 @@ public class ImageTransformationAbsolutePortalURLBuilderTest
 	public void test() {
 		Assert.assertEquals(
 			_RESULTS[index],
-			_imageTransformationAbsolutePortalURLBuilder.build());
+			_transformedImageAbsolutePortalURLBuilder.build());
 	}
 
 	@Test
 	public void testBuildDropsImageTransformationsWithoutARenderer() {
-		ImageTransformationAbsolutePortalURLBuilder
-			imageTransformationAbsolutePortalURLBuilder =
-				_absolutePortalURLBuilder.forImageTransformation(
-					null, _RESOURCE_PATH);
+		TransformedImageAbsolutePortalURLBuilder
+			transformedImageAbsolutePortalURLBuilder =
+				_absolutePortalURLBuilder.forTransformedImage(
+					null, _RELATIVE_URL);
 
-		imageTransformationAbsolutePortalURLBuilder.setImageTransformation(
+		transformedImageAbsolutePortalURLBuilder.setImageTransformation(
 			RandomTestUtil.randomString(), RandomTestUtil.randomString());
 
 		Assert.assertEquals(
 			_RESULTS[index],
-			imageTransformationAbsolutePortalURLBuilder.build());
+			transformedImageAbsolutePortalURLBuilder.build());
 	}
 
 	@Test
 	public void testBuildRendersTheURLAndTheImageTransformations() {
-		_imageTransformationAbsolutePortalURLBuilder.setImageTransformation(
+		_transformedImageAbsolutePortalURLBuilder.setImageTransformation(
 			"quality", "80"
 		).setImageTransformation(
 			"width", "320"
@@ -102,30 +102,30 @@ public class ImageTransformationAbsolutePortalURLBuilderTest
 
 		Assert.assertEquals(
 			_RESULTS[index] + "?quality=80&width=320",
-			_imageTransformationAbsolutePortalURLBuilder.build());
+			_transformedImageAbsolutePortalURLBuilder.build());
 	}
 
 	@Test
 	public void testBuildSkipsTheRendererWithoutImageTransformations() {
 		Assert.assertEquals(
 			_RESULTS[index],
-			_imageTransformationAbsolutePortalURLBuilder.build());
+			_transformedImageAbsolutePortalURLBuilder.build());
 
-		Mockito.verifyNoInteractions(_imageTransformationURLRenderer);
+		Mockito.verifyNoInteractions(_transformedImageURLRenderer);
 	}
 
 	@Test
 	public void testIgnoreCDN() {
-		_imageTransformationAbsolutePortalURLBuilder.ignoreCDNHost();
+		_transformedImageAbsolutePortalURLBuilder.ignoreCDNHost();
 
 		Assert.assertEquals(
 			_RESULTS_IGNORE_CDN[index],
-			_imageTransformationAbsolutePortalURLBuilder.build());
+			_transformedImageAbsolutePortalURLBuilder.build());
 	}
 
 	@Test
 	public void testSetImageTransformationIgnoresNullNamesAndValues() {
-		_imageTransformationAbsolutePortalURLBuilder.setImageTransformation(
+		_transformedImageAbsolutePortalURLBuilder.setImageTransformation(
 			RandomTestUtil.randomString(), null
 		).setImageTransformation(
 			null, RandomTestUtil.randomString()
@@ -133,16 +133,16 @@ public class ImageTransformationAbsolutePortalURLBuilderTest
 
 		Assert.assertEquals(
 			_RESULTS[index],
-			_imageTransformationAbsolutePortalURLBuilder.build());
+			_transformedImageAbsolutePortalURLBuilder.build());
 
-		Mockito.verifyNoInteractions(_imageTransformationURLRenderer);
+		Mockito.verifyNoInteractions(_transformedImageURLRenderer);
 	}
 
 	@Test
 	public void testSetImageTransformationTwiceReplacesTheValue() {
 		String value = RandomTestUtil.randomString();
 
-		_imageTransformationAbsolutePortalURLBuilder.setImageTransformation(
+		_transformedImageAbsolutePortalURLBuilder.setImageTransformation(
 			"width", RandomTestUtil.randomString()
 		).setImageTransformation(
 			"width", value
@@ -150,7 +150,7 @@ public class ImageTransformationAbsolutePortalURLBuilderTest
 
 		Assert.assertEquals(
 			_RESULTS[index] + "?width=" + value,
-			_imageTransformationAbsolutePortalURLBuilder.build());
+			_transformedImageAbsolutePortalURLBuilder.build());
 	}
 
 	@Parameterized.Parameter(1)
@@ -165,25 +165,25 @@ public class ImageTransformationAbsolutePortalURLBuilderTest
 	@Parameterized.Parameter(3)
 	public boolean proxy;
 
-	private static final String _RESOURCE_PATH = "/documents/d/guest/image.png";
+	private static final String _RELATIVE_URL = "/documents/d/guest/image.png";
 
 	private static final String[] _RESULTS = {
-		_RESOURCE_PATH, "/proxy" + _RESOURCE_PATH, _RESOURCE_PATH,
-		"/proxy" + _RESOURCE_PATH, "http://cdn-host" + _RESOURCE_PATH
+		_RELATIVE_URL, "/proxy" + _RELATIVE_URL, _RELATIVE_URL,
+		"/proxy" + _RELATIVE_URL, "http://cdn-host" + _RELATIVE_URL
 	};
 
 	private static final String[] _RESULTS_IGNORE_CDN = {
-		_RESOURCE_PATH, "/proxy" + _RESOURCE_PATH, _RESOURCE_PATH,
-		"/proxy" + _RESOURCE_PATH, _RESOURCE_PATH
+		_RELATIVE_URL, "/proxy" + _RELATIVE_URL, _RELATIVE_URL,
+		"/proxy" + _RELATIVE_URL, _RELATIVE_URL
 	};
 
 	private AbsolutePortalURLBuilder _absolutePortalURLBuilder;
-	private ImageTransformationAbsolutePortalURLBuilder
-		_imageTransformationAbsolutePortalURLBuilder;
+	private TransformedImageAbsolutePortalURLBuilder
+		_transformedImageAbsolutePortalURLBuilder;
 
-	private final ImageTransformationURLRenderer
-		_imageTransformationURLRenderer = Mockito.mock(
-			ImageTransformationURLRenderer.class,
+	private final TransformedImageURLRenderer
+		_transformedImageURLRenderer = Mockito.mock(
+			TransformedImageURLRenderer.class,
 			invocation -> {
 				StringBundler sb = new StringBundler();
 

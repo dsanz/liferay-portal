@@ -12,7 +12,7 @@ import java.util.Map;
  * concrete image optimization provider (typically a CDN).
  *
  * <p>
- * The {@link ImageTransformationAbsolutePortalURLBuilder} calls this renderer
+ * The {@link TransformedImageAbsolutePortalURLBuilder} calls this renderer
  * to turn the image transformations it collected into whatever URL based
  * contract the provider understands. The renderer also decides which of those
  * image transformations the provider understands at all.
@@ -26,7 +26,7 @@ import java.util.Map;
  *
  * @author Daniel Sanz
  */
-public interface ImageTransformationURLRenderer {
+public interface TransformedImageURLRenderer {
 
 	/**
 	 * Returns the name of the provider this renderer speaks for, for example

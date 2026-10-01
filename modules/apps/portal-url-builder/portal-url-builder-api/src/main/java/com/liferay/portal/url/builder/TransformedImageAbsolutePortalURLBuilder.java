@@ -14,16 +14,16 @@ import com.liferay.portal.url.builder.facet.CDNAwareAbsolutePortalURLBuilder;
  *
  * @author Daniel Sanz
  */
-public interface ImageTransformationAbsolutePortalURLBuilder
+public interface TransformedImageAbsolutePortalURLBuilder
 	extends BuildableAbsolutePortalURLBuilder,
 			CDNAwareAbsolutePortalURLBuilder
-				<ImageTransformationAbsolutePortalURLBuilder> {
+				<TransformedImageAbsolutePortalURLBuilder> {
 
 	/**
 	 * Sets an image transformation, by the name the renderer's provider gives
 	 * it. Setting the same name twice replaces the previous value.
 	 */
-	public ImageTransformationAbsolutePortalURLBuilder setImageTransformation(
+	public TransformedImageAbsolutePortalURLBuilder setImageTransformation(
 		String name, String value);
 
 }

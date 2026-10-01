@@ -7,8 +7,8 @@ package com.liferay.portal.url.builder.internal;
 
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
-import com.liferay.portal.url.builder.ImageTransformationAbsolutePortalURLBuilder;
-import com.liferay.portal.url.builder.ImageTransformationURLRenderer;
+import com.liferay.portal.url.builder.TransformedImageAbsolutePortalURLBuilder;
+import com.liferay.portal.url.builder.TransformedImageURLRenderer;
 import com.liferay.portal.url.builder.internal.util.URLUtil;
 
 import java.util.Map;
@@ -17,18 +17,18 @@ import java.util.TreeMap;
 /**
  * @author Daniel Sanz
  */
-public class ImageTransformationAbsolutePortalURLBuilderImpl
-	implements ImageTransformationAbsolutePortalURLBuilder {
+public class TransformedImageAbsolutePortalURLBuilderImpl
+	implements TransformedImageAbsolutePortalURLBuilder {
 
-	public ImageTransformationAbsolutePortalURLBuilderImpl(
+	public TransformedImageAbsolutePortalURLBuilderImpl(
 		String cdnHost,
-		ImageTransformationURLRenderer imageTransformationURLRenderer,
-		String pathProxy, String resourcePath) {
+		TransformedImageURLRenderer transformedImageURLRenderer,
+		String pathProxy, String relativeURL) {
 
 		_cdnHost = cdnHost;
-		_imageTransformationURLRenderer = imageTransformationURLRenderer;
+		_transformedImageURLRenderer = transformedImageURLRenderer;
 		_pathProxy = pathProxy;
-		_resourcePath = resourcePath;
+		_relativeURL = relativeURL;
 
 		_ignoreCDNHost = false;
 	}
@@ -39,29 +39,29 @@ public class ImageTransformationAbsolutePortalURLBuilderImpl
 
 		URLUtil.appendURL(
 			sb, _cdnHost, _ignoreCDNHost, StringPool.BLANK, _pathProxy,
-			_resourcePath);
+			_relativeURL);
 
 		String url = sb.toString();
 
 		if (_imageTransformations.isEmpty() ||
-			(_imageTransformationURLRenderer == null)) {
+			(_transformedImageURLRenderer == null)) {
 
 			return url;
 		}
 
-		return _imageTransformationURLRenderer.render(
+		return _transformedImageURLRenderer.render(
 			url, _imageTransformations);
 	}
 
 	@Override
-	public ImageTransformationAbsolutePortalURLBuilder ignoreCDNHost() {
+	public TransformedImageAbsolutePortalURLBuilder ignoreCDNHost() {
 		_ignoreCDNHost = true;
 
 		return this;
 	}
 
 	@Override
-	public ImageTransformationAbsolutePortalURLBuilder setImageTransformation(
+	public TransformedImageAbsolutePortalURLBuilder setImageTransformation(
 		String name, String value) {
 
 		if ((name == null) || (value == null)) {
@@ -75,10 +75,10 @@ public class ImageTransformationAbsolutePortalURLBuilderImpl
 
 	private final String _cdnHost;
 	private boolean _ignoreCDNHost;
-	private final ImageTransformationURLRenderer
-		_imageTransformationURLRenderer;
+	private final TransformedImageURLRenderer
+		_transformedImageURLRenderer;
 	private final Map<String, String> _imageTransformations = new TreeMap<>();
 	private final String _pathProxy;
-	private final String _resourcePath;
+	private final String _relativeURL;
 
 }
