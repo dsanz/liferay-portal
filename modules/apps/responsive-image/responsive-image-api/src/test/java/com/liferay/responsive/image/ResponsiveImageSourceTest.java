@@ -27,7 +27,7 @@ public class ResponsiveImageSourceTest {
 		LiferayUnitTestRule.INSTANCE;
 
 	@Test(expected = UnsupportedOperationException.class)
-	public void testCandidatesAreUnmodifiable() {
+	public void testGetCandidatesReturnsAnUnmodifiableList() {
 		ResponsiveImageSource responsiveImageSource =
 			ResponsiveImageSource.builder(
 			).candidates(
@@ -48,7 +48,22 @@ public class ResponsiveImageSourceTest {
 	}
 
 	@Test
-	public void testOfAllowsAProviderToDetermineItsOwnGroup() {
+	public void testGetMediaQueryWhenUnconditional() {
+		ResponsiveImageSource responsiveImageSource =
+			ResponsiveImageSource.builder(
+			).candidates(
+				Collections.<ResponsiveImageCandidate>emptyList()
+			).mediaQuery(
+				null
+			).sizes(
+				"100vw"
+			).build();
+
+		Assert.assertNull(responsiveImageSource.getMediaQuery());
+	}
+
+	@Test
+	public void testGetSizesWhenNoneIsGiven() {
 		ResponsiveImageSource responsiveImageSource =
 			ResponsiveImageSource.builder(
 			).candidates(
@@ -62,21 +77,6 @@ public class ResponsiveImageSourceTest {
 		Assert.assertEquals(
 			"(max-width: 640px)", responsiveImageSource.getMediaQuery());
 		Assert.assertNull(responsiveImageSource.getSizes());
-	}
-
-	@Test
-	public void testUnconditionalGroupHasNoMediaQuery() {
-		ResponsiveImageSource responsiveImageSource =
-			ResponsiveImageSource.builder(
-			).candidates(
-				Collections.<ResponsiveImageCandidate>emptyList()
-			).mediaQuery(
-				null
-			).sizes(
-				"100vw"
-			).build();
-
-		Assert.assertNull(responsiveImageSource.getMediaQuery());
 	}
 
 	private final List<ResponsiveImageCandidate> _candidates = Arrays.asList(

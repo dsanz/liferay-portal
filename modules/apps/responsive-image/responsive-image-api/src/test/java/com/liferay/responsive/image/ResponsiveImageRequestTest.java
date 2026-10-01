@@ -32,17 +32,29 @@ public class ResponsiveImageRequestTest {
 	}
 
 	@Test
-	public void testBuildsWithoutAHttpServletRequest() {
+	public void testGetGroupIdWhenGiven() {
 		ResponsiveImageRequest responsiveImageRequest =
-			ResponsiveImageRequest.of(_imageResource);
+			ResponsiveImageRequest.builder(
+				_imageResource
+			).groupId(
+				12345
+			).build();
 
-		Assert.assertNull(responsiveImageRequest.getHttpServletRequest());
-		Assert.assertSame(
-			_imageResource, responsiveImageRequest.getImageResource());
+		Assert.assertEquals(12345, responsiveImageRequest.getGroupId());
 	}
 
 	@Test
-	public void testCarriesAHttpServletRequestWhenGiven() {
+	public void testGetGroupIdWhenNoneIsGiven() {
+		ResponsiveImageRequest responsiveImageRequest =
+			ResponsiveImageRequest.builder(
+				_imageResource
+			).build();
+
+		Assert.assertEquals(0, responsiveImageRequest.getGroupId());
+	}
+
+	@Test
+	public void testGetHttpServletRequestWhenGiven() {
 		ResponsiveImageRequest responsiveImageRequest =
 			ResponsiveImageRequest.builder(
 				_imageResource
@@ -56,25 +68,17 @@ public class ResponsiveImageRequestTest {
 	}
 
 	@Test
-	public void testDefersToTheCompanyWhenNoSiteIsGiven() {
-		ResponsiveImageRequest responsiveImageRequest =
-			ResponsiveImageRequest.builder(
-				_imageResource
-			).build();
-
-		Assert.assertEquals(0, responsiveImageRequest.getGroupId());
-	}
-
-	@Test
-	public void testNamesNoPresetByDefault() {
+	public void testGetHttpServletRequestWhenNoneIsGiven() {
 		ResponsiveImageRequest responsiveImageRequest =
 			ResponsiveImageRequest.of(_imageResource);
 
-		Assert.assertNull(responsiveImageRequest.getPresetName());
+		Assert.assertNull(responsiveImageRequest.getHttpServletRequest());
+		Assert.assertSame(
+			_imageResource, responsiveImageRequest.getImageResource());
 	}
 
 	@Test
-	public void testPresetNameIsCarried() {
+	public void testGetPresetNameWhenGiven() {
 		ResponsiveImageRequest responsiveImageRequest =
 			ResponsiveImageRequest.builder(
 				_imageResource
@@ -86,15 +90,11 @@ public class ResponsiveImageRequestTest {
 	}
 
 	@Test
-	public void testSiteIsCarried() {
+	public void testGetPresetNameWhenNoneIsGiven() {
 		ResponsiveImageRequest responsiveImageRequest =
-			ResponsiveImageRequest.builder(
-				_imageResource
-			).groupId(
-				12345
-			).build();
+			ResponsiveImageRequest.of(_imageResource);
 
-		Assert.assertEquals(12345, responsiveImageRequest.getGroupId());
+		Assert.assertNull(responsiveImageRequest.getPresetName());
 	}
 
 	private final HttpServletRequest _httpServletRequest = Mockito.mock(

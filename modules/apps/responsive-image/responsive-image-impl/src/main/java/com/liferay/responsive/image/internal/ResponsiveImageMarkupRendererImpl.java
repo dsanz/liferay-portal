@@ -195,8 +195,8 @@ public class ResponsiveImageMarkupRendererImpl
 			sb.append("\"");
 		}
 
-		// sizes="auto" is only honored on a lazily loaded image, so the two
-		// attributes have to be emitted together or not at all.
+		// The sizes="auto" value is only honored on a lazily loaded image, so
+		// the two attributes have to be emitted together or not at all.
 
 		if (lazy && !originalImgTag.contains("loading=")) {
 			sb.append(" loading=\"lazy\"");

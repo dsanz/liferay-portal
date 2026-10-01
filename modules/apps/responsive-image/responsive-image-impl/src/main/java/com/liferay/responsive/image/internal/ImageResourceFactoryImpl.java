@@ -29,7 +29,11 @@ public class ImageResourceFactoryImpl implements ImageResourceFactory {
 	public FileEntryImageResource fromFileEntry(FileEntry fileEntry)
 		throws PortalException {
 
-		return new FileEntryImageResourceImpl(fileEntry, _getURL(fileEntry));
+		return new FileEntryImageResourceImpl(
+			fileEntry,
+			_dlURLHelper.getPreviewURL(
+				fileEntry, fileEntry.getFileVersion(), _getThemeDisplay(),
+				StringPool.BLANK, false, false));
 	}
 
 	@Override
@@ -46,12 +50,6 @@ public class ImageResourceFactoryImpl implements ImageResourceFactory {
 		}
 
 		return serviceContext.getThemeDisplay();
-	}
-
-	private String _getURL(FileEntry fileEntry) throws PortalException {
-		return _dlURLHelper.getPreviewURL(
-			fileEntry, fileEntry.getFileVersion(), _getThemeDisplay(),
-			StringPool.BLANK, false, false);
 	}
 
 	@Reference

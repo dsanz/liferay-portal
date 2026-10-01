@@ -56,7 +56,7 @@ public class ResponsiveImageMarkupRendererImplTest {
 	}
 
 	@Test
-	public void testDeclinesWhenNothingWasTransformed() throws Exception {
+	public void testRenderDeclinesWhenNothingWasTransformed() throws Exception {
 		_givenResponsiveImage(
 			false,
 			ResponsiveImageSource.builder(
@@ -77,7 +77,9 @@ public class ResponsiveImageMarkupRendererImplTest {
 
 	@FeatureFlag(enable = false, value = "LPD-94784")
 	@Test
-	public void testDeclinesWhenTheFeatureFlagIsDisabled() throws Exception {
+	public void testRenderDeclinesWhenTheFeatureFlagIsDisabled()
+		throws Exception {
+
 		_givenResponsiveImage(
 			false,
 			ResponsiveImageSource.builder(
@@ -99,7 +101,7 @@ public class ResponsiveImageMarkupRendererImplTest {
 	}
 
 	@Test
-	public void testRendersImgForASingleSource() throws Exception {
+	public void testRenderImgForASingleSource() throws Exception {
 		_givenResponsiveImage(
 			false,
 			ResponsiveImageSource.builder(
@@ -127,7 +129,7 @@ public class ResponsiveImageMarkupRendererImplTest {
 	}
 
 	@Test
-	public void testRendersLoadingLazyFromTheModel() throws Exception {
+	public void testRenderLoadingLazyFromTheModel() throws Exception {
 		_givenResponsiveImage(
 			true,
 			ResponsiveImageSource.builder(
@@ -148,7 +150,7 @@ public class ResponsiveImageMarkupRendererImplTest {
 	}
 
 	@Test
-	public void testRendersPictureForArtDirection() throws Exception {
+	public void testRenderPictureForArtDirection() throws Exception {
 		_givenResponsiveImage(
 			false,
 			ResponsiveImageSource.builder(

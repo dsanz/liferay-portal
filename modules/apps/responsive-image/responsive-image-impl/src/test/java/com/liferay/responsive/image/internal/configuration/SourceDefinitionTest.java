@@ -25,27 +25,27 @@ public class SourceDefinitionTest {
 		LiferayUnitTestRule.INSTANCE;
 
 	@Test
-	public void testAutoSizesIsIgnoredWhenNotLazy() {
-		SourceDefinition sourceDefinition = _autoSizesSourceDefinition();
-
-		Assert.assertEquals("100vw", sourceDefinition.getSizes(false));
-	}
-
-	@Test
-	public void testAutoSizesKeepsDeclaredSizesAsFallback() {
-		SourceDefinition sourceDefinition = _autoSizesSourceDefinition();
-
-		Assert.assertEquals("auto, 100vw", sourceDefinition.getSizes(true));
-	}
-
-	@Test
-	public void testSizesAreUntouchedWithoutAutoSizes() {
+	public void testGetSizesAreUntouchedWithoutAutoSizes() {
 		SourceDefinition sourceDefinition = new SourceDefinition(
 			false, "default", null, null, "100vw",
 			Collections.<String, String>emptyMap());
 
 		Assert.assertEquals("100vw", sourceDefinition.getSizes(true));
 		Assert.assertEquals("100vw", sourceDefinition.getSizes(false));
+	}
+
+	@Test
+	public void testGetSizesIgnoresAutoSizesWhenNotLazy() {
+		SourceDefinition sourceDefinition = _autoSizesSourceDefinition();
+
+		Assert.assertEquals("100vw", sourceDefinition.getSizes(false));
+	}
+
+	@Test
+	public void testGetSizesKeepsDeclaredSizesAsFallback() {
+		SourceDefinition sourceDefinition = _autoSizesSourceDefinition();
+
+		Assert.assertEquals("auto, 100vw", sourceDefinition.getSizes(true));
 	}
 
 	private SourceDefinition _autoSizesSourceDefinition() {

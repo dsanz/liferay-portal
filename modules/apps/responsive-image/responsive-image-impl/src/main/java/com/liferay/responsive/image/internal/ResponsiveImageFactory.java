@@ -6,6 +6,7 @@
 package com.liferay.responsive.image.internal;
 
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
@@ -102,25 +103,19 @@ public class ResponsiveImageFactory {
 			sourceDefinition.getTransformations()
 		).build();
 
-		List<ResponsiveImageCandidate> responsiveImageCandidates =
-			new ArrayList<>(widths.size());
-
-		for (Integer width : widths) {
-			responsiveImageCandidates.add(
-				ResponsiveImageCandidate.builder(
-					responsiveImageURLTransformer.transform(
-						url,
-						HashMapBuilder.putAll(
-							imageTransformations
-						).put(
-							"width", String.valueOf(width)
-						).build())
-				).width(
-					width
-				).build());
-		}
-
-		return responsiveImageCandidates;
+		return TransformUtil.transform(
+			widths,
+			width -> ResponsiveImageCandidate.builder(
+				responsiveImageURLTransformer.transform(
+					url,
+					HashMapBuilder.putAll(
+						imageTransformations
+					).put(
+						"width", String.valueOf(width)
+					).build())
+			).width(
+				width
+			).build());
 	}
 
 	private List<ResponsiveImageSource> _getResponsiveImageSources(
@@ -133,19 +128,17 @@ public class ResponsiveImageFactory {
 
 		boolean lazy = presetDefinition.isLazy();
 
-		List<ResponsiveImageSource> responsiveImageSources = new ArrayList<>(
-			sourceDefinitions.size());
+		return TransformUtil.transform(
+			sourceDefinitions,
+			sourceDefinition -> {
+				List<Integer> widths = _getWidths(
+					scopedConfiguration, sourceDefinition);
 
-		for (SourceDefinition sourceDefinition : sourceDefinitions) {
-			List<Integer> widths = _getWidths(
-				scopedConfiguration, sourceDefinition);
+				if (widths.isEmpty()) {
+					return null;
+				}
 
-			if (widths.isEmpty()) {
-				continue;
-			}
-
-			responsiveImageSources.add(
-				ResponsiveImageSource.builder(
+				return ResponsiveImageSource.builder(
 				).candidates(
 					_getResponsiveImageCandidates(
 						responsiveImageURLTransformer, scopedConfiguration,
@@ -154,10 +147,8 @@ public class ResponsiveImageFactory {
 					sourceDefinition.getMediaQuery()
 				).sizes(
 					sourceDefinition.getSizes(lazy)
-				).build());
-		}
-
-		return responsiveImageSources;
+				).build();
+			});
 	}
 
 	private ResponsiveImageURLTransformer _getResponsiveImageURLTransformer(
@@ -243,7 +234,11 @@ public class ResponsiveImageFactory {
 		String mimeType = imageResource.getMimeType();
 
 		if (Validator.isBlank(mimeType) || !mimeType.startsWith("image/") ||
-			_excludedMimeTypes.contains(mimeType)) {
+			Arrays.asList(
+				"image/svg+xml", "image/x-icon"
+			).contains(
+				mimeType
+			)) {
 
 			return false;
 		}
@@ -259,9 +254,6 @@ public class ResponsiveImageFactory {
 
 	private static final Log _log = LogFactoryUtil.getLog(
 		ResponsiveImageFactory.class);
-
-	private static final List<String> _excludedMimeTypes = Arrays.asList(
-		"image/svg+xml", "image/x-icon");
 
 	private final Portal _portal;
 	private final ResponsiveImageConfigurationHelper

@@ -56,7 +56,7 @@ public class ResponsiveImageAMImageHTMLTagFactoryTest {
 
 	@FeatureFlag(enable = false, value = "LPD-94784")
 	@Test
-	public void testDelegatesToAdaptiveMediaWhenTheFeatureFlagIsDisabled()
+	public void testCreateDelegatesToAdaptiveMediaWhenTheFeatureFlagIsDisabled()
 		throws Exception {
 
 		Mockito.when(
@@ -74,7 +74,7 @@ public class ResponsiveImageAMImageHTMLTagFactoryTest {
 	}
 
 	@Test
-	public void testDelegatesToAdaptiveMediaWhenTheFrameworkDeclines()
+	public void testCreateDelegatesToAdaptiveMediaWhenTheFrameworkDeclines()
 		throws Exception {
 
 		_whenFrameworkRenders(null);
@@ -92,7 +92,7 @@ public class ResponsiveImageAMImageHTMLTagFactoryTest {
 	}
 
 	@Test
-	public void testMarksThePictureWithTheFileEntryId() throws Exception {
+	public void testCreateMarksThePictureWithTheFileEntryId() throws Exception {
 		Mockito.when(
 			_fileEntry.getFileEntryId()
 		).thenReturn(
@@ -116,7 +116,7 @@ public class ResponsiveImageAMImageHTMLTagFactoryTest {
 	}
 
 	@Test
-	public void testRendersThroughTheFrameworkWhenTheFeatureFlagIsEnabled()
+	public void testCreateRendersThroughTheFrameworkWhenTheFeatureFlagIsEnabled()
 		throws Exception {
 
 		_whenFrameworkRenders("<img srcset=\"...\" />");

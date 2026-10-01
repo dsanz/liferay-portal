@@ -29,7 +29,7 @@ public class ResponsiveImageConfigurationValidatorTest {
 		LiferayUnitTestRule.INSTANCE;
 
 	@Test
-	public void testArtDirectedSourcesAreNotReported() {
+	public void testValidateArtDirectedSourcesAreNotReported() {
 		List<String> problems = _validate(
 			_presetDefinition(
 				_sourceDefinition("narrow", null, "50vw", "crop", "1:1"),
@@ -39,7 +39,7 @@ public class ResponsiveImageConfigurationValidatorTest {
 	}
 
 	@Test
-	public void testDifferingMaximumWidthIsNotInterchangeable() {
+	public void testValidateDifferingMaximumWidthIsNotInterchangeable() {
 		List<String> problems = _validate(
 			_presetDefinition(
 				_sourceDefinition("narrow", 640, "100vw", "crop", "1:1"),
@@ -49,7 +49,7 @@ public class ResponsiveImageConfigurationValidatorTest {
 	}
 
 	@Test
-	public void testFormatSwitchIsReported() {
+	public void testValidateFormatSwitchIsReported() {
 		List<String> problems = _validate(
 			_presetDefinition(
 				_sourceDefinition("narrow", null, "100vw", "format", "webp"),
@@ -63,7 +63,7 @@ public class ResponsiveImageConfigurationValidatorTest {
 	}
 
 	@Test
-	public void testInterchangeableSourcesAreReported() {
+	public void testValidateInterchangeableSourcesAreReported() {
 		List<String> problems = _validate(
 			_presetDefinition(
 				_sourceDefinition("narrow", null, "100vw", "crop", "1:1"),

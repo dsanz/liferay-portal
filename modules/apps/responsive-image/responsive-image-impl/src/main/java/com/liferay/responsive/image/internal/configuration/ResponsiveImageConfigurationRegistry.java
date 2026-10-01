@@ -268,13 +268,15 @@ public class ResponsiveImageConfigurationRegistry {
 
 			String[] keyParts = StringUtil.split(key, StringPool.PERIOD);
 
-			if ((keyParts.length == 2) && _LABEL.equals(keyParts[1])) {
+			if ((keyParts.length == 2) &&
+				Objects.equals(keyParts[1], "label")) {
+
 				labels.put(keyParts[0], value);
 
 				continue;
 			}
 
-			if ((keyParts.length == 2) && _LAZY.equals(keyParts[1])) {
+			if ((keyParts.length == 2) && Objects.equals(keyParts[1], "lazy")) {
 				lazyValues.put(keyParts[0], GetterUtil.getBoolean(value));
 
 				continue;
@@ -494,7 +496,9 @@ public class ResponsiveImageConfigurationRegistry {
 
 			String[] keyParts = StringUtil.split(key, StringPool.PERIOD);
 
-			if ((keyParts.length != 2) || !_MEDIA.equals(keyParts[1])) {
+			if ((keyParts.length != 2) ||
+				!Objects.equals(keyParts[1], "media")) {
+
 				if (_log.isWarnEnabled()) {
 					_log.warn(
 						"Ignoring unrecognized media condition key " + key);
@@ -554,13 +558,7 @@ public class ResponsiveImageConfigurationRegistry {
 		).eager()
 	};
 
-	private static final String _LABEL = "label";
-
-	private static final String _LAZY = "lazy";
-
 	private static final String _MAX_WIDTH = "maxWidth";
-
-	private static final String _MEDIA = "media";
 
 	private static final String _MEDIA_CONDITION_DEFAULT = "default";
 

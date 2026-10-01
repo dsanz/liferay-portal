@@ -6,9 +6,12 @@
 package com.liferay.responsive.image.internal;
 
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.petra.string.StringBundler;
+import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.kernel.util.HashMapBuilder;
 import com.liferay.portal.kernel.util.Portal;
+import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 import com.liferay.responsive.image.ImageResource;
 import com.liferay.responsive.image.ResponsiveImage;
@@ -111,7 +114,7 @@ public class ResponsiveImageFactoryTest {
 	}
 
 	@Test
-	public void testCandidatesCarryPresetTransformationsAndWidth() {
+	public void testCreateCandidatesCarryTransformationsAndWidth() {
 		_givenPresetGroup(
 			_preset("narrow", null, "(max-width: 767px)", "100vw", "crop=1:1"));
 
@@ -133,7 +136,7 @@ public class ResponsiveImageFactoryTest {
 	}
 
 	@Test
-	public void testConfiguredHostIsPreferredOverTheCompanyCDNHost() {
+	public void testCreateConfiguredHostIsPreferredOverTheCompanyCDNHost() {
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
 
 		Mockito.when(
@@ -155,7 +158,7 @@ public class ResponsiveImageFactoryTest {
 	}
 
 	@Test
-	public void testConfiguredHostTrailingSlashIsStripped() {
+	public void testCreateConfiguredHostTrailingSlashIsStripped() {
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
 
 		Mockito.when(
@@ -171,7 +174,7 @@ public class ResponsiveImageFactoryTest {
 	}
 
 	@Test
-	public void testConfiguredRendererNameSelectsTheResponsiveImageURLTransformer() {
+	public void testCreateConfiguredNameSelectsTheResponsiveImageURLTransformer() {
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
 
 		_firstGroupCandidates();
@@ -184,7 +187,40 @@ public class ResponsiveImageFactoryTest {
 	}
 
 	@Test
-	public void testDeclinesBeforeBuildingWhenNoRendererIsDeployed()
+	public void testCreateDeclinesImagesTheCDNDoesNotFront() {
+		Mockito.when(
+			_imageResource.getURL()
+		).thenReturn(
+			"https://example.com/photo.jpg"
+		);
+
+		Assert.assertNull(_responsiveImageFactory.create(_request()));
+	}
+
+	@Test
+	public void testCreateDeclinesSVG() {
+		Mockito.when(
+			_imageResource.getMimeType()
+		).thenReturn(
+			"image/svg+xml"
+		);
+
+		Assert.assertNull(_responsiveImageFactory.create(_request()));
+	}
+
+	@Test
+	public void testCreateDeclinesUnknownMimeType() {
+		Mockito.when(
+			_imageResource.getMimeType()
+		).thenReturn(
+			null
+		);
+
+		Assert.assertNull(_responsiveImageFactory.create(_request()));
+	}
+
+	@Test
+	public void testCreateDeclinesWhenNoResponsiveImageURLTransformerIsDeployed()
 		throws Exception {
 
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
@@ -205,40 +241,7 @@ public class ResponsiveImageFactoryTest {
 	}
 
 	@Test
-	public void testDeclinesImagesTheCDNDoesNotFront() {
-		Mockito.when(
-			_imageResource.getURL()
-		).thenReturn(
-			"https://example.com/photo.jpg"
-		);
-
-		Assert.assertNull(_responsiveImageFactory.create(_request()));
-	}
-
-	@Test
-	public void testDeclinesSVG() {
-		Mockito.when(
-			_imageResource.getMimeType()
-		).thenReturn(
-			"image/svg+xml"
-		);
-
-		Assert.assertNull(_responsiveImageFactory.create(_request()));
-	}
-
-	@Test
-	public void testDeclinesUnknownMimeType() {
-		Mockito.when(
-			_imageResource.getMimeType()
-		).thenReturn(
-			null
-		);
-
-		Assert.assertNull(_responsiveImageFactory.create(_request()));
-	}
-
-	@Test
-	public void testFallsBackToTheCompanyHTTPCDNHost() {
+	public void testCreateFallsBackToTheCompanyHTTPCDNHost() {
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
 
 		Mockito.when(
@@ -254,7 +257,7 @@ public class ResponsiveImageFactoryTest {
 	}
 
 	@Test
-	public void testFallsBackToTheCompanyHTTPSCDNHost() {
+	public void testCreateFallsBackToTheCompanyHTTPSCDNHost() {
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
 
 		Mockito.when(
@@ -276,7 +279,7 @@ public class ResponsiveImageFactoryTest {
 	}
 
 	@Test
-	public void testMaxWidthTruncatesLadderKeepingTheBoundaryWidth() {
+	public void testCreateMaxWidthTruncatesLadderKeepingTheBoundaryWidth() {
 		_givenPresetGroup(_preset(null, 500, null, "500px"));
 
 		List<ResponsiveImageCandidate> responsiveImageCandidates =
@@ -292,11 +295,11 @@ public class ResponsiveImageFactoryTest {
 	}
 
 	@Test
-	public void testTransformsWithoutAHttpServletRequest() {
+	public void testCreateWithoutAHttpServletRequest() {
 		_givenPresetGroup(_preset(null, null, null, "100vw"));
 
 		ResponsiveImage responsiveImage = _responsiveImageFactory.create(
-			_requestWithoutHttpServletRequest());
+			ResponsiveImageRequest.of(_imageResource));
 
 		Assert.assertFalse(
 			String.valueOf(responsiveImage.getSources()),
@@ -357,10 +360,6 @@ public class ResponsiveImageFactoryTest {
 		).build();
 	}
 
-	private ResponsiveImageRequest _requestWithoutHttpServletRequest() {
-		return ResponsiveImageRequest.of(_imageResource);
-	}
-
 	private void _setUpResponsiveImageURLTransformer() {
 		Mockito.when(
 			_responsiveImageURLTransformer.transform(
@@ -376,24 +375,21 @@ public class ResponsiveImageFactoryTest {
 					return url;
 				}
 
-				StringBuilder sb = new StringBuilder(url);
+				StringBundler sb = new StringBundler();
 
-				sb.append('?');
+				sb.append(url);
+
+				String delimiter = StringPool.QUESTION;
 
 				for (Map.Entry<String, String> entry :
 						imageTransformations.entrySet()) {
 
-					if (sb.charAt(sb.length() - 1) != '?') {
-						sb.append('&');
-					}
-
+					sb.append(delimiter);
 					sb.append(entry.getKey());
-					sb.append('=');
-					sb.append(
-						entry.getValue(
-						).replace(
-							":", "%3A"
-						));
+					sb.append(StringPool.EQUAL);
+					sb.append(StringUtil.replace(entry.getValue(), ':', "%3A"));
+
+					delimiter = StringPool.AMPERSAND;
 				}
 
 				return sb.toString();

@@ -50,7 +50,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 	}
 
 	@Test
-	public void testArtDirectingABuiltInKeepsItsUnconditionalSource() {
+	public void testGetPresetDefinitionArtDirectingABuiltInKeepsItsUnconditionalSource() {
 		_givenConfiguration(
 			new String[] {"narrow.media=(max-width: 767px)"},
 			new String[] {"hero.narrow.sizes=50vw"});
@@ -66,7 +66,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 	}
 
 	@Test
-	public void testBuiltInPresetsExistWithoutAnyConfiguration()
+	public void testGetPresetDefinitionBuiltInPresetsExistWithoutAnyConfiguration()
 		throws Exception {
 
 		_givenConfiguration(new String[0], new String[0]);
@@ -88,7 +88,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 	}
 
 	@Test
-	public void testBuiltInPresetsSurviveAConfigurationThatOmitsThem() {
+	public void testGetPresetDefinitionBuiltInPresetsSurviveAConfigurationThatOmitsThem() {
 		_givenConfiguration(
 			new String[0],
 			new String[] {"custom.label=Custom", "custom.default.sizes=50vw"});
@@ -107,7 +107,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 	}
 
 	@Test
-	public void testBuiltInPresetsSurviveAnUnreadableConfiguration()
+	public void testGetPresetDefinitionBuiltInPresetsSurviveAnUnreadableConfiguration()
 		throws Exception {
 
 		Mockito.when(
@@ -130,40 +130,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 	}
 
 	@Test
-	public void testChangingAnySettingInvalidatesTheMemo() {
-		_givenConfiguration(new String[0], new String[0]);
-
-		Mockito.when(
-			_responsiveImageConfiguration.responsiveImageURLTransformerName()
-		).thenReturn(
-			"fastly"
-		);
-
-		ResponsiveImageConfigurationRegistry.ScopedConfiguration
-			scopedConfiguration =
-				_responsiveImageConfigurationRegistry.getScopedConfiguration(
-					0, _COMPANY_ID);
-
-		Assert.assertEquals(
-			"fastly",
-			scopedConfiguration.getResponsiveImageURLTransformerName());
-
-		Mockito.when(
-			_responsiveImageConfiguration.responsiveImageURLTransformerName()
-		).thenReturn(
-			""
-		);
-
-		scopedConfiguration =
-			_responsiveImageConfigurationRegistry.getScopedConfiguration(
-				0, _COMPANY_ID);
-
-		Assert.assertEquals(
-			"", scopedConfiguration.getResponsiveImageURLTransformerName());
-	}
-
-	@Test
-	public void testConfigurationOverridesOneKeyOfABuiltInPreset() {
+	public void testGetPresetDefinitionConfigurationOverridesOneKeyOfABuiltInPreset() {
 		_givenConfiguration(
 			new String[0], new String[] {"card.default.sizes=25vw"});
 
@@ -181,7 +148,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 	}
 
 	@Test
-	public void testDefaultMediaConditionSortsLastAsTheCatchAll() {
+	public void testGetPresetDefinitionDefaultMediaConditionSortsLastAsTheCatchAll() {
 		_givenConfiguration(
 			new String[] {"wide.media=(min-width: 768px)"},
 			new String[] {"hero.default.sizes=100vw", "hero.wide.sizes=50vw"});
@@ -201,7 +168,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 	}
 
 	@Test
-	public void testMaxWidthIsParsed() {
+	public void testGetPresetDefinitionMaxWidthIsParsed() {
 		_givenConfiguration(
 			new String[0],
 			new String[] {
@@ -215,7 +182,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 	}
 
 	@Test
-	public void testOrderingComesFromMediaConditionDeclarationNotPresetOrder() {
+	public void testGetPresetDefinitionOrderingComesFromMediaConditionDeclarationNotPresetOrder() {
 		_givenConfiguration(
 			new String[] {
 				"narrow.media=(max-width: 767px)",
@@ -232,7 +199,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 	}
 
 	@Test
-	public void testPresetsReferencingAnUndeclaredMediaConditionAreDropped() {
+	public void testGetPresetDefinitionPresetsReferencingAnUndeclaredMediaConditionAreDropped() {
 		_givenConfiguration(
 			new String[] {"narrow.media=(max-width: 767px)"},
 			new String[] {
@@ -248,7 +215,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 	}
 
 	@Test
-	public void testResolvesMediaConditionFromTheNamedDeclaration() {
+	public void testGetPresetDefinitionResolvesMediaConditionFromTheNamedDeclaration() {
 		_givenConfiguration(
 			new String[] {"narrow.media=(max-width: 767px)"},
 			new String[] {
@@ -278,7 +245,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 	}
 
 	@Test
-	public void testUnknownNameFallsBackToAWorkingImage() {
+	public void testGetPresetDefinitionUnknownNameFallsBackToAWorkingImage() {
 		_givenConfiguration(new String[0], new String[0]);
 
 		PresetDefinition presetDefinition =
@@ -298,7 +265,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 	}
 
 	@Test
-	public void testUnknownNameFallsBackToTheConfiguredDefault() {
+	public void testGetPresetDefinitionUnknownNameFallsBackToTheConfiguredDefault() {
 		_givenConfiguration(
 			new String[0], new String[] {"default.default.sizes=42vw"});
 
@@ -315,6 +282,39 @@ public class ResponsiveImageConfigurationRegistryTest {
 		SourceDefinition sourceDefinition = sourceDefinitions.get(0);
 
 		Assert.assertEquals("42vw", sourceDefinition.getSizes());
+	}
+
+	@Test
+	public void testGetScopedConfigurationChangingAnySettingInvalidatesTheMemo() {
+		_givenConfiguration(new String[0], new String[0]);
+
+		Mockito.when(
+			_responsiveImageConfiguration.responsiveImageURLTransformerName()
+		).thenReturn(
+			"fastly"
+		);
+
+		ResponsiveImageConfigurationRegistry.ScopedConfiguration
+			scopedConfiguration =
+				_responsiveImageConfigurationRegistry.getScopedConfiguration(
+					0, _COMPANY_ID);
+
+		Assert.assertEquals(
+			"fastly",
+			scopedConfiguration.getResponsiveImageURLTransformerName());
+
+		Mockito.when(
+			_responsiveImageConfiguration.responsiveImageURLTransformerName()
+		).thenReturn(
+			""
+		);
+
+		scopedConfiguration =
+			_responsiveImageConfigurationRegistry.getScopedConfiguration(
+				0, _COMPANY_ID);
+
+		Assert.assertEquals(
+			"", scopedConfiguration.getResponsiveImageURLTransformerName());
 	}
 
 	private SourceDefinition _firstPresetOf(String presetName) {

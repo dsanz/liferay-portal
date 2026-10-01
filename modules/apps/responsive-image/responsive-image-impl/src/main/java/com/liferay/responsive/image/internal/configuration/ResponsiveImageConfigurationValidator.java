@@ -68,7 +68,7 @@ public class ResponsiveImageConfigurationValidator {
 		Map<String, String> transformations =
 			sourceDefinition.getTransformations();
 
-		for (String formatKey : _FORMAT_KEYS) {
+		for (String formatKey : new String[] {"auto", "format"}) {
 			String value = transformations.get(formatKey);
 
 			if (value != null) {
@@ -113,7 +113,5 @@ public class ResponsiveImageConfigurationValidator {
 
 		return true;
 	}
-
-	private static final String[] _FORMAT_KEYS = {"auto", "format"};
 
 }
