@@ -44,7 +44,8 @@ public final class SourceDefinition {
 	 * </p>
 	 *
 	 * <p>
-	 * A <b>soft</b> limit: the smallest candidate at or above this width is
+	 * This is a <b>soft</b> limit, because the smallest candidate at or above
+	 * this width is
 	 * still included, because that is the one the browser needs, and excluding
 	 * it would leave nothing usable. Set it to the rendered width multiplied by
 	 * the highest pixel density worth serving.

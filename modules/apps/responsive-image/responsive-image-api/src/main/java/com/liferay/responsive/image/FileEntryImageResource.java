@@ -8,7 +8,8 @@ package com.liferay.responsive.image;
 import com.liferay.portal.kernel.repository.model.FileEntry;
 
 /**
- * An {@link ImageResource} backed by a document library file entry.
+ * Represents an {@link ImageResource} backed by a document library file
+ * entry.
  *
  * @author Daniel Sanz
  */

@@ -67,7 +67,8 @@ public final class ResponsiveImageSource {
 	 * <p>
 	 * Describes how wide the image renders under this source's media condition,
 	 * which is what turns the candidates' width descriptors into a selection.
-	 * Meaningless without them, so a source holding one candidate has none.
+	 * It is meaningless without them, so a source holding one candidate has
+	 * none.
 	 * </p>
 	 *
 	 * @return the sizes attribute value, or <code>null</code>

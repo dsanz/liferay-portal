@@ -30,7 +30,8 @@ import jakarta.servlet.http.HttpServletRequest;
  * </p>
  *
  * <p>
- * Constructed directly by the components that need it, and deliberately not
+ * It is constructed directly by the components that need it, and
+ * deliberately not
  * registered as an OSGi component. It implements no interface, so registering
  * it means naming its own class in the <code>service</code> attribute, which
  * reads as redundant and is easy to "simplify" into <code>service = {}</code>.

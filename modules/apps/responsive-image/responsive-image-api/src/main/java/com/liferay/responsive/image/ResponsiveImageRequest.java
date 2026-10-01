@@ -52,8 +52,9 @@ public final class ResponsiveImageRequest {
 	 * </p>
 	 *
 	 * <p>
-	 * Worth declaring only when there is no request to derive it from, which is
-	 * the case for export and import, staging, and scheduled work. A declared
+	 * It is worth declaring only when there is no request to derive it from,
+	 * which is the case for export and import, staging, and scheduled work. A
+	 * declared
 	 * site wins over the derived one, so a caller that sets it is asserting it
 	 * knows better than the page being served.
 	 * </p>
@@ -69,14 +70,15 @@ public final class ResponsiveImageRequest {
 	 * none.
 	 *
 	 * <p>
-	 * Worth supplying when available: it resolves the CDN host exactly, knows
-	 * whether the connection is secure, and identifies the company. Callers
-	 * that have one should pass it.
+	 * It is worth supplying when available, because it resolves the CDN host
+	 * exactly, knows whether the connection is secure, and identifies the
+	 * company. Callers that have one should pass it.
 	 * </p>
 	 *
 	 * <p>
-	 * Optional rather than required, because several rendering paths genuinely
-	 * have none to give. Without it, the company comes from the ambient one
+	 * It is optional rather than required, because several rendering paths
+	 * genuinely have none to give. Without it, the company comes from the
+	 * ambient one
 	 * and the CDN host is resolved per company rather than per request.
 	 * </p>
 	 *

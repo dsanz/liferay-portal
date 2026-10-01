@@ -24,7 +24,7 @@ import com.liferay.portal.configuration.metatype.annotations.ExtendedObjectClass
 public interface ResponsiveImageConfiguration {
 
 	/**
-	 * The widths available to generate, in pixels.
+	 * Lists the widths available to generate, in pixels.
 	 *
 	 * <p>
 	 * Two costs pull in opposite directions: every extra width is another
@@ -40,7 +40,7 @@ public interface ResponsiveImageConfiguration {
 	public String[] candidateWidths();
 
 	/**
-	 * Host the transformed image URLs are served from, for example
+	 * Names the host the transformed image URLs are served from, for example
 	 * <code>https://images.example.com</code>, so that images can be delivered
 	 * by a service that fronts nothing else. Leave it blank to use the CDN host
 	 * configured for the instance.
@@ -49,7 +49,7 @@ public interface ResponsiveImageConfiguration {
 	public String cdnHost();
 
 	/**
-	 * Transformations applied to every generated rendition, as
+	 * Lists the transformations applied to every generated rendition, as
 	 * <code>name=value</code> entries.
 	 */
 	@Meta.AD(
@@ -59,7 +59,7 @@ public interface ResponsiveImageConfiguration {
 	public String[] defaultTransformations();
 
 	/**
-	 * The media conditions available to presets, typically a theme's
+	 * Lists the media conditions available to presets, typically a theme's
 	 * breakpoints, as <code>&lt;name&gt;.media=&lt;media condition&gt;</code>
 	 * entries.
 	 *
@@ -72,7 +72,7 @@ public interface ResponsiveImageConfiguration {
 	public String[] mediaConditions();
 
 	/**
-	 * Presets, as flat <code>key=value</code> entries in one of two
+	 * Lists the presets, as flat <code>key=value</code> entries in one of two
 	 * forms:
 	 *
 	 * <p>
@@ -104,7 +104,7 @@ public interface ResponsiveImageConfiguration {
 	public String[] presets();
 
 	/**
-	 * Name of the image optimization service whose URL vocabulary is used,
+	 * Names the image optimization service whose URL vocabulary is used,
 	 * for example <code>fastly</code>. Must match the name reported by a
 	 * deployed {@code ResponsiveImageURLTransformer}.
 	 */
