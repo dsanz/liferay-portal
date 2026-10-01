@@ -8,7 +8,7 @@ package com.liferay.responsive.image.internal.configuration;
 import com.liferay.portal.kernel.test.ReflectionTestUtil;
 import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
-import com.liferay.responsive.image.constants.ResponsiveImagePresetConstants;
+import com.liferay.responsive.image.constants.ResponsiveImageConstants;
 
 import java.lang.reflect.Field;
 
@@ -71,7 +71,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 
 		_givenConfiguration(new String[0], new String[0]);
 
-		Field[] fields = ResponsiveImagePresetConstants.class.getFields();
+		Field[] fields = ResponsiveImageConstants.class.getFields();
 
 		Assert.assertEquals(Arrays.toString(fields), 6, fields.length);
 
@@ -117,7 +117,7 @@ public class ResponsiveImageConfigurationRegistryTest {
 			null
 		);
 
-		for (Field field : ResponsiveImagePresetConstants.class.getFields()) {
+		for (Field field : ResponsiveImageConstants.class.getFields()) {
 			String presetName = (String)field.get(null);
 
 			PresetDefinition presetDefinition =
@@ -275,7 +275,8 @@ public class ResponsiveImageConfigurationRegistryTest {
 				0, _COMPANY_ID, "nonexistent");
 
 		Assert.assertEquals(
-			ResponsiveImagePresetConstants.DEFAULT, presetDefinition.getName());
+			ResponsiveImageConstants.PRESET_DEFAULT,
+			presetDefinition.getName());
 
 		List<SourceDefinition> sourceDefinitions =
 			presetDefinition.getSourceDefinitions();

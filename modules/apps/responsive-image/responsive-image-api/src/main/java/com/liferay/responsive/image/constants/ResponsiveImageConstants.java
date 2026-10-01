@@ -6,43 +6,46 @@
 package com.liferay.responsive.image.constants;
 
 /**
- * Lists the responsive image presets every installation has, whatever is
- * configured.
+ * Holds the constants the responsive image framework exposes to callers.
  *
+ * <p>
+ * The <code>PRESET_</code> constants name the presets every installation has,
+ * whatever is configured.
+ * </p>
  *
  * @author Daniel Sanz
  */
-public class ResponsiveImagePresetConstants {
+public class ResponsiveImageConstants {
 
 	/**
 	 * Names the preset used by asset publisher cards, navigation tiles and
 	 * data set cards.
 	 */
-	public static final String CARD = "card";
+	public static final String PRESET_CARD = "card";
 
 	/**
 	 * Names the preset used by images placed inside web content.
 	 */
-	public static final String CONTENT = "content";
+	public static final String PRESET_CONTENT = "content";
 
 	/**
 	 * Names the preset a caller gets when it names none.
 	 */
-	public static final String DEFAULT = "default";
+	public static final String PRESET_DEFAULT = "default";
 
 	/**
 	 * Names the preset used by full bleed banners.
 	 */
-	public static final String FULL_WIDTH = "fullWidth";
+	public static final String PRESET_FULL_WIDTH = "fullWidth";
 
 	/**
 	 * Names the preset used by the leading image of a content page.
 	 */
-	public static final String HERO = "hero";
+	public static final String PRESET_HERO = "hero";
 
 	/**
 	 * Names the preset used by avatars and list thumbnails.
 	 */
-	public static final String THUMBNAIL = "thumbnail";
+	public static final String PRESET_THUMBNAIL = "thumbnail";
 
 }

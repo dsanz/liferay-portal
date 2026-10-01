@@ -14,7 +14,7 @@ import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.Portal;
 import com.liferay.portal.kernel.util.StringUtil;
 import com.liferay.portal.kernel.util.Validator;
-import com.liferay.responsive.image.constants.ResponsiveImagePresetConstants;
+import com.liferay.responsive.image.constants.ResponsiveImageConstants;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -133,7 +133,7 @@ public class ResponsiveImageConfigurationRegistry {
 
 		public PresetDefinition getPresetDefinition(String presetName) {
 			if (Validator.isBlank(presetName)) {
-				presetName = ResponsiveImagePresetConstants.DEFAULT;
+				presetName = ResponsiveImageConstants.PRESET_DEFAULT;
 			}
 
 			PresetDefinition presetDefinition = _presetDefinitions.get(
@@ -149,7 +149,7 @@ public class ResponsiveImageConfigurationRegistry {
 			}
 
 			return _presetDefinitions.get(
-				ResponsiveImagePresetConstants.DEFAULT);
+				ResponsiveImageConstants.PRESET_DEFAULT);
 		}
 
 		public String getResponsiveImageURLTransformerName() {
@@ -542,20 +542,21 @@ public class ResponsiveImageConfigurationRegistry {
 
 	private static final BuiltInPreset[] _BUILT_IN_PRESETS = {
 		new BuiltInPreset(
-			"Default", null, ResponsiveImagePresetConstants.DEFAULT, "100vw"
+			"Default", null, ResponsiveImageConstants.PRESET_DEFAULT, "100vw"
 		).autoSizes(),
 		new BuiltInPreset(
-			"Thumbnail", 320, ResponsiveImagePresetConstants.THUMBNAIL, "96px"),
+			"Thumbnail", 320, ResponsiveImageConstants.PRESET_THUMBNAIL,
+			"96px"),
 		new BuiltInPreset(
-			"Card", 960, ResponsiveImagePresetConstants.CARD,
+			"Card", 960, ResponsiveImageConstants.PRESET_CARD,
 			"(min-width: 992px) 25vw, 100vw"),
 		new BuiltInPreset(
-			"Content", 1440, ResponsiveImagePresetConstants.CONTENT, "100vw"),
+			"Content", 1440, ResponsiveImageConstants.PRESET_CONTENT, "100vw"),
 		new BuiltInPreset(
-			"Hero", 2160, ResponsiveImagePresetConstants.HERO, "100vw"
+			"Hero", 2160, ResponsiveImageConstants.PRESET_HERO, "100vw"
 		).eager(),
 		new BuiltInPreset(
-			"Full Width", 2880, ResponsiveImagePresetConstants.FULL_WIDTH,
+			"Full Width", 2880, ResponsiveImageConstants.PRESET_FULL_WIDTH,
 			"100vw"
 		).eager()
 	};
