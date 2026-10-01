@@ -118,14 +118,14 @@ public class ResponsiveImageMarkupRendererImplTest {
 		String markup = _responsiveImageMarkupRendererImpl.render(
 			_ORIGINAL_IMG_TAG, _request());
 
-		Assert.assertTrue(markup, markup.startsWith("<img "));
-		Assert.assertFalse(markup, markup.contains("<picture>"));
-		Assert.assertTrue(markup, markup.contains("sizes=\"100vw\""));
-		Assert.assertFalse(markup, markup.contains("loading="));
-		Assert.assertTrue(markup, markup.contains("alt=\"A photo\""));
 		Assert.assertTrue(
 			markup,
 			markup.contains("/documents/1/2/photo.jpg?width=320 320w, "));
+		Assert.assertTrue(markup, markup.startsWith("<img "));
+		Assert.assertFalse(markup, markup.contains("<picture>"));
+		Assert.assertTrue(markup, markup.contains("alt=\"A photo\""));
+		Assert.assertFalse(markup, markup.contains("loading="));
+		Assert.assertTrue(markup, markup.contains("sizes=\"100vw\""));
 	}
 
 	@Test

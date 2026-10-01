@@ -30,8 +30,8 @@ public class SourceDefinitionTest {
 			false, null, "default", null, "100vw",
 			Collections.<String, String>emptyMap());
 
-		Assert.assertEquals("100vw", sourceDefinition.getSizes(true));
 		Assert.assertEquals("100vw", sourceDefinition.getSizes(false));
+		Assert.assertEquals("100vw", sourceDefinition.getSizes(true));
 	}
 
 	@Test

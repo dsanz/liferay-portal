@@ -5,6 +5,7 @@
 
 package com.liferay.responsive.image;
 
+import com.liferay.portal.kernel.test.util.RandomTestUtil;
 import com.liferay.portal.test.rule.LiferayUnitTestRule;
 
 import java.util.Arrays;
@@ -35,7 +36,7 @@ public class ResponsiveImageSourceTest {
 			).mediaQuery(
 				null
 			).sizes(
-				"100vw"
+				RandomTestUtil.randomString()
 			).build();
 
 		List<ResponsiveImageCandidate> responsiveImageCandidates =
@@ -43,7 +44,7 @@ public class ResponsiveImageSourceTest {
 
 		responsiveImageCandidates.add(
 			ResponsiveImageCandidate.builder(
-				"/other.jpg"
+				RandomTestUtil.randomString()
 			).build());
 	}
 
@@ -56,7 +57,7 @@ public class ResponsiveImageSourceTest {
 			).mediaQuery(
 				null
 			).sizes(
-				"100vw"
+				RandomTestUtil.randomString()
 			).build();
 
 		Assert.assertNull(responsiveImageSource.getMediaQuery());
@@ -81,14 +82,14 @@ public class ResponsiveImageSourceTest {
 
 	private final List<ResponsiveImageCandidate> _candidates = Arrays.asList(
 		ResponsiveImageCandidate.builder(
-			"/photo.jpg?width=320"
+			RandomTestUtil.randomString()
 		).width(
-			320
+			RandomTestUtil.randomInt()
 		).build(),
 		ResponsiveImageCandidate.builder(
-			"/photo.jpg?width=640"
+			RandomTestUtil.randomString()
 		).width(
-			640
+			RandomTestUtil.randomInt()
 		).build());
 
 }

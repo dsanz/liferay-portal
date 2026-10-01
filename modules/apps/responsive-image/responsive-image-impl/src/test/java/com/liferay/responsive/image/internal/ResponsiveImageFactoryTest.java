@@ -130,10 +130,10 @@ public class ResponsiveImageFactoryTest {
 			responsiveImageCandidates.get(0);
 
 		Assert.assertEquals(
-			Integer.valueOf(320), responsiveImageCandidate.getWidth());
-		Assert.assertEquals(
 			"/documents/1/2/photo.jpg?crop=1%3A1&disable=upscale&width=320",
 			responsiveImageCandidate.getURL());
+		Assert.assertEquals(
+			Integer.valueOf(320), responsiveImageCandidate.getWidth());
 	}
 
 	@Test
