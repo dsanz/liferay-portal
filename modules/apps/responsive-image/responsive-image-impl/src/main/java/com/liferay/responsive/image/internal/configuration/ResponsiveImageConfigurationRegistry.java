@@ -77,9 +77,9 @@ public class ResponsiveImageConfigurationRegistry {
 
 		String[] candidateWidths =
 			responsiveImageConfiguration.candidateWidths();
+		String cdnHost = responsiveImageConfiguration.cdnHost();
 		String[] defaultTransformations =
 			responsiveImageConfiguration.defaultTransformations();
-		String cdnHost = responsiveImageConfiguration.cdnHost();
 		String[] mediaConditions =
 			responsiveImageConfiguration.mediaConditions();
 		String[] presets = responsiveImageConfiguration.presets();
@@ -87,8 +87,8 @@ public class ResponsiveImageConfigurationRegistry {
 			responsiveImageConfiguration.responsiveImageURLTransformerName();
 
 		int contentHash = Objects.hash(
-			Arrays.hashCode(candidateWidths),
-			Arrays.hashCode(defaultTransformations), cdnHost,
+			Arrays.hashCode(candidateWidths), cdnHost,
+			Arrays.hashCode(defaultTransformations),
 			Arrays.hashCode(mediaConditions), Arrays.hashCode(presets),
 			responsiveImageURLTransformerName);
 
@@ -105,8 +105,8 @@ public class ResponsiveImageConfigurationRegistry {
 		}
 
 		scopedConfiguration = new ScopedConfiguration(
-			_toWidths(candidateWidths), contentHash,
-			_toEntries(defaultTransformations), cdnHost,
+			_toCandidateWidths(candidateWidths), cdnHost, contentHash,
+			_toTransformations(defaultTransformations),
 			_toPresetDefinitions(_toMediaConditions(mediaConditions), presets),
 			responsiveImageURLTransformerName);
 
@@ -157,15 +157,15 @@ public class ResponsiveImageConfigurationRegistry {
 		}
 
 		private ScopedConfiguration(
-			TreeSet<Integer> candidateWidths, int contentHash,
-			Map<String, String> defaultTransformations, String cdnHost,
+			TreeSet<Integer> candidateWidths, String cdnHost, int contentHash,
+			Map<String, String> defaultTransformations,
 			Map<String, PresetDefinition> presetDefinitions,
 			String responsiveImageURLTransformerName) {
 
 			_candidateWidths = candidateWidths;
+			_cdnHost = cdnHost;
 			_contentHash = contentHash;
 			_defaultTransformations = defaultTransformations;
-			_cdnHost = cdnHost;
 			_presetDefinitions = presetDefinitions;
 			_responsiveImageURLTransformerName =
 				responsiveImageURLTransformerName;
@@ -236,7 +236,7 @@ public class ResponsiveImageConfigurationRegistry {
 	}
 
 	private static Map<String, PresetDefinition> _toPresetDefinitions(
-		Map<String, String> mediaConditions, String[] presets) {
+		Map<String, String> mediaConditions, String[] presetEntries) {
 
 		Map<String, String> labels = new LinkedHashMap<>();
 		Map<String, Boolean> lazyValues = new LinkedHashMap<>();
@@ -245,11 +245,11 @@ public class ResponsiveImageConfigurationRegistry {
 
 		_addBuiltInPresets(labels, lazyValues, presetProperties);
 
-		if (presets == null) {
-			presets = new String[0];
+		if (presetEntries == null) {
+			presetEntries = new String[0];
 		}
 
-		for (String preset : presets) {
+		for (String preset : presetEntries) {
 			if (Validator.isBlank(preset)) {
 				continue;
 			}
@@ -405,6 +405,34 @@ public class ResponsiveImageConfigurationRegistry {
 		return transformations;
 	}
 
+	private static Map<String, String> _toTransformations(String[] entries) {
+		if (entries == null) {
+			return Collections.emptyMap();
+		}
+
+		Map<String, String> values = new HashMap<>();
+
+		for (String entry : entries) {
+			if (Validator.isBlank(entry)) {
+				continue;
+			}
+
+			int i = entry.indexOf(StringPool.EQUAL);
+
+			if (i <= 0) {
+				if (_log.isWarnEnabled()) {
+					_log.warn("Ignoring malformed entry " + entry);
+				}
+
+				continue;
+			}
+
+			values.put(entry.substring(0, i), entry.substring(i + 1));
+		}
+
+		return values;
+	}
+
 	/**
 	 * Logs what the configuration renders and anything wrong with it.
 	 *
@@ -442,32 +470,27 @@ public class ResponsiveImageConfigurationRegistry {
 		}
 	}
 
-	private Map<String, String> _toEntries(String[] entries) {
-		if (entries == null) {
-			return Collections.emptyMap();
+	private TreeSet<Integer> _toCandidateWidths(
+		String[] candidateWidthEntries) {
+
+		TreeSet<Integer> widths = new TreeSet<>();
+
+		if (candidateWidthEntries == null) {
+			return widths;
 		}
 
-		Map<String, String> values = new HashMap<>();
+		for (String candidateWidth : candidateWidthEntries) {
+			int width = GetterUtil.getInteger(candidateWidth);
 
-		for (String entry : entries) {
-			if (Validator.isBlank(entry)) {
-				continue;
+			if (width > 0) {
+				widths.add(width);
 			}
-
-			int i = entry.indexOf(StringPool.EQUAL);
-
-			if (i <= 0) {
-				if (_log.isWarnEnabled()) {
-					_log.warn("Ignoring malformed entry " + entry);
-				}
-
-				continue;
+			else if (_log.isWarnEnabled()) {
+				_log.warn("Ignoring invalid candidate width " + candidateWidth);
 			}
-
-			values.put(entry.substring(0, i), entry.substring(i + 1));
 		}
 
-		return values;
+		return widths;
 	}
 
 	private Map<String, String> _toMediaConditions(
@@ -517,27 +540,6 @@ public class ResponsiveImageConfigurationRegistry {
 		}
 
 		return mediaConditions;
-	}
-
-	private TreeSet<Integer> _toWidths(String[] candidateWidths) {
-		TreeSet<Integer> widths = new TreeSet<>();
-
-		if (candidateWidths == null) {
-			return widths;
-		}
-
-		for (String candidateWidth : candidateWidths) {
-			int width = GetterUtil.getInteger(candidateWidth);
-
-			if (width > 0) {
-				widths.add(width);
-			}
-			else if (_log.isWarnEnabled()) {
-				_log.warn("Ignoring invalid candidate width " + candidateWidth);
-			}
-		}
-
-		return widths;
 	}
 
 	private static final BuiltInPreset[] _BUILT_IN_PRESETS = {
@@ -615,8 +617,8 @@ public class ResponsiveImageConfigurationRegistry {
 
 		private static final ScopedConfiguration _scopedConfiguration =
 			new ScopedConfiguration(
-				new TreeSet<>(), 0, Collections.<String, String>emptyMap(),
-				null,
+				new TreeSet<>(), null, 0,
+				Collections.<String, String>emptyMap(),
 				Collections.unmodifiableMap(
 					_toPresetDefinitions(
 						Collections.emptyMap(), new String[0])),
