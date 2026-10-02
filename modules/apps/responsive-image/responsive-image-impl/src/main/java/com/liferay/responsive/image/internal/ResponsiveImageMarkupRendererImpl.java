@@ -5,8 +5,6 @@
 
 package com.liferay.responsive.image.internal;
 
-import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
-import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.string.StringBundler;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.configuration.module.configuration.ConfigurationProvider;
@@ -21,7 +19,6 @@ import com.liferay.responsive.image.ResponsiveImageCandidate;
 import com.liferay.responsive.image.ResponsiveImageMarkupRenderer;
 import com.liferay.responsive.image.ResponsiveImageRequest;
 import com.liferay.responsive.image.ResponsiveImageSource;
-import com.liferay.responsive.image.ResponsiveImageURLTransformer;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationHelper;
 import com.liferay.responsive.image.internal.configuration.ResponsiveImageConfigurationRegistry;
 
@@ -91,24 +88,19 @@ public class ResponsiveImageMarkupRendererImpl
 
 	@Activate
 	protected void activate(BundleContext bundleContext) {
-		_serviceTrackerMap = ServiceTrackerMapFactory.openSingleValueMap(
-			bundleContext, ResponsiveImageURLTransformer.class,
-			"responsive.image.url.transformer.name");
-
 		_responsiveImageConfigurationHelper =
 			new ResponsiveImageConfigurationHelper(
 				_configurationProvider, _portal);
 
-		_responsiveImageFactory = new ResponsiveImageFactory(
-			_portal, _responsiveImageConfigurationHelper,
+		_responsiveImageFactory = ResponsiveImageFactory.create(
+			bundleContext, _portal, _responsiveImageConfigurationHelper,
 			new ResponsiveImageConfigurationRegistry(
-				_configurationProvider, _portal),
-			_serviceTrackerMap);
+				_configurationProvider, _portal));
 	}
 
 	@Deactivate
 	protected void deactivate() {
-		_serviceTrackerMap.close();
+		_responsiveImageFactory.close();
 	}
 
 	private String _getSrcSet(
@@ -279,7 +271,5 @@ public class ResponsiveImageMarkupRendererImpl
 	private ResponsiveImageConfigurationHelper
 		_responsiveImageConfigurationHelper;
 	private ResponsiveImageFactory _responsiveImageFactory;
-	private ServiceTrackerMap<String, ResponsiveImageURLTransformer>
-		_serviceTrackerMap;
 
 }

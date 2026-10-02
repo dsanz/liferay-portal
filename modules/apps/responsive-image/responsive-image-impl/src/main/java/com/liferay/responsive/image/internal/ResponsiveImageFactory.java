@@ -6,6 +6,7 @@
 package com.liferay.responsive.image.internal;
 
 import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMap;
+import com.liferay.osgi.service.tracker.collections.map.ServiceTrackerMapFactory;
 import com.liferay.petra.function.transform.TransformUtil;
 import com.liferay.petra.string.StringPool;
 import com.liferay.portal.kernel.log.Log;
@@ -31,10 +32,37 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
 
+import org.osgi.framework.BundleContext;
+
 /**
  * @author Daniel Sanz
  */
 public class ResponsiveImageFactory {
+
+	/**
+	 * Returns a factory that tracks the deployed
+	 * {@link ResponsiveImageURLTransformer} services itself. The caller owns
+	 * the result and must {@link #close()} it.
+	 *
+	 * @param  bundleContext the bundle context to track services with
+	 * @param  portal the portal
+	 * @param  responsiveImageConfigurationHelper the configuration helper
+	 * @param  responsiveImageConfigurationRegistry the configuration registry
+	 * @return the factory
+	 */
+	public static ResponsiveImageFactory create(
+		BundleContext bundleContext, Portal portal,
+		ResponsiveImageConfigurationHelper responsiveImageConfigurationHelper,
+		ResponsiveImageConfigurationRegistry
+			responsiveImageConfigurationRegistry) {
+
+		return new ResponsiveImageFactory(
+			portal, responsiveImageConfigurationHelper,
+			responsiveImageConfigurationRegistry,
+			ServiceTrackerMapFactory.openSingleValueMap(
+				bundleContext, ResponsiveImageURLTransformer.class,
+				"responsive.image.url.transformer.name"));
+	}
 
 	public ResponsiveImageFactory(
 		Portal portal,
@@ -50,6 +78,13 @@ public class ResponsiveImageFactory {
 		_responsiveImageConfigurationRegistry =
 			responsiveImageConfigurationRegistry;
 		_serviceTrackerMap = serviceTrackerMap;
+	}
+
+	/**
+	 * Closes the service tracker this factory opened, when it opened one.
+	 */
+	public void close() {
+		_serviceTrackerMap.close();
 	}
 
 	public ResponsiveImage create(
