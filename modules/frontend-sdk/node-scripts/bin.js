@@ -150,6 +150,26 @@ const COMMANDS = {
 		parameters: '',
 		script: './report/source-imports.mjs',
 	},
+	'report:vulnerabilities': {
+		description: `
+		Reports the known vulnerabilities of every yarn project in the
+		repository (modules/ and workspaces/), who approves each fix, and which
+		fix the remediation policy calls for. It also checks every existing
+		resolution, unpinned installs in Dockerfiles and lockfiles yarn never
+		installs from.
+
+		The report is printed to stdout as Markdown (one section per approver)
+		or JSON. It never edits files and its exit code never depends on the
+		findings: 2 means some projects could not be audited.
+
+		It only needs Node built-ins, git, yarn 1.x, npm and registry access,
+		so it can also run from a bare checkout with
+		'node modules/frontend-sdk/node-scripts/report/vulnerabilities.mjs'.
+`,
+		parameters:
+			'[--project <path>]... [--owner <team>] [--format json|md] [--output <file>] [--concurrency <n>]',
+		script: './report/vulnerabilities.mjs',
+	},
 	'setup': {
 		description: `
 		Setup working environment used by node-scripts (for example: download
