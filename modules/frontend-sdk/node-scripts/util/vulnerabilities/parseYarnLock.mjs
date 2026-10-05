@@ -10,7 +10,7 @@ const DEPENDENCY_FIELDS = new Set(['dependencies', 'optionalDependencies']);
  *
  * Returns `{bySpec, entries}`, where `bySpec` maps every `name@range` key of the
  * lockfile to its entry and `entries` lists each entry once. An entry is
- * `{dependencies, id, name, specs, version}`, where `dependencies` merges the
+ * `{dependencies, id, name, realName, specs, version}`, where `dependencies` merges the
  * `dependencies` and `optionalDependencies` sections (name to range).
  */
 export default function parseYarnLock(content) {
@@ -32,6 +32,7 @@ export default function parseYarnLock(content) {
 				dependencies: {},
 				id: null,
 				name: getSpecName(specs[0]),
+				realName: getAliasedName(specs[0]),
 				specs,
 				version: null,
 			};
@@ -85,6 +86,22 @@ export default function parseYarnLock(content) {
  * Returns the package name of a `name@range` spec. Scoped names start with an
  * `@`, so the separator is the first `@` after the first character.
  */
+
+/**
+ * Returns the registry package an `npm:` alias spec points to
+ * (`react-dom-16@npm:react-dom@16.12.0` points to `react-dom`), or the spec's
+ * own name when it is not an alias.
+ */
+export function getAliasedName(spec) {
+	const range = spec.slice(getSpecName(spec).length + 1);
+
+	if (!range.startsWith('npm:')) {
+		return getSpecName(spec);
+	}
+
+	return getSpecName(range.slice(4));
+}
+
 export function getSpecName(spec) {
 	const index = spec.indexOf('@', 1);
 

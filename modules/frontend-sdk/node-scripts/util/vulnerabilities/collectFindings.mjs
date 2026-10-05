@@ -19,6 +19,7 @@ export const SCOPE_BUILD = 'build';
 export const SCOPE_RUNTIME = 'runtime';
 
 export const TAG_LINT_TEMPLATE = 'lint-template';
+export const TAG_OUT_OF_SYNC_LOCKFILE = 'out-of-sync-lockfile';
 export const TAG_SHARED_LIBRARY = 'shared-library';
 
 const FRONTEND_SDK_PATH = 'modules/frontend-sdk/';
@@ -286,7 +287,7 @@ function getScope({declaredIn, firstName, project}) {
  * (`children`), yarn lockfiles by `name@range`.
  */
 function walkLockfile({declaredIn, lock, names}) {
-	let entry = lock.root?.children[names[0]] || null;
+	let entry = lock.getRootEntry?.(names[0]) || null;
 	let range = entry ? declaredIn[0]?.range ?? null : null;
 
 	for (const declaration of entry ? [] : declaredIn) {

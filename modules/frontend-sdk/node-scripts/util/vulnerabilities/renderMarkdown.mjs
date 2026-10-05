@@ -262,6 +262,27 @@ function renderApprover({approver, projectsByPath, report}) {
 					`- Unpinned install in \`${finding.file}\`: \`${finding.command}\``
 				);
 			}
+			else if (finding.type === 'lockfile-drift') {
+				lines.push(
+					`- Lockfile drift in \`${finding.file}\`: ${finding.entries.length} entries nothing depends on (${finding.entries.slice(0, 5).join(', ')}${finding.entries.length > 5 ? ', …' : ''}). The next install removes them.`
+				);
+			}
+			else if (finding.type === 'lockfile-out-of-sync') {
+				const declarations = [
+					...finding.missing.map(
+						(item) =>
+							`\`${item.name}@${item.range}\` (${item.field} of \`${item.file}\`)`
+					),
+					...finding.incomplete.map(
+						(item) =>
+							`\`${item.name}@${item.range}\` (dependency of \`${item.entry}\`)`
+					),
+				];
+
+				lines.push(
+					`- **Lockfile out of sync** \`${finding.file}\`: a frozen-lockfile install fails, and the findings above come from a lockfile that does not match \`package.json\`. Reinstall and commit before fixing anything else. Not in the lockfile: ${declarations.slice(0, 10).join(', ')}${declarations.length > 10 ? `, and ${declarations.length - 10} more` : ''}.`
+				);
+			}
 			else if (finding.type === 'members-drift') {
 				lines.push(
 					`- Workspace members drift: Gradle will add ${finding.added.length ? finding.added.map((dir) => `\`${dir}\``).join(', ') : 'nothing'} and remove ${finding.removed.length ? finding.removed.map((dir) => `\`${dir}\``).join(', ') : 'nothing'}.`

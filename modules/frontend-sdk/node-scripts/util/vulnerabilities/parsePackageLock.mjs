@@ -3,16 +3,7 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
-const MAX_CHAINS_PER_NODE = 50;
-
 const NODE_MODULES_SEGMENT = 'node_modules/';
-
-const ROOT_DEPENDENCY_FIELDS = [
-	'dependencies',
-	'devDependencies',
-	'optionalDependencies',
-	'peerDependencies',
-];
 
 /**
  * Parses an npm lockfile (`lockfileVersion` 1, 2 or 3) into the same model as
@@ -20,41 +11,35 @@ const ROOT_DEPENDENCY_FIELDS = [
  * `node_modules` layout needs:
  *
  * - every entry carries `children`, the entry each dependency name resolves to
- *   from its location, following Node's lookup through parent folders
- * - `root.children` holds what the root `package.json` resolves to
- * - `getChains(location)` returns the dependency chains (package names from a
- *   direct dependency down) that reach the entry installed at a location
+ *   from its install location, following Node's lookup through parent folders
+ * - `getRootEntry(name)` returns what a root dependency resolves to
+ * - `rootDeclarations` holds the root dependencies the lockfile was written
+ *   for (`packages[""]`, lockfile version 2 and 3 only), which `npm ci`
+ *   compares with `package.json`
+ *
+ * An entry's `name` is the name it is installed under, which differs from its
+ * `realName` for `npm:` aliases.
  */
-export default function parsePackageLock(content, rootJSON) {
+export default function parsePackageLock(content) {
 	const json = JSON.parse(content);
 
 	const tree = json.packages
 		? readPackages(json.packages)
 		: readDependencies(json.dependencies || {});
 
-	const root = {children: {}, dependencies: {}, location: ''};
-
-	for (const field of ROOT_DEPENDENCY_FIELDS) {
-		Object.assign(root.dependencies, rootJSON[field] || {});
-	}
-
-	const parents = new Map([...tree.values()].map((entry) => [entry, []]));
-
-	for (const entry of [root, ...tree.values()]) {
+	for (const entry of tree.values()) {
 		for (const name of Object.keys(entry.dependencies)) {
 			const child = resolveLocation(tree, entry.location, name);
 
 			if (child) {
 				entry.children[name] = child;
-
-				parents.get(child).push(entry);
 			}
 		}
 	}
 
 	const bySpec = new Map();
 
-	for (const entry of [root, ...tree.values()]) {
+	for (const entry of tree.values()) {
 		for (const [name, range] of Object.entries(entry.dependencies)) {
 			const child = entry.children[name];
 
@@ -64,55 +49,22 @@ export default function parsePackageLock(content, rootJSON) {
 		}
 	}
 
-	function getChains(location) {
-		const entry = tree.get(location);
-
-		if (!entry) {
-			return [];
-		}
-
-		const chains = [];
-
-		function walk(current, names, visited) {
-			if (chains.length >= MAX_CHAINS_PER_NODE) {
-				return;
-			}
-
-			for (const parent of parents.get(current) || []) {
-				if (parent === root) {
-					chains.push(names);
-				}
-				else if (!visited.has(parent)) {
-					walk(
-						parent,
-						[parent.name, ...names],
-						new Set([...visited, parent])
-					);
-				}
-			}
-		}
-
-		walk(entry, [entry.name], new Set([entry]));
-
-		return chains;
-	}
-
 	return {
 		bySpec,
 		entries: [...tree.values()],
-		getChains,
-		root,
-		tree,
+		getRootEntry: (name) => resolveLocation(tree, '', name),
+		rootDeclarations: json.packages?.[''] || null,
 	};
 }
 
-function createEntry(location, name, version, dependencies) {
+function createEntry({dependencies, location, name, realName, version}) {
 	return {
 		children: {},
 		dependencies,
 		id: `${name}@${version}`,
 		location,
 		name,
+		realName,
 		specs: [],
 		version,
 	};
@@ -139,18 +91,21 @@ function readPackages(packages) {
 			continue;
 		}
 
+		const name = getLocationName(location);
+
 		tree.set(
 			location,
-			createEntry(
-				location,
-				data.name || getLocationName(location),
-				data.version,
-				{
+			createEntry({
+				dependencies: {
 					...(data.dependencies || {}),
 					...(data.optionalDependencies || {}),
 					...(data.peerDependencies || {}),
-				}
-			)
+				},
+				location,
+				name,
+				realName: data.name || name,
+				version: data.version,
+			})
 		);
 	}
 
@@ -159,7 +114,8 @@ function readPackages(packages) {
 
 /**
  * Reads a `lockfileVersion` 1 nested `dependencies` tree, turning it into the
- * install locations a version 2 lockfile would list.
+ * install locations a version 2 lockfile would list. Aliases are recorded as
+ * a `npm:<name>@<version>` version.
  */
 function readDependencies(dependencies, parentLocation = '', tree = new Map()) {
 	for (const [name, data] of Object.entries(dependencies)) {
@@ -167,10 +123,26 @@ function readDependencies(dependencies, parentLocation = '', tree = new Map()) {
 			? `${parentLocation}/${NODE_MODULES_SEGMENT}${name}`
 			: `${NODE_MODULES_SEGMENT}${name}`;
 
+		let realName = name;
+		let version = data.version;
+
+		if (version?.startsWith('npm:')) {
+			const alias = version.slice(4);
+
+			const index = alias.lastIndexOf('@');
+
+			realName = alias.slice(0, index);
+			version = alias.slice(index + 1);
+		}
+
 		tree.set(
 			location,
-			createEntry(location, name, data.version, {
-				...(data.requires || {}),
+			createEntry({
+				dependencies: {...(data.requires || {})},
+				location,
+				name,
+				realName,
+				version,
 			})
 		);
 

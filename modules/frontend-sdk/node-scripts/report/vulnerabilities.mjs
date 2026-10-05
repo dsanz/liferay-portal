@@ -20,7 +20,6 @@ import fs from 'fs';
 import path from 'path';
 import url from 'url';
 
-import {PORTAL_DIR} from '../util/locations.mjs';
 import print from '../util/print.mjs';
 import CodeOwners from '../util/vulnerabilities/CodeOwners.mjs';
 import Registry from '../util/vulnerabilities/Registry.mjs';
@@ -29,6 +28,7 @@ import assignFixTypes, {
 } from '../util/vulnerabilities/assignFixTypes.mjs';
 import checkResolutions from '../util/vulnerabilities/checkResolutions.mjs';
 import collectFindings, {
+	TAG_OUT_OF_SYNC_LOCKFILE,
 	getFindingId,
 	unique,
 } from '../util/vulnerabilities/collectFindings.mjs';
@@ -41,13 +41,24 @@ import renderMarkdown from '../util/vulnerabilities/renderMarkdown.mjs';
 import runCommand, {
 	createLimiter,
 } from '../util/vulnerabilities/runCommand.mjs';
-import runNpmAudit from '../util/vulnerabilities/runNpmAudit.mjs';
-import runYarnAudit, {
-	AUDIT_CONCURRENCY,
-} from '../util/vulnerabilities/runYarnAudit.mjs';
 import scanDockerfiles from '../util/vulnerabilities/scanDockerfiles.mjs';
+import scanLockfile from '../util/vulnerabilities/scanLockfile.mjs';
 
 const COMMAND_NAME = 'report:vulnerabilities';
+
+/**
+ * The repository root, worked out here instead of imported from
+ * `util/locations.mjs`: that module reads the portal's built Node folder when
+ * it loads, so importing it would break runs from a checkout that was never
+ * built.
+ */
+const PORTAL_DIR = path.resolve(
+	path.dirname(url.fileURLToPath(import.meta.url)),
+	'..',
+	'..',
+	'..',
+	'..'
+);
 
 const EXIT_CODE_PARTIAL = 2;
 const EXIT_CODE_USAGE = 1;
@@ -124,7 +135,12 @@ export default async function main() {
 		process.stdout.write(output);
 	}
 
-	if (report.errors.length) {
+	if (
+		report.errors.length ||
+		report.findings.some(
+			(finding) => finding.type === 'lockfile-out-of-sync'
+		)
+	) {
 		process.exitCode = EXIT_CODE_PARTIAL;
 	}
 }
@@ -167,9 +183,6 @@ async function createReport({environment, options}) {
 		sharedLibraries: getSharedLibraries(),
 	};
 
-	const auditLimit = createLimiter(
-		Math.min(options.concurrency, AUDIT_CONCURRENCY)
-	);
 	const limit = createLimiter(options.concurrency);
 
 	const registry = new Registry({
@@ -188,7 +201,6 @@ async function createReport({environment, options}) {
 			processProject({
 				allowedReasons,
 				attribution,
-				auditLimit,
 				errors,
 				fixer,
 				project,
@@ -201,6 +213,7 @@ async function createReport({environment, options}) {
 	const resolutions = projectReports.flatMap(({resolutions}) => resolutions);
 
 	findings.push(
+		...projectReports.flatMap(({lockfileFindings}) => lockfileFindings),
 		...deadLockfiles.map(({ancestor, file}) => ({
 			approvers: codeOwners.getOwners(ancestor),
 			file,
@@ -499,7 +512,6 @@ function parseArguments(args) {
 async function processProject({
 	allowedReasons,
 	attribution,
-	auditLimit,
 	errors,
 	fixer,
 	project,
@@ -517,23 +529,20 @@ async function processProject({
 
 	const npm = project.packageManager === PACKAGE_MANAGER_NPM;
 
+	const lockfile = path.posix.join(
+		project.path,
+		npm ? 'package-lock.json' : 'yarn.lock'
+	);
+
 	let lock;
 
 	try {
-		lock = npm
-			? parsePackageLock(
-					fs.readFileSync(
-						path.join(project.dir, 'package-lock.json'),
-						'utf-8'
-					),
-					project.root.json
-				)
-			: parseYarnLock(
-					fs.readFileSync(
-						path.join(project.dir, 'yarn.lock'),
-						'utf-8'
-					)
-				);
+		const content = fs.readFileSync(
+			path.join(PORTAL_DIR, lockfile),
+			'utf-8'
+		);
+
+		lock = npm ? parsePackageLock(content) : parseYarnLock(content);
 	}
 	catch (error) {
 		errors.push({
@@ -542,27 +551,65 @@ async function processProject({
 			stage: 'discover',
 		});
 
-		return {findings: [], project: projectReport, resolutions: []};
+		return {
+			findings: [],
+			lockfileFindings: [],
+			project: projectReport,
+			resolutions: [],
+		};
 	}
 
 	let findings = [];
 
+	const lockfileFindings = [];
+
 	try {
-		const {advisories} = await auditLimit(() =>
-			npm
-				? runNpmAudit({lock, projectDir: project.dir, registry})
-				: runYarnAudit(project.dir)
-		);
+		const {advisories, orphans, sync} = await scanLockfile({
+			lock,
+			project,
+			registry,
+		});
 
 		projectReport.audited = true;
+		projectReport.inSync = !sync.incomplete.length && !sync.missing.length;
 
 		findings = collectFindings({advisories, attribution, lock, project});
+
+		if (!projectReport.inSync) {
+			for (const finding of findings) {
+				finding.tags = unique([
+					...finding.tags,
+					TAG_OUT_OF_SYNC_LOCKFILE,
+				]);
+			}
+
+			lockfileFindings.push({
+				approvers: projectReport.approvers,
+				file: lockfile,
+				id: getFindingId(`lockfile-out-of-sync|${lockfile}`),
+				incomplete: sync.incomplete,
+				missing: sync.missing,
+				project: project.path,
+				type: 'lockfile-out-of-sync',
+			});
+		}
+
+		if (orphans.length) {
+			lockfileFindings.push({
+				approvers: projectReport.approvers,
+				entries: orphans,
+				file: lockfile,
+				id: getFindingId(`lockfile-drift|${lockfile}`),
+				project: project.path,
+				type: 'lockfile-drift',
+			});
+		}
 	}
 	catch (error) {
 		errors.push({
 			message: error.message,
 			project: project.path,
-			stage: 'audit',
+			stage: 'scan',
 		});
 	}
 
@@ -612,6 +659,7 @@ async function processProject({
 
 	return {
 		findings: findings.map(toOutputFinding),
+		lockfileFindings,
 		project: projectReport,
 		resolutions,
 	};
