@@ -42,13 +42,25 @@ const SET_UP_YARN_EXCLUDES = new Set([
 	'src',
 ]);
 
+export const PACKAGE_MANAGER_NPM = 'npm';
+export const PACKAGE_MANAGER_YARN = 'yarn';
+
+const TEST_FIXTURE_REGEXP =
+	/(?:^|\/)src\/(?:gradleTest|test|testIntegration)\//;
+
 /**
- * Finds every yarn project (a folder with a tracked `yarn.lock` yarn installs
- * from), its packages and its class, plus the lockfiles yarn never installs
- * from and the workspaces whose committed member list is out of date.
+ * Finds every project, its packages and its class, plus the lockfiles nothing
+ * installs from and the workspaces whose committed member list is out of date.
+ *
+ * A yarn project is a folder with a tracked `yarn.lock` yarn installs from. An
+ * npm project is a folder with a tracked, non-empty `package-lock.json` that is
+ * either outside any yarn workspace, or inside one but consumed by a
+ * Dockerfile that installs from it (`npmLockConsumerDirs`). Lockfiles under
+ * test fixtures are ignored.
  */
 export default function discoverProjects({
 	errors,
+	npmLockConsumerDirs,
 	portalDir,
 	projectPaths,
 	trackedFiles,
@@ -61,10 +73,8 @@ export default function discoverProjects({
 		packageJSONFiles.map((file) => path.posix.dirname(file))
 	);
 
-	const lockfileDirs = trackedFiles
-		.filter((file) => path.posix.basename(file) === 'yarn.lock')
-		.map((file) => path.posix.dirname(file))
-		.sort();
+	const lockfileDirs = getLockfileDirs(trackedFiles, 'yarn.lock');
+	const npmLockfileDirs = getLockfileDirs(trackedFiles, 'package-lock.json');
 
 	const jsonCache = new Map();
 
@@ -150,6 +160,7 @@ export default function discoverProjects({
 					.filter((member) => member.name)
 					.map((member) => [member.name, member])
 			),
+			packageManager: PACKAGE_MANAGER_YARN,
 			packages: [root, ...members],
 			path: lockfileDir,
 			root,
@@ -169,6 +180,55 @@ export default function discoverProjects({
 
 		projects.push(project);
 	}
+
+	const yarnProjectPaths = new Set(projects.map((project) => project.path));
+
+	for (const lockfileDir of npmLockfileDirs) {
+		const file = path.posix.join(lockfileDir, 'package-lock.json');
+
+		if (
+			yarnProjectPaths.has(lockfileDir) ||
+			!packageJSONDirs.has(lockfileDir) ||
+			!fs.statSync(path.join(portalDir, file)).size
+		) {
+			continue;
+		}
+
+		const ancestorDir = findWorkspaceAncestor(
+			lockfileDir,
+			packageJSONDirs,
+			readPackageJSON
+		);
+
+		if (ancestorDir && !npmLockConsumerDirs.has(lockfileDir)) {
+			deadLockfiles.push({ancestor: ancestorDir, file});
+
+			continue;
+		}
+
+		const rootJSON = readPackageJSON(lockfileDir);
+
+		if (!rootJSON) {
+			continue;
+		}
+
+		const root = createPackage(lockfileDir, rootJSON);
+
+		projects.push({
+			class: isModulesPath(lockfileDir)
+				? PROJECT_CLASS_MODULES
+				: PROJECT_CLASS_FRONTEND,
+			dir: path.join(portalDir, lockfileDir),
+			members: [],
+			membersByName: new Map(),
+			packageManager: PACKAGE_MANAGER_NPM,
+			packages: [root],
+			path: lockfileDir,
+			root,
+		});
+	}
+
+	projects.sort((left, right) => left.path.localeCompare(right.path));
 
 	if (!projectPaths.length) {
 		return {deadLockfiles, membersDrifts, projects};
@@ -208,6 +268,10 @@ export function isLintSetPackage(name) {
 		LINT_SET_NAMES.has(name) ||
 		LINT_SET_PREFIXES.some((prefix) => name.startsWith(prefix))
 	);
+}
+
+export function isTestFixture(file) {
+	return TEST_FIXTURE_REGEXP.test(file);
 }
 
 function createPackage(dir, json) {
@@ -265,6 +329,15 @@ function findWorkspaceAncestor(lockfileDir, packageJSONDirs, readPackageJSON) {
  * will write on the next build: every `package.json` below the root, skipping
  * the folders it excludes.
  */
+function getLockfileDirs(trackedFiles, baseName) {
+	return trackedFiles
+		.filter((file) => path.posix.basename(file) === baseName)
+		.filter((file) => !file.split('/').includes('node_modules'))
+		.filter((file) => !isTestFixture(file))
+		.map((file) => path.posix.dirname(file))
+		.sort();
+}
+
 function getMembersDrift(projectDir, memberDirs, packageJSONDirs) {
 	const prefix = `${projectDir}/`;
 
@@ -296,7 +369,7 @@ function getMembersDrift(projectDir, memberDirs, packageJSONDirs) {
 }
 
 function getProjectClass(projectDir, rootJSON, members) {
-	if (projectDir === 'modules' || projectDir.startsWith('modules/')) {
+	if (isModulesPath(projectDir)) {
 		return PROJECT_CLASS_MODULES;
 	}
 
@@ -315,4 +388,8 @@ function getProjectClass(projectDir, rootJSON, members) {
 	}
 
 	return PROJECT_CLASS_FRONTEND;
+}
+
+function isModulesPath(dir) {
+	return dir === 'modules' || dir.startsWith('modules/');
 }

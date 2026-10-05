@@ -6,22 +6,30 @@
 import fs from 'fs';
 import path from 'path';
 
+import {isTestFixture} from './discoverProjects.mjs';
+
 const EXACT_VERSION_REGEXP =
 	/^(?:@[^@/]+\/)?[^@/]+@\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
 const NPM_INSTALL_COMMANDS = new Set(['add', 'i', 'install']);
 
 /**
- * Finds `RUN` instructions in tracked Dockerfiles that install npm packages no
- * lockfile controls. Returns `{command, dir, file}` for each of them.
+ * Scans tracked Dockerfiles, skipping test fixtures. Returns:
+ *
+ * - `unpinnedInstalls`: `{command, dir, file}` for each `RUN` instruction that
+ *   installs npm packages no lockfile controls
+ * - `npmLockConsumerDirs`: the folders whose Dockerfile installs from a
+ *   `package-lock.json` copied into the image, which makes that lockfile live
+ *   even inside a yarn workspace
  */
 export default function scanDockerfiles({errors, portalDir, trackedFiles}) {
-	const dockerfiles = trackedFiles.filter((file) =>
-		path.posix.basename(file).startsWith('Dockerfile')
-	);
+	const dockerfiles = trackedFiles
+		.filter((file) => path.posix.basename(file).startsWith('Dockerfile'))
+		.filter((file) => !isTestFixture(file));
 
 	const trackedFilesSet = new Set(trackedFiles);
 
+	const npmLockConsumerDirs = new Set();
 	const unpinnedInstalls = [];
 
 	for (const file of dockerfiles) {
@@ -56,6 +64,10 @@ export default function scanDockerfiles({errors, portalDir, trackedFiles}) {
 				const body = instruction.slice(keyword.length).trim();
 
 				for (const command of body.split(/&&|\|\||;/)) {
+					if (installsFromPackageLock(command.trim(), copied)) {
+						npmLockConsumerDirs.add(dir);
+					}
+
 					if (isUnpinned(command.trim(), copied)) {
 						unpinnedInstalls.push({
 							command: command.trim(),
@@ -68,7 +80,7 @@ export default function scanDockerfiles({errors, portalDir, trackedFiles}) {
 		}
 	}
 
-	return unpinnedInstalls;
+	return {npmLockConsumerDirs, unpinnedInstalls};
 }
 
 /**
@@ -113,6 +125,18 @@ function getPackageArguments(tokens) {
 
 function hasUnpinnedPackage(packages) {
 	return packages.some((pkg) => !EXACT_VERSION_REGEXP.test(pkg));
+}
+
+function installsFromPackageLock(command, copied) {
+	const tokens = command.split(/\s+/).filter(Boolean);
+
+	return (
+		copied.packageLock &&
+		tokens[0] === 'npm' &&
+		(tokens[1] === 'ci' || NPM_INSTALL_COMMANDS.has(tokens[1])) &&
+		!tokens.includes('-g') &&
+		!tokens.includes('--global')
+	);
 }
 
 function isUnpinned(command, copied) {

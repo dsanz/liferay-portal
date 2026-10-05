@@ -32,12 +32,16 @@ import collectFindings, {
 	getFindingId,
 	unique,
 } from '../util/vulnerabilities/collectFindings.mjs';
-import discoverProjects from '../util/vulnerabilities/discoverProjects.mjs';
+import discoverProjects, {
+	PACKAGE_MANAGER_NPM,
+} from '../util/vulnerabilities/discoverProjects.mjs';
+import parsePackageLock from '../util/vulnerabilities/parsePackageLock.mjs';
 import parseYarnLock from '../util/vulnerabilities/parseYarnLock.mjs';
 import renderMarkdown from '../util/vulnerabilities/renderMarkdown.mjs';
 import runCommand, {
 	createLimiter,
 } from '../util/vulnerabilities/runCommand.mjs';
+import runNpmAudit from '../util/vulnerabilities/runNpmAudit.mjs';
 import runYarnAudit, {
 	AUDIT_CONCURRENCY,
 } from '../util/vulnerabilities/runYarnAudit.mjs';
@@ -130,8 +134,15 @@ async function createReport({environment, options}) {
 
 	const trackedFiles = await getTrackedFiles();
 
+	const {npmLockConsumerDirs, unpinnedInstalls} = scanDockerfiles({
+		errors,
+		portalDir: PORTAL_DIR,
+		trackedFiles,
+	});
+
 	const {deadLockfiles, membersDrifts, projects} = discoverProjects({
 		errors,
+		npmLockConsumerDirs,
 		portalDir: PORTAL_DIR,
 		projectPaths: options.projects,
 		trackedFiles,
@@ -170,7 +181,7 @@ async function createReport({environment, options}) {
 
 	const allowedReasons = await getAllowedReasons();
 
-	print(0, print.title(`Auditing ${projects.length} yarn projects...\n`));
+	print(0, print.title(`Auditing ${projects.length} projects...\n`));
 
 	const projectReports = await Promise.all(
 		projects.map((project) =>
@@ -207,10 +218,9 @@ async function createReport({environment, options}) {
 		})),
 		...getUnpinnedInstallFindings({
 			codeOwners,
-			errors,
 			options,
 			projects,
-			trackedFiles,
+			unpinnedInstalls,
 		})
 	);
 
@@ -414,16 +424,15 @@ async function getTrackedFiles() {
 
 function getUnpinnedInstallFindings({
 	codeOwners,
-	errors,
 	options,
 	projects,
-	trackedFiles,
+	unpinnedInstalls,
 }) {
 	const projectPaths = projects
 		.map((project) => project.path)
 		.sort((left, right) => right.length - left.length);
 
-	return scanDockerfiles({errors, portalDir: PORTAL_DIR, trackedFiles})
+	return unpinnedInstalls
 		.map(({command, dir, file}) => ({
 			approvers: codeOwners.getOwners(dir),
 			command,
@@ -502,15 +511,29 @@ async function processProject({
 		class: project.class,
 		findings: [],
 		members: project.members.length,
+		packageManager: project.packageManager,
 		path: project.path,
 	};
+
+	const npm = project.packageManager === PACKAGE_MANAGER_NPM;
 
 	let lock;
 
 	try {
-		lock = parseYarnLock(
-			fs.readFileSync(path.join(project.dir, 'yarn.lock'), 'utf-8')
-		);
+		lock = npm
+			? parsePackageLock(
+					fs.readFileSync(
+						path.join(project.dir, 'package-lock.json'),
+						'utf-8'
+					),
+					project.root.json
+				)
+			: parseYarnLock(
+					fs.readFileSync(
+						path.join(project.dir, 'yarn.lock'),
+						'utf-8'
+					)
+				);
 	}
 	catch (error) {
 		errors.push({
@@ -525,7 +548,11 @@ async function processProject({
 	let findings = [];
 
 	try {
-		const {advisories} = await auditLimit(() => runYarnAudit(project.dir));
+		const {advisories} = await auditLimit(() =>
+			npm
+				? runNpmAudit({lock, projectDir: project.dir, registry})
+				: runYarnAudit(project.dir)
+		);
 
 		projectReport.audited = true;
 
@@ -552,15 +579,21 @@ async function processProject({
 
 	let resolutions = [];
 
+	// npm ignores the "resolutions" field (its equivalent is "overrides"),
+	// so only yarn projects are checked.
+
 	try {
-		resolutions = await checkResolutions({
-			allowedReasons: project.path === 'modules' ? allowedReasons : null,
-			attribution,
-			fixer,
-			lock,
-			project,
-			registry,
-		});
+		resolutions = npm
+			? []
+			: await checkResolutions({
+					allowedReasons:
+						project.path === 'modules' ? allowedReasons : null,
+					attribution,
+					fixer,
+					lock,
+					project,
+					registry,
+				});
 	}
 	catch (error) {
 		errors.push({

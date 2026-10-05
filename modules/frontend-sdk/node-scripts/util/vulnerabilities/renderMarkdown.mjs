@@ -166,10 +166,14 @@ function renderApprover({approver, projectsByPath, report}) {
 	];
 
 	for (const projectPath of projectPaths) {
-		const projectClass = projectsByPath.get(projectPath)?.class;
+		const project = projectsByPath.get(projectPath);
+
+		const projectLabel = project
+			? [project.class, project.packageManager].join(', ')
+			: '';
 
 		lines.push(
-			`### ${projectPath}${projectClass ? ` (${projectClass})` : ''}`,
+			`### ${projectPath}${projectLabel ? ` (${projectLabel})` : ''}`,
 			''
 		);
 

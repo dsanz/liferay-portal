@@ -282,13 +282,14 @@ function getScope({declaredIn, firstName, project}) {
 /**
  * Follows a chain through the lockfile, from the range the declaring package
  * asks for down to the vulnerable package, recording what is installed at
- * each step.
+ * each step. npm lockfiles resolve each dependency from its install location
+ * (`children`), yarn lockfiles by `name@range`.
  */
 function walkLockfile({declaredIn, lock, names}) {
-	let entry = null;
-	let range = null;
+	let entry = lock.root?.children[names[0]] || null;
+	let range = entry ? declaredIn[0]?.range ?? null : null;
 
-	for (const declaration of declaredIn) {
+	for (const declaration of entry ? [] : declaredIn) {
 		entry = lock.bySpec.get(`${names[0]}@${declaration.range}`) || null;
 
 		if (entry) {
@@ -310,7 +311,9 @@ function walkLockfile({declaredIn, lock, names}) {
 		const nextRange = entry?.dependencies[name] ?? null;
 
 		entry = nextRange
-			? lock.bySpec.get(`${name}@${nextRange}`) || null
+			? entry.children?.[name] ||
+				lock.bySpec.get(`${name}@${nextRange}`) ||
+				null
 			: null;
 
 		installedChain.push({
