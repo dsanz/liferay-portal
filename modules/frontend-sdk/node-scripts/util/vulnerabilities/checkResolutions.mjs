@@ -23,6 +23,15 @@ export const RESOLUTION_STATUS_UNKNOWN = 'unknown';
  * Checks every resolution of a project's root `package.json`: which lockfile
  * edges it applies to, what yarn would pick for each edge without it, and
  * whether that would bring an advisory back.
+ *
+ * @param {object} options
+ * @param {Object<string, string> | null} options.allowedReasons reasons recorded in `ALLOWED_ROOT_PACKAGE_JSON_RESOLUTIONS.mjs`, for `modules`
+ * @param {object} options.attribution see `collectFindings`
+ * @param {ReturnType<import('./assignFixTypes.mjs').createFixer>} options.fixer
+ * @param {import('./parseYarnLock.mjs').Lock} options.lock
+ * @param {import('./discoverProjects.mjs').Project} options.project
+ * @param {import('./Registry.mjs').default} options.registry
+ * @return {Promise<import('./reportTypes.mjs').Resolution[]>}
  */
 export default async function checkResolutions({
 	allowedReasons,

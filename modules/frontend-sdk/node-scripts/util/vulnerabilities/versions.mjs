@@ -14,6 +14,9 @@ const VERSION_REGEXP = /^v?(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+.*)?$/;
 /**
  * Returns the caret group of a version, that is, the part caret ranges keep
  * fixed: the major, or the minor for `0.y.z`, or the patch for `0.0.z`.
+ *
+ * @param {string} version an exact version
+ * @return {number[] | null} the group, such as `[7]` or `[0, 4]`, or `null` when the version does not parse
  */
 export function getCaretGroup(version) {
 	const parsed = parseVersion(version);
@@ -33,6 +36,11 @@ export function getCaretGroup(version) {
 	return [0, 0, parsed.patch];
 }
 
+/**
+ * @param {number[]} left
+ * @param {number[]} right
+ * @return {number} negative, zero or positive, like a sort comparator
+ */
 export function compareCaretGroups(left, right) {
 	for (let i = 0; i < Math.max(left.length, right.length); i++) {
 		const difference = (left[i] ?? -1) - (right[i] ?? -1);
@@ -45,6 +53,11 @@ export function compareCaretGroups(left, right) {
 	return 0;
 }
 
+/**
+ * @param {string} left
+ * @param {string} right
+ * @return {number} negative, zero or positive, like a sort comparator
+ */
 export function compareVersions(left, right) {
 	const parsedLeft = parseVersion(left);
 	const parsedRight = parseVersion(right);
@@ -78,14 +91,26 @@ export function compareVersions(left, right) {
 	});
 }
 
+/**
+ * @param {number[]} group
+ * @return {string} the group as written in reports, such as `0.4`
+ */
 export function formatCaretGroup(group) {
 	return group.join('.');
 }
 
+/**
+ * @param {string} version
+ * @return {boolean}
+ */
 export function isPrerelease(version) {
 	return !!parseVersion(version)?.prerelease;
 }
 
+/**
+ * @param {string} version
+ * @return {{major: number, minor: number, patch: number, prerelease: string} | null} its parts, or `null` when it does not parse
+ */
 export function parseVersion(version) {
 	const match = VERSION_REGEXP.exec(String(version));
 

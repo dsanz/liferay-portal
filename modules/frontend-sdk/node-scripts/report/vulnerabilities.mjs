@@ -38,6 +38,7 @@ import discoverProjects, {
 import parsePackageLock from '../util/vulnerabilities/parsePackageLock.mjs';
 import parseYarnLock from '../util/vulnerabilities/parseYarnLock.mjs';
 import renderMarkdown from '../util/vulnerabilities/renderMarkdown.mjs';
+import {SCHEMA_VERSION} from '../util/vulnerabilities/reportTypes.mjs';
 import runCommand, {
 	createLimiter,
 } from '../util/vulnerabilities/runCommand.mjs';
@@ -73,8 +74,6 @@ const OPTIONS = {
 	'--owner': 'owner',
 	'--project': 'projects',
 };
-
-const SCHEMA_VERSION = 1;
 
 class UsageError extends Error {}
 
@@ -145,6 +144,14 @@ export default async function main() {
 	}
 }
 
+/**
+ * Builds the whole report. Its shape is defined in `util/vulnerabilities/reportTypes.mjs`.
+ *
+ * @param {object} params
+ * @param {{gitCommit: string, npm: string, registry: string, yarn: string}} params.environment
+ * @param {{concurrency: number, format: string, output: string | null, owner: string | null, projects: string[]}} params.options
+ * @return {Promise<import('../util/vulnerabilities/reportTypes.mjs').Report>}
+ */
 async function createReport({environment, options}) {
 	const errors = [];
 

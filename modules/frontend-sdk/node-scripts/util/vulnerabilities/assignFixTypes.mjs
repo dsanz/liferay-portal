@@ -39,6 +39,12 @@ const NO_PATCHED_RANGE = '<0.0.0';
 /**
  * Assigns a fix to every chain of every finding, and to every finding the most
  * expensive fix type among its chains.
+ *
+ * @param {object} options
+ * @param {import('./reportTypes.mjs').AdvisoryFinding[]} options.findings updated in place
+ * @param {import('./discoverProjects.mjs').Project} options.project
+ * @param {import('./Registry.mjs').default} options.registry
+ * @return {Promise<void>}
  */
 export default async function assignFixTypes({findings, project, registry}) {
 	const fixer = createFixer(registry);
@@ -65,6 +71,9 @@ export default async function assignFixTypes({findings, project, registry}) {
 /**
  * Creates the functions that work out fixes, sharing their memoized answers
  * between projects: the same chain seen in many workspaces is worked out once.
+ *
+ * @param {import('./Registry.mjs').default} registry
+ * @return {{findBump: Function, getChainFix: Function}}
  */
 export function createFixer(registry) {
 	const bumpCache = new Map();

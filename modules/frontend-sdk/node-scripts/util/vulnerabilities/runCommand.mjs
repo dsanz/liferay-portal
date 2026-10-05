@@ -9,6 +9,9 @@ import {spawn} from 'child_process';
 /**
  * Creates a function that runs the async tasks it receives with at most
  * `concurrency` of them in flight at once.
+ *
+ * @param {number} concurrency maximum number of tasks in flight
+ * @return {<T>(task: () => Promise<T>) => Promise<T>} a function that queues a task and resolves with its result
  */
 export function createLimiter(concurrency) {
 	const queue = [];
@@ -46,6 +49,11 @@ export function createLimiter(concurrency) {
  * Runs a command without a shell and resolves with its exit code and output.
  * It never rejects because of a non-zero exit code: callers decide what an exit
  * code means.
+ *
+ * @param {string} command
+ * @param {string[]} args
+ * @param {{cwd?: string}} [options]
+ * @return {Promise<{code: number, stderr: string, stdout: string}>} the exit code (`-1` when the command could not start) and output
  */
 export default function runCommand(command, args, {cwd} = {}) {
 	return new Promise((resolve) => {
@@ -79,6 +87,10 @@ export default function runCommand(command, args, {cwd} = {}) {
 	});
 }
 
+/**
+ * @param {number} milliseconds
+ * @return {Promise<void>}
+ */
 export function sleep(milliseconds) {
 	return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }

@@ -42,6 +42,27 @@ const SET_UP_YARN_EXCLUDES = new Set([
 	'src',
 ]);
 
+/**
+ * @typedef {object} Package
+ * @property {string} dir Folder holding the `package.json`.
+ * @property {string} file Path of the `package.json`.
+ * @property {object} json Its parsed content.
+ * @property {string | null} name Its `name` field.
+ */
+
+/**
+ * @typedef {object} Project
+ * @property {string} path Folder holding the lockfile, relative to the
+ * repository root.
+ * @property {string} dir The same folder, absolute.
+ * @property {import('./reportTypes.mjs').ProjectClass} class
+ * @property {import('./reportTypes.mjs').PackageManager} packageManager
+ * @property {Package} root The `package.json` next to the lockfile.
+ * @property {Package[]} members The workspace members (none for npm).
+ * @property {Map<string, Package>} membersByName Members by package name.
+ * @property {Package[]} packages The root followed by the members.
+ */
+
 export const PACKAGE_MANAGER_NPM = 'npm';
 export const PACKAGE_MANAGER_YARN = 'yarn';
 
@@ -57,6 +78,14 @@ const TEST_FIXTURE_REGEXP =
  * either outside any yarn workspace, or inside one but consumed by a
  * Dockerfile that installs from it (`npmLockConsumerDirs`). Lockfiles under
  * test fixtures are ignored.
+ *
+ * @param {object} options
+ * @param {object[]} options.errors where failures are appended, as `ReportError`s
+ * @param {Set<string>} options.npmLockConsumerDirs folders whose Dockerfile installs from their `package-lock.json`
+ * @param {string} options.portalDir absolute path of the repository root
+ * @param {string[]} options.projectPaths the `--project` filter, empty for every project
+ * @param {string[]} options.trackedFiles tracked lockfiles, `package.json` files and Dockerfiles
+ * @return {{deadLockfiles: {ancestor: string, file: string}[], membersDrifts: {added: string[], project: string, removed: string[]}[], projects: Project[]}}
  */
 export default function discoverProjects({
 	errors,
@@ -253,6 +282,10 @@ export default function discoverProjects({
 	};
 }
 
+/**
+ * @param {object} json a parsed `package.json`
+ * @return {string[]} its `workspaces` globs, in either form
+ */
 export function getWorkspaceGlobs(json) {
 	const workspaces = json?.workspaces;
 
@@ -263,6 +296,10 @@ export function getWorkspaceGlobs(json) {
 	return workspaces?.packages || [];
 }
 
+/**
+ * @param {string} name
+ * @return {boolean} whether the package belongs to the lint and format toolchain
+ */
 export function isLintSetPackage(name) {
 	return (
 		LINT_SET_NAMES.has(name) ||
@@ -270,6 +307,10 @@ export function isLintSetPackage(name) {
 	);
 }
 
+/**
+ * @param {string} file path relative to the repository root
+ * @return {boolean} whether it is under a test fixture folder
+ */
 export function isTestFixture(file) {
 	return TEST_FIXTURE_REGEXP.test(file);
 }

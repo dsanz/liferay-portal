@@ -6,6 +6,25 @@
 import runCommand, {sleep} from './runCommand.mjs';
 import {compareVersions} from './versions.mjs';
 
+/**
+ * An advisory as the bulk advisory endpoint returns it.
+ *
+ * @typedef {object} RegistryAdvisory
+ * @property {number} id
+ * @property {string} url The GitHub advisory page, ending with the GHSA ID.
+ * @property {string} title
+ * @property {import('./reportTypes.mjs').Severity} severity
+ * @property {string} vulnerable_versions
+ */
+
+/**
+ * @typedef {object} ResolvedVersion
+ * @property {string} name Registry package name.
+ * @property {string} version Highest version matching the range.
+ * @property {Object<string, string>} dependencies Its `dependencies` and
+ * `optionalDependencies`.
+ */
+
 const BULK_BATCH_SIZE = 100;
 
 const BULK_RETRY_DELAYS = [1000, 2000, 4000];
@@ -25,6 +44,12 @@ export class UnresolvableRangeError extends Error {}
  *   advisory endpoint the npm CLI uses for `npm audit`
  */
 export default class Registry {
+
+	/**
+	 * @param {object} options
+	 * @param {(task: () => Promise<any>) => Promise<any>} options.limit limiter shared by every registry request
+	 * @param {string} options.registryURL npm registry URL
+	 */
 	constructor({limit, registryURL}) {
 		this._advisoriesCache = new Map();
 		this._flushTimeout = null;
@@ -40,6 +65,10 @@ export default class Registry {
 
 	/**
 	 * Returns the advisories affecting an exact version of a package.
+	 *
+	 * @param {string} name registry package name
+	 * @param {string} version exact version
+	 * @return {Promise<RegistryAdvisory[]>}
 	 */
 	getAdvisories(name, version) {
 		const key = `${name}@${version}`;
@@ -65,6 +94,11 @@ export default class Registry {
 		return this._advisoriesCache.get(key);
 	}
 
+	/**
+	 * @param {string} name registry package name
+	 * @param {string} version exact version
+	 * @return {Promise<boolean>} whether no advisory affects the version
+	 */
 	async isClean(name, version) {
 		const advisories = await this.getAdvisories(name, version);
 
@@ -75,6 +109,10 @@ export default class Registry {
 	 * Returns `{dependencies, name, version}` for the highest version matching
 	 * a range, `null` when nothing matches. `npm:` aliases are followed, and
 	 * `dependencies` merges `dependencies` and `optionalDependencies`.
+	 *
+	 * @param {string} name
+	 * @param {string} range
+	 * @return {Promise<ResolvedVersion | null>}
 	 */
 	resolve(name, range) {
 		const target = getRegistryTarget(name, range);
@@ -133,6 +171,10 @@ export default class Registry {
 	/**
 	 * Returns the versions matching a range, oldest first. `npm:` aliases are
 	 * followed.
+	 *
+	 * @param {string} name
+	 * @param {string} range
+	 * @return {Promise<string[]>}
 	 */
 	getMatchingVersions(name, range) {
 		const target = getRegistryTarget(name, range);
@@ -161,6 +203,9 @@ export default class Registry {
 
 	/**
 	 * Returns every published version of a package, oldest first.
+	 *
+	 * @param {string} name registry package name
+	 * @return {Promise<string[]>}
 	 */
 	getVersions(name) {
 		if (!this._versionsCache.has(name)) {
@@ -306,6 +351,11 @@ export default class Registry {
  * Turns a lockfile `name` and `range` into the registry package and range they
  * stand for, following `npm:` aliases. Ranges that do not point to the
  * registry (files, links, git, URLs) cannot be resolved.
+ *
+ * @param {string} name
+ * @param {string} range
+ * @return {{name: string, range: string}}
+ * @throws {UnresolvableRangeError} when the range does not point to the registry
  */
 export function getRegistryTarget(name, range) {
 	if (range.startsWith('npm:')) {

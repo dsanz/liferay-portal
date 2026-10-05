@@ -3,6 +3,35 @@
  * SPDX-License-Identifier: LGPL-2.1-or-later OR LicenseRef-Liferay-DXP-EULA-2.0.0-2023-06
  */
 
+/**
+ * An entry of a lockfile, yarn or npm.
+ *
+ * @typedef {object} LockEntry
+ * @property {string} id `name@version`.
+ * @property {string} name Name the package is installed under, the alias for
+ * `npm:` aliases.
+ * @property {string} realName Registry package name.
+ * @property {string | null} version Locked version.
+ * @property {Object<string, string>} dependencies Name to range, merging
+ * `dependencies` and `optionalDependencies` (and, for npm,
+ * `peerDependencies`).
+ * @property {string[]} specs The `name@range` keys of a yarn entry. Empty for
+ * npm.
+ * @property {Object<string, LockEntry>} [children] npm only: the entry each
+ * dependency resolves to from this entry's install location.
+ * @property {string} [location] npm only: the install location.
+ */
+
+/**
+ * A parsed lockfile. `getRootEntry` and `rootDeclarations` only exist for npm.
+ *
+ * @typedef {object} Lock
+ * @property {Map<string, LockEntry>} bySpec Entry for each `name@range`.
+ * @property {LockEntry[]} entries Every entry, once.
+ * @property {(name: string) => LockEntry | null} [getRootEntry]
+ * @property {object | null} [rootDeclarations]
+ */
+
 const DEPENDENCY_FIELDS = new Set(['dependencies', 'optionalDependencies']);
 
 /**
@@ -12,6 +41,9 @@ const DEPENDENCY_FIELDS = new Set(['dependencies', 'optionalDependencies']);
  * lockfile to its entry and `entries` lists each entry once. An entry is
  * `{dependencies, id, name, realName, specs, version}`, where `dependencies` merges the
  * `dependencies` and `optionalDependencies` sections (name to range).
+ *
+ * @param {string} content the lockfile text
+ * @return {Lock}
  */
 export default function parseYarnLock(content) {
 	const bySpec = new Map();
@@ -91,6 +123,9 @@ export default function parseYarnLock(content) {
  * Returns the registry package an `npm:` alias spec points to
  * (`react-dom-16@npm:react-dom@16.12.0` points to `react-dom`), or the spec's
  * own name when it is not an alias.
+ *
+ * @param {string} spec a `name@range` key
+ * @return {string}
  */
 export function getAliasedName(spec) {
 	const range = spec.slice(getSpecName(spec).length + 1);
@@ -102,6 +137,10 @@ export function getAliasedName(spec) {
 	return getSpecName(range.slice(4));
 }
 
+/**
+ * @param {string} spec a `name@range` key
+ * @return {string} the package name
+ */
 export function getSpecName(spec) {
 	const index = spec.indexOf('@', 1);
 

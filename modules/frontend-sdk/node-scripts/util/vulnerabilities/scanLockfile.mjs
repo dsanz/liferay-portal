@@ -38,6 +38,12 @@ const INSTALLED_FIELDS = {
  *
  * Returns the advisories in the shape `collectFindings` reads, plus `sync`
  * (`missing` declarations and `incomplete` entries) and `orphans`.
+ *
+ * @param {object} options
+ * @param {import('./parseYarnLock.mjs').Lock} options.lock
+ * @param {import('./discoverProjects.mjs').Project} options.project
+ * @param {import('./Registry.mjs').default} options.registry
+ * @return {Promise<{advisories: {advisory: object}[], orphans: string[], sync: {incomplete: object[], missing: object[]}}>} `orphans` as `name@version`; `sync` as in `LockfileOutOfSyncFinding`
  */
 export default async function scanLockfile({lock, project, registry}) {
 	const graph =

@@ -7,6 +7,10 @@
  * Tells whether a relative path matches a Yarn workspaces glob such as
  * `client-extensions/foo`. A `*` matches within one path segment and a `**`
  * segment matches any number of segments.
+ *
+ * @param {string} relativePath path relative to the workspace root
+ * @param {string} glob one entry of a `workspaces` list
+ * @return {boolean} whether the path matches the glob
  */
 export function matchesWorkspaceGlob(relativePath, glob) {
 	const globSegments = trimSlashes(glob).split('/');
@@ -18,6 +22,9 @@ export function matchesWorkspaceGlob(relativePath, glob) {
 /**
  * Splits a resolution key into package name segments, keeping scoped package
  * names together since they contain a slash themselves.
+ *
+ * @param {string} key a resolution key, made of package names, `*` and `**`
+ * @return {string[]} its package name segments
  */
 export function splitPackagePath(key) {
 	const parts = key.split('/');
@@ -40,6 +47,9 @@ export function splitPackagePath(key) {
 
 /**
  * Converts a glob segment (where `*` matches anything) to a regular expression.
+ *
+ * @param {string} segment a glob segment
+ * @return {RegExp} an anchored regular expression for it
  */
 export function toSegmentRegExp(segment) {
 	const source = segment

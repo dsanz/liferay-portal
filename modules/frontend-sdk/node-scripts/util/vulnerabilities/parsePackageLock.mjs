@@ -19,6 +19,9 @@ const NODE_MODULES_SEGMENT = 'node_modules/';
  *
  * An entry's `name` is the name it is installed under, which differs from its
  * `realName` for `npm:` aliases.
+ *
+ * @param {string} content the lockfile text
+ * @return {import('./parseYarnLock.mjs').Lock}
  */
 export default function parsePackageLock(content) {
 	const json = JSON.parse(content);

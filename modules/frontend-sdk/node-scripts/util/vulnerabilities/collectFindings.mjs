@@ -42,6 +42,13 @@ const RUNTIME_FIELDS = [
  * Turns the `auditAdvisory` payloads of one project into deduplicated
  * findings: one per (project, GHSA id, package, installed version), keeping
  * every chain, each attributed to its declaring packages, scope and approvers.
+ *
+ * @param {object} options
+ * @param {{advisory: object}[]} options.advisories advisories in the shape `scanLockfile` returns
+ * @param {{codeOwners: import('./CodeOwners.mjs').default, infraOwners: string[], sharedLibraries: Set<string>}} options.attribution
+ * @param {import('./parseYarnLock.mjs').Lock} options.lock
+ * @param {import('./discoverProjects.mjs').Project} options.project
+ * @return {import('./reportTypes.mjs').AdvisoryFinding[]} findings whose chains have no `fix` yet
  */
 export default function collectFindings({
 	advisories,
@@ -126,10 +133,18 @@ export default function collectFindings({
 	return [...findings.values()];
 }
 
+/**
+ * @param {string} key what identifies the finding
+ * @return {string} 12 hex characters
+ */
 export function getFindingId(key) {
 	return crypto.createHash('sha1').update(key).digest('hex').slice(0, 12);
 }
 
+/**
+ * @param {string[]} values
+ * @return {string[]} the distinct values, sorted
+ */
 export function unique(values) {
 	return [...new Set(values)].sort();
 }

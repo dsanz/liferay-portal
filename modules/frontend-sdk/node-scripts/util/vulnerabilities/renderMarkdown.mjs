@@ -12,6 +12,9 @@ export const SEVERITIES = ['critical', 'high', 'moderate', 'low', 'info'];
 /**
  * Renders a report as Markdown with one section per approver, so that each
  * section can be pasted into that approver's ticket.
+ *
+ * @param {import('./reportTypes.mjs').Report} report
+ * @return {string}
  */
 export default function renderMarkdown(report) {
 	const lines = [

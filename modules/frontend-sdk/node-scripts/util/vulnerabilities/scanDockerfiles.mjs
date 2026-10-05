@@ -21,6 +21,12 @@ const NPM_INSTALL_COMMANDS = new Set(['add', 'i', 'install']);
  * - `npmLockConsumerDirs`: the folders whose Dockerfile installs from a
  *   `package-lock.json` copied into the image, which makes that lockfile live
  *   even inside a yarn workspace
+ *
+ * @param {object} options
+ * @param {object[]} options.errors where failures are appended
+ * @param {string} options.portalDir absolute path of the repository root
+ * @param {string[]} options.trackedFiles tracked Dockerfiles and lockfiles
+ * @return {{npmLockConsumerDirs: Set<string>, unpinnedInstalls: {command: string, dir: string, file: string}[]}}
  */
 export default function scanDockerfiles({errors, portalDir, trackedFiles}) {
 	const dockerfiles = trackedFiles

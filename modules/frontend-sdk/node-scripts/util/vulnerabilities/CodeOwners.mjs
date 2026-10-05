@@ -13,6 +13,10 @@ export const UNOWNED = 'unowned';
  * GitHub's rule: the last pattern that matches wins.
  */
 export default class CodeOwners {
+
+	/**
+	 * @param {string} portalDir absolute path of the repository root
+	 */
 	constructor(portalDir) {
 		this._cache = new Map();
 		this._rules = [];
@@ -39,6 +43,9 @@ export default class CodeOwners {
 	/**
 	 * Returns the owners of a path relative to the repository root, or
 	 * `[UNOWNED]` when no pattern matches.
+	 *
+	 * @param {string} relativePath
+	 * @return {string[]} the owner handles
 	 */
 	getOwners(relativePath) {
 		const normalizedPath = relativePath.replace(/^\/+|\/+$/g, '');
