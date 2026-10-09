@@ -170,6 +170,8 @@ const COMMANDS = {
 		It only needs Node built-ins, git, yarn 1.x, npm and registry access,
 		so it can also run from a bare checkout with
 		'node modules/frontend-sdk/node-scripts/report/vulnerabilities.mjs'.
+		It reports on the portal checkout it is run from, even when the
+		script lives in another checkout.
 `,
 		parameters:
 			'[--project <path>]... [--owner <team>] [--severity <list>]... [--format json|md] [--output <file>] [--concurrency <n>]',

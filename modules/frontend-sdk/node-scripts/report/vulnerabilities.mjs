@@ -12,10 +12,14 @@
  *
  *     node modules/frontend-sdk/node-scripts/report/vulnerabilities.mjs
  *
+ * It reports on the portal checkout it is run from, which can be another one
+ * than the checkout holding the script.
+ *
  * It is report-only: it never edits files and its exit code never depends on
  * the findings.
  */
 
+import childProcess from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import url from 'url';
@@ -50,18 +54,15 @@ import scanLockfile from '../util/vulnerabilities/scanLockfile.mjs';
 const COMMAND_NAME = 'report:vulnerabilities';
 
 /**
- * The repository root, worked out here instead of imported from
- * `util/locations.mjs`: that module reads the portal's built Node folder when
- * it loads, so importing it would break runs from a checkout that was never
- * built.
+ * The repository the report is about: the portal checkout the tool is run
+ * from, so that a copy of the tool kept in another checkout can report on a
+ * freshly pulled one, or else the checkout that contains this script.
+ *
+ * It is worked out here instead of imported from `util/locations.mjs`: that
+ * module reads the portal's built Node folder when it loads, so importing it
+ * would break runs from a checkout that was never built.
  */
-const PORTAL_DIR = path.resolve(
-	path.dirname(url.fileURLToPath(import.meta.url)),
-	'..',
-	'..',
-	'..',
-	'..'
-);
+const PORTAL_DIR = getWorkingPortalDir() ?? getScriptPortalDir();
 
 const EXIT_CODE_PARTIAL = 2;
 const EXIT_CODE_USAGE = 1;
@@ -465,6 +466,40 @@ async function getEnvironment() {
 	};
 }
 
+function getScriptPortalDir() {
+	return path.resolve(
+		path.dirname(url.fileURLToPath(import.meta.url)),
+		'..',
+		'..',
+		'..',
+		'..'
+	);
+}
+
+/**
+ * @return {string | null} the root of the portal checkout that contains the
+ * working directory, or `null` when it is not inside one
+ */
+function getWorkingPortalDir() {
+	try {
+		const dir = childProcess
+			.execFileSync('git', ['rev-parse', '--show-toplevel'], {
+				encoding: 'utf-8',
+				stdio: ['ignore', 'pipe', 'ignore'],
+			})
+			.trim();
+
+		return fs.existsSync(
+			path.join(dir, 'modules', 'node-scripts.config.js')
+		)
+			? path.resolve(dir)
+			: null;
+	}
+	catch {
+		return null;
+	}
+}
+
 function getSharedLibraries() {
 	try {
 		const json = JSON.parse(
@@ -496,12 +531,29 @@ function getInvocation() {
 	const words =
 		path.basename(script) === 'bin.js'
 			? ['node-scripts', ...args]
-			: ['node', path.relative(process.cwd(), script) || script, ...args];
+			: ['node', getShortestPath(script), ...args];
+
+	const directory = path.relative(PORTAL_DIR, process.cwd());
 
 	return {
 		command: words.map(quoteShellWord).join(' '),
-		directory: path.relative(PORTAL_DIR, process.cwd()) || '.',
+		directory: directory.startsWith('..')
+			? process.cwd()
+			: directory || '.',
 	};
+}
+
+/**
+ * @return {string} the path of a file relative to the working directory, or
+ * its absolute path when that is shorter
+ */
+function getShortestPath(file) {
+	const absolutePath = path.resolve(file);
+	const relativePath = path.relative(process.cwd(), absolutePath);
+
+	return relativePath && relativePath.length < absolutePath.length
+		? relativePath
+		: absolutePath;
 }
 
 function quoteShellWord(word) {
