@@ -61,7 +61,7 @@ Stop and tell the user when the report's `schemaVersion` differs from `SCHEMA_VE
 
 Summarize for the user, in a short table, the findings by `fixType` and by `advisory.severity`, the resolutions by `status`, and every non-advisory finding (`dead-lockfile`, `lockfile-drift`, `lockfile-out-of-sync`, `members-drift`, `unpinned-install`). Keep the report file: later steps compare finding `id`s against it.
 
-The report reads each lockfile as the dependency tree its `package.json` files declare, members' `devDependencies` included, and checks every reachable version against the GitHub Advisory Database. Findings carry GHSA IDs only, not CVE IDs.
+The report reads each lockfile as the dependency tree its `package.json` files declare, members' `devDependencies` included, and checks every reachable version against the GitHub Advisory Database. Each advisory carries its GHSA ID and, when it has one, its CVE IDs (`advisory.cves`, looked up in OSV.dev).
 
 ## Bring the Lockfile in Sync
 
@@ -79,7 +79,7 @@ A `lockfile-drift` finding lists entries that nothing depends on. The next insta
 
 Before changing anything, list the findings the team must not fix and tell the user who owns them.
 
-In `modules`, judge ownership per chain, not per finding: a finding's `approvers` merges the owners of all its chains, so a single lockfile entry reached from many modules lists many teams. A chain belongs to frontend infrastructure when it starts at a `modules/frontend-sdk` package, is declared in `modules/package.json`, or goes through a library of `frontend-js-dependencies-web`; otherwise it belongs to the CODEOWNERS owner of the module that declares its direct dependency. The team acts on the chains it owns.
+In `modules`, judge ownership per chain, not per finding: a finding's `approvers` merges the owners of all its chains, so a single lockfile entry reached from many modules lists many teams. Each chain carries its own `approvers` (`chains[].approvers`), and the Markdown section of each approver only shows that approver's chains. A chain belongs to frontend infrastructure when it starts at a `modules/frontend-sdk` package, is declared in `modules/package.json`, or goes through a library of `frontend-js-dependencies-web`; otherwise it belongs to the CODEOWNERS owner of the module that declares its direct dependency. The team acts on the chains it owns.
 
 
 - Findings tagged `shared-library` — frontend infrastructure owns `frontend-js-dependencies-web`.
