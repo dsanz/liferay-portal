@@ -19,6 +19,9 @@ export const SCHEMA_VERSION = 2;
  * @property {number} schemaVersion Version of this shape, see `SCHEMA_VERSION`.
  * @property {string} generatedAt ISO date and time of the run, in UTC.
  * @property {string} gitCommit Abbreviated commit the run scanned.
+ * @property {{command: string, directory: string}} invocation How the tool was
+ * run: `command` can be pasted back into a shell from `directory`, a path
+ * relative to the repository root (`.` for the root itself).
  * @property {{node: string, npm: string, registry: string, yarn: string}} environment
  * Versions of the tools used and the npm registry the advisories came from.
  * @property {{owner: string | null, projects: string[], severities: Severity[]}} options
@@ -122,8 +125,9 @@ export const SCHEMA_VERSION = 2;
 /**
  * @typedef {object} Advisory
  * @property {string} ghsa GitHub Advisory Database ID.
- * @property {string[]} cves Always empty: the advisory database endpoint the
- * scan uses returns no CVE IDs.
+ * @property {string[]} cves CVE IDs of the advisory, looked up in OSV.dev.
+ * Empty when the advisory has none, or when the lookup failed (then `errors`
+ * has a `cves` entry).
  * @property {Severity} severity Severity the advisory database assigns.
  * @property {string} title One-line description of the vulnerability.
  * @property {string} url Advisory page.
@@ -158,6 +162,9 @@ export const SCHEMA_VERSION = 2;
  * declares down to the vulnerable one.
  *
  * @typedef {object} Chain
+ * @property {string[]} approvers Who approves the fix of this chain. The
+ * finding's approvers are the union of its chains' approvers, so a team acts
+ * only on the chains it approves.
  * @property {string[]} path Package names along the chain, as installed. It
  * can start with workspace members, which are skipped to find the direct
  * dependency.
@@ -364,8 +371,9 @@ export const SCHEMA_VERSION = 2;
 
 /**
  * @typedef {object} ReportError
- * @property {string} project Path of the project, or of the file, that failed.
- * @property {'discover' | 'dockerfiles' | 'fix' | 'resolutions' | 'scan'} stage
+ * @property {string} project Path of the project, or of the file, that failed,
+ * or `osv.dev` for the `cves` stage.
+ * @property {'cves' | 'discover' | 'dockerfiles' | 'fix' | 'resolutions' | 'scan'} stage
  * The stage that failed.
  * @property {string} message What went wrong.
  */

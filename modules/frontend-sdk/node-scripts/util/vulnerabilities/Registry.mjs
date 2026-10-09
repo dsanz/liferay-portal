@@ -32,6 +32,8 @@ const BULK_RETRY_DELAYS = [1000, 2000, 4000];
 const NON_REGISTRY_RANGE_REGEXP =
 	/^(?:file:|link:|portal:|workspace:|git[+:]|github:|https?:|[^@\s]+\/[^@\s]+$)/;
 
+const OSV_VULNS_URL = 'https://api.osv.dev/v1/vulns/';
+
 export class UnresolvableRangeError extends Error {}
 
 /**
@@ -42,6 +44,10 @@ export class UnresolvableRangeError extends Error {}
  *   range, delegated to `npm view` so the full semver grammar is honored
  * - advisories: which advisories affect an exact version, asked to the bulk
  *   advisory endpoint the npm CLI uses for `npm audit`
+ * - CVE IDs: which CVE IDs an advisory has, asked to OSV.dev, because the bulk
+ *   advisory endpoint only returns GitHub advisory IDs
+ *
+ * Answers are only kept in memory for the run: nothing is written to disk.
  */
 export default class Registry {
 
@@ -52,6 +58,7 @@ export default class Registry {
 	 */
 	constructor({limit, registryURL}) {
 		this._advisoriesCache = new Map();
+		this._cvesCache = new Map();
 		this._flushTimeout = null;
 		this._limit = limit;
 		this._matchingVersionsCache = new Map();
@@ -92,6 +99,23 @@ export default class Registry {
 		}
 
 		return this._advisoriesCache.get(key);
+	}
+
+	/**
+	 * Returns the CVE IDs of a GitHub advisory, empty when it has none.
+	 *
+	 * @param {string} ghsa GitHub advisory ID
+	 * @return {Promise<string[]>}
+	 */
+	getCves(ghsa) {
+		if (!this._cvesCache.has(ghsa)) {
+			this._cvesCache.set(
+				ghsa,
+				this._limit(() => this._fetchCves(ghsa))
+			);
+		}
+
+		return this._cvesCache.get(ghsa);
 	}
 
 	/**
@@ -250,6 +274,43 @@ export default class Registry {
 
 				lastError = new Error(
 					`Advisory endpoint answered ${response.status} ${response.statusText}`
+				);
+			}
+			catch (error) {
+				lastError = error;
+			}
+		}
+
+		throw lastError;
+	}
+
+	async _fetchCves(ghsa) {
+		let lastError;
+
+		for (let attempt = 0; attempt <= BULK_RETRY_DELAYS.length; attempt++) {
+			if (attempt) {
+				await sleep(BULK_RETRY_DELAYS[attempt - 1]);
+			}
+
+			try {
+				const response = await fetch(
+					`${OSV_VULNS_URL}${encodeURIComponent(ghsa)}`
+				);
+
+				if (response.status === 404) {
+					return [];
+				}
+
+				if (response.ok) {
+					const json = await response.json();
+
+					return (json.aliases || [])
+						.filter((alias) => alias.startsWith('CVE-'))
+						.sort();
+				}
+
+				lastError = new Error(
+					`OSV.dev answered ${response.status} ${response.statusText}`
 				);
 			}
 			catch (error) {

@@ -109,7 +109,11 @@ export default async function main() {
 	let report;
 
 	try {
-		report = await createReport({environment, options});
+		report = await createReport({
+			environment,
+			invocation: getInvocation(),
+			options,
+		});
 	}
 	catch (error) {
 		if (!(error instanceof UsageError)) {
@@ -155,7 +159,7 @@ export default async function main() {
  * @param {{concurrency: number, format: string, output: string | null, owner: string | null, projects: string[]}} params.options
  * @return {Promise<import('../util/vulnerabilities/reportTypes.mjs').Report>}
  */
-async function createReport({environment, options}) {
+async function createReport({environment, invocation, options}) {
 	const errors = [];
 
 	const trackedFiles = await getTrackedFiles();
@@ -247,7 +251,7 @@ async function createReport({environment, options}) {
 		})
 	);
 
-	return filterReport(
+	const report = filterReport(
 		{
 			environment: {
 				node: process.versions.node,
@@ -259,6 +263,7 @@ async function createReport({environment, options}) {
 			findings: findings.sort(compareFindings),
 			generatedAt: new Date().toISOString().replace(/\.\d+Z$/, 'Z'),
 			gitCommit: environment.gitCommit,
+			invocation,
 			options: {
 				owner: options.owner,
 				projects: options.projects,
@@ -271,6 +276,49 @@ async function createReport({environment, options}) {
 		},
 		options
 	);
+
+	await addCves({registry, report});
+
+	return report;
+}
+
+/**
+ * Fills the CVE IDs of the advisories left after filtering. A lookup that
+ * fails leaves the advisory with its GHSA ID only and is recorded once, under
+ * the `cves` stage, for all the advisories that failed.
+ */
+async function addCves({registry, report}) {
+	const advisories = report.findings
+		.filter((finding) => finding.type === 'advisory')
+		.map((finding) => finding.advisory);
+
+	const cves = new Map();
+	const failures = [];
+
+	await Promise.all(
+		[...new Set(advisories.map((advisory) => advisory.ghsa))].map(
+			async (ghsa) => {
+				try {
+					cves.set(ghsa, await registry.getCves(ghsa));
+				}
+				catch (error) {
+					failures.push(`${ghsa} (${error.message})`);
+				}
+			}
+		)
+	);
+
+	for (const advisory of advisories) {
+		advisory.cves = cves.get(advisory.ghsa) || [];
+	}
+
+	if (failures.length) {
+		report.errors.push({
+			message: `Unable to look up the CVE IDs of ${failures.length} advisories in OSV.dev: ${failures.sort().slice(0, 5).join(', ')}`,
+			project: 'osv.dev',
+			stage: 'cves',
+		});
+	}
 }
 
 function compareFindings(left, right) {
@@ -435,6 +483,31 @@ function getSharedLibraries() {
 	catch {
 		return new Set();
 	}
+}
+
+/**
+ * Returns how the tool was invoked, as a command that can be pasted back into
+ * a shell from the same directory: through the `node-scripts` binary, or
+ * through `node` and the path of this script relative to that directory.
+ */
+function getInvocation() {
+	const [script, ...args] = process.argv.slice(1);
+
+	const words =
+		path.basename(script) === 'bin.js'
+			? ['node-scripts', ...args]
+			: ['node', path.relative(process.cwd(), script) || script, ...args];
+
+	return {
+		command: words.map(quoteShellWord).join(' '),
+		directory: path.relative(PORTAL_DIR, process.cwd()) || '.',
+	};
+}
+
+function quoteShellWord(word) {
+	return /^[\w@%+=:,./-]+$/.test(word)
+		? word
+		: `'${word.replaceAll("'", "'\\''")}'`;
 }
 
 async function getTrackedFiles() {
@@ -723,6 +796,7 @@ function toOutputFinding(finding) {
 		advisory: finding.advisory,
 		approvers: unique(finding.approvers),
 		chains: finding.chains.map((chain) => ({
+			approvers: unique(chain.approvers),
 			declaredIn: chain.declaredIn,
 			directDependency: chain.directDependency,
 			fix: chain.fix,

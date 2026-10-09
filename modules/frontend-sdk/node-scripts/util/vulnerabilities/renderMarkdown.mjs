@@ -39,7 +39,14 @@ export default function renderMarkdown(report) {
 		);
 	}
 
-	lines.push(...renderSummary(report), '', ...renderProjects(report), '');
+	lines.push(
+		`Command: \`${report.invocation.command}\`, run from \`${report.invocation.directory}\`.`,
+		'',
+		...renderSummary(report),
+		'',
+		...renderProjects(report),
+		''
+	);
 
 	const projectsByPath = new Map(
 		report.projects.map((project) => [project.path, project])
@@ -69,8 +76,15 @@ export default function renderMarkdown(report) {
 	return lines.join('\n');
 }
 
-function escapeCell(text) {
-	return escapeText(String(text ?? '')).replace(/\|/g, '\\|');
+/**
+ * Escapes a table cell. An array becomes one line per item.
+ */
+function escapeCell(value) {
+	if (Array.isArray(value)) {
+		return value.map(escapeCell).join('<br>');
+	}
+
+	return escapeText(String(value ?? '')).replace(/\|/g, '\\|');
 }
 
 function escapeText(text) {
@@ -135,6 +149,55 @@ function formatFix(finding) {
 	return fix.type;
 }
 
+/**
+ * Formats the package names along a chain, from the direct dependency down to
+ * the vulnerable package. Versions are left out: the direct dependency and
+ * installed columns carry the ones that matter.
+ */
+function formatChain(chain) {
+	return chain.installedChain.map((link) => link.name).join('>');
+}
+
+/**
+ * Formats the direct dependency of a chain, with the version the lockfile
+ * installs, followed by the `package.json` files that declare it.
+ */
+function formatDirectDependency(chain) {
+	const version = chain.installedChain[0]?.version;
+
+	const directDependency = version
+		? `${chain.directDependency}@${version}`
+		: chain.directDependency;
+
+	const files = [
+		...new Set(chain.declaredIn.map((declaration) => declaration.file)),
+	];
+
+	return files.length
+		? `${directDependency} (${files.join(', ')})`
+		: directDependency;
+}
+
+/**
+ * Returns a finding as one approver sees it: only the chains that approver
+ * approves, and the scope those chains give it. A finding shared by several
+ * teams would otherwise show each team the direct dependencies, fixes and
+ * scope of the others.
+ */
+function getApproverView(finding, approver) {
+	const chains = finding.chains.filter((chain) =>
+		chain.approvers.includes(approver)
+	);
+
+	return {
+		...finding,
+		chains,
+		scope: chains.some((chain) => chain.scope === SCOPE_RUNTIME)
+			? SCOPE_RUNTIME
+			: SCOPE_BUILD,
+	};
+}
+
 function getApprovers(report) {
 	if (report.options.owner) {
 		return [report.options.owner];
@@ -162,19 +225,34 @@ function getApprovers(report) {
 }
 
 /**
+ * Returns the severities a report lists: those of `--severity`, or all of them.
+ */
+function getListedSeverities(report) {
+	const {severities} = report.options;
+
+	return severities.length
+		? SEVERITIES.filter((severity) => severities.includes(severity))
+		: SEVERITIES;
+}
+
+/**
  * Renders the totals of the report as a table whose rows are always the same
  * and in the same order, zeros included, so that the summaries of two runs can
- * be compared line by line to track progress.
+ * be compared line by line to track progress. With `--severity`, only the
+ * listed severities get rows, and the lockfile and Dockerfile findings, which
+ * have no severity, are left out of the table.
  */
 function renderSummary(report) {
 	const {findings, projects, uniqueAdvisoryPackagePairs} = report.summary;
 
 	const count = (counts, key) => counts[key] || 0;
 
+	const filtered = !!report.options.severities.length;
+
 	const rows = [
 		['Vulnerability findings', count(findings.byType, 'advisory')],
 		['Unique (advisory, package) pairs', uniqueAdvisoryPackagePairs],
-		...SEVERITIES.map((severity) => [
+		...getListedSeverities(report).map((severity) => [
 			`Severity: ${severity}`,
 			count(findings.bySeverity, severity),
 		]),
@@ -184,7 +262,7 @@ function renderSummary(report) {
 			`Fix: ${fixType}`,
 			count(findings.byFixType, fixType),
 		]),
-		...OTHER_FINDING_TYPES.map((type) => [
+		...(filtered ? [] : OTHER_FINDING_TYPES).map((type) => [
 			`Other: ${type}`,
 			count(findings.byType, type),
 		]),
@@ -222,16 +300,17 @@ function renderProjects(report) {
 
 	const total = getProjectCounts('**Total**', report.findings);
 
+	const filtered = !!report.options.severities.length;
+
 	const columns = [
 		'Project',
 		'Findings',
 		'Unique',
-		'Critical',
-		'High',
-		'Moderate',
-		'Low',
+		...getListedSeverities(report).map(
+			(severity) => severity[0].toUpperCase() + severity.slice(1)
+		),
 		'Runtime',
-		'Other',
+		...(filtered ? [] : ['Other']),
 	];
 
 	return [
@@ -243,7 +322,9 @@ function renderProjects(report) {
 			(row) => `| ${columns.map((column) => row[column]).join(' | ')} |`
 		),
 		'',
-		'"Unique" counts distinct (advisory, package) pairs, "Runtime" the findings that can reach shipped code, and "Other" the lockfile and Dockerfile findings.',
+		filtered
+			? '"Unique" counts distinct (advisory, package) pairs, and "Runtime" the findings that can reach shipped code. Lockfile and Dockerfile findings have no severity, so they are only listed in the sections below.'
+			: '"Unique" counts distinct (advisory, package) pairs, "Runtime" the findings that can reach shipped code, and "Other" the lockfile and Dockerfile findings.',
 	];
 }
 
@@ -260,6 +341,7 @@ function getProjectCounts(label, findings) {
 		Critical: bySeverity('critical'),
 		Findings: advisories.length,
 		High: bySeverity('high'),
+		Info: bySeverity('info'),
 		Low: bySeverity('low'),
 		Moderate: bySeverity('moderate'),
 		Other: findings.length - advisories.length,
@@ -282,9 +364,9 @@ function renderApprover({approver, projectsByPath, report}) {
 		resolution.approvers.includes(approver)
 	);
 
-	const advisoryFindings = findings.filter(
-		(finding) => finding.type === 'advisory'
-	);
+	const advisoryFindings = findings
+		.filter((finding) => finding.type === 'advisory')
+		.map((finding) => getApproverView(finding, approver));
 
 	const projectPaths = [
 		...new Set([
@@ -318,26 +400,29 @@ function renderApprover({approver, projectsByPath, report}) {
 			lines.push(
 				`Findings: ${projectAdvisories.length} (${formatCounts(projectAdvisories)})`,
 				'',
-				'| Package | Installed | Advisory | Severity | Scope | Fix | Direct dependency | Id |',
-				'| --- | --- | --- | --- | --- | --- | --- | --- |'
+				'| Package | Installed | Advisory | CVE | Severity | Scope | Fix | Direct dependency (declared in) | Chain | Id |',
+				'| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |'
 			);
 
 			for (const finding of projectAdvisories) {
+				const chains = [...finding.chains].sort(compareChains);
+
 				const directDependencies = [
-					...new Set(
-						finding.chains.map((chain) => chain.directDependency)
-					),
+					...new Set(chains.map(formatDirectDependency)),
 				];
+				const chainNames = [...new Set(chains.map(formatChain))];
 
 				lines.push(
 					`| ${[
 						finding.package,
 						finding.installedVersion,
 						finding.advisory.ghsa,
+						finding.advisory.cves.join(', '),
 						finding.advisory.severity,
 						finding.scope,
 						formatFix(finding),
-						directDependencies.join(', '),
+						directDependencies,
+						chainNames,
 						finding.id,
 					]
 						.map(escapeCell)
@@ -429,6 +514,26 @@ function renderApprover({approver, projectsByPath, report}) {
 	}
 
 	return lines;
+}
+
+/**
+ * Groups chains by their first two packages, so that every chain through the
+ * same dependency of a direct dependency (like `d3>d3-interpolate`) goes
+ * together, and puts the shortest chains of each group first.
+ */
+function compareChains(left, right) {
+	const group = (chain) =>
+		chain.installedChain
+			.slice(0, 2)
+			.map((link) => link.name)
+			.join('>');
+
+	return (
+		left.directDependency.localeCompare(right.directDependency) ||
+		group(left).localeCompare(group(right)) ||
+		left.installedChain.length - right.installedChain.length ||
+		formatChain(left).localeCompare(formatChain(right))
+	);
 }
 
 function compareFindings(left, right) {
