@@ -9,6 +9,14 @@ import {SCOPE_BUILD, SCOPE_RUNTIME} from './collectFindings.mjs';
 
 export const SEVERITIES = ['critical', 'high', 'moderate', 'low', 'info'];
 
+const OTHER_FINDING_TYPES = [
+	'dead-lockfile',
+	'lockfile-drift',
+	'lockfile-out-of-sync',
+	'members-drift',
+	'unpinned-install',
+];
+
 /**
  * Renders a report as Markdown with one section per approver, so that each
  * section can be pasted into that approver's ticket.
@@ -23,6 +31,15 @@ export default function renderMarkdown(report) {
 		`Generated ${report.generatedAt} at commit \`${report.gitCommit}\`. ${report.summary.uniqueAdvisoryPackagePairs} unique (advisory, package) pairs in ${report.summary.projects} projects.`,
 		'',
 	];
+
+	if (report.options.severities.length) {
+		lines.push(
+			`Only advisories of severity ${report.options.severities.join(', ')} are listed.`,
+			''
+		);
+	}
+
+	lines.push(...renderSummary(report), '', ...renderProjects(report), '');
 
 	const projectsByPath = new Map(
 		report.projects.map((project) => [project.path, project])
@@ -142,6 +159,119 @@ function getApprovers(report) {
 
 		return left.localeCompare(right);
 	});
+}
+
+/**
+ * Renders the totals of the report as a table whose rows are always the same
+ * and in the same order, zeros included, so that the summaries of two runs can
+ * be compared line by line to track progress.
+ */
+function renderSummary(report) {
+	const {findings, projects, uniqueAdvisoryPackagePairs} = report.summary;
+
+	const count = (counts, key) => counts[key] || 0;
+
+	const rows = [
+		['Vulnerability findings', count(findings.byType, 'advisory')],
+		['Unique (advisory, package) pairs', uniqueAdvisoryPackagePairs],
+		...SEVERITIES.map((severity) => [
+			`Severity: ${severity}`,
+			count(findings.bySeverity, severity),
+		]),
+		['Scope: runtime', count(findings.byScope, SCOPE_RUNTIME)],
+		['Scope: build', count(findings.byScope, SCOPE_BUILD)],
+		...FIX_TYPES.map((fixType) => [
+			`Fix: ${fixType}`,
+			count(findings.byFixType, fixType),
+		]),
+		...OTHER_FINDING_TYPES.map((type) => [
+			`Other: ${type}`,
+			count(findings.byType, type),
+		]),
+		['Resolutions', report.resolutions.length],
+		['Projects', projects],
+		['Errors', report.errors.length],
+	];
+
+	return [
+		'## Summary',
+		'',
+		'| Measure | Count |',
+		'| --- | --- |',
+		...rows.map(([label, value]) => `| ${label} | ${value} |`),
+	];
+}
+
+/**
+ * Renders one row per project, sorted by path, under a grand total row, so
+ * that the state of every project can be seen at a glance and compared
+ * between runs.
+ */
+function renderProjects(report) {
+	const rows = report.projects
+		.map((project) => project.path)
+		.sort()
+		.map((projectPath) =>
+			getProjectCounts(
+				projectPath,
+				report.findings.filter(
+					(finding) => finding.project === projectPath
+				)
+			)
+		);
+
+	const total = getProjectCounts('**Total**', report.findings);
+
+	const columns = [
+		'Project',
+		'Findings',
+		'Unique',
+		'Critical',
+		'High',
+		'Moderate',
+		'Low',
+		'Runtime',
+		'Other',
+	];
+
+	return [
+		'## Projects',
+		'',
+		`| ${columns.join(' | ')} |`,
+		`| ${columns.map(() => '---').join(' | ')} |`,
+		...[total, ...rows].map(
+			(row) => `| ${columns.map((column) => row[column]).join(' | ')} |`
+		),
+		'',
+		'"Unique" counts distinct (advisory, package) pairs, "Runtime" the findings that can reach shipped code, and "Other" the lockfile and Dockerfile findings.',
+	];
+}
+
+function getProjectCounts(label, findings) {
+	const advisories = findings.filter(
+		(finding) => finding.type === 'advisory'
+	);
+
+	const bySeverity = (severity) =>
+		advisories.filter((finding) => finding.advisory.severity === severity)
+			.length;
+
+	return {
+		Critical: bySeverity('critical'),
+		Findings: advisories.length,
+		High: bySeverity('high'),
+		Low: bySeverity('low'),
+		Moderate: bySeverity('moderate'),
+		Other: findings.length - advisories.length,
+		Project: label.startsWith('**') ? label : `\`${label}\``,
+		Runtime: advisories.filter((finding) => finding.scope === SCOPE_RUNTIME)
+			.length,
+		Unique: new Set(
+			advisories.map(
+				(finding) => `${finding.advisory.ghsa}|${finding.package}`
+			)
+		).size,
+	};
 }
 
 function renderApprover({approver, projectsByPath, report}) {

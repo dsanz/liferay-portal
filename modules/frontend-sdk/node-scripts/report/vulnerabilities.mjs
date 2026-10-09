@@ -37,7 +37,9 @@ import discoverProjects, {
 } from '../util/vulnerabilities/discoverProjects.mjs';
 import parsePackageLock from '../util/vulnerabilities/parsePackageLock.mjs';
 import parseYarnLock from '../util/vulnerabilities/parseYarnLock.mjs';
-import renderMarkdown from '../util/vulnerabilities/renderMarkdown.mjs';
+import renderMarkdown, {
+	SEVERITIES,
+} from '../util/vulnerabilities/renderMarkdown.mjs';
 import {SCHEMA_VERSION} from '../util/vulnerabilities/reportTypes.mjs';
 import runCommand, {
 	createLimiter,
@@ -73,6 +75,7 @@ const OPTIONS = {
 	'--output': 'output',
 	'--owner': 'owner',
 	'--project': 'projects',
+	'--severity': 'severities',
 };
 
 class UsageError extends Error {}
@@ -244,7 +247,7 @@ async function createReport({environment, options}) {
 		})
 	);
 
-	return filterByOwner(
+	return filterReport(
 		{
 			environment: {
 				node: process.versions.node,
@@ -259,13 +262,14 @@ async function createReport({environment, options}) {
 			options: {
 				owner: options.owner,
 				projects: options.projects,
+				severities: options.severities,
 			},
 			projects: projectReports.map(({project}) => project),
 			resolutions,
 			schemaVersion: SCHEMA_VERSION,
 			summary: null,
 		},
-		options.owner
+		options
 	);
 }
 
@@ -300,10 +304,19 @@ function countBy(items, getKeys) {
 }
 
 /**
- * Keeps only what one approver owns, then computes the summary over what is
- * left.
+ * Keeps only the advisory findings of the requested severities and what one
+ * approver owns, then computes the summary over what is left. Findings of
+ * other types have no severity, so the severity filter keeps them.
  */
-function filterByOwner(report, owner) {
+function filterReport(report, {owner, severities}) {
+	if (severities.length) {
+		report.findings = report.findings.filter(
+			(finding) =>
+				finding.type !== 'advisory' ||
+				severities.includes(finding.advisory.severity)
+		);
+	}
+
 	if (owner) {
 		report.findings = report.findings.filter((finding) =>
 			finding.approvers.includes(owner)
@@ -478,6 +491,7 @@ function parseArguments(args) {
 		output: null,
 		owner: null,
 		projects: [],
+		severities: [],
 	};
 
 	for (let i = 0; i < args.length; i++) {
@@ -497,6 +511,21 @@ function parseArguments(args) {
 
 		if (option === 'projects') {
 			options.projects.push(toRepositoryPath(value));
+		}
+		else if (option === 'severities') {
+			for (const severity of value.split(',')) {
+				const trimmedSeverity = severity.trim().toLowerCase();
+
+				if (!SEVERITIES.includes(trimmedSeverity)) {
+					throw new UsageError(
+						`Option '--severity' takes ${SEVERITIES.map((knownSeverity) => `'${knownSeverity}'`).join(', ')}, not '${severity}'`
+					);
+				}
+
+				if (!options.severities.includes(trimmedSeverity)) {
+					options.severities.push(trimmedSeverity);
+				}
+			}
 		}
 		else {
 			options[option] = value;

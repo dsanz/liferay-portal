@@ -12,7 +12,7 @@
  * Paths are relative to the repository root and use `/` separators.
  */
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 /**
  * @typedef {object} Report
@@ -21,8 +21,10 @@ export const SCHEMA_VERSION = 1;
  * @property {string} gitCommit Abbreviated commit the run scanned.
  * @property {{node: string, npm: string, registry: string, yarn: string}} environment
  * Versions of the tools used and the npm registry the advisories came from.
- * @property {{owner: string | null, projects: string[]}} options The
- * `--owner` and `--project` filters of the run, empty when not given.
+ * @property {{owner: string | null, projects: string[], severities: Severity[]}} options
+ * The `--owner`, `--project` and `--severity` filters of the run, empty when
+ * not given. `--severity` only filters advisory findings: findings of other
+ * types have no severity and are always kept.
  * @property {Summary} summary Counts over the findings left after filtering.
  * @property {ProjectReport[]} projects One entry per scanned project.
  * @property {Finding[]} findings Every finding, sorted by project, type and

@@ -158,6 +158,11 @@ const COMMANDS = {
 		resolution, unpinned installs in Dockerfiles and lockfiles yarn never
 		installs from.
 
+		--severity keeps only advisories of the given severities, as a comma
+		separated list of critical, high, moderate, low and info (for example
+		'--severity critical,high'). Other findings have no severity and are
+		always kept.
+
 		The report is printed to stdout as Markdown (one section per approver)
 		or JSON. It never edits files and its exit code never depends on the
 		findings: 2 means some projects could not be audited.
@@ -167,7 +172,7 @@ const COMMANDS = {
 		'node modules/frontend-sdk/node-scripts/report/vulnerabilities.mjs'.
 `,
 		parameters:
-			'[--project <path>]... [--owner <team>] [--format json|md] [--output <file>] [--concurrency <n>]',
+			'[--project <path>]... [--owner <team>] [--severity <list>]... [--format json|md] [--output <file>] [--concurrency <n>]',
 		script: './report/vulnerabilities.mjs',
 	},
 	'setup': {
